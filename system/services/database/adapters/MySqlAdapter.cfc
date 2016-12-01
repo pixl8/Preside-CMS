@@ -150,6 +150,7 @@ component extends="BaseAdapter" {
 		, required array   selectColumns
 		,          any     filter        = {}
 		,          string  orderBy       = ""
+		,          string  having        = ""
 		,          string  groupBy       = ""
 		,          string  tableAlias    = ""
 		,          array   joins         = []
@@ -183,6 +184,10 @@ component extends="BaseAdapter" {
 
 		if ( Len( Trim ( arguments.groupBy ) ) ) {
 			sql &= " group by " & arguments.groupBy;
+		}
+
+		if ( Len( Trim ( arguments.having ) ) ) {
+			sql &= " having " & arguments.having;
 		}
 
 		if ( Len( Trim ( arguments.orderBy ) ) ) {

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Email center: General settings form
+
+This form is used for configuring general email settings
+-->
+<form i18nBaseUri="cms:emailcenter.settings.general.form.">
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field sortorder="10" name="default_from_address" control="textinput" required="false" />
+		</fieldset>
+		<fieldset id="providers" sortorder="20">
+			<field sortorder="10" name="defaultProvider"   control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" />
+			<field sortorder="20" name="disabledProviders" control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" multiple="true" />
+		</fieldset>
+		<fieldset id="masssendout" sortorder="20">
+			<field sortorder="10" name="ratelimit" control="spinner" required="false" default="100" />
+		</fieldset>
+	</tab>
+</form>

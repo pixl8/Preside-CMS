@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="email_template.name"         control="textinput"         sortorder="10" />
+			<field binding="email_template.layout"       control="emailLayoutPicker" sortorder="20" />
+			<field binding="email_template.subject"      control="textinput"         sortorder="30" />
+			<field binding="email_template.from_address" control="textinput"         sortorder="40" />
+		</fieldset>
+		<fieldset id="body" sortorder="20">
+			<field binding="email_template.html_body"    control="richeditor"        sortorder="40" toolbar="email" />
+			<field binding="email_template.text_body"    control="textarea"          sortorder="50" />
+		</fieldset>
+	</tab>
+</form>

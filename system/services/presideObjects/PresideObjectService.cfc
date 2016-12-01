@@ -127,45 +127,52 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint         Name of the object from which to select data
-	 * @id.hint                 ID of a record to select
-	 * @selectFields.hint       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
-	 * @filter.hint             Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @extraFilters.hint       An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
-	 * @orderBy.hint            Plain SQL order by string
-	 * @groupBy.hint            Plain SQL group by string
-	 * @maxRows.hint            Maximum number of rows to select
-	 * @startRow.hint           Offset the recordset when using maxRows
-	 * @useCache.hint           Whether or not to automatically cache the result internally
-	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
-	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
-	 * @allowDraftVersions.hint Choose whether or not to allow selecting from draft records and/or versions
-	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
-	 * @selectFields.docdefault []
-	 * @filter.docdefault       {}
-	 * @filterParams.docdefault {}
-	 * @extraFilters.docdefault []
-	 * @recordCountOnly.hint    If set to true, the method will just return the number of records that the select statement would return
+	 * @objectName.hint          Name of the object from which to select data
+	 * @id.hint                  ID of a record to select
+	 * @selectFields.hint        Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
+	 * @filter.hint              Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint        An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
+	 * @orderBy.hint             Plain SQL order by string
+	 * @groupBy.hint             Plain SQL group by string
+	 * @having.hint              Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
+	 * @maxRows.hint             Maximum number of rows to select
+	 * @startRow.hint            Offset the recordset when using maxRows
+	 * @useCache.hint            Whether or not to automatically cache the result internally
+	 * @fromVersionTable.hint    Whether or not to select the data from the version history table for the object
+	 * @specificVersion.hint     Can be used to select a specific version when selecting from the version table
+	 * @allowDraftVersions.hint  Choose whether or not to allow selecting from draft records and/or versions
+	 * @forceJoins.hint          Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @extraJoins.hint          An array of explicit joins to add to the query (can define subquery joins this way)
+	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
+	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @selectFields.docdefault  []
+	 * @filter.docdefault        {}
+	 * @filterParams.docdefault  {}
+	 * @extraFilters.docdefault  []
+	 * @extraJoins.docdefault    []
 	 */
 	public any function selectData(
 		  required string  objectName
 		,          string  id
-		,          array   selectFields       = []
-		,          any     filter             = {}
-		,          struct  filterParams       = {}
-		,          array   extraFilters       = []
-		,          array   savedFilters       = []
-		,          string  orderBy            = ""
-		,          string  groupBy            = ""
-		,          numeric maxRows            = 0
-		,          numeric startRow           = 1
-		,          boolean useCache           = true
-		,          boolean fromVersionTable   = false
-		,          numeric specificVersion    = 0
-		,          boolean allowDraftVersions = $getRequestContext().showNonLiveContent()
-		,          string  forceJoins         = ""
-		,          boolean recordCountOnly    = false
+		,          array   selectFields        = []
+		,          any     filter              = {}
+		,          struct  filterParams        = {}
+		,          array   extraFilters        = []
+		,          array   savedFilters        = []
+		,          string  orderBy             = ""
+		,          string  groupBy             = ""
+		,          string  having              = ""
+		,          numeric maxRows             = 0
+		,          numeric startRow            = 1
+		,          boolean useCache            = true
+		,          boolean fromVersionTable    = false
+		,          numeric specificVersion     = 0
+		,          boolean allowDraftVersions  = $getRequestContext().showNonLiveContent()
+		,          string  forceJoins          = ""
+		,          array   extraJoins          = []
+		,          boolean recordCountOnly     = false
+		,          boolean getSqlAndParamsOnly = false
 
 	) autodoc=true {
 		var args    = Duplicate( arguments );
@@ -205,7 +212,6 @@ component displayName="Preside Object Service" {
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
 
-
 		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.result = _selectFromVersionTables(
 				  argumentCollection = args
@@ -220,19 +226,24 @@ component displayName="Preside Object Service" {
 				, tableAlias         = args.objectName
 				, selectColumns      = args.selectFields
 				, filter             = args.preparedFilter.filter
+				, having             = args.preparedFilter.having
 				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
 			);
 
 			if ( arguments.recordCountOnly ) {
 				sql = args.adapter.getCountSql( sql );
 			}
+			if ( arguments.getSqlAndParamsOnly ) {
+				return {
+					  sql    = sql
+					, params = args.preparedFilter.params
+				};
+			}
 			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
 			if ( arguments.recordCountOnly ) {
 				args.result = Val( args.result.record_count ?: "" );
 			}
-
 		}
-
 
 		if ( args.useCache ) {
 			_getDefaultQueryCache().set( args.cacheKey, args.result );
@@ -264,6 +275,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
+	 * @autodoc                      true
 	 * @objectName.hint              Name of the object in which to to insert a record
 	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
 	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
@@ -391,6 +403,47 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postInsertObjectData", interceptionArgs );
 
 		return newId;
+	}
+
+
+	/**
+	 * Inserts records into a database based on a selectData() set of arguments and provided
+	 * fieldlist.
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object in which to to insert records
+	 * @selectDataArgs.hint Struct of arguments that are valid to pass to the [[presideobjectservice-selectdata]] method
+	 * @fieldList.hint      Array of table field names that the select fields in the select statement should map to for the insert
+	 */
+	public numeric function insertDataFromSelect(
+		  required string objectName
+		, required struct selectDataArgs
+		, required array  fieldList
+	) {
+		var obj       = _getObject( arguments.objectName ).meta;
+		var adapter   = _getAdapter( obj.dsn );
+		var selectSql = selectData( argumentCollection=arguments.selectDataArgs, getSqlAndParamsOnly=true );
+		var insertSql = adapter.getInsertSql(
+			  tableName     = obj.tableName
+			, insertColumns = arguments.fieldList
+			, selectStatement = selectSql.sql
+		);
+
+		var result = _runSql(
+			  sql        = insertSql[ 1 ]
+			, dsn        = obj.dsn
+			, params     = selectSql.params
+			, returnType = "info"
+		);
+
+		clearRelatedCaches(
+			  objectName              = arguments.objectName
+			, filter                  = ""
+			, filterParams            = {}
+			, clearSingleRecordCaches = false
+		);
+
+		return Val( result.recordCount );
 	}
 
 	/**
@@ -1561,9 +1614,10 @@ component displayName="Preside Object Service" {
 
 	) {
 		var filter     = arguments.preparedFilter.filter ?: "";
+		var having     = arguments.preparedFilter.having ?: "";
 		var key        = "";
 		var cache      = _getCache();
-		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#"
+		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#";
 		var objects    = cache.get( cacheKey );
 
 		if ( not IsNull( objects ) ) {
@@ -1612,7 +1666,14 @@ component displayName="Preside Object Service" {
 				}
 			}
 		}
-
+		if ( Len( Trim( having ) ) ) {
+			matches = _reSearch( fieldRegex, having );
+			if ( StructKeyExists( matches, "$2" ) ) {
+				for( match in matches.$2 ){
+					objects[ match ] = 1;
+				}
+			}
+		}
 
 		StructDelete( objects, arguments.objectName );
 		objects = StructKeyArray( objects );
@@ -1646,7 +1707,7 @@ component displayName="Preside Object Service" {
 		return joins;
 	}
 
-	private array function _convertObjectJoinsToTableJoins( required array joins ) {
+	private array function _convertObjectJoinsToTableJoins( required array joins, array extraJoins=[], array extraFilters=[], array savedFilters=[] ) {
 		var tableJoins = [];
 		var objJoin    = "";
 		var objects    = _getObjects();
@@ -1667,6 +1728,22 @@ component displayName="Preside Object Service" {
 			}
 
 			tableJoins.append( join );
+		}
+
+		tableJoins.append( arguments.extraJoins, true );
+
+		for( var savedFilter in arguments.savedFilters ){
+			savedFilter = _getFilterService().getFilter( savedFilter );
+
+			if ( IsArray( savedFilter.extraJoins ?: "" ) ) {
+				tableJoins.append( savedFilter.extraJoins, true );
+			}
+		}
+
+		for( var extraFilter in arguments.extraFilters ){
+			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
+				tableJoins.append( extraFilter.extraJoins, true );
+			}
 		}
 
 		var interceptArguments = arguments;
@@ -2020,6 +2097,7 @@ component displayName="Preside Object Service" {
 		, required array  savedFilters
 		, required any    adapter
 		, required struct columnDefinitions
+		,          string having = ""
 		,          string id
 	) {
 		_announceInterception( "prePrepareObjectFilter", arguments );
@@ -2027,10 +2105,10 @@ component displayName="Preside Object Service" {
 		var result = {
 			  filter       = arguments.keyExists( "id" ) ? { id = arguments.id } : arguments.filter
 			, filterParams = arguments.filterParams
+			, having       = arguments.having
 		};
-
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
-			result.filterParams = Duplicate( result.filter );
+			result.filterParams.append( Duplicate( result.filter ) );
 		}
 
 		for( var savedFilter in arguments.savedFilters ){
@@ -2038,27 +2116,51 @@ component displayName="Preside Object Service" {
 
 			savedFilter.filter       = savedFilter.filter       ?: {};
 			savedFilter.filterParams = savedFilter.filterParams ?: {};
+			savedFilter.having       = savedFilter.having       ?: "";
 
-			result.filterParams.append( IsStruct( savedFilter.filter ) ? savedFilter.filter : savedFilter.filterParams );
+			result.filterParams.append( savedFilter.filterParams ?: {} );
+			if ( IsStruct( savedFilter.filter ) ) {
+				result.filterParams.append( savedFilter.filter );
+			}
 			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = savedFilter.filter
 				, dbAdapter  = arguments.adapter
 				, tableAlias = arguments.objectName
 			);
+			if ( Len( Trim( savedFilter.having ) ) ) {
+				result.having = mergeFilters(
+					  filter1    = result.having
+					, filter2    = savedFilter.having
+					, dbAdapter  = arguments.adapter
+					, tableAlias = arguments.objectName
+				);
+			}
 		}
 
 		for( var extraFilter in arguments.extraFilters ){
 			extraFilter.filter       = extraFilter.filter       ?: {};
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
+			extraFilter.having       = extraFilter.having       ?: "";
 
-			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
+			result.filterParams.append( extraFilter.filterParams ?: {} );
+			if ( IsStruct( extraFilter.filter ) ) {
+				result.filterParams.append( extraFilter.filter );
+			}
 			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = extraFilter.filter
 				, dbAdapter  = arguments.adapter
 				, tableAlias = arguments.objectName
 			);
+			if ( Len( Trim( extraFilter.having ) ) ) {
+				result.having = mergeFilters(
+					  filter1    = result.having
+					, filter2    = extraFilter.having
+					, dbAdapter  = arguments.adapter
+					, tableAlias = arguments.objectName
+				);
+			}
 		}
 
 		if ( IsStruct( result.filter ) ) {
@@ -2076,31 +2178,41 @@ component displayName="Preside Object Service" {
 				, data              = result.filter
 				, dbAdapter         = adapter
 			);
-		} else {
+		}
+
+		if ( !IsStruct( result.filter ) || result.having.len() ) {
 			for( var key in result.filterParams ) {
 				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
 				if ( aliasedKey != key ) {
 					result.filterParams[ aliasedKey ] = result.filterParams[ key ];
 					result.filterParams.delete( key );
-					result.filter = result.filter.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
+					if ( IsSimpleValue( result.filter ) ) {
+						result.filter = result.filter.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
+					}
+					result.having = result.having.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
 				}
 			}
 
 			var objOrPropRegex = "[a-z_\-][a-z0-9_\-]*";
-			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
-			result.params = _convertUserFilterParamsToQueryParams(
+			if ( IsSimpleValue( result.filter ) ) {
+				result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
+			}
+			result.having = ReReplaceNoCase( result.having, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
+		}
+		result.params = result.params ?: [];
+		if ( result.filterParams.count() ) {
+			result.params.append( _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
 				, dbAdapter         = adapter
 				, objectName        = arguments.objectName
-			);
+			), true );
 		}
 
 		var interceptData = arguments;
 		    interceptData.result = result;
 
 		_announceInterception( "postPrepareObjectFilter", interceptData );
-
 		return result;
 	}
 

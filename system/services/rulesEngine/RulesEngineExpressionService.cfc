@@ -13,11 +13,18 @@ component displayName="RulesEngine Expression Service" {
 	/**
 	 * @expressionReaderService.inject rulesEngineExpressionReaderService
 	 * @fieldTypeService.inject        rulesEngineFieldTypeService
+	 * @contextService.inject          rulesEngineContextService
 	 * @expressionDirectories.inject   presidecms:directories:/handlers/rules/expressions
 	 *
 	 */
-	public any function init( required any expressionReaderService, required any fieldTypeService, required array expressionDirectories ) {
+	public any function init(
+		  required any   expressionReaderService
+		, required any   fieldTypeService
+		, required any   contextService
+		, required array expressionDirectories
+	) {
 		_setFieldTypeService( fieldTypeService );
+		_setContextService( contextService );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) )
 
 		return this;
@@ -28,24 +35,45 @@ component displayName="RulesEngine Expression Service" {
 	 * Returns an array of expressions ordered by their translated
 	 * labels and optionally filtered by context
 	 *
-	 * @autodoc
-	 * @context.hint Expression context with which to filter the results
+	 * @autodoc           true
+	 * @context.hint      Expression context with which to filter the results
+	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
 	 */
-	public array function listExpressions( string context="" ) {
-		var allExpressions  = _getExpressions();
-		var list            = [];
-		var filterOnContext = arguments.context.len() > 0;
+	public array function listExpressions( string context="", string filterObject="" ) {
+		var allExpressions     = _getExpressions();
+		var list               = [];
+		var filterOnContext    = arguments.context.len() > 0;
+		var filterOnObject     = arguments.filterObject.len();
 
 		for( var expressionId in allExpressions ) {
 			var contexts = allExpressions[ expressionId ].contexts ?: [];
 
-			if ( !filterOnContext || contexts.findNoCase( arguments.context ) || contexts.findNoCase( "global" ) ) {
-				list.append( getExpression( expressionId ) );
+			if ( filterOnContext && !(contexts.findNoCase( "global" ) || contexts.findNoCase( arguments.context ) ) ) {
+				continue;
 			}
+			if ( filterOnObject && !( ( allExpressions[ expressionId ].filterObjects ?: [] ).len() && allExpressions[ expressionId ].filterObjects.findNoCase( arguments.filterObject ) ) ) {
+				continue;
+			}
+
+			var getExpressionArgs  = { expressionId = expressionId };
+			if ( Len( Trim( arguments.context ) ) ) {
+				getExpressionArgs.context = arguments.context;
+			}
+			if ( Len( Trim( arguments.filterObject ) ) ) {
+				getExpressionArgs.objectName = arguments.filterObject;
+			}
+
+			list.append( getExpression( argumentCollection=getExpressionArgs ) );
 		}
 
 		list.sort( function( a, b ){
-			return a.label > b.label ? 1 : -1;
+			var aCategory = a.category ?: "";
+			var bCategory = b.category ?: "";
+
+			if ( aCategory == bCategory ) {
+				return a.label > b.label ? 1 : -1;
+			}
+			return aCategory > bCategory ? 1 : -1;
 		} );
 
 		return list;
@@ -61,16 +89,30 @@ component displayName="RulesEngine Expression Service" {
 	 * * translated label
 	 * * translated expression text
 	 *
-	 * @autodoc
+	 * @autodoc           true
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
+	 * @context.hint      Context in which the expression is being used
 	 */
-	public struct function getExpression( required string expressionId ) {
-		var expression = Duplicate( _getRawExpression( arguments.expressionId ) );
+	public struct function getExpression(
+		  required string expressionId
+		,          string context    = ""
+		,          string objectName = ""
+	) {
+		var expression      = Duplicate( _getRawExpression( arguments.expressionId ) );
+		var translationArgs = { expressionId = arguments.expressionId };
 
-		expression.id     = expressionId;
-		expression.label  = getExpressionLabel( expressionId );
-		expression.text   = getExpressionText( expressionId );
-		expression.fields = expression.fields ?: {};
+		if ( Len( Trim( arguments.context ) ) ) {
+			translationArgs.context = arguments.context;
+		}
+		if ( Len( Trim( arguments.objectName ) ) ) {
+			translationArgs.objectName = arguments.objectName;
+		}
+
+		expression.id       = expressionId;
+		expression.label    = getExpressionLabel( argumentCollection=translationArgs );
+		expression.text     = getExpressionText( argumentCollection=translationArgs );
+		expression.fields   = expression.fields ?: {};
+		expression.category = translateExpressionCategory( expression.category ?: "default" );
 
 		for( var fieldName in expression.fields ) {
 			expression.fields[ fieldName ].defaultLabel = getDefaultFieldLabel( expressionId, fieldName );
@@ -86,10 +128,29 @@ component displayName="RulesEngine Expression Service" {
 	 * \n
 	 * > User is logged in
 	 *
-	 * @autodoc
+	 * @autodoc           true
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
+	 * @context.hint      Optional context in which the expression is being used
+	 * @objectName.hint   Optional object name for which a filter is being applied that uses this expression
 	 */
-	public string function getExpressionLabel( required string expressionId ) {
+	public string function getExpressionLabel(
+		  required string expressionId
+		,          string context    = ""
+	) {
+		var expression = _getRawExpression( arguments.expressionId );
+
+		if ( $getColdbox().handlerExists( expression.labelHandler ?: "" ) ) {
+			var handlerArgs = Duplicate( expression.labelHandlerArgs ?: {} );
+			handlerArgs.context    = arguments.context;
+
+			return $getColdbox().runEvent(
+				  event          = expression.labelHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = handlerArgs
+			);
+		}
+
 		return $translateResource(
 			  uri          = "rules.expressions.#arguments.expressionId#:label"
 			, defaultValue = arguments.expressionId
@@ -105,8 +166,27 @@ component displayName="RulesEngine Expression Service" {
 	 *
 	 * @autodoc
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
+	 * @context.hint      Optional context in which the expression is being used
+	 * @objectName.hint   Optional object name for which a filter is being applied that uses this expression
 	 */
-	public string function getExpressionText( required string expressionId ) {
+	public string function getExpressionText(
+		  required string expressionId
+		,          string context    = ""
+	) {
+		var expression = _getRawExpression( arguments.expressionId );
+
+		if ( $getColdbox().handlerExists( expression.textHandler ?: "" ) ) {
+			var handlerArgs = Duplicate( expression.textHandlerArgs ?: {} );
+			handlerArgs.context    = arguments.context;
+
+			return $getColdbox().runEvent(
+				  event          = expression.textHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = handlerArgs
+			);
+		}
+
 		return $translateResource(
 			  uri          = "rules.expressions.#arguments.expressionId#:text"
 			, defaultValue = arguments.expressionId
@@ -125,6 +205,13 @@ component displayName="RulesEngine Expression Service" {
 	 * @fieldName.hint    Name of the field
 	 */
 	public string function getDefaultFieldLabel( required string expressionId, required string fieldName ) {
+		var rawDefinition     = _getRawExpression( arguments.expressionId );
+
+		if ( Len( Trim( rawDefinition.fields[ arguments.fieldName ].defaultLabel ?: "" ) ) ) {
+			var labelUri = rawDefinition.fields[ arguments.fieldName ].defaultLabel;
+			return $translateResource( uri=labelUri, defaultValue=labelUri );
+		}
+
 		var defaultFieldLabel = $translateResource( uri="rules.fields:#arguments.fieldName#.label", defaultValue=arguments.fieldName );
 
 		return $translateResource( uri="rules.expressions.#arguments.expressionId#:field.#arguments.fieldName#.label", defaultValue=defaultFieldLabel );
@@ -156,9 +243,55 @@ component displayName="RulesEngine Expression Service" {
 			);
 		}
 
-		var handlerAction = "rules.expressions." & arguments.expressionId & ".evaluateExpression";
-		var eventArgs     = { context=arguments.context, payload=arguments.payload };
+		var handlerAction = expression.expressionhandler ?: "rules.expressions." & arguments.expressionId & ".evaluateExpression";
+		var eventArgs     = {
+			  context = arguments.context
+			, payload = arguments.payload
+		};
 
+		eventArgs.append( expression.expressionHandlerArgs ?: {} );
+		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
+
+		var result = $getColdbox().runEvent(
+			  event          = handlerAction
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = eventArgs
+		);
+
+		return result;
+	}
+
+	/**
+	 * Returns a prepared filter for the given expression, context
+	 * and configured fields.
+	 *
+	 * @autodoc               true
+	 * @expressionId.hint     The ID of the expression who's filters you wish to prepare
+	 * @objectName.hint       The object who's records are to be filtered
+	 * @configuredFields.hint A structure of fields configured for the expression instance who's filter we are preparing
+	 * @filterPrefix.hint     An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
+	 */
+	public array function prepareExpressionFilters(
+		  required string expressionId
+		, required string objectName
+		, required struct configuredFields
+		,          string filterPrefix = ""
+	) {
+		var expression    = _getRawExpression( expressionid );
+		var filterObjects = expression.filterObjects ?: [];
+
+		if ( !filterObjects.findNoCase( arguments.objectName ) ) {
+			throw(
+				  type    = "preside.rule.expression.invalid.filter.object"
+				, message = "The expression [#arguments.expressionId#] cannot be used to filter the [#arguments.objectName#] object."
+			);
+		}
+
+		var handlerAction = expression.filterHandler ?: "rules.expressions." & arguments.expressionId & ".prepareFilters";
+		var eventArgs     = { objectName=arguments.objectName, filterPrefix=arguments.filterPrefix };
+
+		eventArgs.append( expression.filterHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
 		var result = $getColdbox().runEvent(
@@ -242,6 +375,71 @@ component displayName="RulesEngine Expression Service" {
 		return configuredFields;
 	}
 
+	/**
+	 * Allows developers to dynamically add a new rules engine condition
+	 *
+	 */
+	public void function addExpression(
+		  required string id
+		, required string expressionHandler
+		,          array  contexts              = []
+		,          struct fields                = {}
+		,          array  filterObjects         = []
+		,          string filterHandler         = ""
+		,          string labelHandler          = ""
+		,          string textHandler           = ""
+		,          struct expressionHandlerArgs = {}
+		,          struct filterHandlerArgs     = {}
+		,          struct labelHandlerArgs      = {}
+		,          struct textHandlerArgs       = {}
+	) {
+		var expressions = _getExpressions();
+
+
+		if ( expressions.keyExists( arguments.id ) ) {
+			expressions[ arguments.id ].contexts.append( arguments.contexts, true );
+			expressions[ arguments.id ].filterObjects.append( arguments.filterObjects, true );
+		} else {
+			var args = Duplicate( arguments );
+			args.delete( "id" );
+			expressions[ arguments.id ] = args;
+		}
+
+	}
+
+	/**
+	 * Returns an array of configured objects that can be filtered by this expression
+	 *
+	 * @autodoc true
+	 * @expressionId.hint ID of the expression who's filterable objects you wish to retrieve
+	 */
+	public array function getFilterObjectsForExpression( required string expressionId ) {
+		var expression = _getRawExpression( expressionId, false );
+		return expression.filterObjects ?: [];
+	}
+
+	public string function translateExpressionCategory( required string category ){
+		var defaultTranslation = $translateResource( "rules.categories:#arguments.category#", "" );
+
+		if ( defaultTranslation.len() ) {
+			return defaultTranslation;
+		}
+
+		var poService = $getPresideObjectService();
+		if ( poService.objectExists( arguments.category ) ) {
+			var baseUri       = poService.getResourceBundleUriRoot( arguments.category );
+			var objectNameKey = poService.isPageType( arguments.category ) ? "name" : "title.singular";
+
+			return $translateResource(
+				  uri          = "rules.categories:object.category"
+				, data         = [ $translateResource( baseUri & objectNameKey, arguments.category ) ]
+				, defaultValue = arguments.category
+			);
+		}
+
+		return arguments.category;
+	}
+
 // PRIVATE HELPERS
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();
@@ -270,5 +468,12 @@ component displayName="RulesEngine Expression Service" {
 	}
 	private void function _setFieldTypeService( required any fieldTypeService ) {
 		_fieldTypeService = arguments.fieldTypeService;
+	}
+
+	private any function _getContextService() {
+		return _contextService;
+	}
+	private void function _setContextService( required any contextService ) {
+		_contextService = arguments.contextService;
 	}
 }

@@ -1,0 +1,121 @@
+/**
+ * Dynamic expression handler for checking the number
+ * of records in a one-to-many relationship
+ *
+ */
+component {
+
+	property name="presideObjectService" inject="presideObjectService";
+
+	private boolean function evaluateExpression(
+		  required string  objectName
+		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
+		,          string  _numericOperator = "eq"
+		,          numeric value            = 0
+	) {
+		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
+		var recordId     = payload[ sourceObject ].id ?: "";
+
+		return presideObjectService.dataExists(
+			  objectName   = sourceObject
+			, id           = recordId
+			, extraFilters = prepareFilters( argumentCollection=arguments )
+		);
+	}
+
+	private array function prepareFilters(
+		  required string  objectName
+		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
+		,          string  filterPrefix = ""
+		,          string  _numericOperator = "eq"
+		,          numeric value            = 0
+	){
+		var subQuery = presideObjectService.selectData(
+			  objectName          = arguments.objectName
+			, selectFields        = [ "Count( #propertyName#.id ) onetomany_count", "#objectName#.id" ]
+			, groupBy             = "#objectName#.id"
+			, getSqlAndParamsOnly = true
+		).sql;
+		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
+		var paramName     = subQueryAlias;
+		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} :#paramName#";
+		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
+
+		switch ( _numericOperator ) {
+			case "eq":
+				filterSql = filterSql.replace( "${operator}", "=" );
+			break;
+			case "neq":
+				filterSql = filterSql.replace( "${operator}", "!=" );
+			break;
+			case "gt":
+				filterSql = filterSql.replace( "${operator}", ">" );
+			break;
+			case "gte":
+				filterSql = filterSql.replace( "${operator}", ">=" );
+			break;
+			case "lt":
+				filterSql = filterSql.replace( "${operator}", "<" );
+			break;
+			case "lte":
+				filterSql = filterSql.replace( "${operator}", "<=" );
+			break;
+		}
+
+		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+
+		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
+			  type           = "left"
+			, subQuery       = subQuery
+			, subQueryAlias  = subQueryAlias
+			, subQueryColumn = "id"
+			, joinToTable    = prefix
+			, joinToColumn   = "id"
+		} ] } ];
+	}
+
+	private string function getLabel(
+		  required string  objectName
+		, required string  propertyName
+		, required string  relatedTo
+		, required string  relationshipKey
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
+	) {
+		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.oneToManyCount.label", data=[ relatedToTranslated, relatedPropertyTranslated, parentPropNameTranslated ] );
+		}
+
+		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.label", data=[ relatedToTranslated, relatedPropertyTranslated ] );
+	}
+
+	private string function getText(
+		  required string objectName
+		, required string propertyName
+		, required string relatedTo
+		, required string relationshipKey
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
+	){
+		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.oneToManyCount.text", data=[ relatedToTranslated, relatedPropertyTranslated, parentPropNameTranslated ] );
+		}
+
+		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.text", data=[ relatedToTranslated, relatedPropertyTranslated ] );
+	}
+
+}

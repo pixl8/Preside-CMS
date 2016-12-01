@@ -6,6 +6,7 @@
 	param name="args.multiActionUrl"      type="string"  default="";
 	param name="args.gridFields"          type="array";
 	param name="args.allowSearch"         type="boolean" default=true;
+	param name="args.allowFilter"         type="boolean" default=true;
 	param name="args.clickableRows"       type="boolean" default=true;
 	param name="args.batchEditableFields" type="array"   default=[];
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#&draftsEnabled=#args.draftsEnabled#" );
@@ -14,10 +15,21 @@
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ LCase( objectTitle ) ] );
 	batchEditTitle       = translateResource( uri="cms:datamanager.batchEditSelected.title" );
+
+
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#";
+
+	args.allowFilter = args.allowFilter && isFeatureEnabled( "rulesengine" );
+
+	if ( args.allowFilter ) {
+		saveFilterFormEndpoint = event.buildAdminLink(
+			  linkTo      = "rulesEngine.superQuickAddFilterForm"
+			, querystring = "filter_object=#args.objectName#&multiple=false&expressions="
+		);
+	}
 </cfscript>
 <cfoutput>
 	<div class="table-responsive">
@@ -25,6 +37,62 @@
 			<form id="multi-action-form" class="form-horizontal" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
+
+		<cfif args.allowFilter>
+			<div class="object-listing-table-filter hide" id="#tableId#-filter">
+				<div class="row">
+					<div class="col-md-12">
+						<a class="pull-right back-to-basic-search" href="##">
+							<i class="fa fa-fw fa-reply"></i>
+							#translateResource( "cms:datatables.show.basic.search" )#
+						</a>
+						<h4 class="blue">#translateResource( "cms:rulesEngine.saved.filters" )#</h4>
+						<p class="grey"><i class="fa fa-fw fa-info-circle"></i> <em>#translateResource( "cms:rulesEngine.saved.filters.help" )#</em></p>
+						#renderFormControl(
+							  name         = "filters"
+							, id           = "filters"
+							, type         = "filterPicker"
+							, context      = "admin"
+							, filterObject = args.objectName
+							, multiple     = true
+							, quickedit    = true
+							, label        = ""
+							, layout       = ""
+							, compact      = true
+							, showCount    = false
+						)#
+						<br><br>
+						<a href="##" data-toggle="collapse" data-target="##quick-filter-form" class="quick-filter-toggler">
+							<i class="fa fa-fw fa-caret-down"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
+						</a>
+					</div>
+				</div>
+
+				<div id="quick-filter-form" class="in">
+					#renderFormControl(
+						  name      = "filter"
+						, id        = "filter"
+						, type      = "rulesEngineFilterBuilder"
+						, context   = "admin"
+						, object    = args.objectName
+						, label     = ""
+						, layout    = ""
+						, compact   = true
+						, showCount = false
+					)#
+
+					<div class="form-actions">
+						<div class="pull-right">
+							<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#">
+								<i class="fa fa-fw fa-save"></i>
+								#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</cfif>
+
 		<table id="#tableId#" class="table table-hover object-listing-table"
 			data-object-name="#args.objectName#"
 		    data-datasource-url="#args.datasourceUrl#"
@@ -33,6 +101,7 @@
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
+		    data-allow-filter="#args.allowFilter#"
 		>
 			<thead>
 				<tr>

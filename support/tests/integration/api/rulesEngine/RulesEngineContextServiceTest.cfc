@@ -6,22 +6,25 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( _getService({}).listContexts() ).toBe( [] );
 			} );
 
-			it( "should return an array of configured context, each element containing a struct with keys id, title, description and iconClass (the latter three being derived by convention from the ID using i18n properties)", function(){
+			it( "should return an array of visible configured contexts, each element containing a struct with keys id, filterObject, title, description and iconClass (the latter three being derived by convention from the ID using i18n properties)", function(){
 				var contexts = _getDefaultConfiguredContexts();
 				var service  = _getService( contexts );
 				var expected = [];
 
 				for( var id in contexts ) {
-					service.$( "$translateResource" ).$args( "rules.contexts:#id#.title"       ).$results( id & "title"       );
-					service.$( "$translateResource" ).$args( "rules.contexts:#id#.description" ).$results( id & "description" );
-					service.$( "$translateResource" ).$args( "rules.contexts:#id#.iconClass"   ).$results( id & "icon"        );
+					if ( !contexts[id].keyExists( "visible" ) || contexts[id].visible ) {
+						service.$( "$translateResource" ).$args( "rules.contexts:#id#.title"       ).$results( id & "title"       );
+						service.$( "$translateResource" ).$args( "rules.contexts:#id#.description" ).$results( id & "description" );
+						service.$( "$translateResource" ).$args( "rules.contexts:#id#.iconClass"   ).$results( id & "icon"        );
 
-					expected.append({
-						  id          = id
-						, title       = id & "title"
-						, description = id & "description"
-						, iconClass   = id & "icon"
-					});
+						expected.append({
+							  id           = id
+							, title        = id & "title"
+							, description  = id & "description"
+							, iconClass    = id & "icon"
+							, object       = contexts[id].object ?: ""
+						});
+					}
 				}
 
 				expected.sort( function( a, b ){
@@ -81,10 +84,45 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expandedContexts ).toBe( [ "somethingelse", "test", "user", "webrequest" ] );
 			} );
 		} );
+
+		describe( "getContextObject", function(){
+			it( "should return the configured object for the context", function(){
+				var service = _getService();
+
+				expect( service.getContextObject( "user" ) ).toBe( "website_user" );
+			} );
+
+			it( "should return an empty string when the context does not have a configured object", function(){
+				var service = _getService();
+
+				expect( service.getContextObject( "webrequest" ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the context does not exist", function(){
+				var service = _getService();
+
+				expect( service.getContextObject( "somecontext" ) ).toBe( "" );
+			} );
+		} );
+
+		describe( "addContext()", function(){
+			it( "should register the new context based on supplied arguments", function(){
+				var service = _getService({});
+
+				service.addContext(
+					  id      = "object_test"
+					, object  = "test"
+					, visible = false
+				);
+
+				expect( service.listContexts() ).toBe( [] );
+				expect( service.getContextObject( "object_test" ) ).toBe( "test" );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
-	private any function _getService( struct contexts=_getDefaultlConfiguredContexts() ) {
+	private any function _getService( struct contexts=_getDefaultConfiguredContexts() ) {
 		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineContextService(
 			configuredContexts = arguments.contexts
 		) );
@@ -94,9 +132,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getDefaultConfiguredContexts() {
 		return {
-			  webrequest = { subcontexts=[ "user", "page" ] }
-			, user       = {}
-			, page       = {}
+			  webrequest   = { subcontexts=[ "user", "page" ] }
+			, user         = { object="website_user" }
+			, page         = { object="page", visible=true }
+			, object_event = { object="event", visible=false }
 		};
 	}
 

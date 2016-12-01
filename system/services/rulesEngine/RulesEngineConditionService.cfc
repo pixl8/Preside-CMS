@@ -117,6 +117,7 @@ component displayName="RulesEngine Condition Service" {
 		return $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
 	}
 
+// VALIDATOR METHODS
 	/**
 	 * Validator for the preside validation service
 	 *

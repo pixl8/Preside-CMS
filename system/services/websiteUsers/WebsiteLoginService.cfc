@@ -233,13 +233,13 @@ component displayName="Website login service" {
 			_getUserDao().updateData( id=userRecord.id, data={
 				  reset_password_token        = resetToken
 				, reset_password_key          = hashedResetKey
-				, reset_password_token_expiry = DateAdd( "d", 10000, Now() )
+				, reset_password_token_expiry = resetTokenExpiry
 			} );
 
 			_getEmailService().send(
-				  template = "websiteWelcome"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginid=userRecord.login_id }
+				  template    = "websiteWelcome"
+				, recipientId = arguments.userId
+				, args        = { resetToken = "#resetToken#-#resetKey#" }
 			);
 
 			return true;
@@ -269,9 +269,9 @@ component displayName="Website login service" {
 			} );
 
 			_getEmailService().send(
-				  template = "resetWebsitePassword"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginId=userRecord.login_id }
+				  template    = "resetWebsitePassword"
+				, recipientId = userRecord.id
+				, args        = { resetToken = "#resetToken#-#resetKey#" }
 			);
 
 			$recordWebsiteUserAction(

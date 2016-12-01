@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="default">
+		<fieldset id="method" sortorder="20">
+			<field binding="email_template.sending_method" control="enumRadioList" sortorder="10" label="" layout="" />
+		</fieldset>
+		<fieldset id="filter" sortorder="30" class="sub-fieldset col-sm-offset-1">
+			<field binding="email_template.recipient_filter" control="filterPicker" sortorder="10" quickadd="true" quickedit="true" />
+		</fieldset>
+		<fieldset id="schedule" sortorder="40">
+			<field binding="email_template.schedule_type" control="enumRadioList" sortorder="10" label="" layout="" />
+		</fieldset>
+		<fieldset id="schedule_fixed" sortorder="50" class="sub-fieldset col-sm-offset-1">
+			<field binding="email_template.schedule_date"                         sortorder="20" />
+		</fieldset>
+		<fieldset id="schedule_repeat" sortorder="60" class="sub-fieldset col-sm-offset-1">
+			<field binding="email_template.schedule_measure"    sortorder="30" layout="formcontrols.layouts.timeUnitAndMeasureField" measure="true" label="preside-objects.email_template:field.schedule_measure.formtitle"/>
+			<field binding="email_template.schedule_unit"       sortorder="40" layout="formcontrols.layouts.timeUnitAndMeasureField" unit="true" />
+			<field binding="email_template.schedule_start_date" sortorder="10" />
+			<field binding="email_template.schedule_end_date"   sortorder="20" />
+		</fieldset>
+	</tab>
+</form>

@@ -1,4 +1,6 @@
 .modal-dialog-layout-container {
+	padding-bottom : 0 !important;
+
 	.main-content {
 		margin-left : 0;
 	}
@@ -128,6 +130,14 @@
 		.modal-dialog {
 			max-width  : 1200px;
 			max-height : 800px;
+
+			.modal-content .modal-body {
+				overflow : auto;
+
+				.bootbox-body iframe {
+					height : 99%;
+				}
+			}
 		}
 	}
 }
@@ -147,5 +157,14 @@
 	}
 	.modal-padding-horizontal {
 		padding : 0 20px;
+	}
+
+	.modal-dialog-less-padding {
+		padding : 0;
+
+		.modal-padding {
+			padding-top    : 0px;
+			padding-bottom : 0px;
+		}
 	}
 }

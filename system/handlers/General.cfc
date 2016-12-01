@@ -6,12 +6,14 @@ component {
 	property name="adminLoginService"         inject="loginService";
 	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
+	property name="expressionGenerator"       inject="rulesEngineAutoPresideObjectExpressionGenerator";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
 		_performDbMigrations();
 		_populateDefaultLanguages();
+		_populateAutoRulesEngineExpressions();
 		announceInterception( "onApplicationStart" );
 	}
 
@@ -178,5 +180,9 @@ component {
 		if ( isFeatureEnabled( "multilingual" ) ) {
 			getModel( "multilingualPresideObjectService" ).populateCoreLanguageSet();
 		}
+	}
+
+	private void function _populateAutoRulesEngineExpressions() {
+		expressionGenerator.generateAndRegisterAutoExpressions();
 	}
 }

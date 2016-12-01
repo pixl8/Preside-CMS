@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineContextService"   inject="rulesEngineContextService";
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
+	property name="rulesEngineFilterService"    inject="rulesEngineFilterService";
 	property name="dataManagerService"          inject="dataManagerService";
 
 	function preHandler() {
@@ -193,17 +194,135 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getConditionsForAjaxSelectControl() {
-		var context       = rc.context ?: "";
-		var validContexts = rulesEngineContextService.listValidExpressionContextsForParentContexts( [ context ] );
+		var context                = rc.context ?: "";
+		var validContexts          = rulesEngineContextService.listValidExpressionContextsForParentContexts( [ context ] );
+		var contextAndObjectFilter = {
+			  filter       = "rules_engine_condition.context in ( :rules_engine_condition.context )"
+			, filterParams = { "rules_engine_condition.context" = validContexts }
+		};
+
+		var validFilterObjects = [];
+		for( var validContext in validContexts ) {
+			var filterObject = rulesEngineContextService.getContextObject( validContext );
+			if ( filterObject.len() ) {
+				validFilterObjects.append( filterObject );
+			}
+		}
+		if ( validFilterObjects.len() ) {
+			contextAndObjectFilter.filter &= " or rules_engine_condition.filter_object in ( :rules_engine_condition.filter_object )"
+			contextAndObjectFilter.filterParams[ "rules_engine_condition.filter_object" ] = validFilterObjects;
+		}
+
 		var records       = dataManagerService.getRecordsForAjaxSelect(
 			  objectName   = "rules_engine_condition"
 			, maxRows      = rc.maxRows ?: 1000
 			, searchQuery  = rc.q       ?: ""
-			, extraFilters = [ { filter={ "rules_engine_condition.context" = validContexts } } ]
+			, extraFilters = [ contextAndObjectFilter ]
 			, ids          = ListToArray( rc.values ?: "" )
 		);
 
 		event.renderData( type="json", data=records );
+	}
+
+	public void function getFiltersForAjaxSelectControl() {
+		var filterObject  = rc.filterObject ?: "";
+		var records       = dataManagerService.getRecordsForAjaxSelect(
+			  objectName   = "rules_engine_condition"
+			, maxRows      = rc.maxRows ?: 1000
+			, searchQuery  = rc.q       ?: ""
+			, extraFilters = [ { filter={ "rules_engine_condition.filter_object" = filterObject } } ]
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+
+		event.renderData( type="json", data=records );
+	}
+
+
+	public void function getFilterCount( event, rc, prc ) {
+		var objectName      = rc.objectName ?: "";
+		var expressionArray = "";
+		var count           = 0;
+
+		try {
+			expressionArray = DeSerializeJson( rc.condition ?: "" );
+		} catch ( any e ) {}
+
+		if ( !IsArray( expressionArray ) ) {
+			expressionArray = [];
+		}
+
+		if ( objectName.len() ) {
+			try {
+				var count = rulesEngineFilterService.getMatchingRecordCount(
+					  objectName      = objectName
+					, expressionArray = expressionArray
+				);
+			} catch ( any e ) {}
+		}
+
+		event.renderData( data=NumberFormat( count ), type="text" );
+	}
+
+	public void function quickAddFilterForm( event, rc, prc ) {
+		prc.modalClasses = "modal-dialog-less-padding";
+		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.setView( view="/admin/rulesEngine/quickAddFilterForm", layout="adminModalDialog" );
+	}
+
+	public void function quickEditFilterForm( event, rc, prc ) {
+		prc.modalClasses = "modal-dialog-less-padding";
+		event.include( "/js/admin/specific/datamanager/quickEditForm/" );
+
+		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
+		if ( prc.record.recordCount ) {
+			prc.record = queryRowToStruct( prc.record );
+		} else {
+			prc.record = {};
+		}
+
+		event.setView( view="/admin/rulesEngine/quickEditFilterForm", layout="adminModalDialog" );
+	}
+
+	public void function superQuickAddFilterForm( event, rc, prc ) {
+		prc.modalClasses = "modal-dialog-less-padding";
+		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.setView( view="/admin/rulesEngine/superQuickAddFilterForm", layout="adminModalDialog" );
+	}
+
+	public void function quickAddFilterAction( event, rc, prc ) {
+		runEvent(
+			  event          = "admin.DataManager._quickAddRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object         = "rules_engine_condition"
+				, formName       = "preside-objects.rules_engine_condition.admin.quickadd.filter"
+			  }
+		);
+	}
+
+	public void function quickEditFilterAction( event, rc, prc ) {
+		runEvent(
+			  event          = "admin.DataManager._quickEditRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object         = "rules_engine_condition"
+				, formName       = "preside-objects.rules_engine_condition.admin.quickedit.filter"
+			  }
+		);
+	}
+
+	public void function superQuickAddFilterAction( event, rc, prc ) {
+		runEvent(
+			  event          = "admin.DataManager._quickAddRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object         = "rules_engine_condition"
+				, formName       = "preside-objects.rules_engine_condition.admin.superquickaddfilter"
+			  }
+		);
 	}
 
 // PRIVATE HELPERS

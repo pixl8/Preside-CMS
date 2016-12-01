@@ -190,7 +190,7 @@ component {
 		,          any     filter        = {}
 		,          struct  filterParams  = {}
 		,          boolean draftsEnabled = areDraftsEnabledForObject( arguments.objectName )
-
+		,          array   extraFilters = []
 	) {
 
 		var result = { totalRecords = 0, records = "" };
@@ -202,8 +202,9 @@ component {
 			, orderBy            = arguments.orderBy
 			, filter             = arguments.filter
 			, filterParams       = arguments.filterParams
+			, groupBy            = "#arguments.objectName#.id"
 			, allowDraftVersions = true
-			, extraFilters       = []
+			, extraFilters       = arguments.extraFilters
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -218,13 +219,7 @@ component {
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
-			result.totalRecords = _getPresideObjectService().selectData(
-				  objectName         = arguments.objectName
-				, selectFields       = [ "count( * ) as nRows" ]
-				, filter             = arguments.filter
-				, filterParams       = arguments.filterParams
-				, allowDraftVersions = true
-			).nRows;
+			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0 );
 		}
 
 		return result;

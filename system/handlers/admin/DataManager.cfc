@@ -7,6 +7,7 @@
 	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
 	<cfproperty name="siteService"                      inject="siteService"                      />
 	<cfproperty name="versioningService"                inject="versioningService"                />
+	<cfproperty name="rulesEngineFilterService"         inject="rulesEngineFilterService"         />
 	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
@@ -1312,6 +1313,7 @@
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
 		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
+		<cfargument name="extraFilters"        type="array"   required="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1325,6 +1327,32 @@
 			var translateUrlBase    = "";
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var sortOrder           = dtHelper.getSortOrder();
+			var expressionFilter    = rc.sFilterExpression ?: "";
+			var savedFilters        = ListToArray( rc.sSavedFilterExpressions ?: "" );
+			var extraFilters        = arguments.extraFilters ?: [];
+
+			try {
+				extraFilters.append( rulesEngineFilterService.prepareFilter(
+					  objectName = object
+					, expressionArray = DeSerializeJson( expressionFilter )
+				) );
+			} catch( any e ){}
+
+			var savedFilters = presideObjectService.selectData(
+				  objectName = "rules_engine_condition"
+				, selectFields = [ "expressions" ]
+				, filter = { id=savedFilters }
+			);
+			for( var filter in savedFilters ) {
+				try {
+					extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName = object
+						, expressionArray = DeSerializeJson( filter.expressions )
+					) );
+				} catch( any e ){}
+			}
+
+
 
 			if ( IsEmpty( sortOrder ) ) {
 				sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( object );
@@ -1339,6 +1367,7 @@
 				, orderBy       = sortOrder
 				, searchQuery   = dtHelper.getSearchQuery()
 				, draftsEnabled = arguments.draftsEnabled
+				, extraFilters = extraFilters
 			);
 			var records = Duplicate( results.records );
 			for( var record in records ){
@@ -1840,6 +1869,7 @@
 		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
 		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
 		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
+		<cfargument name="validationResult"  type="any"     required="false" />
 
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
@@ -1862,7 +1892,7 @@
 			}
 
 			formData.id = id;
-			validationResult = validateForm( formName=formName, formData=formData );
+			validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ) );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1933,9 +1963,9 @@
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.quickedit" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.quickedit";
 			var id               = rc.id      ?: "";
 			var formData         = event.getCollectionForForm( formName );
 			var validationResult = "";

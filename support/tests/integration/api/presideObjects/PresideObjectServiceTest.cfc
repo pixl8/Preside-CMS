@@ -2612,6 +2612,202 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test084_selectData_shouldUseAHavingClause_whenHavingArgumentSupplied" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname      = "obj_a"
+				, having          = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy         = "obj_a.id"
+				, filterParams    = { bees_count = { type="cf_sql_int", value=2 } }
+				, recordCountOnly = true
+			);
+
+			super.assertEquals( 2, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test084_selectData_shouldMergeHavingClausesFromExtraFilters" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname      = "obj_a"
+				, having          = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy         = "obj_a.id"
+				, filterParams    = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters    = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly = true
+			);
+
+			super.assertEquals( 1, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test085_selectData_shouldReturnRawSQLAndFilters_withoutExecution_whenReturnSqlIsSetToTrue" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, having              = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy             = "obj_a.id"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters        = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly     = true
+				, getSqlAndParamsOnly = true
+			);
+
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( [ { name="bees_count", type="cf_sql_int", value=2 }, { name="bees_count_2", type="cf_sql_int", value=4 } ], result.params ?: [] );
+
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test086_selectData_shouldMakeUseOfAdditionalJoinsPassed" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, groupBy             = "obj_a.id"
+				, filter              = "bee_count.bee_count >= :bees_count"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, recordCountOnly     = true
+				, extraJoins          = [ {
+					  subQuery       = "select count(*) as bee_count, obj_a from ptest_obj_a__join__obj_b group by obj_a"
+					, subQueryAlias  = "bee_count"
+					, subQueryColumn = "obj_a"
+					, joinToTable    = "obj_a"
+					, joinToColumn   = "id"
+					, type           = "inner"
+				} ]
+			);
+
+			super.assertEquals( 2, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test087_selectData_shouldMakeUseOfAdditionalJoinsPassedInExtraFiltersArray" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, groupBy             = "obj_a.id"
+				, recordCountOnly     = true
+				, extraFilters        = [{
+					  filter       = "bee_count.bee_count >= :bees_count"
+					, filterParams = { bees_count = { type="cf_sql_int", value=2 } }
+					, extraJoins   = [ {
+						  subQuery       = "select count(*) as bee_count, obj_a from ptest_obj_a__join__obj_b group by obj_a"
+						, subQueryAlias  = "bee_count"
+						, subQueryColumn = "obj_a"
+						, joinToTable    = "obj_a"
+						, joinToColumn   = "id"
+						, type           = "inner"
+					} ]
+				}]
+			);
+
+			super.assertEquals( 2, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test088_insertDataFromSelect_should_enable_selecting_data_from_one_object_and_inserting_into_another_with_a_single_db_call" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/twoLookups/" ] );
+
+			poService.dbSync();
+
+			var obja = poService.getObject( "lookup_a" );
+			var objb = poService.getObject( "lookup_b" );
+
+			obja.insertData( data={ label="Hello world 1" } );
+			obja.insertData( data={ label="Hello world 2" } );
+			obja.insertData( data={ label="Hello world 3" } );
+			obja.insertData( data={ label="Hello world 4" } );
+
+			super.assertEquals( 4, obja.selectData().recordCount );
+			super.assertEquals( 0, objb.selectData().recordCount );
+
+			var insertedCount = objb.insertDataFromSelect( fieldList=[ "id", "label", "datecreated", "datemodified" ], selectDataArgs={
+				  objectName   = "lookup_a"
+				, selectFields = [ "id", "label", "Now()", "Now()" ]
+			} );
+
+			super.assertEquals( 4, insertedCount);
+			super.assertEquals( 4, objb.selectData().recordCount );
+		</cfscript>
+	</cffunction>
+
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories" type="array"  required="true" />

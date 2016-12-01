@@ -25,6 +25,7 @@ component displayName="RulesEngine Context Service" {
 // PUBLIC API
 	/**
 	 * Returns an array with details of all configured rules engine expression contexts
+	 *
 	 * @autodoc
 	 */
 	public array function listContexts() {
@@ -32,12 +33,16 @@ component displayName="RulesEngine Context Service" {
 		var list     = [];
 
 		for( var contextId in contexts ) {
-			list.append({
-				  id          = contextId
-				, title       = $translateResource( "rules.contexts:#contextId#.title"       )
-				, description = $translateResource( "rules.contexts:#contextId#.description" )
-				, iconClass   = $translateResource( "rules.contexts:#contextId#.iconClass"   )
-			});
+			var visible = !IsBoolean( contexts[ contextId ].visible ?: true ) ? true : ( contexts[ contextId ].visible ?: true );
+			if ( visible ){
+				list.append({
+					  id           = contextId
+					, title        = $translateResource( "rules.contexts:#contextId#.title"       )
+					, description  = $translateResource( "rules.contexts:#contextId#.description" )
+					, iconClass    = $translateResource( "rules.contexts:#contextId#.iconClass"   )
+					, object       = contexts[ contextId ].object ?: ""
+				});
+			}
 		}
 
 		list.sort( function( a, b ){
@@ -88,6 +93,53 @@ component displayName="RulesEngine Context Service" {
 		}
 
 		return expanded;
+	}
+
+	/**
+	 * Returns the configured object (if any) for the given context
+	 *
+	 * @autodoc true
+	 * @context.hint ID of the context who's configured object you wish to get
+	 */
+	public string function getContextObject( required string context ) {
+		var contexts = _getConfiguredContexts();
+
+		return contexts[ arguments.context ].object ?: "";
+	}
+
+	/**
+	 * Returns an array of context ids for the given object
+	 *
+	 * @autodoc true
+	 * @objectName.hint Object who's contexts you wish to get
+	 */
+	public array function getObjectContexts( required string objectName ) {
+		var contexts = _getConfiguredContexts();
+		var objectContexts = [];
+
+		for( var contextId in contexts ) {
+			if ( getContextObject( contextId ) == arguments.objectName ) {
+				objectContexts.append( contextId );
+			}
+		}
+
+		return expandContexts( objectContexts );
+	}
+
+	/**
+	 * Dynamically registers a new context with the given
+	 * ID. Any extra arguments are added to the context
+	 * definition.
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the context
+	 */
+	public void function addContext( required string id ) {
+		var contexts    = _getConfiguredContexts();
+		var contextArgs = Duplicate( arguments );
+
+		contextArgs.delete( "id" );
+		contexts[ arguments.id ] = contextArgs;
 	}
 
 // GETTERS AND SETTERS

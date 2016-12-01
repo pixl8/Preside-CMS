@@ -51,7 +51,6 @@ component {
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.EmailConfigurationSaveInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
@@ -183,6 +182,7 @@ component {
 			, "datamanager"
 			, "websiteUserManager"
 			, "formbuilder"
+			, "emailcenter"
 		];
 
 		settings.adminConfigurationMenuItems = [
@@ -237,6 +237,13 @@ component {
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
+			, emailCenter            = {
+				  layouts          = [ "navigate", "configure" ]
+				, customTemplates  = [ "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send" ]
+				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
+				, serviceProviders = [ "manage" ]
+				, settings         = [ "manage" ]
+			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -256,8 +263,8 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*" ];
-		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "rulesEngine.read" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*" ];
+		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "rulesEngine.read", "emailCenter.*" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
 
@@ -301,7 +308,7 @@ component {
 			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, rulesEngine             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
+			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
@@ -327,6 +334,10 @@ component {
 		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
 		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://" ];
 		settings.enum.siteProtocol                = [ "http", "https" ];
+		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
+		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
+		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
+		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
@@ -360,8 +371,10 @@ component {
 
 		settings.rulesEngine = { contexts={} };
 		settings.rulesEngine.contexts.webrequest = { subcontexts=[ "user", "page" ] };
-		settings.rulesEngine.contexts.page       = {};
-		settings.rulesEngine.contexts.user       = {};
+		settings.rulesEngine.contexts.page       = { object="page" };
+		settings.rulesEngine.contexts.user       = { object="website_user" };
+
+		settings.email = _getEmailSettings();
 
 		_loadConfigurationFromExtensions();
 
@@ -552,7 +565,15 @@ component {
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Styles,Format',
 
-			bolditaliconly = 'Bold,Italic'
+			bolditaliconly = 'Bold,Italic',
+
+			email = 'Maximize,-,Source,'
+					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Find,Replace,-,SelectAll,-,Scayt'
+					 & '|PresideLink,PresideUnlink,-,ImagePicker,AttachmentPicker,,SpecialChar'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
+					 & '|NumberedList,BulletedList,Table,HorizontalRule-,Outdent,Indent,-,Blockquote,CreateDiv'
+					 & '|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 		};
 
 	}
@@ -596,5 +617,64 @@ component {
 		fbSettings.actions = [ "email" ];
 
 		return fbSettings;
+	}
+
+	private struct function _getEmailSettings() {
+		var templates        = {};
+		var recipientTypes   = {};
+		var serviceProviders = {};
+
+		templates.cmsWelcome = { feature="cms", recipientType="adminUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, { id="welcome_message", required=true }
+			, "created_by"
+			, "site_url"
+		] };
+		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.formbuilderSubmissionNotification = { feature="formbuilder", recipientType="anonymous", parameters=[
+			  { id="admin_link"          , required=true }
+			, { id="submission_preview"  , required=true }
+			, { id="notification_subject", required=false }
+		] };
+		templates.notification = { feature="cms", recipientType="adminUser", parameters=[
+			  { id="admin_link"          , required=true  }
+			, { id="notification_body"   , required=true  }
+			, { id="notification_subject", required=false }
+		] };
+		templates.websiteWelcome = { feature="websiteUsers", recipientType="websiteUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+
+		recipientTypes.anonymous   = {};
+		recipientTypes.adminUser   = {
+			  parameters             = [ "known_as", "login_id", "email_address" ]
+			, filterObject           = "security_user"
+			, gridFields             = [ "known_as", "email_address" ]
+			, recipientIdLogProperty = "security_user_recipient"
+			, feature                = "cms"
+		};
+		recipientTypes.websiteUser = {
+			  parameters             = [ "display_name", "login_id", "email_address" ]
+			, filterObject           = "website_user"
+			, gridFields             = [ "display_name", "email_address" ]
+			, recipientIdLogProperty = "website_user_recipient"
+			, feature                = "websiteUsers"
+		};
+
+		serviceProviders.smtp = {};
+
+		return {
+			  templates        = templates
+			, recipientTypes   = recipientTypes
+			, serviceProviders = serviceProviders
+		};
 	}
 }
