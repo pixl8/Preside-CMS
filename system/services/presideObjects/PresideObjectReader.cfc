@@ -288,7 +288,7 @@ component {
 			}
 		} else {
 			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
-			ArrayPrepend( arguments.meta.propertyNames, dateCreatedField );
+			ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
 		}
 
 		if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
@@ -297,7 +297,7 @@ component {
 			}
 		} else {
 			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
-			ArrayPrepend( arguments.meta.propertyNames, dateModifiedField );
+			ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
 		}
 
 	}
