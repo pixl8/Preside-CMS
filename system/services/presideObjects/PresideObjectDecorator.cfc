@@ -37,7 +37,7 @@ component output=false singleton=true {
 
 // METHODS WITH WHICH TO DECORATE
 	public any function onMissingMethod( required string missingMethodName, required struct missingMethodArguments ) output=false {
-		var proxyMethods = "dataExists,fieldExists,selectData,selectManyToManyData,insertData,updateData,deleteData,getObjectProperties";
+		var proxyMethods = "dataExists,fieldExists,selectData,selectManyToManyData,insertData,updateData,deleteData,getObjectProperties,getIdField,getLabelField,getDateCreatedField,getDateModifiedField";
 		var i            = 1;
 
 		if ( ListFindNoCase( proxyMethods, missingMethodName ) ) {

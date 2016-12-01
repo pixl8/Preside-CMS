@@ -1079,6 +1079,52 @@ component displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Returns the ID field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object who's ID field you wish to get
+	 */
+	public string function getIdField( required string objectName ) {
+		return getObjectAttribute( arguments.objectName, "idField", "id" );
+	}
+
+	/**
+	 * Returns the label field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object who's label field you wish to get
+	 */
+	public string function getLabelField( required string objectName ) {
+		var noLabel = getObjectAttribute( arguments.objectName, "noLabel", "" );
+
+		if ( IsBoolean( noLabel ) && noLabel ) {
+			return "";
+		}
+
+		return getObjectAttribute( arguments.objectName, "labelField", "label" );
+	}
+
+	/**
+	 * Returns the dateCreated field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object who's dateCreated field you wish to get
+	 */
+	public string function getDateCreatedField( required string objectName ) {
+		return getObjectAttribute( arguments.objectName, "dateCreatedField", "dateCreated" );
+	}
+
+	/**
+	 * Returns the dateModified field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object who's dateModified field you wish to get
+	 */
+	public string function getDateModifiedField( required string objectName ) {
+		return getObjectAttribute( arguments.objectName, "dateModifiedField", "dateModified" );
+	}
+
+	/**
 	 * Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
 	 * \n
 	 * ${arguments}
