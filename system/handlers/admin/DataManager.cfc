@@ -1797,7 +1797,7 @@
 
 			obj = presideObjectService.getObject( object );
 
-			records = obj.selectData( selectField=[labelField], filter={ id = ids }, useCache=false );
+			records = obj.selectData( selectFields=[ "id", labelField ], filter={ id = ids }, useCache=false );
 
 			if ( records.recordCount neq ids.len() ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[objectName] ) );

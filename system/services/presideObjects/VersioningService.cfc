@@ -142,8 +142,9 @@ component {
 	) {
 		var poService         = $getPresideObjectService();
 		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
+		var idField           = poService.getIdField( arguments.objectName );
 		var versionedData     = Duplicate( arguments.data );
-		var recordId          = versionedData.id ?: "";
+		var recordId          = versionedData[ idField ] ?: "";
 
 		versionedData._version_number          = arguments.versionNumber;
 		versionedData._version_author          = arguments.versionAuthor;
@@ -152,11 +153,11 @@ component {
 		versionedData._version_is_latest       = !arguments.isDraft;
 		versionedData._version_is_latest_draft = true;
 
-		if ( poService.fieldExists( versionObjectName, "id" ) ) {
-			versionedData.id = versionedData.id ?: NullValue();
+		if ( poService.fieldExists( versionObjectName, idField ) ) {
+			versionedData[ idField ] = versionedData[ idField ] ?: NullValue();
 		}
 
-		if ( Len( Trim( versionedData.id ?: "" ) ) ) {
+		if ( Len( Trim( versionedData[ idField ] ?: "" ) ) ) {
 			var cleanLatestData = { _version_is_latest_draft=false };
 			if ( !arguments.isDraft ) {
 				cleanLatestData._version_is_latest = false;
@@ -165,7 +166,7 @@ component {
 			poService.updateData(
 				  objectName              = versionObjectName
 				, data                    = cleanLatestData
-				, filter                  = { id = versionedData.id }
+				, filter                  = { "#idField#" = versionedData[ idField ] }
 				, useVersioning           = false
 				, skipTrivialInterceptors = true
 				, setDateModified         = false

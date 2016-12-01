@@ -28,6 +28,11 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		, required string  relatedTo
+		, required string  relatedVia
+		, required string  relatedViaSourceFk
+		, required string  relatedViaTargetFk
+		, required string  relationshipIsSource
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
@@ -35,13 +40,44 @@ component {
 		,          string  value      = ""
 	){
 		var paramName     = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var operator      = _possesses ? "in" : "not in";
 		var defaultPrefix = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
 		var prefix        = filterPrefix.len() ? filterPrefix : defaultPrefix;
-		var filterSql     = "#prefix#.id #operator# (:#paramName#)";
-		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
+		var idField       = presideObjectService.getIdField( relatedTo );
 
-		return [ { filter=filterSql, filterParams=params } ];
+		if ( _possesses ) {
+			var filterSql     = "#prefix#.#idField# in (:#paramName#)";
+			var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
+
+			return [ { filter=filterSql, filterParams=params } ];
+		}
+
+		var params        = {};
+		var subQueryAlias = paramName;
+		var subQuery      = presideObjectService.selectData(
+			  objectName          = arguments.relatedVia
+			, selectFields        = [ "#( relationshipIsSource ? relatedViaSourceFk : relatedViaTargetFk )# as id" ]
+			, forceJoins          = "inner"
+			, getSqlAndParamsOnly = true
+			, filter              = { "#( relationshipIsSource ? relatedViaTargetFk : relatedViaSourceFk )#" = arguments.value }
+		);
+
+		for( var param in subQuery.params ) {
+			params[ param.name ] = param;
+			params[ param.name ].delete( "name" );
+		}
+
+		return [ {
+			  filter = "#subQueryAlias#.id is null"
+			, filterParams = params
+			, extraJoins = [{
+				  type           = "left"
+				, subQuery       = subQuery.sql
+				, subQueryAlias  = subQueryAlias
+				, subQueryColumn = "id"
+				, joinToTable    = objectName
+				, joinToColumn   = presideObjectService.getIdField( objectName )
+			} ]
+		}];
 	}
 
 	private string function getLabel(
