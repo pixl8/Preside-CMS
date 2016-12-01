@@ -4,6 +4,7 @@ rvm:
 jdk:
   - oraclejdk8
 sudo: required
+group: deprecated
 addons:
   mariadb: '10.1'
 services:
