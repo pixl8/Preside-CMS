@@ -94,7 +94,8 @@ component {
 	public array function listBatchEditableFields( required string objectName ) {
 		var fields               = [];
 		var objectAttributes     = _getPresideObjectService().getObjectProperties( objectName );
-		var forbiddenFields      = [ "id", "datecreated", "datemodified", _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" ) ];
+		var dao                  = _getPresideObjectService().getObject( objectName );
+		var forbiddenFields      = [ dao.getIdField(), dao.getLabelField(), dao.getDateCreatedField(), dao.getDateModifiedField() ];
 		var isFieldBatchEditable = function( propertyName, attributes ) {
 			if ( forbiddenFields.findNoCase( propertyName ) ) {
 				return false
@@ -161,9 +162,11 @@ component {
 
 	public query function getRecordsForSorting( required string objectName ) {
 		var sortField = getSortField( arguments.objectName );
+		var idField   = _getPresideObjectService().getIdField( arguments.objectName );
+
 		return _getPresideObjectService().selectData(
 			  objectName   = arguments.objectName
-			, selectFields = [ "id", "${labelfield} as label", sortField ]
+			, selectFields = [ "#idField# as id", "${labelfield} as label", sortField ]
 			, orderby      = sortField
 		);
 	}
@@ -236,10 +239,11 @@ component {
 		,          any     filterParams = {}
 	) {
 		var result = { totalRecords = 0, records = "" };
+		var dao    = _getPresideObjectService().getPresideObject( arguments.objectName );
 		var args   = {
 			  objectName       = arguments.objectName
 			, id               = arguments.recordId
-			, selectFields     = [ "id", "_version_is_draft as published", "datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
+			, selectFields     = [ "#dao.getIdField()# as id", "_version_is_draft as published", "#dao.getDateModifiedField()# as datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy
@@ -374,17 +378,18 @@ component {
 
 			return result;
 		};
-		var labelField         = _getPresideOBjectService().getObjectAttribute( arguments.objectName, "labelField", "label" );
+		var labelField         = _getPresideOBjectService().getLabelField( arguments.objectName );
+		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 
 		args.selectFields.delete( labelField );
 		args.selectFields.append( replacedLabelField );
 		args.selectFields.delete( "id" );
-		args.selectFields.append( "#arguments.objectName#.id" );
+		args.selectFields.append( "#arguments.objectName#.#idField# as id" );
 
 
 		if ( arguments.ids.len() ) {
-			args.filter = { id = arguments.ids };
+			args.filter = { "#idField#" = arguments.ids };
 		} elseif ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, arguments.selectFields );
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
@@ -407,8 +412,10 @@ component {
 	}
 
 	public string function getPrefetchCachebusterForAjaxSelect( required string  objectName ) {
-		var records = _getPresideObjectService().getObject( arguments.objectName ).selectData(
-			selectFields = [ "Max( datemodified ) as lastmodified" ]
+		var obj     = _getPresideObjectService().getObject( arguments.objectName );
+		var dmField = obj.getDateModifiedField();
+		var records = obj.selectData(
+			selectFields = [ "Max( #dmField# ) as lastmodified" ]
 		);
 
 		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
@@ -437,16 +444,30 @@ component {
 		var i                        = "";
 		var props                    = _getPresideObjectService().getObjectProperties( arguments.objectName );
 		var prop                     = "";
+		var obj                      = _getPresideObjectService().getObject( arguments.objectName );
 		var objName                  = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
-		var labelField               = _getPresideObjectService().getObjectAttribute( objName, "labelField", "label" );
+		var labelField               = obj.getLabelField();
+		var idField                  = obj.getIdField();
+		var dateCreatedField         = obj.getDateCreatedField();
+		var dateModifiedField        = obj.getDateModifiedField();
 		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
 		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
 
 		sqlFields.delete( "id" );
-		sqlFields.append( "#objName#.id" );
+		sqlFields.append( "#objName#.#idField# as id" );
 		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
+		}
+
+		if ( dateCreatedField != "datecreated" && sqlFields.findNoCase( "dateCreated" ) ) {
+			sqlFields.delete( "datecreated" );
+			sqlFields.append( "#objName#.#dateCreatedField# as datecreated" );
+		}
+
+		if ( dateCreatedField != "dateModified" && sqlFields.findNoCase( "dateModified" ) ) {
+			sqlFields.delete( "dateModified" );
+			sqlFields.append( "#objName#.#dateModifiedField# as dateModified" );
 		}
 
 		if ( arguments.draftsEnabled ) {
@@ -455,9 +476,15 @@ component {
 		}
 
 		// ensure all fields are valid + get labels from join tables
+		var ignore = [
+			  "#objName#.#idField# as id"
+			, "#objName#.#dateCreatedField# as datecreated"
+			, "#objName#.#dateModifiedField# as dateModified"
+			, replacedLabelField
+		];
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
 			field = sqlFields[i];
-			if ( field == "#objName#.id" || field == replacedLabelField ) {
+			if ( ignore.findNoCase( field ) ) {
 				continue;
 			}
 			if ( not StructKeyExists( props, field ) ) {
@@ -489,6 +516,7 @@ component {
 				sqlFields.append( objName & "._version_number" );
 			}
 		}
+
 		return sqlFields;
 	}
 

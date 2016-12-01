@@ -292,10 +292,20 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getText"
 		} );
-		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
-		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
-		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
-		expression.textHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+
+		expression.expressionHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo                = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo                 = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo                  = propertyDefinition.relatedTo;
+
+		expression.expressionHandlerArgs.relatedVia           = propertyDefinition.relatedVia;
+		expression.expressionHandlerArgs.relatedViaSourceFk   = propertyDefinition.relatedViaSourceFk;
+		expression.expressionHandlerArgs.relatedViaTargetFk   = propertyDefinition.relatedViaTargetFk;
+		expression.expressionHandlerArgs.relationshipIsSource = propertyDefinition.relationshipIsSource;
+		expression.filterHandlerArgs.relatedVia               = propertyDefinition.relatedVia;
+		expression.filterHandlerArgs.relatedViaSourceFk       = propertyDefinition.relatedViaSourceFk;
+		expression.filterHandlerArgs.relatedViaTargetFk       = propertyDefinition.relatedViaTargetFk;
+		expression.filterHandlerArgs.relationshipIsSource     = propertyDefinition.relationshipIsSource;
 
 		return expression;
 	}

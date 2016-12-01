@@ -38,13 +38,14 @@ component {
 		,          boolean _is   = true
 		,          string  value = ""
 	){
-		var prefix = filterPrefix.len() ? filterPrefix : propertyName;
-		var paramName = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
+		var prefix         = filterPrefix.len() ? filterPrefix : propertyName;
+		var paramName      = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
+		var filterParams   = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
+		var relatedIdField = presideObjectService.getIdField( arguments.relatedTo );
 
 		if ( _is ) {
 			return [ {
-				  filter       = "#prefix#.id in (:#paramName#)"
+				  filter       = "#prefix#.#relatedIdField# in (:#paramName#)"
 				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
 			} ];
 		}
@@ -53,10 +54,10 @@ component {
 		var subQueryAlias = paramName;
 		var subQuery      = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "#arguments.relationshipKey#.id" ]
+			, selectFields        = [ "#arguments.relatedTo#.#arguments.relationshipKey# as id" ]
 			, forceJoins          = "inner"
 			, getSqlAndParamsOnly = true
-			, filter              = { "#arguments.relatedTo#.id" = arguments.value }
+			, filter              = { "#arguments.relatedTo#.#relatedIdField#" = arguments.value }
 		);
 		for( var param in subQuery.params ) {
 			params[ param.name ] = param;
@@ -74,7 +75,7 @@ component {
 				, subQueryAlias  = subQueryAlias
 				, subQueryColumn = "id"
 				, joinToTable    = prefix
-				, joinToColumn   = "id"
+				, joinToColumn   = presideObjectService.getIdField( objectName )
 			} ]
 		}];
 	}
