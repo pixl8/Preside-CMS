@@ -1,186 +1,163 @@
-<cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
+component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
-	<cffunction name="test01_readObject_shouldGetTableName_fromComponent_whenAttributeSupplied" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object_with_attributes();
-			var object       = getReader().readObject( targetObject );
+	public void function run() {
+		describe( "readObject()", function(){
+			it( "should get table name from component when attribute supplied", function(){
+				var targetObject = new tests.resources.presideObjectReader.simple_object_with_attributes();
+				var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "test_table", object.tableName   );
-		</cfscript>
-	</cffunction>
+				expect( object.tableName ).toBe( "test_table" );
+			} );
 
-	<cffunction name="test02_readObject_shouldAllowInheritanceOfTableName" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance();
-			var object       = getReader().readObject( targetObject );
+			it( "should allow inheritance of table name", function(){
+				var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance();
+				var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "test_table", object.tableName   );
-		</cfscript>
-	</cffunction>
+				expect( object.tableName ).toBe( "test_table" );
+			} );
 
-	<cffunction name="test03_readObject_shouldAllowInheritanceOverridesOfTableName" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_overrides();
-			var object       = getReader().readObject( targetObject );
+			it( "should allow inheritance overrides of table name", function(){
+				var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_overrides();
+				var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "override_test_table", object.tableName   );
-		</cfscript>
-	</cffunction>
+				expect( object.tableName ).toBe( "override_test_table" );
+			} );
 
-	<cffunction name="test04_readObject_shouldReadInAllSimpleAttributesWithInheritance" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_and_custom_attributes();
-			var object       = getReader().readObject( targetObject );
+			it( "should read in all simple attributes with inheritance", function(){
+				var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_and_custom_attributes();
+				var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "override_test_table", object.tableName   );
-			super.assertEquals( "test", object.someattribute );
-		</cfscript>
-	</cffunction>
+				expect( object.tableName ).toBe( "override_test_table" );
+				expect( object.someattribute ).toBe( "test" );
+			} );
 
-	<cffunction name="test05_readObject_shouldNotReadStandardComponentAttributes_suchAsOutputAndPersist" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_and_custom_attributes();
-			var object       = getReader().readObject( targetObject );
+			it( "should not read standard component attributes such as output and persist", function(){
+				var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_and_custom_attributes();
+				var object       = getReader().readObject( targetObject );
 
-			super.assert( not StructKeyExists( object, "accessors"     ), "The object reader returned system attribute, 'accessors', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "displayname"   ), "The object reader returned system attribute, 'displayname', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "fullname"      ), "The object reader returned system attribute, 'fullname', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "hashCode"      ), "The object reader returned system attribute, 'hashCode', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "hint"          ), "The object reader returned system attribute, 'hint', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "output"        ), "The object reader returned system attribute, 'output', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "path"          ), "The object reader returned system attribute, 'path', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "persistent"    ), "The object reader returned system attribute, 'persistent', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "remoteAddress" ), "The object reader returned system attribute, 'remoteAddress', when it was expected not to." );
-			super.assert( not StructKeyExists( object, "synchronized"  ), "The object reader returned system attribute, 'synchronized', when it was expected not to." );
-		</cfscript>
-	</cffunction>
+				expect( StructKeyExists( object, "accessors"     ) ).toBeFalse( "The object reader returned system attribute, 'accessors', when it was expected not to." );
+				expect( StructKeyExists( object, "displayname"   ) ).toBeFalse( "The object reader returned system attribute, 'displayname', when it was expected not to." );
+				expect( StructKeyExists( object, "fullname"      ) ).toBeFalse( "The object reader returned system attribute, 'fullname', when it was expected not to." );
+				expect( StructKeyExists( object, "hashCode"      ) ).toBeFalse( "The object reader returned system attribute, 'hashCode', when it was expected not to." );
+				expect( StructKeyExists( object, "hint"          ) ).toBeFalse( "The object reader returned system attribute, 'hint', when it was expected not to." );
+				expect( StructKeyExists( object, "output"        ) ).toBeFalse( "The object reader returned system attribute, 'output', when it was expected not to." );
+				expect( StructKeyExists( object, "path"          ) ).toBeFalse( "The object reader returned system attribute, 'path', when it was expected not to." );
+				expect( StructKeyExists( object, "persistent"    ) ).toBeFalse( "The object reader returned system attribute, 'persistent', when it was expected not to." );
+				expect( StructKeyExists( object, "remoteAddress" ) ).toBeFalse( "The object reader returned system attribute, 'remoteAddress', when it was expected not to." );
+				expect( StructKeyExists( object, "synchronized"  ) ).toBeFalse( "The object reader returned system attribute, 'synchronized', when it was expected not to." );
+			} );
 
-	<cffunction name="test06_readObject_shouldReturnPropertiesDefinedInComponent" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.object_with_properties();
-			var object       = getReader().readObject( targetObject );
-			var expectedResult = {
-				  test_property         = { name="test_property"         }
-				, related_prop          = { name="related_prop"         ,                                                          control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
-				, another_property      = { name="another_property"     , type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
-				, some_numeric_property = { name="some_numeric_property", type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
-			};
+			it( "should return properties defined in component", function(){
+				var targetObject = new tests.resources.presideObjectReader.object_with_properties();
+				var object       = getReader().readObject( targetObject );
+				var expectedResult = {
+					  test_property         = { name="test_property"         }
+					, related_prop          = { name="related_prop"         ,                                                          control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
+					, another_property      = { name="another_property"     , type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
+					, some_numeric_property = { name="some_numeric_property", type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
+				};
 
-			super.assertEquals( expectedResult, object.properties );
-		</cfscript>
-	</cffunction>
+				expect( object.properties ).toBe( expectedResult );
+			} );
 
-	<cffunction name="test07_readObject_shouldReturnPropertiesDefinedInComponentMixedInWithInheritedProperties" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.object_with_properties_and_inheritance();
-			var object       = getReader().readObject( targetObject );
-			var expectedResult = {
-				  test_property         = { name="test_property"        , label="New label" }
-				, new_property          = { name="new_property"         , label="New property" }
-				, related_prop          = { name="related_prop"         ,                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
-				, another_property      = { name="another_property"     , type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
-				, some_numeric_property = { name="some_numeric_property", type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
-			};
+			it( "should return properties defined in component mixed in with inherited properties", function(){
+				var targetObject = new tests.resources.presideObjectReader.object_with_properties_and_inheritance();
+				var object       = getReader().readObject( targetObject );
+				var expectedResult = {
+					  test_property         = { name="test_property"        , label="New label" }
+					, new_property          = { name="new_property"         , label="New property" }
+					, related_prop          = { name="related_prop"         ,                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
+					, another_property      = { name="another_property"     , type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
+					, some_numeric_property = { name="some_numeric_property", type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
+				};
 
-			super.assertEquals( expectedResult, object.properties );
-		</cfscript>
-	</cffunction>
+				expect( object.properties ).toBe( expectedResult );
+			} );
 
-	<cffunction name="test08_readObject_shouldReturnAListOfPublicMethods_whenComponentHasPublicMethods" returntype="void">
-		<cfscript>
-			var targetObject    = new tests.resources.presideObjectReader.object_with_methods();
-			var object          = getReader().readObject( targetObject );
-			var expectedMethods = "method1,method2,method3";
+			it( "should return a list of public method when component has public methods", function(){
+				var targetObject    = new tests.resources.presideObjectReader.object_with_methods();
+				var object          = getReader().readObject( targetObject );
+				var expectedMethods = "method1,method2,method3";
 
-			super.assert( StructKeyExists( object, 'methods' ), "No methods key was returned" );
-			super.assertEquals( expectedMethods, object.methods );
-		</cfscript>
-	</cffunction>
+				super.assert( StructKeyExists( object, 'methods' ), "No methods key was returned" );
+				expect( object.methods ).toBe( expectedMethods );
+			} );
 
-	<cffunction name="test09_readObject_shouldReturnSpecifiedDsn" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object_with_dsn();
-			var object       = getReader().readObject( targetObject );
+			it( "should return specified dsn", function(){
+				var targetObject = new tests.resources.presideObjectReader.simple_object_with_dsn();
+				var object       = getReader().readObject( targetObject );
 
-			super.assert( StructKeyExists( object, 'dsn' ), "No dsn key was was returned" );
-			super.assertEquals( "different_dsn", object.dsn );
-		</cfscript>
-	</cffunction>
+				super.assert( StructKeyExists( object, 'dsn' ), "No dsn key was was returned" );
+				expect( object.dsn ).toBe( "different_dsn" );
+			} );
 
-	<cffunction name="test10_getAutoPivotObjectDefinition_shouldCreateObjectDefinitionBasedOnTwoSourcePkObjects" returntype="void">
-		<cfscript>
-			var reader = getReader();
-			var objA = { meta = reader.readObject( new tests.resources.presideObjectReader.simple_object() ) };
-			var objB = { meta = reader.readObject( new tests.resources.presideObjectReader.simple_object_with_prefix() ) };
+			it( "should provide array of property names in order of definition in component", function(){
+				var targetObject = new tests.resources.presideObjectReader.object_with_properties();
+				var object       = getReader().readObject( targetObject );
+				var expected     = [ "test_property","related_prop","another_property","some_numeric_property"];
 
-			reader.finalizeMergedObject( objA );
-			reader.finalizeMergedObject( objB );
+				expect( expected ).toBe( object.propertyNames );
+			} );
 
-			var expectedResult = {
-				  dbFieldList = "source,target,sort_order"
-				, dsn         = "default_dsn"
-				, indexes     = { ux_mypivotobject = { unique=true, fields="source,target" } }
-				, name        = "mypivotobject"
-				, tablePrefix = "pobj_"
-				, tableName   = "pobj_mypivotobject"
-				, versioned   = true
-				, properties  = {
-					  source      = { name="source"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object"            , required=true, type="string", onDelete="cascade" }
-					, target      = { name="target"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object_with_prefix", required=true, type="string", onDelete="cascade" }
-					, sort_order  = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
-				  }
-			};
-			var autoObject = getReader().getAutoPivotObjectDefinition(
-				  sourceObject       = objA.meta
-				, targetObject       = objB.meta
-				, pivotObjectName    = "mypivotobject"
-				, sourcePropertyName = "source"
-				, targetPropertyName = "target"
-			);
+		} );
 
-			autoObject.properties = _propertiesToStruct( autoObject.properties );
+		describe( "getAutoPivotObjectDefinition()", function(){
+			it( "should create object definition based on two source PK objects", function(){
+				var reader = getReader();
+				var objA = { meta = reader.readObject( new tests.resources.presideObjectReader.simple_object() ) };
+				var objB = { meta = reader.readObject( new tests.resources.presideObjectReader.simple_object_with_prefix() ) };
 
-			super.assertEquals( expectedResult, autoObject );
-		</cfscript>
-	</cffunction>
+				reader.finalizeMergedObject( objA );
+				reader.finalizeMergedObject( objB );
 
-	<cffunction name="test11_readObject_shouldProvideArrayOfPropertyNamesInOrderOfDefinitionInComponent" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.object_with_properties();
-			var object       = getReader().readObject( targetObject );
-			var expected     = [ "test_property","related_prop","another_property","some_numeric_property"];
+				var expectedResult = {
+					  dbFieldList = "source,target,sort_order"
+					, dsn         = "default_dsn"
+					, indexes     = { ux_mypivotobject = { unique=true, fields="source,target" } }
+					, name        = "mypivotobject"
+					, tablePrefix = "pobj_"
+					, tableName   = "pobj_mypivotobject"
+					, versioned   = true
+					, properties  = {
+						  source      = { name="source"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object"            , required=true, type="string", onDelete="cascade" }
+						, target      = { name="target"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object_with_prefix", required=true, type="string", onDelete="cascade" }
+						, sort_order  = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
+					  }
+				};
+				var autoObject = getReader().getAutoPivotObjectDefinition(
+					  sourceObject       = objA.meta
+					, targetObject       = objB.meta
+					, pivotObjectName    = "mypivotobject"
+					, sourcePropertyName = "source"
+					, targetPropertyName = "target"
+				);
 
-			super.assertEquals( expected, object.propertyNames );
-		</cfscript>
-	</cffunction>
+				autoObject.properties = _propertiesToStruct( autoObject.properties );
 
-<!--- private helpers --->
-	<cffunction name="getReader" access="private" returntype="any" output="false">
-		<cfargument name="dsn"         type="string" required="false" default="default_dsn" />
-		<cfargument name="tablePrefix" type="string" required="false" default="pobj_" />
+				expect( expectedResult ).toBe( autoObject );
+			} );
+		} );
+	}
 
-		<cfscript>
-			mockFeatureService = getMockbox().createEmptyMock( "preside.system.services.features.FeatureService" );
-			return new preside.system.services.presideObjects.PresideObjectReader(
-				  dsn                = arguments.dsn
-				, tablePrefix        = arguments.tablePrefix
-				, interceptorService = _getMockInterceptorService()
-				, featureService     = mockFeatureService
-			);
-		</cfscript>
-	</cffunction>
+// PRIVATE HELPERS
+	private any function getReader( string dsn="default_dsn", tablePrefix="pobj_" ) {
+		mockFeatureService = createEmptyMock( "preside.system.services.features.FeatureService" );
 
-	<cffunction name="_propertiesToStruct" access="private" returntype="struct" output="false">
-		<cfargument name="properties" type="struct" required="true" />
+		return new preside.system.services.presideObjects.PresideObjectReader(
+			  dsn                = arguments.dsn
+			, tablePrefix        = arguments.tablePrefix
+			, interceptorService = _getMockInterceptorService()
+			, featureService     = mockFeatureService
+		);
+	}
 
-		<cfscript>
-			var newProps = {};
+	private struct function _propertiesToStruct( required any properties ) {
+		var newProps = {};
 
-			for( var key in arguments.properties ){
-				newProps[ key ] = arguments.properties[ key ];
-			}
+		for( var key in arguments.properties ){
+			newProps[ key ] = arguments.properties[ key ];
+		}
 
-			return newProps;
-		</cfscript>
-	</cffunction>
-</cfcomponent>
+		return newProps;
+	}
+}
