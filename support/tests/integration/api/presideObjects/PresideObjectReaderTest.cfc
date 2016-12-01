@@ -194,6 +194,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, relationship = "none"
 					, relatedto    = "none"
 					, required     = true
+					, aliases      = "id"
 				} );
 			} );
 
@@ -261,6 +262,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, relatedto    = "none"
 					, generator    = "none"
 					, required     = true
+					, aliases      = "datemodified"
 				} );
 			} );
 
@@ -328,6 +330,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, relatedto    = "none"
 					, generator    = "none"
 					, required     = true
+					, aliases      = "datecreated"
 				} );
 			} );
 
@@ -342,6 +345,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				reader.finalizeMergedObject( dummyObj );
 
 				expect( dummyObj.meta.properties.creation_date.dbtype ?: "" ).toBe( "bigint" );
+			} );
+
+			it( "should add core aliases to alternative id, label, datecreated and datemofied fields", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", dateCreatedField="creation_date", dateModifiedField="updated_date", idField="mypk", labelField="title", propertyNames=["creation_date", "updated_date", "mypk", "title" ], properties={
+						  creation_date = { name="creation_date", type="numeric", dbtype="bigint" }
+						, updated_date  = { name="updated_date" , type="numeric", dbtype="bigint" }
+						, mypk = { name="mypk", type="numeric", dbtype="bigint" }
+						, title = { name="title", type="string", dbtype="varchar" }
+					} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.creation_date.aliases ?: "" ).toBe( "datecreated"  );
+				expect( dummyObj.meta.properties.updated_date.aliases  ?: "" ).toBe( "datemodified" );
+				expect( dummyObj.meta.properties.mypk.aliases          ?: "" ).toBe( "id"           );
+				expect( dummyObj.meta.properties.title.aliases         ?: "" ).toBe( "label"        );
 			} );
 
 		} );

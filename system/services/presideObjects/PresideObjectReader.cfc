@@ -255,6 +255,7 @@ component {
 	private void function _mergeSystemPropertyDefaults( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
+		var labelField        = arguments.meta.labelField        ?: "label";
 		var idField           = arguments.meta.idField           ?: "id";
 		var dateCreatedField  = arguments.meta.dateCreatedField  ?: "datecreated";
 		var dateModifiedField = arguments.meta.dateModifiedField ?: "datemodified";
@@ -272,6 +273,9 @@ component {
 			arguments.meta.properties[ "label" ] = defaults[ "label" ];
 			ArrayPrepend( arguments.meta.propertyNames, "label" );
 		}
+		if ( labelField.len() && labelField != "label" ) {
+			arguments.meta.properties[ labelField ].aliases = ( arguments.meta.properties[ labelField ].aliases ?: "" ).listAppend( "label" );
+		}
 
 		if ( arguments.meta.propertyNames.find( idField ) ) {
 			if ( idField == "id" ) {
@@ -280,6 +284,9 @@ component {
 		} else {
 			arguments.meta.properties[ idField ] = defaults[ "id" ];
 			ArrayPrepend( arguments.meta.propertyNames, idField );
+		}
+		if ( idField.len() && idField != "id" ) {
+			arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
 		}
 
 		if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
@@ -290,6 +297,9 @@ component {
 			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
 			ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
 		}
+		if ( dateCreatedField.len() && dateCreatedField != "dateCreated" ) {
+			arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
+		}
 
 		if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
 			if ( dateModifiedField == "datemodified" ) {
@@ -298,6 +308,9 @@ component {
 		} else {
 			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
 			ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
+		}
+		if ( dateModifiedField.len() && dateModifiedField != "dateModified" ) {
+			arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
 		}
 
 	}

@@ -389,6 +389,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 								, label        = "preside-objects.security_user:field.known_as.title"
 								, placeholder  = "preside-objects.security_user:field.known_as.placeholder"
 								, help         = "preside-objects.security_user:field.known_as.help"
+								, aliases      = "label"
 							} ]
 						}]
 
