@@ -277,9 +277,6 @@ component {
 			arguments.meta.properties[ "label" ] = defaults[ "label" ];
 			ArrayPrepend( arguments.meta.propertyNames, "label" );
 		}
-		if ( labelField.len() && labelField != "label" && !arguments.meta.propertyNames.findNoCase( "label" ) ) {
-			arguments.meta.properties[ labelField ].aliases = ( arguments.meta.properties[ labelField ].aliases ?: "" ).listAppend( "label" );
-		}
 
 		if ( arguments.meta.propertyNames.find( idField ) ) {
 			if ( idField == "id" ) {

@@ -363,7 +363,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dummyObj.meta.properties.creation_date.aliases ?: "" ).toBe( "datecreated"  );
 				expect( dummyObj.meta.properties.updated_date.aliases  ?: "" ).toBe( "datemodified" );
 				expect( dummyObj.meta.properties.mypk.aliases          ?: "" ).toBe( "id"           );
-				expect( dummyObj.meta.properties.title.aliases         ?: "" ).toBe( "label"        );
 			} );
 
 		} );
