@@ -273,7 +273,7 @@ component {
 			arguments.meta.properties[ "label" ] = defaults[ "label" ];
 			ArrayPrepend( arguments.meta.propertyNames, "label" );
 		}
-		if ( labelField.len() && labelField != "label" ) {
+		if ( labelField.len() && labelField != "label" && !arguments.meta.propertyNames.findNoCase( "label" ) ) {
 			arguments.meta.properties[ labelField ].aliases = ( arguments.meta.properties[ labelField ].aliases ?: "" ).listAppend( "label" );
 		}
 
@@ -285,7 +285,7 @@ component {
 			arguments.meta.properties[ idField ] = defaults[ "id" ];
 			ArrayPrepend( arguments.meta.propertyNames, idField );
 		}
-		if ( idField.len() && idField != "id" ) {
+		if ( idField.len() && idField != "id" && !arguments.meta.propertyNames.findNoCase( "id" ) ) {
 			arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
 		}
 
@@ -297,7 +297,7 @@ component {
 			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
 			ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
 		}
-		if ( dateCreatedField.len() && dateCreatedField != "dateCreated" ) {
+		if ( dateCreatedField.len() && dateCreatedField != "dateCreated" && !arguments.meta.propertyNames.findNoCase( "dateCreated" ) ) {
 			arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
 		}
 
@@ -309,7 +309,7 @@ component {
 			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
 			ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
 		}
-		if ( dateModifiedField.len() && dateModifiedField != "dateModified" ) {
+		if ( dateModifiedField.len() && dateModifiedField != "dateModified" && !arguments.meta.propertyNames.findNoCase( "dateModified" ) ) {
 			arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
 		}
 
