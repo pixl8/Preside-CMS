@@ -51,10 +51,11 @@ component {
 			}
 		}
 
+		var objIdField = presideObjectService.getIdField( arguments.objectName );
 		var subQuery = presideObjectService.selectData(
 			  objectName          = arguments.objectName
-			, selectFields        = [ "Count( #propertyName#.id ) manytomany_count", "#objectName#.id" ]
-			, groupBy             = "#objectName#.id"
+			, selectFields        = [ "Count( #propertyName#.#objIdField# ) as manytomany_count", "#objectName#.#objIdField# as id" ]
+			, groupBy             = "#objectName#.#objIdField#"
 			, extraFilters        = subQueryExtraFilters
 			, getSqlAndParamsOnly = true
 		);
@@ -98,7 +99,7 @@ component {
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
 			, joinToTable    = prefix
-			, joinToColumn   = "id"
+			, joinToColumn   = objIdField
 		} ] } ];
 	}
 

@@ -28,18 +28,23 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		, required string  relatedTo
+		, required string  relationshipKey
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
-		var subQuery = presideObjectService.selectData(
+		var idField        = presideObjectService.getIdField( objectName );
+		var relatedIdField = presideObjectService.getIdField( relatedTo );
+		var subQuery       = presideObjectService.selectData(
 			  objectName          = arguments.objectName
-			, selectFields        = [ "Count( #propertyName#.id ) onetomany_count", "#objectName#.id" ]
-			, groupBy             = "#objectName#.id"
+			, selectFields        = [ "Count( #propertyName#.#relatedIdField# ) as onetomany_count", "#objectName#.#idField# as id" ]
+			, groupBy             = "#objectName#.#idField#"
 			, getSqlAndParamsOnly = true
 		).sql;
+
 		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
 		var paramName     = subQueryAlias;
 		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} :#paramName#";
@@ -74,7 +79,7 @@ component {
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
 			, joinToTable    = prefix
-			, joinToColumn   = "id"
+			, joinToColumn   = idField
 		} ] } ];
 	}
 

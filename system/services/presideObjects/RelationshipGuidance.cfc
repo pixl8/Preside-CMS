@@ -1,17 +1,17 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**
 	 * @objectReader.inject PresideObjectReader
 	 */
-	public any function init( required any objectReader ) output=false {
+	public any function init( required any objectReader ) {
 		_setObjectReader( arguments.objectReader );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public array function calculateJoins( required string objectName, required array joinTargets, string forceJoins ) output=false {
+	public array function calculateJoins( required string objectName, required array joinTargets, string forceJoins ) {
 		// TODO, MAKE THIS ENTIRE METHOD UNDERSTANDABLE! (refactor now that tests are in place)
 
 		var relationships   = _getRelationships();
@@ -144,7 +144,7 @@ component output=false singleton=true {
 		return joins;
 	}
 
-	public void function setupRelationships( required struct objects ) output=false {
+	public void function setupRelationships( required struct objects ) {
 		var object           = "";
 		var objectName       = "";
 		var objectNames      = StructKeyArray( arguments.objects );
@@ -155,6 +155,7 @@ component output=false singleton=true {
 		var autoObjects      = {};
 		var autoObject       = "";
 		var i                = "";
+		var pkMappings       = {};
 
 		// !!! IMPORTANT TO LOOP THIS WAY (so that auto generated objects for many-to-many relationships can be processed by being pushed on to the array )
 		for( i=1; i lte ArrayLen( objectNames ); i++ ) {
@@ -237,6 +238,8 @@ component output=false singleton=true {
 						);
 					}
 
+					var idField = objects[ property.relatedto ].meta.idField ?: "id";
+
 					if ( !property.keyExists( "onDelete" ) ){
 						property.onDelete = ( property.required ? "error" : "set null" );
 					}
@@ -253,7 +256,7 @@ component output=false singleton=true {
 					object.meta.relationships[ keyName ] = {
 						  pk_table  = objects[ property.relatedto ].meta.tableName
 						, fk_table  = object.meta.tableName
-						, pk_column = "id"
+						, pk_column = idField
 						, fk_column = propertyName
 						, on_update = property.onUpdate
 						, on_delete = property.onDelete
@@ -268,7 +271,7 @@ component output=false singleton=true {
 					ArrayAppend( relationships[ objectName ][ property.relatedTo ], {
 						  type      = "many-to-one"
 						, required  = property.required
-						, pk        = "id"
+						, pk        = idField
 						, fk        = propertyName
 						, onUpdate  = property.onUpdate
 						, onDelete  = property.onDelete
@@ -283,16 +286,16 @@ component output=false singleton=true {
 					ArrayAppend( relationships[ property.relatedTo ][ objectName ], {
 						  type     = "one-to-many"
 						, required = false
-						, pk       = "id"
+						, pk       = idField
 						, fk       = propertyName
 						, onUpdate = property.onUpdate
 						, onDelete = property.onDelete
 						, alias    = _calculateOneToManyAlias( property.relatedTo, objects[ property.relatedTo ], objectName, propertyName )
 					} );
 
-					property.type      = objects[ property.relatedto ].meta.properties.id.type;
-					property.dbType    = objects[ property.relatedto ].meta.properties.id.dbType;
-					property.maxLength = objects[ property.relatedto ].meta.properties.id.maxLength;
+					property.type      = objects[ property.relatedto ].meta.properties[ idField ].type;
+					property.dbType    = objects[ property.relatedto ].meta.properties[ idField ].dbType;
+					property.maxLength = objects[ property.relatedto ].meta.properties[ idField ].maxLength;
 				} else if ( property.relationship == "one-to-many" ) {
 					if ( not StructKeyExists( objects, property.relatedto ) ) {
 						throw(
@@ -314,11 +317,17 @@ component output=false singleton=true {
 			}
 		}
 
+		for( i=1; i lte ArrayLen( objectNames ); i++ ) {
+			objectName = objectNames[ i ];
+			pkMappings[ objectName ] = objects[ objectName ].meta.idField ?: "id";
+		}
+
 		_setRelationships( relationships );
 		_setManyToManyRelationships( m2mRelationships );
+		_setPkMappings( pkMappings );
 	}
 
-	public struct function getObjectRelationships( required string objectName ) output=false {
+	public struct function getObjectRelationships( required string objectName ) {
 		var relationships = _getRelationships();
 
 		if ( StructKeyExists( relationships, arguments.objectName ) ) {
@@ -353,13 +362,14 @@ component output=false singleton=true {
 		, required array  existingJoins
 		, required string forceJoins
 
-	) output=false {
+	) {
 		var currentSource   = arguments.objectName;
 		var targetPos       = 0;
 		var joins           = [];
 		var joinAlias       = "";
 		var currentAlias    = "";
 		var currentJoinType = "inner";
+		var pkMappings      = _getPkMappings();
 
 		while( targetPos lt ListLen( target, "$" ) ) {
 			var targetCol    = ListGetAt( target, ++targetPos, "$" );
@@ -388,7 +398,7 @@ component output=false singleton=true {
 					, joinToObject       = relationship.pivotObject
 					, joinFromObject     = currentSource
 					, joinFromAlias      = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
-					, joinFromProperty   = "id"
+					, joinFromProperty   = pkMappings[ currentSource ]
 					, joinToProperty     = ( relationship.sourceObject == currentSource ? relationship.sourceFk : relationship.targetFk )
 					, manyToManyProperty = relationship.propertyName
 				} );
@@ -406,7 +416,7 @@ component output=false singleton=true {
 						  joinFromObject   = relationship.pivotObject
 						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : relationship.pivotObject
 						, joinFromProperty = ( relationship.sourceObject == currentSource ? relationship.targetFk : relationship.sourceFk )
-						, joinToProperty   = "id"
+						, joinToProperty   = pkMappings[ relationship.object ]
 					});
 				break;
 				case "many-to-one":
@@ -440,7 +450,7 @@ component output=false singleton=true {
 		return joins;
 	}
 
-	private struct function _findColumnRelationship( required string objectName, required string columnName ) output=false {
+	private struct function _findColumnRelationship( required string objectName, required string columnName ) {
 		var found = {};
 		var relationships = _getRelationships();
 		relationships = relationships[ arguments.objectName ] ?: {};
@@ -474,7 +484,7 @@ component output=false singleton=true {
 		return {};
 	}
 
-	private boolean function _joinExists( required struct join, required array joins ) output=false {
+	private boolean function _joinExists( required struct join, required array joins ) {
 		var cleanedJoin = Duplicate( join );
 		cleanedJoin.delete( "manyToManyProperty" );
 
@@ -500,7 +510,7 @@ component output=false singleton=true {
 		return false;
 	}
 
-	private string function _calculateOneToManyAlias( required string oneObjectName, required struct oneObject, required string manyObjectName, required string fkName ) output=false {
+	private string function _calculateOneToManyAlias( required string oneObjectName, required struct oneObject, required string manyObjectName, required string fkName ) {
 		for ( var propertyName in oneObject.meta.properties ) {
 			var property        = oneObject.meta.properties[ propertyName ];
 			var relationship    = property.relationship    ?: "";
@@ -516,24 +526,31 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getObjectReader() output=false {
+	private any function _getObjectReader() {
 		return _objectReader;
 	}
-	private void function _setObjectReader( required any objectReader ) output=false {
+	private void function _setObjectReader( required any objectReader ) {
 		_objectReader = arguments.objectReader;
 	}
 
-	private any function _getRelationships() output=false {
+	private any function _getRelationships() {
 		return _relationships;
 	}
-	private void function _setRelationships( required any relationships ) output=false {
+	private void function _setRelationships( required any relationships ) {
 		_relationships = arguments.relationships;
 	}
 
-	private any function _getManyToManyRelationships() output=false {
+	private any function _getManyToManyRelationships() {
 		return _manyToManyRelationships;
 	}
-	private void function _setManyToManyRelationships( required any manyToManyRelationships ) output=false {
+	private void function _setManyToManyRelationships( required any manyToManyRelationships ) {
 		_manyToManyRelationships = arguments.manyToManyRelationships;
+	}
+
+	private struct function _getPkMappings() {
+		return _pkMappings;
+	}
+	private void function _setPkMappings( required struct pkMappings ) {
+		_pkMappings = arguments.pkMappings;
 	}
 }
