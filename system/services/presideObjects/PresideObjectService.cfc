@@ -980,6 +980,7 @@ component displayName="Preside Object Service" {
 	 */
 	public query function getRecordVersions( required string objectName, required string id, string fieldName ) autodoc=true {
 		var args = {};
+		var idField = getIdField( arguments.objectName );
 
 		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
 			args[ key ] = arguments[ key ];
@@ -993,8 +994,8 @@ component displayName="Preside Object Service" {
 		} );
 
 		if ( args.keyExists( "fieldName" ) ) {
-			args.filter       = "id = :id and _version_changed_fields like :_version_changed_fields";
-			args.filterParams = { id = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
+			args.filter       = "#idField# = :#idField# and _version_changed_fields like :_version_changed_fields";
+			args.filterParams = { "#idField#" = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
 			args.delete( "fieldName" );
 			args.delete( "id" );
 		}
@@ -2057,8 +2058,9 @@ component displayName="Preside Object Service" {
 	) {
 		_announceInterception( "prePrepareObjectFilter", arguments );
 
+		var idField = getIdField( arguments.objectName );
 		var result = {
-			  filter       = arguments.keyExists( "id" ) ? { id = arguments.id } : arguments.filter
+			  filter       = arguments.keyExists( "id" ) ? { "#idField#" = arguments.id } : arguments.filter
 			, filterParams = arguments.filterParams
 		};
 
