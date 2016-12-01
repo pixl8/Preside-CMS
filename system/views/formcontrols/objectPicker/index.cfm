@@ -54,6 +54,9 @@
 	if ( !searchable ) {
 		extraClasses = ListAppend( extraClasses, "non-searchable", " " );
 	}
+
+	filterBy      = args.filterBy      ?: "";
+	filterByField = args.filterByField ?: filterBy;
 </cfscript>
 
 <cfoutput>
@@ -68,6 +71,12 @@
 	<select class = "#inputClass# #objectPickerClass# #extraClasses#"
 			name  = "#inputName#"
 			id    = "#inputId#"
+			<cfif !isEmpty( filterBy )>
+				data-filter-by='#filterBy#'
+			</cfif>
+			<cfif !isEmpty( filterByField )>
+				data-filter-by-field='#filterByField#'
+			</cfif>
 			<cfif disabled>disabled</cfif>
 			tabindex         = "#getNextTabIndex()#"
 			data-placeholder = "#placeholder#"

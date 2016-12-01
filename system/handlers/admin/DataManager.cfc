@@ -194,7 +194,17 @@
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
-			var extraFilters = !isEmpty( rc.extraFilters ?: "" ) ? deserializeJSON( urlDecode( rc.extraFilters ?: "" ) ) : [];
+			var filterByField = rc.filterByField ?: "";
+			var extraFilters  = [];
+
+			loop list=filterByField index="indexField"{
+				if( !isEmpty( rc[indexField] ?: "" ) ){
+					extraFilters.append({
+						  filter       = "#indexField# = :#indexField#"
+						, filterParams = { "#indexField#" = rc[indexField] }
+					})
+				}
+			}
 
 			var records = dataManagerService.getRecordsForAjaxSelect(
 				  objectName   = rc.object  ?: ""

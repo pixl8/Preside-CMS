@@ -367,8 +367,8 @@
 
 			this.search_engine = new Bloodhound( {
 				  local          : this.local_options
-				, prefetch       : ( this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" ) )
-				, remote         : ( this.remote_url = this.form_field.getAttribute( "data-remote-url" ) )
+				, prefetch       : ( this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" ) + this.filter )
+				, remote         : ( this.remote_url   = this.form_field.getAttribute( "data-remote-url" ) + this.filter  )
 				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
 			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
 			 	, limit          : 100 // a sensible limit, should probably be configurable, right?!
@@ -409,7 +409,6 @@
 				, cache   : false
 				, method  : "post"
 				, success : callback
-				, async   : false
 			} );
 		};
 
@@ -500,7 +499,32 @@
 				this.selected_item = this.container.find('.chosen-single').first();
 			}
 
+			this.setup_filter();
+
 			this.setup_search_engine();
+
+			if ( typeof this.filter_field !== "undefined" ) {
+				this.filter_field.on('change',function(){
+					$uberSelect.setup_filter();
+					$uberSelect.setup_search_engine();
+				});
+			}
+		};
+
+		UberSelect.prototype.setup_filter = function() {
+
+			this.filter         = "" ;
+
+			var filterBy        = this.form_field.getAttribute( "data-filter-by" );
+			var filterByField   = this.form_field.getAttribute( "data-filter-by-field" );
+
+			this.filter_field   = $( "input[name='" + filterBy + "']" );
+			var filterByValue   = this.filter_field.val();
+
+			if ( typeof filterByValue !== "undefined" ) {
+				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByField=' + filterBy;
+			}
+
 		};
 
 		UberSelect.prototype.register_observers = function() {
