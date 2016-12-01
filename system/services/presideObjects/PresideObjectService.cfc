@@ -1375,6 +1375,7 @@ component displayName="Preside Object Service" {
 	) {
 		var cacheMaps   = _getCacheMaps();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
+		var idField     = getIdField( objectName );
 		var keysToClear = "";
 		var objIds      = "";
 		var objId       = "";
@@ -1386,8 +1387,12 @@ component displayName="Preside Object Service" {
 
 					if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
 						objIds = arguments.filter.id;
+					} elseif ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, idField ) ) {
+						objIds = arguments.filter[ idField ];
 					} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
 						objIds = arguments.filterParams.id;
+					} elseif ( StructKeyExists( arguments.filterParams, idField ) ) {
+						objIds = arguments.filterParams[ idField ];
 					}
 
 					if ( IsSimpleValue( objIds ) ) {
