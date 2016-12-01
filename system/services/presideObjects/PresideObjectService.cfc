@@ -1923,7 +1923,8 @@ component displayName="Preside Object Service" {
 	) {
 		var cacheMaps   = _getCacheMaps();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
-		var fullIdField = "#arguments.objectName#.id";
+		var idField     = getIdField( arguments.objectName );
+		var fullIdField = "#arguments.objectName#.#idField#";
 		var objId       = "";
 		var id          = "";
 		var joinObj     = "";
@@ -1938,14 +1939,22 @@ component displayName="Preside Object Service" {
 			if ( IsStruct( arguments.filter ) ) {
 				if ( arguments.filter.keyExists( "id" ) ) {
 					objId = arguments.filter.id;
+				} else if ( arguments.filter.keyExists( idField ) ) {
+					objId = arguments.filter[ idField ];
 				} else if ( arguments.filter.keyExists( fullIdField ) ) {
 					objId = arguments.filter[ fullIdField ];
+				} else if ( arguments.filter.keyExists( "#arguments.objectName#.id" ) ) {
+					objId = arguments.filter[ "#arguments.objectName#.id" ];
 				}
 			} else {
 				if ( arguments.filterParams.keyExists( "id" ) ) {
 					objId = arguments.filterParams.id;
+				} else if ( arguments.filterParams.keyExists( idField ) ) {
+					objId = arguments.filterParams[ idField ];
 				} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
 					objId = arguments.filterParams[ fullIdField ];
+				} else if ( arguments.filterParams.keyExists( "#arguments.objectName#.id" ) ) {
+					objId = arguments.filterParams[ "#arguments.objectName#.id" ];
 				}
 			}
 
