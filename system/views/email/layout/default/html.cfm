@@ -65,7 +65,7 @@
         <div id="body_style" style="padding:15px">
             <cfoutput>#args.body#</cfoutput>
             <cfif Len( Trim( args.signature_html ) )>
-                <cfoutput>#args.signature_html#</cfoutput>
+                <cfoutput>#renderContent( "richeditor", args.signature_html, "email" )#</cfoutput>
             </cfif>
         </div>
     </body>

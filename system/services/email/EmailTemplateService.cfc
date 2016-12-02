@@ -116,7 +116,7 @@ component {
 			, emailTemplate = arguments.template
 			, type          = "html"
 			, subject       = message.subject
-			, body          = replaceParameterTokens( messageTemplate.html_body, params, "html" )
+			, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
 		);
 
 		return message;
@@ -156,7 +156,7 @@ component {
 			, emailTemplate = arguments.template
 			, type          = "html"
 			, subject       = message.subject
-			, body          = replaceParameterTokens( messageTemplate.html_body, params, "html" )
+			, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
 		);
 
 		return message;
