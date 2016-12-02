@@ -653,8 +653,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockSubject            = CreateUUId();
 				var mockTo                 = CreateUUId();
 				var mockTextBody           = CreateUUId();
-				var mockHtmlBody           = CreateUUId();
 				var mockTextBodyWithLayout = CreateUUId();
+				var mockHtmlBody           = CreateUUId();
+				var mockHtmlBodyRendered   = CreateUUId();
 				var mockHtmlBodyWithLayout = CreateUUId();
 				var mockRecipientId        = CreateUUId();
 				var mockArgs               = { bookingId = CreateUUId() };
@@ -678,7 +679,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
-
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBodyRendered );
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
@@ -692,7 +693,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailTemplate = template
 					, type          = "html"
 					, subject       = mockSubject
-					, body          = mockHtmlBody
+					, body          = mockHtmlBodyRendered
 				).$results( mockHtmlBodyWithLayout );
 
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
@@ -742,6 +743,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBody );
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
