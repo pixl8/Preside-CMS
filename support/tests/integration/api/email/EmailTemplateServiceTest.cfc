@@ -801,6 +801,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockTo                 = CreateUUId();
 				var mockTextBody           = CreateUUId();
 				var mockHtmlBody           = CreateUUId();
+				var mockHtmlBodyRendered   = CreateUUId();
 				var mockTextBodyWithLayout = CreateUUId();
 				var mockHtmlBodyWithLayout = CreateUUId();
 				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
@@ -823,6 +824,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email" ).$results( mockHtmlBodyRendered );
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
@@ -837,7 +839,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailTemplate = template
 					, type          = "html"
 					, subject       = mockSubject
-					, body          = mockHtmlBody
+					, body          = mockHtmlBodyRendered
 				).$results( mockHtmlBodyWithLayout );
 
 				expect( service.previewTemplate( template=template, allowDrafts=true, version=version ) ).toBe( {
