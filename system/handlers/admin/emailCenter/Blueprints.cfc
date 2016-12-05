@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="dao"        inject="presidecms:object:email_blueprint";
-	property name="messageBox" inject="coldbox:plugin:messageBox";
+	property name="dao"                inject="presidecms:object:email_blueprint";
+	property name="emailLayoutService" inject="emailLayoutService";
+	property name="messageBox"         inject="coldbox:plugin:messageBox";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -30,13 +31,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "cms:emailcenter.blueprints.add.page.title" );
 		prc.pageSubtitle = translateResource( "cms:emailcenter.blueprints.add.page.subtitle" );
 
-		prc.canPublish   = hasCmsPermission( "emailCenter.blueprints.saveDraft" );
-		prc.canSaveDraft = hasCmsPermission( "emailCenter.blueprints.publish"   );
-
-		if ( !prc.canPublish && !prc.canSaveDraft ) {
-			event.adminAccessDenied();
-		}
-
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:emailcenter.blueprints.add.page.breadcrumb" )
 			, link  = event.buildAdminLink( linkTo="emailCenter.Blueprints.add" )
@@ -59,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 				  object            = "email_blueprint"
 				, errorAction       = "emailCenter.Blueprints.add"
 				, addAnotherAction  = "emailCenter.Blueprints.add"
-				, successAction     = "emailCenter.Blueprints"
+				, successAction     = "emailCenter.Blueprints.preview"
 				, redirectOnSuccess = true
 				, audit             = true
 				, auditType         = "emailblueprints"
@@ -68,6 +62,27 @@ component extends="preside.system.base.AdminHandler" {
 				, canPublish        = prc.canPublish
 				, canSaveDraft      = prc.canSaveDraft
 			}
+		);
+	}
+
+	function preview( event, rc, prc ) {
+
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData( id=id );
+
+		if ( !prc.record.recordCount ) {
+			event.notFound();
+		}
+		for( var r in prc.record ) {
+			prc.record = r;
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.blueprints.preview.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle = translateResource( uri="cms:emailcenter.blueprints.preview.page.subtitle", data=[ prc.record.name ] );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.blueprints.preview.page.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="emailCenter.Blueprints.preview" )
 		);
 	}
 
@@ -191,6 +206,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.deleteRecordLink  = event.buildAdminLink( linkTo="emailCenter.Blueprints.deleteAction"  , queryString="id=" & args.id );
 		args.editRecordLink    = event.buildAdminLink( linkTo="emailCenter.Blueprints.edit"          , queryString="id=" & args.id );
 		args.viewHistoryLink   = event.buildAdminLink( linkTo="emailCenter.Blueprints.versionHistory", queryString="id=" & args.id );
+		args.previewRecordLink = event.buildAdminLink( linkTo="emailCenter.Blueprints.preview"       , queryString="id=" & args.id );
 		args.deleteRecordTitle = translateResource( "cms:emailcenter.blueprints.delete.record.link.title" );
 		args.objectName        = "email_blueprint";
 		args.canEdit           = hasCmsPermission( "emailCenter.blueprints.edit"   );
@@ -218,6 +234,17 @@ component extends="preside.system.base.AdminHandler" {
 				, actionsView = "admin/emailCenter/Blueprints/_historyActions"
 			}
 		);
+	}
+
+// viewlets
+	private string function _blueprintTabs( event, rc, prc, args={} ) {
+		var blueprint = prc.record ?: {};
+		var layout    = emailLayoutService.getLayout( blueprint.layout ?: "" );
+
+		args.canEdit            = hasCmsPermission( "emailcenter.blueprints.edit" );
+		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.blueprints.configureLayout" );
+
+		return renderView( view="/admin/emailCenter/blueprints/_blueprintTabs", args=args );
 	}
 
 // private utility

@@ -243,7 +243,7 @@ component {
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 				, serviceProviders = [ "manage" ]
 				, settings         = [ "navigate", "manage" ]
-				, blueprints       = [ "navigate", "add", "edit", "delete", "savedraft", "publish", "read" ]
+				, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
 			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
