@@ -1322,15 +1322,17 @@ component displayName="Preside Object Service" {
 		,          boolean clearSingleRecordCaches = true
 	) {
 		var cacheMaps   = _getCacheMaps();
+		var cache       = _getDefaultQueryCache();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
-		var keysToClear = "";
+		var keysToClear = [];
 		var objIds      = "";
 		var objId       = "";
 
 		if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
 			lock name=lockName type="exclusive" timeout=10 {
 				if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
-					keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
+					keysToClear = StructKeyArray( cacheMaps[ arguments.objectName ].__complexFilter );
+					StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
 
 					if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
 						objIds = arguments.filter.id;
@@ -1345,22 +1347,21 @@ component displayName="Preside Object Service" {
 					if ( IsArray( objIds ) and ArrayLen( objIds ) ) {
 						for( objId in objIds ){
 							if ( StructKeyExists( cacheMaps[ arguments.objectName ], objId ) ) {
-								keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+								ArrayAppend( keysToClear, StructKeyArray( cacheMaps[ arguments.objectName ][ objId ] ), true );
 								StructDelete( cacheMaps[ arguments.objectName ], objId );
 							}
 						}
-						StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
 					} elseif ( arguments.clearSingleRecordCaches ) {
 						for( objId in cacheMaps[ arguments.objectName ] ) {
 							if ( objId neq "__complexFilter" ) {
-								keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+								ArrayAppend( keysToClear, StructKeyArray( cacheMaps[ arguments.objectName ][ objId ] ), true );
 							}
 						}
 						StructDelete( cacheMaps, arguments.objectName );
 					}
 
-					if ( ListLen( keysToClear ) ) {
-						_getDefaultQueryCache().clearMulti( keysToClear );
+					for( var key in keysToClear ){
+						cache.clearQuiet( key );
 					}
 				}
 			}
