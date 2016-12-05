@@ -13,7 +13,7 @@ component extends="preside.system.base.AdminHandler" {
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
-		_checkPermissions( event=event, key="read" );
+		_checkPermissions( event=event, key="navigate" );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:emailcenter.customTemplates.breadcrumb" )
@@ -330,8 +330,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getRecordsForAjaxDataTables( event, rc, prc ) {
-		_checkPermissions( event=event, key="read" );
-
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
