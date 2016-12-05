@@ -179,7 +179,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_blueprint"
-				, gridFields    = "name"
+				, gridFields    = "name,datecreated,datemodified"
 				, actionsView   = "admin.emailCenter/Blueprints._gridActions"
 				, draftsEnabled = true
 			}

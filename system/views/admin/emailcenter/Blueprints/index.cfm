@@ -1,6 +1,6 @@
 <cfscript>
 	objectName          = "email_blueprint"
-	gridFields          = [ "name" ];
+	gridFields          = [ "name", "datecreated", "datemodified" ];
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
@@ -26,6 +26,6 @@
 		, datasourceUrl       = event.buildAdminLink( linkTo="emailCenter.Blueprints.getRecordsForAjaxDataTables" )
 		, multiActionUrl      = event.buildAdminLink( linkTo='emailCenter.Blueprints.deleteAction' )
 		, gridFields          = gridFields
-		, draftsEnabled       = true
+		, draftsEnabled       = false
 	} )#
 </cfoutput>
