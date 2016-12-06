@@ -152,7 +152,7 @@ component displayName="RulesEngine Context Service" {
 	 */
 	public struct function getContextPayload( required string context, struct args={} ) {
 		var coldboxController = $getColdbox();
-		var expanded          = expandContexts( [ arguments.context ] );
+		var expanded          = listValidExpressionContextsForParentContexts( [ arguments.context ] );
 		var payload           = {};
 
 		for( var cx in expanded ) {

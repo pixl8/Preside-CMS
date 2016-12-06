@@ -94,19 +94,19 @@ component displayName="RulesEngine Condition Service" {
 	public boolean function evaluateCondition(
 		  required string conditionId
 		, required string context
-		, required struct payload
+		,          struct payload = {}
 	) {
 		var condition    = getCondition( arguments.conditionId );
-		var finalPayload = Duplicate( arguments.payload );
-
-		finalPayload.append( _getContextService().getContextPayload(
-			  context = arguments.context
-			, args    = arguments.payload
-		), false );
 
 		if ( condition.isEmpty() ) {
 			return false;
 		}
+
+		var finalPayload = Duplicate( arguments.payload );
+		finalPayload.append( _getContextService().getContextPayload(
+			  context = arguments.context
+			, args    = arguments.payload
+		), false );
 
 		return _evaluateExpressionArray(
 			  expressionArray = condition.expressions

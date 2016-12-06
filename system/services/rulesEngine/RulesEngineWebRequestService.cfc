@@ -1,8 +1,6 @@
 /**
- * Provides logic for processing web request condition
- * evaluations.
- * \n
- * See [[rules-engine]] for more details.
+ * This service is deprecated. Use [[api-rulesengineconditionservice]]
+ * instead.
  *
  * @singleton
  * @presideservice
@@ -13,13 +11,11 @@ component displayName="RulesEngine Web Request Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @conditionService.inject rulesEngineConditionService
-	 * @websiteLoginService.inject websiteLoginService
+	 * @conditionService.inject    rulesEngineConditionService
 	 *
 	 */
-	public any function init( required any conditionService, required any websiteLoginService ) {
+	public any function init( required any conditionService) {
 		_setConditionService( arguments.conditionService );
-		_setWebsiteLoginService( arguments.websiteLoginService );
 
 		return this;
 	}
@@ -27,26 +23,16 @@ component displayName="RulesEngine Web Request Service" {
 
 // PUBLIC API
 	/**
-	 * Evaluates the passed condition (id) in the 'webrequest'
-	 * context, adding information about the request into the
-	 * payload.
+	 * Deprecated. Use [[rulesengineconditionservice-evaluatecondition]] from
+	 * the [[api-rulesengineconditionservice]] instead.
 	 *
 	 * @autodoc
 	 * @conditionId.hint ID of the condition to evaluate
 	 */
 	public boolean function evaluateCondition( required string conditionId ) {
-		var event   = $getRequestContext();
-		var payload = {
-			  page         = event.getValue( name="presidePage", defaultValue={}, private=true )
-			, website_user = _getWebsiteLoginService().getLoggedInUserDetails()
-		};
-
-		payload.user = payload.website_user; // backward compat hack
-
 		return _getConditionService().evaluateCondition(
 			  conditionId = arguments.conditionId
 			, context     = "webrequest"
-			, payload     = payload
 		);
 	}
 

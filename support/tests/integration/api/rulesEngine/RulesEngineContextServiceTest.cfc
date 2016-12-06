@@ -127,7 +127,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedHandler = "rules.contexts.somecontext.getPayload";
 				var payload = { test=CreateUUId() };
 
-				service.$( "expandContexts" ).$args( [ context ] ).$results( [ context ] );
+				service.$( "listValidExpressionContextsForParentContexts" ).$args( [ context ] ).$results( [ context ] );
 				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( true );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = expectedHandler
@@ -145,7 +145,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedHandler = "rules.contexts.somecontext.getPayload";
 				var payload = { test=CreateUUId() };
 
-				service.$( "expandContexts" ).$args( [ context ] ).$results( [ context ] );
+				service.$( "listValidExpressionContextsForParentContexts" ).$args( [ context ] ).$results( [ context ] );
 				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( false );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = expectedHandler
@@ -164,7 +164,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var payload = { test=CreateUUId() };
 				var args    = { blah=CreateUUId(), "test-#CreateUUId()#"=Now() };
 
-				service.$( "expandContexts" ).$args( [ context ] ).$results( [ context ] );
+				service.$( "listValidExpressionContextsForParentContexts" ).$args( [ context ] ).$results( [ context ] );
 				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( true );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = expectedHandler
@@ -187,7 +187,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				};
 				var args    = { blah=CreateUUId(), "test-#CreateUUId()#"=Now() };
 
-				service.$( "expandContexts" ).$args( [ context ] ).$results( expanded );
+				service.$( "listValidExpressionContextsForParentContexts" ).$args( [ context ] ).$results( expanded );
 				for( var cx in expanded ) {
 					var expectedHandler = "rules.contexts.#cx#.getPayload";
 
