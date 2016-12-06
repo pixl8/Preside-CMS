@@ -143,7 +143,8 @@ component {
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
 		);
-		if ( ( template.blueprint_filter ?: "" ).len() ) {
+		var blueprintFilter = template.blueprint_filter ?: "";
+		if ( blueprintFilter.len() ) {
 			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
 			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
 				  objectName      = recipientObject
