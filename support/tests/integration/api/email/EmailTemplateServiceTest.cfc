@@ -661,12 +661,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockArgs               = { bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
 				var mockTemplate           = {
-					  layout         = "testLayout"
-					, recipient_type = "testRecipientType"
-					, subject        = "Test subject"
-					, from_address   = "From address"
-					, html_body      = "HTML BODY HERE"
-					, text_body      = "TEXT BODY OH YEAH"
+					  layout          = "testLayout"
+					, recipient_type  = "testRecipientType"
+					, subject         = "Test subject"
+					, from_address    = "From address"
+					, html_body       = "HTML BODY HERE"
+					, text_body       = "TEXT BODY OH YEAH"
+					, email_blueprint = CreateUUId()
 				};
 
 				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
@@ -684,6 +685,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
 					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
 					, type          = "text"
 					, subject       = mockSubject
 					, body          = mockTextBody
@@ -691,6 +693,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
 					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
 					, type          = "html"
 					, subject       = mockSubject
 					, body          = mockHtmlBodyRendered
@@ -724,12 +727,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockArgs               = { bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
 				var mockTemplate           = {
-					  layout         = "testLayout"
-					, recipient_type = "testRecipientType"
-					, subject        = "Test subject"
-					, from_address   = ""
-					, html_body      = "HTML BODY HERE"
-					, text_body      = "TEXT BODY OH YEAH"
+					  layout          = "testLayout"
+					, recipient_type  = "testRecipientType"
+					, subject         = "Test subject"
+					, from_address    = ""
+					, html_body       = "HTML BODY HERE"
+					, text_body       = "TEXT BODY OH YEAH"
+					, email_blueprint = CreateUUId()
 				};
 
 				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
@@ -749,6 +753,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
 					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
 					, type          = "text"
 					, subject       = mockSubject
 					, body          = mockTextBody
@@ -756,6 +761,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
 					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
 					, type          = "html"
 					, subject       = mockSubject
 					, body          = mockHtmlBody
@@ -808,12 +814,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockParams             = { test=CreateUUId(), params=Now() };
 				var version                = 49545;
 				var mockTemplate           = {
-					  layout         = "testLayout"
-					, recipient_type = "testRecipientType"
-					, subject        = "Test subject"
-					, from_address   = "From address"
-					, html_body      = "HTML BODY HERE"
-					, text_body      = "TEXT BODY OH YEAH"
+					  layout          = "testLayout"
+					, recipient_type  = "testRecipientType"
+					, subject         = "Test subject"
+					, from_address    = "From address"
+					, html_body       = "HTML BODY HERE"
+					, text_body       = "TEXT BODY OH YEAH"
+					, email_blueprint = CreateUUId()
 				};
 
 				service.$( "getTemplate" ).$args( id=template, allowDrafts=true, version=version ).$results( mockTemplate );
@@ -830,6 +837,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
 					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
 					, type          = "text"
 					, subject       = mockSubject
 					, body          = mockTextBody
@@ -837,6 +845,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
 					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
 					, type          = "html"
 					, subject       = mockSubject
 					, body          = mockHtmlBodyRendered

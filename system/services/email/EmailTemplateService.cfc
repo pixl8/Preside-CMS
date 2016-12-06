@@ -107,6 +107,7 @@ component {
 		message.textBody = _getEmailLayoutService().renderLayout(
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
+			, blueprint     = messageTemplate.email_blueprint
 			, type          = "text"
 			, subject       = message.subject
 			, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
@@ -114,6 +115,7 @@ component {
 		message.htmlBody = _getEmailLayoutService().renderLayout(
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
+			, blueprint     = messageTemplate.email_blueprint
 			, type          = "html"
 			, subject       = message.subject
 			, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
@@ -147,6 +149,7 @@ component {
 		message.textBody = _getEmailLayoutService().renderLayout(
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
+			, blueprint     = messageTemplate.email_blueprint
 			, type          = "text"
 			, subject       = message.subject
 			, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
@@ -154,6 +157,7 @@ component {
 		message.htmlBody = _getEmailLayoutService().renderLayout(
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
+			, blueprint     = messageTemplate.email_blueprint
 			, type          = "html"
 			, subject       = message.subject
 			, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
