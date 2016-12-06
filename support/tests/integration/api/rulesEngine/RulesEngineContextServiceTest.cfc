@@ -127,6 +127,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedHandler = "rules.contexts.somecontext.getPayload";
 				var payload = { test=CreateUUId() };
 
+				service.$( "expandContexts" ).$args( [ context ] ).$results( [ context ] );
 				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( true );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = expectedHandler
@@ -144,6 +145,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedHandler = "rules.contexts.somecontext.getPayload";
 				var payload = { test=CreateUUId() };
 
+				service.$( "expandContexts" ).$args( [ context ] ).$results( [ context ] );
 				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( false );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = expectedHandler
@@ -162,6 +164,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var payload = { test=CreateUUId() };
 				var args    = { blah=CreateUUId(), "test-#CreateUUId()#"=Now() };
 
+				service.$( "expandContexts" ).$args( [ context ] ).$results( [ context ] );
 				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( true );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = expectedHandler
@@ -171,6 +174,37 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( payload );
 
 				expect( service.getContextPayload( context, args ) ).toBe( payload );
+			} );
+
+			it( "should build up payload of expanded contexts when context expands to be multiple contexts", function(){
+				var service = _getService();
+				var context = "somecontext";
+				var expanded = [ "somecontext", "user", "stuffz" ];
+				var payloads = {
+					  somecontext = { test=CreateUUId() }
+					, user        = { test=CreateUUId(), foo="bar" }
+					, stuffz      = { foo="love", it=Now() }
+				};
+				var args    = { blah=CreateUUId(), "test-#CreateUUId()#"=Now() };
+
+				service.$( "expandContexts" ).$args( [ context ] ).$results( expanded );
+				for( var cx in expanded ) {
+					var expectedHandler = "rules.contexts.#cx#.getPayload";
+
+					mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( true );
+					mockColdbox.$( "runEvent" ).$args(
+						  event          = expectedHandler
+						, eventArguments = args
+						, private        = true
+						, prePostExempt  = true
+					).$results( payloads[ cx ] );
+				}
+
+				expect( service.getContextPayload( context, args ) ).toBe( {
+					  foo  = payloads.stuffz.foo
+					, it   = payloads.stuffz.it
+					, test = payloads.user.test
+				} );
 			} );
 		} );
 	}

@@ -151,19 +151,24 @@ component displayName="RulesEngine Context Service" {
 	 * @args.hint    Optional set of args to send to the context getPayload() handler
 	 */
 	public struct function getContextPayload( required string context, struct args={} ) {
-		var handlerAction     = "rules.contexts.#arguments.context#.getPayload";
 		var coldboxController = $getColdbox();
+		var expanded          = expandContexts( [ arguments.context ] );
+		var payload           = {};
 
-		if ( coldboxController.handlerExists( handlerAction ) ) {
-			return $getColdbox().runEvent(
-				  event          = handlerAction
-				, eventArguments = arguments.args
-				, private        = true
-				, prePostExempt  = true
-			);
+		for( var cx in expanded ) {
+			var handlerAction = "rules.contexts.#cx#.getPayload";
+
+			if ( coldboxController.handlerExists( handlerAction ) ) {
+				payload.append( $getColdbox().runEvent(
+					  event          = handlerAction
+					, eventArguments = arguments.args
+					, private        = true
+					, prePostExempt  = true
+				) );
+			}
 		}
 
-		return {};
+		return payload;
 	}
 
 // GETTERS AND SETTERS
