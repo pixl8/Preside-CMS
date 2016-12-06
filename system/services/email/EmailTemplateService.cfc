@@ -139,7 +139,6 @@ component {
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
 		}
-
 		var params = getPreviewParameters(
 			  template      = arguments.template
 			, recipientType = messageTemplate.recipient_type
@@ -278,6 +277,15 @@ component {
 		);
 
 		for( var t in template ) {
+			if ( ( t.email_blueprint ?: "" ).len() ) {
+				var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=t.email_blueprint );
+				if ( blueprint.recordCount ) {
+					t.layout           = blueprint.layout;
+					t.recipient_type   = blueprint.recipient_type;
+					t.blueprint_filter = blueprint.recipient_filter;
+				}
+			}
+
 			return t;
 		}
 
