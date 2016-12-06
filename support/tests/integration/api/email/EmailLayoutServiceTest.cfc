@@ -182,12 +182,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 
 				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
-				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template="" } } );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template="", email_blueprint="" } } );
 
 				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
-				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", item="test"  , value=config.test   } ] );
-				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", item="all"   , value=config.all    } ] );
-				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", item="things", value=config.things } ] );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="things", value=config.things } ] );
 			} );
 
 			it( "should insert an email specific configuration record for each config item supplied after deleting any potential previously saved records", function(){
@@ -210,12 +210,40 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 
 				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
-				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template=emailTemplate } } );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template=emailTemplate, email_blueprint="" } } );
 
 				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
-				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template=emailTemplate, item="test"  , value=config.test   } ] );
-				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template=emailTemplate, item="all"   , value=config.all    } ] );
-				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template=emailTemplate, item="things", value=config.things } ] );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="things", value=config.things } ] );
+			} );
+
+			it( "should insert a blueprint specific configuration record for each config item supplied after deleting any potential previously saved records", function(){
+				var service   = _getService();
+				var layout    = "layout2";
+				var blueprint = CreateUUId();
+				var config    = StructNew( "linked" );
+
+				config.test   = CreateUUId();
+				config.all    = "the";
+				config.things = Now();
+
+				mockConfigDao.$( "deleteData", 1 );
+				mockConfigDao.$( "insertData", CreateUUId() );
+
+				service.saveLayoutConfig(
+					  layout    = layout
+					, blueprint = blueprint
+					, config    = config
+				);
+
+				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_blueprint=blueprint, email_template="" } } );
+
+				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="things", value=config.things } ] );
 			} );
 
 		} );

@@ -144,24 +144,27 @@ component {
 	 * @layout.hint        ID of the layout who's configuration you want to save
 	 * @config.hint        Struct of configuration data to save
 	 * @emailTemplate.hint Optional ID of a specific email template who's layout configuration you wish to save
+	 * @blueprint.hint     Optional ID of a specific email blueprint who's layout configuration you wish to save
 	 *
 	 */
 	public boolean function saveLayoutConfig(
 		  required string layout
 		, required struct config
 		,          string emailTemplate = ""
+		,          string blueprint     = ""
 	){
 		var configDao = $getPresideObject( "email_layout_config_item" );
 
 		transaction {
-			configDao.deleteData( filter={ layout=arguments.layout, email_template=arguments.emailTemplate } );
+			configDao.deleteData( filter={ layout=arguments.layout, email_template=arguments.emailTemplate, email_blueprint=arguments.blueprint } );
 
 			for( var item in arguments.config ) {
 				configDao.insertData( {
-					  layout         = arguments.layout
-					, item           = item
-					, value          = arguments.config[ item ]
-					, email_template = arguments.emailTemplate
+					  layout          = arguments.layout
+					, item            = item
+					, value           = arguments.config[ item ]
+					, email_template  = arguments.emailTemplate
+					, email_blueprint = arguments.blueprint
 				});
 			}
 		}
