@@ -1,8 +1,10 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="dao"                inject="presidecms:object:email_blueprint";
-	property name="emailLayoutService" inject="emailLayoutService";
-	property name="messageBox"         inject="coldbox:plugin:messageBox";
+	property name="dao"                       inject="presidecms:object:email_blueprint";
+	property name="emailLayoutService"        inject="emailLayoutService";
+	property name="emailRecipientTypeService" inject="emailRecipientTypeService";
+	property name="messageBox"                inject="coldbox:plugin:messageBox";
+
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -88,11 +90,6 @@ component extends="preside.system.base.AdminHandler" {
 
 	function edit( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
-		prc.canSaveDraft = hasCmsPermission( "emailCenter.blueprints.saveDraft" );
-		prc.canPublish   = hasCmsPermission( "emailCenter.blueprints.publish"   );
-		if ( !prc.canSaveDraft && !prc.canPublish ) {
-			event.adminAccessDenied()
-		}
 
 		var id      = rc.id ?: "";
 		var version = Val( rc.version ?: "" );
@@ -110,6 +107,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		prc.record = queryRowToStruct( prc.record );
 
+		prc.filterObject = rc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
+
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.blueprints.edit.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.blueprints.edit.page.subtitle", data=[ prc.record.name ] );
 
@@ -122,8 +121,6 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( event=event, key="edit" );
 
 		var id = rc.id ?: "";
-		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
-		_checkPermissions( event=event, key=saveAction );
 
 		prc.record = dao.selectData( filter={ id=id } );
 
@@ -139,14 +136,12 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object            = "email_blueprint"
 				, errorAction       = "emailCenter.Blueprints.edit"
-				, successUrl        = event.buildAdminLink( linkto="emailCenter.Blueprints" )
+				, successUrl        = event.buildAdminLink( linkto="emailCenter.blueprints.preview", queryString="id=#id#" )
 				, redirectOnSuccess = true
 				, audit             = true
 				, auditType         = "emailblueprints"
-				, auditAction       = ( saveAction == "publish" ? "publish_record" : "save_draft" )
-				, draftsEnabled     = true
-				, canPublish        = hasCmsPermission( "emailCenter.blueprints.saveDraft" )
-				, canSaveDraft      = hasCmsPermission( "emailCenter.blueprints.publish"   )
+				, auditAction       = "edit"
+				, draftsEnabled     = false
 			}
 		);
 	}

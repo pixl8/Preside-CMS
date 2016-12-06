@@ -2,6 +2,11 @@ component  {
 
 	public string function index( event, rc, prc, args={} ) {
 		var filterObject        = args.filterObject ?: ( rc.filterObject ?: "" );
+
+		if ( !Len( Trim( filterObject ) ) ) {
+			return "";
+		}
+
 		var multiple            = IsTrue( args.multiple ?: "" );
 		var prefetchCacheBuster = CreateUUId();
 
