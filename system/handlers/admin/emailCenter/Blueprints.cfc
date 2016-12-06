@@ -80,6 +80,30 @@ component extends="preside.system.base.AdminHandler" {
 			prc.record = r;
 		}
 
+
+		prc.preview = {};
+		prc.preview.html = emailLayoutService.renderLayout(
+			  layout        = prc.record.layout
+			, emailTemplate = ""
+			, blueprint     = id
+			, type          = "html"
+			, subject       = "Test email subject"
+			, body          = "<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>"
+		);
+		prc.preview.text = emailLayoutService.renderLayout(
+			  layout        = prc.record.layout
+			, emailTemplate = ""
+			, blueprint     = id
+			, type          = "text"
+			, subject       = "Test email subject"
+			, body          = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+		);
+
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.blueprints.preview.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.blueprints.preview.page.subtitle", data=[ prc.record.name ] );
 		event.addAdminBreadCrumb(
