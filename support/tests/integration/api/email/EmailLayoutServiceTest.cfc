@@ -33,10 +33,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "renderLayout", function() {
-			it( "should call the layout's HTML viewlet (by convention), passing in supplied arguments combined with retrieved config for the layout/email", function(){
+			it( "should call the layout's HTML viewlet (by convention), passing in supplied arguments combined with retrieved config for the layout/blueprint/email", function(){
 				var service       = _getService();
 				var layout        = "layout2";
 				var emailTemplate = CreateUUId();
+				var blueprint     = CreateUUId();
 				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
 				var dummyRendered = CreateUUId();
 				var config        = { dummy=CreateUUId(), test=Now() };
@@ -44,7 +45,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				argsPlusConfig.append( config, false );
 
-				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
+				service.$( "getLayoutConfig" ).$args( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.html"
 					, args  = argsPlusConfig
@@ -54,6 +55,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  argumentCollection = args
 					, layout             = layout
 					, emailTemplate      = emailTemplate
+					, blueprint          = blueprint
 					, type               = "html"
 				);
 
@@ -64,6 +66,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service       = _getService();
 				var layout        = "layout2";
 				var emailTemplate = CreateUUId();
+				var blueprint     = CreateUUId();
 				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
 				var dummyRendered = CreateUUId();
 				var config        = { dummy=CreateUUId(), test=Now() };
@@ -71,7 +74,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				argsPlusConfig.append( config, false );
 
-				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
+				service.$( "getLayoutConfig" ).$args( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.text"
 					, args  = argsPlusConfig
@@ -82,6 +85,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  argumentCollection = args
 					, layout             = layout
 					, emailTemplate      = emailTemplate
+					, blueprint          = blueprint
 					, type               = "text"
 				);
 
@@ -92,6 +96,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service        = _getService();
 				var layout         = "layout2";
 				var emailTemplate  = CreateUUId();
+				var blueprint      = CreateUUId();
 				var dummyRendered  = CreateUUId();
 				var args           = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId(), test=CreateUUId() };
 				var config         = { dummy=CreateUUId(), test=Now() };
@@ -99,7 +104,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				argsPlusConfig.append( config, false );
 
-				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
+				service.$( "getLayoutConfig" ).$args( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.text"
 					, args  = argsPlusConfig
@@ -110,6 +115,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  argumentCollection = args
 					, layout             = layout
 					, emailTemplate      = emailTemplate
+					, blueprint          = blueprint
 					, type               = "text"
 				);
 
