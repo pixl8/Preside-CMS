@@ -9,7 +9,7 @@
 			  object         = "email_blueprint"
 			, id             = recordId
 			, version        = version
-			, isDraft        = IsTrue( prc.record._version_is_draft ?: "" )
+			, isDraft        = false
 			, baseUrl        = event.buildAdminLink( linkto="emailCenter.Blueprints.edit", queryString="id=#recordId#&version=" )
 			, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.Blueprints.versionHistory", queryString="id=#recordId#" )
 		} )#

@@ -239,7 +239,7 @@ component {
 		,          any     filterParams = {}
 	) {
 		var result = { totalRecords = 0, records = "" };
-		var dao    = _getPresideObjectService().getPresideObject( arguments.objectName );
+		var dao    = _getPresideObjectService().getObject( arguments.objectName );
 		var args   = {
 			  objectName       = arguments.objectName
 			, id               = arguments.recordId

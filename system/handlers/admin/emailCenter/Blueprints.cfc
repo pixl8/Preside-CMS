@@ -41,12 +41,6 @@ component extends="preside.system.base.AdminHandler" {
 	function addAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="add" );
 
-		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
-		_checkPermissions( event=event, key=saveAction );
-
-		prc.canPublish   = hasCmsPermission( "emailCenter.blueprints.saveDraft" );
-		prc.canSaveDraft = hasCmsPermission( "emailCenter.blueprints.publish"   );
-
 		runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
@@ -59,10 +53,8 @@ component extends="preside.system.base.AdminHandler" {
 				, redirectOnSuccess = true
 				, audit             = true
 				, auditType         = "emailblueprints"
-				, auditAction       = saveAction == "publish" ? "add_record" : "add_draft_record"
-				, draftsEnabled     = true
-				, canPublish        = prc.canPublish
-				, canSaveDraft      = prc.canSaveDraft
+				, auditAction       = "add_record"
+				, draftsEnabled     = false
 			}
 		);
 	}
@@ -141,25 +133,26 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			, link  = event.buildAdminLink( linkTo="emailCenter.Blueprints.edit", queryString="id=#id#" )
 		);
 	}
+
 	function editAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
 
 		var id = rc.id ?: "";
 
-		prc.record = dao.selectData( filter={ id=id } );
+		prc.record = dao.selectData( id=id );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.Blueprints" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.blueprints" ) );
 		}
 
 		runEvent(
-			  event          = "admin.DataManager._editRecordAction"
+			  event          = "admin.dataManager._editRecordAction"
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
 				  object            = "email_blueprint"
-				, errorAction       = "emailCenter.Blueprints.edit"
+				, errorAction       = "emailCenter.blueprints.edit"
 				, successUrl        = event.buildAdminLink( linkto="emailCenter.blueprints.preview", queryString="id=#id#" )
 				, redirectOnSuccess = true
 				, audit             = true
