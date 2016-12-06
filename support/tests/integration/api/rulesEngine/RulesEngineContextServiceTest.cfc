@@ -119,6 +119,60 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getContextObject( "object_test" ) ).toBe( "test" );
 			} );
 		} );
+
+		describe( "getContextPayload()", function(){
+			it( "should call the convention based handler action, if it exists, to fetch the payload for a given context", function(){
+				var service = _getService();
+				var context = "somecontext";
+				var expectedHandler = "rules.contexts.somecontext.getPayload";
+				var payload = { test=CreateUUId() };
+
+				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( true );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = expectedHandler
+					, eventArguments = {}
+					, private        = true
+					, prePostExempt  = true
+				).$results( payload );
+
+				expect( service.getContextPayload( context ) ).toBe( payload );
+			} );
+
+			it( "should return an empty struct when convention based handler for the context does not exist", function(){
+				var service = _getService();
+				var context = "somecontext";
+				var expectedHandler = "rules.contexts.somecontext.getPayload";
+				var payload = { test=CreateUUId() };
+
+				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( false );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = expectedHandler
+					, eventArguments = {}
+					, private        = true
+					, prePostExempt  = true
+				).$results( payload );
+
+				expect( service.getContextPayload( context ) ).toBe( {} );
+			} );
+
+			it( "should pass any additionally passed arguments through as eventArguments to the convention based handler", function(){
+				var service = _getService();
+				var context = "somecontext";
+				var expectedHandler = "rules.contexts.somecontext.getPayload";
+				var payload = { test=CreateUUId() };
+				var args    = { blah=CreateUUId(), "test-#CreateUUId()#"=Now() };
+
+				mockColdbox.$( "handlerExists" ).$args( expectedHandler ).$results( true );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = expectedHandler
+					, eventArguments = args
+					, private        = true
+					, prePostExempt  = true
+				).$results( payload );
+
+				expect( service.getContextPayload( context, args ) ).toBe( payload );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -126,6 +180,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineContextService(
 			configuredContexts = arguments.contexts
 		) );
+
+		mockColdbox = createEmptyMock( "preside.system.coldboxModifications.Controller" );
+		service.$( "$getColdbox", mockColdbox );
 
 		return service;
 	}

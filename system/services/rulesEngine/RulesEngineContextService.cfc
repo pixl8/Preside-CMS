@@ -142,6 +142,30 @@ component displayName="RulesEngine Context Service" {
 		contexts[ arguments.id ] = contextArgs;
 	}
 
+	/**
+	 * Returns the payload for the given context and optional
+	 * set of args to the payload's context getting handler.
+	 *
+	 * @autodoc true
+	 * @context.hint ID of the context who's payload we are to get
+	 * @args.hint    Optional set of args to send to the context getPayload() handler
+	 */
+	public struct function getContextPayload( required string context, struct args={} ) {
+		var handlerAction     = "rules.contexts.#arguments.context#.getPayload";
+		var coldboxController = $getColdbox();
+
+		if ( coldboxController.handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = arguments.args
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return {};
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredContexts() {
 		return _configuredContexts;
