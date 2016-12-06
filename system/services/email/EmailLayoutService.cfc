@@ -178,30 +178,53 @@ component {
 	 * @autodoc            true
 	 * @layout.hint        ID of the layout who's configuration you wish to get
 	 * @emailTemplate.hint Optional ID of specific email template who's layout configuration you wish to get
-	 * @merged.hint        If true, and both layout and emailTemplate supplied, the method will return a combined set of settings (global + template specific)
+	 * @blueprint.hint     Optional ID of specific email blueprint who's layout configuration you wish to get
+	 * @merged.hint        If true, and layout, emailTemplate and blueprint supplied, the method will return a combined set of settings (global, blueprint + template specific)
 	 */
 	public struct function getLayoutConfig(
 		  required string  layout
 		,          string  emailTemplate = ""
+		,          string  blueprint     = ""
 		,          boolean merged        = false
 	) {
 		var config      = {};
-		var savedConfig = $getPresideObject( "email_layout_config_item" ).selectData(
-			  filter = { layout=arguments.layout, email_template=arguments.emailTemplate }
-			, selectFields = [ "item", "value" ]
-		);
+		var savedConfig = "";
 
-		for( var record in savedConfig ) {
-			config[ record.item ] = record.value;
-		}
-
-		if ( Len( Trim( arguments.emailTemplate ) ) && arguments.merged ) {
+		if ( !merged ) {
 			savedConfig = $getPresideObject( "email_layout_config_item" ).selectData(
-				  filter = { layout=arguments.layout, email_template="" }
+				  filter = { layout=arguments.layout, email_template=arguments.emailTemplate, email_blueprint=arguments.blueprint }
 				, selectFields = [ "item", "value" ]
 			);
 			for( var record in savedConfig ) {
-				config[ record.item ] = config[ record.item ] ?: record.value;
+				config[ record.item ] = record.value;
+			}
+		} else {
+			savedConfig = $getPresideObject( "email_layout_config_item" ).selectData(
+				  filter = { layout=arguments.layout, email_template="", email_blueprint="" }
+				, selectFields = [ "item", "value" ]
+			);
+			for( var record in savedConfig ) {
+				config[ record.item ] = record.value;
+			}
+
+			if ( Len( Trim( arguments.blueprint ) ) ) {
+				savedConfig = $getPresideObject( "email_layout_config_item" ).selectData(
+					  filter = { layout=arguments.layout, email_template="", email_blueprint=arguments.blueprint }
+					, selectFields = [ "item", "value" ]
+				);
+				for( var record in savedConfig ) {
+					config[ record.item ] = record.value;
+				}
+			}
+
+			if ( Len( Trim( arguments.emailTemplate ) ) ) {
+				savedConfig = $getPresideObject( "email_layout_config_item" ).selectData(
+					  filter = { layout=arguments.layout, email_template=arguments.emailTemplate, email_blueprint="" }
+					, selectFields = [ "item", "value" ]
+				);
+				for( var record in savedConfig ) {
+					config[ record.item ] = record.value;
+				}
 			}
 		}
 
