@@ -120,11 +120,13 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 	private string function _configForm( event, rc, prc, args={} ) {
 		var layoutId   = args.layoutId   ?: "";
 		var templateId = args.templateId ?: "";
+		var blueprint  = args.blueprint  ?: "";
 
 		args.layoutFormName = emailLayoutService.getLayoutConfigFormName( layoutId );
 		args.savedConfig    = emailLayoutService.getLayoutConfig(
 			  layout        = layoutId
 			, emailTemplate = templateId
+			, blueprint     = blueprint
 			, merged        = false
 		);
 

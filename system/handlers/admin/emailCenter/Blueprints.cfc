@@ -170,6 +170,62 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		);
 	}
 
+	public void function configureLayout( event, rc, prc ) {
+		_checkPermissions( event=event, key="edit" );
+
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData(
+			  filter             = { id=id }
+			, allowDraftVersions = true
+		);
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.Blueprints" ) );
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.blueprints.configureLayout.page.title"   , data=[ prc.record.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.blueprints.configureLayout.page.subTitle", data=[ prc.record.name ] );
+
+		prc.configForm = renderViewlet( event="admin.emailCenter.layouts._configForm", args={
+			  layoutId   = prc.record.layout
+			, blueprint  = id
+			, formAction = event.buildAdminLink( linkTo='emailcenter.blueprints.saveLayoutConfigurationAction' )
+		} );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.blueprints.configureLayout.breadcrumb.title"  , data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.blueprints.configureLayout", queryString="id=" & id )
+		);
+	}
+
+	public void function saveLayoutConfigurationAction() {
+		// var templateId = rc.template ?: "";
+
+		// prc.record = emailTemplateService.getTemplate( id=templateId );
+
+		// if ( !prc.record.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+		// 	event.notFound();
+		// }
+
+		// if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
+		// 	event.adminAccessDenied();
+		// }
+
+		// runEvent(
+		// 	  event          = "admin.emailCenter.layouts._saveConfiguration"
+		// 	, private        = true
+		// 	, prepostExempt  = true
+		// 	, eventArguments = {
+		// 		  successUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.template", queryString="template=" & templateId )
+		// 		, failureUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
+		// 		, layoutId   = prc.record.layout
+		// 		, templateId = templateId
+		// 	  }
+		// );
+	}
+
 	function deleteAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="delete" );
 

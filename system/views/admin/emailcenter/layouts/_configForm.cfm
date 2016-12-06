@@ -2,18 +2,22 @@
 	formId           = "configure-layout";
 	layoutId         = args.layoutId ?: "";
 	templateId       = args.templateId ?: "";
+	blueprint        = args.blueprint  ?: "";
 	formAction       = args.formAction ?: "";
 	layoutFormName   = args.layoutFormName ?: "";
 	savedConfig      = args.savedConfig ?: {};
 	validationResult = rc.validationResult ?: "";
 
-	isTemplateConfig = Len( Trim( templateId ) ) > 0;
+	isOverrideConfig = Len( Trim( templateId ) & Trim( blueprint ) ) > 0;
 </cfscript>
 <cfoutput>
 	<form id="#formId#" method="post" action="#formAction#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal">
 		<input type="hidden" name="layout"   value="#layoutId#">
 		<cfif Len( Trim( templateId ) )>
 			<input type="hidden" name="template" value="#templateId#">
+		</cfif>
+		<cfif Len( Trim( blueprint ) )>
+			<input type="hidden" name="blueprint" value="#blueprint#">
 		</cfif>
 
 		#renderForm(
@@ -22,8 +26,8 @@
 			, formId           = formId
 			, savedData        = savedConfig
 			, validationResult = validationResult
-			, fieldLayout      = isTemplateConfig ? "formcontrols.layouts.fieldWithOverrideOption"    : NullValue()
-			, fieldsetLayout   = isTemplateConfig ? "formcontrols.layouts.fieldsetWithOverrideOption" : NullValue()
+			, fieldLayout      = isOverrideConfig ? "formcontrols.layouts.fieldWithOverrideOption"    : NullValue()
+			, fieldsetLayout   = isOverrideConfig ? "formcontrols.layouts.fieldsetWithOverrideOption" : NullValue()
 		)#
 
 		<div class="form-actions row">
