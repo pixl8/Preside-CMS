@@ -311,7 +311,11 @@ component {
 		if ( templateId.len() ) {
 			var template = _getEmailTemplateService().getTemplate( templateId );
 
-			recipientType = template.recipient_type ?: "";
+			if ( template.count() ) {
+				recipientType = template.recipient_type ?: "";
+			} else {
+				templateId = "";
+			}
 		}
 
 		return _getEmailLoggingService().createEmailLog(
