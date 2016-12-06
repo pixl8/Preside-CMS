@@ -138,6 +138,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		, required string successUrl
 		, required string failureUrl
 		,          string templateId = ""
+		,          string blueprint  = ""
 	) {
 		/*
 		   TODO: make this work for template saving too
@@ -146,7 +147,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		var formName         = emailLayoutService.getLayoutConfigFormName( layoutId );
 		var formData         = event.getCollectionForForm( formName );
 
-		if ( Len( Trim( arguments.templateId ) ) ) {
+		if ( Len( Trim( arguments.templateId ) & Trim( arguments.blueprint ) ) ) {
 			for( var setting in formData ){
 				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
 					formData.delete( setting );
@@ -159,6 +160,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			emailLayoutService.saveLayoutConfig(
 				  layout        = layoutId
 				, emailTemplate = templateId
+				, blueprint     = blueprint
 				, config        = formData
 			);
 
@@ -170,6 +172,14 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 					, detail   = formData
 				);
 				messagebox.info( translateResource( "cms:emailcenter.systemTemplates.layout.configuration.saved.message") );
+			} elseif ( Len( Trim( arguments.blueprint ) ) ) {
+				event.audit(
+					  action   = "save_blueprint_layout_configuration"
+					, type     = "emailblueprint"
+					, recordId = blueprint
+					, detail   = formData
+				);
+				messagebox.info( translateResource( "cms:emailcenter.blueprints.layout.configuration.saved.message") );
 			} else {
 				event.audit(
 					  action   = "save_email_layout"

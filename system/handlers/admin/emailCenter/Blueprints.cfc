@@ -201,29 +201,31 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 	}
 
 	public void function saveLayoutConfigurationAction() {
-		// var templateId = rc.template ?: "";
+		_checkPermissions( event=event, key="edit" );
 
-		// prc.record = emailTemplateService.getTemplate( id=templateId );
+		var id = rc.blueprint ?: "";
 
-		// if ( !prc.record.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
-		// 	event.notFound();
-		// }
+		prc.record = dao.selectData(
+			  filter             = { id=id }
+			, allowDraftVersions = true
+		);
 
-		// if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
-		// 	event.adminAccessDenied();
-		// }
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.Blueprints" ) );
+		}
 
-		// runEvent(
-		// 	  event          = "admin.emailCenter.layouts._saveConfiguration"
-		// 	, private        = true
-		// 	, prepostExempt  = true
-		// 	, eventArguments = {
-		// 		  successUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.template", queryString="template=" & templateId )
-		// 		, failureUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
-		// 		, layoutId   = prc.record.layout
-		// 		, templateId = templateId
-		// 	  }
-		// );
+		runEvent(
+			  event          = "admin.emailCenter.layouts._saveConfiguration"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = {
+				  successUrl = event.buildAdminLink( linkto="emailcenter.blueprints.preview", queryString="id=" & id )
+				, failureUrl = event.buildAdminLink( linkto="emailcenter.blueprints.configureLayout", queryString="id=" & id )
+				, layoutId   = prc.record.layout
+				, blueprint  = id
+			  }
+		);
 	}
 
 	function deleteAction( event, rc, prc ) {
