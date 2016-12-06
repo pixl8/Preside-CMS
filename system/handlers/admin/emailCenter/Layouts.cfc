@@ -175,7 +175,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			} elseif ( Len( Trim( arguments.blueprint ) ) ) {
 				event.audit(
 					  action   = "save_blueprint_layout_configuration"
-					, type     = "emailblueprint"
+					, type     = "emailblueprints"
 					, recordId = blueprint
 					, detail   = formData
 				);
