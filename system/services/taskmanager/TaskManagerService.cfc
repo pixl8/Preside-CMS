@@ -235,7 +235,7 @@ component displayName="Task Manager Service" {
 						, eventArguments = { logger=attributes.logger, args=attributes.args }
 					);
 				} catch( any e ) {
-					setting requesttimeout=55;
+					setting requesttimeout=attributes.processTimeout+60;
 
 					if ( attributes.logger.canError() ) {
 						attributes.logger.error( "An error occurred running task [#attributes.taskName#]. Message: [#e.message#], detail [#e.detail#].", e );
@@ -253,7 +253,7 @@ component displayName="Task Manager Service" {
 							, timeTaken = GetTickCount() - start
 						);
 					} catch( any e ) {
-						setting requesttimeout=55;
+						setting requesttimeout=attributes.processTimeout+60;
 
 						if ( attributes.logger.canError() ) {
 							attributes.logger.error( "An error occurred running task [#attributes.taskName#]. Message: [#e.message#], detail [#e.detail#].", e );
