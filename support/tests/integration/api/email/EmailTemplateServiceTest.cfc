@@ -502,6 +502,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  systemEmailTemplateService = mockSystemEmailTemplateService
 					, emailRecipientTypeService  = mockEmailRecipientTypeService
 					, emailLayoutService         = mockEmailLayoutService
+					, emailSendingContextService = mockEmailSendingContextService
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -815,6 +816,38 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( errorThrown ).toBe( true );
 			} );
+
+			it( "should set and clear the email sending context so that any dynamic content that is rendered can have access to the relevant recipient context", function(){
+				var service                = _getService();
+				var template               = "mytemplate";
+				var mockRecipientId        = CreateUUId();
+				var mockTemplate           = {
+					  layout          = "testLayout"
+					, recipient_type  = "testRecipientType"
+					, subject         = "Test subject"
+					, from_address    = "From address"
+					, html_body       = "HTML BODY HERE"
+					, text_body       = "TEXT BODY OH YEAH"
+					, email_blueprint = CreateUUId()
+				};
+
+				service.$( "getTemplate", mockTemplate );
+				service.$( "prepareParameters", {} )
+				service.$( "replaceParameterTokens", CreateUUId() );
+				service.$( "replaceParameterTokens", CreateUUId() );
+				service.$( "replaceParameterTokens", CreateUUId() );
+				service.$( "$renderContent", CreateUUId() );
+				mockSystemEmailTemplateService.$( "templateExists", true );
+				mockEmailLayoutService.$( "renderLayout", CreateUUId() );
+				mockEmailLayoutService.$( "renderLayout", CreateUUId() );
+				mockEmailRecipientTypeService.$( "getToAddress", CreateUUId() );
+
+				service.prepareMessage( template=template, recipientId=mockRecipientId, args={} );
+
+				expect( mockEmailSendingContextService.$callLog().setContext.len() ).toBe( 1 );
+				expect( mockEmailSendingContextService.$callLog().setContext[ 1 ] ).toBe( { recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId } );
+				expect( mockEmailSendingContextService.$callLog().clearContext.len() ).toBe( 1 );
+			} );
 		} );
 
 		describe( "previewTemplate()", function(){
@@ -971,8 +1004,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
 		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
 		mockEmailLayoutService = createEmptyMock( "preside.system.services.email.EmailLayoutService" );
+		mockEmailSendingContextService = createEmptyMock( "preside.system.services.email.EmailSendingContextService" );
 
 		mockSystemEmailTemplateService.$( "templateExists", false );
+		mockEmailSendingContextService.$( "setContext" );
+		mockEmailSendingContextService.$( "clearContext" );
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );
@@ -980,6 +1016,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				  systemEmailTemplateService = mockSystemEmailTemplateService
 				, emailRecipientTypeService  = mockEmailRecipientTypeService
 				, emailLayoutService         = mockEmailLayoutService
+				, emailSendingContextService = mockEmailSendingContextService
 			);
 		}
 

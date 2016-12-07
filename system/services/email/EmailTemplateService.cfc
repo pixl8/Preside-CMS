@@ -21,16 +21,19 @@ component {
 	 * @systemEmailTemplateService.inject systemEmailTemplateService
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 * @emailLayoutService.inject         emailLayoutService
+	 * @emailSendingContextService.inject emailSendingContextService
 	 *
 	 */
 	public any function init(
 		  required any systemEmailTemplateService
 		, required any emailRecipientTypeService
 		, required any emailLayoutService
+		, required any emailSendingContextService
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
 		_setEmailLayoutService( arguments.emailLayoutService );
+		_setEmailSendingContextService( arguments.emailSendingContextService );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -69,57 +72,68 @@ component {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
 		}
 
-		var params = Duplicate( arguments.parameters );
-		params.append( prepareParameters(
-			  template      = arguments.template
-			, recipientType = messageTemplate.recipient_type
+		_getEmailSendingContextService().setContext(
+			  recipientType = messageTemplate.recipient_type ?: ""
 			, recipientId   = arguments.recipientId
-			, args          = arguments.args
-		) );
+		);
+		try {
+			var params = Duplicate( arguments.parameters );
+			params.append( prepareParameters(
+				  template      = arguments.template
+				, recipientType = messageTemplate.recipient_type
+				, recipientId   = arguments.recipientId
+				, args          = arguments.args
+			) );
 
-		var message = {
-			  subject = replaceParameterTokens( messageTemplate.subject, params, "text" )
-			, from    = messageTemplate.from_address
-			, to      = arguments.to
-			, cc      = arguments.cc
-			, bcc     = arguments.bcc
-			, params  = arguments.messageHeaders
-		};
+			var message = {
+				  subject = replaceParameterTokens( messageTemplate.subject, params, "text" )
+				, from    = messageTemplate.from_address
+				, to      = arguments.to
+				, cc      = arguments.cc
+				, bcc     = arguments.bcc
+				, params  = arguments.messageHeaders
+			};
 
-		if ( !message.to.len() ) {
-			message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
+			if ( !message.to.len() ) {
+				message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
+			}
+
+			if ( !message.from.len() ) {
+				message.from = $getPresideSetting( "email", "default_from_address" );
+			}
+
+			// // TODO attachments stuffz from editorial template
+			// message.attachments = [];
+			// var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
+			// if ( isSystemTemplate ) {
+			// 	message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
+			// 		  template = arguments.template
+			// 		, args     = arguments.args
+			// 	), true );
+			// }
+
+			message.textBody = _getEmailLayoutService().renderLayout(
+				  layout        = messageTemplate.layout
+				, emailTemplate = arguments.template
+				, blueprint     = messageTemplate.email_blueprint
+				, type          = "text"
+				, subject       = message.subject
+				, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
+			);
+			message.htmlBody = _getEmailLayoutService().renderLayout(
+				  layout        = messageTemplate.layout
+				, emailTemplate = arguments.template
+				, blueprint     = messageTemplate.email_blueprint
+				, type          = "html"
+				, subject       = message.subject
+				, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
+			);
+		} catch( any e ) {
+			rethrow;
+		} finally {
+			_getEmailSendingContextService().clearContext();
 		}
 
-		if ( !message.from.len() ) {
-			message.from = $getPresideSetting( "email", "default_from_address" );
-		}
-
-		// // TODO attachments stuffz from editorial template
-		// message.attachments = [];
-		// var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
-		// if ( isSystemTemplate ) {
-		// 	message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
-		// 		  template = arguments.template
-		// 		, args     = arguments.args
-		// 	), true );
-		// }
-
-		message.textBody = _getEmailLayoutService().renderLayout(
-			  layout        = messageTemplate.layout
-			, emailTemplate = arguments.template
-			, blueprint     = messageTemplate.email_blueprint
-			, type          = "text"
-			, subject       = message.subject
-			, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
-		);
-		message.htmlBody = _getEmailLayoutService().renderLayout(
-			  layout        = messageTemplate.layout
-			, emailTemplate = arguments.template
-			, blueprint     = messageTemplate.email_blueprint
-			, type          = "html"
-			, subject       = message.subject
-			, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
-		);
 
 		return message;
 	}
@@ -533,5 +547,12 @@ component {
 	}
 	private void function _setEmailLayoutService( required any emailLayoutService ) {
 		_emailLayoutService = arguments.emailLayoutService;
+	}
+
+	private any function _getEmailSendingContextService() {
+		return _emailSendingContextService;
+	}
+	private void function _setEmailSendingContextService( required any emailSendingContextService ) {
+		_emailSendingContextService = arguments.emailSendingContextService;
 	}
 }
