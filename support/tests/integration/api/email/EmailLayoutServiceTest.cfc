@@ -33,10 +33,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "renderLayout", function() {
-			it( "should call the layout's HTML viewlet (by convention), passing in supplied arguments combined with retrieved config for the layout/email", function(){
+			it( "should call the layout's HTML viewlet (by convention), passing in supplied arguments combined with retrieved config for the layout/blueprint/email", function(){
 				var service       = _getService();
 				var layout        = "layout2";
 				var emailTemplate = CreateUUId();
+				var blueprint     = CreateUUId();
 				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
 				var dummyRendered = CreateUUId();
 				var config        = { dummy=CreateUUId(), test=Now() };
@@ -44,7 +45,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				argsPlusConfig.append( config, false );
 
-				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
+				service.$( "getLayoutConfig" ).$args( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.html"
 					, args  = argsPlusConfig
@@ -54,6 +55,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  argumentCollection = args
 					, layout             = layout
 					, emailTemplate      = emailTemplate
+					, blueprint          = blueprint
 					, type               = "html"
 				);
 
@@ -64,6 +66,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service       = _getService();
 				var layout        = "layout2";
 				var emailTemplate = CreateUUId();
+				var blueprint     = CreateUUId();
 				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
 				var dummyRendered = CreateUUId();
 				var config        = { dummy=CreateUUId(), test=Now() };
@@ -71,7 +74,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				argsPlusConfig.append( config, false );
 
-				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
+				service.$( "getLayoutConfig" ).$args( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.text"
 					, args  = argsPlusConfig
@@ -82,6 +85,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  argumentCollection = args
 					, layout             = layout
 					, emailTemplate      = emailTemplate
+					, blueprint          = blueprint
 					, type               = "text"
 				);
 
@@ -92,6 +96,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service        = _getService();
 				var layout         = "layout2";
 				var emailTemplate  = CreateUUId();
+				var blueprint      = CreateUUId();
 				var dummyRendered  = CreateUUId();
 				var args           = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId(), test=CreateUUId() };
 				var config         = { dummy=CreateUUId(), test=Now() };
@@ -99,7 +104,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				argsPlusConfig.append( config, false );
 
-				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
+				service.$( "getLayoutConfig" ).$args( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.text"
 					, args  = argsPlusConfig
@@ -110,6 +115,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  argumentCollection = args
 					, layout             = layout
 					, emailTemplate      = emailTemplate
+					, blueprint          = blueprint
 					, type               = "text"
 				);
 
@@ -182,12 +188,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 
 				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
-				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template="" } } );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template="", email_blueprint="" } } );
 
 				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
-				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", item="test"  , value=config.test   } ] );
-				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", item="all"   , value=config.all    } ] );
-				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", item="things", value=config.things } ] );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="things", value=config.things } ] );
 			} );
 
 			it( "should insert an email specific configuration record for each config item supplied after deleting any potential previously saved records", function(){
@@ -210,18 +216,46 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 
 				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
-				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template=emailTemplate } } );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template=emailTemplate, email_blueprint="" } } );
 
 				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
-				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template=emailTemplate, item="test"  , value=config.test   } ] );
-				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template=emailTemplate, item="all"   , value=config.all    } ] );
-				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template=emailTemplate, item="things", value=config.things } ] );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="things", value=config.things } ] );
+			} );
+
+			it( "should insert a blueprint specific configuration record for each config item supplied after deleting any potential previously saved records", function(){
+				var service   = _getService();
+				var layout    = "layout2";
+				var blueprint = CreateUUId();
+				var config    = StructNew( "linked" );
+
+				config.test   = CreateUUId();
+				config.all    = "the";
+				config.things = Now();
+
+				mockConfigDao.$( "deleteData", 1 );
+				mockConfigDao.$( "insertData", CreateUUId() );
+
+				service.saveLayoutConfig(
+					  layout    = layout
+					, blueprint = blueprint
+					, config    = config
+				);
+
+				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_blueprint=blueprint, email_template="" } } );
+
+				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="things", value=config.things } ] );
 			} );
 
 		} );
 
 		describe( "getLayoutConfig", function(){
-			it( "should return all the globally saved configuration items for the layout in a struct, when no email template supplied", function(){
+			it( "should return all the globally saved configuration items for the layout in a struct, when no email template or blueprint supplied", function(){
 				var service       = _getService();
 				var layout        = "layout3";
 				var mockDbRecords = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["fun",Now()]] );
@@ -232,7 +266,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template="" }
+					  filter       = { layout=layout, email_template="", email_blueprint="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockDbRecords );
 
@@ -251,22 +285,46 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template=emailTemplate }
+					  filter       = { layout=layout, email_template=emailTemplate, email_blueprint="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockDbRecords );
 
 				expect( service.getLayoutConfig( layout, emailTemplate ) ).toBe( expected );
 			} );
 
-			it( "should return a merged set of global and email template specific configuration when email template ID supplied and merge set to true", function(){
-				var service               = _getService();
-				var layout                = "layout3";
-				var emailTemplate         = CreateUUId();
-				var mockSpecificDbRecords = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["fun",Now()]] );
-				var mockGlobalDbRecords   = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["fun",Now()],["boo","hoo"]] );
-				var expected              = {};
+			it( "should return email blueprint specific configuration when email blueprint ID supplied", function(){
+				var service       = _getService();
+				var layout        = "layout3";
+				var blueprint     = CreateUUId();
+				var mockDbRecords = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["fun",Now()]] );
+				var expected      = {};
+
+				for( var record in mockDbRecords ) {
+					expected[ record.item ] = record.value;
+				}
+
+				mockConfigDao.$( "selectData" ).$args(
+					  filter       = { layout=layout, email_template="", email_blueprint=blueprint }
+					, selectFields = [ "item", "value" ]
+				).$results( mockDbRecords );
+
+				expect( service.getLayoutConfig( layout=layout, blueprint=blueprint ) ).toBe( expected );
+			} );
+
+			it( "should return a merged set of global, email template and blueprint specific configuration when email template ID supplied and merge set to true", function(){
+				var service                = _getService();
+				var layout                 = "layout3";
+				var emailTemplate          = CreateUUId();
+				var blueprint              = CreateUUId();
+				var mockSpecificDbRecords  = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["fun",Now()]] );
+				var mockBlueprintDbRecords = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["new",Now()],["interesting",CreateUUId()]] );
+				var mockGlobalDbRecords    = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["fun",Now()],["boo","hoo"],["interesting","stuff"]] );
+				var expected               = {};
 
 				for( var record in mockGlobalDbRecords ) {
+					expected[ record.item ] = record.value;
+				}
+				for( var record in mockBlueprintDbRecords ) {
 					expected[ record.item ] = record.value;
 				}
 				for( var record in mockSpecificDbRecords ) {
@@ -274,15 +332,19 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template=emailTemplate }
+					  filter       = { layout=layout, email_template=emailTemplate, email_blueprint="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockSpecificDbRecords );
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template="" }
+					  filter       = { layout=layout, email_template="", email_blueprint=blueprint }
+					, selectFields = [ "item", "value" ]
+				).$results( mockBlueprintDbRecords );
+				mockConfigDao.$( "selectData" ).$args(
+					  filter       = { layout=layout, email_template="", email_blueprint="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockGlobalDbRecords );
 
-				expect( service.getLayoutConfig( layout, emailTemplate, true ) ).toBe( expected );
+				expect( service.getLayoutConfig( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ) ).toBe( expected );
 			} );
 		} );
 

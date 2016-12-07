@@ -15,10 +15,13 @@ component displayName="RulesEngine Condition Service" {
 // CONSTRUCTOR
 	/**
 	 * @expressionService.inject rulesEngineExpressionService
+	 * @contextService.inject    rulesEngineContextService
 	 *
 	 */
-	public any function init( required any expressionService ) {
+	public any function init( required any expressionService, required any contextService ) {
 		_setExpressionService( arguments.expressionService );
+		_setContextService( arguments.contextService );
+
 		return this;
 	}
 
@@ -91,18 +94,24 @@ component displayName="RulesEngine Condition Service" {
 	public boolean function evaluateCondition(
 		  required string conditionId
 		, required string context
-		, required struct payload
+		,          struct payload = {}
 	) {
-		var condition = getCondition( arguments.conditionId );
+		var condition    = getCondition( arguments.conditionId );
 
 		if ( condition.isEmpty() ) {
 			return false;
 		}
 
+		var finalPayload = Duplicate( arguments.payload );
+		finalPayload.append( _getContextService().getContextPayload(
+			  context = arguments.context
+			, args    = arguments.payload
+		), false );
+
 		return _evaluateExpressionArray(
 			  expressionArray = condition.expressions
 			, context         = arguments.context
-			, payload         = arguments.payload
+			, payload         = finalPayload
 		);
 	}
 
@@ -239,6 +248,13 @@ component displayName="RulesEngine Condition Service" {
 	}
 	private void function _setExpressionService( required any expressionService ) {
 		_expressionService = arguments.expressionService;
+	}
+
+	private any function _getContextService() {
+		return _contextService;
+	}
+	private void function _setContextService( required any contextService ) {
+		_contextService = arguments.contextService;
 	}
 
 }

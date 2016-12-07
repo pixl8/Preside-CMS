@@ -9,6 +9,14 @@
 		} );
 	}
 
+	if ( hasCmsPermission( "emailcenter.blueprints.navigate" ) ) {
+		subMenuItems.append(  {
+			  link  = event.buildAdminLink( linkTo="emailcenter.blueprints" )
+			, title = translateResource( "cms:emailcenter.blueprints.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.blueprints", event.getCurrentEvent() )
+		} );
+	}
+
 	if ( hasCmsPermission( "emailcenter.layouts.navigate" ) ) {
 		subMenuItems.append(  {
 			  link  = event.buildAdminLink( linkTo="emailcenter.layouts" )

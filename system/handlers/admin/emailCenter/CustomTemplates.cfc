@@ -7,6 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="emailMassSendingService"    inject="emailMassSendingService";
 	property name="formsService"               inject="formsService";
 	property name="dao"                        inject="presidecms:object:email_template";
+	property name="blueprintDao"               inject="presidecms:object:email_blueprint";
 	property name="messageBox"                 inject="coldbox:plugin:messageBox";
 
 
@@ -75,15 +76,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function preview( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=true )
+
 		var id      = rc.id ?: "";
 		var version = Val( rc.version ?: "" );
-
-		prc.record = prc.template = emailTemplateService.getTemplate( id=id, allowDrafts=true, version=version );
-
-		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.preview.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.preview.page.subtitle", data=[ prc.record.name ] );
@@ -97,27 +93,15 @@ component extends="preside.system.base.AdminHandler" {
 
 	function edit( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+
 		prc.canSaveDraft = hasCmsPermission( "emailCenter.customTemplates.saveDraft" );
 		prc.canPublish   = hasCmsPermission( "emailCenter.customTemplates.publish"   );
 		if ( !prc.canSaveDraft && !prc.canPublish ) {
 			event.adminAccessDenied()
 		}
 
-		var id      = rc.id ?: "";
-		var version = Val( rc.version ?: "" );
-
-		prc.record = dao.selectData(
-			  filter             = { id=id }
-			, fromVersionTable   = true
-			, allowDraftVersions = true
-			, specificVersion    = version
-		);
-
-		if ( !prc.record.recordCount || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
-		prc.record = queryRowToStruct( prc.record );
+		var id = rc.id ?: "";
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.edit.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.edit.page.subtitle", data=[ prc.record.name ] );
@@ -129,17 +113,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 	function editAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var id = rc.id ?: "";
 		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
 		_checkPermissions( event=event, key=saveAction );
 
-		prc.record = dao.selectData( filter={ id=id } );
-
-		if ( !prc.record.recordCount || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
 
 		var formName         = "preside-objects.email_template.admin.edit";
 		var formData         = event.getCollectionForForm( formName );
@@ -196,13 +175,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function configureLayout( event, rc, prc ) {
 		_checkPermissions( event=event, key="configurelayout" );
+		_getTemplate( argumentCollection=arguments );
 
 		var templateId = rc.id ?: "";
-
-		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
-		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
-			event.notFound();
-		}
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.configureLayout.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.configureLayout.page.subTitle", data=[ prc.template.name ] );
@@ -222,13 +197,11 @@ component extends="preside.system.base.AdminHandler" {
 	public void function saveLayoutConfigurationAction() {
 		_checkPermissions( event=event, key="configurelayout" );
 
+		rc.id = rc.template ?: "";
+
+		_getTemplate( argumentCollection=arguments );
+
 		var templateId = rc.template ?: "";
-
-		prc.template = emailTemplateService.getTemplate( id=templateId );
-
-		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
-			event.notFound();
-		}
 
 		runEvent(
 			  event          = "admin.emailCenter.layouts._saveConfiguration"
@@ -245,10 +218,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function sendoptions( event, rc, prc ) {
 		_checkPermissions( event=event, key="editSendOptions" );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true, fromVersionTable=false );
 
 		var templateId = rc.id ?: "";
 
-		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, fromversionTable=false );
+		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
 			event.notFound();
 		}
@@ -272,15 +246,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function saveSendOptionsAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="editSendOptions" );
+		_getTemplate( argumentCollection=arguments );
 
-		var id = rc.id ?: "";
-
-		prc.record = dao.selectData( filter={ id=id } );
-		if ( !prc.record.recordCount || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
-
+		var id            = rc.id ?: "";
 		var filterObject  = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
 		var anonymousOnly = !filterObject.len();
 		var formName      = "preside-objects.email_template.configure.send";
@@ -336,7 +304,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template"
-				, gridFields    = "name"
+				, gridFields    = "name,email_blueprint"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
 				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
@@ -380,13 +348,9 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function log( event, rc, prc ) {
-		var id = rc.id ?: "";
+		_getTemplate( argumentCollection=arguments );
 
-		prc.record = prc.template = emailTemplateService.getTemplate( id=id, allowDrafts=true );
-		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
+		var id = rc.id ?: "";
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.log.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.log.page.subtitle", data=[ prc.record.name ] );
@@ -413,15 +377,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function send( event, rc, prc ) {
 		_checkPermissions( event=event, key="send" );
+		_getTemplate( argumentCollection=arguments );
 
 		var templateId = rc.id ?: "";
-
-		prc.record = prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=false );
-
-		if ( !prc.record.count() || systemEmailTemplateService.templateExists( templateId ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
 
 		if ( prc.record.sending_method != "manual" ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
@@ -445,17 +403,13 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function getRecipientListForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event=event, key="read" );
+		_getTemplate( argumentCollection=arguments );
 
 		var templateId   = rc.id ?: "";
-		var template     = emailTemplateService.getTemplate( templateId );
-
-		if ( !template.count() ) {
-			event.notFound();
-		}
 
 		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId );
-		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( template.recipient_type );
-		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( template.recipient_type );
+		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -473,15 +427,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function sendAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="send" );
+		_getTemplate( argumentCollection=arguments );
 
 		var templateId = rc.id ?: "";
-
-		prc.record = prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=false );
-
-		if ( !prc.record.count() || systemEmailTemplateService.templateExists( templateId ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
 
 		if ( prc.record.sending_method != "manual" ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
@@ -490,14 +438,13 @@ component extends="preside.system.base.AdminHandler" {
 		var queuedCount = emailMassSendingService.queueSendout( templateId );
 		messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.success", data=[ NumberFormat( queuedCount ) ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
-
 	}
 
 // VIEWLETS
 	private string function _customTemplateTabs( event, rc, prc, args={} ) {
 		var template        = prc.record ?: {};
 		var layout          = emailLayoutService.getLayout( template.layout ?: "" );
-		var recipientObject = emailRecipientTypeService.getFilterObjectForRecipientType( template.recipient_type ?: "" );
+		var recipientObject = emailRecipientTypeService.getFilterObjectForRecipientType( template.recipient_type );
 		var canSaveDraft    = hasCmsPermission( "emailcenter.customtemplates.savedraft" );
 		var canPublish      = hasCmsPermission( "emailcenter.customtemplates.publish"   );
 
@@ -529,6 +476,22 @@ component extends="preside.system.base.AdminHandler" {
 	private void function _checkPermissions( required any event, required string key ) {
 		if ( !hasCmsPermission( "emailCenter.customTemplates." & arguments.key ) ) {
 			event.adminAccessDenied();
+		}
+	}
+
+	private any function _getTemplate( event, rc, prc, allowDrafts=false ) {
+		var id      = rc.id ?: "";
+		var version = Val( rc.version ?: "" );
+
+		prc.record = prc.template = emailTemplateService.getTemplate(
+			  id          = id
+			, allowDrafts = arguments.allowDrafts
+			, version     = arguments.allowDrafts ? version : 0
+		);
+
+		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
 		}
 	}
 

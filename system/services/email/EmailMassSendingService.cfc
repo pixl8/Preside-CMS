@@ -143,6 +143,15 @@ component {
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
 		);
+		var blueprintFilter = template.blueprint_filter ?: "";
+		if ( blueprintFilter.len() ) {
+			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
+			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+				  objectName      = recipientObject
+				, expressionArray = filterExpression
+			);
+			extraFilters.append( recipientFilter );
+		}
 		if ( template.recipient_filter.len() ) {
 			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
 			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(

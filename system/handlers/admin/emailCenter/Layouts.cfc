@@ -44,6 +44,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.preview.html = emailLayoutService.renderLayout(
 			  layout        = layoutId
 			, emailTemplate = ""
+			, blueprint     = ""
 			, type          = "html"
 			, subject       = "Test email subject"
 			, body          = "<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>"
@@ -51,6 +52,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.preview.text = emailLayoutService.renderLayout(
 			  layout        = layoutId
 			, emailTemplate = ""
+			, blueprint     = ""
 			, type          = "text"
 			, subject       = "Test email subject"
 			, body          = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
@@ -118,11 +120,13 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 	private string function _configForm( event, rc, prc, args={} ) {
 		var layoutId   = args.layoutId   ?: "";
 		var templateId = args.templateId ?: "";
+		var blueprint  = args.blueprint  ?: "";
 
 		args.layoutFormName = emailLayoutService.getLayoutConfigFormName( layoutId );
 		args.savedConfig    = emailLayoutService.getLayoutConfig(
 			  layout        = layoutId
 			, emailTemplate = templateId
+			, blueprint     = blueprint
 			, merged        = false
 		);
 
@@ -134,6 +138,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		, required string successUrl
 		, required string failureUrl
 		,          string templateId = ""
+		,          string blueprint  = ""
 	) {
 		/*
 		   TODO: make this work for template saving too
@@ -142,7 +147,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		var formName         = emailLayoutService.getLayoutConfigFormName( layoutId );
 		var formData         = event.getCollectionForForm( formName );
 
-		if ( Len( Trim( arguments.templateId ) ) ) {
+		if ( Len( Trim( arguments.templateId ) & Trim( arguments.blueprint ) ) ) {
 			for( var setting in formData ){
 				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
 					formData.delete( setting );
@@ -155,6 +160,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			emailLayoutService.saveLayoutConfig(
 				  layout        = layoutId
 				, emailTemplate = templateId
+				, blueprint     = blueprint
 				, config        = formData
 			);
 
@@ -166,6 +172,14 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 					, detail   = formData
 				);
 				messagebox.info( translateResource( "cms:emailcenter.systemTemplates.layout.configuration.saved.message") );
+			} elseif ( Len( Trim( arguments.blueprint ) ) ) {
+				event.audit(
+					  action   = "save_blueprint_layout_configuration"
+					, type     = "emailblueprints"
+					, recordId = blueprint
+					, detail   = formData
+				);
+				messagebox.info( translateResource( "cms:emailcenter.blueprints.layout.configuration.saved.message") );
 			} else {
 				event.audit(
 					  action   = "save_email_layout"

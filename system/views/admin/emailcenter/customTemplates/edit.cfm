@@ -1,6 +1,8 @@
 <cfscript>
-	recordId = rc.id      ?: "";
-	version  = rc.version ?: "";
+	recordId      = rc.id      ?: "";
+	version       = rc.version ?: "";
+	blueprint     = prc.blueprint ?: QueryNew('');
+	recipientType = blueprint.recordCount ? blueprint.recipient_type : ( prc.record.recipient_type ?: "" );
 </cfscript>
 
 <cfoutput>
@@ -29,9 +31,7 @@
 				} )#
 			</div>
 			<div class="col-md-4 col-lg-5 col-sm-12">
-				#renderViewlet( event="admin.emailcenter.emailParamsHelper", args={
-					  recipientType  = ( prc.record.recipient_type ?: "" )
-				} )#
+				#renderViewlet( event="admin.emailcenter.emailParamsHelper", args={ recipientType = recipientType } )#
 			</div>
 		</div>
 	</cfsavecontent>
