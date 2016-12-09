@@ -63,7 +63,7 @@ component {
 		,          date   expires
 
 	) {
-		var existingWf = getState( argumentCollection=arguments );
+		var existingWf = getState( argumentCollection=arguments, useCache=false );
 		var newState   = existingWf.state ?: {};
 
 		newState.append( arguments.state );
@@ -76,9 +76,10 @@ component {
 		, string reference  = ""
 		, string owner      = _getCookieBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
+		, boolean useCache  = true
 	) {
 		if ( Len( Trim( arguments.id  ) ) ) {
-			var record = _getStateDao().selectData( id=arguments.id );
+			var record = _getStateDao().selectData( id=arguments.id, useCache=arguments.useCache );
 
 			if ( _hasStateExpired( record.expires ) ) {
 				complete( id=record.id );
