@@ -35,28 +35,28 @@
 				totalError    = resultObject.getTotalError();
 				totalSkipped  = resultObject.getTotalSkipped();
 
-				echo( "Tests complete in #NumberFormat( totalDuration )#ms. " );
+				writeOutput( "Tests complete in #NumberFormat( totalDuration )#ms. " );
 				if ( errors ) {
-					echo( "One or more tests failed or created an error. Please see #resultsDir##testsResultsFile# for further details." );
+					writeOutput( "One or more tests failed or created an error. Please see #resultsDir##testsResultsFile# for further details." );
 				} else {
-					echo( "All tests passed!" );
+					writeOutput( "All tests passed!" );
 				}
 
-				echo( Chr( 13 ) & Chr( 10 ) );
+				writeOutput( Chr( 13 ) & Chr( 10 ) );
 
-				echo( 'Total: #NumberFormat( totalSpecs )#. Pass: #NumberFormat( totalPass )#. Fail: #NumberFormat( totalFail )#. Error: #NumberFormat( totalError )#. Skipped: #NumberFormat( totalSkipped )#' );
-				echo( Chr( 13 ) & Chr( 10 ) );
-				echo( Chr( 13 ) & Chr( 10 ) );
-				echo( 'Full results have been written to #resultsDir#' & testsResultsFile );
+				writeOutput( 'Total: #NumberFormat( totalSpecs )#. Pass: #NumberFormat( totalPass )#. Fail: #NumberFormat( totalFail )#. Error: #NumberFormat( totalError )#. Skipped: #NumberFormat( totalSkipped )#' );
+				writeOutput( Chr( 13 ) & Chr( 10 ) );
+				writeOutput( Chr( 13 ) & Chr( 10 ) );
+				writeOutput( 'Full results have been written to #resultsDir#' & testsResultsFile );
 
 				exitCode( errors ? 1 : 0 );
 			} else {
-				echo( results );
+				writeOutput( results );
 			}
 
 		} catch ( any e ) {
 			if ( isCommandLineExecuted ) {
-				echo( "An error occurred running the tests. Message: [#e.message#], Detail: [#e.detail#]" );
+				writeOutput( "An error occurred running the tests. Message: [#e.message#], Detail: [#e.detail#]" );
 				exitCode( 1 );
 			} else {
 				rethrow;

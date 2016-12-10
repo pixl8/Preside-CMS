@@ -56,7 +56,7 @@ component {
 			    errorDetail &= "PRESIDETEST_DB_PASSWORD" & nl;
 
 			if ( isCommandLineExecuted ) {
-				echo( errorDetail );
+				writeOutput( errorDetail );
 				return false;
 			} else {
 				throw(
