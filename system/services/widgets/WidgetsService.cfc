@@ -192,7 +192,7 @@ component {
 				var id = "";
 				if ( views.type eq "Dir" ) {
 					id = views.name;
-				} elseif ( views.type == "File" && ReFindNoCase( "\.cfm$", views.name ) && !views.name.startsWith( "_" ) ) {
+				} else if ( views.type == "File" && ReFindNoCase( "\.cfm$", views.name ) && !views.name.startsWith( "_" ) ) {
 					id = ReReplaceNoCase( views.name, "\.cfm$", "" );
 				} else {
 					continue;

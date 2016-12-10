@@ -51,7 +51,7 @@ component displayName="Database Migration Service" {
 					if ( ReFind( versionNumberRegex, versionNumber ) ) {
 						if ( migrationType == "downgrade" && ( !currentDbVersion.len() || compareVersions( versionNumber, currentDbVersion ) <= 0 ) && compareVersions( versionNumber, currentPresideVersion ) > 0 ) {
 							migrations.append( ListAppend( componentPath, ListChangeDelims( versionNumber, "-", "." ), "." ) );
-						} elseif ( migrationType == "upgrade" && ( !currentDbVersion.len() || compareVersions( versionNumber, currentDbVersion ) > 0 ) && compareVersions( versionNumber, currentPresideVersion ) <= 0 ) {
+						} else if ( migrationType == "upgrade" && ( !currentDbVersion.len() || compareVersions( versionNumber, currentDbVersion ) > 0 ) && compareVersions( versionNumber, currentPresideVersion ) <= 0 ) {
 							migrations.append( ListAppend( componentPath, ListChangeDelims( versionNumber, "-", "." ), "." ) );
 						}
 					}

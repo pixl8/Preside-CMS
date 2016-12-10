@@ -261,7 +261,7 @@ component {
 
 		if ( arguments.meta.propertyNames.find( "label" ) ) {
 			StructAppend( arguments.meta.properties.label, defaults.label, false );
-		} elseif ( !arguments.meta.noLabel ) {
+		} else if ( !arguments.meta.noLabel ) {
 			arguments.meta.properties[ "label" ] = defaults[ "label" ];
 			ArrayPrepend( arguments.meta.propertyNames, "label" );
 		}

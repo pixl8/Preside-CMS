@@ -115,7 +115,7 @@ component {
 				applicationReloadService.reloadPresideObjects();
 				applicationReloadService.dbSync();
 				anythingReloaded = true;
-			} elseif ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
+			} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
 				applicationReloadService.reloadPresideObjects();
 				anythingReloaded = true;
 			}

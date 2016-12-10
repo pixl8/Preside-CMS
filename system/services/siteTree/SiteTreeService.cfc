@@ -731,7 +731,7 @@ component {
 						data._hierarchy_sort_order     = newParent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
 						data._hierarchy_slug           = newParent._hierarchy_slug & ( slugChanged ? data : existingPage ).slug & "/";
 
-					} elseif ( IsBoolean( arguments.trashed ?: "" ) && arguments.trashed ) {
+					} else if ( IsBoolean( arguments.trashed ?: "" ) && arguments.trashed ) {
 						data.sort_order                = _calculateSortOrder();
 						data.parent_page               = "";
 						data._hierarchy_lineage        = "/";
