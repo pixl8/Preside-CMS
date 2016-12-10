@@ -9,9 +9,9 @@
 	commonQueryString = "object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#";
 	objectTitleSingular = translateResource( "preside-objects.#object#:title.singular" );
 
-	deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteOneToManyRecordAction", queryString="#commonQueryString#&id=#args.id#" )
-	editRecordLink    = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord", queryString="#commonQueryString#&id=#args.id#" )
-	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, args.label ?: "" ] )
+	deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteOneToManyRecordAction", queryString="#commonQueryString#&id=#args.id#" );
+	editRecordLink    = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord", queryString="#commonQueryString#&id=#args.id#" );
+	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, args.label ?: "" ] );
 
 </cfscript>
 <cfoutput>

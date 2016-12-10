@@ -17,7 +17,7 @@ component output=false {
 				types.append( {
 					  value = type
 					, label = translateResource( "filetypes:#type#.picker.label" )
-				} )
+				} );
 			}
 		}
 

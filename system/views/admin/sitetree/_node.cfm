@@ -34,7 +34,7 @@
 
 	permContextKeys = Duplicate( args.permission_context );
 	permContextKeys.prepend( args.id );
-	hasNavigatePermission = hasCmsPermission( permissionKey="sitetree.navigate", context="page", contextKeys=permContextKeys )
+	hasNavigatePermission = hasCmsPermission( permissionKey="sitetree.navigate", context="page", contextKeys=permContextKeys );
 
 	if ( hasNavigatePermission ) {
 		pageUrl     = quickBuildLink( args.previewPageBaseLink, { id=args.id } );

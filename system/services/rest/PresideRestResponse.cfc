@@ -58,7 +58,7 @@ component accessors=true displayName="Preside REST Response" {
 	 */
 	public any function setHeaders( required struct headers ) {
 		variables.headers = variables.headers ?: {};
-		variables.headers.append( arguments.headers )
+		variables.headers.append( arguments.headers );
 
 		return this;
 	}

@@ -1,7 +1,7 @@
 <cfscript>
 	menuItems = args.menuItems ?: [];
 
-	ulNestedClass           = args.ulNestedClass           ?: 'dropdown-menu'
+	ulNestedClass           = args.ulNestedClass           ?: 'dropdown-menu';
 	liCurrentClass          = args.liCurrentClass          ?: 'active';
 	liHasChildrenClass      = args.liHasChildrenClass      ?: 'dropdown';
 	liHasChildrenAttributes = args.liHasChildrenAttributes ?: '';

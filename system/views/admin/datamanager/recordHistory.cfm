@@ -1,6 +1,6 @@
 <cfscript>
-	id                  = rc.id     ?: ""
-	object              = rc.object ?: ""
+	id                  = rc.id     ?: "";
+	object              = rc.object ?: "";
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
 	recordHistoryTitle  = translateResource( uri="cms:datamanager.recordhistory.title", data=[ prc.record.label ?: "unknown", LCase( objectTitleSingular ) ] );
 

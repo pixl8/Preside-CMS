@@ -23,7 +23,7 @@ component displayName="System configuration service" {
 		, required any    siteService
 	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
-		_setDao( arguments.dao )
+		_setDao( arguments.dao );
 		_setInjectedConfig( arguments.injectedConfig );
 		_setFormsService( arguments.formsService );
 		_setSiteService( arguments.siteService );

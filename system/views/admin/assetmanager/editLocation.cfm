@@ -1,6 +1,6 @@
 <cfscript>
 	locationId = rc.id ?: "";
-	location   = prc.location ?: {}
+	location   = prc.location ?: {};
 	formName   = prc.formName ?: "";
 	formId     = "editlocation" & CreateUUId();
 	formAction = event.buildAdminLink( "assetmanager.editLocationAction" );

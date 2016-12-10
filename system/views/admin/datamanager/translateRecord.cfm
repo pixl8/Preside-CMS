@@ -20,9 +20,9 @@
 	formAction          = prc.formAction       ?: event.buildAdminLink( linkTo='datamanager.translateRecordAction');
 	formId              = "translate-record-form";
 
-	draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
-	canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
-	canPublish    = IsTrue( prc.canPublish    ?: "" )
+	draftsEnabled = IsTrue( prc.draftsEnabled ?: "" );
+	canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
+	canPublish    = IsTrue( prc.canPublish    ?: "" );
 
 
 </cfscript>

@@ -29,7 +29,7 @@ component output=false singleton=true {
 			decorated.$methodInjector( "getDbAdapter"   , this.getDbAdapter    );
 			decorated.$methodInjector( "onMissingMethod", this.onMissingMethod );
 
-			StructDelete( decorated, "$methodInjector" )
+			StructDelete( decorated, "$methodInjector" );
 		}
 
 		return decorated;

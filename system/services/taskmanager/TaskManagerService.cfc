@@ -119,7 +119,7 @@ component displayName="Task Manager Service" {
 				var logger = _getLogger( taskKey=arguments.taskKey );
 
 				if ( logger.canError() ) {
-					logger.error( "Task run has expired for task [#arguments.taskKey#]." )
+					logger.error( "Task run has expired for task [#arguments.taskKey#]." );
 				}
 
 				markTaskAsCompleted(

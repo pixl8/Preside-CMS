@@ -64,7 +64,7 @@
 				] );
 			} catch ( "SqlRunner.BadParam" e ) {
 				super.assertEquals( "SQL Param values must be simple values", e.message );
-				super.assertEquals( "The value of the param, [some_value], was not of a simple type", e.detail )
+				super.assertEquals( "The value of the param, [some_value], was not of a simple type", e.detail );
 				errorThrown = true;
 			}
 

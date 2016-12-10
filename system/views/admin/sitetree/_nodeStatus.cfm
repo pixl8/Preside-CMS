@@ -9,7 +9,7 @@
 	isDraft              = IsTrue( args.is_draft );
 	hasDrafts            = IsTrue( args.has_drafts );
 
-	statusText   = translateResource( "cms:sitetree.page.status.published" )
+	statusText   = translateResource( "cms:sitetree.page.status.published" );
 	statusIcon   = "check-circle";
 	statusColour = "green";
 

@@ -7,7 +7,7 @@
 	isTopicForm = Len( Trim( rc.topic ?: "" ) );
 	if ( isTopicForm ) {
 		savedSubscription = prc.subscription ?: {};
-		formAction = event.buildAdminLink( linkTo='notifications.saveTopicPreferencesAction' )
+		formAction = event.buildAdminLink( linkTo='notifications.saveTopicPreferencesAction' );
 	} else {
 		formAction = event.buildAdminLink( linkTo='notifications.savePreferencesAction' );
 	}

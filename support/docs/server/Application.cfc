@@ -1,7 +1,7 @@
 component {
 	this.name = "presidecmsDocumentationLocalServer-" & Hash( GetCurrentTemplatePath() );
 
-	this.cwd     = GetDirectoryFromPath( GetCurrentTemplatePath() )
+	this.cwd     = GetDirectoryFromPath( GetCurrentTemplatePath() );
 	this.baseDir = ExpandPath( this.cwd & "../" );
 
 	this.mappings[ "/api"      ] = this.baseDir & "api";

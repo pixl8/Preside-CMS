@@ -18,7 +18,7 @@ component displayName="RulesEngine Expression Service" {
 	 */
 	public any function init( required any expressionReaderService, required any fieldTypeService, required array expressionDirectories ) {
 		_setFieldTypeService( fieldTypeService );
-		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) )
+		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) );
 
 		return this;
 	}

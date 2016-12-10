@@ -17,14 +17,14 @@ component {
 					args.maxDate = DateAdd( 'd', diff, Now() );
 				break;
 				case "lte":
-					args.maxDate = Now()
+					args.maxDate = Now();
 				break;
 				case "gt":
 					var diff = val(args.offset) ? val(args.offset) : 1;
 					args.minDate = DateAdd( 'd', diff, Now() );
 				break;
 				case "gte":
-					args.minDate = Now()
+					args.minDate = Now();
 				break;
 			}
 		}

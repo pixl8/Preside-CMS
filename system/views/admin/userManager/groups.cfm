@@ -1,5 +1,5 @@
 <cfscript>
-	objectName          = "security_group"
+	objectName          = "security_group";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
 

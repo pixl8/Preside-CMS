@@ -36,7 +36,7 @@ component {
 				  category = "maintenanceMode"
 				, setting  = settingName
 				, value    = settings[ settingName ]
-			)
+			);
 		}
 
 		active ? _activateMaintenanceMode( arguments.settings ) : _deactivateMaintenanceMode();

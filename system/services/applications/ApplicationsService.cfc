@@ -99,7 +99,7 @@ component {
 			var app = configuredApplications[ applicationId ];
 
 			if ( arguments.event.reFindNoCase( app.activeEventPattern ) ) {
-				matches.append( { id=applicationId, patternAccuracy=app.activeEventPattern.len() } )
+				matches.append( { id=applicationId, patternAccuracy=app.activeEventPattern.len() } );
 			}
 		}
 

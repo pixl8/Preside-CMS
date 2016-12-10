@@ -1,7 +1,7 @@
 <cfscript>
 	page             = prc.page            ?: QueryNew('');
-	mainFormName     = prc.mainFormName    ?: ""
-	mergeFormName    = prc.mergeFormName   ?: ""
+	mainFormName     = prc.mainFormName    ?: "";
+	mergeFormName    = prc.mergeFormName   ?: "";
 	validationResult = rc.validationResult ?: "";
 	formId           = "editForm-" & CreateUUId();
 	editPagePrompt    = translateResource( uri="preside-objects.page:editRecord.prompt", defaultValue="" );

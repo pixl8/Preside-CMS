@@ -21,7 +21,7 @@ component extends="BaseAdapter" {
 
 	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) {
 		var sql = super.getInsertSql( argumentCollection=arguments );
-		sql[1] &= " RETURNING *"
+		sql[1] &= " RETURNING *";
 		return sql;
 	}
 
