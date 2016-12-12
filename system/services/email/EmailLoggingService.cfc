@@ -45,6 +45,7 @@ component {
 			, recipient      = arguments.recipient
 			, sender         = arguments.sender
 			, subject        = arguments.subject
+			, send_args      = SerializeJson( arguments.sendArgs )
 		};
 
 		if ( Len( Trim( arguments.recipientType ) ) ) {
