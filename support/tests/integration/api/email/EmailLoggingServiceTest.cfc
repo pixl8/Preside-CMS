@@ -12,6 +12,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipient     = CreateUUId() & "@test.com"
 					, sender        = CreateUUId() & "@test.com"
 					, subject       = "Some subject " & CreateUUId()
+					, sendArgs      = { blah=CreateUUId() }
 				};
 
 				mockLogDao.$( "insertData" ).$args( {
@@ -19,6 +20,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipient      = args.recipient
 					, sender         = args.sender
 					, subject        = args.subject
+					, send_args      = Serializejson( args.sendArgs )
 				}).$results( dummyId );
 
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );
@@ -46,6 +48,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sender         = args.sender
 					, subject        = args.subject
 					, dummyFk        = dummyFkId
+					, send_args      = Serializejson( args.sendArgs )
 				}).$results( dummyId );
 
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );
