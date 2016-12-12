@@ -71,6 +71,51 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} );
 			} );
 		} );
+
+		describe( "insertTrackingPixel", function(){
+			it( "should generate a tracking URL based on the message ID and insert 1x1 tracking image in html email content (returning the new content)", function(){
+				var service = _getService();
+				var messageId = CreateUUId();
+				var trackingUrl = CreateUUId();
+				var htmlMessage = "<!DOCTYPE html><html><head><title>Some email</title></head>
+<body>
+email content
+</body>
+</html>";
+				var htmlMessageWithPixel = "<!DOCTYPE html><html><head><title>Some email</title></head>
+<body>
+email content
+<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" /></body>
+</html>";
+
+				var mockRc = CreateStub();
+				service.$( "$getRequestContext", mockRc );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.open", querystring="mid=" & messageId ).$results( trackingUrl );
+
+				expect( service.insertTrackingPixel(
+					  messageId   = messageId
+					, messageHtml = htmlMessage
+				) ).toBe( htmlMessageWithPixel );
+			} );
+
+			it( "should append the tracking pixel to the message, when no html body tags found", function(){
+				var service = _getService();
+				var messageId = CreateUUId();
+				var trackingUrl = CreateUUId();
+				var htmlMessage = CreateUUId();
+				var htmlMessageWithPixel = htmlMessage & "<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" />";
+				var mockRc = CreateStub();
+
+				service.$( "$getRequestContext", mockRc );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.open", querystring="mid=" & messageId ).$results( trackingUrl );
+
+				expect( service.insertTrackingPixel(
+					  messageId   = messageId
+					, messageHtml = htmlMessage
+				) ).toBe( htmlMessageWithPixel );
+
+			} );
+		} );
 	}
 
 	private any function _getService(){

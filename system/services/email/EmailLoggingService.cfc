@@ -69,6 +69,28 @@ component {
 		} );
 	}
 
+	/**
+	 * Inserts a tracking pixel into the given HTML email
+	 * content (based on the given message ID). Returns
+	 * the HTML with the inserted tracking pixel
+	 *
+	 * @autodoc          true
+	 * @messageId.hint   ID of the message (log id)
+	 * @messageHtml.hint HTML content of the message
+	 */
+	public string function insertTrackingPixel(
+		  required string messageId
+		, required string messageHtml
+	) {
+		var trackingUrl   = $getRequestContext().buildLink( linkto="email.tracking.open", queryString="mid=" & arguments.messageId );
+		var trackingPixel = "<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" />";
+
+		if ( messageHtml.findNoCase( "</body>" ) ) {
+			return messageHtml.replaceNoCase( "</body>", trackingPixel & "</body>" );
+		}
+
+		return messageHtml & trackingPixel;
+	}
 
 // PRIVATE HELPERS
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
