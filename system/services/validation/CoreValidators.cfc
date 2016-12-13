@@ -147,8 +147,8 @@ component validationProvider=true {
 		if ( !IsDate( arguments.value ) ) {
 			return true;
 		}
-
-		return ( arguments.value >= arguments.minimumDate );
+		
+		return ( DateCompare( arguments.value, arguments.minimumDate ) >= 0 );
 	}
 	public string function minimumDate_js() {
 		return "function( value, el, params ){ return value >= params[0]; }";
@@ -159,7 +159,7 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value <= arguments.maximumDate );
+		return ( DateCompare( arguments.value, arguments.maximumDate ) <= 0 );
 	}
 	public string function maximumDate_js() {
 		return "function( value, el, params ){ return value <= params[0]; }";
