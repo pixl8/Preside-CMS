@@ -55,7 +55,7 @@ component displayName="Error Log Service" {
 
 		for( var file in files ) {
 			var errorMessage   = REMatchNoCase( "<\s*title[^>]*>(.*?)<\s*\/\s*title>", FileRead( _getLogDirectory() & "/" & file.name ) );
-			var messageContent = ReplaceList( errorMessage[1] , "<title>,</title>", "#chr(10)# ,#chr(10)#" );
+			var messageContent = errorMessage.len() ? ReplaceList( errorMessage[1] , "<title>,</title>", "#chr(10)# ,#chr(10)#" ) : "";
 
 			errors.append( { date=file.dateLastModified, filename=file.name, message=messageContent } );
 		}

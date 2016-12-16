@@ -35,7 +35,7 @@
 							</a>
 						</td>
 						<td>
-							#left( log.message, "30" )#...<span class="fa fa-caret-down" data-rel="popover" data-trigger="hover" data-placement="left" data-content="<pre>#log.message#</pre>" data-html="true"></span>
+							#left( log.message, "30" )#...<span class="fa fa-caret-down" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#HtmlEditFormat( '<pre>#log.message#</pre>' )#" data-html="true"></span>
 						</td>
 						<td>
 							<div class="action-buttons btn-group">
