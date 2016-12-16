@@ -148,7 +148,7 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value >= arguments.minimumDate );
+		return ( DateCompare( arguments.value, arguments.minimumDate ) >= 0 );
 	}
 	public string function minimumDate_js() {
 		return "function( value, el, params ){ return value >= params[0]; }";
@@ -159,7 +159,7 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value <= arguments.maximumDate );
+		return ( DateCompare( arguments.value, arguments.maximumDate ) <= 0 );
 	}
 	public string function maximumDate_js() {
 		return "function( value, el, params ){ return value <= params[0]; }";
@@ -170,7 +170,7 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value > arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) > 0 );
 	}
 	public string function laterThanField_js() {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value > $field.val(); }";
@@ -181,7 +181,7 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value >= arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) >= 0 );
 	}
 	public string function laterThanOrSameAsField_js() {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value >= $field.val(); }";
@@ -192,7 +192,7 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value < arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) < 0 );
 	}
 	public string function earlierThanField_js() {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value < $field.val(); }";
@@ -203,7 +203,7 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value <= arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) <= 0 );
 	}
 	public string function earlierThanOrSameAsField_js() {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value <= $field.val(); }";
