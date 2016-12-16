@@ -217,6 +217,10 @@ component {
 		}
 
 		sendArgs.messageId = _logMessage( arguments.sendArgs );
+		sendArgs.htmlBody  = _getEmailLoggingService().insertTrackingPixel(
+			  messageId   = sendArgs.messageId
+			, messageHtml = sendArgs.htmlBody ?: ""
+		);
 
 		try {
 			result = $getColdbox().runEvent(

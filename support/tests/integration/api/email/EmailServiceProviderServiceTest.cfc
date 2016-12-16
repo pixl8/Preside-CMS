@@ -239,7 +239,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var providers     = _getDefaultTestProviders();
 				var provider      = "mailgun";
 				var sendAction    = CreateUUId() & ".send";
-				var dummyArgs     = { test=CreateUUId(), fu="bar", messageId=CreateUUId() };
+				var dummyArgs     = { test=CreateUUId(), fu="bar", messageId=CreateUUId(), htmlBody=dummyHtmlBody };
 				var dummySettings = { server=CreateUUId(), fu="bar", password=CreateUUId() };
 
 				service.$( "_logMessage", dummyArgs.messageId );
@@ -268,7 +268,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var result        = false;
 				var provider      = "mailgun";
 				var sendAction    = CreateUUId() & ".send";
-				var dummyArgs     = { test=CreateUUId(), fu="bar", messageId=CreateUUId() };
+				var dummyArgs     = { test=CreateUUId(), fu="bar", messageId=CreateUUId(), htmlBody=dummyHtmlBody };
 				var dummySettings = { what="ever" };
 
 				service.$( "_logMessage", dummyArgs.messageId );
@@ -324,7 +324,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service   = _getService();
 				var provider  = "mailgun";
 				var sendAction = CreateUUId() & ".send";
-				var dummyArgs = { test=CreateUUId(), fu="bar", messageId=CreateUUId() };
+				var dummyArgs = { test=CreateUUId(), fu="bar", messageId=CreateUUId(), htmlBody=dummyHtmlBody };
 
 				service.$( "_logMessage", dummyArgs.messageId );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
@@ -353,7 +353,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  to       = [ "somebody@tolove.com" ]
 					, from     = "me@me.com"
 					, subject  = "blah"
-					, htmlBody = "Blah blah"
+					, htmlBody = dummyHtmlBody
 					, textBody = "plain blah"
 					, args     = { test=CreateUUId() }
 				};
@@ -401,7 +401,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  to       = [ "somebody@tolove.com" ]
 					, from     = "me@me.com"
 					, subject  = "blah"
-					, htmlBody = "Blah blah"
+					, htmlBody = dummyHtmlBody
 					, textBody = "plain blah"
 					, args     = { test=CreateUUId(), template=template }
 				};
@@ -456,10 +456,34 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  event          = sendAction
 					, private        = true
 					, prePostExempt  = true
-					, eventArguments = { sendArgs={ messageId=messageId }, settings={} }
+					, eventArguments = { sendArgs={ messageId=messageId, htmlBody=dummyHtmlBody }, settings={} }
 				).$results( true );
 
-				service.sendWithProvider( provider, {} );
+				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody } );
+
+				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+			} );
+
+			it( "should insert tracking pixel into html body", function(){
+				var service    = _getService();
+				var provider   = "smtp";
+				var sendAction = "blah.blah";
+				var messageId  = CreateUUId();
+				var moddedBody = CreateUUId();
+
+				service.$( "_logMessage", messageId );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( {} );
+				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockEmailLoggingService.$( "insertTrackingPixel" ).$args( messageId=messageId, messageHtml=dummyHtmlBody ).$results( moddedBody );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs={ messageId=messageId, htmlBody=moddedBody }, settings={} }
+				).$results( true );
+
+				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody } );
 
 				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
 				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
@@ -618,6 +642,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getColdbox", mockColdbox );
 		mockColdbox.$( "handlerExists", true );
 		mockEmailLoggingService.$( "markAsSent", 1 );
+
+		dummyHtmlBody = CreateUUId();
+		mockEmailLoggingService.$( "insertTrackingPixel", dummyHtmlBody );
 
 		return service;
 	}

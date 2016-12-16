@@ -13,6 +13,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true;
 	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true;
 	property name="subject"   type="string" dbtype="varchar" maxlength=255;
+	property name="send_args" type="string" dbtype="text" autofilter=false;
 
 	property name="sent"           type="boolean" dbtype="boolean" default=false;
 	property name="failed"         type="boolean" dbtype="boolean" default=false;

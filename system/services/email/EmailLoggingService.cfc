@@ -45,6 +45,7 @@ component {
 			, recipient      = arguments.recipient
 			, sender         = arguments.sender
 			, subject        = arguments.subject
+			, send_args      = SerializeJson( arguments.sendArgs )
 		};
 
 		if ( Len( Trim( arguments.recipientType ) ) ) {
@@ -68,6 +69,66 @@ component {
 		} );
 	}
 
+	/**
+	 * Marks the given email as delivered
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the email to mark as delivered
+	 *
+	 */
+	public void function markAsDelivered( required string id ) {
+		$getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
+			, filterParams = { id=arguments.id, delivered=false }
+			, data         = {
+				  delivered      = true
+				, delivered_date = _getNow()
+			  }
+		);
+	}
+
+	/**
+	 * Marks the given email as opened
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the email to mark as opened
+	 *
+	 */
+	public void function markAsOpened( required string id ) {
+		$getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( opened is null or opened = :opened )"
+			, filterParams = { id=arguments.id, opened=false }
+			, data         = {
+				  opened      = true
+				, opened_date = _getNow()
+			  }
+		);
+
+		markAsDelivered( arguments.id );
+	}
+
+	/**
+	 * Inserts a tracking pixel into the given HTML email
+	 * content (based on the given message ID). Returns
+	 * the HTML with the inserted tracking pixel
+	 *
+	 * @autodoc          true
+	 * @messageId.hint   ID of the message (log id)
+	 * @messageHtml.hint HTML content of the message
+	 */
+	public string function insertTrackingPixel(
+		  required string messageId
+		, required string messageHtml
+	) {
+		var trackingUrl   = $getRequestContext().buildLink( linkto="email.tracking.open", queryString="mid=" & arguments.messageId );
+		var trackingPixel = "<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" />";
+
+		if ( messageHtml.findNoCase( "</body>" ) ) {
+			return messageHtml.replaceNoCase( "</body>", trackingPixel & "</body>" );
+		}
+
+		return messageHtml & trackingPixel;
+	}
 
 // PRIVATE HELPERS
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
