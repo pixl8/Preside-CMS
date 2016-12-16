@@ -72,6 +72,43 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "markAsDelivered()", function(){
+			it( "should mark the given message as delivered when not already delivered and update the delivery date", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData" );
+
+				service.markAsDelivered( logId );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter = { id=logId, delivered=false }
+					, data   = { delivered=true, delivered_date=nowish }
+				} );
+			} );
+		} );
+
+		describe( "markAsOpened()", function(){
+			it( "should mark the given message as opened when not already opened + mark as delivered", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData" );
+				service.$( "markAsDelivered" );
+
+				service.markAsOpened( logId );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter = { id=logId, opened=false }
+					, data   = { opened=true, opened_date=nowish }
+				} );
+				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
+				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId ] );
+			} );
+		} );
+
 		describe( "insertTrackingPixel", function(){
 			it( "should generate a tracking URL based on the message ID and insert 1x1 tracking image in html email content (returning the new content)", function(){
 				var service = _getService();

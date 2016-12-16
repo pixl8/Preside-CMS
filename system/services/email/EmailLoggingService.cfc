@@ -70,6 +70,36 @@ component {
 	}
 
 	/**
+	 * Marks the given email as delivered
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the email to mark as delivered
+	 *
+	 */
+	public void function markAsDelivered( required string id ) {
+		$getPresideObject( "email_template_send_log" ).updateData( filter={ id=arguments.id, delivered=false }, data={
+			  delivered      = true
+			, delivered_date = _getNow()
+		} );
+	}
+
+	/**
+	 * Marks the given email as opened
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the email to mark as opened
+	 *
+	 */
+	public void function markAsOpened( required string id ) {
+		$getPresideObject( "email_template_send_log" ).updateData( filter={ id=arguments.id, opened=false }, data={
+			  opened      = true
+			, opened_date = _getNow()
+		} );
+
+		markAsDelivered( arguments.id );
+	}
+
+	/**
 	 * Inserts a tracking pixel into the given HTML email
 	 * content (based on the given message ID). Returns
 	 * the HTML with the inserted tracking pixel
