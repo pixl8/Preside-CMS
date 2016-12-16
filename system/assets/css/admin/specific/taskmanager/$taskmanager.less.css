@@ -14,7 +14,7 @@
 }
 .task-log .task-log-line {
   width: 90%;
-  width: calc(100% - 50px);
+  width: calc(100% - 55px);
   display: inline-block;
   word-break: normal;
   white-space: pre-wrap;
