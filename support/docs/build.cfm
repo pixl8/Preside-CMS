@@ -17,16 +17,16 @@
 	} catch ( any e ) {
 		exitCode( 1 );
 
-		echo( "" & newline );
-		echo( "Documentation build error" & newline );
-		echo( "-------------------------" & newline );
-		echo( "" & newline );
-		echo( "[#e.type#] error occurred while building the docs. Message: [#e.message#]. Detail: [#e.detail#]." & newline );
+		writeOutput( "" & newline );
+		writeOutput( "Documentation build error" & newline );
+		writeOutput( "-------------------------" & newline );
+		writeOutput( "" & newline );
+		writeOutput( "[#e.type#] error occurred while building the docs. Message: [#e.message#]. Detail: [#e.detail#]." & newline );
 		if ( ( e.tagContext ?: [] ).len() ) {
-			echo( "" & newline );
-			echo( "Stacktrace:" & newline );
+			writeOutput( "" & newline );
+			writeOutput( "Stacktrace:" & newline );
 			for( var tracePoint in e.tagContext ) {
-				echo( "    " & tracepoint.template & " (line #tracepoint.line#)" & newline );
+				writeOutput( "    " & tracepoint.template & " (line #tracepoint.line#)" & newline );
 			}
 		}
 	}

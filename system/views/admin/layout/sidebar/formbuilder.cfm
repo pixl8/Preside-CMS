@@ -1,6 +1,6 @@
 <cfscript>
 	if ( isFeatureEnabled( "formbuilder" ) && hasCmsPermission( "formbuilder.navigate" ) ) {
-		Echo( renderView(
+		writeOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
 			, args = {
 				  active  = ListLast( event.getCurrentHandler(), ".") eq "formbuilder"
