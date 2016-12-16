@@ -10,7 +10,6 @@ This form is used for the "edit user" form in the user admin section of the admi
 	<tab id="basic">
 		<fieldset id="basic">
 			<field name="active" deleted="true" />
-			<field binding="security_user.groups" required="false"/>
 		</fieldset>
 	</tab>
 </form>
