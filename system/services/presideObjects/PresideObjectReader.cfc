@@ -29,6 +29,11 @@ component {
 			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
 
 			var objName = ListLast( objPath, "/" );
+
+			if( !isValid( "regex", objName, "[a-zA-Z_][a-zA-Z0-9_]*" ) ) {
+				throw( type="PresideObjectService.invalidObjectName", message="The filename, [#objName#], is not a valid preside object filename. Filenames should start with either a letter or underscrore (_) and contain only letters, underscores and numbers" );
+			}
+
 			var obj     = {};
 
 			obj.instance = CreateObject( "component", objPath );
