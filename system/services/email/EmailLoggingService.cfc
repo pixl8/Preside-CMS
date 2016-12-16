@@ -77,10 +77,14 @@ component {
 	 *
 	 */
 	public void function markAsDelivered( required string id ) {
-		$getPresideObject( "email_template_send_log" ).updateData( filter={ id=arguments.id, delivered=false }, data={
-			  delivered      = true
-			, delivered_date = _getNow()
-		} );
+		$getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
+			, filterParams = { id=arguments.id, delivered=false }
+			, data         = {
+				  delivered      = true
+				, delivered_date = _getNow()
+			  }
+		);
 	}
 
 	/**
@@ -91,10 +95,14 @@ component {
 	 *
 	 */
 	public void function markAsOpened( required string id ) {
-		$getPresideObject( "email_template_send_log" ).updateData( filter={ id=arguments.id, opened=false }, data={
-			  opened      = true
-			, opened_date = _getNow()
-		} );
+		$getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( opened is null or opened = :opened )"
+			, filterParams = { id=arguments.id, opened=false }
+			, data         = {
+				  opened      = true
+				, opened_date = _getNow()
+			  }
+		);
 
 		markAsDelivered( arguments.id );
 	}

@@ -83,8 +83,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
-					  filter = { id=logId, delivered=false }
-					, data   = { delivered=true, delivered_date=nowish }
+					  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
+					, filterParams = { id=logId, delivered=false }
+					, data         = { delivered=true, delivered_date=nowish }
 				} );
 			} );
 		} );
@@ -101,8 +102,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
-					  filter = { id=logId, opened=false }
-					, data   = { opened=true, opened_date=nowish }
+					  filter       = "id = :id and ( opened is null or opened = :opened )"
+					, filterParams = { id=logId, opened=false }
+					, data         = { opened=true, opened_date=nowish }
 				} );
 				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
 				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId ] );
