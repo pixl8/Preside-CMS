@@ -70,7 +70,7 @@ component {
 							, detail  = "SQL: [#( e.sql ?: '' )#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
 						);
 					}
-				} elseif ( not tableVersionExists or versions.table[ obj.meta.tableName ] neq obj.sql.table.version ) {
+				} else if ( not tableVersionExists or versions.table[ obj.meta.tableName ] neq obj.sql.table.version ) {
 					try {
 						_enableFkChecks( false, obj.meta.dsn, obj.meta.tableName );
 						_updateDbTable(
@@ -421,7 +421,7 @@ component {
 				indexSql = indexesSql[ index ];
 				_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
 				_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
-			} elseif ( !StructKeyExists( arguments.indexes, index ) && ReFindNoCase( '^[iu]x_', index ) ) {
+			} else if ( !StructKeyExists( arguments.indexes, index ) && ReFindNoCase( '^[iu]x_', index ) ) {
 				_runSql(
 					  sql = adapter.getDropIndexSql( indexName=index, tableName=arguments.tableName )
 					, dsn = arguments.dsn

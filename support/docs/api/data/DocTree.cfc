@@ -204,7 +204,7 @@ component accessors=true {
 
 			if( page.getChildren().len() ) {
 				page.setNextPage( page.getChildren()[1] );
-			} elseif ( i == pageCount ) {
+			} else if ( i == pageCount ) {
 				page.setNextPage( arguments.nextParentPage ?: NullValue() );
 			} else {
 				page.setNextPage( arguments.pages[i+1] );

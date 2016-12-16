@@ -26,7 +26,7 @@ component output=false {
 			} catch ( "storageProvider.objectNotFound" e ) {
 				asset = QueryNew('');
 			}
-		} elseif( Len( Trim( versionId ) ) ) {
+		} else if( Len( Trim( versionId ) ) ) {
 			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
 		} else {
 			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );

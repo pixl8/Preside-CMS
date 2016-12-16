@@ -533,7 +533,7 @@ component displayName="Preside Object Service" {
 			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(one|many)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 				cleanedData.delete( key );
-			} elseif ( !ListFindNoCase( obj.dbFieldList, key ) ) {
+			} else if ( !ListFindNoCase( obj.dbFieldList, key ) ) {
 				cleanedData.delete( key );
 			}
 		}
@@ -1476,11 +1476,11 @@ component displayName="Preside Object Service" {
 
 					if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
 						objIds = arguments.filter.id;
-					} elseif ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, idField ) ) {
+					} else if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, idField ) ) {
 						objIds = arguments.filter[ idField ];
-					} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, "id" ) ) {
 						objIds = arguments.filterParams.id;
-					} elseif ( StructKeyExists( arguments.filterParams, idField ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, idField ) ) {
 						objIds = arguments.filterParams[ idField ];
 					}
 
@@ -1495,7 +1495,7 @@ component displayName="Preside Object Service" {
 								StructDelete( cacheMaps[ arguments.objectName ], objId );
 							}
 						}
-					} elseif ( arguments.clearSingleRecordCaches ) {
+					} else if ( arguments.clearSingleRecordCaches ) {
 						for( objId in cacheMaps[ arguments.objectName ] ) {
 							if ( objId neq "__complexFilter" ) {
 								ArrayAppend( keysToClear, StructKeyArray( cacheMaps[ arguments.objectName ][ objId ] ), true );
@@ -2260,7 +2260,7 @@ component displayName="Preside Object Service" {
 				for( id in objId ){
 					cacheMaps[ arguments.objectName ][ id ][ arguments.cacheKey ] = 1;
 				}
-			} elseif ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
+			} else if ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
 				cacheMaps[ arguments.objectName ][ objId ][ arguments.cacheKey ] = 1;
 			} else {
 				cacheMaps[ arguments.objectName ].__complexFilter[ arguments.cacheKey ] = 1;
