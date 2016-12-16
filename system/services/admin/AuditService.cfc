@@ -106,12 +106,20 @@ component displayName="Audit Service" {
 			filter = {};
 		}
 
-		return _getDao().selectData(
-			  filter       = filter
+		var subset = _getDao().selectData(
+			  selectFields = [ "audit_log.id" ]
+			, filter       = filter
 			, filterParams = params
 			, orderby      = "audit_log.datecreated desc"
 			, maxRows      = arguments.pageSize
 			, startRow     = ( ( arguments.page - 1 ) * arguments.pageSize ) + 1
+		);
+
+		subset = subset.recordCount ? ValueArray( subset.id ) : [];
+
+		return _getDao().selectData(
+			  filter       = { "audit_log.id" = subset }
+			, orderby      = "audit_log.datecreated desc"
 			, selectFields = [
 				  "audit_log.id"
 				, "audit_log.type"
