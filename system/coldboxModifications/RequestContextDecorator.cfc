@@ -379,7 +379,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		} else {
 			if ( Len( Trim( arguments.pageId ?: "" ) ) ) {
 				getPageArgs.id = arguments.pageId;
-			} elseif ( Len( Trim( arguments.systemPage ?: "" ) ) ) {
+			} else if ( Len( Trim( arguments.systemPage ?: "" ) ) ) {
 				getPageArgs.systemPage = arguments.systemPage;
 			} else {
 				getPageArgs.slug = arguments.slug;

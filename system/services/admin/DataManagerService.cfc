@@ -389,7 +389,7 @@ component {
 
 		if ( arguments.ids.len() ) {
 			args.filter = { id = arguments.ids };
-		} elseif ( Len( Trim( arguments.searchQuery ) ) ) {
+		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, arguments.selectFields );
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}

@@ -19,15 +19,15 @@ component {
 		if ( !Len( Trim( args.body ?: "" ) ) ) {
 			if ( Len( Trim( link.image ) ) ) {
 				args.body = renderAsset( assetId = link.image );
-			} elseif ( Len( Trim( link.text ) ) ) {
+			} else if ( Len( Trim( link.text ) ) ) {
 				args.body = Trim( link.text );
-			} elseif ( link.type == "email" ) {
+			} else if ( link.type == "email" ) {
 				args.emailAntiSpam = args.email_anti_spam ?: false;
 				args.body = linksService.emailAntiSpam( link.email_address, args.emailAntiSpam );
-			} elseif ( link.type == "sitetreelink" ) {
+			} else if ( link.type == "sitetreelink" ) {
 				var page = pageDao.selectData( id=link.page, selectFields=[ "title" ] );
 				args.body = page.title;
-			} elseif ( link.type == "url" ) {
+			} else if ( link.type == "url" ) {
 				args.body = args.href;
 			} else {
 				args.body = args.title;

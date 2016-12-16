@@ -223,7 +223,7 @@ component displayName="Preside Object View Service" {
 							, rawContent      = record[field]
 						);
 					}
-				} elseif ( !StructIsEmpty( property ) ) {
+				} else if ( !StructIsEmpty( property ) ) {
 					rendered = rendererSvc.renderField(
 						  object   = property._object
 						, property = property.name
