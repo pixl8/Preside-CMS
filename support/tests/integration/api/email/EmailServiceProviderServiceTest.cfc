@@ -476,6 +476,31 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( {} );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockEmailLoggingService.$( "insertTrackingPixel" ).$args( messageId=messageId, messageHtml=dummyHtmlBody ).$results( moddedBody );
+				mockEmailLoggingService.$( "insertClickTrackingLinks" ).$args( messageId=messageId, messageHtml=moddedBody ).$results( moddedBody );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs={ messageId=messageId, htmlBody=moddedBody }, settings={} }
+				).$results( true );
+
+				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody } );
+
+				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+			} );
+
+			it( "should replace hrefs with tracking link in html body", function(){
+				var service    = _getService();
+				var provider   = "smtp";
+				var sendAction = "blah.blah";
+				var messageId  = CreateUUId();
+				var moddedBody = CreateUUId();
+
+				service.$( "_logMessage", messageId );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( {} );
+				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockEmailLoggingService.$( "insertClickTrackingLinks" ).$args( messageId=messageId, messageHtml=dummyHtmlBody ).$results( moddedBody );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
 					, private        = true
@@ -645,6 +670,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		dummyHtmlBody = CreateUUId();
 		mockEmailLoggingService.$( "insertTrackingPixel", dummyHtmlBody );
+		mockEmailLoggingService.$( "insertClickTrackingLinks", dummyHtmlBody );
 
 		return service;
 	}
