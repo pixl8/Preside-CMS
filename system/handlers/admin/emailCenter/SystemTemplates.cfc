@@ -242,7 +242,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template_send_log"
-				, gridFields    = "recipient,sender,subject,sent_date,sent,delivered,opened"
+				, gridFields    = "recipient,sender,subject,sent_date,sent,delivered,opened,click_count"
 				, actionsView   = "admin.emailCenter.systemTemplates._logGridActions"
 				, filter        = { "email_template_send_log.email_template" = ( rc.template ?: "" ) }
 			}
