@@ -1,8 +1,9 @@
 /**
  * A log of every email sent through the templating system
  *
- * @versioned  false
- * @labelfield recipient
+ * @versioned                   false
+ * @labelfield                  recipient
+ * @datamanagerDefaultSortOrder sent_date desc
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="email_template" relationship="many-to-one" relatedto="email_template" required=false;

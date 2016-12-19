@@ -41,6 +41,14 @@
 		} );
 	}
 
+	if ( hasCmsPermission( "emailcenter.logs.view" ) ) {
+		subMenuItems.append(  {
+			  link  = event.buildAdminLink( linkTo="emailcenter.logs" )
+			, title = translateResource( "cms:emailcenter.logs.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.logs", event.getCurrentEvent() )
+		} );
+	}
+
 	if ( subMenuItems.len() ) {
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"

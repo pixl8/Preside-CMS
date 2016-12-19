@@ -244,6 +244,7 @@ component {
 				, serviceProviders = [ "manage" ]
 				, settings         = [ "navigate", "manage" ]
 				, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
+				, logs             = [ "view" ]
 			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
