@@ -95,25 +95,26 @@ component displayName="Email service" {
 		,          string  username = ""
 		,          string  password = ""
 	) {
+		var errorMessage = "";
+		var props        = CreateObject( "java", "java.util.Properties" ).init();
+
+		props.put( "mail.smtp.starttls.enable", "true" );
+		props.put( "mail.smtp.auth", "true" );
+
+		var mailSession = CreateObject( "java", "javax.mail.Session" ).getInstance( props, NullValue() );
+		var transport   = mailSession.getTransport( "smtp" );
 
 		try {
-			var props = CreateObject( "java", "java.util.Properties" ).init();
-			props.put( "mail.smtp.starttls.enable", "true" );
-			props.put( "mail.smtp.auth", "true" );
-
-			var mailSession = CreateObject( "java", "javax.mail.Session" ).getInstance( props, NullValue() );
-			var transport   = mailSession.getTransport( "smtp" );
-
 			transport.connect( arguments.host, arguments.port, arguments.username, arguments.password );
-			transport.close();
-
-			return "";
 		} catch ( "javax.mail.AuthenticationFailedException" e ) {
-			return "authentication failure";
+			errorMessage = "authentication failure";
 		} catch( any e ) {
-			return e.message;
+			errorMessage = e.message;
+		} finally {
+			transport.close();
 		}
 
+		return errorMessage;
 	}
 
 // PRIVATE HELPERS

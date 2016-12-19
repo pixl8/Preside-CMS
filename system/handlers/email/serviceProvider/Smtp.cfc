@@ -55,18 +55,20 @@ component {
 	}
 
 	private any function validateSettings( required struct settings, required any validationResult ) {
-		var errorMessage = emailService.validateConnectionSettings(
-			  host     = arguments.settings.server    ?: ""
-			, port     = Val( arguments.settings.port ?: "" )
-			, username = arguments.settings.username  ?: ""
-			, password = arguments.settings.password  ?: ""
-		);
+		if ( IsTrue( settings.check_connection ?: "" ) ) {
+			var errorMessage = emailService.validateConnectionSettings(
+				  host     = arguments.settings.server    ?: ""
+				, port     = Val( arguments.settings.port ?: "" )
+				, username = arguments.settings.username  ?: ""
+				, password = arguments.settings.password  ?: ""
+			);
 
-		if ( Len( Trim( errorMessage ) ) ) {
-			if ( errorMessage == "authentication failure" ) {
-				validationResult.addError( "username", "email.serviceProvider.smtp:validation.server.authentication.failure" );
-			} else {
-				validationResult.addError( "server", "email.serviceProvider.smtp:validation.server.details.invalid", [ errorMessage ] );
+			if ( Len( Trim( errorMessage ) ) ) {
+				if ( errorMessage == "authentication failure" ) {
+					validationResult.addError( "username", "email.serviceProvider.smtp:validation.server.authentication.failure" );
+				} else {
+					validationResult.addError( "server", "email.serviceProvider.smtp:validation.server.details.invalid", [ errorMessage ] );
+				}
 			}
 		}
 
