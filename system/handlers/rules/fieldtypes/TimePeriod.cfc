@@ -43,6 +43,7 @@ component {
 			case "future":
 			case "past":
 				type = timePeriod.type;
+			break;
 			default:
 				type = "alltime";
 		}
