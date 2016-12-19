@@ -26,6 +26,12 @@ component {
 		var messageId = Trim( rc.mid  ?: "" );
 		var link      = Trim( rc.link ?: "" );
 
+		try {
+			link = ToString( ToBinary( link ) );
+		} catch( any e ) {
+			logError( e );
+		}
+
 		if ( messageId.len() ) {
 			try {
 				emailLoggingService.markAsOpened( messageId );
