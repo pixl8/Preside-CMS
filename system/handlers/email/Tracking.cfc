@@ -22,4 +22,24 @@ component {
 		content type="image/png" variable="#_transparentPixelPng#";abort;
 	}
 
+	public void function click( event, rc, prc ) {
+		var messageId = Trim( rc.mid  ?: "" );
+		var link      = Trim( rc.link ?: "" );
+
+		if ( messageId.len() ) {
+			try {
+				emailLoggingService.markAsOpened( messageId );
+				emailLoggingService.recordActivity(
+					  messageId = messageId
+					, activity  = "click"
+					, extraData = { link=link }
+				);
+			} catch( any e ) {
+				logError( e );
+			}
+		}
+
+		setNextEvent( url=link );
+	}
+
 }
