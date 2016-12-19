@@ -72,40 +72,74 @@ component {
 	/**
 	 * Marks the given email as delivered
 	 *
-	 * @autodoc true
-	 * @id.hint ID of the email to mark as delivered
-	 *
+	 * @autodoc       true
+	 * @id.hint       ID of the email to mark as delivered
+	 * @softMark.hint Used when some other action has occurred that indicates that the message was therefore delivered. i.e. we may not know *when* but we do now know that it *was* delivered.
 	 */
-	public void function markAsDelivered( required string id ) {
+	public void function markAsDelivered( required string id, boolean softMark=false ) {
+		var data = { delivered = true };
+
+		if ( !arguments.softMark ) {
+			data.delivered_date = _getNow();
+		}
+
 		$getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
 			, filterParams = { id=arguments.id, delivered=false }
-			, data         = {
-				  delivered      = true
-				, delivered_date = _getNow()
-			  }
+			, data         = data
 		);
 	}
 
 	/**
 	 * Marks the given email as opened
 	 *
-	 * @autodoc true
-	 * @id.hint ID of the email to mark as opened
+	 * @autodoc       true
+	 * @id.hint       ID of the email to mark as opened
+	 * @softMark.hint Used when some other action has occurred that indicates that the message was therefore opened. i.e. we may not know *when* but we do now know that it *was* opened.
 	 *
 	 */
-	public void function markAsOpened( required string id ) {
+	public void function markAsOpened( required string id, boolean softMark=false ) {
+		var data = { opened = true };
+
+		if ( !arguments.softMark ) {
+			data.opened_date = _getNow();
+		}
+
 		$getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( opened is null or opened = :opened )"
 			, filterParams = { id=arguments.id, opened=false }
-			, data         = {
-				  opened      = true
-				, opened_date = _getNow()
-			  }
+			, data         = data
 		);
 
-		markAsDelivered( arguments.id );
-		recordActivity( messageId=arguments.id, activity="open" );
+		markAsDelivered( arguments.id, true );
+
+		if ( !arguments.softMark ) {
+			recordActivity( messageId=arguments.id, activity="open" );
+		}
+	}
+
+	/**
+	 * Records a link click for an email
+	 *
+	 */
+	public void function recordClick( required string id, required string link ) {
+		var dao     = $getPresideObject( "email_template_send_log");
+
+		transaction {
+			var current = dao.selectData( id=arguments.id );
+
+			if ( current.recordCount ) {
+				dao.updateData( id=arguments.id, data={ click_count=Val( current.click_count )+1 } );
+
+				recordActivity(
+					  messageId = arguments.id
+					, activity  = "click"
+					, extraData = { link=arguments.link }
+				);
+
+				markAsOpened( id=id, softMark=true );
+			}
+		}
 	}
 
 	/**

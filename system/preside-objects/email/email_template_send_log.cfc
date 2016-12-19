@@ -30,5 +30,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="marked_as_spam_date" type="date" dbtype="datetime";
 	property name="unsubscribed_date"   type="date" dbtype="datetime";
 
+	property name="click_count" type="numeric" dbtype="int" default=0;
+
 	property name="failed_reason" type="string" dbtype="text";
 }

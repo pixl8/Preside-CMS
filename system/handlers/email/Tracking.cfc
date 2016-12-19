@@ -34,12 +34,7 @@ component {
 
 		if ( messageId.len() ) {
 			try {
-				emailLoggingService.markAsOpened( messageId );
-				emailLoggingService.recordActivity(
-					  messageId = messageId
-					, activity  = "click"
-					, extraData = { link=link }
-				);
+				emailLoggingService.recordClick( id=messageId, link=link );
 			} catch( any e ) {
 				logError( e );
 			}
