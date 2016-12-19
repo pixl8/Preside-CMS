@@ -185,6 +185,55 @@ email content
 
 			} );
 		} );
+
+		describe( "insertClickTrackingLinks", function(){
+			it( "should replace all href's in html email content with a tracking link", function(){
+				var service = _getService();
+				var messageId = CreateUUId();
+				var trackingUrl = CreateUUId();
+				var links       = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
+				var html        = "<!DOCTYPE html>
+<html>
+<head>
+	<title>My email</title>
+</head>
+<body>
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation <a href=""#links[1]#"">ullamco</a> laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore <a href=""#links[2]#"">eu</a> fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation <a href=""#links[3]#"">ullamco laboris</a> nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+<a href=""#links[4]#"">cillum dolore</a> eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+</body>
+</html>";
+				var htmlMessageWithClickTrackingLinks = html;
+
+				for( var link in links ) {
+					htmlMessageWithClickTrackingLinks = htmlMessageWithClickTrackingLinks.replace( "href=""#link#""", "href=""#trackingUrl##ToBase64( link )#"""  );
+				}
+
+				var mockRc = CreateStub();
+				service.$( "$getRequestContext", mockRc );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.click", querystring="mid=#messageId#&link=" ).$results( trackingUrl );
+
+				expect( service.insertClickTrackingLinks(
+					  messageId   = messageId
+					, messageHtml = html
+				) ).toBe( htmlMessageWithClickTrackingLinks );
+			} );
+		} );
 	}
 
 	private any function _getService(){

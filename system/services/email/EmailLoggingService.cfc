@@ -132,6 +132,32 @@ component {
 	}
 
 	/**
+	 * converts links in html email to tracking links,
+	 * Returns the HTML with the inserted tracking links.
+	 *
+	 * @autodoc          true
+	 * @messageId.hint   ID of the message (log id)
+	 * @messageHtml.hint HTML content of the message
+	 */
+	public string function insertClickTrackingLinks(
+		  required string messageId
+		, required string messageHtml
+	) {
+		var converted      = arguments.messageHtml;
+		var linkRegex      = 'href="(.*?)"';
+		var linkMatches    = converted.reMatchNoCase( linkRegex );
+		var baseTrackinUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
+
+		for( var match in linkMatches ) {
+			var link = match.reReplaceNoCase( linkRegex , "\1" );
+
+			converted = converted.replace( match, 'href="#baseTrackinUrl##ToBase64( link )#"', "all" );
+		}
+
+		return converted;
+	}
+
+	/**
 	 * Records an activity performed against an specific sent email.
 	 * e.g. opened, clicked link, etc.
 	 *
