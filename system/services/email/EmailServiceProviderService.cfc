@@ -207,6 +207,7 @@ component {
 	public boolean function sendWithProvider( required string provider, required struct sendArgs ) {
 		var sendAction = getProviderSendAction( arguments.provider );
 		var settings   = getProviderSettings( arguments.provider );
+		var logService = _getEmailLoggingService();
 		var result     = false;
 
 		if ( !$getColdbox().handlerExists( sendAction ) ) {
@@ -217,7 +218,11 @@ component {
 		}
 
 		sendArgs.messageId = _logMessage( arguments.sendArgs );
-		sendArgs.htmlBody  = _getEmailLoggingService().insertTrackingPixel(
+		sendArgs.htmlBody  = logService.insertTrackingPixel(
+			  messageId   = sendArgs.messageId
+			, messageHtml = sendArgs.htmlBody ?: ""
+		);
+		sendArgs.htmlBody  = logService.insertClickTrackingLinks(
 			  messageId   = sendArgs.messageId
 			, messageHtml = sendArgs.htmlBody ?: ""
 		);
@@ -244,7 +249,7 @@ component {
 		}
 
 		if ( result ) {
-			_getEmailLoggingService().markAsSent( sendArgs.messageId );
+			logService.markAsSent( sendArgs.messageId );
 		}
 
 		return result;

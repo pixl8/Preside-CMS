@@ -55,6 +55,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "recordActivity()", function(){
+			it( "should insert data into email_template_send_log_activity", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var activity  = "blah";
+				var extraData = { blah=CreateUUId(), test=Now() };
+
+
+				mockLogActivityDao.$( "insertData", CreateUUId() );
+
+				service.recordActivity(
+					  messageId = messageId
+					, activity  = activity
+					, extraData = extraData
+				);
+
+				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockLogActivityDao.$callLog().insertData[ 1 ] ).toBe( [ {
+					  message       = messageId
+					, activity_type = activity
+					, extra_data    = SerializeJson( extraData )
+					, user_ip       = cgi.remote_addr
+					, user_agent    = cgi.http_user_agent
+				} ]);
+			} );
+		} );
+
 		describe( "markAsSent()", function(){
 			it( "should update the log record by setting sent = true + sent_date to now(ish)", function(){
 				var service = _getService();
@@ -88,15 +115,32 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, data         = { delivered=true, delivered_date=nowish }
 				} );
 			} );
+
+			it( "should not update the delivery date when 'softMark' set to true", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData" );
+
+				service.markAsDelivered( id=logId, softMark=true );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
+					, filterParams = { id=logId, delivered=false }
+					, data         = { delivered=true }
+				} );
+			} );
 		} );
 
 		describe( "markAsOpened()", function(){
-			it( "should mark the given message as opened when not already opened + mark as delivered", function(){
+			it( "should mark the given message as opened when not already opened, log the activity + mark as delivered", function(){
 				var service = _getService();
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
 				service.$( "markAsDelivered" );
+				service.$( "recordActivity" );
 
 				service.markAsOpened( logId );
 
@@ -107,7 +151,73 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, data         = { opened=true, opened_date=nowish }
 				} );
 				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
-				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId ] );
+				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId, true ] );
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="open" } );
+			} );
+
+			it( "should not update opened date or track activity when 'softMark' set to true", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData" );
+				service.$( "markAsDelivered" );
+				service.$( "recordActivity" );
+
+				service.markAsOpened( id=logId, softMark=true );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter       = "id = :id and ( opened is null or opened = :opened )"
+					, filterParams = { id=logId, opened=false }
+					, data         = { opened=true }
+				} );
+				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
+				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId, true ] );
+				expect( service.$callLog().recordActivity.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "recordClick()", function(){
+			it( "should increment click count on email log record", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+				var link    = CreateUUId();
+				var mockLog = QueryNew( 'id,click_count', 'varchar,varchar', [[ logId, "" ]] );
+
+				service.$( "markAsOpened" );
+				service.$( "recordActivity" );
+				mockLogDao.$( "selectData" ).$args( id=logId ).$results( mockLog );
+				mockLogDao.$( "updateData", 1 );
+
+				service.recordClick( id=logId, link=link );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( { id=logId, data={ click_count=1 } } );
+
+			} );
+
+			it( "should record activity and ensure mail marked as opened", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+				var link    = CreateUUId();
+				var mockLog = QueryNew( 'id,click_count', 'varchar,varchar', [[ logId, 23 ]] );
+
+
+				service.$( "markAsOpened" );
+				service.$( "recordActivity" );
+				mockLogDao.$( "selectData" ).$args( id=logId ).$results( mockLog );
+				mockLogDao.$( "updateData", 1 );
+
+				service.recordClick( id=logId, link=link );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( { id=logId, data={ click_count=24 } } );
+				expect( service.$callLog().markAsOpened.len() ).toBe( 1 );
+				expect( service.$callLog().markAsOpened[1] ).toBe( { id=logId, softMark=true } );
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="click", extraData={ link=link } } );
+
 			} );
 		} );
 
@@ -155,11 +265,61 @@ email content
 
 			} );
 		} );
+
+		describe( "insertClickTrackingLinks", function(){
+			it( "should replace all href's in html email content with a tracking link", function(){
+				var service = _getService();
+				var messageId = CreateUUId();
+				var trackingUrl = CreateUUId();
+				var links       = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
+				var html        = "<!DOCTYPE html>
+<html>
+<head>
+	<title>My email</title>
+</head>
+<body>
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation <a href=""#links[1]#"">ullamco</a> laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore <a href=""#links[2]#"">eu</a> fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation <a href=""#links[3]#"">ullamco laboris</a> nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+<a href=""#links[4]#"">cillum dolore</a> eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+</body>
+</html>";
+				var htmlMessageWithClickTrackingLinks = html;
+
+				for( var link in links ) {
+					htmlMessageWithClickTrackingLinks = htmlMessageWithClickTrackingLinks.replace( "href=""#link#""", "href=""#trackingUrl##ToBase64( link )#"""  );
+				}
+
+				var mockRc = CreateStub();
+				service.$( "$getRequestContext", mockRc );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.click", querystring="mid=#messageId#&link=" ).$results( trackingUrl );
+
+				expect( service.insertClickTrackingLinks(
+					  messageId   = messageId
+					, messageHtml = html
+				) ).toBe( htmlMessageWithClickTrackingLinks );
+			} );
+		} );
 	}
 
 	private any function _getService(){
 		mockRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
-		mockLogDao = CreateStub();
+		mockLogDao               = CreateStub();
+		mockLogActivityDao       = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
 			recipientTypeService = mockRecipientTypeService
@@ -168,6 +328,7 @@ email content
 		mockRecipientTypeService.$( "getRecipientId", "" );
 		mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType", "" );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
+		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
 
 		nowish  = Now();
 		service.$( "_getNow", nowish );
