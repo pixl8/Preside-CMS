@@ -130,6 +130,30 @@ component {
 		return messageHtml & trackingPixel;
 	}
 
+	/**
+	 * Records an activity performed against an specific sent email.
+	 * e.g. opened, clicked link, etc.
+	 *
+	 * @autodoc true
+	 * @messageId.hint ID of the message (send log) to record against
+	 * @activity.hint  The activity type performed (see system ENUM, `emailActivityType`)
+	 * @extraData.hint Structure of additional data that may be useful in email send log viewer (e.g. URL of clicked link)
+	 *
+	 */
+	public void function recordActivity(
+		  required string messageId
+		, required string activity
+		,          struct extraData = {}
+	) {
+		$getPresideObject( "email_template_send_log_activity" ).insertData({
+			  message       = arguments.messageId
+			, activity_type = arguments.activity
+			, user_ip       = cgi.remote_addr
+			, user_agent    = cgi.http_user_agent
+			, extra_data    = SerializeJson( arguments.extraData )
+		});
+	}
+
 // PRIVATE HELPERS
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
 		if ( !recipientType.len() ) {

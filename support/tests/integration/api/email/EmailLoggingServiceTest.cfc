@@ -55,6 +55,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "recordActivity()", function(){
+			it( "should insert data into email_template_send_log_activity", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var activity  = "blah";
+				var extraData = { blah=CreateUUId(), test=Now() };
+
+
+				mockLogActivityDao.$( "insertData", CreateUUId() );
+
+				service.recordActivity(
+					  messageId = messageId
+					, activity  = activity
+					, extraData = extraData
+				);
+
+				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockLogActivityDao.$callLog().insertData[ 1 ] ).toBe( [ {
+					  message       = messageId
+					, activity_type = activity
+					, extra_data    = SerializeJson( extraData )
+					, user_ip       = cgi.remote_addr
+					, user_agent    = cgi.http_user_agent
+				} ]);
+			} );
+		} );
+
 		describe( "markAsSent()", function(){
 			it( "should update the log record by setting sent = true + sent_date to now(ish)", function(){
 				var service = _getService();
@@ -159,7 +186,8 @@ email content
 
 	private any function _getService(){
 		mockRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
-		mockLogDao = CreateStub();
+		mockLogDao               = CreateStub();
+		mockLogActivityDao       = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
 			recipientTypeService = mockRecipientTypeService
@@ -168,6 +196,7 @@ email content
 		mockRecipientTypeService.$( "getRecipientId", "" );
 		mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType", "" );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
+		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
 
 		nowish  = Now();
 		service.$( "_getNow", nowish );

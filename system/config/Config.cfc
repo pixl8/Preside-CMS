@@ -340,6 +340,7 @@ component {
 		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
+		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
