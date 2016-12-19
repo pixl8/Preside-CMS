@@ -118,12 +118,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "markAsOpened()", function(){
-			it( "should mark the given message as opened when not already opened + mark as delivered", function(){
+			it( "should mark the given message as opened when not already opened, log the activity + mark as delivered", function(){
 				var service = _getService();
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
 				service.$( "markAsDelivered" );
+				service.$( "recordActivity" );
 
 				service.markAsOpened( logId );
 
@@ -135,6 +136,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} );
 				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
 				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId ] );
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="open" } );
 			} );
 		} );
 

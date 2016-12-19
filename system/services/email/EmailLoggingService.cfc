@@ -105,6 +105,7 @@ component {
 		);
 
 		markAsDelivered( arguments.id );
+		recordActivity( messageId=arguments.id, activity="open" );
 	}
 
 	/**
