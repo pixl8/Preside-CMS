@@ -1,5 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
+	property name="emailLoggingService" inject="emailLoggingService";
+
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
@@ -20,6 +22,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function log( event, rc, prc ) {
+		var logId = rc.id ?: "";
+
+		prc.log = emailLoggingService.getLog( logId );
+		if ( prc.log.isEmpty() ) {
+			event.notFound();
+		}
+		prc.activity = emailLoggingService.getActivity( logId );
+
 		event.noLayout();
 	}
 

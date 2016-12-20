@@ -215,6 +215,56 @@ component {
 		});
 	}
 
+	/**
+	 * Returns a struct of the log (by given id)
+	 *
+	 * @autodoc
+	 * @id.hint ID of the log record
+	 */
+	public struct function getLog( required string id ) {
+		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=[
+			  "email_template_send_log.recipient"
+			, "email_template_send_log.sender"
+			, "email_template_send_log.subject"
+			, "email_template_send_log.sent"
+			, "email_template_send_log.failed"
+			, "email_template_send_log.delivered"
+			, "email_template_send_log.opened"
+			, "email_template_send_log.marked_as_spam"
+			, "email_template_send_log.unsubscribed"
+			, "email_template_send_log.sent_date"
+			, "email_template_send_log.failed_date"
+			, "email_template_send_log.delivered_date"
+			, "email_template_send_log.opened_date"
+			, "email_template_send_log.marked_as_spam_date"
+			, "email_template_send_log.unsubscribed_date"
+			, "email_template_send_log.click_count"
+			, "email_template_send_log.email_template"
+			, "email_template_send_log.datecreated"
+			, "email_template.name"
+			, "email_template.recipient_type"
+		] );
+
+		for( var l in logRecord ) {
+			return l;
+		}
+
+		return {};
+	}
+
+	/**
+	 * Returns a query of an individual log's activity
+	 *
+	 * @autodoc
+	 * @id.hint  ID of the log record
+	 */
+	public query function getActivity( required string id ) {
+		return $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  filter  = { message = arguments.id }
+			, orderBy = "datecreated"
+		);
+	}
+
 // PRIVATE HELPERS
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
 		if ( !recipientType.len() ) {
