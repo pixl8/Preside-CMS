@@ -1,1 +1,0 @@
-<!-- TODO: maybe some actions for each log... -->
