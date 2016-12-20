@@ -4,12 +4,15 @@
 		<fieldset id="default" sortorder="10">
 			<field binding="email_template.name"            control="textinput" sortorder="10" />
 			<field binding="email_template.subject"         control="textinput" sortorder="20" />
-			<field binding="email_template.email_blueprint" required="true"     sortorder="30" />
 			<field binding="email_template.from_address"    control="textinput" sortorder="40" />
 		</fieldset>
-		<fieldset id="body" sortorder="20">
-			<field binding="email_template.html_body"    control="richeditor" sortorder="40" widgetCategories="email" />
-			<field binding="email_template.text_body"    control="textarea"   sortorder="50" />
+		<fieldset id="settings" sortorder="20">
+			<field binding="email_template.email_blueprint" required="true"  sortorder="10" />
+			<field binding="email_template.track_clicks"    required="false" sortorder="20" />
+		</fieldset>
+		<fieldset id="body" sortorder="30">
+			<field binding="email_template.html_body"    control="richeditor" sortorder="10" widgetCategories="email" />
+			<field binding="email_template.text_body"    control="textarea"   sortorder="20" />
 		</fieldset>
 	</tab>
 </form>
