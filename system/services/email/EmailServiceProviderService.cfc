@@ -222,10 +222,13 @@ component {
 			  messageId   = sendArgs.messageId
 			, messageHtml = sendArgs.htmlBody ?: ""
 		);
-		sendArgs.htmlBody  = logService.insertClickTrackingLinks(
-			  messageId   = sendArgs.messageId
-			, messageHtml = sendArgs.htmlBody ?: ""
-		);
+
+		if ( _getEmailTemplateService().isTrackingEnabled( arguments.sendArgs.template ?: "" ) ) {
+			sendArgs.htmlBody  = logService.insertClickTrackingLinks(
+				  messageId   = sendArgs.messageId
+				, messageHtml = sendArgs.htmlBody ?: ""
+			);
+		}
 
 		try {
 			result = $getColdbox().runEvent(

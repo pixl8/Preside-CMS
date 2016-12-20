@@ -496,19 +496,47 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var sendAction = "blah.blah";
 				var messageId  = CreateUUId();
 				var moddedBody = CreateUUId();
+				var templateId = CreateUUId();
 
 				service.$( "_logMessage", messageId );
 				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( {} );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockEmailTemplateService.$( "isTrackingEnabled" ).$args( templateId ).$results( true );
 				mockEmailLoggingService.$( "insertClickTrackingLinks" ).$args( messageId=messageId, messageHtml=dummyHtmlBody ).$results( moddedBody );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
 					, private        = true
 					, prePostExempt  = true
-					, eventArguments = { sendArgs={ messageId=messageId, htmlBody=moddedBody }, settings={} }
+					, eventArguments = { sendArgs={ messageId=messageId, htmlBody=moddedBody, template=templateId }, settings={} }
 				).$results( true );
 
-				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody } );
+				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody, template=templateId } );
+
+				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+			} );
+
+			it( "should NOT replace hrefs with tracking link in html body when click tracking is not enabled for the template", function(){
+				var service    = _getService();
+				var provider   = "smtp";
+				var sendAction = "blah.blah";
+				var messageId  = CreateUUId();
+				var moddedBody = CreateUUId();
+				var templateId = CreateUUId();
+
+				service.$( "_logMessage", messageId );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( {} );
+				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockEmailTemplateService.$( "isTrackingEnabled" ).$args( templateId ).$results( false );
+				mockEmailLoggingService.$( "insertClickTrackingLinks" ).$args( messageId=messageId, messageHtml=dummyHtmlBody ).$results( moddedBody );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs={ messageId=messageId, htmlBody=dummyHtmlBody, template=templateId }, settings={} }
+				).$results( true );
+
+				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody, template=templateId } );
 
 				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
 				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
@@ -671,6 +699,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		dummyHtmlBody = CreateUUId();
 		mockEmailLoggingService.$( "insertTrackingPixel", dummyHtmlBody );
 		mockEmailLoggingService.$( "insertClickTrackingLinks", dummyHtmlBody );
+		mockEmailTemplateService.$( "isTrackingEnabled", false );
 
 		return service;
 	}

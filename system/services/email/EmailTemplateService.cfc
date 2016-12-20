@@ -307,6 +307,18 @@ component {
 	}
 
 	/**
+	 * Returns whether or not click tracking is enabled for the given template
+	 *
+	 * @autodoc         true
+	 * @templateId.hint ID of the template to check
+	 */
+	public boolean function isTrackingEnabled( required string templateId ) {
+		return arguments.templateId.len() && $getPresideObject( "email_template" ).dataExists(
+			filter = { id=arguments.templateId, track_clicks=true }
+		);
+	}
+
+	/**
 	 * Replaces parameter tokens in strings (subject, body) with
 	 * passed in values.
 	 *
