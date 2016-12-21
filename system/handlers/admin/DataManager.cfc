@@ -191,15 +191,27 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = rc.object ?: "";
+			var objectName     = rc.object ?: "";
+			var extraFilters   = [];
+			var filterByFields = ListToArray( rc.filterByFields ?: "" );
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
+			for( var filterByField in filterByFields ) {
+				if( !isEmpty( rc[filterByField] ?: "" ) ){
+					extraFilters.append({
+						  filter       = "#filterByField# = :#filterByField#"
+						, filterParams = { "#filterByField#" = rc[filterByField] }
+					})
+				}
+			}
 
 			var records = dataManagerService.getRecordsForAjaxSelect(
 				  objectName   = rc.object  ?: ""
 				, maxRows      = rc.maxRows ?: 1000
 				, searchQuery  = rc.q       ?: ""
 				, savedFilters = ListToArray( rc.savedFilters ?: "" )
+				, extraFilters = extraFilters
 				, ids          = ListToArray( rc.values ?: "" )
 			);
 
