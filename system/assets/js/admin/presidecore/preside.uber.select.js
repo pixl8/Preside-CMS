@@ -365,10 +365,21 @@
 				if ( this.local_options[i].empty ) { this.local_options.splice( i, 1 ); }
 			}
 
+			var prefetch_url = this.form_field.getAttribute( "data-prefetch-url" );
+			var remote_url   = this.form_field.getAttribute( "data-remote-url" );
+
+			if( this.filter && this.filter.length ){
+				this.prefetch_url = prefetch_url + this.filter;
+				this.remote_url   = remote_url + this.filter;
+			}else{
+				this.prefetch_url = prefetch_url;
+				this.remote_url   = remote_url;
+			}
+
 			this.search_engine = new Bloodhound( {
 				  local          : this.local_options
-				, prefetch       : ( this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" ) + this.filter )
-				, remote         : ( this.remote_url   = this.form_field.getAttribute( "data-remote-url" ) + this.filter  )
+				, prefetch       : this.prefetch_url
+				, remote         : this.remote_url
 				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
 			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
 			 	, limit          : 100 // a sensible limit, should probably be configurable, right?!
@@ -500,7 +511,6 @@
 			}
 
 			this.setup_filter();
-
 			this.setup_search_engine();
 
 			if ( typeof this.filter_field !== "undefined" ) {
