@@ -353,7 +353,9 @@
 
 		UberSelect.prototype.setup_search_engine = function(){
 			var uberSelect = this
-			  , i;
+			  , i
+			  , prefetch_url = this.form_field.getAttribute( "data-prefetch-url" )
+			  , remote_url   = this.form_field.getAttribute( "data-remote-url" );
 
 			if ( isNaN( this.prefetch_ttl ) ) {
 				this.prefetch_ttl = 0;
@@ -364,9 +366,6 @@
 			for( i=this.local_options.length-1; i>=0; i-- ){
 				if ( this.local_options[i].empty ) { this.local_options.splice( i, 1 ); }
 			}
-
-			var prefetch_url = this.form_field.getAttribute( "data-prefetch-url" );
-			var remote_url   = this.form_field.getAttribute( "data-remote-url" );
 
 			if( this.filter && this.filter.length ){
 				this.prefetch_url = prefetch_url + this.filter;
@@ -523,16 +522,17 @@
 
 		UberSelect.prototype.setup_filter = function() {
 
-			this.filter         = "" ;
+			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
+			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
+			  , filterByValue;
 
-			var filterBy        = this.form_field.getAttribute( "data-filter-by" );
-			var filterByField   = this.form_field.getAttribute( "data-filter-by-field" );
+			this.filter       = "";
+			this.filter_field = $( "input[name='" + filterBy + "']" );
 
-			this.filter_field   = $( "input[name='" + filterBy + "']" );
-			var filterByValue   = this.filter_field.val();
+			filterByValue = this.filter_field.val();
 
 			if ( typeof filterByValue !== "undefined" ) {
-				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByField=' + filterBy;
+				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterBy;
 			}
 
 		};

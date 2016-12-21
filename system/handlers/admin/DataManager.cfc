@@ -190,18 +190,17 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = rc.object ?: "";
+			var objectName     = rc.object ?: "";
+			var extraFilters   = [];
+			var filterByFields = ListToArray( rc.filterByFields ?: "" );
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
-			var filterByField = rc.filterByField ?: "";
-			var extraFilters  = [];
-
-			loop list=filterByField index="indexField"{
-				if( !isEmpty( rc[indexField] ?: "" ) ){
+			for( var filterByField in filterByFields ) {
+				if( !isEmpty( rc[filterByField] ?: "" ) ){
 					extraFilters.append({
-						  filter       = "#indexField# = :#indexField#"
-						, filterParams = { "#indexField#" = rc[indexField] }
+						  filter       = "#filterByField# = :#filterByField#"
+						, filterParams = { "#filterByField#" = rc[filterByField] }
 					})
 				}
 			}
