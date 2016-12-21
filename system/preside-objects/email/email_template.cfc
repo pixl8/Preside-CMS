@@ -12,6 +12,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="service_provider" type="string"  dbtype="varchar" maxlength=200 required=false;
 	property name="is_system_email"  type="boolean" dbtype="boolean"               required=false default=false;
 	property name="track_clicks"     type="boolean" dbtype="boolean"               required=false default=false;
+	property name="view_online"      type="boolean" dbtype="boolean"               required=false default=false;
 
 	property name="html_body" type="string" dbtype="longtext";
 	property name="text_body" type="string" dbtype="longtext";

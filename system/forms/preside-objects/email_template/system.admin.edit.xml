@@ -6,8 +6,9 @@
 			<field binding="email_template.from_address" control="textinput"         sortorder="30" />
 		</fieldset>
 		<fieldset id="settings" sortorder="20">
-			<field binding="email_template.layout"       control="emailLayoutPicker" sortorder="10" />
-			<field binding="email_template.track_clicks" required="false" sortorder="20" />
+			<field binding="email_template.layout"       sortorder="10" control="emailLayoutPicker" />
+			<field binding="email_template.track_clicks" sortorder="20" />
+			<field binding="email_template.view_online"  sortorder="30" />
 		</fieldset>
 		<fieldset id="body" sortorder="20">
 			<field binding="email_template.html_body"    control="richeditor"        sortorder="40" toolbar="email" />

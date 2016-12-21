@@ -9,6 +9,7 @@
 		<fieldset id="settings" sortorder="20">
 			<field binding="email_template.email_blueprint" required="true"  sortorder="10" />
 			<field binding="email_template.track_clicks"    required="false" sortorder="20" />
+			<field binding="email_template.view_online"     required="false" sortorder="30" />
 		</fieldset>
 		<fieldset id="body" sortorder="30">
 			<field binding="email_template.html_body"    control="richeditor" sortorder="10" widgetCategories="email" />
