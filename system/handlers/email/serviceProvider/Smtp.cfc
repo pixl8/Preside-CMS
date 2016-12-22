@@ -6,11 +6,13 @@ component {
 	property name="emailService" inject="emailService";
 
 	private boolean function send( struct sendArgs={}, struct settings={} ) {
-		var m          = new Mail();
-		var mailServer = settings.server   ?: "";
-		var port       = settings.port     ?: "";
-		var username   = settings.username ?: "";
-		var password   = settings.password ?: "";
+		var m           = new Mail();
+		var mailServer  = settings.server      ?: "";
+		var port        = settings.port        ?: "";
+		var username    = settings.username    ?: "";
+		var password    = settings.password    ?: "";
+		var params      = sendArgs.params      ?: {};
+		var attachments = sendArgs.attachments ?: [];
 
 		m.setTo( sendArgs.to.toList( ";" ) );
 		m.setFrom( sendArgs.from );
@@ -41,8 +43,11 @@ component {
 			m.setPassword( password );
 		}
 
-		for( var param in sendArgs.params ){
+		for( var param in params ){
 			m.addParam( argumentCollection=sendArgs.params[ param ] );
+		}
+		for( var attachment in attachments ) {
+			m.addParam( content=attachment.binary, disposition="attachment; filename=""#attachment.name#""" );
 		}
 
 		sendArgs.messageId = sendArgs.messageId ?: CreateUUId();
