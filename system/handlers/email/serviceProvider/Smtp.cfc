@@ -47,7 +47,16 @@ component {
 			m.addParam( argumentCollection=sendArgs.params[ param ] );
 		}
 		for( var attachment in attachments ) {
-			m.addParam( content=attachment.binary, disposition="attachment; filename=""#attachment.name#""" );
+			var md5sum   = Hash( attachment.binary );
+			var tmpDir   = getTempDirectory() & "/" & md5sum & "/";
+			var filePath = tmpDir & attachment.name
+
+			if ( !FileExists( filePath ) ) {
+				DirectoryCreate( tmpDir, true, true );
+				FileWrite( filePath, attachment.binary );
+			}
+
+			m.addParam( disposition="attachment", file=filePath, remove=false );
 		}
 
 		sendArgs.messageId = sendArgs.messageId ?: CreateUUId();

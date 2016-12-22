@@ -38,9 +38,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
 
 				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
-					  id      = id
-					, data    = template
-					, isDraft = false
+					  id                      = id
+					, data                    = template
+					, isDraft                 = false
+					, updateManyToManyRecords = true
 				});
 			} );
 
@@ -66,9 +67,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
 
 				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
-					  id      = id
-					, data    = template
-					, isDraft = false
+					  id                      = id
+					, data                    = template
+					, isDraft                 = false
+					, updateManyToManyRecords = true
 				});
 			} );
 
@@ -107,9 +109,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
 
 				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
-					  id      = id
-					, data    = template
-					, isDraft = true
+					  id                      = id
+					, data                    = template
+					, isDraft                 = true
+					, updateManyToManyRecords = true
 				});
 			} );
 
@@ -701,6 +704,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+				service.$( "getAttachments", [] );
 				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBodyRendered );
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
@@ -723,14 +727,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
 
 				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
-					  subject   = mockSubject
-					, from      = mockTemplate.from_address
-					, to        = [ mockTo ]
-					, textBody  = mockTextBodyWithLayout
-					, htmlBody  = mockHtmlBodyWithLayout
-					, cc        = []
-					, bcc       = []
-					, params    = {}
+					  subject     = mockSubject
+					, from        = mockTemplate.from_address
+					, to          = [ mockTo ]
+					, textBody    = mockTextBodyWithLayout
+					, htmlBody    = mockHtmlBodyWithLayout
+					, cc          = []
+					, bcc         = []
+					, params      = {}
+					, attachments = []
 				} );
 			} );
 
@@ -766,6 +771,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipientId   = mockRecipientId
 					, args          = mockArgs
 				).$results( mockParams );
+				service.$( "getAttachments", [] );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
@@ -792,14 +798,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
 
 				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
-					  subject  = mockSubject
-					, from     = mockFrom
-					, to       = [ mockTo ]
-					, textBody = mockTextBodyWithLayout
-					, htmlBody = mockHtmlBodyWithLayout
-					, cc       = []
-					, bcc      = []
-					, params   = {}
+					  subject     = mockSubject
+					, from        = mockFrom
+					, to          = [ mockTo ]
+					, textBody    = mockTextBodyWithLayout
+					, htmlBody    = mockHtmlBodyWithLayout
+					, cc          = []
+					, bcc         = []
+					, params      = {}
+					, attachments = []
 				} );
 			} );
 
@@ -837,6 +844,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "getTemplate", mockTemplate );
 				service.$( "prepareParameters", {} )
+				service.$( "getAttachments", [] );
 				service.$( "replaceParameterTokens", CreateUUId() );
 				service.$( "replaceParameterTokens", CreateUUId() );
 				service.$( "replaceParameterTokens", CreateUUId() );
@@ -853,7 +861,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockEmailSendingContextService.$callLog().clearContext.len() ).toBe( 1 );
 			} );
 
-			it( "should build an view online link and pass to layout when 'view online' is set to true for the template", function(){
+			it( "should build a view online link and pass to layout when 'view online' is set to true for the template", function(){
 				var service                = _getService();
 				var template               = "mytemplate";
 				var mockSubject            = CreateUUId();
@@ -891,6 +899,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
 				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBodyRendered );
+				service.$( "getAttachments", [] );
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout         = mockTemplate.layout
@@ -922,14 +931,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
 
 				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
-					  subject   = mockSubject
-					, from      = mockTemplate.from_address
-					, to        = [ mockTo ]
-					, textBody  = mockTextBodyWithLayout
-					, htmlBody  = mockHtmlBodyWithVOLink
-					, cc        = []
-					, bcc       = []
-					, params    = {}
+					  subject     = mockSubject
+					, from        = mockTemplate.from_address
+					, to          = [ mockTo ]
+					, textBody    = mockTextBodyWithLayout
+					, htmlBody    = mockHtmlBodyWithVOLink
+					, cc          = []
+					, bcc         = []
+					, params      = {}
+					, attachments = []
 				} );
 			} );
 		} );

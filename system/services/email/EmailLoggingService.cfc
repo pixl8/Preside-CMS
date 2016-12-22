@@ -70,6 +70,22 @@ component {
 	}
 
 	/**
+	 * Marks the given email as failed
+	 *
+	 * @autodoc     true
+	 * @id.hint     ID of the email to mark as failed
+	 * @reason.hint Failure reason to record
+	 *
+	 */
+	public void function markAsFailed( required string id, required string reason ) {
+		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
+			  failed        = true
+			, failed_date   = _getNow()
+			, failed_reason = arguments.reason
+		} );
+	}
+
+	/**
 	 * Marks the given email as delivered
 	 *
 	 * @autodoc       true
@@ -234,6 +250,7 @@ component {
 			, "email_template_send_log.unsubscribed"
 			, "email_template_send_log.sent_date"
 			, "email_template_send_log.failed_date"
+			, "email_template_send_log.failed_reason"
 			, "email_template_send_log.delivered_date"
 			, "email_template_send_log.opened_date"
 			, "email_template_send_log.marked_as_spam_date"

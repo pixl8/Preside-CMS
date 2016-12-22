@@ -89,12 +89,13 @@ component {
 			) );
 
 			var message = {
-				  subject = replaceParameterTokens( messageTemplate.subject, params, "text" )
-				, from    = messageTemplate.from_address
-				, to      = arguments.to
-				, cc      = arguments.cc
-				, bcc     = arguments.bcc
-				, params  = arguments.messageHeaders
+				  subject     = replaceParameterTokens( messageTemplate.subject, params, "text" )
+				, from        = messageTemplate.from_address
+				, to          = arguments.to
+				, cc          = arguments.cc
+				, bcc         = arguments.bcc
+				, params      = arguments.messageHeaders
+				, attachments = getAttachments( arguments.template )
 			};
 
 			if ( !message.to.len() ) {
@@ -270,9 +271,10 @@ component {
 		transaction {
 			if ( Len( Trim( arguments.id ) ) ) {
 				var updated = $getPresideObject( "email_template" ).updateData(
-					  id      = arguments.id
-					, data    = arguments.template
-					, isDraft = arguments.isDraft
+					  id                      = arguments.id
+					, data                    = arguments.template
+					, isDraft                 = arguments.isDraft
+					, updateManyToManyRecords = true
 				);
 
 				if ( updated ) {

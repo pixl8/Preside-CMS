@@ -273,8 +273,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "_logMessage", dummyArgs.messageId );
 				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( dummySettings );
-
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
 					, private        = true
@@ -295,9 +295,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( method="runEvent", throwException=true, throwType="blah.blah", throwMessage="Blah blah blah" );
 				service.$( "$raiseError" );
+				mockEmailLoggingService.$( "markAsFailed" );
 
 				expect( service.sendWithProvider( provider, {} ) ).toBe( false );
 				expect( service.$callLog().$raiseError.len() ).toBe( 1 );
+				expect( mockEmailLoggingService.$callLog().markAsFailed.len() ).toBe( 1 );
 			} );
 
 			it( "should raise an informative error when no send action handler exists", function(){
@@ -336,6 +338,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, eventArguments = { sendArgs=dummyArgs, settings={} }
 				).$results( {} );
 				service.$( "$raiseError" );
+				mockEmailLoggingService.$( "markAsFailed" );
 
 				expect( service.sendWithProvider( provider, dummyArgs ) ).toBe( false );
 				expect( service.$callLog().$raiseError.len() ).toBe( 1 );
