@@ -613,6 +613,21 @@ component {
 	}
 
 	/**
+	 * Gets the view online content
+	 * for the given content ID
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the content to get
+	 *
+	 */
+	public string function getViewOnlineContent( required string id ) {
+		var dao    = $getPresideObject( "email_template_view_online_content" );
+		var record = dao.selectData( id=arguments.id, selectFields=[ "content" ] );
+
+		return Trim( record.content ?: "" );
+	}
+
+	/**
 	 * Gets the view online link for a given piece of HTML
 	 * email content.
 	 *
