@@ -22,6 +22,7 @@ component {
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 * @emailLayoutService.inject         emailLayoutService
 	 * @emailSendingContextService.inject emailSendingContextService
+	 * @assetManagerService.inject        assetManagerService
 	 *
 	 */
 	public any function init(
@@ -29,11 +30,13 @@ component {
 		, required any emailRecipientTypeService
 		, required any emailLayoutService
 		, required any emailSendingContextService
+		, required any assetManagerService
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
 		_setEmailLayoutService( arguments.emailLayoutService );
 		_setEmailSendingContextService( arguments.emailSendingContextService );
+		_setAssetManagerService( arguments.assetManagerService );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -529,6 +532,37 @@ component {
 		return records.recordCount ? ValueArray( records.id ) : [];
 	}
 
+	/**
+	 * Gets an array of an email template's editorially attached
+	 * attachments.
+	 *
+	 * @autodoc
+	 * @templateId.hint ID of the template who's attachments you want to get
+	 *
+	 */
+	public array function getAttachments( required string templateId ) {
+		var assetManagerService = _getAssetManagerService()
+		var attachments         = [];
+		var assets              = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "attachments.id", "attachments.title" ]
+			, orderBy      = "email_template_attachment.sort_order"
+		);
+
+		for ( var asset in assets ) {
+			var binary = assetManagerService.getAssetBinary( id=asset.id, throwOnMissing=false );
+
+			if ( !IsNull( binary ?: NullValue() ) ) {
+				attachments.append({
+					  binary = binary
+					, name   = asset.title
+				});
+			}
+		}
+
+		return attachments;
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
@@ -670,5 +704,12 @@ component {
 	}
 	private void function _setEmailSendingContextService( required any emailSendingContextService ) {
 		_emailSendingContextService = arguments.emailSendingContextService;
+	}
+
+	private any function _getAssetManagerService() {
+		return _assetManagerService;
+	}
+	private void function _setAssetManagerService( required any assetManagerService ) {
+		_assetManagerService = arguments.assetManagerService;
 	}
 }

@@ -503,6 +503,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailRecipientTypeService  = mockEmailRecipientTypeService
 					, emailLayoutService         = mockEmailLayoutService
 					, emailSendingContextService = mockEmailSendingContextService
+					, assetManagerService        = mockAssetManagerService
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -1129,6 +1130,44 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getAttachments()", function(){
+			it( "should return an array of attachment binaries & titles using the asset manager service with configured template attachments", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var assets     = QueryNew( 'id,title', 'varchar,varchar', [
+					  [ CreateUUId(), "Title 1" ]
+					, [ CreateUUId(), "Title 2" ]
+					, [ CreateUUId(), "Title 3" ]
+				] );
+				var binaries = [
+					  ToBinary( ToBase64( CreateUUId() ) )
+					, ToBinary( ToBase64( CreateUUId() ) )
+					, ToBinary( ToBase64( CreateUUId() ) )
+				];
+				var expected = [];
+
+				for( var i=1; i<=assets.recordCount; i++ ) {
+					expected.append({
+						  binary = binaries[ i ]
+						, name   = assets.title[ i ]
+					});
+					mockAssetManagerService.$( "getAssetBinary" ).$args(
+						  id             = assets.id[ i ]
+						, throwOnMissing = false
+					).$results( binaries[ i ] );
+				}
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  id           = templateId
+					, selectFields = [ "attachments.id", "attachments.title" ]
+					, orderBy      = "email_template_attachment.sort_order"
+				).$results( assets );
+
+
+				expect( service.getAttachments( templateId ) ).toBe( expected );
+			} );
+		} );
+
 	}
 
 	private any function _getService( boolean initialize=true ) {
@@ -1146,9 +1185,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getRequestContext", mockRequestContext );
 
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
-		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
-		mockEmailLayoutService = createEmptyMock( "preside.system.services.email.EmailLayoutService" );
+		mockEmailRecipientTypeService  = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
+		mockEmailLayoutService         = createEmptyMock( "preside.system.services.email.EmailLayoutService" );
 		mockEmailSendingContextService = createEmptyMock( "preside.system.services.email.EmailSendingContextService" );
+		mockAssetManagerService        = createEmptyMock( "preside.system.services.assetManager.AssetManagerService" );
 
 		mockSystemEmailTemplateService.$( "templateExists", false );
 		mockEmailSendingContextService.$( "setContext" );
@@ -1161,6 +1201,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailRecipientTypeService  = mockEmailRecipientTypeService
 				, emailLayoutService         = mockEmailLayoutService
 				, emailSendingContextService = mockEmailSendingContextService
+				, assetManagerService        = mockAssetManagerService
 			);
 		}
 
