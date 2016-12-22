@@ -102,7 +102,7 @@ component {
 				message.from = $getPresideSetting( "email", "default_from_address" );
 			}
 
-			// // TODO attachments stuffz from editorial template
+			// // TODO attachments stuffz from editorial template. Something like:
 			// message.attachments = [];
 			// var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 			// if ( isSystemTemplate ) {
@@ -112,22 +112,43 @@ component {
 			// 	), true );
 			// }
 
-			message.textBody = _getEmailLayoutService().renderLayout(
+			var body = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+			var plainTextArgs = {
 				  layout        = messageTemplate.layout
 				, emailTemplate = arguments.template
 				, blueprint     = messageTemplate.email_blueprint
 				, type          = "text"
 				, subject       = message.subject
 				, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
-			);
+			};
 			message.htmlBody = _getEmailLayoutService().renderLayout(
 				  layout        = messageTemplate.layout
 				, emailTemplate = arguments.template
 				, blueprint     = messageTemplate.email_blueprint
 				, type          = "html"
 				, subject       = message.subject
-				, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
+				, body          = body
 			);
+
+			if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
+				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+
+				message.htmlBody = _getEmailLayoutService().renderLayout(
+					  layout         = messageTemplate.layout
+					, emailTemplate  = arguments.template
+					, blueprint      = messageTemplate.email_blueprint
+					, type           = "html"
+					, subject        = message.subject
+					, body           = body
+					, viewOnlineLink = viewOnlineLink
+				);
+
+				plainTextArgs.viewOnlineLink = viewOnlineLink;
+			}
+
+			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
+
+
 		} catch( any e ) {
 			rethrow;
 		} finally {
@@ -158,23 +179,42 @@ component {
 			, recipientType = messageTemplate.recipient_type
 		);
 
-		var message = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
-		message.textBody = _getEmailLayoutService().renderLayout(
+		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
+		var body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+		var plainTextArgs = {
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
 			, blueprint     = messageTemplate.email_blueprint
 			, type          = "text"
 			, subject       = message.subject
 			, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
-		);
+		}
+
 		message.htmlBody = _getEmailLayoutService().renderLayout(
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
 			, blueprint     = messageTemplate.email_blueprint
 			, type          = "html"
 			, subject       = message.subject
-			, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
+			, body          = body
 		);
+		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
+			var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+
+			message.htmlBody = _getEmailLayoutService().renderLayout(
+				  layout         = messageTemplate.layout
+				, emailTemplate  = arguments.template
+				, blueprint      = messageTemplate.email_blueprint
+				, type           = "html"
+				, subject        = message.subject
+				, body           = body
+				, viewOnlineLink = viewOnlineLink
+			);
+
+			plainTextArgs.viewOnlineLink = viewOnlineLink;
+		}
+
+		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
 
 		return message;
 	}
@@ -537,6 +577,55 @@ component {
 		}
 
 		return DateAdd( cfunit, arguments.measure, nowish );
+	}
+
+	/**
+	 * Gets the view online content ID
+	 * for the given content string (i.e. HTML email)
+	 *
+	 * @autodoc      true
+	 * @content.hint HTML content of the email
+	 *
+	 */
+	public string function getViewOnlineContentId( required string content ) {
+		var dao         = $getPresideObject( "email_template_view_online_content" );
+		var contentHash = Hash( arguments.content );
+		var contentId   = "";
+		var existing    = "";
+
+		transaction {
+			existing = dao.selectData(
+				  selectFields = [ "id" ]
+				, filter       = { content_hash = contentHash }
+			);
+
+			if ( existing.recordCount ) {
+				contentId = existing.id;
+			} else {
+				contentId = dao.insertData( {
+					  content      = arguments.content
+					, content_hash = contentHash
+				} );
+			}
+		}
+
+		return contentId;
+	}
+
+	/**
+	 * Gets the view online link for a given piece of HTML
+	 * email content.
+	 *
+	 * @autodoc      true
+	 * @content.hint The content for which to get the link
+	 */
+	public string function getViewOnlineLink( required string content ) {
+		var viewOnlineId = getViewOnlineContentId( arguments.content );
+
+		return $getRequestContext().buildLink(
+			  linkTo      = "email.viewOnline"
+			, queryString = "mid=#viewOnlineId#"
+		);
 	}
 
 // GETTERS AND SETTERS

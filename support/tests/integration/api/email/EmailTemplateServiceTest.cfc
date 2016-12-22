@@ -687,6 +687,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, html_body       = "HTML BODY HERE"
 					, text_body       = "TEXT BODY OH YEAH"
 					, email_blueprint = CreateUUId()
+					, view_online     = false
 				};
 
 				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
@@ -753,6 +754,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, html_body       = "HTML BODY HERE"
 					, text_body       = "TEXT BODY OH YEAH"
 					, email_blueprint = CreateUUId()
+					, view_online     = false
 				};
 
 				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
@@ -829,6 +831,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, html_body       = "HTML BODY HERE"
 					, text_body       = "TEXT BODY OH YEAH"
 					, email_blueprint = CreateUUId()
+					, view_online     = false
 				};
 
 				service.$( "getTemplate", mockTemplate );
@@ -847,6 +850,86 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockEmailSendingContextService.$callLog().setContext.len() ).toBe( 1 );
 				expect( mockEmailSendingContextService.$callLog().setContext[ 1 ] ).toBe( { recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId } );
 				expect( mockEmailSendingContextService.$callLog().clearContext.len() ).toBe( 1 );
+			} );
+
+			it( "should build an view online link and pass to layout when 'view online' is set to true for the template", function(){
+				var service                = _getService();
+				var template               = "mytemplate";
+				var mockSubject            = CreateUUId();
+				var mockTo                 = CreateUUId();
+				var mockTextBody           = CreateUUId();
+				var mockTextBodyWithLayout = CreateUUId();
+				var mockHtmlBody           = CreateUUId();
+				var mockHtmlBodyRendered   = CreateUUId();
+				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithVOLink = CreateUUId();
+				var mockRecipientId        = CreateUUId();
+				var viewOnlineLink         = CreateUUId();
+				var mockArgs               = { bookingId = CreateUUId() };
+				var mockParams             = { test=CreateUUId(), params=Now() };
+				var mockTemplate           = {
+					  layout          = "testLayout"
+					, recipient_type  = "testRecipientType"
+					, subject         = "Test subject"
+					, from_address    = "From address"
+					, html_body       = "HTML BODY HERE"
+					, text_body       = "TEXT BODY OH YEAH"
+					, email_blueprint = CreateUUId()
+					, view_online     = true
+				};
+
+				service.$( "getViewOnlineLink" ).$args( mockHtmlBodyWithLayout ).$results( viewOnlineLink );
+				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "prepareParameters" ).$args(
+					  template      = template
+					, recipientType = mockTemplate.recipient_type
+					, recipientId   = mockRecipientId
+					, args          = mockArgs
+				).$results( mockParams );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBodyRendered );
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout         = mockTemplate.layout
+					, emailTemplate  = template
+					, blueprint      = mockTemplate.email_blueprint
+					, type           = "text"
+					, subject        = mockSubject
+					, body           = mockTextBody
+					, viewOnlineLink = viewOnlineLink
+				).$results( mockTextBodyWithLayout );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
+					, type          = "html"
+					, subject       = mockSubject
+					, body          = mockHtmlBodyRendered
+				).$results( mockHtmlBodyWithLayout );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout         = mockTemplate.layout
+					, emailTemplate  = template
+					, blueprint      = mockTemplate.email_blueprint
+					, type           = "html"
+					, subject        = mockSubject
+					, body           = mockHtmlBodyRendered
+					, viewOnlineLink = viewOnlineLink
+				).$results( mockHtmlBodyWithVOLink );
+
+				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
+
+				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
+					  subject   = mockSubject
+					, from      = mockTemplate.from_address
+					, to        = [ mockTo ]
+					, textBody  = mockTextBodyWithLayout
+					, htmlBody  = mockHtmlBodyWithVOLink
+					, cc        = []
+					, bcc       = []
+					, params    = {}
+				} );
 			} );
 		} );
 
@@ -872,6 +955,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, html_body       = "HTML BODY HERE"
 					, text_body       = "TEXT BODY OH YEAH"
 					, email_blueprint = CreateUUId()
+					, view_online     = false
 				};
 
 				service.$( "getTemplate" ).$args( id=template, allowDrafts=true, version=version ).$results( mockTemplate );
@@ -907,6 +991,60 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, textBody = mockTextBodyWithLayout
 					, htmlBody = mockHtmlBodyWithLayout
 				} );
+			} );
+		} );
+
+		describe( "getViewOnlineContentId()", function(){
+			it( "it should use an MD5 hash of the given content to check against DB store of sent content and return the matching record ID", function(){
+				var service     = _getService();
+				var content     = CreateUUId();
+				var contentHash = Hash( content );
+				var viewOnlineId = CreateUUId();
+				var matchingRecord = QueryNew( 'id', 'varchar', [ [ viewOnlineId ] ] );
+
+				mockViewOnlineContentDao.$( "selectData" ).$args(
+					  selectFields = [ "id" ]
+					, filter       = { content_hash = contentHash }
+				).$results( matchingRecord );
+
+				expect( service.getViewOnlineContentId( content ) ).toBe( viewOnlineId );
+			} );
+
+			it( "should create a new view online record when none exist that match the content hash", function(){
+				var service     = _getService();
+				var content     = CreateUUId();
+				var contentHash = Hash( content );
+				var viewOnlineId = CreateUUId();
+				var matchingRecord = QueryNew( 'id' );
+
+				mockViewOnlineContentDao.$( "selectData" ).$args(
+					  selectFields = [ "id" ]
+					, filter       = { content_hash = contentHash }
+				).$results( matchingRecord );
+
+				mockViewOnlineContentDao.$( "insertData" ).$args( {
+					  content      = content
+					, content_hash = contentHash
+				} ).$results( viewOnlineId );
+
+				expect( service.getViewOnlineContentId( content ) ).toBe( viewOnlineId );
+			} );
+		} );
+
+		describe( "getViewOnlineLink()", function(){
+			it( "should generate a link based on the view online ID of the given content", function(){
+				var service      = _getService();
+				var content      = CreateUUId();
+				var viewOnlineId = CreateUUId();
+				var link         = CreateUUId();
+
+				service.$( "getViewOnlineContentId" ).$args( content ).$results( viewOnlineId );
+				mockRequestContext.$( "buildLink" ).$args(
+					  linkto      = "email.viewonline"
+					, queryString = "mid=" & viewOnlineId
+				).$results( link );
+
+				expect( service.getViewOnlineLink( content ) ).toBe( link );
 			} );
 		} );
 
@@ -996,11 +1134,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private any function _getService( boolean initialize=true ) {
 		var service = createMock( object=CreateObject( "preside.system.services.email.EmailTemplateService" ) );
 
-		mockTemplateDao = createStub();
-		mockBlueprintDao = createStub();
+		mockTemplateDao          = createStub();
+		mockBlueprintDao         = createStub();
+		mockViewOnlineContentDao = createStub();
+		mockRequestContext       = createStub();
+
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
 		service.$( "$getPresideObject" ).$args( "email_blueprint" ).$results( mockBlueprintDao );
+		service.$( "$getPresideObject" ).$args( "email_template_view_online_content" ).$results( mockViewOnlineContentDao );
 		service.$( "$audit" );
+		service.$( "$getRequestContext", mockRequestContext );
+
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
 		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
 		mockEmailLayoutService = createEmptyMock( "preside.system.services.email.EmailLayoutService" );

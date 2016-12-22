@@ -1,6 +1,7 @@
 <cfparam name="args.body"           type="string"            />
 <cfparam name="args.signature_html" type="string" default="" />
 <cfparam name="args.subject"        type="string" default="" />
+<cfparam name="args.viewOnlineLink" type="string" default="" />
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -66,6 +67,9 @@
             <cfoutput>#args.body#</cfoutput>
             <cfif Len( Trim( args.signature_html ) )>
                 <cfoutput>#renderContent( "richeditor", args.signature_html, "email" )#</cfoutput>
+            </cfif>
+            <cfif Len( Trim( args.viewOnlineLink ) )>
+                <a href="#args.viewOnlineLink#">View in browser</a>
             </cfif>
         </div>
     </body>
