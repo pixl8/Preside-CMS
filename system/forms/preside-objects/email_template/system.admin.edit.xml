@@ -5,7 +5,6 @@
 			<field binding="email_template.layout"       sortorder="10" control="emailLayoutPicker" />
 			<field binding="email_template.from_address" sortorder="20" control="textinput" />
 			<field binding="email_template.track_clicks" sortorder="30" />
-			<field binding="email_template.view_online"  sortorder="40" />
 		</fieldset>
 		<fieldset id="body" sortorder="20">
 			<field binding="email_template.subject"      control="textinput"  sortorder="10" />
