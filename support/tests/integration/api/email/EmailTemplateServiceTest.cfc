@@ -1201,6 +1201,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockAssetManagerService        = createEmptyMock( "preside.system.services.assetManager.AssetManagerService" );
 
 		mockSystemEmailTemplateService.$( "templateExists", false );
+		mockSystemEmailTemplateService.$( "prepareAttachments", [] );
 		mockEmailSendingContextService.$( "setContext" );
 		mockEmailSendingContextService.$( "clearContext" );
 

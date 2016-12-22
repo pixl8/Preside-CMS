@@ -66,10 +66,11 @@ component {
 		,          array  cc             = []
 		,          array  bcc            = []
 		,          struct parameters     = {}
+		,          array  attachments    = []
 		,          struct messageHeaders = {}
 	) {
-
 		var messageTemplate  = getTemplate( arguments.template );
+		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
@@ -95,7 +96,7 @@ component {
 				, cc          = arguments.cc
 				, bcc         = arguments.bcc
 				, params      = arguments.messageHeaders
-				, attachments = getAttachments( arguments.template )
+				, attachments = arguments.attachments
 			};
 
 			if ( !message.to.len() ) {
@@ -106,15 +107,13 @@ component {
 				message.from = $getPresideSetting( "email", "default_from_address" );
 			}
 
-			// // TODO attachments stuffz from editorial template. Something like:
-			// message.attachments = [];
-			// var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
-			// if ( isSystemTemplate ) {
-			// 	message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
-			// 		  template = arguments.template
-			// 		, args     = arguments.args
-			// 	), true );
-			// }
+			message.attachments.append( getAttachments( arguments.template ), true );
+			if ( isSystemTemplate ) {
+				message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
+					  template = arguments.template
+					, args     = arguments.args
+				), true );
+			}
 
 			var body = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
 			var plainTextArgs = {
