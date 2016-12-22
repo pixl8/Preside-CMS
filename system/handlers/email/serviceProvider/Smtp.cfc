@@ -57,7 +57,7 @@ component {
 				FileWrite( filePath, attachment.binary );
 			}
 
-			m.addParam( disposition="attachment", file=filePath, remove=remove;
+			m.addParam( disposition="attachment", file=filePath, remove=remove );
 		}
 
 		sendArgs.messageId = sendArgs.messageId ?: CreateUUId();
