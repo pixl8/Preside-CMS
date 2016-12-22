@@ -7,9 +7,10 @@
 			<field binding="email_template.track_clicks" sortorder="30" />
 		</fieldset>
 		<fieldset id="body" sortorder="20">
-			<field binding="email_template.subject"      control="textinput"  sortorder="10" />
-			<field binding="email_template.html_body"    control="richeditor" sortorder="20" toolbar="email" />
-			<field binding="email_template.text_body"    control="textarea"   sortorder="30" />
+			<field binding="email_template.subject"     control="textinput"   sortorder="10" />
+			<field binding="email_template.attachments" control="assetpicker" sortorder="20" sortable="true" />
+			<field binding="email_template.html_body"   control="richeditor"  sortorder="30" toolbar="email" />
+			<field binding="email_template.text_body"   control="textarea"    sortorder="40" />
 		</fieldset>
 	</tab>
 </form>
