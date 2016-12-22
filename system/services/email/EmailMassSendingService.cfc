@@ -58,6 +58,7 @@ component {
 		var emailService   = _getEmailService();
 		var canLog         = arguments.keyExists( "logger" );
 		var canInfo        = canLog && logger.canInfo();
+		var canError       = canLog && logger.canError();
 
 		do {
 			queuedEmail = getNextQueuedEmail();
@@ -69,10 +70,14 @@ component {
 
 			if ( canInfo ) { logger.info( "Sending email template, [#queuedEmail.template#], to recipient, [#queuedEmail.recipient#]" ); }
 
-			emailService.send(
+			var result = emailService.send(
 				  template    = queuedEmail.template
 				, recipientId = queuedEmail.recipient
 			);
+
+			if ( !result && canError ) {
+				logger.error( "Sending failed. See email sending logs and error logs for detail." );
+			}
 
 			removeFromQueue( queuedEmail.id );
 		} while( ++processedCount < rateLimit );

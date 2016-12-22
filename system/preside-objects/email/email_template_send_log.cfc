@@ -3,7 +3,7 @@
  *
  * @versioned                   false
  * @labelfield                  recipient
- * @datamanagerDefaultSortOrder sent_date desc
+ * @datamanagerDefaultSortOrder datecreated desc
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="email_template" relationship="many-to-one" relatedto="email_template" required=false;

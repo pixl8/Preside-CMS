@@ -12,11 +12,12 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="service_provider" type="string"  dbtype="varchar" maxlength=200 required=false;
 	property name="is_system_email"  type="boolean" dbtype="boolean"               required=false default=false;
 	property name="track_clicks"     type="boolean" dbtype="boolean"               required=false default=false;
+	property name="view_online"      type="boolean" dbtype="boolean"               required=false default=false;
 
 	property name="html_body" type="string" dbtype="longtext";
 	property name="text_body" type="string" dbtype="longtext";
 
-	property name="attachments" relationship="one-to-many" relatedto="email_template_attachment" relationshipKey="template";
+	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment";
 
 	property name="email_blueprint"  relationship="many-to-one" relatedTo="email_blueprint";
 	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition";

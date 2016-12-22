@@ -249,6 +249,7 @@ component {
 		} catch ( any e ) {
 			$raiseError( e );
 			result = false;
+			logService.markAsFailed( id=sendArgs.messageId, reason="An error occurred while sending the email. Error message: [#e.message#]. See error logs for details" );
 		}
 
 		if ( result ) {

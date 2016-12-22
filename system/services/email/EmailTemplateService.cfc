@@ -22,6 +22,7 @@ component {
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 * @emailLayoutService.inject         emailLayoutService
 	 * @emailSendingContextService.inject emailSendingContextService
+	 * @assetManagerService.inject        assetManagerService
 	 *
 	 */
 	public any function init(
@@ -29,11 +30,13 @@ component {
 		, required any emailRecipientTypeService
 		, required any emailLayoutService
 		, required any emailSendingContextService
+		, required any assetManagerService
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
 		_setEmailLayoutService( arguments.emailLayoutService );
 		_setEmailSendingContextService( arguments.emailSendingContextService );
+		_setAssetManagerService( arguments.assetManagerService );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -63,10 +66,11 @@ component {
 		,          array  cc             = []
 		,          array  bcc            = []
 		,          struct parameters     = {}
+		,          array  attachments    = []
 		,          struct messageHeaders = {}
 	) {
-
 		var messageTemplate  = getTemplate( arguments.template );
+		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
@@ -86,12 +90,13 @@ component {
 			) );
 
 			var message = {
-				  subject = replaceParameterTokens( messageTemplate.subject, params, "text" )
-				, from    = messageTemplate.from_address
-				, to      = arguments.to
-				, cc      = arguments.cc
-				, bcc     = arguments.bcc
-				, params  = arguments.messageHeaders
+				  subject     = replaceParameterTokens( messageTemplate.subject, params, "text" )
+				, from        = messageTemplate.from_address
+				, to          = arguments.to
+				, cc          = arguments.cc
+				, bcc         = arguments.bcc
+				, params      = arguments.messageHeaders
+				, attachments = arguments.attachments
 			};
 
 			if ( !message.to.len() ) {
@@ -102,32 +107,51 @@ component {
 				message.from = $getPresideSetting( "email", "default_from_address" );
 			}
 
-			// // TODO attachments stuffz from editorial template
-			// message.attachments = [];
-			// var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
-			// if ( isSystemTemplate ) {
-			// 	message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
-			// 		  template = arguments.template
-			// 		, args     = arguments.args
-			// 	), true );
-			// }
+			message.attachments.append( getAttachments( arguments.template ), true );
+			if ( isSystemTemplate ) {
+				message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
+					  template = arguments.template
+					, args     = arguments.args
+				), true );
+			}
 
-			message.textBody = _getEmailLayoutService().renderLayout(
+			var body = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+			var plainTextArgs = {
 				  layout        = messageTemplate.layout
 				, emailTemplate = arguments.template
 				, blueprint     = messageTemplate.email_blueprint
 				, type          = "text"
 				, subject       = message.subject
 				, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
-			);
+			};
 			message.htmlBody = _getEmailLayoutService().renderLayout(
 				  layout        = messageTemplate.layout
 				, emailTemplate = arguments.template
 				, blueprint     = messageTemplate.email_blueprint
 				, type          = "html"
 				, subject       = message.subject
-				, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
+				, body          = body
 			);
+
+			if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
+				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+
+				message.htmlBody = _getEmailLayoutService().renderLayout(
+					  layout         = messageTemplate.layout
+					, emailTemplate  = arguments.template
+					, blueprint      = messageTemplate.email_blueprint
+					, type           = "html"
+					, subject        = message.subject
+					, body           = body
+					, viewOnlineLink = viewOnlineLink
+				);
+
+				plainTextArgs.viewOnlineLink = viewOnlineLink;
+			}
+
+			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
+
+
 		} catch( any e ) {
 			rethrow;
 		} finally {
@@ -158,23 +182,42 @@ component {
 			, recipientType = messageTemplate.recipient_type
 		);
 
-		var message = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
-		message.textBody = _getEmailLayoutService().renderLayout(
+		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
+		var body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+		var plainTextArgs = {
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
 			, blueprint     = messageTemplate.email_blueprint
 			, type          = "text"
 			, subject       = message.subject
 			, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
-		);
+		}
+
 		message.htmlBody = _getEmailLayoutService().renderLayout(
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
 			, blueprint     = messageTemplate.email_blueprint
 			, type          = "html"
 			, subject       = message.subject
-			, body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" )
+			, body          = body
 		);
+		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
+			var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+
+			message.htmlBody = _getEmailLayoutService().renderLayout(
+				  layout         = messageTemplate.layout
+				, emailTemplate  = arguments.template
+				, blueprint      = messageTemplate.email_blueprint
+				, type           = "html"
+				, subject        = message.subject
+				, body           = body
+				, viewOnlineLink = viewOnlineLink
+			);
+
+			plainTextArgs.viewOnlineLink = viewOnlineLink;
+		}
+
+		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
 
 		return message;
 	}
@@ -227,9 +270,10 @@ component {
 		transaction {
 			if ( Len( Trim( arguments.id ) ) ) {
 				var updated = $getPresideObject( "email_template" ).updateData(
-					  id      = arguments.id
-					, data    = arguments.template
-					, isDraft = arguments.isDraft
+					  id                      = arguments.id
+					, data                    = arguments.template
+					, isDraft                 = arguments.isDraft
+					, updateManyToManyRecords = true
 				);
 
 				if ( updated ) {
@@ -489,6 +533,38 @@ component {
 		return records.recordCount ? ValueArray( records.id ) : [];
 	}
 
+	/**
+	 * Gets an array of an email template's editorially attached
+	 * attachments.
+	 *
+	 * @autodoc
+	 * @templateId.hint ID of the template who's attachments you want to get
+	 *
+	 */
+	public array function getAttachments( required string templateId ) {
+		var assetManagerService = _getAssetManagerService()
+		var attachments         = [];
+		var assets              = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "attachments.id", "attachments.title" ]
+			, orderBy      = "email_template_attachment.sort_order"
+		);
+
+		for ( var asset in assets ) {
+			var binary = assetManagerService.getAssetBinary( id=asset.id, throwOnMissing=false );
+
+			if ( !IsNull( binary ?: NullValue() ) ) {
+				attachments.append({
+					  binary          = binary
+					, name            = asset.title
+					, removeAfterSend = false
+				});
+			}
+		}
+
+		return attachments;
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
@@ -539,6 +615,70 @@ component {
 		return DateAdd( cfunit, arguments.measure, nowish );
 	}
 
+	/**
+	 * Gets the view online content ID
+	 * for the given content string (i.e. HTML email)
+	 *
+	 * @autodoc      true
+	 * @content.hint HTML content of the email
+	 *
+	 */
+	public string function getViewOnlineContentId( required string content ) {
+		var dao         = $getPresideObject( "email_template_view_online_content" );
+		var contentHash = Hash( arguments.content );
+		var contentId   = "";
+		var existing    = "";
+
+		transaction {
+			existing = dao.selectData(
+				  selectFields = [ "id" ]
+				, filter       = { content_hash = contentHash }
+			);
+
+			if ( existing.recordCount ) {
+				contentId = existing.id;
+			} else {
+				contentId = dao.insertData( {
+					  content      = arguments.content
+					, content_hash = contentHash
+				} );
+			}
+		}
+
+		return contentId;
+	}
+
+	/**
+	 * Gets the view online content
+	 * for the given content ID
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the content to get
+	 *
+	 */
+	public string function getViewOnlineContent( required string id ) {
+		var dao    = $getPresideObject( "email_template_view_online_content" );
+		var record = dao.selectData( id=arguments.id, selectFields=[ "content" ] );
+
+		return Trim( record.content ?: "" );
+	}
+
+	/**
+	 * Gets the view online link for a given piece of HTML
+	 * email content.
+	 *
+	 * @autodoc      true
+	 * @content.hint The content for which to get the link
+	 */
+	public string function getViewOnlineLink( required string content ) {
+		var viewOnlineId = getViewOnlineContentId( arguments.content );
+
+		return $getRequestContext().buildLink(
+			  linkTo      = "email.viewOnline"
+			, queryString = "mid=#viewOnlineId#"
+		);
+	}
+
 // GETTERS AND SETTERS
 	private any function _getSystemEmailTemplateService() {
 		return _systemEmailTemplateService;
@@ -566,5 +706,12 @@ component {
 	}
 	private void function _setEmailSendingContextService( required any emailSendingContextService ) {
 		_emailSendingContextService = arguments.emailSendingContextService;
+	}
+
+	private any function _getAssetManagerService() {
+		return _assetManagerService;
+	}
+	private void function _setAssetManagerService( required any assetManagerService ) {
+		_assetManagerService = arguments.assetManagerService;
 	}
 }
