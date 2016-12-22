@@ -557,6 +557,7 @@ component {
 				attachments.append({
 					  binary = binary
 					, name   = asset.title
+					, remove = false
 				});
 			}
 		}

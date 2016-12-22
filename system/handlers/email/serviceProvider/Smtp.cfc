@@ -50,13 +50,14 @@ component {
 			var md5sum   = Hash( attachment.binary );
 			var tmpDir   = getTempDirectory() & "/" & md5sum & "/";
 			var filePath = tmpDir & attachment.name
+			var remove   = IsBoolean( attachment.removeAfterSend ?: "" ) ? attachment.removeAfterSend : true;
 
 			if ( !FileExists( filePath ) ) {
 				DirectoryCreate( tmpDir, true, true );
 				FileWrite( filePath, attachment.binary );
 			}
 
-			m.addParam( disposition="attachment", file=filePath, remove=false );
+			m.addParam( disposition="attachment", file=filePath, remove=remove;
 		}
 
 		sendArgs.messageId = sendArgs.messageId ?: CreateUUId();

@@ -1160,6 +1160,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					expected.append({
 						  binary = binaries[ i ]
 						, name   = assets.title[ i ]
+						, remove = false
 					});
 					mockAssetManagerService.$( "getAssetBinary" ).$args(
 						  id             = assets.id[ i ]
