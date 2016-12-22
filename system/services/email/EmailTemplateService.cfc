@@ -555,9 +555,9 @@ component {
 
 			if ( !IsNull( binary ?: NullValue() ) ) {
 				attachments.append({
-					  binary = binary
-					, name   = asset.title
-					, remove = false
+					  binary          = binary
+					, name            = asset.title
+					, removeAfterSend = false
 				});
 			}
 		}
