@@ -138,9 +138,29 @@ component {
 	}
 
 	private void function _setupCustomTagPath( required string presideroot ) {
-		var tagsDir = arguments.presideroot & "/system/customtags";
+		var extensionCustomTagPaths = _getActiveExtensionsCustomTagPath();
+		var tagsDir                 = arguments.presideroot & "/system/customtags";
 
 		this.customTagPaths = ListAppend( this.customTagPaths ?: "", tagsDir );
+		this.customTagPaths = ListAppend( this.customTagPaths, extensionCustomTagPaths );
+	}
+
+	private string function _getActiveExtensionsCustomTagPath() {
+		var extensionCustomTagPaths = "";
+		var appMapping              = "/application";
+		var activeExtensions        = new preside.system.services.devtools.ExtensionManagerService(
+			  appMapping          = appMapping
+			, extensionsDirectory = "#appMapping#/extensions"
+		).listExtensions( activeOnly=true );
+	
+		for( var extension in activeExtensions ){
+			var path = "/application/extensions/#extension.name#/customtags";
+			if( directoryExists( expandPath( path ) ) ){
+				extensionCustomTagPaths = listAppend( extensionCustomTagPaths, path );
+			}
+		}
+
+		return extensionCustomTagPaths;
 	}
 
 	private any function _initEveryEverything() {
