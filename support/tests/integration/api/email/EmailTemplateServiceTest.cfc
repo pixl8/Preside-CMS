@@ -961,6 +961,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockHtmlBodyRendered   = CreateUUId();
 				var mockTextBodyWithLayout = CreateUUId();
 				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithStyles = CreateUUId();
 				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
 				var version                = 49545;
@@ -1002,11 +1003,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, subject       = mockSubject
 					, body          = mockHtmlBodyRendered
 				).$results( mockHtmlBodyWithLayout );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlBodyWithLayout ).$results( mockHtmlBodyWithStyles );
 
 				expect( service.previewTemplate( template=template, allowDrafts=true, version=version ) ).toBe( {
 					  subject  = mockSubject
 					, textBody = mockTextBodyWithLayout
-					, htmlBody = mockHtmlBodyWithLayout
+					, htmlBody = mockHtmlBodyWithStyles
 				} );
 			} );
 		} );

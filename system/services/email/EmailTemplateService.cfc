@@ -222,6 +222,7 @@ component {
 		}
 
 		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
+		message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
 
 		return message;
 	}
