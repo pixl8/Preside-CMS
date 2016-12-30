@@ -22,6 +22,7 @@ component {
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 * @emailLayoutService.inject         emailLayoutService
 	 * @emailSendingContextService.inject emailSendingContextService
+	 * @emailStyleInliner.inject          emailStyleInliner
 	 * @assetManagerService.inject        assetManagerService
 	 *
 	 */
@@ -31,11 +32,13 @@ component {
 		, required any emailLayoutService
 		, required any emailSendingContextService
 		, required any assetManagerService
+		, required any emailStyleInliner
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
 		_setEmailLayoutService( arguments.emailLayoutService );
 		_setEmailSendingContextService( arguments.emailSendingContextService );
+		_setEmailStyleInliner( arguments.emailStyleInliner );
 		_setAssetManagerService( arguments.assetManagerService );
 
 		_ensureSystemTemplatesHaveDbEntries();
@@ -150,6 +153,7 @@ component {
 			}
 
 			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
+			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
 
 
 		} catch( any e ) {
@@ -713,5 +717,12 @@ component {
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) {
 		_assetManagerService = arguments.assetManagerService;
+	}
+
+	private any function _getEmailStyleInliner() {
+		return _emailStyleInliner;
+	}
+	private void function _setEmailStyleInliner( required any emailStyleInliner ) {
+		_emailStyleInliner = arguments.emailStyleInliner;
 	}
 }
