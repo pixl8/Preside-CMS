@@ -507,6 +507,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailLayoutService         = mockEmailLayoutService
 					, emailSendingContextService = mockEmailSendingContextService
 					, assetManagerService        = mockAssetManagerService
+					, emailStyleInliner          = mockEmailStyleInliner
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -680,6 +681,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockHtmlBody           = CreateUUId();
 				var mockHtmlBodyRendered   = CreateUUId();
 				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithStyles = CreateUUId();
 				var mockRecipientId        = CreateUUId();
 				var mockArgs               = { bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
@@ -723,6 +725,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, subject       = mockSubject
 					, body          = mockHtmlBodyRendered
 				).$results( mockHtmlBodyWithLayout );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlBodyWithLayout ).$results( mockHtmlBodyWithStyles );
 
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
 
@@ -731,7 +734,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, from        = mockTemplate.from_address
 					, to          = [ mockTo ]
 					, textBody    = mockTextBodyWithLayout
-					, htmlBody    = mockHtmlBodyWithLayout
+					, htmlBody    = mockHtmlBodyWithStyles
 					, cc          = []
 					, bcc         = []
 					, params      = {}
@@ -796,6 +799,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( mockHtmlBodyWithLayout );
 
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlBodyWithLayout ).$results( mockHtmlBodyWithLayout );
 
 				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
 					  subject     = mockSubject
@@ -853,6 +857,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailLayoutService.$( "renderLayout", CreateUUId() );
 				mockEmailLayoutService.$( "renderLayout", CreateUUId() );
 				mockEmailRecipientTypeService.$( "getToAddress", CreateUUId() );
+				mockEmailStyleInliner.$( "inlineStyles", CreateUUId() );
 
 				service.prepareMessage( template=template, recipientId=mockRecipientId, args={} );
 
@@ -929,6 +934,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( mockHtmlBodyWithVOLink );
 
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlBodyWithVOLink ).$results( mockHtmlBodyWithVOLink );
 
 				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
 					  subject     = mockSubject
@@ -955,6 +961,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockHtmlBodyRendered   = CreateUUId();
 				var mockTextBodyWithLayout = CreateUUId();
 				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithStyles = CreateUUId();
 				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
 				var version                = 49545;
@@ -996,11 +1003,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, subject       = mockSubject
 					, body          = mockHtmlBodyRendered
 				).$results( mockHtmlBodyWithLayout );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlBodyWithLayout ).$results( mockHtmlBodyWithStyles );
 
 				expect( service.previewTemplate( template=template, allowDrafts=true, version=version ) ).toBe( {
 					  subject  = mockSubject
 					, textBody = mockTextBodyWithLayout
-					, htmlBody = mockHtmlBodyWithLayout
+					, htmlBody = mockHtmlBodyWithStyles
 				} );
 			} );
 		} );
@@ -1199,6 +1207,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockEmailRecipientTypeService  = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
 		mockEmailLayoutService         = createEmptyMock( "preside.system.services.email.EmailLayoutService" );
 		mockEmailSendingContextService = createEmptyMock( "preside.system.services.email.EmailSendingContextService" );
+		mockEmailStyleInliner          = createEmptyMock( "preside.system.services.email.EmailStyleInliner" );
 		mockAssetManagerService        = createEmptyMock( "preside.system.services.assetManager.AssetManagerService" );
 
 		mockSystemEmailTemplateService.$( "templateExists", false );
@@ -1214,6 +1223,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailLayoutService         = mockEmailLayoutService
 				, emailSendingContextService = mockEmailSendingContextService
 				, assetManagerService        = mockAssetManagerService
+				, emailStyleInliner          = mockEmailStyleInliner
 			);
 		}
 
