@@ -104,7 +104,11 @@ component displayname="Native Image Manipulation Service" {
 			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
 		}
 
-		ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
+		if ( imageInfo.width > arguments.width || imageInfo.height > arguments.height ) {
+			ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
+		}else{
+			ImageScaleToFit( image, imageInfo.width, imageInfo.height, interpolation );
+		}
 
 		return ImageGetBlob( image );
 	}

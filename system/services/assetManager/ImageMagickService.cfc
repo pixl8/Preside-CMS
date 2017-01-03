@@ -86,8 +86,7 @@ component displayname="ImageMagick"  {
 		  required binary  asset
 		, required numeric width
 		, required numeric height
-		,          string  quality              = "highPerformance"
-		,          boolean forcePreserveQuality = false
+		,          string  quality = "highPerformance"
 	) {
 		var imageBinary = arguments.asset;
 
