@@ -47,6 +47,7 @@
 			quickEditUrl        = args.quickEditUrl      ?: event.buildAdminLink( linkTo="datamanager.quickEditForm", querystring="object=#object#&id=" );
 			quickEditModalTitle = translateResource( args.quickEditModalTitle ?: "cms:datamanager.quick.edit.modal.title" );
 
+			selectedTemplate = '<span class="selected-text">' & selectedTemplate & '</span>';
 			selectedTemplate &= ' <a class="fa fa-pencil quick-edit-link" href="#quickEditUrl#{{value}}" title="#HtmlEditFormat( quickEditModalTitle )#"></a>';
 		}
 	}
