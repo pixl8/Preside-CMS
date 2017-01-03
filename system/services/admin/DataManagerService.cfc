@@ -202,7 +202,7 @@ component {
 			, selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled )
 			, startRow           = arguments.startRow
 			, maxRows            = arguments.maxRows
-			, orderBy            = arguments.orderBy
+			, orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy )
 			, filter             = arguments.filter
 			, filterParams       = arguments.filterParams
 			, groupBy            = "#arguments.objectName#.id"
@@ -518,6 +518,22 @@ component {
 		}
 
 		return sqlFields;
+	}
+
+	private string function _prepareOrderByForObject( required string objectName, required string orderBy ) {
+		if( Len( Trim( arguments.orderBy ) ) ) {
+			var orderByField      = ListFirst( arguments.orderBy, " " );
+			var orderDirection    = ListRest( arguments.orderBy, " " );
+			var fieldRelationship = _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relationship ?: "";
+
+			if ( fieldRelationship == "many-to-one" ) {
+				var relatedLabelField = _getFullFieldName( "label", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+
+				return relatedLabelField & " " & ListRest( arguments.orderBy, " " );
+			}
+		}
+
+		return arguments.orderBy;
 	}
 
 	private string function _buildSearchFilter( required string q, required string objectName, required array gridFields ) {

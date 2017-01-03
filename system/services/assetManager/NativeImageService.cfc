@@ -47,17 +47,9 @@ component displayname="Native Image Manipulation Service" {
 		}
 
 		if ( !arguments.height ) {
-			if ( currentImageInfo.width == arguments.width ) {
-				return ImageGetBlob( image );
-			}
 			ImageScaleToFit( image, arguments.width, "", interpolation );
 		} else if ( !arguments.width ) {
-			if ( currentImageInfo.height == arguments.height ) {
-				return ImageGetBlob( image );
-			}
 			ImageScaleToFit( image, "", arguments.height, interpolation );
-		} else if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
-			return ImageGetBlob( image );
 		} else {
 			if ( maintainAspectRatio ) {
 				currentAspectRatio = currentImageInfo.width / currentImageInfo.height;
@@ -114,6 +106,8 @@ component displayname="Native Image Manipulation Service" {
 
 		if ( imageInfo.width > arguments.width || imageInfo.height > arguments.height ) {
 			ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
+		}else{
+			ImageScaleToFit( image, imageInfo.width, imageInfo.height, interpolation );
 		}
 
 		return ImageGetBlob( image );
