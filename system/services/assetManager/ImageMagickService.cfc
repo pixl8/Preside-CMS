@@ -22,6 +22,7 @@ component displayname="ImageMagick"  {
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
 		,          string  gravity             = 'center'
+		,          boolean forceResizeQuality  = false
 	) {
 
 		var imageBinary = arguments.asset;
@@ -30,7 +31,7 @@ component displayname="ImageMagick"  {
 
 		var currentImageInfo = getImageInformation( imageBinary );
 
-		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
+		if ( !forceResizeQuality && currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
 			return imageBinary;
 		}
 
