@@ -497,20 +497,19 @@ component {
 	}
 
 	private string function _prepareOrderByForObject( required string objectName, required string orderBy ) {
+		if( Len( Trim( arguments.orderBy ) ) ) {
+			var orderByField      = ListFirst( arguments.orderBy, " " );
+			var orderDirection    = ListRest( arguments.orderBy, " " );
+			var fieldRelationship = _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relationship ?: "";
 
-		var orderBy = arguments.orderBy;
+			if ( fieldRelationship == "many-to-one" ) {
+				var relatedLabelField = _getFullFieldName( "label", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
 
-		if( Len( Trim( orderBy ) ) ) {
-			var orderByField          = listFirst( arguments.orderBy, " " );
-			var fieldPropRelationship = _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relationship;
-
-			if( fieldPropRelationship EQ "many-to-one"){
-				var orderByLabelField = _getFullFieldName( "label", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
-				orderBy               = orderByLabelField & " " & listLast( arguments.orderBy, " " );
+				return relatedLabelField & " " & ListRest( arguments.orderBy, " " );
 			}
 		}
 
-		return orderBy;
+		return arguments.orderBy;
 	}
 
 	private string function _buildSearchFilter( required string q, required string objectName, required array gridFields ) {
