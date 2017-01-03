@@ -17,24 +17,17 @@ component displayname="ImageMagick"  {
 
 	public binary function resize(
 		  required binary  asset
-		,          numeric width               = 0
-		,          numeric height              = 0
-		,          string  quality             = "highPerformance"
-		,          boolean maintainAspectRatio = false
-		,          string  gravity             = 'center'
+		,          numeric width                = 0
+		,          numeric height               = 0
+		,          string  quality              = "highPerformance"
+		,          boolean maintainAspectRatio  = false
+		,          string  gravity              = 'center'
 	) {
 
 		var imageBinary = arguments.asset;
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
-		var currentImageInfo = getImageInformation( imageBinary );
-
-		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
-			return imageBinary;
-		}
-
-		var currentImageInfo  = {};
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
 		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
 
@@ -99,11 +92,7 @@ component displayname="ImageMagick"  {
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
-		var currentImageInfo = getImageInformation( imageBinary );
-
-		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
-			return imageBinary;
-		}
+		var currentImageInfo  = getImageInformation( imageBinary );
 
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
 		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
@@ -118,6 +107,11 @@ component displayname="ImageMagick"  {
 			shrinkToHeight = 0;
 		} else {
 			shrinkToWidth = 0;
+		}
+
+		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
+			shrinkToWidth  = currentImageInfo.width;
+			shrinkToHeight = currentImageInfo.height;
 		}
 
 		try {
