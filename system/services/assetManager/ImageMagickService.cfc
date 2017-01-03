@@ -93,6 +93,7 @@ component displayname="ImageMagick"  {
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
 		var currentImageInfo  = getImageInformation( imageBinary );
+
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
 		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
 		var shrinkToWidth     = arguments.width;
@@ -106,6 +107,11 @@ component displayname="ImageMagick"  {
 			shrinkToHeight = 0;
 		} else {
 			shrinkToWidth = 0;
+		}
+
+		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
+			shrinkToWidth  = currentImageInfo.width;
+			shrinkToHeight = currentImageInfo.height;
 		}
 
 		try {
