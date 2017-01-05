@@ -30,8 +30,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "${translationFile}:add.page.title" );
 		prc.pageSubtitle = translateResource( "${translationFile}:add.page.subtitle" );
 
-		prc.canPublish   = hasCmsPermission( "${permissionKey}.saveDraft" );
-		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.publish"   );
+		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish" );
+		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft"   );
 
 		if ( !prc.canPublish && !prc.canSaveDraft ) {
 			event.adminAccessDenied();
