@@ -579,7 +579,9 @@ component displayName="Preside Object Service" {
 
 			if ( arguments.useVersioning ) {
 				if ( arguments.isDraft ) {
-					cleanedData = { _version_has_drafts = true };
+					if ( !_isDraft( argumentCollection=arguments ) ) {
+						cleanedData = { _version_has_drafts = true };
+					}
 				} else {
 					cleanedData._version_is_draft   = false;
 					cleanedData._version_has_drafts = false;
@@ -2542,6 +2544,14 @@ component displayName="Preside Object Service" {
 		}
 
 		return arguments.propertyName;
+	}
+
+	private boolean function _isDraft( array extraFilters=[] ) {
+		var draftCheckFilters = Duplicate( arguments.extraFilters );
+
+		draftCheckFilters.append( { filter={ _version_is_draft=true } } );
+
+		return dataExists( argumentCollection=arguments, extraFilters=draftCheckFilters );
 	}
 
 // SIMPLE PRIVATE PROXIES
