@@ -79,7 +79,7 @@ component {
 		_defineLabelField( meta );
 		_addDefaultsToProperties( meta.properties );
 		_mergeSystemPropertyDefaults( meta );
-		_deletePropertiesMarkedForDeletion( meta );
+		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
 		_fixOrderOfProperties( meta );
 
 		meta.dbFieldList = _calculateDbFieldList( meta.properties );
@@ -288,12 +288,14 @@ component {
 		}
 	}
 
-	private void function _deletePropertiesMarkedForDeletion( required struct meta ) {
+	private void function _deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( required struct meta ) {
 		for( var propertyName in meta.properties ) {
-			var prop = meta.properties[ propertyName ];
+			var prop              = meta.properties[ propertyName ];
+			var featureService    = _getFeatureService();
 			var markedForDeletion = IsBoolean( prop.deleted ?: "" ) && prop.deleted;
+			var inDisabledFeature = Len( Trim( prop.feature ?: "" ) ) && !featureService.isFeatureEnabled( prop.feature );
 
-			if ( markedForDeletion ) {
+			if ( markedForDeletion || inDisabledFeature ) {
 				meta.properties.delete( propertyName );
 				meta.propertyNames.delete( propertyName );
 			}
