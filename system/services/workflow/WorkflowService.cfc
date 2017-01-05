@@ -76,7 +76,7 @@ component {
 		, string reference  = ""
 		, string owner      = _getCookieBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
-		, boolean useCache  = true
+		, boolean useCache  = false
 	) {
 		if ( Len( Trim( arguments.id  ) ) ) {
 			var record = _getStateDao().selectData( id=arguments.id, useCache=arguments.useCache );
@@ -113,6 +113,7 @@ component {
 			var record = _getStateDao().selectData(
 				  selectFields = [ "id", "expires" ]
 				, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=arguments.owner }
+				, useCache     = false
 			);
 
 			if ( _hasStateExpired( record.expires ) ) {
@@ -124,6 +125,7 @@ component {
 				record = _getStateDao().selectData(
 					  selectFields = [ "id" ]
 					, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=_getCookieBasedOwner() }
+					, useCache     = false
 				);
 
 				if ( record.recordCount ) {
