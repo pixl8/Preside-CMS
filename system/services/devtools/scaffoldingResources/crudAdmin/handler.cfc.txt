@@ -48,8 +48,8 @@ component extends="preside.system.base.AdminHandler" {
 		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
 		_checkPermissions( event=event, key=saveAction );
 
-		prc.canPublish   = hasCmsPermission( "${permissionKey}.saveDraft" );
-		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.publish"   );
+		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish" );
+		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft" );
 
 		runEvent(
 			  event          = "admin.DataManager._addRecordAction"
@@ -130,8 +130,8 @@ component extends="preside.system.base.AdminHandler" {
 				, auditType         = "${auditCategory}"
 				, auditAction       = ( saveAction == "publish" ? "publish_record" : "save_draft" )
 				, draftsEnabled     = true
-				, canPublish        = hasCmsPermission( "${permissionKey}.saveDraft" )
-				, canSaveDraft      = hasCmsPermission( "${permissionKey}.publish"   )
+				, canPublish        = hasCmsPermission( "${permissionKey}.publish" )
+				, canSaveDraft      = hasCmsPermission( "${permissionKey}.saveDraft"   )
 			}
 		);
 	}
