@@ -1,13 +1,16 @@
 <cfscript>
-	objectName          = event.getValue( name="object", defaultValue="" );
-	id                     = event.getValue( name="id", defaultValue="", private=true );
-	blockers               = event.getValue( name="blockers", defaultValue=[], private=true );
+	objectName          = rc.object        ?: "";
+	id                  = prc.id           ?: "";
+	blockers            = prc.blockers     ?: [];
+	postActionUrl       = Trim( rc.postActionUrl ?: "" );
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	objectTitlePural    = translateResource( uri="preside-objects.#objectName#:title", defaultValue=objectName );
-	deleteTitle            = translateResource( uri="cms:datamanager.cascadeDelete.title" );
+	deleteTitle         = translateResource( uri="cms:datamanager.cascadeDelete.title" );
 
 	prc.pageIcon  = "trash";
 	prc.pageTitle = deleteTitle;
+
+	cancelLink = postActionUrl.len() ? postActionUrl : event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" );
 </cfscript>
 
 <cfoutput>
@@ -39,7 +42,7 @@
 					#translateResource( uri="cms:datamanager.cascadeDelete.options.title" )#
 				</h4>
 
-				<a class="inline" href="#event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" )#">
+				<a class="inline" href="#cancelLink#">
 					<button class="btn btn-primary btn-sm">
 						<i class="fa fa-arrow-left"></i>
 						#translateResource( uri="cms:datamanager.cascadeDelete.cancel.btn" )#
@@ -50,6 +53,9 @@
 					<input type="hidden" name="object" value="#objectName#" />
 					<input type="hidden" name="id" value="#id#" />
 					<input type="hidden" name="forceDelete" value="1" />
+					<cfif postActionUrl.len()>
+						<input type="hidden" name="postActionUrl" value="#HtmlEditFormat( postActionUrl )#" />
+					</cfif>
 
 					<button type="submit" class="btn btn-danger btn-sm confirmation-prompt" title="#translateResource( 'cms:datamanager.cascadeDelete.final.warning' )#">
 						<i class="fa fa-trash-o"></i>

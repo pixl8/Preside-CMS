@@ -1759,7 +1759,7 @@
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
-		<cfargument name="postActionUrl"     type="string"  required="false" default="#( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) )#" />
+		<cfargument name="postActionUrl"     type="string"  required="false" default="#( rc.postActionUrl ?: ( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
 		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_delete_record" />
@@ -1790,7 +1790,7 @@
 				blockers = presideObjectService.listForeignObjectsBlockingDelete( object, ids );
 
 				if ( ArrayLen( blockers ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#&postAction=#postAction#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids) } );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids), postActionUrl=postActionUrl } );
 				}
 			} else {
 				try {
