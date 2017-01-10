@@ -1476,6 +1476,8 @@
 			q.execute();
 			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
+			q.setSQL( "insert into ptest_object_g ( object_e, datemodified, datecreated) values ('TEST-UUID', #_getNowSql()#, #_getNowSql()# )" );
+			q.execute();
 
 			result = poService.listForeignObjectsBlockingDelete(
 				  objectName   = "object_e"
