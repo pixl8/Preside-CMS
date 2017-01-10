@@ -1341,7 +1341,7 @@ component displayName="Preside Object Service" {
 
 		for( foreignObjName in joins ){
 			for( join in joins[ foreignObjName ] ) {
-				if ( join.type == "one-to-many" && join.ondelete !== "cascade" ) {
+				if ( join.type == "one-to-many" && join.ondelete == "error" ) {
 					filter = { "#join.fk#" = arguments.recordId };
 					recordCount = selectData( objectName=foreignObjName, selectFields=["count(*) as record_count"], filter=filter, useCache=false ).record_count;
 
