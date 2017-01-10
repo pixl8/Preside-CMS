@@ -92,6 +92,7 @@ component {
 				, reloadPresideObjects = devSettings
 				, reloadWidgets        = devSettings
 				, reloadPageTypes      = devSettings
+				, reloadStatic         = devSettings
 			};
 		} else {
 			devSettings = {
@@ -102,6 +103,7 @@ component {
 				, reloadPresideObjects = IsBoolean( devSettings.reloadPresideObjects ?: "" ) and devSettings.reloadPresideObjects
 				, reloadWidgets        = IsBoolean( devSettings.reloadWidgets        ?: "" ) and devSettings.reloadWidgets
 				, reloadPageTypes      = IsBoolean( devSettings.reloadPageTypes      ?: "" ) and devSettings.reloadPageTypes
+				, reloadStatic         = IsBoolean( devSettings.reloadStatic         ?: "" ) and devSettings.reloadStatic
 			};
 		}
 
@@ -140,7 +142,7 @@ component {
 				anythingReloaded = true;
 			}
 
-			if ( event.valueExists( "fwReinitStatic" ) and Hash( rc.fwReinitStatic ) eq reloadPassword ) {
+			if ( devSettings.reloadStatic or ( event.valueExists( "fwReinitStatic" ) and Hash( rc.fwReinitStatic ) eq reloadPassword ) ) {
 				applicationReloadService.reloadStatic();
 				anythingReloaded = true;
 			}
