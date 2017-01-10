@@ -21,6 +21,12 @@ component  {
 				, querystring = "object=rules_engine_condition&context=#context#&multiple=#multiple#"
 			);
 		}
+		if ( IsTrue( args.quickEdit ?: "" ) ) {
+			args.quickEditUrl = event.buildAdminLink(
+				  linkTo      = "datamanager.quickEditForm"
+				, querystring = "object=rules_engine_condition&context=#context#&multiple=#multiple#&id="
+			);
+		}
 
 		return renderViewlet( event="formcontrols.objectPicker.index", args=args );
 	}
