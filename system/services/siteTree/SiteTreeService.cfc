@@ -509,6 +509,7 @@ component {
 				, savedFilters       = savedFilters
 				, orderBy            = "sort_order"
 				, allowDraftVersions = args.allowDrafts
+
 			);
 
 			for( var child in children ){
