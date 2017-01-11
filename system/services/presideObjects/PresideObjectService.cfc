@@ -176,25 +176,14 @@ component displayName="Preside Object Service" {
 
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=arguments );
-		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 
+		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
 		}
 
-		if ( args.useCache ) {
-			args.cachekey = args.objectName & "_" & Hash( LCase( SerializeJson( args ) ) );
-
-			_announceInterception( "onCreateSelectDataCacheKey", args );
-
-			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
-			if ( not IsNull( cachedResult ) ) {
-				return cachedResult;
-			}
-		}
-
-		args.objMeta = _getObject( args.objectName ).meta;
-		args.adapter = _getAdapter( args.objMeta.dsn );
+		var objMeta = _getObject( args.objectName ).meta;
+		var adapter = _getAdapter( objMeta.dsn );
 
 		args.selectFields   = _parseSelectFields( argumentCollection=args );
 
@@ -203,9 +192,22 @@ component displayName="Preside Object Service" {
 		}
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
-			, adapter            = args.adapter
-			, columnDefinitions  = args.objMeta.properties
+			, adapter            = adapter
+			, columnDefinitions  = objMeta.properties
 		);
+
+		if ( args.useCache ) {
+			args.cachekey = args.objectName & "_" & Hash( LCase( Serialize( args ) ) );
+
+			_announceInterception( "onCreateSelectDataCacheKey", args );
+
+			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
+			if ( !IsNull( cachedResult ) ) {
+				return cachedResult;
+			}
+		}
+		args.adapter     = adapter;
+		args.objMeta     = objMeta;
 		args.orderBy     = _parseOrderBy( args.orderBy, args.objectName, args.adapter );
 		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );

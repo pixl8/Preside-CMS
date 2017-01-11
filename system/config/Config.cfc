@@ -318,9 +318,12 @@ component {
 		};
 
 		settings.filters = {
-			livePages = {
-				  filter       = "page.trashed = '0' and page.active = '1' and ( page.embargo_date is null or :now > page.embargo_date ) and ( page.expiry_date is null or :now < page.expiry_date )"
-				, filterParams = { "now" = { type="cf_sql_date", value=Now() } }
+			livePages = function(){
+				var nowish = DateTimeFormat( Now(), "yyyy-mm-dd HH:nn:00" );
+				var sql    = "page.trashed = '0' and page.active = '1' and ( page.embargo_date is null or :now >= page.embargo_date ) and ( page.expiry_date is null or :now <= page.expiry_date )";
+				var params = { "now" = { type="cf_sql_timestamp", value=nowish } };
+
+				return { filter=sql, filterParams=params };
 			}
 			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
 		};
