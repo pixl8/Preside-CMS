@@ -526,7 +526,6 @@
 			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
 			  , filterByValue;
 
-			this.filter       = "";
 			this.filter_field = $( "input[name='" + filterBy + "']" );
 
 			filterByValue = this.filter_field.val();
