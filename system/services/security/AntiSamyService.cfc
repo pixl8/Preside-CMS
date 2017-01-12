@@ -16,8 +16,9 @@ component {
 // PUBLIC API
 	public any function clean( required string input, string policy="myspace" ) {
 		var antiSamyResult = _getAntiSamy().scan( arguments.input, _getPolicyFile( arguments.policy ) );
+		var cleanHtml      = antiSamyResult.getCleanHtml();
 
-		return antiSamyResult.getCleanHtml();
+		return _removeUnwantedCleanses( cleanHtml, arguments.policy );
 	}
 
 // PRIVATE HELPERS
@@ -47,6 +48,18 @@ component {
 		var policies = _getPolicyFiles();
 
 		return policies[ arguments.policy ] ?: throw( type="preside.antisamyservice.policy.not.found", message="The policy [#arguments.policy#] was not found. Existing policies: '#SerializeJson( policies.keyArray() )#" );
+	}
+
+	private string function _removeUnwantedCleanses( required string tooCleanString, required string policy ) {
+		var antiSamyResult   = _getAntiSamy().scan( "&", _getPolicyFile( arguments.policy ) );
+		var cleanedAmpersand = antiSamyResult.getCleanHtml();
+		var uncleaned        = arguments.tooCleanString;
+
+		if ( cleanedAmpersand != "&" ) {
+			uncleaned = uncleaned.replace( cleanedAmpersand, "&", "all" );
+		}
+
+		return uncleaned;
 	}
 
 // GETTERS AND SETTERS
