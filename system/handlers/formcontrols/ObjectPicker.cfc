@@ -15,12 +15,12 @@ component {
 
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#"
+					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&selectFields='${labelfield} as label'"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&q=%QUERY"
+				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&q=%QUERY&selectFields='${labelfield} as label'"
 			);
 		} else {
 			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(

@@ -212,6 +212,7 @@
 				, savedFilters = ListToArray( rc.savedFilters ?: "" )
 				, extraFilters = extraFilters
 				, ids          = ListToArray( rc.values ?: "" )
+				, selectFields = ListToArray( rc.selectFields ?: "" )
 			);
 
 			event.renderData( type="json", data=records );
