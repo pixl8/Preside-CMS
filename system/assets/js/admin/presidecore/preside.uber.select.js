@@ -419,6 +419,7 @@
 				, cache   : false
 				, method  : "post"
 				, success : callback
+				, async   : false
 			} );
 		};
 
