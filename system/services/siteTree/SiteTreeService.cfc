@@ -122,16 +122,24 @@ component {
 		, boolean allowDrafts  = $getRequestContext().showNonLiveContent()
 
 	) {
-		var args = { filter="page.id = :id", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
+		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
 
 		if ( StructKeyExists( arguments, "id" ) ) {
+			args.filter = "page.id = :id";
 			args.filterParams.id = arguments.id;
 
 		} else if ( StructKeyExists( arguments, "slug" ) ) {
-			args.filterParams.id = getPageIdBySlug( argumentCollection=arguments );
+			if ( arePageSlugsMultilingual() ) {
+				args.filter          = "page.id = :id";
+				args.filterParams.id = _getPageIdWithMultilingualSlug( argumentCollection=arguments );
+			} else {
+				args.filter       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug" // this double match is for performance - the full slug cannot be indexed because of its potential size
+				args.filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
+			}
 
 		} else if ( StructKeyExists( arguments, "systemPage" ) ) {
-			args.filterParams.id = getPageIdBySystemPageType( arguments.systemPage );
+			args.filter       = "page.page_type = :page_type"
+			args.filterParams = { page_type = arguments.systemPage }
 
 		} else {
 			throw(
@@ -978,7 +986,7 @@ component {
 		for( var pageType in pageTypes ) {
 			var pageTypeId = pageType.getId();
 			if ( pageTypesService.isSystemPageType( pageTypeId ) && pageTypesService.isPageTypeAvailableToSiteTemplate( pageTypeId, site.template ?: "" ) ) {
-				var page = getPage( systemPage=pageTypeId );
+				var page = getPage( systemPage=pageTypeId, useCache=false );
 
 				if ( !page.recordCount ) {
 					_createSystemPage( pageType );
@@ -1323,13 +1331,12 @@ component {
 		var loginSvc   = _getLoginService();
 
 		if ( Len( Trim( parentType ) ) && parentType != "none" ) {
-			var parent = getPage( systemPage=parentType );
+			var parent = getPage( systemPage=parentType, useCache=false );
 			if ( !parent.recordCount ) {
-				_createSystemPage( _getPageTypesService().getPageType( parentType ) );
+				parent = _createSystemPage( _getPageTypesService().getPageType( parentType ) );
+			} else {
+				parent = parent.id;
 			}
-			parent = getPage( systemPage=parentType );
-
-			parent = parent.id ?: "";
 		}
 
 		var addPageArgs = {
