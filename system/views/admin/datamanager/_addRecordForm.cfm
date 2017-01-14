@@ -1,6 +1,8 @@
 <cfscript>
 	param name="args.objectName"            type="string";
 	param name="args.addRecordAction"       type="string";
+	param name="args.formName"              type="string"  default="preside-objects.#args.objectName#.admin.add";
+	param name="args.mergeWithFormName"     type="string"  default="";
 	param name="args.allowAddAnotherSwitch" type="boolean";
 	param name="args.draftsEnabled"         type="boolean" default=false;
 	param name="args.canPublish"            type="boolean" default=false;
@@ -21,10 +23,11 @@
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#args.addRecordAction#">
 		#renderForm(
-			  formName         = "preside-objects.#args.objectName#.admin.add"
-			, context          = "admin"
-			, formId           = formId
-			, validationResult = args.validationResult
+			  formName          = args.formName
+			, mergeWithFormName = args.mergeWithFormName
+			, context           = "admin"
+			, formId            = formId
+			, validationResult  = args.validationResult
 		)#
 
 		<div class="form-actions row">
