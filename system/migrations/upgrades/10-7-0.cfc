@@ -60,9 +60,10 @@ component {
 						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number
 						                where     #olderAlias#.id is null";
 
-						publishedSql = "update    #escapedTable# #latestAlias#
-						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number and ( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
+						publishedSql = "update    #latestAlias#
 						                set       #latestAlias#._version_is_latest = '1'
+						                from      #escapedTable# #latestAlias#
+						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number and ( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
 						                where     #olderAlias#.id is null
 						                and       ( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = '0' )";
 					break;
@@ -81,7 +82,7 @@ component {
 														set       _version_is_latest = '1'
 														where not exists (
 																select 		1
-																from			#escapedTable# as #olderAlias# 
+																from			#escapedTable# as #olderAlias#
 																where			#olderAlias#.id = #latestAlias#.id and #olderAlias#._version_number > #latestAlias#._version_number
 																and 			( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
 														)
