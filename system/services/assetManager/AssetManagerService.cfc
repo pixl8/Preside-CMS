@@ -1373,17 +1373,15 @@ component displayName="AssetManager Service" {
 			]
 		);
 
-		var versionImageDimension =  _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
-
-		var generatedAssetUrl = generateAssetUrl(
-			  id          = arguments.assetId
-			, versionId   = arguments.versionId
-			, storagePath = versionToMakeActive.storage_path
-			, folder      = versionToMakeActive.asset_folder
-			, trashed 	  = IsBoolean(versionToMakeActive.is_trashed) && versionToMakeActive.is_trashed
-		);
-
 		if ( versionToMakeActive.recordCount ) {
+			var versionImageDimension = _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
+			var generatedAssetUrl     = generateAssetUrl(
+				  id          = arguments.assetId
+				, versionId   = arguments.versionId
+				, storagePath = versionToMakeActive.storage_path
+				, folder      = versionToMakeActive.asset_folder
+				, trashed 	  = IsBoolean( versionToMakeActive.is_trashed ) && versionToMakeActive.is_trashed
+			);
 			var result = _getAssetDao().updateData( id=arguments.assetId, data={
 				  active_version   = arguments.versionId
 				, storage_path     = versionToMakeActive.storage_path
