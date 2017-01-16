@@ -1368,12 +1368,20 @@ component displayName="AssetManager Service" {
 				, "asset_version.created_by"
 				, "asset_version.updated_by"
 				, "asset.title"
+				, "asset.asset_folder"
+				, "asset.is_trashed"
 			]
 		);
 
-		var versionImageDimension =  _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
-
 		if ( versionToMakeActive.recordCount ) {
+			var versionImageDimension = _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
+			var generatedAssetUrl     = generateAssetUrl(
+				  id          = arguments.assetId
+				, versionId   = arguments.versionId
+				, storagePath = versionToMakeActive.storage_path
+				, folder      = versionToMakeActive.asset_folder
+				, trashed 	  = IsBoolean( versionToMakeActive.is_trashed ) && versionToMakeActive.is_trashed
+			);
 			var result = _getAssetDao().updateData( id=arguments.assetId, data={
 				  active_version   = arguments.versionId
 				, storage_path     = versionToMakeActive.storage_path
@@ -1384,6 +1392,7 @@ component displayName="AssetManager Service" {
 				, updated_by       = versionToMakeActive.updated_by
 				, width            = versionImageDimension.width  ?: ""
 				, height           = versionImageDimension.height ?: ""
+				, asset_url 	   = generatedAssetUrl
 			} );
 
 			for( var a in versionToMakeActive ) { var auditDetail = a; }
