@@ -6,6 +6,7 @@
 component {
 
 	property name="presideObjectService" inject="presideObjectService";
+	property name="filterService"        inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
@@ -13,6 +14,7 @@ component {
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
 		,          string  _numericOperator = "eq"
+		,          string  savedFilter      = ""
 		,          numeric value            = 0
 	) {
 		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
@@ -32,16 +34,32 @@ component {
 		, required string  relationshipKey
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
-		,          string  _numericOperator = "eq"
-		,          numeric value            = 0
+		,          string  filterPrefix       = ""
+		,          string  savedFilter        = ""
+		,          string  _numericOperator   = "eq"
+		,          numeric value              = 0
 	){
+		var subQueryExtraFilters = [];
+		if ( Len( Trim( arguments.savedFilter ) ) ) {
+			var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.savedFilter );
+			if ( expressionArray.len() ) {
+				subQueryExtraFilters.append(
+					filterService.prepareFilter(
+						  objectName      = arguments.relatedTo
+						, expressionArray = expressionArray
+						, filterPrefix    = arguments.propertyName
+					)
+				);
+			}
+		}
+
 		var idField        = presideObjectService.getIdField( objectName );
 		var relatedIdField = presideObjectService.getIdField( relatedTo );
 		var subQuery       = presideObjectService.selectData(
 			  objectName          = arguments.objectName
 			, selectFields        = [ "Count( #propertyName#.#relatedIdField# ) as onetomany_count", "#objectName#.#idField# as id" ]
 			, groupBy             = "#objectName#.#idField#"
+			, extraFilters        = subQueryExtraFilters
 			, getSqlAndParamsOnly = true
 		).sql;
 
