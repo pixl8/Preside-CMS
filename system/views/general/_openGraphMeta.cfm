@@ -2,7 +2,7 @@
 	local.teaser       = Trim( event.getPageProperty( "teaser"        ) );
 	local.description  = Trim( event.getPageProperty( "description"   ) );
 	local.browsertitle = Trim( event.getPageProperty( "browser_title" ) );
-	local.title        = Trim( event.getPageProperty( "label"         ) );
+	local.title        = Trim( event.getPageProperty( "title"         ) );
 	local.mainImage    = Trim( event.getPageProperty( "main_image"    ) );
 
 	local.title  = Len( local.browserTitle ) ? local.browserTitle : local.title;
