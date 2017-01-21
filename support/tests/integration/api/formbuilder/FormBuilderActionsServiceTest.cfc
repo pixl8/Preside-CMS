@@ -24,6 +24,30 @@ component extends="testbox.system.BaseSpec"{
 					, { id="webhook", title="webhook title", iconclass="webhook icon", description="webhook description", configFormName="formbuilder.actions.webhook", submissionHandler="formbuilder.actions.webhook.onSubmit" }
 				] );
 			} );
+
+			it( "should miss out a configured action when the action is configured to belong to a non-enabled feature", function(){
+				var actions = [ "email", { id="slack", feature="enabledFeature" }, { id="webhook", feature="notimplemented" } ];
+				var service = getService( actions );
+
+				for( var action in actions ) {
+					if ( ( action.feature ?: "" ) != "notimplemented" ) {
+						if ( Len( action.feature ?: "" ) ) {
+							service.$( "$isFeatureEnabled" ).$args( action.feature ).$results( true );
+							action = action.id;
+						}
+						service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:title"      , defaultValue=action    ).$results( "#action# title"       );
+						service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:description", defaultValue=""        ).$results( "#action# description" );
+						service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:iconclass"  , defaultValue="fa-send" ).$results( "#action# icon"        );
+					} else {
+						service.$( "$isFeatureEnabled" ).$args( action.feature ).$results( false );
+					}
+				}
+
+				expect( service.listActions() ).toBe( [
+					  { id="email", title="email title", iconclass="email icon", description="email description", configFormName="formbuilder.actions.email", submissionHandler="formbuilder.actions.email.onSubmit" }
+					, { id="slack", title="slack title", iconclass="slack icon", description="slack description", configFormName="formbuilder.actions.slack", submissionHandler="formbuilder.actions.slack.onSubmit" }
+				] );
+			} );
 		} );
 
 		describe( "getActionConfig", function(){
@@ -110,6 +134,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$translateResource", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$getPresideObject" ).$args( "formbuild_formaction" ).$results( mockActionDao );
+		service.$( "$isFeatureEnabled", true );
 
 		return service;
 	}

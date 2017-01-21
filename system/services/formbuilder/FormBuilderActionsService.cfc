@@ -35,6 +35,13 @@ component {
 		var actions           = [];
 
 		for( var action in configuredActions ) {
+			if ( IsStruct( action ) ) {
+				if ( Len( Trim( action.feature ?: "" ) ) && !$isFeatureEnabled( action.feature ) ) {
+					continue;
+				}
+				action = action.id;
+			}
+
 			actions.append(
 				_getConventionsBasedActionConfiguration( action )
 			);
