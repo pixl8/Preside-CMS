@@ -617,7 +617,7 @@ component {
 			, content   = { isFormField=false }
 		} };
 
-		fbSettings.actions = [ "email" ];
+		fbSettings.actions = [ "email", "anonymousCustomerEmail" ];
 
 		return fbSettings;
 	}

@@ -356,6 +356,28 @@ component {
 	}
 
 	/**
+	 * Returns a query of templates matching the provided filters
+	 *
+	 * @autodoc            true
+	 * @custom.hint        Whether or not the templates should be custom (if not, they are system)
+	 * @recipientType.hint The recipient type of the templates
+	 */
+	public query function getTemplates( required boolean custom, string recipientType="" ) {
+		var filters = [];
+
+		filters.append( { filter={ is_system_email = !arguments.custom } } );
+
+		if ( Len( Trim( arguments.recipientType ) ) ) {
+			filters.append( {
+				  filter       = "email_template.recipient_type = :recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :recipient_type )"
+				, filterParams = { recipient_type = recipientType }
+			} );
+		}
+
+		return $getPresideObject( "email_template" ).selectData( extraFilters=filters );
+	}
+
+	/**
 	 * Returns whether or not click tracking is enabled for the given template
 	 *
 	 * @autodoc         true
