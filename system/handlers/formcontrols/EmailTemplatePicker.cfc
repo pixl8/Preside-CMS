@@ -1,15 +1,24 @@
 component {
 
-	property name="emailTemplateService" inject="emailTemplateService";
+	property name="emailTemplateService"      inject="emailTemplateService";
+	property name="emailRecipientTypeService" inject="emailRecipientTypeService";
 
 	public string function index( event, rc, prc, args={} ) {
+		var recipientType = ( args.recipientType ?: "" );
 		var templates = emailTemplateService.getTemplates(
 			  custom        = IsTrue( args.custom ?: "" )
-			, recipientType = ( args.recipientType ?: "" )
+			, recipientType = recipientType
 		);
 
 		if ( !templates.recordcount ) {
-			return "";
+			if ( !recipientType.len() ) {
+				return '<p class="alert alert-warning">' & translateResource( "cms:emailcenter.no.templates.for.selection" ) & '</p>';
+			} else {
+				recipientType = emailRecipientTypeService.getRecipientTypeDetails( recipientType );
+				recipientType = recipientType.title ?: "";
+
+				return '<p class="alert alert-warning">' & translateResource( uri="cms:emailcenter.no.templates.for.selection.of.type", data=[ recipientType ] ) & '</p>';
+			}
 		}
 
 		args.values = [ "" ];

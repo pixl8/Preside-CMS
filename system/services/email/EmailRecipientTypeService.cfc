@@ -48,6 +48,18 @@ component displayName="Email Recipient Type Service" {
 	}
 
 	/**
+	 * Returns a single type as a structure
+	 *
+	 */
+	public struct function getRecipientTypeDetails( required string recipientType ) {
+		return {
+			  id          = recipientType
+			, title       = $translateResource( uri="email.recipienttype.#recipientType#:title"      , defaultValue=recipientType )
+			, description = $translateResource( uri="email.recipienttype.#recipientType#:description", defaultValue=""     )
+		};
+	}
+
+	/**
 	 * Returns whether or not the passed recipient type exists.
 	 *
 	 * @autodoc            true
