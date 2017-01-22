@@ -180,7 +180,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.actionConfig = actionsService.getActionConfig( rc.action ?: "" );
 
 		if ( !prc.actionConfig.count() ) {
-			event.adminNotFound();
+			event.adminFound();
 		}
 
 		prc.pageTitle    = translateResource( uri="formbuilder:action.config.dialog.title"   , data=[ prc.actionConfig.title ] );
