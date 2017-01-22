@@ -35,13 +35,6 @@ component {
 		var actions           = [];
 
 		for( var action in configuredActions ) {
-			if ( IsStruct( action ) ) {
-				if ( Len( Trim( action.feature ?: "" ) ) && !$isFeatureEnabled( action.feature ) ) {
-					continue;
-				}
-				action = action.id;
-			}
-
 			actions.append(
 				_getConventionsBasedActionConfiguration( action )
 			);
@@ -293,7 +286,17 @@ component {
 		return _configuredActions;
 	}
 	private void function _setConfiguredActions( required array configuredActions ) {
-		_configuredActions = arguments.configuredActions;
+		_configuredActions = [];
+
+		for( var action in arguments.configuredActions ) {
+			if ( IsStruct( action ) ) {
+				if ( Len( Trim( action.feature ?: "" ) ) && !$isFeatureEnabled( action.feature ) ) {
+					continue;
+				}
+				action = action.id;
+			}
+			_configuredActions.append( action );
+		}
 	}
 
 	private any function _getValidationEngine() {
