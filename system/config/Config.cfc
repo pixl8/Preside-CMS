@@ -620,7 +620,11 @@ component {
 			, content   = { isFormField=false }
 		} };
 
-		fbSettings.actions = [ "email" ];
+		fbSettings.actions = [
+			  { id="email" }
+			, { id="anonymousCustomerEmail" }
+			, { id="loggedInUserEmail", feature="websiteUsers" }
+		];
 
 		return fbSettings;
 	}

@@ -108,6 +108,47 @@ component extends="testbox.system.BaseSpec"{
 				expect( formItems[ 1 ].configuration ).toBe( expectedResult );
 			} );
 
+			it( "should filter by item types when item types configuration supplied", function(){
+				var service        = getService();
+				var formId         = CreateUUId();
+				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
+					  [ "item1", "typea", "{}" ]
+					, [ "item2", "typeb", "{}" ]
+					, [ "item3", "typeb", "{}" ]
+					, [ "item4", "typeb", "{}" ]
+					, [ "item5", "typea", "{}" ]
+					, [ "item6", "typea", "{}" ]
+					, [ "item7", "typec", "{}" ]
+				] );
+				var types = {
+					  a = { test=true, something=CreateUUId() }
+					, b = { test=true, something=CreateUUId() }
+					, c = { test=true, something=CreateUUId() }
+				};
+				var expectedResult = [
+					  { id="item1", type=types.a, configuration={} }
+					, { id="item5", type=types.a, configuration={} }
+					, { id="item6", type=types.a, configuration={} }
+					, { id="item7", type=types.c, configuration={} }
+				];
+
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typeb" ).$results( types.b );
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typec" ).$results( types.c );
+
+				mockFormItemDao.$( "selectData" ).$args(
+					  filter       = { form=formId }
+					, orderBy      = "sort_order"
+					, selectFields = [
+						  "id"
+						, "item_type"
+						, "configuration"
+					  ]
+				).$results( dummyData );
+
+				expect( service.getFormItems( id=formId, itemtypes=[ "typea", "typec" ] ) ).toBe( expectedResult );
+			} );
+
 		} );
 
 		describe( "addItem", function(){

@@ -57,9 +57,10 @@ component {
 	 * Retuns a form's items in an ordered array
 	 *
 	 * @autodoc
-	 * @id.hint ID of the form who's sections and items you wish to get
+	 * @id.hint        ID of the form who's sections and items you wish to get
+	 * @itemTypes.hint Optional array of item types with which to filter the returned form items
 	 */
-	public array function getFormItems( required string id ) {
+	public array function getFormItems( required string id, array itemTypes=[] ) {
 		var result = [];
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { form=arguments.id }
@@ -72,11 +73,13 @@ component {
 		);
 
 		for( var item in items ) {
-			result.append( {
-				  id            = item.id
-				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
-				, configuration = DeSerializeJson( item.configuration )
-			} );
+			if ( !itemTypes.len() || itemTypes.findNoCase( item.item_type ) ) {
+				result.append( {
+					  id            = item.id
+					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
+					, configuration = DeSerializeJson( item.configuration )
+				} );
+			}
 		}
 
 		return result;
