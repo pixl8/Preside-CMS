@@ -112,12 +112,12 @@ component extends="preside.system.base.AdminHandler" {
 		if ( validationResult.validated() ) {
 			emailTemplateService.saveTemplate( id=templateId, template=formData, isDraft=( saveAction=="savedraft" ) );
 
-			messagebox.info( "TODO: success message" );
+			messagebox.info( translateResource( "cms:emailcenter.systemTemplates.template.saved.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#templateId#" ) );
 		}
 
 		formData.validationResult = validationResult;
-		messagebox.error( "TODO: error message" );
+		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 		setNextEvent(
 			  url           = event.buildAdminLink( linkTo="emailcenter.systemtemplates.edit", queryString="template=#templateId#" )
 			, persistStruct = formData
