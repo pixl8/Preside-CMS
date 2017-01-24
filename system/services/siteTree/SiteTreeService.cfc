@@ -129,13 +129,8 @@ component {
 			args.filterParams.id = arguments.id;
 
 		} else if ( StructKeyExists( arguments, "slug" ) ) {
-			if ( arePageSlugsMultilingual() ) {
-				args.filter          = "page.id = :id";
-				args.filterParams.id = _getPageIdWithMultilingualSlug( argumentCollection=arguments );
-			} else {
-				args.filter       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug" // this double match is for performance - the full slug cannot be indexed because of its potential size
-				args.filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
-			}
+			args.filter          = "page.id = :id";
+			args.filterParams.id = getPageIdBySlug( arguments.slug );
 
 		} else if ( StructKeyExists( arguments, "systemPage" ) ) {
 			args.filter       = "page.page_type = :page_type"
