@@ -10,7 +10,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( palette ).toHaveKey( "colours"   );
 				expect( palette ).toHaveKey( "rowLength" );
 				expect( palette.name      ).toBe( "web216" );
-				expect( palette.rowLength ).toBe( 32 );
+				expect( palette.rowLength ).toBe( 24 );
 				expect( palette.colours   ).toBeTypeOf( "array" );
 				expect( palette.colours   ).toHaveLength( 216 );
 			} );
@@ -135,6 +135,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 // PRIVATE HELPERS
 	private any function _getService() {
 		var service = createMock( object=new preside.system.services.formcontrols.SimpleColourPickerService() );
+		service.$("$translateResource").$results( "Generic error message" );
 
 		return service;
 	}
