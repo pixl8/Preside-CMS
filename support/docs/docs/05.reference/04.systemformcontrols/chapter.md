@@ -35,6 +35,7 @@ System provided form controls for the [[presideforms]]:
 * [[formcontrol-richeditor]]
 * [[formcontrol-rolePicker]]
 * [[formcontrol-select]]
+* [[formcontrol-simpleColourPicker]]
 * [[formcontrol-siteTemplatePicker]]
 * [[formcontrol-siteTreePagePicker]]
 * [[formcontrol-spinner]]
