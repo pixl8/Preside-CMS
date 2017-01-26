@@ -214,8 +214,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.log.time_taken = renderContent( renderer="TaskTimeTaken", data=prc.log.time_taken, context=[ "accurate" ] );
 
 		prc.task = taskmanagerService.getTask( log.task_key );
-		prc.pageTitle    = translateResource( uri="cms:taskmanager.log.page.title", data=[ prc.task.name, log.datecreated ] );
-		prc.pageSubTitle = translateResource( uri="cms:taskmanager.log.page.subtitle", data=[ prc.task.name, log.datecreated ] );
+		prc.pageTitle    = translateResource( uri="cms:taskmanager.log.page.title", data=[ prc.task.name, DateTimeFormat( log.datecreated, "dd MMM yyyy 'at' HH:nn:ss" ) ] );
+		prc.pageSubTitle = translateResource( uri="cms:taskmanager.log.page.subtitle", data=[ prc.task.name, DateTimeFormat( log.datecreated, "dd MMM yyyy 'at' HH:nn:ss" ) ] );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:taskmanager.history.breadcrumb", data=[ prc.task.name ] )

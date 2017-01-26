@@ -532,7 +532,7 @@
 			filterByValue = this.filter_field.val();
 
 			if ( typeof filterByValue !== "undefined" ) {
-				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterBy;
+				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
 			}
 
 		};

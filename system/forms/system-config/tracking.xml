@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="system-config.tracking:">
+	<tab>
+		<fieldset>
+			<field name="allow_anonymous_tracking" control="yesnoswitch" />
+		</fieldset>
+	</tab>
+</form>

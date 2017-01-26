@@ -253,7 +253,7 @@ component displayName="Preside Object Service" {
 				, cacheKey     = args.cacheKey
 				, filter       = args.preparedFilter.filter
 				, filterParams = args.preparedFilter.filterParams
-				, joinTargets  = args.joinTargets
+				, joins        = args.joins
 			);
 		}
 
@@ -2215,22 +2215,16 @@ component displayName="Preside Object Service" {
 		, required string cacheKey
 		, required any    filter
 		, required struct filterParams
-		, required array  joinTargets
+		, required array  joins
 	) {
 		var cacheMaps   = _getCacheMaps();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
 		var idField     = getIdField( arguments.objectName );
 		var fullIdField = "#arguments.objectName#.#idField#";
 		var objId       = "";
-		var id          = "";
-		var joinObj     = "";
 
 		lock name=lockName type="exclusive" timeout=10 {
-			if ( not StructKeyExists( cacheMaps, arguments.objectName ) ) {
-				cacheMaps[ arguments.objectName ] = {
-					__complexFilter = {}
-				};
-			}
+			cacheMaps[ arguments.objectName ] = cacheMaps[ arguments.objectName ] ?: { __complexFilter = {} };
 
 			if ( IsStruct( arguments.filter ) ) {
 				if ( arguments.filter.keyExists( "id" ) ) {
@@ -2261,7 +2255,7 @@ component displayName="Preside Object Service" {
 			}
 
 			if ( IsArray( objId ) ) {
-				for( id in objId ){
+				for( var id in objId ){
 					cacheMaps[ arguments.objectName ][ id ][ arguments.cacheKey ] = 1;
 				}
 			} else if ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
@@ -2270,12 +2264,10 @@ component displayName="Preside Object Service" {
 				cacheMaps[ arguments.objectName ].__complexFilter[ arguments.cacheKey ] = 1;
 			}
 
-			for( joinObj in arguments.joinTargets ) {
-				if ( not StructKeyExists( cacheMaps, joinObj ) ) {
-					cacheMaps[ joinObj ] = {
-						__complexFilter = {}
-					};
-				}
+			for( var join in arguments.joins ) {
+				var joinObj = join.joinToObject ?: "";
+
+				cacheMaps[ joinObj ] = cacheMaps[ joinObj ] ?: { __complexFilter = {} };
 				cacheMaps[ joinObj ].__complexFilter[ arguments.cacheKey ] = 1;
 			}
 		}

@@ -476,6 +476,8 @@ component displayName="Task Manager Service" {
 		};
 
 		schedule action=action attributeCollection=args;
+
+		_deleteOldTaskManagerScheduledTasks( args.task );
 	}
 
 	public array function getAllTaskDetails() {
@@ -681,6 +683,19 @@ component displayName="Task Manager Service" {
 			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
 			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
 		];
+	}
+
+	private void function _deleteOldTaskManagerScheduledTasks( required string validTaskName ) {
+		var tasks       = "";
+		var taskPattern = "^PresideTaskManager_";
+
+		schedule action="list" returnvariable="tasks";
+
+		for( var task in tasks ) {
+			if ( task.task != arguments.validTaskName && task.task.reFindNoCase( taskPattern ) ) {
+				schedule action="delete" task=task.task;
+			}
+		}
 	}
 
 // GETTERS AND SETTERS
