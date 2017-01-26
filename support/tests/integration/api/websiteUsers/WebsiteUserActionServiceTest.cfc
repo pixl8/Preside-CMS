@@ -64,6 +64,31 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( mockActionDao.$callLog().insertData.len() ).toBe( 0 );
 			} );
+
+			it( "should not record anything when user ID is blank and anonymous tracking is disabled", function(){
+				var service    = _getService();
+				var action     = "logout";
+				var type       = "login";
+				var identifier = CreateUUId();
+				var detail     = { test=CreateUUId() };
+				var sessionId  = CreateUUId();
+
+				mockVisitorService.$( "getVisitorId", CreateUUId() );
+				mockActionDao.$( "insertData", CreateUUId() );
+				service.$( "$getPresideSetting" ).$args( "tracking", "allow_anonymous_tracking" ).$results( false );
+				service.$( "_getSessionId", sessionId )
+
+				var actionId = service.recordAction(
+					  action     = action
+					, type       = type
+					, detail     = detail
+					, identifier = identifier
+				);
+
+				expect( actionId ).toBe( "" );
+
+				expect( mockActionDao.$callLog().insertData.len() ).toBe( 0 );
+			} );
 		} );
 
 		describe( "promoteVisitorActionsToUserActions()", function(){
@@ -393,6 +418,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockActionDao = CreateStub();
 
 		service.$( "$getPresideObject" ).$args( "website_user_action" ).$results( mockActionDao );
+		service.$( "$getPresideSetting" ).$args( "tracking", "allow_anonymous_tracking" ).$results( true );
 
 		return service;
 	}
