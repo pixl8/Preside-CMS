@@ -220,9 +220,9 @@ component {
 				admin action="getCompilerSettings" returnVariable="luceeCompilerSettings";
 				admin action               = "updateCompilerSettings"
 				      dotNotationUpperCase = false
-					  suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
-					  nullSupport          = luceeCompilerSettings.nullSupport
-					  templateCharset      = luceeCompilerSettings.templateCharset;
+				      suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
+				      nullSupport          = luceeCompilerSettings.nullSupport
+				      templateCharset      = luceeCompilerSettings.templateCharset;
 			} catch( security e ) {
 				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
 			}
@@ -437,6 +437,9 @@ component {
 
 	private void function _resetHttpResponseWithoutCookies( required any resp ) {
 		var status      = resp.getStatus();
+		var contentType = resp.getContentType();
+		var encoding    = resp.getCharacterEncoding();
+		var locale      = resp.getLocale();
 		var headerNames = resp.getHeaderNames().toArray();
 		var headers     = {};
 
@@ -448,6 +451,10 @@ component {
 
 		resp.reset();
 		resp.setStatus( JavaCast( "int", status ) );
+		resp.setContentType( contentType );
+		resp.setCharacterEncoding( encoding );
+		resp.setLocale( locale );
+
 		for( var headerName in headers ) {
 			for( var i=1; i<=ArrayLen( headers[ headerName ] ); i++ ){
 				if ( i == 1 ) {
@@ -458,6 +465,7 @@ component {
 			}
 		}
 	}
+
 
 	private void function _cleanupCookies() {
 		var pc             = getPageContext();
