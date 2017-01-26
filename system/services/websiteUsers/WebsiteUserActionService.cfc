@@ -40,7 +40,7 @@ component displayName="Website user action service" {
 		,          string identifier = ""
 		,          any    detail     = {}
 	) {
-		if ( _sessionsAreDisabled() ) {
+		if ( _sessionsAreDisabled() || ( !arguments.userId.len() && _anonymousTrackingIsDisabled() ) ) {
 			return "";
 		}
 
@@ -243,6 +243,12 @@ component displayName="Website user action service" {
 		}
 
 		return sessionId;
+	}
+
+	private boolean function _anonymousTrackingIsDisabled() {
+		var trackingEnabled = $getPresideSetting( "tracking", "allow_anonymous_tracking" );
+
+		return !IsBoolean( trackingEnabled ) || !trackingEnabled;
 	}
 
 // GETTERS AND SETTERS
