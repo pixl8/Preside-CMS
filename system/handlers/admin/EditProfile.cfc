@@ -4,6 +4,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	property name="messageBox"            inject="coldbox:plugin:messageBox";
 	property name="bCryptService"         inject="bCryptService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
+	property name="i18n"                  inject="coldbox:plugin:i18n";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -69,6 +70,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			persist.validationResult = validationResult;
 
 			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ), persistStruct=persist );
+		}
+
+		if ( Len( Trim( formData.user_language ) ) ) {
+			i18n.setFwLocale( Trim( formData.user_language ) );
 		}
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=true );
