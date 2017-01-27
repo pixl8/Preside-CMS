@@ -209,15 +209,16 @@ component displayName="Multilingual Preside Object Service" {
 	 * @autodoc           true
 	 * @objectName.hint   The name of the source object
 	 * @selectFields.hint Array of select fields as passed into the presideObjectService.selectData() method
-	 * @adapter.hint      Database adapter to be used in generating the select query SQL
 	 */
-	public void function mixinTranslationSpecificSelectLogicToSelectDataCall( required string objectName, required array selectFields, required any adapter ) {
+	public void function mixinTranslationSpecificSelectLogicToSelectDataCall( required string objectName, required array selectFields ) {
+		var adapter = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );
+
 		for( var i=1; i <= arguments.selectFields.len(); i++ ) {
 			var field = arguments.selectFields[ i ];
 			var resolved = _resolveSelectField( arguments.objectName, field );
 
 			if ( !resolved.isEmpty() && isMultilingual( resolved.objectName, resolved.propertyName ) ) {
-				arguments.selectFields[ i ] = _transformSelectFieldToGetTranslationIfExists( arguments.objectName, resolved.selector, resolved.alias, arguments.adapter );
+				arguments.selectFields[ i ] = _transformSelectFieldToGetTranslationIfExists( arguments.objectName, resolved.selector, resolved.alias, adapter );
 			}
 		}
 	}
