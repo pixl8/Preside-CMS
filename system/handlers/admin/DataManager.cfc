@@ -1561,10 +1561,14 @@
 		<cfargument name="rc"                type="struct"  required="true"  />
 		<cfargument name="prc"               type="struct"  required="true"  />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default=""     />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
-		<cfargument name="successAction"     type="string"  required="false" default=""     />
+		<cfargument name="errorAction"       type="string"  required="false" default="" />
+		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="viewRecordAction"  type="string"  required="false" default="" />
+		<cfargument name="viewRecordUrl"     type="string"  required="false" default="#event.buildAdminLink( linkTo=( viewRecordAction.len() ? viewRecordAction : "datamanager.viewRecord" ), querystring="object=#arguments.object#&id={newid}" )#" />
+		<cfargument name="addAnotherAction"  type="string"  required="false" default="" />
+		<cfargument name="addAnotherUrl"     type="string"  required="false" default="#( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
@@ -1590,11 +1594,8 @@
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 				persist = formData;
 				persist.validationResult = validationResult;
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#object#" ), persistStruct=persist );
-				}
+
+				setNextEvent( url=errorUrl, persistStruct=persist );
 			}
 
 			if ( arguments.draftsEnabled ) {
@@ -1634,7 +1635,7 @@
 				return newId;
 			}
 
-			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+			newRecordLink = replaceNoCase( viewRecordUrl, "{newid}", newId, "all" );
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
@@ -1642,17 +1643,9 @@
 			] ) );
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				if ( Len( addAnotherAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
-				}
+				setNextEvent( url=addAnotherUrl, persist="_addAnother" );
 			} else {
-				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#newId#" ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
-				}
+				setNextEvent( url=replaceNoCase( successUrl, "{newid}", newId, "all" ) );
 			}
 		</cfscript>
 	</cffunction>
