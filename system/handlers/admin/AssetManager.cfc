@@ -467,12 +467,11 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prePostExempt  = true
 		);
-		var imageExtensions = "png,gif,jpg,jpeg,jpe,jif,jfif,jfi";
+		var imageExtensions = [ "png", "gif", "jpg", "jpeg", "jpe", "jif", "jfif", "jfi" ];
 		var tempFileInfo    = rc.file.tempFileInfo ?: {};
-		var fileExtensions  = listLast( tempFileInfo.serverFile, "." );
-
-		var result   = { success=true, message="",  id="" };
-		var fileName = rc.file.tempFileInfo.clientFile ?: "";
+		var fileExtension   = ListLast( tempFileInfo.serverFile, "." );
+		var result          = { success=true, message="",  id="" };
+		var fileName        = tempFileInfo.clientFile ?: "";
 
 		if ( !Len( Trim( fileName ) ) ) {
 			result.success = false;
@@ -480,7 +479,7 @@ component extends="preside.system.base.AdminHandler" {
 		} else if ( !Len( Trim( rc.asset_folder ?: "" ) ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.folder" );
-		} else if( ListFind( imageExtensions , fileExtensions ) && !isImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) {
+		} else if( imageExtensions.findNoCase( fileExtension ) && !isImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.uploader.image.format.failure" );
 
@@ -610,7 +609,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 		prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false );
-		
+
 		if ( not prc.sourceRecord.recordCount ) {
 			messageBox.error( translateResource( uri="cms:assetManager.translation.recordNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", querystring="asset=#id#" ) );
@@ -619,7 +618,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.recordLabel  = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield",  defaultValue="label" ) ] ?: "";
 		prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
 		prc.formName     = "preside-objects.#translationObjectName#.admin.edit";
-		
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:assetManager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = ""
@@ -633,7 +632,7 @@ component extends="preside.system.base.AdminHandler" {
 		var languageId            = rc.language ?: "";
 		var persist               = "";
 		var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
-		
+
 		_checkPermissions( argumentCollection=arguments, key="assets.translate" );
 		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 
