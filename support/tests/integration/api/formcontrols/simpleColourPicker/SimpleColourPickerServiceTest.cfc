@@ -31,6 +31,29 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getAvailablePalettes()", function(){
+			it( "should return a list of the default palettes", function(){
+				var service  = _getService();
+				var palettes = service.getAvailablePalettes();
+
+				expect( listLen( palettes ) ).toBe( 3 );
+				expect( listFindNoCase( palettes, "web64"    ) ).toBeTrue();
+				expect( listFindNoCase( palettes, "web216"   ) ).toBeTrue();
+				expect( listFindNoCase( palettes, "material" ) ).toBeTrue();
+			} );
+			it( "should return a list of the default and custom palettes", function(){
+				var service  = _getService();
+				service.registerPalette(
+					  name    = "custom"
+					, colours = [ "000" ]
+				);
+				var palettes = service.getAvailablePalettes();
+
+				expect( listLen( palettes ) ).toBe( 4 );
+				expect( listFindNoCase( palettes, "custom" ) ).toBeTrue();
+			} );
+		} );
+
 		describe( "registerPalette()", function(){
 			it( "should add a custom-defined palette which can then be accessed", function(){
 				var service       = _getService();
@@ -80,10 +103,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "_detectColourFormat()", function(){
+		describe( "detectColourFormat()", function(){
 			it( "should detect the colour format of a colour value passed to it", function(){
 				var service  = _getService();
-				makePublic( service, "_detectColourFormat", "detectColourFormat" );
 				
 				expect( service.detectColourFormat( "100,150,200" ) ).toBe( "rgb" );
 				expect( service.detectColourFormat( "66ff09"      ) ).toBe( "hex" );
@@ -97,36 +119,82 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "_hexToRgb()", function(){
+		describe( "isValidRgb()", function(){
+			it( "should return true with a valid RGB value", function(){
+				var service  = _getService();
+				
+				expect( service.isValidRgb( "0,0,0"       ) ).toBeTrue();
+				expect( service.isValidRgb( "100,255,200" ) ).toBeTrue();
+				expect( service.isValidRgb( "51, 102, 51" ) ).toBeTrue();
+			} );
+
+			it( "should return false with an invalid RGB value", function(){
+				var service  = _getService();
+				
+				expect( service.isValidRgb( ""           ) ).toBeFalse();
+				expect( service.isValidRgb( "fcc"        ) ).toBeFalse();
+				expect( service.isValidRgb( "0,0,100,20" ) ).toBeFalse();
+				expect( service.isValidRgb( "0,0,300"    ) ).toBeFalse();
+			} );
+		} );
+
+		describe( "isValidHex()", function(){
+			it( "should return true with a valid hex value", function(){
+				var service  = _getService();
+				
+				expect( service.isValidHex( "fcc"    ) ).toBeTrue();
+				expect( service.isValidHex( "aa09f5" ) ).toBeTrue();
+			} );
+
+			it( "should return false with an invalid hex value", function(){
+				var service  = _getService();
+				
+				expect( service.isValidHex( ""        ) ).toBeFalse();
+				expect( service.isValidHex( "fcca"    ) ).toBeFalse();
+				expect( service.isValidHex( "aa235g"  ) ).toBeFalse();
+				expect( service.isValidHex( "0,0,300" ) ).toBeFalse();
+			} );
+		} );
+
+		describe( "hexToRgb()", function(){
 			it( "should convert a hex colour to RGB", function(){
 				var service  = _getService();
-				makePublic( service, "_hexToRgb", "hexToRgb" );
 				
 				expect( service.hexToRgb( "fcc"    ) ).toBe( "255,204,204" );
 				expect( service.hexToRgb( "66ff09" ) ).toBe( "102,255,9"   );
 			} );
+			it( "should throw an error if invalid hex colour is provided", function(){
+				var service  = _getService();
+
+				expect( function() {
+					service.hexToRgb( "ffaaee9" );
+				} ).toThrow( type="SimpleColourPicker.invalidHexColour" );
+			} );
 		} );
 
-		describe( "_rgbToHex()", function(){
+		describe( "rgbToHex()", function(){
 			it( "should convert an RGB colour to hex", function(){
 				var service  = _getService();
-				makePublic( service, "_rgbToHex", "rgbToHex" );
 				
 				expect( service.rgbToHex( "102,255,9" ) ).toBe( "66ff09" );
+			} );
+			it( "should throw an error if invalid RGB colour is provided", function(){
+				var service  = _getService();
+
 				expect( function() {
 					service.rgbToHex( "0,0,300" );
 				} ).toThrow( type="SimpleColourPicker.invalidRgbColour" );
 			} );
 		} );
 
-		describe( "_toHex()", function(){
+		describe( "_toHexPair()", function(){
 			it( "should convert a base 10 value to a hex pair", function(){
 				var service  = _getService();
-				makePublic( service, "_toHex", "toHex" );
+				makePublic( service, "_toHexPair", "toHexPair" );
 				
-				expect( service.toHex( "0"  ) ).toBe( "00" );
-				expect( service.toHex( "10" ) ).toBe( "0a" );
-				expect( service.toHex( "51" ) ).toBe( "33" );
+				expect( service.toHexPair( "0"  ) ).toBe( "00" );
+				expect( service.toHexPair( "10" ) ).toBe( "0a" );
+				expect( service.toHexPair( "51" ) ).toBe( "33" );
 			} );
 		} );
 
