@@ -30795,6 +30795,11 @@ fieldset[disabled] .presidecms .btn {
   margin-left: 0;
   padding-left: 0;
 }
+.presidecms .preside-theme .dropdown-menu.dropdown-navbar .dropdown-header,
+.presidecms .preside-theme .dropdown-menu.dropdown-navbar > li > a {
+  padding-left: 5px;
+  padding-right: 5px;
+}
 .presidecms .preside-theme .sitewide-alert {
   margin-bottom: 0;
 }
