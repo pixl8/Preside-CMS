@@ -211,7 +211,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * @selectFields.hint Array of select fields as passed into the presideObjectService.selectData() method
 	 */
 	public void function mixinTranslationSpecificSelectLogicToSelectDataCall( required string objectName, required array selectFields ) {
-		var adapter = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );  // Database adapter to be used in generating the select query SQL
+		var adapter = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );
 
 		for( var i=1; i <= arguments.selectFields.len(); i++ ) {
 			var field = arguments.selectFields[ i ];
