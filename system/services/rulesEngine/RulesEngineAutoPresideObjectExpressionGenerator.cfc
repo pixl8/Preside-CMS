@@ -100,11 +100,15 @@ component {
 				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 
 				if ( !arguments.parentObjectName.len() ) {
-					var uniqueIndexes = ListToArray( propertyDefinition.uniqueIndexes ?: "" );
-					for( var ux in uniqueIndexes ) {
-						if ( ListLen( ux, "|" ) == 1 ) {
-							expressions.append( _createExpressionsForOneToOneRelationship( objectName, propertyDefinition ), true );
-							break;
+					if ( IsBoolean( propertyDefinition.autoGenerateFilterExpressions ?: "" ) && propertyDefinition.autoGenerateFilterExpressions ) {
+						expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition ), true );
+					} else {
+						var uniqueIndexes = ListToArray( propertyDefinition.uniqueIndexes ?: "" );
+						for( var ux in uniqueIndexes ) {
+							if ( ListLen( ux, "|" ) == 1 ) {
+								expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition ), true );
+								break;
+							}
 						}
 					}
 				}
@@ -448,7 +452,7 @@ component {
 		};
 	}
 
-	private array function _createExpressionsForOneToOneRelationship(
+	private array function _createExpressionsForRelatedObjectProperties(
 		  required string objectName
 		, required struct propertyDefinition
 	) {
