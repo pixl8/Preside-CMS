@@ -1,67 +1,47 @@
+html {
+  margin-top: 45px !important;
+}
 .preside-admin-toolbar {
   width: 100%;
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   font-family: 'Preside Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   z-index: 103;
   color: white;
   background-color: #2c3d4e;
+  padding: 0 10px;
 }
 .preside-admin-toolbar h1 {
-  width: 127px;
+  width: 177px;
   height: 45px;
   text-indent: -9999px;
   background: url(../../../images/logos/logo-preside-admin-header.png ) no-repeat left center;
   float: left;
-  margin: 5px;
-}
-.preside-admin-toolbar .preside-admin-toolbar-actions {
-  position: relative;
-  float: right;
-  height: 55px;
   margin: 0;
 }
-.preside-admin-toolbar .preside-admin-toolbar-actions li {
-  float: left;
-  padding: 0 10px;
-  height: 55px;
-  border-left: 1px solid #4e687d;
-  border-right: 1px solid #273b4c;
+.preside-admin-toolbar a,
+.preside-admin-toolbar span,
+.preside-admin-toolbar p,
+.preside-admin-toolbar li,
+.preside-admin-toolbar label {
+  font-size: 13px;
 }
-.preside-admin-toolbar .preside-admin-toolbar-actions li:first-child {
-  border-left: none;
+.preside-admin-toolbar .nav li {
+  margin-left: 0px !important;
+  margin-bottom: 0px !important;
+  list-style: none;
 }
-.preside-admin-toolbar .preside-admin-toolbar-actions .edit-mode-toggle-container {
-  position: relative;
-  float: left;
-  margin-top: 17px;
+.preside-admin-toolbar .nav li:before {
+  content: unset;
 }
-.preside-admin-toolbar .preside-admin-toolbar-actions .view-in-tree-link {
-  float: right;
-  display: block;
-  margin-top: 17px;
-  margin-left: 4px;
-  color: #ffffff;
-  line-height: 23px;
+.preside-admin-toolbar .nav li.no-border-left,
+.preside-admin-toolbar .nav li.no-border-left.open {
+  border-left-width: 0!important;
 }
-.preside-admin-toolbar .preside-admin-toolbar-actions .nav-user-photo {
-  margin: 8px 5px 0 0;
-  border-radius: 100%;
-  border: 2px solid #ffffff;
-  max-width: 40px;
-  text-decoration: none;
-}
-.preside-admin-toolbar .preside-admin-toolbar-actions .logout-link {
-  color: white;
-  position: relative;
-  top: 6px;
-}
-.preside-admin-toolbar .preside-admin-toolbar-actions .logout-link:hover {
-  text-decoration: none;
-}
-.preside-admin-toolbar .preside-admin-toolbar-actions label {
-  font-size: 12px;
+.preside-admin-toolbar .nav li.no-border-left::after,
+.preside-admin-toolbar .nav li.no-border-left.open::after {
+  content: unset;
 }
 body {
   padding-bottom: 100px !important;

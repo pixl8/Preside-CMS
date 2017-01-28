@@ -14276,7 +14276,7 @@ ul.attachment-list > li {
 }
 .timeline-item {
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 30px;
 }
 .timeline-item .widget-box {
   background-color: #F2F6F9;
@@ -14292,15 +14292,8 @@ ul.attachment-list > li {
 .timeline-item .transparent .widget-header > .widget-title {
   margin-left: 8px;
 }
-.timeline-item:nth-child(even) .widget-box {
-  background-color: #F3F3F3;
-  color: #616161;
-}
-.timeline-item:nth-child(even) .widget-box.transparent {
-  border-left-color: #DBDBDB !important;
-}
-.timeline-item:nth-child(even) .widget-box.transparent .widget-header {
-  background-color: #EEE !important;
+.timeline-item .transparent .widget-header > .widget-title > .fa {
+  margin-right: 0;
 }
 .timeline-item .widget-box {
   margin: 0;
@@ -14329,10 +14322,6 @@ ul.attachment-list > li {
   text-align: center;
   position: relative;
 }
-.timeline-info img {
-  border-radius: 100%;
-  max-width: 42px;
-}
 .timeline-info .label,
 .timeline-info .badge {
   font-size: 12px;
@@ -14357,10 +14346,12 @@ ul.attachment-list > li {
   margin: 0 0 18px;
   margin-left: 34px;
 }
-.timeline-item img {
+.timeline-info img {
   border: 1px solid #AAA;
   padding: 2px;
   background-color: #FFF;
+  border-radius: 100%;
+  max-width: 42px;
 }
 .timeline-style2:before {
   display: none;

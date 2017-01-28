@@ -1106,6 +1106,14 @@
       img.onload = (function(_this) {
         return function() {
           var canvas, ctx, resizeInfo, thumbnail, _ref, _ref1, _ref2, _ref3;
+          var orientation = 0;
+          EXIF.getData(img, function() {
+            switch(parseInt(EXIF.getTag(this, "Orientation"))){
+              case 3: orientation = 180; break;
+              case 6: orientation = -90; break;
+              case 8: orientation = 90; break;
+            }
+          });
           file.width = img.width;
           file.height = img.height;
           resizeInfo = _this.options.resize.call(_this, file);
@@ -1119,7 +1127,7 @@
           ctx = canvas.getContext("2d");
           canvas.width = resizeInfo.trgWidth;
           canvas.height = resizeInfo.trgHeight;
-          drawImageIOSFix(ctx, img, (_ref = resizeInfo.srcX) != null ? _ref : 0, (_ref1 = resizeInfo.srcY) != null ? _ref1 : 0, resizeInfo.srcWidth, resizeInfo.srcHeight, (_ref2 = resizeInfo.trgX) != null ? _ref2 : 0, (_ref3 = resizeInfo.trgY) != null ? _ref3 : 0, resizeInfo.trgWidth, resizeInfo.trgHeight);
+          drawImageIOSFix(orientation, ctx, img, (_ref = resizeInfo.srcX) != null ? _ref : 0, (_ref1 = resizeInfo.srcY) != null ? _ref1 : 0, resizeInfo.srcWidth, resizeInfo.srcHeight, (_ref2 = resizeInfo.trgX) != null ? _ref2 : 0, (_ref3 = resizeInfo.trgY) != null ? _ref3 : 0, resizeInfo.trgWidth, resizeInfo.trgHeight);
           thumbnail = canvas.toDataURL("image/png");
           _this.emit("thumbnail", file, thumbnail);
           if (callback != null) {
@@ -1691,9 +1699,14 @@
     }
   };
 
-  drawImageIOSFix = function(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+  drawImageIOSFix = function(o, ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
     var vertSquashRatio;
     vertSquashRatio = detectVerticalSquash(img);
+    dh = dh / vertSquashRatio;
+    ctx.translate( dx+dw/2, dy+dh/2 );
+    ctx.rotate(-o*Math.PI/180);
+    dx = -dw/2;
+    dy = -dh/2;
     return ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio);
   };
 

@@ -19,3 +19,5 @@ layouts, etc.<div class="table-responsive"><table class="table table-condensed">
 * [[formbuilderrenderingservice-getitemtypeviewlet]]
 * [[formbuilderrenderingservice-getformfieldlayoutviewlet]]
 * [[formbuilderrenderingservice-getformlayoutviewlet]]
+* [[formbuilderrenderingservice-getitemtypeexportcolumns]]
+* [[formbuilderrenderingservice-getactionviewlet]]

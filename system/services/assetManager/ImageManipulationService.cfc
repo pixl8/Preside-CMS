@@ -30,6 +30,7 @@ component displayname="Image Manipulation Service" {
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
+		,          string  gravity             = 'center'
 	) {
        	return _getImplementation().resize( argumentCollection = arguments);
 	}

@@ -147,7 +147,7 @@ component extends="BaseAdapter" {
 	}
 
 	public string function getTableDefinitionSql( required string tableName, required string columnSql ) {
-		return 'create table '& arguments.tableName &' ( '& arguments.columnSql &' ) ';
+		return 'create table '& escapeEntity( arguments.tableName ) &' ( '& arguments.columnSql &' ) ';
 	}
 
 	public string function getDropForeignKeySql( required string foreignKeyName, required string tableName) {
@@ -217,9 +217,9 @@ component extends="BaseAdapter" {
 		var sql = "delete from "
 
 		if(Len( Trim( arguments.tableAlias ) ) ) {
-			sql &= arguments.tableName & ' as ' & arguments.tableAlias;
+			sql &= escapeEntity( arguments.tableName ) & ' as ' & escapeEntity( arguments.tableAlias );
 		} else {
-			sql &= arguments.tableName;
+			sql &= escapeEntity( arguments.tableName );
 		}
 
 		return sql & getClauseSql(
@@ -241,6 +241,7 @@ component extends="BaseAdapter" {
 		,          boolean distinct      = false
 
 	) {
+		var newGroupBy  = "";
 		var sql         = arguments.distinct ? "select distinct" : "select";
 		var delim       = " ";
 		var col         = "";
@@ -249,10 +250,19 @@ component extends="BaseAdapter" {
 			sql &= delim & col;
 			delim = ", ";
 		}
+		if ( containsAggregateFunctions( sql ) ) {
+			delim = " ";
+			for( col in arguments.selectColumns ){
+				if ( !containsAggregateFunctions( col ) ) {
+					newGroupBy &= delim & REReplace(col, "as\s\w+", "", "one");
+					delim = ", ";
+				}
+			}
+		}
 
-		sql &= " from " & arguments.tableName ;
+		sql &= " from " & escapeEntity( arguments.tableName ) ;
 		if ( Len( arguments.tableAlias ) ) {
-			sql &= " " & arguments.tableAlias ;
+			sql &= " " & escapeEntity( arguments.tableAlias ) ;
 		}
 
 		if ( ArrayLen( arguments.joins ) ) {
@@ -265,14 +275,15 @@ component extends="BaseAdapter" {
 
 		sql &= getClauseSql( tableAlias = arguments.tableAlias, filter = arguments.filter );
 
+
 		if ( Len( Trim ( arguments.groupBy ) ) ) {
-			sql &= " group by " & arguments.groupBy;
-			if ( ArrayLen( arguments.joins ) ) {
-				for( aliasCol in arguments.joins) {
-					sql &= ", #aliasCol.tableAlias#.#aliasCol.tableColumn#"
-				}
+			if ( containsAggregateFunctions( sql ) ) {
+				sql &= " group by " & newGroupBy;
+			} else {
+				sql = reCompileGroupByForPostgreSql( sql, arguments.selectColumns, arguments.groupBy, arguments.tableAlias );
 			}
 		}
+
 
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
@@ -294,6 +305,43 @@ component extends="BaseAdapter" {
 		, required string  tableName
 	) {
 		return "alter table "& escapeEntity(arguments.tableName) &" "&( arguments.checksEnabled ? 'enable' : 'disable' ) & " trigger all";
+	}
+
+		private string function reCompileGroupByForPostgreSql( string sql, array select, string groupBy, string tableAlias ) {
+		var sqlNonGroupBy      = arguments.sql;
+		var strNonGroupBy      = Replace( arguments.groupBy, "group by", "", "all" );
+		var arrColumnInGroupBy = ListToArray( strNonGroupBy, ", " );
+		var newSql             = "select";
+		var delim              = " ";
+		var col                = "";
+
+		for( col in arrColumnInGroupBy ){
+			newSql &= delim & col;
+			delim  = ", ";
+		}
+
+		newSql = REReplace( arguments.sql, "select.*?from", newSql & " from ", "one" );
+		newSql = " , ( " & newSql & " group by "  & strNonGroupBy & " ) as Temp ";
+		delim = " ";
+
+		if ( FindNoCase( "where", sqlNonGroupBy, 1 ) > 0 ) {
+			newSql = Replace( sqlNonGroupBy, "where", newSql & " where ", "one" );
+			for( col in arrColumnInGroupBy) {
+				newSql &=" and " & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
+			}
+		} else {
+			newSql &= " where ";
+			for( col in arrColumnInGroupBy ) {
+				newSql &= delim & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
+				delim = " and ";
+			}
+		}
+
+		return newSql;
+	}
+
+	private boolean function containsAggregateFunctions( required string sql ) {
+		return ReFindNoCase( "\b(SUM|COUNT|AVG|MIN|MAX)\(", arguments.sql );
 	}
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
@@ -394,7 +442,8 @@ component extends="BaseAdapter" {
 			var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
 
 			if ( arguments.autoIncrement ) {
-				columnType &= " serial";
+				// "serial" doesn't work for ALTER - it's just a convenience type for column creation
+				columnType &= " int";
 				arguments.maxLength = 0;
 			} else {
 				switch( arguments.dbType ) {
@@ -435,7 +484,7 @@ component extends="BaseAdapter" {
 				columnType &= " primary key";
 			}
 
-			columnAlter['columnSet'] = ( isNullable ? "" : escapeEntity( arguments.columnName ) & " Set not null" );
+			columnAlter['columnSet'] = escapeEntity( arguments.columnName ) & ( isNullable ? " Drop not null" : " Set not null" );
 			columnAlter['columnType'] = columnType;
 			return columnAlter;
    }

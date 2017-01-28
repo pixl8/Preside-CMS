@@ -12,6 +12,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="version_number"    type="numeric" dbtype="int"                       required=true  uniqueindexes="assetversion|2";
 
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true  uniqueindexes="assetversionpath";
+	property name="asset_url"         type="string"  dbtype="varchar" maxLength=255     required=false uniqueindexes="assetversionurl";
 	property name="size"              type="numeric" dbtype="int"                       required=true;
 	property name="asset_type"        type="string"  dbtype="varchar" maxLength=10      required=true;
 	property name="raw_text_content"  type="string"  dbtype="longtext";

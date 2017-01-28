@@ -18,6 +18,7 @@ abstract logic for storing and retrieving user uploaded files.<div class="table-
 * [[storageprovider-validate]]
 * [[storageprovider-putobject]]
 * [[storageprovider-getobjecturl]]
+* [[storageprovider-moveobject]]
 * [[storageprovider-objectexists]]
 * [[storageprovider-deleteobject]]
 * [[storageprovider-listobjects]]

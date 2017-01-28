@@ -1,0 +1,98 @@
+@import url( 'globals.less' );
+
+.presidecms {
+
+	.rules-engine-condition-builder {
+		.rules-engine-condition-builder-condition-pane {
+			height     : 439px;
+			overflow-y : auto;
+			padding    : 0;
+
+			&.ui-droppable-hover {
+			    -webkit-box-box-shadow : 0px 0px 5px @default-input-hover-glow-colour !important;
+			    -moz-box-box-shadow    : 0px 0px 5px @default-input-hover-glow-colour !important;
+			    box-shadow             : 0px 0px 5px @default-input-hover-glow-colour !important;
+			}
+		}
+
+		.rules-engine-condition-builder-rule-list {
+			a {
+				cursor        : pointer;
+				border-left   : 1px solid @frontendeditor-overlay-label-border-colour;
+				border-right  : 1px solid @frontendeditor-overlay-label-border-colour;
+				border-radius : 5px;
+				padding       : 0 5px;
+			}
+
+			li {
+				padding  : 5px;
+				cursor   : default;
+				overflow : auto;
+
+				&:hover {
+					background-color : @default-row-hover-colour;
+
+					.rules-engine-condition-builder-expression-actions {
+						display          : block;
+					}
+				}
+			}
+
+			.rules-engine-condition-builder-expression-text {
+				display : block;
+				float   : left;
+				width   : calc(~"95% - 7em");
+			}
+
+			.rules-engine-condition-builder-expression-actions {
+				display    : none;
+				float      : right;
+				text-align : right;
+
+				a {
+					border        : none;
+					border-radius : 0;
+					padding       : 0;
+					color         : @grey12;
+
+					&:hover {
+						color : @grey10;
+					}
+				}
+			}
+
+			.rules-engine-condition-builder-expression-join {
+				padding : 1px 5px;
+			}
+		}
+
+		.rules-engine-condition-builder-expressions-list {
+			height     : 400px;
+			overflow-y : auto;
+			padding    : 0;
+
+			.ui-draggable {
+				padding : 2px 6px;
+				cursor  : move;
+
+				&.ui-draggable-dragging {
+					background : @white;
+					width      : 400px;
+					border     : 2px dashed @default-panel-border-colour;
+				}
+			}
+		}
+	}
+
+	.form-group.has-error {
+		.rules-engine-condition-builder-expression-search,
+		.rules-engine-condition-builder-expressions-list {
+			border-color : @default-input-border-colour;
+		}
+
+		.rules-engine-condition-builder-condition-pane {
+			border-color : @default-input-error-border-colour;
+		}
+	}
+}
+

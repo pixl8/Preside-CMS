@@ -1,6 +1,14 @@
 <cfscript>
-	postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
-	message      = rc.message ?: "";
+	postLoginUrl           = event.getValue( name="postLoginUrl", defaultValue="" );
+	message                = rc.message ?: "";
+	isRememberMeEnabled    = IsTrue( prc.isRememberMeEnabled );
+	rememberMeExpiryInDays = Val( prc.rememberMeExpiryInDays ?: 30 );
+
+	if ( rememberMeExpiryInDays == 1 ) {
+		rememberMeLabel = translateResource( uri="cms:login.remember.me.single.day.label" );
+	} else {
+		rememberMeLabel = translateResource( uri="cms:login.remember.me.label", data=[ rememberMeExpiryInDays ] );
+	}
 </cfscript>
 
 <cfoutput>
@@ -49,6 +57,17 @@
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>
+
+							<cfif isRememberMeEnabled>
+								<div class="checkbox clearfix">
+									<label class="block">
+										<span class="block">
+											<input type="checkbox" name="rememberme" value="true" />
+											#rememberMeLabel#
+										</span>
+									</label>
+								</div>
+							</cfif>
 
 							<div class="space"></div>
 

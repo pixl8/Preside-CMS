@@ -14,7 +14,7 @@ component {
 	public void function setVar(
 		  required string  name
 		, required any     value
-		,          numeric expires  = 0
+		,          string  expires  = 0
 		,          boolean secure   = false
 		,          string  path     = ""
 		,          string  domain   = ""
@@ -27,7 +27,7 @@ component {
 			, httpOnly = arguments.httpOnly
 		}
 
-		if ( arguments.expires ) {
+		if ( Len( Trim( arguments.expires ) ) && arguments.expires != 0 ) {
 			args.expires = arguments.expires;
 		}
 

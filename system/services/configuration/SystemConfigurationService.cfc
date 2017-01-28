@@ -13,12 +13,20 @@ component displayName="System configuration service" {
 	 * @dao.inject                     presidecms:object:system_config
 	 * @injectedConfig.inject          coldbox:setting:injectedConfig
 	 * @formsService.inject            delayedInjector:formsService
+	 * @siteService.inject             delayedInjector:siteService
 	 */
-	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig, required any formsService ) {
+	public any function init(
+		  required array  autoDiscoverDirectories
+		, required any    dao
+		, required struct injectedConfig
+		, required any    formsService
+		, required any    siteService
+	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao )
 		_setInjectedConfig( arguments.injectedConfig );
 		_setFormsService( arguments.formsService );
+		_setSiteService( arguments.siteService );
 		_setLoaded( false );
 
 		return this;
@@ -38,10 +46,21 @@ component displayName="System configuration service" {
 	public string function getSetting( required string category, required string setting, string default="" ) {
 		_reloadCheck();
 
-		var injected = _getInjectedConfig();
-		var result   = _getDao().selectData(
+		var injected   = _getInjectedConfig();
+		var activeSite = _getSiteService().getActiveSiteId();
+		var result     = _getDao().selectData(
 			  selectFields = [ "value" ]
-			, filter       = { category = arguments.category, setting = arguments.setting }
+			, filter       = { category = arguments.category, setting = arguments.setting, site=activeSite }
+		);
+
+		if ( result.recordCount ) {
+			return result.value;
+		}
+
+		result = _getDao().selectData(
+			  selectFields = [ "value" ]
+			, filter       = "category = :category and setting = :setting and site is null"
+			, filterParams = { category = arguments.category, setting = arguments.setting }
 		);
 
 		if ( result.recordCount ) {
@@ -56,29 +75,53 @@ component displayName="System configuration service" {
 	 * See [[editablesystemsettings]] for a full guide.
 	 *
 	 * @autodoc
-	 * @category.hint The name of the category who's settings you wish to get
+	 * @category.hint           The name of the category who's settings you wish to get
+	 * @includeDefaults.hint    Whether to include default global and injected settings or whether to just return the settings for the current site
+	 * @globalDefaultsOnly.hint Whether to only include default global and injected settings or whether to include all amalgamated settings
 	 *
 	 */
-	public struct function getCategorySettings( required string category ) {
+	public struct function getCategorySettings(
+		  required string  category
+		,          boolean includeDefaults    = true
+		,          boolean globalDefaultsOnly = false
+		,          string  siteId             = _getSiteService().getActiveSiteId()
+	) {
 		_reloadCheck();
 
-		var rawResult = _getDao().selectData(
-			  selectFields = [ "setting", "value" ]
-			, filter       = { category = arguments.category }
-		);
 		var result = {};
-		var injectedStartsWith = "#arguments.category#.";
 
-		for( var record in rawResult ){
-			result[ record.setting ] = record.value;
+		if ( !arguments.globalDefaultsOnly ) {
+			var rawSiteResult = _getDao().selectData(
+				  selectFields = [ "setting", "value" ]
+				, filter       = { category = arguments.category, site=arguments.siteId }
+			);
+
+			for( var record in rawSiteResult ){
+				result[ record.setting ] = record.value;
+			}
 		}
 
-		var injected = _getInjectedConfig().filter( function( key ){ return key.startsWith( injectedStartsWith ) } );
-		for( var key in injected ) {
-			var setting = ListRest( key, "." );
+		if ( arguments.includeDefaults ) {
+			var injectedStartsWith = "#arguments.category#.";
+			var rawGlobalResult    = _getDao().selectData(
+				  selectFields = [ "setting", "value" ]
+				, filter       = "category = :category and site is null"
+				, filterParams = { category = arguments.category }
+			);
 
-			if ( !result.keyExists( setting ) ) {
-				result[ setting ] = injected[ key ];
+			for( var record in rawGlobalResult ){
+				if ( !result.keyExists( record.setting ) ) {
+					result[ record.setting ] = record.value;
+				}
+			}
+
+			var injected = _getInjectedConfig().filter( function( key ){ return key.startsWith( injectedStartsWith ) } );
+			for( var key in injected ) {
+				var setting = ListRest( key, "." );
+
+				if ( !result.keyExists( setting ) ) {
+					result[ setting ] = injected[ key ];
+				}
 			}
 		}
 
@@ -93,17 +136,34 @@ component displayName="System configuration service" {
 	 * @category.hint  Category name of the setting to save
 	 * @setting.hint   Name of the setting to save
 	 * @value.hint     Value to save
+	 * @siteId.hint    ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
 	 *
 	 */
-	public any function saveSetting( required string category, required string setting, required string value )  {
+	public any function saveSetting(
+		  required string category
+		, required string setting
+		, required string value
+		,          string siteId = ""
+	)  {
 		_reloadCheck();
 
 		var dao = _getDao();
 
 		transaction {
+			var filter = "category = :category and setting = :setting and site ";
+			var params = { category = arguments.category, setting = arguments.setting };
+
+			if ( Len( Trim( arguments.siteId ) ) ) {
+				filter &= "= :site";
+				params.site = arguments.siteId;
+			} else {
+				filter &= "is null";
+			}
+
 			var currentRecord = dao.selectData(
 				  selectFields = [ "id" ]
-				, filter       = { category = arguments.category, setting = arguments.setting }
+				, filter       = filter
+				, filterParams = params
 			);
 
 			if ( currentRecord.recordCount ) {
@@ -113,10 +173,37 @@ component displayName="System configuration service" {
 				);
 			} else {
 				return dao.insertData(
-					data = { category = arguments.category, setting = arguments.setting, value = arguments.value }
+					data = {
+						  category = arguments.category
+						, setting  = arguments.setting
+						, value    = arguments.value
+						, site     = arguments.siteId
+					}
 				);
 			}
 		}
+	}
+
+	public any function deleteSetting(
+		  required string category
+		, required string setting
+		,          string siteId = ""
+	)  {
+		_reloadCheck();
+
+		var dao    = _getDao();
+		var filter = "category = :category and setting = :setting and site ";
+		var params = { category = arguments.category, setting = arguments.setting };
+
+		if ( Len( Trim( arguments.siteId ) ) ) {
+			filter &= "= :site";
+			params.site = arguments.siteId;
+		}
+
+		return dao.deleteData(
+			  filter       = filter
+			, filterParams = params
+		);
 	}
 
 	public array function listConfigCategories() {
@@ -189,6 +276,7 @@ component displayName="System configuration service" {
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
 			, icon             = _getConventionsBaseCategoryIcon( arguments.id )
 			, form             = _getConventionsBaseCategoryForm( arguments.id )
+			, siteForm         = _getConventionsBaseSiteCategoryForm( arguments.id )
 		);
 	}
 
@@ -203,6 +291,26 @@ component displayName="System configuration service" {
 	}
 	private string function _getConventionsBaseCategoryForm( required string id ) {
 		return "system-config.#arguments.id#";
+	}
+	private string function _getConventionsBaseSiteCategoryForm( required string id ) {
+		var fullFormName = _getConventionsBaseCategoryForm( arguments.id );
+
+		return _getFormsService().createForm( basedOn=fullFormName, generator=function( definition ){
+			var rawForm = definition.getRawDefinition();
+			var tabs    = rawForm.tabs ?: [];
+
+			for( var tab in tabs ) {
+				var fieldsets = tab.fieldsets ?: [];
+
+				for ( var fieldset in tab.fieldsets ) {
+					var fields = fieldset.fields ?: [];
+
+					for( var field in fields ) {
+						definition.modifyField( name=field.name ?: "", fieldset=fieldset.id ?: "", tab=tab.id ?: "", required=false );
+					}
+				}
+			}
+		} );
 	}
 
 	private void function _reloadCheck() {
@@ -253,5 +361,12 @@ component displayName="System configuration service" {
 	}
 	private void function _setLoaded( required boolean loaded ) {
 		_loaded = arguments.loaded;
+	}
+
+	private any function _getSiteService() {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) {
+		_siteService = arguments.siteService;
 	}
 }

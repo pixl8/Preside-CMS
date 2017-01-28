@@ -175,6 +175,11 @@ settings.assetmanager.folders.profileImages = {
           , nonMembers = { label="Non-Members", hidden=false }
       }
 };
+
+settings.assetmanager.location.public    = ExpandPath( "/uploads/public" );
+settings.assetmanager.location.private   = ExpandPath( "/uploads/private" );
+settings.assetmanager.location.trash     = ExpandPath( "/uploads/.trash" );
+settings.assetmanager.location.publicUrl = "//static.mysite.com/";
 ```
 
 ## File types
@@ -390,16 +395,28 @@ error.creating.directory=The directory, {1}, does not exist and could not be cre
 
 The asset manager system works out of the box without the need to configure any storage locations through the UI. For this, it uses a default configured storage provider through Wirebox. The core configuration of this provider is located at `/system/config/Wirebox.cfc` and looks like this:
 
-```
+```luceescript
 map( "assetStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
-    .initArg( name="rootDirectory" , value=settings.uploads_directory & "/assets" )
-    .initArg( name="trashDirectory", value=settings.uploads_directory & "/.trash" )
-    .initArg( name="rootUrl"       , value="" );
+    .initArg( name="rootDirectory"   , value=settings.assetmanager.storage.public    )
+    .initArg( name="privateDirectory", value=settings.assetmanager.storage.private   )
+    .initArg( name="trashDirectory"  , value=settings.assetmanager.storage.trash     )
+    .initArg( name="rootUrl"         , value=settings.assetmanager.storage.publicUrl );
 ```
 
 #### Overriding the default storage location
 
-This can be done in two ways. Firstly, you could change `settings.uploads_directory` to be a full path to a directory other than the default. This might be a mounted shared drive for example, or just a directory outside of the webroot (recommended). The second option would be to manually configure an entirely different Storage provider that maps to "assetStorageProvider". This would be done in your site's `/config/Wirebox.cfc` file, for example:
+This can be done in two ways. Firstly, you could change `settings.assetmanager.storage` settings to point to different physical paths (or full mapped ftp/s3/etc Lucee paths). This might be a mounted shared drive for example, or just a directory outside of the webroot (recommended). This can also be achieved with environment variables, for example:
+
+```
+# env vars:
+PRESIDE_assetmanager.storage.public=sftp://user:pass@server.com/public
+PRESIDE_assetmanager.storage.private=sftp://user:pass@server.com/private
+PRESIDE_assetmanager.storage.trash=sftp://user:pass@server.com/.trash
+PRESIDE_assetmanager.storage.publicUrl=//static.mysite.com
+```
+
+
+The second option would be to manually configure an entirely different Storage provider that maps to "assetStorageProvider". This would be done in your site's `/config/Wirebox.cfc` file, for example:
 
 ```luceescript
 component extends="preside.system.config.WireBox" {

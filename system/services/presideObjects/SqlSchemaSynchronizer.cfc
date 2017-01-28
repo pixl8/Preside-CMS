@@ -151,18 +151,19 @@ component {
 		,          struct relationships = {}
 
 	) {
-		var adapter   = _getAdapter( dsn = arguments.dsn );
-		var columnSql = "";
-		var colName   = "";
-		var column    = "";
-		var delim     = "";
-		var args      = "";
-		var colMeta   = "";
-		var indexName = "";
-		var index     = "";
-		var fkName    = "";
-		var fk        = "";
-		var sql       = {
+		var adapter        = _getAdapter( dsn = arguments.dsn );
+		var columnSql      = "";
+		var colName        = "";
+		var column         = "";
+		var delim          = "";
+		var args           = "";
+		var colMeta        = "";
+		var indexName      = "";
+		var validIndexName = "";
+		var index          = "";
+		var fkName         = "";
+		var fk             = "";
+		var sql            = {
 			  columns = {}
 			, indexes = {}
 			, table   = { version="", sql="" }
@@ -192,7 +193,15 @@ component {
 
 
 		for( indexName in arguments.indexes ){
-			index = arguments.indexes[ indexName ];
+			index          = arguments.indexes[ indexName ];
+			validIndexName = adapter.ensureValidIndexName( indexName );
+
+			if ( indexName != validIndexName ) {
+			    arguments.indexes[ validIndexName ] = index;
+			    arguments.indexes.delete( indexName );
+			    indexName = validIndexName;
+			}
+
 			sql.indexes[ indexName ] = {
 				createSql = adapter.getIndexSql(
 					  indexName = indexName

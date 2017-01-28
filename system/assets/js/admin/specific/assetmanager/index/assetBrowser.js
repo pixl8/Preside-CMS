@@ -60,13 +60,28 @@
 
 			$allCBoxes.each( function(){
 				this.checked = $selectAllCBox.is( ':checked' );
-				$(this).closest('tr').toggleClass('selected');
+				if( this.checked ) {
+					$( this ).closest( 'tr' ).addClass( 'selected' );
+				} else {
+					$( this ).closest( 'tr' ).removeClass( 'selected' );
+				}
 			});
+		});
+
+		$listingTable.on( 'click', 'tbody :checkbox', function(){
+			var $cbox = $( this );
+			$cbox.closest( 'tr' ).toggleClass( 'selected', $cbox.is( ':checked' ) );
 		});
 
 		$multiActionBtns.data( 'hidden', true );
 		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
 			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
+
+			if( anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length ) {
+				$selectAllCBox.prop( 'checked', true );
+			} else {
+				$selectAllCBox.prop( 'checked', false );
+			}
 
 			enabledContextHotkeys( !anyBoxesTicked );
 

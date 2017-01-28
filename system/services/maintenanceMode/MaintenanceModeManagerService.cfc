@@ -3,7 +3,8 @@
  * for all APIs to do with managing maintenance
  * mode.
  *
- * @singleton true
+ * @singleton
+ * @presideService
  */
 component {
 
@@ -48,10 +49,20 @@ component {
 			, bypassPassword  = arguments.settings.bypass_password ?: ""
 			, allowedIps      = ListToArray( arguments.settings.ip_whitelist ?: "", Chr(10) & Chr(13) & "," )
 		);
+
+		$audit(
+			  action = "activate_maintenance_mode"
+			, type   = "maintenancemode"
+		);
 	}
 
 	private void function _deactivateMaintenanceMode() {
 		_getMaintenanceModeService().clearMaintenanceMode();
+
+		$audit(
+			  action = "deactivate_maintenance_mode"
+			, type   = "maintenancemode"
+		);
 	}
 
 	private string function _generateMaintenanceModePage( required struct settings ) {

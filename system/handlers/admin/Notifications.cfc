@@ -20,27 +20,33 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getNotificationsForAjaxDataTables( event, rc, prc ) {
-		var topic               = ( rc.topic ?: "" )
+		var topic               = ( rc.topic    ?: "" )
+		var dateFrom            = ( rc.dateFrom ?: "" )
+		var dateTo              = ( rc.dateTo   ?: "" )
 		var checkboxCol         = [];
 		var optionsCol          = [];
-		var gridFields          = [ "data", "datecreated" ];
+		var gridFields          = [ "topic", "data", "datecreated" ];
 		var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 		var totalNotifications  = notificationService.getNotificationsCount(
 			  userId = event.getAdminUserId()
 			, topic  = topic
 		);
-		var notifications       = notificationService.getNotifications(
+
+
+		var notifications = notificationService.getNotifications(
 			  userId      = event.getAdminUserId()
 			, topic       = topic
+			, dateFrom    = dateFrom
+			, dateTo      = dateTo
 			, startRow    = dtHelper.getStartRow()
 			, maxRows     = dtHelper.getMaxRows()
 			, orderBy     = dtHelper.getSortOrder()
-			, searchQuery = dtHelper.getSearchQuery()
 		);
 
 		for( var record in notifications ){
 			notifications.data[ notifications.currentRow ]        = renderNotification( topic=record.topic, data=record.data, context='datatable' );
 			notifications.datecreated[ notifications.currentRow ] = renderField( object="admin_notification", property="datecreated", data=record.datecreated, context=[ "datatable", "admin" ] );
+			notifications.topic[ notifications.currentRow ]       = '<i class="fa fa-fw #translateResource( 'notifications.#notifications.topic#:iconClass', 'fa-bell' )#"></i> #translateResource( 'notifications.#notifications.topic#:title', notifications.topic )#';
 
 			ArrayAppend( checkboxCol, renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
 			ArrayAppend( optionsCol, renderView( view="/admin/notifications/_listingGridActions", args=record ) );

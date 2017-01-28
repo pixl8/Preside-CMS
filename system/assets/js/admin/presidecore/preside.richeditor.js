@@ -6,13 +6,14 @@ PresideRichEditor = ( function( $ ){
 
 	PresideRichEditor.prototype.init = function( elementToReplace ){
 		var $elementToReplace = $( elementToReplace )
-		  , config       = {}
-		  , toolbar      = $elementToReplace.data( "toolbar" )      || cfrequest.ckeditorDefaultToolbar
-		  , width        = $elementToReplace.data( "width" )        || cfrequest.ckeditorDefaultWidth
-		  , minHeight    = $elementToReplace.data( "minHeight" )    || cfrequest.ckeditorDefaultMinHeight
-		  , maxHeight    = $elementToReplace.data( "maxHeight" )    || cfrequest.ckeditorDefaultMaxHeight
-		  , customConfig = $elementToReplace.data( "customConfig" ) || cfrequest.ckeditorConfig
-		  , stylesheets  = $elementToReplace.data( "stylesheets" )
+		  , config           = {}
+		  , toolbar          = $elementToReplace.data( "toolbar" )          || cfrequest.ckeditorDefaultToolbar
+		  , width            = $elementToReplace.data( "width" )            || cfrequest.ckeditorDefaultWidth
+		  , minHeight        = $elementToReplace.data( "minHeight" )        || cfrequest.ckeditorDefaultMinHeight
+		  , maxHeight        = $elementToReplace.data( "maxHeight" )        || cfrequest.ckeditorDefaultMaxHeight
+		  , customConfig     = $elementToReplace.data( "customConfig" )     || cfrequest.ckeditorConfig
+		  , widgetCategories = $elementToReplace.data( "widgetCategories" ) || cfrequest.widgetCategories || ""
+		  , stylesheets      = $elementToReplace.data( "stylesheets" )
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
@@ -33,6 +34,7 @@ PresideRichEditor = ( function( $ ){
 		if ( maxHeight ) {
 			config.autoGrow_maxHeight = isNaN( parseInt( maxHeight ) ) ? 0 : parseInt( maxHeight );
 		}
+		config.widgetCategories = widgetCategories;
 
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 

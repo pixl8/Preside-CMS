@@ -8,6 +8,9 @@
 	pageTypeObjectName     = prc.pageTypeObjectName     ?: "page";
 	pageIsMultilingual     = prc.pageIsMultilingual     ?: false;
 	pageTypeIsMultilingual = prc.pageTypeIsMultilingual ?: false;
+
+	canPublish   = IsTrue( prc.canPublish   ?: "" );
+	canSaveDraft = IsTrue( prc.canSaveDraft ?: "" );
 </cfscript>
 
 <cfoutput>
@@ -39,6 +42,7 @@
 		, language       = currentLanguageId
 		, baseUrl        = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=#currentLanguageId#&version=" )
 		, allVersionsUrl = event.buildAdminLink( linkTo="sitetree.translationHistory", queryString="id=#pageId#&language=#currentLanguageId#" )
+		, isDraft        = IsTrue( prc.savedTranslation._version_is_draft ?: "" )
 	} )#
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal translate-page-form" method="post" action="#event.buildAdminLink( linkTo='sitetree.translatePageAction' )#">
@@ -55,27 +59,22 @@
 		)#
 
 		<div class="form-actions row">
-			#renderFormControl(
-				  type         = "yesNoSwitch"
-				, context      = "admin"
-				, name         = "_translation_active"
-				, id           = "_translation_active"
-				, label        = translateResource( uri="cms:datamanager.translation.active" )
-				, savedData    = prc.savedTranslation ?: {}
-				, defaultValue = IsTrue( prc.savedTranslation._translation_active ?: "" )
-			)#
-
 			<div class="col-md-offset-2">
 				<a href="#event.buildAdminLink( linkTo='sitetree.editPage', queryString='id=#pageId#' )#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>
 
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-
-					<i class="fa fa-check bigger-110"></i>
-					#translateResource( "cms:sitetree.savepage.btn" )#
-				</button>
+				<cfif canSaveDraft>
+					<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i> #translateResource( "cms:sitetree.savepage.draft.btn" )#
+					</button>
+				</cfif>
+				<cfif canPublish>
+					<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-globe bigger-110"></i> #translateResource( "cms:sitetree.savepage.btn" )#
+					</button>
+				</cfif>
 			</div>
 		</div>
 	</form>

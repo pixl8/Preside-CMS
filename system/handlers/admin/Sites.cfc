@@ -47,9 +47,12 @@ component output=false extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
-				  object           = "site"
-				, errorAction      = "sites.addSite"
+				  object            = "site"
+				, errorAction       = "sites.addSite"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditAction       = "add_site"
+				, auditType         = "sitemanager"
 			}
 		);
 
@@ -64,9 +67,9 @@ component output=false extends="preside.system.base.AdminHandler" {
 
 	public void function editSite() output=false {
 		_checkPermissions( event );
-		var siteId = rc.id ?: "";
-
-		prc.record = siteDao.selectData( id=siteId );
+		var siteId       = rc.id     ?: "";
+		var manageAction = rc.action ?: "";
+		prc.record       = siteDao.selectData( id=siteId );
 
 		if ( not prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
@@ -88,9 +91,9 @@ component output=false extends="preside.system.base.AdminHandler" {
 			, link  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=#siteId#" )
 		);
 
-		prc.pageIcon  = "globe";
-		prc.pageTitle = translateResource( uri="cms:sites.editSite.title", data=[ prc.record.name ?: "" ] );
-
+		prc.pageIcon     = "globe";
+		prc.pageTitle    = translateResource( uri="cms:sites.editSite.title", data=[ prc.record.name ?: "" ] );
+		prc.cancelAction = len( manageAction ) ? event.buildAdminLink( linkTo='sites.manage' ) : event.buildAdminLink( linkTo='sitetree' );
 		event.setView( "/admin/sites/editSite" );
 	}
 
@@ -106,6 +109,9 @@ component output=false extends="preside.system.base.AdminHandler" {
 				  object            = "site"
 				, errorAction       = "sites.editSite"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditAction       = "edit_site"
+				, auditType         = "sitemanager"
 			}
 		);
 

@@ -1,5 +1,6 @@
 <cfscript>
-	param name="prc.record" type="struct";
+	param name="prc.record"       type="struct";
+	param name="prc.cancelAction" type="string";
 </cfscript>
 
 <cfoutput>
@@ -8,6 +9,6 @@
 		, id               = rc.id      ?: ""
 		, record           = prc.record ?: {}
 		, editRecordAction = event.buildAdminLink( linkTo='sites.editSiteAction' )
-		, cancelAction     = event.buildAdminLink( linkTo='sites.manage' )
+		, cancelAction     = prc.cancelAction
 	} )#
 </cfoutput>

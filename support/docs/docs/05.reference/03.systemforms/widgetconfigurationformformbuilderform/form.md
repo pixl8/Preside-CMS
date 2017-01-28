@@ -12,7 +12,7 @@ allows you to drop configured Form Builder forms into your content.
 <?xml version="1.0" encoding="UTF-8"?>
 
 
-<form i18nBaseUri="widgets.formbuilderform:">
+<form i18nBaseUri="widgets.formbuilderform:" categories="formbuilder,system,default">
     <tab>
         <fieldset>
             <field sortorder="10" name="form"       required="true"  control="objectpicker" object="formbuilder_form" objectFilters="activeFormbuilderForms" />

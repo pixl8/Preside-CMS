@@ -13,5 +13,5 @@ title: "$getColdbox()"
 public any function $getColdbox()
 ```
 
-Returns the coldbox controller	 *
+Returns the coldbox controller
 

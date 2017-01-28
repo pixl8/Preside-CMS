@@ -20,6 +20,10 @@ For an in-depth guide, see [[workingwiththericheditor]].
                 <th>customConfig (optional)</th>
                 <td>An optional custom config location for the editor. See [[workingwiththericheditor]] for an in-depth guide.</td>
             </tr>
+            <tr>
+                <th>widgetCategories (optional)</th>
+                <td>Optional comma separated list of categories of widget that are eligible for insertion into this content. See [[presidewidgets]] for further details.</td>
+            </tr>
         </tbody>
     </table>
 </div>

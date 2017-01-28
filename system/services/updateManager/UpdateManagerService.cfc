@@ -52,6 +52,46 @@ component {
 		return versionInfo.version ?: "unknown";
 	}
 
+	public string function getCurrentVersionFromBoxFile() {
+		var boxFile = ListAppend( _getPresidePath(), "box.json", "/" );
+		var boxFileContent = "";
+
+		if ( !FileExists( boxFile ) ) {
+			return "unknown";
+		}
+
+		try {
+			boxFileContent = DeSerializeJson( FileRead( boxFile ) );
+		} catch ( any e ) {
+			return "unknown";
+		}
+
+		return boxFileContent.version ?: "unknown";
+	}
+
+	public string function detectCurrentVersion() {
+		var version = getCurrentVersion();
+
+		if ( version != "unknown" ) {
+			return version;
+		}
+
+		version = getCurrentVersionFromBoxFile();
+
+		if ( version != "unknown" ) {
+			return version;
+		}
+
+		if ( isGitClone() ) {
+			var gitbranch = getGitBranch();
+			if ( listFirst( gitbranch, "-" ) == "release" ) {
+				return listLast( gitbranch, "-" );
+			}
+		}
+
+		return "unknown";
+	}
+
 	public boolean function isGitClone() {
 		var gitDir = _getPresidePath() & "/.git/";
 
@@ -235,9 +275,7 @@ component {
 
 		for( var v in versions ){
 			if ( v.version == arguments.version ) {
-				_runDowngradeScripts( arguments.version, currentVersion );
 				_updateMapping( v.path );
-				_runUpgradeScripts( arguments.version, currentVersion );
 				_getApplicationReloadService().reloadAll();
 
 				return true;
@@ -401,57 +439,8 @@ component {
 		}
 	}
 
-	private void function _runDowngradeScripts( required string newVersion, required string currentVersion ) {
-		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
-		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( arguments.currentVersion );
-
-		if ( compareVersions( newVersionWithoutBuild, currentVersionWithoutBuild ) < 0 ) {
-			_runMigrations( "downgrade", newVersionWithoutBuild, currentVersionWithoutBuild );
-		}
-	}
-
-	private void function _runUpgradeScripts( required string newVersion, required string currentVersion ) {
-		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
-		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( arguments.currentVersion );
-
-		if ( compareVersions( newVersionWithoutBuild, currentVersionWithoutBuild ) > 0 ) {
-			_runMigrations( "upgrade", newVersionWithoutBuild, currentVersionWithoutBuild );
-		}
-	}
-
 	private string function _getVersionWithoutBuildNumber( required string version ) {
 		return ListDeleteAt( arguments.version, ListLen( arguments.version, "." ), "." );
-	}
-
-	private string function _runMigrations( required string type, required string newVersion, required string currentVersion ) {
-		var migrationType      = arguments.type == "upgrade" ? "upgrade" : "downgrade";
-		var parentDirectory    = "/preside/system/migrations/#migrationType#s";
-		var componentPath      = ReReplace( ListChangeDelims( parentDirectory, ".", "/" ), "^\.", "" );
-		var migrationFiles     = DirectoryList( parentDirectory, false, "name", "*.cfc" );
-		var migrations         = [];
-		var versionNumberRegex = "^\d+\.\d+\.\d+$";
-
-		for( var file in migrationFiles ){
-			var versionNumber = ListChangeDelims( ReReplaceNoCase( file, "\.cfc$", "" ), ".", "-" );
-			if ( ReFind( versionNumberRegex, versionNumber ) ) {
-				if ( migrationType == "downgrade" && compareVersions( versionNumber, arguments.currentVersion ) <= 0 && compareVersions( versionNumber, arguments.newVersion ) > 0 ) {
-					migrations.append( ListAppend( componentPath, ListChangeDelims( versionNumber, "-", "." ), "." ) );
-				} elseif ( migrationType == "upgrade" && compareVersions( versionNumber, arguments.currentVersion ) > 0 && compareVersions( versionNumber, arguments.newVersion ) <= 0 ) {
-					migrations.append( ListAppend( componentPath, ListChangeDelims( versionNumber, "-", "." ), "." ) );
-				}
-			}
-		}
-
-		migrations.sort( function( a, b ){
-			var aVersion = ListChangeDelims( ListLast( a, "." ), ".", "-" );
-			var bVersion = ListChangeDelims( ListLast( b, "." ), ".", "-" );
-			var comparison = compareVersions( aVersion, bVersion );
-			return migrationType == "downgrade" ? ( comparison * -1 ) : comparison;
-		} );
-
-		for( var migration in migrations ) {
-			CreateObject( migration ).run();
-		}
 	}
 
 // getters and setters

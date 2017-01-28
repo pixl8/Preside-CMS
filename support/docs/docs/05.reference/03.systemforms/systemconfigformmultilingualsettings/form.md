@@ -10,11 +10,12 @@ This form is used for configuring aspects of Preside's multlingual content capab
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 
-<form feature="multilingual">
+<form feature="multilingual" i18nBaseUri="system-config.multilingual:">
     <tab id="default" sortorder="10">
         <fieldset id="default" sortorder="10">
-            <field sortorder="10" name="default_language"     control="objectpicker" object="multilingual_language" required="true"  label="system-config.multilingual:default_language.label" help="system-config.multilingual:default_language.help" quickadd="true" quickedit="true" />
-            <field sortorder="20" name="additional_languages" control="objectpicker" object="multilingual_language" required="false" label="system-config.multilingual:additional_languages.label" help="system-config.multilingual:additional_languages.help" quickadd="true" quickedit="true" multiple="true" sortable="true" />
+            <field sortorder="10" name="default_language"     control="objectpicker" object="multilingual_language" required="true"  quickadd="true" quickedit="true" />
+            <field sortorder="20" name="additional_languages" control="objectpicker" object="multilingual_language" required="false" quickadd="true" quickedit="true" multiple="true" sortable="true" />
+            <field sortorder="30" name="urls_enabled"         control="yesNoSwitch" />
         </fieldset>
     </tab>
 </form>

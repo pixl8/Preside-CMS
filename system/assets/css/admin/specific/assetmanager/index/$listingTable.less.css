@@ -15,6 +15,10 @@
   width: 60px;
   display: inline-block;
 }
+.presidecms .asset-listing-table tbody tr td .asset-preview img {
+  max-width: 48px;
+  max-height: 32px;
+}
 .presidecms .asset-listing-table tbody tr:first-child td {
   border-top: none;
 }

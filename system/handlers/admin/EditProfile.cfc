@@ -72,6 +72,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=true );
+		event.audit(
+			  action = "edit_profile"
+			, type   = "userprofile"
+		);
 
 		messageBox.info( translateResource( uri="cms:editProfile.updated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="" ) );
@@ -116,6 +120,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		formData.delete( "confirm_password" );
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=false );
+		event.audit(
+			  action = "update_password"
+			, type   = "userprofile"
+		);
 
 		messageBox.info( translateResource( uri="cms:editProfile.password.updated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
@@ -130,7 +138,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:editProfile.twofactorauthentication.page.title" );
 		prc.pageSubtitle = translateResource( uri="cms:editProfile.twofactorauthentication.page.subTitle" );
 
-		prc.enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) )
+		prc.enforced = IsTrue( getSystemSetting( "admin-login-security", "tfa_enforced" ) )
 		prc.enabled  = prc.enforced || loginService.isTwoFactorAuthenticationEnabledForUser();
 
 		if ( !prc.enforced && !prc.enabled ) {
@@ -156,7 +164,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
 		}
 
-		var enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) )
+		var enforced = IsTrue( getSystemSetting( "admin-login-security", "tfa_enforced" ) )
 		var enabled  = enforced || loginService.isTwoFactorAuthenticationEnabledForUser();
 
 		if ( enforced || enabled ) {
@@ -178,6 +186,12 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			if ( authVerified ) {
 				loginService.enableTwoFactorAuthenticationForUser();
 				messagebox.info( translateResource( "cms:editProfile.twofactorauthentication.setup.complete.confirmation" ) );
+
+				event.audit(
+					  action = "2fa_setup"
+					, type   = "userprofile"
+				);
+
 				setNextEvent( url=event.buildAdminLink( "editProfile.twoFactorAuthentication" ) );
 			}
 
@@ -196,9 +210,14 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
 		}
 
-		var enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) );
+		var enforced = IsTrue( getSystemSetting( "admin-login-security", "tfa_enforced" ) );
 
 		loginService.disableTwoFactorAuthenticationForUser();
+		event.audit(
+			  action = "disable_2fa"
+			, type   = "userprofile"
+		);
+
 
 		if ( enforced || IsTrue( rc.reset ?: "" ) ) {
 			if ( enforced ) {

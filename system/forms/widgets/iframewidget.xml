@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="widgets.iframewidget:">
+<form i18nBaseUri="widgets.iframewidget:" categories="system,iframe,default">
 	<tab>
 		<fieldset>
 			<field sortorder="10" name="url"      required="true" />

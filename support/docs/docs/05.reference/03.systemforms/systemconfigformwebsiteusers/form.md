@@ -10,7 +10,7 @@ This form is used to configure the core website users system.
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 
-<form>
+<form feature="websiteUsers">
     <tab id="default" sortorder="10">
         <fieldset id="default" sortorder="10">
             <field sortorder="10" name="allow_remember_me"           control="yesNoSwitch"        required="false" default="true" label="system-config.website_users:allow_remember_me.label"           help="system-config.website_users:allow_remember_me.help"           />

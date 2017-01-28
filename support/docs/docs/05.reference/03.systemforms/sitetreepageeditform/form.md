@@ -18,7 +18,6 @@ This form is used as the base "edit page" form for Sitetree pages. See also [[fo
             <field sortorder="5" binding="page.parent_page" control="sitetreePagePicker" required="true" />
             <field sortorder="10" binding="page.title" />
             <field sortorder="20" binding="page.slug" required="true" />
-            <field sortorder="30" binding="page.active" />
             <field sortorder="40" binding="page.main_image" />
             <field sortorder="50" binding="page.layout" />
             <field sortorder="60" binding="page.teaser" />
@@ -53,18 +52,22 @@ This form is used as the base "edit page" form for Sitetree pages. See also [[fo
         </fieldset>
     </tab>
 
-    <tab id="access" sortorder="50">
+    <tab id="access" sortorder="50" feature="websiteUsers">
         <fieldset id="access" sortorder="10">
             <field sortorder="10" binding="page.access_restriction" />
-            <field sortorder="20" binding="page.full_login_required" />
-            <field sortorder="25" binding="page.exclude_from_navigation_when_restricted" />
+            <field sortorder="20" binding="page.access_condition" quickadd="true" quickedit="true" feature="rulesengine" />
+            <field sortorder="30" binding="page.full_login_required" />
+            <field sortorder="40" binding="page.exclude_from_navigation_when_restricted" />
         </fieldset>
-        <fieldset id="rules" sortorder="20">
+        <fieldset id="rules" sortorder="20" feature="websitebenefits">
             <field sortorder="10" binding="page.grantaccess_to_all_logged_in_users" />
             <field sortorder="20" name="grant_access_to_benefits" control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.grant_access_to_benefits.title" help="preside-objects.page:field.grant_access_to_benefits.help" />
             <field sortorder="30" name="deny_access_to_benefits"  control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.deny_access_to_benefits.title"  help="preside-objects.page:field.deny_access_to_benefits.help"  />
             <field sortorder="40" name="grant_access_to_users"    control="objectPicker" object="website_user"    multiple="true" required="false" label="preside-objects.page:field.grant_access_to_users.title"    help="preside-objects.page:field.grant_access_to_users.help"    />
             <field sortorder="50" name="deny_access_to_users"     control="objectPicker" object="website_user"    multiple="true" required="false" label="preside-objects.page:field.deny_access_to_users.title"     help="preside-objects.page:field.deny_access_to_users.help"     />
+        </fieldset>
+        <fieldset id="iframe" sortorder="30">
+            <field sortorder="10" binding="page.iframe_restriction" />
         </fieldset>
     </tab>
 </form>

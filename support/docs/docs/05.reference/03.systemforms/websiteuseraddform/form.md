@@ -14,12 +14,12 @@ This form is used for the "add website user" form in the website user manager
     <tab id="basic" sortorder="10" title="preside-objects.website_user:basic.tab.title">
         <fieldset id="basic" sortorder="10">
             <field binding="website_user.login_id"      sortorder="10" control="textinput"  />
-            <field binding="website_user.email_address" sortorder="20" control="textinput"  />
+            <field binding="website_user.email_address" sortorder="20" control="emailinput"  />
             <field binding="website_user.display_name"  sortorder="30" control="textinput"  />
             <field binding="website_user.active"        sortorder="40"  />
         </fieldset>
     </tab>
-    <tab id="security" sortorder="20" title="preside-objects.website_user:security.tab.title">
+    <tab id="security" sortorder="20" title="preside-objects.website_user:security.tab.title" feature="websitebenefits">
         <fieldset id="security" sortorder="10">
             <field binding="website_user.benefits"      sortorder="10"  />
             <field name="permissions"                   sortorder="20" control="websitePermissionsPicker" label="cms:website.permissions.picker.label" help="cms:website.permissions.picker.help" />

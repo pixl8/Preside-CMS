@@ -3,9 +3,9 @@ id: "form-usergroupaddform"
 title: "User group: add form"
 ---
 
-This form is used for the "edit user group" form in the user admin section of the administrator.
+This form is used for the "add user group" form in the user admin section of the administrator.
 
-<div class="table-responsive"><table class="table table-condensed"><tr><th>File path</th><td>/forms/preside-objects/security_group/admin.edit.xml</td></tr><tr><th>Form ID</th><td>preside-objects.security_group.admin.edit</td></tr></table></div>
+<div class="table-responsive"><table class="table table-condensed"><tr><th>File path</th><td>/forms/preside-objects/security_group/admin.add.xml</td></tr><tr><th>Form ID</th><td>preside-objects.security_group.admin.add</td></tr></table></div>
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>

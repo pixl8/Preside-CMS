@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+System config form: Admin login security
+
+This form is used for managing settings for two factor authentication, admin 'remember me', etc.
+-->
+<form i18nBaseUri="system-config.admin-login-security:" feature="twoFactorAuthentication">
+	<tab id="rememberme" sortorder="10">
+		<fieldset id="rememberme" sortorder="10">
+			<field name="rememberme_enabled"        control="yesNoSwitch" required="false" />
+			<field name="rememberme_expiry_in_days" control="spinner"     required="false" defaultvalue="30" />
+		</fieldset>
+	</tab>
+	<tab id="2fa" sortorder="20">
+		<fieldset id="2fa" sortorder="10">
+			<field name="tfa_enabled"      control="yesNoSwitch" required="false" />
+			<field name="tfa_app_name"     control="textinput"   required="false" />
+			<field name="tfa_enforced"     control="yesNoSwitch" required="false" />
+			<field name="tfa_trust_period" control="spinner"     required="false" defaultvalue="7" />
+		</fieldset>
+	</tab>
+</form>

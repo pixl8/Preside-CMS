@@ -1,0 +1,71 @@
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-condition-pane {
+  height: 439px;
+  overflow-y: auto;
+  padding: 0;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-condition-pane.ui-droppable-hover {
+  -webkit-box-box-shadow: 0px 0px 5px #8b9aa3 !important;
+  -moz-box-box-shadow: 0px 0px 5px #8b9aa3 !important;
+  box-shadow: 0px 0px 5px #8b9aa3 !important;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list a {
+  cursor: pointer;
+  border-left: 1px solid #cccccc;
+  border-right: 1px solid #cccccc;
+  border-radius: 5px;
+  padding: 0 5px;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list li {
+  padding: 5px;
+  cursor: default;
+  overflow: auto;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list li:hover {
+  background-color: #f0f7fc;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list li:hover .rules-engine-condition-builder-expression-actions {
+  display: block;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-text {
+  display: block;
+  float: left;
+  width: calc(95% - 7em);
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-actions {
+  display: none;
+  float: right;
+  text-align: right;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-actions a {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  color: #cccccc;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-actions a:hover {
+  color: #aaaaaa;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-join {
+  padding: 1px 5px;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-expressions-list {
+  height: 400px;
+  overflow-y: auto;
+  padding: 0;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-expressions-list .ui-draggable {
+  padding: 2px 6px;
+  cursor: move;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-expressions-list .ui-draggable.ui-draggable-dragging {
+  background: #ffffff;
+  width: 400px;
+  border: 2px dashed #dddddd;
+}
+.presidecms .form-group.has-error .rules-engine-condition-builder-expression-search,
+.presidecms .form-group.has-error .rules-engine-condition-builder-expressions-list {
+  border-color: #d5d5d5;
+}
+.presidecms .form-group.has-error .rules-engine-condition-builder-condition-pane {
+  border-color: #f2a696;
+}

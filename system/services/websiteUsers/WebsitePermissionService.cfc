@@ -3,6 +3,7 @@
  * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
  *
  * @singleton
+ * @presideService
  * @autodoc
  *
  */
@@ -110,6 +111,10 @@ component displayName="Website permissions service" {
 	 *
 	 */
 	public array function listUserBenefits( required string userId ) {
+		if ( !$isFeatureEnabled( "websiteBenefits" ) ) {
+			return [];
+		}
+
 		var comboBenefits = _getComboBenefits();
 		var benefits      = _getUserDao().selectManyToManyData(
 			  propertyName = "benefits"
@@ -169,6 +174,10 @@ component displayName="Website permissions service" {
 	}
 
 	public void function syncBenefitPermissions( required string benefitId, required array permissions ) {
+		if ( !$isFeatureEnabled( "websiteBenefits" ) ) {
+			return;
+		}
+
 		var dao = _getAppliedPermDao();
 
 		transaction {
@@ -212,23 +221,25 @@ component displayName="Website permissions service" {
 		transaction {
 			dao.deleteData( filter={ context = arguments.context, context_key=arguments.contextKey, permission_key=arguments.permissionKey } );
 
-			for( var benefit in arguments.grantBenefits ){
-				dao.insertData({
-					  permission_key = arguments.permissionKey
-					, context        = arguments.context
-					, context_key    = arguments.contextKey
-					, benefit        = benefit
-					, granted        = true
-				} );
-			}
-			for( var benefit in arguments.denyBenefits ){
-				dao.insertData({
-					  permission_key = arguments.permissionKey
-					, context        = arguments.context
-					, context_key    = arguments.contextKey
-					, benefit        = benefit
-					, granted        = false
-				} );
+			if ( $isFeatureEnabled( "websiteBenefits" ) ) {
+				for( var benefit in arguments.grantBenefits ){
+					dao.insertData({
+						  permission_key = arguments.permissionKey
+						, context        = arguments.context
+						, context_key    = arguments.contextKey
+						, benefit        = benefit
+						, granted        = true
+					} );
+				}
+				for( var benefit in arguments.denyBenefits ){
+					dao.insertData({
+						  permission_key = arguments.permissionKey
+						, context        = arguments.context
+						, context_key    = arguments.contextKey
+						, benefit        = benefit
+						, granted        = false
+					} );
+				}
 			}
 			for( var user in arguments.grantUsers ){
 				dao.insertData({
@@ -275,11 +286,21 @@ component displayName="Website permissions service" {
 	}
 
 	public void function prioritizeBenefits( required array benefitsInOrder ) {
+		if ( !$isFeatureEnabled( "websiteBenefits" ) ) {
+			return;
+		}
+
 		var dao = _getBenefitsDao();
 
 		for ( var i=1; i <= arguments.benefitsInOrder.len(); i++ ) {
 			dao.updateData( id=arguments.benefitsInOrder[i], data={ priority=i } );
 		}
+
+		$audit(
+			  source = "websitebenefitsmanager"
+			, type   = "websitebenefitsmanager"
+			, action = "prioritize_website_benefits"
+		);
 	}
 
 // PRIVATE HELPERS
@@ -288,6 +309,9 @@ component displayName="Website permissions service" {
 	}
 
 	private array function _getBenefitPermissions( required string benefit ) {
+		if ( !$isFeatureEnabled( "websiteBenefits" ) ) {
+			return [];
+		}
 		var dbData = _getAppliedPermDao().selectData(
 			  selectFields = [ "granted", "permission_key" ]
 			, filter       = "benefit = :website_benefit.id and context is null and context_key is null"
@@ -310,7 +334,7 @@ component displayName="Website permissions service" {
 	private array function _getUserPermissions( required string user, boolean includeBenefitPerms=true ) {
 		var perms = [];
 
-		if ( arguments.includeBenefitPerms ) {
+		if ( $isFeatureEnabled( "websiteBenefits" ) && arguments.includeBenefitPerms ) {
 			var benefits = listUserBenefits( arguments.user );
 			var benefitPerms = _getAppliedPermDao().selectData(
 				  selectFields = [ "granted", "permission_key" ]
@@ -476,6 +500,10 @@ component displayName="Website permissions service" {
 	}
 
 	private array function _getDefaultBenefitsForPermission( required string permissionKey ) {
+		if ( !$isFeatureEnabled( "websiteBenefits" ) ) {
+			return [];
+		}
+
 		var roles         = _getRoles();
 		var rolesWithPerm = {};
 		var benefits        = [];
@@ -505,11 +533,15 @@ component displayName="Website permissions service" {
 	}
 
 	private query function _getComboBenefits() {
-		return _getBenefitsDao().selectData(
-			  selectFields = [ "website_benefit.id", "website_benefit.combined_benefits_are_inclusive", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
-			, groupBy      = "website_benefit.id"
-			, forceJoins   = "inner"
-		);
+		if ( $isFeatureEnabled( "websiteBenefits" ) ) {
+			return _getBenefitsDao().selectData(
+				  selectFields = [ "website_benefit.id", "website_benefit.combined_benefits_are_inclusive", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
+				, groupBy      = "website_benefit.id"
+				, forceJoins   = "inner"
+			);
+		}
+
+		return QueryNew( "id,combined_benefits_are_inclusive,combined_benefits" );
 	}
 
 // GETTERS AND SETTERS

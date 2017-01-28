@@ -7,11 +7,13 @@
 	param name="args.formName"          type="string"  default="preside-objects.#args.object#.admin.edit";
 	param name="args.mergeWithFormName" type="string"  default="";
 	param name="args.useVersioning"     type="boolean" default=false;
+	param name="args.draftsEnabled"     type="boolean" default=false;
+	param name="args.canPublish"        type="boolean" default=false;
+	param name="args.canSaveDraft"      type="boolean" default=false;
 	param name="args.cancelAction"      type="string"  default=event.buildAdminLink( linkTo="datamanager.object", querystring='id=#args.object#' );
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue=args.object );
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.object#:editRecord.prompt", defaultValue="" );
-	saveButton          = translateResource( uri="cms:datamanager.savechanges.btn", data=[ LCase( objectTitleSingular ) ] );
 	formId              = "editForm-" & CreateUUId();
 </cfscript>
 
@@ -44,10 +46,22 @@
 					#translateResource( "cms:datamanager.cancel.btn" )#
 				</a>
 
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-check bigger-110"></i>
-					#saveButton#
-				</button>
+				<cfif args.draftsEnabled>
+					<cfif args.canSaveDraft>
+						<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.edit.record.draft.btn", data=[ LCase( objectTitleSingular ) ] )#
+						</button>
+					</cfif>
+					<cfif args.canPublish>
+						<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ LCase( objectTitleSingular ) ] )#
+						</button>
+					</cfif>
+				<cfelse>
+					<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.savechanges.btn", data=[ LCase( objectTitleSingular ) ] )#
+					</button>
+				</cfif>
 			</div>
 		</div>
 	</form>

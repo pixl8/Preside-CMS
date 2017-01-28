@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Rules engine condition: add form
+
+This form is used for creating a new rules engine condition
+-->
+<form>
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="rules_engine_condition.context"        control="hidden" />
+			<field binding="rules_engine_condition.condition_name" control="textinput" />
+			<field binding="rules_engine_condition.expressions"    control="rulesEngineConditionBuilder">
+				<rule validator="rulesEngineCondition" />
+			</field>
+		</fieldset>
+	</tab>
+</form>

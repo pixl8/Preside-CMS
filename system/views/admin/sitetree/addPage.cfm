@@ -13,7 +13,8 @@
 		prc.pageTitle    = translateResource( "cms:sitetree.addPage.title" );
 	}
 
-
+	canPublish   = IsTrue( prc.canPublish   ?: "" );
+	canSaveDraft = IsTrue( prc.canSaveDraft ?: "" );
 </cfscript>
 
 <cfoutput>
@@ -49,10 +50,16 @@
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>
 
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-check bigger-110"></i>
-					#translateResource( "cms:sitetree.addpage.btn" )#
-				</button>
+				<cfif canSaveDraft>
+					<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i> #translateResource( "cms:sitetree.addpage.draft.btn" )#
+					</button>
+				</cfif>
+				<cfif canPublish>
+					<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-globe bigger-110"></i> #translateResource( "cms:sitetree.addpage.btn" )#
+					</button>
+				</cfif>
 			</div>
 		</div>
 	</form>

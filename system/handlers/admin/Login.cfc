@@ -14,10 +14,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
-		if ( Len( Trim( rc.l ?: "" ) ) ) {
-			i18n.setFwLocale( Trim( rc.l ) );
-		}
-
 		if ( event.isAdminUser() ){
 			_redirectToDefaultAdminEvent( event );
 		}
@@ -25,26 +21,26 @@ component extends="preside.system.base.AdminHandler" {
 		if ( loginService.isUserDatabaseNotConfigured() ) {
 			event.setView( "/admin/login/firstTimeUserSetup" );
 		}
+
+		prc.isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
+		prc.rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
 	}
 
 	public void function login( event, rc, prc ) {
-		var user         = "";
-		var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
-		var unsavedData  = sessionStorage.getVar( "_unsavedFormData", {} );
-		var loggedIn     = loginService.logIn(
-			  loginId  = event.getValue( name="loginId" , defaultValue="" )
-			, password = event.getValue( name="password", defaultValue="" )
+		var user                   = "";
+		var postLoginUrl           = event.getValue( name="postLoginUrl", defaultValue="" );
+		var unsavedData            = sessionStorage.getVar( "_unsavedFormData", {} );
+		var isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
+		var rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
+		var loggedIn               = loginService.logIn(
+			  loginId              = rc.loginId  ?: ""
+			, password             = rc.password ?: ""
+			, rememberLogin        = isRememberMeEnabled && IsTrue( rc.rememberMe ?: "" )
+			, rememberExpiryInDays = rememberMeExpiryInDays
 		);
 
 		if ( loggedIn ) {
 			user = event.getAdminUserDetails();
-			event.audit(
-				  detail   = "[#user.known_as#] has logged in"
-				, source   = "login"
-				, action   = "login_success"
-				, type     = "user"
-				, instance = user.id
-			);
 
 			if ( loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
 				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
@@ -125,15 +121,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !Len( Trim( emailAddress ) ) || !Len( Trim( password ) ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
-				  message = "EMPTY_PASSWORD"
-				, token   = token
+				message = "EMPTY_PASSWORD"
 			} );
 		}
 
 		if ( password != passwordConfirmation ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
-				  message = "PASSWORDS_DO_NOT_MATCH"
-				, token   = token
+				message = "PASSWORDS_DO_NOT_MATCH"
 			} );
 		}
 
@@ -144,19 +138,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function logout( event, rc, prc ) {
-		var user        = "";
-
 		if ( event.isAdminUser() ) {
-			user = event.getAdminUserDetails();
-
-			event.audit(
-				  detail   = "[#user.known_as#] has logged out"
-				, source   = "logout"
-				, action   = "logout_success"
-				, type     = "user"
-				, instance = user.id
-			);
-
 			loginService.logout();
 		}
 

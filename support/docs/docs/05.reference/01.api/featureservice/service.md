@@ -16,3 +16,4 @@ of features before proceeding to provide a page or perform some action.<div clas
 ## Public API Methods
 
 * [[featureservice-isfeatureenabled]]
+* [[featureservice-getfeatureforwidget]]

@@ -15,6 +15,7 @@
 	canDelete           = prc.canDelete                 ?: false;
 	canSort             = prc.canSort                   ?: false;
 	isMultilingual      = prc.isMultilingual            ?: false;
+	draftsEnabled       = prc.draftsEnabled             ?: false;
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -51,5 +52,6 @@
 		, batchEditableFields = batchEditableFields
 		, gridFields          = gridFields
 		, isMultilingual      = isMultilingual
+		, draftsEnabled       = draftsEnabled
 	} )#
 </cfoutput>

@@ -15,6 +15,8 @@
 	param name="args.trashed"                     type="boolean";
 	param name="args.child_count"                 type="numeric";
 	param name="args.access_restriction"          type="string";
+	param name="args.is_draft"                    type="string";
+	param name="args.has_drafts"                  type="string";
 
 	param name="args.permission_context"          type="array" default=[];
 	param name="args.parent_restriction"          type="string" default="none";
@@ -23,6 +25,8 @@
 	param name="args.pageTypeDialogBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage={id}" );
 	param name="args.addPageBaseLink"             type="string" default=event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page={id}&page_type={type}' );
 	param name="args.trashPageBaseLink"           type="string" default=event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id={id}" );
+	param name="args.activatePageBaseLink"        type="string" default=event.buildAdminLink( linkTo="sitetree.activatePageAction", queryString="id={id}" );
+	param name="args.deactivatePageBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.deactivatePageAction", queryString="id={id}" );
 	param name="args.pageHistoryBaseLink"         type="string" default=event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id={id}" );
 	param name="args.editPagePermissionsBaseLink" type="string" default=event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id={id}" );
 	param name="args.reorderChildrenBaseLink"     type="string" default=event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id={id}" );
@@ -47,6 +51,8 @@
 		managedChildPageTypes   = getManagedChildPageTypes( args.page_type );
 		isSystemPage            = isSystemPageType( args.page_type );
 		hasChildren             = managedChildPageTypes.len() || args.child_count;
+		isDraft                 = IsTrue( args.is_draft );
+		hasDrafts               = IsTrue( args.has_drafts );
 
 		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=permContextKeys );
 		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=permContextKeys );
@@ -54,6 +60,7 @@
 		hasSortPagesPermission   = hasCmsPermission( permissionKey="sitetree.sort"              , context="page", contextKeys=permContextKeys ) && hasChildren;
 		hasManagePermsPermission = hasCmsPermission( permissionKey="sitetree.manageContextPerms", context="page", contextKeys=permContextKeys );
 		hasPageHistoryPermission = hasCmsPermission( permissionKey="sitetree.viewversions"      , context="page", contextKeys=permContextKeys );
+		hasActivatePermission    = hasCmsPermission( permissionKey="sitetree.activate"          , context="page", contextKeys=permContextKeys ) && !isSystemPage && !isDraft;
 
 		hasDropdown = hasDeletePagePermission || hasSortPagesPermission || hasManagePermsPermission || hasPageHistoryPermission;
 
@@ -63,14 +70,24 @@
 		isOpen            = !isSelected && selectedAncestors.find( args.id );
 
 		dataImage            = Len( Trim( args.main_image ) ) ? 'data-image="#event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  )#"' : "";
+
 		usesDateRestrictions = IsDate( args.embargo_date ) || IsDate( args.expiry_date );
 		outOfDate            = ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) || ( IsDate( args.expiry_date ) && args.expiry_date < Now() );
+
+		if ( isDraft ) {
+			redClass   = greenClass = "light-grey";
+		} else {
+			redClass   = "red";
+			greenClass = "green";
+		}
+
+		status = renderView( view="/admin/sitetree/_nodeStatus", args=args );
 	}
 </cfscript>
 
 <cfif hasNavigatePermission>
 	<cfoutput>
-		<tr class="depth-#args._hierarchy_depth#<cfif isOpen> open</cfif><cfif isSelected> selected</cfif>" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> data-context-container="#args.id#"<cfif isOpen> data-open-on-start="true"</cfif>>
+		<tr class="depth-#args._hierarchy_depth#<cfif isOpen> open</cfif><cfif isSelected> selected</cfif><cfif isDraft> draft light-grey<cfelseif hasDrafts> has-drafts</cfif>" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> data-context-container="#args.id#"<cfif isOpen> data-open-on-start="true"</cfif>>
 			<td class="page-title-cell">
 				<!--- whitespace important here hence one line --->
 				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
@@ -106,6 +123,21 @@
 							<i class="fa fa-caret-down"></i>
 						</a>
 						<ul class="dropdown-menu">
+							<cfif hasActivatePermission>
+								<li>
+									<cfif IsTrue( args.active )>
+										<a href="#quickBuildLink( args.deactivatePageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.deactivate.child.page.link", data=[ safeTitle ] )#">
+											<i class="fa fa-fw fa-times-circle"></i>
+											#translateResource( "cms:sitetree.deactivate.page.dropdown" )#
+										</a>
+									<cfelse>
+										<a href="#quickBuildLink( args.activatePageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.activate.child.page.link", data=[ safeTitle ] )#">
+											<i class="fa fa-fw fa-check-circle"></i>
+											#translateResource( "cms:sitetree.activate.page.dropdown" )#
+										</a>
+									</cfif>
+								</li>
+							</cfif>
 							<cfif hasDeletePagePermission>
 								<li>
 									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
@@ -145,23 +177,17 @@
 				</div>
 			</td>
 			<td>#pageType#</td>
-			<td>
-				#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#
-
-				<cfif usesDateRestrictions>
-					<i class="fa fa-clock-o <cfif outOfDate>red<cfelse>green</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
-				</cfif>
-			</td>
+			<td>#status#</td>
 			<td>
 				<cfswitch expression="#args.access_restriction#">
 					<cfcase value="full">
-						<i class="fa fa-fw fa-lock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.full" )#
+						<i class="fa fa-fw fa-lock #redClass#"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.full" )#
 					</cfcase>
 					<cfcase value="partial">
-						<i class="fa fa-fw fa-unlock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.partial" )#
+						<i class="fa fa-fw fa-unlock #redClass#"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.partial" )#
 					</cfcase>
 					<cfdefaultcase>
-						<i class="fa fa-fw fa-unlock green"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.none" )#
+						<i class="fa fa-fw fa-unlock #greenClass#"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.none" )#
 					</cfdefaultcase>
 				</cfswitch>
 			</td>

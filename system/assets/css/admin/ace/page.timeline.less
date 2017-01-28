@@ -8,7 +8,7 @@
 
  &:last-child {
 	margin-bottom:0;
- } 
+ }
 
  &:before {
 	/* the vertical line running through icons */
@@ -34,7 +34,7 @@
 
 .timeline-item {
   position:relative;
-  margin-bottom:8px;
+  margin-bottom:30px;
 
  .widget-box {
 	background-color:#F2F6F9;
@@ -51,23 +51,13 @@
 
 		> .widget-title {
 			margin-left: 8px;
+
+			> .fa {
+				margin-right : 0;
+			}
 		}
 	}
  }
-
-
- &:nth-child(even) .widget-box {
-	background-color:#F3F3F3;
-	color:#616161;
-
-	&.transparent {
-		border-left-color:#DBDBDB !important;
-		.widget-header {
-			background-color:#EEE !important;
-		}
-	}
- }
-
 }
 
 
@@ -110,11 +100,7 @@
 	width:60px;
 	text-align:center;
 	position:relative;
-	
-	img {
-		border-radius:100%;
-		max-width:42px;
-	}
+
 	.label , .badge {
 		font-size: @font-size-timeline-badge;
 	}
@@ -128,7 +114,7 @@
     display: inline-block;
     font-size: @font-size-timeline-icon;
     height: 36px;
-    line-height: 30px;    
+    line-height: 30px;
     width: 36px;
 	text-align: center;
 	text-shadow: none !important;
@@ -147,10 +133,12 @@
 	margin-left:34px;
 }
 
-.timeline-item img {
+.timeline-info img {
 	border: 1px solid #AAA;
 	padding: 2px;
 	background-color: #FFF;
+	border-radius:100%;
+	max-width:42px;
 }
 
 
@@ -175,7 +163,7 @@
 		padding-bottom:0;
 	}
 
-	
+
    &:before {
 		content:"";
 		display:block;
@@ -188,7 +176,7 @@
 		width:2px;
 		max-width:2px;
    }
-  
+
    &:last-child:before {
 		display:none;
    }
@@ -223,13 +211,13 @@
 		height: 12px;
 		line-height: 12px;
 		width: 12px;
-		
+
 		border-width: 1px !important;
 		background-color: #FFFFFF !important;
-		
+
 		position:absolute;
 		left:85px; top:3px;
-		
+
 		opacity:1;
 		border-radius: 100%;
 		display: inline-block;

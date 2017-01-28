@@ -60,6 +60,9 @@ component extends="preside.system.base.AdminHandler" {
 				  object            = object
 				, errorAction       = "websiteUserManager.addUser"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditType         = "websiteusermanager"
+				, auditAction       = "add_website_user"
 			}
 		);
 
@@ -89,7 +92,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
-		prc.record.permissions = websitePermissionService.listUserPermissions( userId = id ).toList();
+		prc.record.permissions = websitePermissionService.listUserPermissions( userId = rc.id ?: "" ).toList();
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:websiteUserManager.editUser.page.title", data=[ prc.record.display_name ] )
@@ -108,6 +111,10 @@ component extends="preside.system.base.AdminHandler" {
 				  object            = "website_user"
 				, errorAction       = "websiteUserManager.editUser"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditType         = "websiteusermanager"
+				, auditAction       = "edit_website_user"
+
 			}
 		);
 
@@ -154,6 +161,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( validationResult.validated() ) {
 			websiteLoginService.changePassword( formData.password, prc.record.id );
+			event.audit(
+				  type     = "websiteusermanager"
+				, action   = "change_website_user_password"
+				, recordId = prc.record.id
+			);
 			messageBox.info( translateResource( uri="cms:websiteUserManager.userPassword.changed.confirmation", data=[ prc.record.display_name ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 		}
@@ -174,6 +186,9 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object     = "website_user"
 				, postAction = "websiteUserManager"
+				, audit             = true
+				, auditType         = "websiteusermanager"
+				, auditAction       = "delete_website_user"
 			}
 		);
 	}
@@ -181,7 +196,8 @@ component extends="preside.system.base.AdminHandler" {
 	function impersonateUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.impersonate" );
 
-		if ( websiteLoginService.impersonate( userId=rc.id ?: "" ) ) {
+		var userId = rc.id ?: "";
+		if ( websiteLoginService.impersonate( userId=userId ) ) {
 			setNextEvent( url=event.buildLink( page="homepage" ) );
 		}
 

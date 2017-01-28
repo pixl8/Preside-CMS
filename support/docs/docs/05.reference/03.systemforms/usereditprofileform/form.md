@@ -13,14 +13,8 @@ This form is used for the "edit my profile" form
 <form>
     <tab id="basic" sortorder="10">
         <fieldset id="basic" sortorder="10">
-            <field binding="security_user.email_address" required="true" />
+            <field binding="security_user.email_address" required="true" control="emailinput" />
             <field binding="security_user.known_as" />
-            <field name="password" control="password" required="false" label="preside-objects.security_user:field.new_password.title" passwordPolicyContext="cms" />
-            <field name="confirm_password" control="password" required="false" label="preside-objects.security_user:field.confirm_password.title">
-                <rule validator="sameAs">
-                    <param name="field" value="password" />
-                </rule>
-            </field>
         </fieldset>
     </tab>
 </form>

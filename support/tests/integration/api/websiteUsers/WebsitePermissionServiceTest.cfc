@@ -251,7 +251,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockAppliedPermDao     = getMockbox().createStub();
 		mockCacheProvider      = getMockbox().createStub();
 
-		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsitePermissionService(
+		var service = getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsitePermissionService(
 			  websiteLoginService = mockWebsiteLoginService
 			, cacheProvider      = mockCacheProvider
 			, permissionsConfig  = arguments.permissionsConfig
@@ -259,6 +259,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, userDao            = mockUserDao
 			, appliedPermDao     = mockAppliedPermDao
 		) );
+
+		service.$( "$isFeatureEnabled" ).$args( "websitebenefits" ).$results( true );
+
+		return service;
 	}
 
 	private struct function _getDefaultPermsConfig() output=false {

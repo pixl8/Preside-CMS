@@ -15,12 +15,12 @@ it will be merged with this form definition.
 <form i18nBaseUri="formbuilder.item-types.formfield:">
     <tab id="default" sortorder="10">
         <fieldset id="default" sortorder="10">
-            <field name="name" control="textinput" required="true" sortorder="10">
+            <field name="label" control="textinput" required="true" sortorder="10" />
+            <field name="name"  control="textinput" required="true" sortorder="20">
                 <rule validator="match" message="formbuilder.item-types.formfield:validation.error.invalid.name.format">
                     <param name="regex" value="^[a-zA-Z][a-zA-Z0-9_]*$" />
                 </rule>
             </field>
-            <field name="label"     control="textinput"                    required="true"  sortorder="20" />
             <field name="layout"    control="formbuilderFieldLayoutPicker" required="true"  sortorder="30" />
             <field name="mandatory" control="yesnoswitch"                  required="false" sortorder="40" />
             <field name="help"      control="textarea"                     required="false" sortorder="50" />

@@ -59,11 +59,12 @@ component output="false" singleton=true {
 						continue;
 					}
 
-					param name="field.name" default="";
-					param name="field.binding" default="";
+					param name="field.name"         default="";
+					param name="field.binding"      default="";
+					param name="field.sourceObject" default="";
 
 					fieldRules = getRulesForField(
-						  objectName      = ListFirst( field.binding, "." )
+						  objectName      = field.sourceObject.len() ? field.sourceObject : ListFirst( field.binding, "." )
 						, fieldName       = field.name
 						, fieldAttributes = field
 					);
@@ -157,7 +158,7 @@ component output="false" singleton=true {
 		}
 
 		// unique indexes
-		if ( StructKeyExists( field, "uniqueindexes" ) ) {
+		if ( StructKeyExists( field, "uniqueindexes" ) && arguments.objectName.len() ) {
 			for( index in ListToArray( field.uniqueindexes ) ) {
 				if ( _isLastFieldInUniqueIndex( index, arguments.objectName, arguments.fieldName ) ) {
 					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="presideObjectUniqueIndex", params={ objectName=arguments.objectName, fields=_getUniqueIndexFields( index, arguments.objectName ) } } );

@@ -32,7 +32,7 @@ component {
 				event.initializePresideSiteteePage( systemPage="accessDenied" );
 				return renderView( view="/errors/insufficientPrivileges", presideobject="accessDenied", id=event.getCurrentPageId(), args=args );
 			default:
-				websiteLoginService.setPostLoginUrl( event.getCurrentUrl() );
+				websiteLoginService.setPostLoginUrl( Len( Trim( args.postLoginUrl ?: "" ) ) ? args.postLoginUrl : event.getCurrentUrl() );
 				event.initializePresideSiteteePage( systemPage="login" );
 				return renderView( view="/errors/loginRequired", args=args );
 		}
