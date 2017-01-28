@@ -392,7 +392,7 @@ component displayName="Multilingual Preside Object Service" {
 	/**
 	 * Returns the name of the given object's corresponding translation object
 	 *
-	 * @objectName.hint Name of the object who's corresponding translation object name we wish to get
+	 * @objectName.hint Name of the object whose corresponding translation object name we wish to get
 	 * @autodoc         true
 	 *
 	 */
@@ -436,7 +436,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * and record ID
 	 *
 	 * @autodoc
-	 * @objectName.hint Name of the object who's record we are to save the translation for
+	 * @objectName.hint Name of the object whose record we are to save the translation for
 	 * @id.hint         ID of the record we are to save the translation for
 	 * @languageId.hint ID of the language that the translation is for
 	 * @data.hint       Structure of data containing to save in the translation record

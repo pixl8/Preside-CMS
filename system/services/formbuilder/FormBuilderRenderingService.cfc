@@ -92,7 +92,7 @@
 	 * for the given item type and context
 	 *
 	 * @autodoc
-	 * @itemtype.hint The item type who's viewlet you wish to get
+	 * @itemtype.hint The item type whose viewlet you wish to get
 	 * @context.hint  The context in which the item will be rendered. i.e. 'input', 'adminPlaceholder', 'response', etc.
 	 */
 	public string function getItemTypeViewlet( required string itemType, required string context ) {
@@ -110,8 +110,8 @@
 	 * the given item type and form field layout combination.
 	 *
 	 * @autodoc
-	 * @itemType.hint The Item Type who's viewlet you wish to get
-	 * @layout.hint   The layout who's viewlet you wish to get
+	 * @itemType.hint The Item Type whose viewlet you wish to get
+	 * @layout.hint   The layout whose viewlet you wish to get
 	 *
 	 */
 	public string function getFormFieldLayoutViewlet( required string itemType, required string layout ) {
@@ -130,7 +130,7 @@
 	 * the given form layout.
 	 *
 	 * @autodoc
-	 * @layout.hint The layout who's viewlet you wish to get
+	 * @layout.hint The layout whose viewlet you wish to get
 	 *
 	 */
 	public string function getFormLayoutViewlet( required string layout ) {
@@ -175,7 +175,7 @@
 	 * for the given action and context
 	 *
 	 * @autodoc
-	 * @action.hint  The action who's viewlet you wish to get
+	 * @action.hint  The action whose viewlet you wish to get
 	 * @context.hint The context in which the action will be rendered. i.e. 'adminPlaceholder'
 	 */
 	public string function getActionViewlet( required string action, required string context ) {
