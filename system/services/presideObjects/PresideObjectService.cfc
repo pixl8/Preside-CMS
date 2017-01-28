@@ -158,6 +158,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		,          string  maxVersion        = "HEAD"
 		,          numeric specificVersion   = 0
 		,          string  forceJoins        = ""
+		,          boolean distinct          = false
 
 	) autodoc=true {
 		var args    = Duplicate( arguments );
@@ -197,6 +198,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				, filter             = args.preparedFilter.filter
 				, params             = args.preparedFilter.params
 				, originalTableName  = args.objMeta.tableName
+				, distinct           = args.distinct
 			);
 		} else {
 			var sql = args.adapter.getSelectSql(
@@ -206,6 +208,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				, selectColumns      = args.selectFields
 				, filter             = args.preparedFilter.filter
 				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
+				, distinct           = args.distinct
 			);
 
 
@@ -1479,6 +1482,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required string  groupBy
 		, required numeric maxRows
 		, required numeric startRow
+		,          boolean distinct = false
 	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
@@ -1529,6 +1533,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			, groupBy       = arguments.groupBy
 			, maxRows       = arguments.maxRows
 			, startRow      = arguments.startRow
+			, distinct      = arguments.distinct
 		);
 
 		return _runSql( sql=sql, dsn=versionObj.dsn, params=arguments.params );
