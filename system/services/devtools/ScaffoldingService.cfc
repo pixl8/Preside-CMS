@@ -199,7 +199,7 @@
 				fileContent &= "	private function #context#( event, rc, prc, args={} ) {" & _nl()
 				             & "		// TODO: create your handler logic here" & _nl()
 				             & "		return renderView( view='#viewPath#', args=args );" & _nl()
-				             & "	}" & _nl() & _nl()
+				             & "	}" & _nl() & _nl();
 			}
 
 			fileContent &= "}" & _nl();
@@ -316,7 +316,7 @@
 			}
 
 			fileContent &= _nl() & _nl();
-			fileContent &= "<cfoutput>##translateResource( uri='widgets.#arguments.widgetId#:title' )##</cfoutput>"
+			fileContent &= "<cfoutput>##translateResource( uri='widgets.#arguments.widgetId#:title' )##</cfoutput>";
 
 			_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 			FileWrite( filePath, fileContent );
@@ -334,7 +334,7 @@
 				params &= '<cf_presideparam name="args.#arg#" editable="true" />' & _nl();
 			}
 
-			fileContent = ReplaceNoCase( fileContent, "${params}", params )
+			fileContent = ReplaceNoCase( fileContent, "${params}", params );
 
 			_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 			FileWrite( filePath, fileContent );

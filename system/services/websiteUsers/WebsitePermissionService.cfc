@@ -27,7 +27,7 @@ component displayName="Website permissions service" {
 		, required any    appliedPermDao
 	) {
 		_setWebsiteLoginService( arguments.websiteLoginService );
-		_setCacheProvider( arguments.cacheProvider )
+		_setCacheProvider( arguments.cacheProvider );
 		_setBenefitsDao( arguments.benefitsDao );
 		_setUserDao( arguments.userDao );
 		_setAppliedPermDao( arguments.appliedPermDao );

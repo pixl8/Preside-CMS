@@ -1,5 +1,5 @@
 <cfscript>
-	objectName          = "url_redirect_rule"
+	objectName          = "url_redirect_rule";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
 </cfscript>

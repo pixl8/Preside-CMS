@@ -105,7 +105,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		formData.id = userId;
 		var validationResult = validateForm( formName=formName, formData=formData );
 		if ( !loginService.isPasswordCorrect( formData.existing_password ?: "" ) ) {
-			validationResult.addError( "existing_password", translateResource( "cms:editProfile.password.incorrect.existing.password" ) )
+			validationResult.addError( "existing_password", translateResource( "cms:editProfile.password.incorrect.existing.password" ) );
 		}
 
 		if ( !validationResult.validated() ) {
@@ -138,7 +138,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:editProfile.twofactorauthentication.page.title" );
 		prc.pageSubtitle = translateResource( uri="cms:editProfile.twofactorauthentication.page.subTitle" );
 
-		prc.enforced = IsTrue( getSystemSetting( "admin-login-security", "tfa_enforced" ) )
+		prc.enforced = IsTrue( getSystemSetting( "admin-login-security", "tfa_enforced" ) );
 		prc.enabled  = prc.enforced || loginService.isTwoFactorAuthenticationEnabledForUser();
 
 		if ( !prc.enforced && !prc.enabled ) {

@@ -362,7 +362,7 @@ component displayName="Multilingual Preside Object Service" {
 			if ( mappedRecords.keyExists( language.id ) ) {
 				language.status = mappedRecords[ language.id ] ? "active" : "inprogress";
 			} else {
-				language.status = "notstarted"
+				language.status = "notstarted";
 			}
 		}
 

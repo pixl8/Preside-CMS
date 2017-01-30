@@ -79,7 +79,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 		if ( aliasMatch.recordCount ) {
 			var site = getSite( aliasMatch.site );
 
-			site.domain = arguments.domain
+			site.domain = arguments.domain;
 
 			return site;
 		}

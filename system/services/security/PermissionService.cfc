@@ -28,7 +28,7 @@ component displayName="Admin permissions service" {
 		, required any    contextPermDao
 	) {
 		_setLoginService( arguments.loginService );
-		_setCacheProvider( arguments.cacheProvider )
+		_setCacheProvider( arguments.cacheProvider );
 		_setGroupDao( arguments.groupDao );
 		_setUserDao( arguments.userDao );
 		_setContextPermDao( arguments.contextPermDao );

@@ -68,13 +68,13 @@ component displayName="Audit Service" {
 		if ( IsDate( arguments.dateFrom ) ) {
 			filter = "audit_log.datecreated >= :datefrom";
 			filterDelim = " and ";
-			params.datefrom = { value=arguments.dateFrom, type="cf_sql_date" }
+			params.datefrom = { value=arguments.dateFrom, type="cf_sql_date" };
 		}
 
 		if ( IsDate( arguments.dateTo ) ) {
 			filter &= filterDelim & "audit_log.datecreated <= :dateTo";
 			filterDelim = " and ";
-			params.dateTo = { value=arguments.dateTo, type="cf_sql_date" }
+			params.dateTo = { value=arguments.dateTo, type="cf_sql_date" };
 		}
 
 		if ( Len( Trim( arguments.user ) ) ) {

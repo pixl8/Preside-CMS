@@ -170,7 +170,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private helpers
 	private any function _getEmailService() output=false {
-		templateDirs                   = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
+		templateDirs                   = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ];
 		mockColdBox                    = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
 		mockSystemConfigurationService = getMockBox().createMock( "preside.system.services.configuration.SystemConfigurationService" );
 

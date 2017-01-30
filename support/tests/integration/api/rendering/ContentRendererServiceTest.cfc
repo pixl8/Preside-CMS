@@ -122,8 +122,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var expectedRender = "another testing rendering";
 
 		// mocking the coldbox calls
-		mockColdBox.$( "viewletExists", false )
-		mockColdBox.$( "renderViewlet" )
+		mockColdBox.$( "viewletExists", false );
+		mockColdBox.$( "renderViewlet" );
 			.$args( event="admin.viewlet.money", args={ data="8334" } ).$results( expectedRender );
 
 		svc.registerRenderer( name="money", viewlet="admin.viewlet.money", context="admin" );
