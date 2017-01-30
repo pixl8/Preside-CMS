@@ -146,6 +146,7 @@ component displayName="Preside Object Service" {
 	 * @extraJoins.hint          An array of explicit joins to add to the query (can define subquery joins this way)
 	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
 	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @distinct.hint           Whether or not the record set should be a 'distinct' select
 	 * @selectFields.docdefault  []
 	 * @filter.docdefault        {}
 	 * @filterParams.docdefault  {}
@@ -173,7 +174,7 @@ component displayName="Preside Object Service" {
 		,          array   extraJoins          = []
 		,          boolean recordCountOnly     = false
 		,          boolean getSqlAndParamsOnly = false
-
+		,          boolean distinct            = false
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=arguments );
 
@@ -219,6 +220,7 @@ component displayName="Preside Object Service" {
 				, filter             = args.preparedFilter.filter
 				, params             = args.preparedFilter.params
 				, originalTableName  = args.objMeta.tableName
+				, distinct           = args.distinct
 			);
 		} else {
 			var sql = args.adapter.getSelectSql(
@@ -229,6 +231,7 @@ component displayName="Preside Object Service" {
 				, filter             = args.preparedFilter.filter
 				, having             = args.preparedFilter.having
 				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
+				, distinct           = args.distinct
 			);
 
 			if ( arguments.recordCountOnly ) {
@@ -1992,6 +1995,7 @@ component displayName="Preside Object Service" {
 		, required string  groupBy
 		, required numeric maxRows
 		, required numeric startRow
+		,          boolean distinct = false
 	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
@@ -2039,6 +2043,7 @@ component displayName="Preside Object Service" {
 			, groupBy       = arguments.groupBy
 			, maxRows       = arguments.maxRows
 			, startRow      = arguments.startRow
+			, distinct      = arguments.distinct
 		} );
 		_announceInterception( "postPrepareVersionSelect", args );
 

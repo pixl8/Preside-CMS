@@ -224,6 +224,7 @@ component {
 		,          array   joins         = []
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
+		,          boolean distinct      = false
 
 	) {
 		return "getSelectSql() not implemented. Must be implemented by extended adapters.";
