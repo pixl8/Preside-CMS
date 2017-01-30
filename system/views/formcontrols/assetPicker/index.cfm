@@ -10,7 +10,7 @@
 	uploaderUrl        = args.uploaderUrl      ?: "";
 	sortable           = args.sortable         ?: "";
 	multiple           = args.multiple         ?: "";
-	resultTemplate     = selectedTemplate = '<div class="result-container"><div class="icon-container">{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div>';
+	resultTemplate     = selectedTemplate = '<div class="result-container"><div class="icon-container" data-image={{data-image}}>{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div>';
 	resultTemplateId   = "result_template_" & CreateUUId();
 	selectedTemplateId = "selected_template_" & CreateUUId();
 
