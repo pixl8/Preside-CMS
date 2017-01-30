@@ -471,7 +471,7 @@ component displayName="AssetManager Service" {
 		}
 
 		records = assetDao.selectData(
-			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder" ]
+			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder", "asset.width", "asset.height" ]
 			, filter       = filter
 			, filterParams = params
 			, maxRows      = arguments.maxRows

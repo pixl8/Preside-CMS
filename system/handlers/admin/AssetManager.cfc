@@ -603,7 +603,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 		prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false );
-		
+
 		if ( not prc.sourceRecord.recordCount ) {
 			messageBox.error( translateResource( uri="cms:assetManager.translation.recordNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", querystring="asset=#id#" ) );
@@ -612,7 +612,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.recordLabel  = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield",  defaultValue="label" ) ] ?: "";
 		prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
 		prc.formName     = "preside-objects.#translationObjectName#.admin.edit";
-		
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:assetManager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = ""
@@ -626,7 +626,7 @@ component extends="preside.system.base.AdminHandler" {
 		var languageId            = rc.language ?: "";
 		var persist               = "";
 		var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
-		
+
 		_checkPermissions( argumentCollection=arguments, key="assets.translate" );
 		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 
@@ -814,10 +814,14 @@ component extends="preside.system.base.AdminHandler" {
 		var processedRecords = [];
 
 		for ( record in records ) {
-			record.icon         = renderAsset( record.value, "pickerIcon" );
-			var imageWidth      = imageinfo( event.buildLink( assetId = record.value )).width;
-			var imageHeight     = imageinfo( event.buildLink( assetId = record.value )).height;
-			record["dimension"] =  "(" & imageWidth&"*"&imageHeight & ")";
+			record.icon      = renderAsset( record.value, "pickerIcon" );
+
+			if ( Val( record.width ) && Val( record.height ) ) {
+				record.dimension =  "(" & record.width & "x" & record.height & ")";
+			} else {
+				record.dimension =  "";
+			}
+
 			if ( record.folder == "$root" ) {
 				record.folder = rootFolderName;
 			}
