@@ -7,7 +7,7 @@ Form items are what provide the input and display definition of the form. _i.e. 
 
 ![Screenshot showing a configuration of a date picker item](images/screenshots/formbuilder_configureitem.jpg)
 
-The core system provides a basic set of item types who's configuration can be modified and extended by your application or extensions. You are also able to introduce new item types in your application or extensions.
+The core system provides a basic set of item types whose configuration can be modified and extended by your application or extensions. You are also able to introduce new item types in your application or extensions.
 
 # Anatomy of an item type
 
@@ -70,7 +70,7 @@ field.relativeToCurrentDate.help=Whether or not the date value entered into this
 
 field.relativeToField.title=Another field in the form
 field.relativeToField.placeholder=e.g. start_date
-field.relativeToField.help=The name of the field who's value should be used as a relative constraint when validating the value of this field
+field.relativeToField.help=The name of the field whose value should be used as a relative constraint when validating the value of this field
 
 tab.validation.title=Date limits
 fieldset.fixed.title=Fixed dates

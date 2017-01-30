@@ -80,7 +80,7 @@ Using our "event" page type example, we would create a view file at `/views/page
 
 If you need to do some handler logic before rendering your page type, you take full control of fetching the data and rendering the view for your page type. 
 
-You will need to create a handler under a 'page-types' folder who's filename matches your page type object, e.g. `/handlers/page-types/event.cfc`. The "index" action will be called by default and will be called as a Preside Viewlet (see [[presideviewlets]]). For example:
+You will need to create a handler under a 'page-types' folder whose filename matches your page type object, e.g. `/handlers/page-types/event.cfc`. The "index" action will be called by default and will be called as a Preside Viewlet (see [[presideviewlets]]). For example:
 
 ```luceescript
 component {

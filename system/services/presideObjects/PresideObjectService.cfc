@@ -259,7 +259,7 @@ component displayName="Preside Object Service" {
 	 * ```
 	 *
 	 * @objectName.hint              Name of the object in which to to insert a record
-	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
+	 * @data.hint                    Structure of data whose keys map to the properties that are defined on the object
 	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
 	 * @isDraft.hint                 Whether or not to save the record as a draft record
 	 * @useVersioning.hint           Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
@@ -417,7 +417,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint              Name of the object who's records you want to update
+	 * @objectName.hint              Name of the object whose records you want to update
 	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
 	 * @id.hint                      ID of a single record to update
 	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
@@ -626,7 +626,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint     Name of the object from who's database table records are to be deleted
+	 * @objectName.hint     Name of the object from whose database table records are to be deleted
 	 * @id.hint             ID of a record to delete
 	 * @filter.hint         Filter for records to delete, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @filterParams.hint   Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
@@ -795,7 +795,7 @@ component displayName="Preside Object Service" {
 	 *
 	 * @sourceObject.hint   The object that contains the many-to-many property
 	 * @sourceProperty.hint The name of the property that is defined as a many-to-many relationship
-	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @sourceId.hint       ID of the record whose related data we are to synchronize
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 */
 	public boolean function syncManyToManyData(
@@ -878,7 +878,7 @@ component displayName="Preside Object Service" {
 	 * @autodoc
 	 * @sourceObject.hint   The object that contains the one-to-many property
 	 * @sourceProperty.hint The name of the property that is defined as a one-to-many relationship
-	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @sourceId.hint       ID of the record whose related data we are to synchronize
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 *
 	 */
@@ -935,8 +935,8 @@ component displayName="Preside Object Service" {
 	 * // the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
 	 * ```
 	 *
-	 * @objectName.hint       Name of the object who's related data we wish to retrieve
-	 * @id.hint               ID of the record who's related data we wish to retrieve
+	 * @objectName.hint       Name of the object whose related data we wish to retrieve
+	 * @id.hint               ID of the record whose related data we wish to retrieve
 	 * @fromVersionTable.hint Whether or not to retrieve the data from the version history table for the object
 	 * @specificVersion.hint  If retrieving from the version history, set a specific version number to retrieve
 	 */
@@ -971,8 +971,8 @@ component displayName="Preside Object Service" {
 	/**
 	 * Returns a summary query of all the versions of a given record (by ID),  optionally filtered by field name
 	 *
-	 * @objectName.hint Name of the object who's record we wish to retrieve the version history for
-	 * @id.hint         ID of the record who's history we wish to view
+	 * @objectName.hint Name of the object whose record we wish to retrieve the version history for
+	 * @id.hint         ID of the record whose history we wish to view
 	 * @fieldName.hint  Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
 	 *
 	 */
@@ -1072,7 +1072,7 @@ component displayName="Preside Object Service" {
 	/**
 	 * Returns whether or not the passed field exists on the passed object
 	 *
-	 * @objectName.hint Name of the object who's field you wish to check
+	 * @objectName.hint Name of the object whose field you wish to check
 	 * @fieldName.hint  Name of the field you wish to check the existance of
 	 */
 	public boolean function fieldExists( required string objectName, required string fieldName ) autodoc=true {
@@ -1096,8 +1096,8 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint    Name of the object who's attribute we wish to get
-	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @objectName.hint    Name of the object whose attribute we wish to get
+	 * @attributeName.hint Name of the attribute whose value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
@@ -1123,9 +1123,9 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint    Name of the object who's property attribute we wish to get
-	 * @propertyName.hint  Name of the property who's attribute we wish to get
-	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @objectName.hint    Name of the object whose property attribute we wish to get
+	 * @propertyName.hint  Name of the property whose attribute we wish to get
+	 * @attributeName.hint Name of the attribute whose value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
@@ -1140,7 +1140,7 @@ component displayName="Preside Object Service" {
 	 * This method, returns the object name that can be used to reference the version history object
 	 * for a given object.
 	 *
-	 * @sourceObjectName.hint Name of the object who's version object name we wish to retrieve
+	 * @sourceObjectName.hint Name of the object whose version object name we wish to retrieve
 	 */
 	public string function getVersionObjectName( required string sourceObjectName ) autodoc=true {
 		var obj = _getObject( arguments.sourceObjectName );

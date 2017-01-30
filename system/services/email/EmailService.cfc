@@ -25,7 +25,7 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 	 * Sends an email. If a template is supplied, first runs the template handler which can return a struct that will override any arguments
 	 * passed directly to the function
 	 *
-	 * @template.hint Name of the template who's handler will do the rendering, etc.
+	 * @template.hint Name of the template whose handler will do the rendering, etc.
 	 * @args.hint     Structure of arbitrary arguments to forward on to the template handler
 	 * @to.hint       Array of email addresses to send the email to
 	 * @from.hint     Optional from email address

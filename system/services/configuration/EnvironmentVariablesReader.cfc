@@ -19,7 +19,7 @@ component displayName="Environment Variables Reader" {
 	 * Reads configuration form system environment variables and returns them
 	 * as a struct.
 	 * \n
-	 * Any environment variables who's name begins with PRESIDE_
+	 * Any environment variables whose name begins with PRESIDE_
 	 * will be treated as an environment variable intended to be read by the
 	 * Preside application. The PRESIDE_ prefix will be stripped from the variable
 	 * name before being used. Some examples of environment variable names that

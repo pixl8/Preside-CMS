@@ -90,7 +90,7 @@ event.buildLink(
 );
 ```
 
-Here, `assetId` is the ID of the asset who's link we want to build, `derivative` is the name of a configured asset derivative (see below), and `versionId` is the ID of a specific version of an asset.
+Here, `assetId` is the ID of the asset whose link we want to build, `derivative` is the name of a configured asset derivative (see below), and `versionId` is the ID of a specific version of an asset.
 
 ### Render assets in your views
 
@@ -352,7 +352,7 @@ settings.storageProviders.myProvider = {
 };
 ```
 
-Here we declare a provider named "myProvider", who's CFC file lives at "app.services.filestorage.MyProvider".
+Here we declare a provider named "myProvider", whose CFC file lives at "app.services.filestorage.MyProvider".
 
 #### 3. Provide a configuration form for the provider
 

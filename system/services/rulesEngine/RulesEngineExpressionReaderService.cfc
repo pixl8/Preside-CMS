@@ -35,7 +35,7 @@ component displayName="RulesEngine Expression Reader Service" {
 // PUBLIC API
 	/**
 	 * Reads all the expressions from an array of directories potentially containing handler CFC files
-	 * and returns a structure who's keys are the IDs of expressions and who's values are the
+	 * and returns a structure whose keys are the IDs of expressions and whose values are the
 	 * detailed configuration of the expression as defined in the handler CFC actions
 	 *
 	 * @autodoc
@@ -53,7 +53,7 @@ component displayName="RulesEngine Expression Reader Service" {
 
 	/**
 	 * Reads all the expressions from a directory of handler CFC files
-	 * and returns a structure who's keys are the IDs of expressions and who's values are the
+	 * and returns a structure whose keys are the IDs of expressions and whose values are the
 	 * detailed configuration of the expression as defined in the handler CFC actions
 	 *
 	 * @autodoc
@@ -81,7 +81,7 @@ component displayName="RulesEngine Expression Reader Service" {
 
 	/**
 	 * Reads the configured rules engine expressions from the given handler CFC file.
-	 * Returns a struct who's keys are IDs of expressions and who's values are the
+	 * Returns a struct whose keys are IDs of expressions and whose values are the
 	 * detailed configuration of the expression as defined in the handler CFC actions
 	 *
 	 * @autodoc

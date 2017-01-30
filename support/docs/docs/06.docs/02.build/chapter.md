@@ -19,7 +19,7 @@ Once this has finished, you should find a `./builds/html` directory with the web
 
 ## Running a server locally
 
-We have provided a utility server who's purpose is to run locally to help while developing/writing the documentation. To start it up, execute the `serve.sh` file found in the root of the project, i.e.
+We have provided a utility server whose purpose is to run locally to help while developing/writing the documentation. To start it up, execute the `serve.sh` file found in the root of the project, i.e.
 
     documentation>./serve.sh
 

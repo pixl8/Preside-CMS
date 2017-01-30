@@ -109,7 +109,7 @@ component autodoc=true displayName="Notification Service" {
 	/**
 	 * Returns a count of unread notifications for the given user id.
 	 *
-	 * @userId.hint id of the admin user who's unread notification count we wish to retrieve
+	 * @userId.hint id of the admin user whose unread notification count we wish to retrieve
 	 */
 	public numeric function getUnreadNotificationCount( required string userId ) autodoc=true {
 		var queryResult = _getConsumerDao().selectData(
@@ -123,7 +123,7 @@ component autodoc=true displayName="Notification Service" {
 	/**
 	 * Returns counts of unread notifications by topics for the given user
 	 *
-	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
+	 * @userId.hint  id of the admin user whose unread notifications we wish to retrieve
 	 */
 	public query function getUnreadTopics( required string userId ) autodoc=true {
 		return _getConsumerDao().selectData(
@@ -139,7 +139,7 @@ component autodoc=true displayName="Notification Service" {
 	/**
 	 * Returns the latest unread notifications for the given user id. Returns an array of structs, each struct contains id and data keys.
 	 *
-	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
+	 * @userId.hint  id of the admin user whose unread notifications we wish to retrieve
 	 * @maxRows.hint maximum number of notifications to retrieve
 	 */
 	public query function getNotifications(
@@ -223,7 +223,7 @@ component autodoc=true displayName="Notification Service" {
 	/**
 	 * Returns the count of non-dismissed notifications for the given user id and optional topic
 	 *
-	 * @userId.hint id of the admin user who's unread notifications we wish to retrieve
+	 * @userId.hint id of the admin user whose unread notifications we wish to retrieve
 	 * @topic.hint  topic by which to filter the notifications
 	 */
 	public numeric function getNotificationsCount( required string userId, string topic="" ) autodoc=true  {
@@ -284,7 +284,7 @@ component autodoc=true displayName="Notification Service" {
 	/**
 	 * Returns whether or not the user has access to the given topic
 	 *
-	 * @userId.hint ID of the user who's permissions we wish to check
+	 * @userId.hint ID of the user whose permissions we wish to check
 	 * @topic.hint  ID of the topic to check
 	 */
 	public boolean function userHasAccessToTopic( required string userId, required string topic ) autodoc=true {
@@ -330,7 +330,7 @@ component autodoc=true displayName="Notification Service" {
 	/**
 	 * Get subscribed topics for a user. Returns an array of the topic ids
 	 *
-	 * @userId.hint ID of the user who's subscribed topics we want to fetch
+	 * @userId.hint ID of the user whose subscribed topics we want to fetch
 	 *
 	 */
 	public array function getUserSubscriptions( required string userId ) autodoc=true {
@@ -392,7 +392,7 @@ component autodoc=true displayName="Notification Service" {
 	/**
 	 * Saves a users subscription preferences
 	 *
-	 * @userId.hint ID of the user who's subscribed topics we want to save
+	 * @userId.hint ID of the user whose subscribed topics we want to save
 	 * @topics.hint Array of topics to subscribe to
 	 *
 	 */

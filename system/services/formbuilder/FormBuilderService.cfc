@@ -57,7 +57,7 @@ component {
 	 * Retuns a form's items in an ordered array
 	 *
 	 * @autodoc
-	 * @id.hint ID of the form who's sections and items you wish to get
+	 * @id.hint ID of the form whose sections and items you wish to get
 	 */
 	public array function getFormItems( required string id ) {
 		var result = [];
@@ -116,7 +116,7 @@ component {
 	 * Retuns a form's item that matches the given input name.
 	 *
 	 * @autodoc
-	 * @formId.hint    ID of the form who's item you wish to get
+	 * @formId.hint    ID of the form whose item you wish to get
 	 * @inputName.hint Name of the input
 	 */
 	public struct function getItemByInputName( required string formId, required string inputName ) {
@@ -229,7 +229,7 @@ component {
 
 	/**
 	 * Sets the sort order of items within a form. Returns the number
-	 * of items who's order has been set.
+	 * of items whose order has been set.
 	 *
 	 * @autodoc
 	 * @items.hint Array of item ids in the order they should be set
@@ -523,7 +523,7 @@ component {
 	 * against the form for the given form ID
 	 *
 	 * @autodoc
-	 * @formId.hint ID of the form who's message you wish to get
+	 * @formId.hint ID of the form whose message you wish to get
 	 *
 	 */
 	public string function getSubmissionSuccessMessage( required string formId ) {
@@ -690,7 +690,7 @@ component {
 	 * a given form
 	 *
 	 * @autodoc
-	 * @formid.hint The ID of the form who's submissions you want to count
+	 * @formid.hint The ID of the form whose submissions you want to count
 	 *
 	 */
 	public numeric function getSubmissionCount( required string formId ) {
@@ -719,7 +719,7 @@ component {
 	 * for display in grid table
 	 *
 	 * @autodoc
-	 * @formid.hint      ID of the form who's submissions you wish to get
+	 * @formid.hint      ID of the form whose submissions you wish to get
 	 * @startRow.hint    Start row of recordset (for pagination)
 	 * @maxRows.hint     Max rows to fetch (for pagination)
 	 * @orderBy.hint     Order by field
