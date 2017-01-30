@@ -962,6 +962,42 @@ component {
 		}
 	}
 
+	public string function cloneForm(
+		  required string basedOnFormId
+		, required string name
+		, required string description
+	) {
+		var originalFormData = getForm( id=arguments.basedOnFormId );
+		var cloneFormData    = { name=arguments.name, description=arguments.description };
+
+		for( var column in originalFormData.columnList ) {
+			if( !listFindNoCase( "id,name,description,datecreated,datemodified,_version_is_draft,_version_has_drafts", column ) ) {
+				cloneFormData[ column ] = originalFormData[ column ];
+			}
+		}
+
+		// for cloning form details
+		var newFormId = $getPresideObject( "formbuilder_form" ).insertData( data=cloneFormData );
+
+		// for cloning form items
+		var originalFormItems = getFormItems( id=arguments.basedOnFormId );
+		if( arrayLen( originalFormItems ) ) {
+			for( var formItem in originalFormItems ) {
+				addItem( formId=newFormId, itemType=formItem.type.id, configuration=formItem.configuration );
+			}
+		}
+
+		// for cloning form actions
+		var originalFormActions = _getActionsService().getFormActions( id=arguments.basedOnFormId );
+		if( arrayLen( originalFormActions ) ) {
+			for( var formAction in originalFormActions ) {
+				_getActionsService().addAction( formId=newFormId, action=formAction.action.id, configuration=formAction.configuration );
+			}
+		}
+
+		return newFormId;
+	}
+
 	private string function _createIdPrefix() {
 		return "formbuilder_" & LCase( Hash( Now() ) );
 	}
