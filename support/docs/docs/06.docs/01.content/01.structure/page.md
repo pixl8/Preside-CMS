@@ -13,9 +13,9 @@ Folders containing a single markdown file represent a page of documentation. Sub
 
 Special folder naming rules:
 
-* Folders who's name begin with a number followed by a period are treated as pages that will appear in main navigation - the number indicating the relative order in which the page should appear
+* Folders whose name begin with a number followed by a period are treated as pages that will appear in main navigation - the number indicating the relative order in which the page should appear
 
-* Folders and markdown files who's names begin with an underscore, `_`, are ignored by the tree system and may be used by particular page types to provide more structured content
+* Folders and markdown files whose names begin with an underscore, `_`, are ignored by the tree system and may be used by particular page types to provide more structured content
 
 ## Page types
 

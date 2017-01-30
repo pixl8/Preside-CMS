@@ -173,7 +173,7 @@ component displayName="Forms service" {
 	 * Returns an array of the field names defined in the form.
 	 *
 	 * @autodoc
-	 * @formName.hint Name of the form who's fields you wish to list.
+	 * @formName.hint Name of the form whose fields you wish to list.
 	 */
 	public array function listFields( required string formName ) {
 		var frm            = getForm( arguments.formName );
@@ -207,7 +207,7 @@ component displayName="Forms service" {
 	 * Preside object name
 	 *
 	 * @autodoc
-	 * @objectName.hint Name of the object who's definition you wish to get
+	 * @objectName.hint Name of the object whose definition you wish to get
 	 *
 	 */
 	public struct function getDefaultFormForPresideObject( required string objectName ) {
@@ -462,7 +462,7 @@ component displayName="Forms service" {
 	 * with the calculated form control type and any other arguments.
 	 *
 	 * @autodoc
-	 * @objectName.hint Name of the object who's field you wish to get a form control for
+	 * @objectName.hint Name of the object whose field you wish to get a form control for
 	 * @fieldName.hint  Name of the field (property) on the object that you wish to get a form control for
 	 */
 	public string function renderFormControlForObjectField( required string objectName, required string fieldName ) {

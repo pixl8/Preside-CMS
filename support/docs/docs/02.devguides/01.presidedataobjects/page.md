@@ -551,7 +551,7 @@ records = newsObject.selectData( filter={
 } );
 ```
 
->>> The funky looking `category$tag.label` is expressing a filter across related objects - in this case **news** -> **category** -> **tag**. We are filtering news items whos category is tagged with a tag who's label field = "red".
+>>> The funky looking `category$tag.label` is expressing a filter across related objects - in this case **news** -> **category** -> **tag**. We are filtering news items whos category is tagged with a tag whose label field = "red".
 
 ##### Complex filters
 
@@ -608,7 +608,7 @@ component {
 ##### Auto join example
 
 ```luceescript
-// update news items who's category tag = "red"
+// update news items whose category tag = "red"
 presideObjectService.updateData(
       objectName = "news"
     , data       = { archived = true }
@@ -619,7 +619,7 @@ presideObjectService.updateData(
 ##### Property name examples
 
 ```luceescript
-// delete news items who's category label = "red"
+// delete news items whose category label = "red"
 presideObjectService.deleteData(
       objectName = "news"
     , data       = { archived = true }
@@ -735,7 +735,7 @@ property name="categories" relationship="many-to-many" relatedTo="category" rela
 
 By default, when the data actually changes in your object, a new version will be created. If you wish certain fields to be ignored when it comes to determining whether or not a new version should be created, you can add a `ignoreChangesForVersioning` attribute to the property in the preside object.
 
-An example scenario for this might be an object who's data is synced with an external source on a schedule. You may add a helper property to record the last sync check date, if no other fields have changed, you probably don't want a new version record being created just for that sync check date. In this case, you could do:
+An example scenario for this might be an object whose data is synced with an external source on a schedule. You may add a helper property to record the last sync check date, if no other fields have changed, you probably don't want a new version record being created just for that sync check date. In this case, you could do:
 
 ```luceescript
 property name="_last_sync_check" type="date" dbtype="datetime" ignoreChangesForVersioning=true; 

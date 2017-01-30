@@ -1,6 +1,6 @@
 /**
  * An object to provide configuration fetching for the REST platform
- * dependant on the request context (current resource, etc.).
+ * dependent on the request context (current resource, etc.).
  *
  * @autodoc
  * @singleton

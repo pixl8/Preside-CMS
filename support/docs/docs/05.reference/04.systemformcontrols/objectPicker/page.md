@@ -12,7 +12,7 @@ The `objectPicker` control allows users to select one or multiple records from a
         <tbody>
             <tr>
                 <th>object (required)</th>
-                <td>Name of the object who's records the user can select</td>
+                <td>Name of the object whose records the user can select</td>
             </tr>
             <tr>
                 <th>ajax (optional)</th>

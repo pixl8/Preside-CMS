@@ -75,7 +75,7 @@ component displayName="System configuration service" {
 	 * See [[editablesystemsettings]] for a full guide.
 	 *
 	 * @autodoc
-	 * @category.hint           The name of the category who's settings you wish to get
+	 * @category.hint           The name of the category whose settings you wish to get
 	 * @includeDefaults.hint    Whether to include default global and injected settings or whether to just return the settings for the current site
 	 * @globalDefaultsOnly.hint Whether to only include default global and injected settings or whether to include all amalgamated settings
 	 *

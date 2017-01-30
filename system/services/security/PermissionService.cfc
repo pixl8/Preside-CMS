@@ -91,7 +91,7 @@ component displayName="Admin permissions service" {
 	 * @permissionKey.hint The permission key as defined in `Config.cfc`
 	 * @context.hint       Optional named context
 	 * @contextKeys.hint   Array of keys for the given context (required if context supplied)
-	 * @userId.hint        ID of the user who's permissions we wish to check
+	 * @userId.hint        ID of the user whose permissions we wish to check
 	 * @userId.docdefault  ID of logged in user
 	 *
 	 */
@@ -124,7 +124,7 @@ component displayName="Admin permissions service" {
 	 * Returns an array of user group IDs that the user is a member of
 	 *
 	 * @autodoc
-	 * @userId.hint ID of the user who's groups we wish to get
+	 * @userId.hint ID of the user whose groups we wish to get
 	 *
 	 */
 	public array function listUserGroups( required string userId ) {

@@ -32,7 +32,7 @@ component displayName="Email service" {
 	 * Sends an email. If a template is supplied, first runs the template handler which can return a struct that will override any arguments
 	 * passed directly to the function
 	 *
-	 * @template.hint    Name of the template who's handler will do the rendering, etc.
+	 * @template.hint    Name of the template whose handler will do the rendering, etc.
 	 * @recipientId.hint ID of the recipient of the email (for new as of 10.8.0 templated emails only)
 	 * @args.hint        Structure of arbitrary arguments to forward on to the template handler
 	 * @to.hint          Array of email addresses to send the email to

@@ -75,7 +75,7 @@ component displayName="Website permissions service" {
 	 * @permissionKey.hint       The permission key as defined in `Config.cfc`
 	 * @context.hint             Optional named context
 	 * @contextKeys.hint         Array of keys for the given context (required if context supplied)
-	 * @userId.hint              ID of the user who's permissions we wish to check
+	 * @userId.hint              ID of the user whose permissions we wish to check
 	 * @userId.docdefault        ID of logged in user
 	 * @forceGrantByDefault.hint Whether or not to force a granted permission by default, unless a specific context permission overrides that grant
 	 *
@@ -107,7 +107,7 @@ component displayName="Website permissions service" {
 	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
 	 *
 	 * @autodoc
-	 * @userId  ID of the user who's benefits we wish to get
+	 * @userId  ID of the user whose benefits we wish to get
 	 *
 	 */
 	public array function listUserBenefits( required string userId ) {
@@ -166,7 +166,7 @@ component displayName="Website permissions service" {
 	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
 	 *
 	 * @autodoc
-	 * @userId  ID of the user who's permissions we wish to get
+	 * @userId  ID of the user whose permissions we wish to get
 	 *
 	 */
 	public array function listUserPermissions( required string userId ) {

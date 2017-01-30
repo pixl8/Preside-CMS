@@ -126,7 +126,7 @@ component displayName="Website login service" {
 	 * Validates the supplied password against the a user (defaults to currently logged in user)
 	 *
 	 * @password.hint The user supplied password
-	 * @userId.hint   The id of the user who's password we are to validate. Defaults to the currently logged in user.
+	 * @userId.hint   The id of the user whose password we are to validate. Defaults to the currently logged in user.
 	 *
 	 */
 	public boolean function validatePassword( required string password, string userId=getLoggedInUserId() ) autodoc=true {
@@ -333,7 +333,7 @@ component displayName="Website login service" {
 	 * Changes a password
 	 *
 	 * @password.hint The new password
-	 * @userId.hint   ID of the user who's password we wish to change (defaults to currently logged in user id)
+	 * @userId.hint   ID of the user whose password we wish to change (defaults to currently logged in user id)
 	 */
 	public boolean function changePassword( required string password, string userId=getLoggedInUserId(), boolean changedByAdmin=false ) autodoc=true {
 		var hashedPw = _getBCryptService().hashPw( arguments.password );
