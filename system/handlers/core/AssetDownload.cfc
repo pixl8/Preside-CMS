@@ -9,15 +9,17 @@ component output=false {
 
 		_checkDownloadPermissions( argumentCollection=arguments );
 
-		var assetId         = rc.assetId      ?: "";
-		var versionId       = rc.versionId    ?: "";
-		var derivativeName  = rc.derivativeId ?: "";
-		var isTrashed       = IsTrue( rc.isTrashed ) ?: "";
-		var asset           = "";
-		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
+		var assetId           = rc.assetId      ?: "";
+		var versionId         = rc.versionId    ?: "";
+		var derivativeName    = rc.derivativeId ?: "";
+		var isTrashed         = IsTrue( rc.isTrashed ) ?: "";
+		var asset             = "";
+		var assetSelectFields = [ "asset.title" ];
 		var passwordProtected = false;
 
 		if ( Len( Trim( derivativeName ) ) ) {
+			arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
+
 			try {
 				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
 			} catch ( "AssetManager.assetNotFound" e ) {
@@ -31,8 +33,10 @@ component output=false {
 				passwordProtected = true;
 			}
 		} else if( Len( Trim( versionId ) ) ) {
+			arrayAppend( assetSelectFields , "asset_version.asset_type" );
 			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
 		} else {
+			arrayAppend( assetSelectFields , "asset.asset_type" );
 			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
 		}
 
