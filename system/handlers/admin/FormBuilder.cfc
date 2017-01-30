@@ -77,10 +77,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
+		var clone = rc.clone ?: false;
 		_permissionsCheck( "editform", event );
 
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
+			item.configuration.name  = isTrue( clone ) ? "" : item.configuration.name;
+			item.configuration.label = isTrue( clone ) ? "" : item.configuration.label;
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
 			}
