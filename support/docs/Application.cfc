@@ -1,7 +1,7 @@
 component {
 	this.name = "presideDocumentationBuilder-" & Hash( GetCurrentTemplatePath() );
 
-	this.cwd = GetDirectoryFromPath( GetCurrentTemplatePath() )
+	this.cwd = GetDirectoryFromPath( GetCurrentTemplatePath() );
 
 	this.mappings[ "/api"      ] = this.cwd & "api";
 	this.mappings[ "/builders" ] = this.cwd & "builders";

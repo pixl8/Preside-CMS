@@ -1,6 +1,6 @@
 <cfscript>
 	language            = prc.language ?: {};
-	object              = rc.object ?: ""
+	object              = rc.object ?: "";
 	id                  = rc.id ?: "";
 	recordLabel         = prc.recordLabel ?: "Unknown";
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );

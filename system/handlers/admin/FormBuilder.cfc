@@ -411,7 +411,7 @@ component extends="preside.system.base.AdminHandler" {
 			messagebox.info( translateResource( "formbuilder:deactivated.confirmation" ) );
 		}
 
-		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) )
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) );
 	}
 
 	public void function lockAction( event, rc, prc ) {
@@ -428,7 +428,7 @@ component extends="preside.system.base.AdminHandler" {
 			messagebox.info( translateResource( "formbuilder:unlocked.confirmation" ) );
 		}
 
-		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) )
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) );
 
 	}
 

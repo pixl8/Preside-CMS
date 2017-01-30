@@ -361,7 +361,7 @@ component {
 
 		settings.multilingual = {
 			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
-		}
+		};
 
 		settings.formbuilder        = _setupFormBuilder();
 		settings.environmentMessage = "";
@@ -386,7 +386,7 @@ component {
 
 		environments = {
 			local = "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
-		}
+		};
 
 	}
 
@@ -505,7 +505,7 @@ component {
 			, pptm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.presentation.macroEnabled.12" }
 			, potm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.template.macroEnabled.12" }
 			, ppsm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.slideshow.macroEnabled.12" }
-		}
+		};
 
 		// TODO, more types to be defined here!
 

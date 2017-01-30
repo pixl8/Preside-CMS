@@ -2,7 +2,7 @@
 	parentPage       = prc.parentPage      ?: QueryNew('');
 	mainFormName     = prc.mainFormName    ?: "";
 	mergeFormName    = prc.mergeFormName   ?: "";
-	validationResult = rc.validationResult ?: ""
+	validationResult = rc.validationResult ?: "";
 	formId           = "addForm-" & CreateUUId();
 	addPagePrompt    = translateResource( uri="preside-objects.page:addRecord.prompt", defaultValue="" );
 

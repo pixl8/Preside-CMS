@@ -1,5 +1,5 @@
 <cfscript>
-	object              = rc.object ?: ""
+	object              = rc.object ?: "";
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
 	prc.pageIcon     = "lock";

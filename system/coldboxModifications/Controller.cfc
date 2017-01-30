@@ -73,7 +73,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var defaultAction = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
 
 		if ( not handlerExists( handler ) ) {
-			handler = ListAppend( handler, defaultAction, "." )
+			handler = ListAppend( handler, defaultAction, "." );
 		}
 
 		if ( handlerExists( handler ) ) {

@@ -1,5 +1,5 @@
 <cfscript>
-	objectName          = "security_user"
+	objectName          = "security_user";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 
 	prc.pageIcon     = "group";
