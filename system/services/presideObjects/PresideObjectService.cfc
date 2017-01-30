@@ -142,6 +142,7 @@ component displayName="Preside Object Service" {
 	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
 	 * @allowDraftVersions.hint Choose whether or not to allow selecting from draft records and/or versions
 	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @distinct.hint           Whether or not the record set should be a 'distinct' select
 	 * @selectFields.docdefault []
 	 * @filter.docdefault       {}
 	 * @filterParams.docdefault {}
@@ -164,7 +165,7 @@ component displayName="Preside Object Service" {
 		,          numeric specificVersion    = 0
 		,          boolean allowDraftVersions = $getRequestContext().showNonLiveContent()
 		,          string  forceJoins         = ""
-		,          boolean distinct          = false
+		,          boolean distinct           = false
 	) autodoc=true {
 		var args = Duplicate( arguments );
 
