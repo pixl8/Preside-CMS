@@ -14,10 +14,11 @@ component output=false {
 		var derivativeName  = rc.derivativeId ?: "";
 		var isTrashed       = IsTrue( rc.isTrashed ) ?: "";
 		var asset           = "";
-		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
+		var assetSelectFields = [ "asset.title" ];
 
 		if ( Len( Trim( derivativeName ) ) ) {
 			try {
+				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
 				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
 			} catch ( "AssetManager.assetNotFound" e ) {
 				asset = QueryNew('');
@@ -27,8 +28,10 @@ component output=false {
 				asset = QueryNew('');
 			}
 		} elseif( Len( Trim( versionId ) ) ) {
+			arrayAppend( assetSelectFields , "asset_version.asset_type" );
 			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
 		} else {
+			arrayAppend( assetSelectFields , "asset.asset_type" );
 			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
 		}
 
