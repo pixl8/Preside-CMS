@@ -358,7 +358,7 @@ component {
 		,          array   extraFilters = []
 		,          string  searchQuery  = ""
 		,          numeric maxRows      = 1000
-		,          string  orderBy      = "label asc"
+		,          string  orderBy      = "label"
 	) {
 		var result = [];
 		var records = "";
