@@ -30,5 +30,17 @@
 				</ul>
 			</cfif>
 		</li>
+
+		<cfif IsFeatureEnabled( "websiteusers" )>
+			<cfif IsLoggedIn()>
+				<li>
+					<a href="#event.buildLink( linkTo="login.logout" )#">Logout</a>
+				</li>
+			<cfelse>
+				<li>
+					<a href="#event.buildLink( page="login" )#">Login</a>
+				</li>
+			</cfif>
+		</cfif>
 	</cfloop>
 </cfoutput>
