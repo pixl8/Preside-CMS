@@ -6,17 +6,23 @@
 		 * @pageTypesService.inject     PageTypesService
 		 * @presideObjectService.inject PresideObjectService
 		 * @appMapping.inject           coldbox:setting:appMapping
+		 * @notificationDao.inject      presidecms:object:admin_notification
+		 * @configuredTopics.inject     coldbox:setting:notificationTopics
 		 */
 		public any function init(
 			  required any    widgetsService
 			, required any    pageTypesService
 			, required any    presideObjectService
 			, required string appMapping
+			, required array  configuredTopics
+			, required any    notificationDao
 		) {
 			_setWidgetsService( arguments.widgetsService );
 			_setPageTypesService( arguments.pageTypesService );
 			_setPresideObjectService( arguments.presideObjectService );
+			_setConfiguredTopics( arguments.configuredTopics );
 			_setAppMapping( arguments.appMapping );
+			_setNotificationDao( arguments.notificationDao );
 
 			return this;
 		}
@@ -57,6 +63,51 @@
 			_getWidgetsService().reload();
 
 			return filesCreated;
+		}
+
+		public array function scaffoldNotification( required string notificationId, string title="", string description="", string icon="fa-magic", string dataTableTitle="", string extension="" ) {
+			var filesCreated = _ensureExtensionExists( arguments.extension );
+			var i18nProps    = StructNew( "ordered" );
+			var topics       = _getConfiguredTopics();
+
+			if( arrayFindNoCase( topics, arguments.notificationId ) ){
+				throw( type="scaffoldwidget.notification.exists", message="The '#arguments.notificationId#' notification already exists" );
+			}
+
+			filesCreated.append( scaffoldNotificationViewletHandler( handlerName=arguments.notificationId, subDir="renderers/notifications", extension=arguments.extension ) );
+			filesCreated.append( scaffoldView( viewName="full", subDir="renderers/notifications/#arguments.notificationId#", extension=arguments.extension ) );
+
+			i18nProps["title"]=arguments.title;
+			i18nProps["description"]=arguments.description;
+			i18nProps["iconclass"]=arguments.icon;
+			i18nProps["datatabletitle"]=arguments.dataTableTitle;
+
+			filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.notificationId, subDir="notifications", extension=arguments.extension, properties=i18nProps ) );
+
+			// Append notification topic in config.cfc
+			arrayAppend( topics, arguments.notificationId );
+
+			return filesCreated;
+		}
+
+		public string function scaffoldNotificationViewletHandler( required string handlerName, string subDir="", string extension="" ) {
+			var root            = _getScaffoldRoot( arguments.extension );
+			var filePath        = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
+			var viewPath        = arguments.subDir & "/" & handlerName & "/dataTable";
+			var fileContent     = "component {" & _nl()
+			                    & "	private function dataTable( event, rc, prc, args={} ) {" & _nl()
+			                    & "		// TODO: create your handler logic here" & _nl()
+			                    & "		return " & "translateResource( uri='notifications.#arguments.handlerName#:dataTableTitle' );" & _nl()
+			                    & "	}" & _nl()
+			                    & " private string function full( event, rc, prc, args={} ) {" & _nl()
+			                    & "		return renderView( view = '/renderers/notifications/#arguments.handlerName#/full', args = args );" & _nl()
+			                    & " }" & _nl()
+			                    & "}" & _nl();
+
+			_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+			FileWrite( filePath, fileContent );
+
+			return filePath;
 		}
 
 		public array function scaffoldPageType( required string id, string name="", string pluralName=arguments.name, string description="", string icon="page-o" string fields="", string extension="", boolean createHandler=false ) {
@@ -578,4 +629,17 @@
 			_appMapping = arguments.appMapping;
 		}
 
+		private any function _getNotificationDao() {
+			return _notificationDao;
+		}
+		private void function _setNotificationDao( required any notificationDao ) {
+			_notificationDao = arguments.notificationDao;
+		}
+
+		private any function _getConfiguredTopics() {
+			return _configuredTopics;
+		}
+		private void function _setConfiguredTopics( required any configuredTopics ) {
+			_configuredTopics = arguments.configuredTopics;
+		}
 	}

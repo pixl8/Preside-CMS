@@ -6,16 +6,17 @@ component autodoc=true displayName="Notification Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @notificationDao.inject    presidecms:object:admin_notification
-	 * @subscriptionDao.inject    presidecms:object:admin_notification_subscription
-	 * @consumerDao.inject        presidecms:object:admin_notification_consumer
-	 * @topicDao.inject           presidecms:object:admin_notification_topic
-	 * @userDao.inject            presidecms:object:security_user
-	 * @coldboxController.inject  coldbox
-	 * @configuredTopics.inject   coldbox:setting:notificationTopics
-	 * @interceptorService.inject coldbox:InterceptorService
-	 * @emailService.inject       emailService
-	 * @permissionService.inject  permissionService
+	 * @notificationDao.inject         presidecms:object:admin_notification
+	 * @subscriptionDao.inject         presidecms:object:admin_notification_subscription
+	 * @consumerDao.inject             presidecms:object:admin_notification_consumer
+	 * @topicDao.inject                presidecms:object:admin_notification_topic
+	 * @userDao.inject                 presidecms:object:security_user
+	 * @coldboxController.inject       coldbox
+	 * @configuredTopics.inject        coldbox:setting:notificationTopics
+	 * @interceptorService.inject      coldbox:InterceptorService
+	 * @emailService.inject            emailService
+	 * @permissionService.inject       permissionService
+	 * @notificationDirectories.inject presidecms:directories:handlers
 	 */
 	public any function init(
 		  required any   notificationDao
@@ -28,6 +29,7 @@ component autodoc=true displayName="Notification Service" {
 		, required any   interceptorService
 		, required any   emailService
 		, required any   permissionService
+		, required array notificationDirectories
 	) {
 		_setNotificationDao( arguments.notificationDao );
 		_setConsumerDao( arguments.consumerDao );
@@ -39,6 +41,7 @@ component autodoc=true displayName="Notification Service" {
 		_setUserDao( arguments.userDao );
 		_setEmailService( arguments.emailService );
 		_setPermissionService( arguments.permissionService );
+		_setnotificationDirectories( arguments.notificationDirectories );
 
 		_setDefaultConfigurationForTopicsInDb();
 
@@ -536,6 +539,30 @@ component autodoc=true displayName="Notification Service" {
 		var existingTopics   = _getTopicDao().selectData( selectFields=[ "id", "topic" ] );
 		var topicsToDelete   = [];
 		var topicsToInsert   = [];
+		var notificationDirs = _getNotificationDirectories();
+		var notificationIds  = [];
+
+		for( notificationDir in notificationDirs ){
+			var notifications           = [];
+			var notificationId          = "";
+			var notificationDir         = notificationDir & "/renderers/notifications/";
+			var notificationDirExpanded =  expandPath( notificationDir );
+			if( directoryExists( notificationDirExpanded ) ){
+				notifications = DirectoryList( path=notificationDir, recurse=true, filter="*.cfc" );
+			}
+
+			for( var notification in notifications ){
+				notificationId = Replace( notification, notificationDirExpanded, "" );
+				notificationId = ListDeleteAt( notificationId, ListLen( notificationId, "." ), "." );
+				arrayAppend( notificationIds, notificationId );
+			}
+		}
+
+		for( notificationId in notificationIds ){
+			if ( !configuredTopics.findNoCase( notificationId ) ) {
+				configuredTopics.append( notificationId );
+			}
+		}
 
 		for( var topic in existingTopics ) {
 			if ( !configuredTopics.findNoCase( topic.topic ) ) {
@@ -628,5 +655,12 @@ component autodoc=true displayName="Notification Service" {
 	}
 	private void function _setPermissionService( required any permissionService ) {
 		_permissionService = arguments.permissionService;
+	}
+
+	private any function _getNotificationDirectories() {
+		return _notificationDirectories;
+	}
+	private any function _setNotificationDirectories( required array notificationDirectories ) {
+		_notificationDirectories = arguments.notificationDirectories;
 	}
 }
