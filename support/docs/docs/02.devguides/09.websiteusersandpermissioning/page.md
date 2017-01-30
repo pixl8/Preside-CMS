@@ -56,7 +56,7 @@ You can build a logout link with `event.buildLink( linkTo='login.logout' )`.
 
 The `loginPage` viewlet is intended to render the login page. 
 
-The core view for this viewlet is just a stub and requires a specific implementation per site (see example below).
+The core view for this viewlet is just an example and should probably be overwritten within your application. However it should show how things could be implemented.
 
 The core handler ensures that the following arguments are passed to the view:
 
@@ -79,55 +79,6 @@ The core handler ensures that the following arguments are passed to the view:
 </div>
 
 >>> The default implementation of the access denied error handler renders this viewlet when the cause of the access denial is "LOGIN_REQUIRED" so that your login form will automatically be shown when login is required to access some resource.
-
-### Example login page implementation
-
-The bare minimum requirement to creating a working login system is to create a view that will render your login form. This view will be part of the `login.loginPage` viewlet, so will need to live at `/yoursite/application/views/login/loginPage.cfm`:
-
-```lucee
-<cfparam name="args.loginId"         default="" />
-<cfparam name="args.password"        default="" />
-<cfparam name="args.rememberMe"      default="" />
-<cfparam name="args.postLoginUrl"    default="" />
-<cfparam name="args.message"         default="" />
-<cfparam name="args.allowRememberMe" default=getSystemSetting( "website_users", "allow_remember_me", true ) />
-
-<cfoutput>
-    <!-- display an alert message based on the args.message parameter -->
-    <cfswitch expression="#args.message#">
-        <cfcase value="LOGIN_REQUIRED">
-            <p class="alert-message">The resource you are attempting to access requires a secure login. Please login using the form below, or register using the links to the right.</p>
-        </cfcase>
-        <cfcase value="LOGIN_FAILED">
-            <p class="alert-message">The email address and password combination you supplied did not match our records. Please try again.</p>
-        </cfcase>
-    </cfswitch>
-
-    <h2>Member Login</h2>
-
-    <!-- the form action needs to be the the login.attemptLogin handler action -->
-    <form action="#event.buildLink( linkTo="login.attemptLogin" )#" method="post">
-        <!-- include the postLoginUrl so that it can be maintained across login attempts -->
-        <input type="hidden" name="postLoginUrl" value="#args.postLoginUrl#" />
-
-        <!-- the core login.attemptLogin handler action expects a 'loginId' field -->
-        <label for="loginId">Email address <span class="required">*</span></label>
-        <input type="email" id="loginId" name="loginId" value="#args.loginId#" class="form-control">
-                                    
-        <!-- the core login.attemptLogin handler action expects a 'password' field -->
-        <label for="password">Password <span class="required">*</span></label>
-        <input type="password" id="password" name="password" class="form-control">
-
-        <!-- only show remember me checkbox if the feature is enabled -->
-        <cfif args.allowRememberMe>
-            <input type="checkbox" name="rememberMe" id="rememberMe" value="1"<cfif IsBoolean( args.rememberMe ) and args.rememberMe> checked="checked"</cfif>>
-            <label for="rememberMe">Keep me logged in</label>
-        </cfif>
-        
-        <input type="submit" value="Log in">
-    </form>
-</cfoutput>
-```
 
 ### Checking login and getting logged in user details
 
