@@ -820,7 +820,14 @@ component extends="preside.system.base.AdminHandler" {
 		var processedRecords = [];
 
 		for ( record in records ) {
-			record.icon = renderAsset( record.value, "pickerIcon" );
+			record.icon      = renderAsset( record.value, "pickerIcon" );
+
+			if ( Val( record.width ) && Val( record.height ) ) {
+				record.dimension =  "(" & record.width & "x" & record.height & ")";
+			} else {
+				record.dimension =  "";
+			}
+
 			if ( record.folder == "$root" ) {
 				record.folder = rootFolderName;
 			}
