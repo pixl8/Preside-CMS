@@ -1061,6 +1061,56 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+		describe( "cloneForm", function(){
+			it( "It should return a new form id which cloned", function(){
+				var service       = getService();
+				var basedOnFormId = CreateUUId();
+				var name          = "name";
+				var description   = "description";
+				var form1          = QueryNew( 'id,label', 'varchar,varchar', [[basedOnFormId, "label"]] );
+				var cloneFormData = { name="name", label="label", description="description" };
+				var newFormId     = CreateUUId();
+
+				var types = {
+					  a = { test=true, id="something" }
+					, b = { test=true, id="something" }
+				};
+
+				var formItems = [
+					  { id="item1", type=types.a, configuration={} }
+					, { id="item2", type=types.b, configuration={} }
+					, { id="item3", type=types.b, configuration={} }
+					, { id="item4", type=types.b, configuration={} }
+					, { id="item5", type=types.a, configuration={} }
+					, { id="item6", type=types.a, configuration={} }
+					, { id="item7", type=types.b, configuration={} }
+				];
+
+				var formActions = [
+						{
+							  id=CreateUUId()
+							, configuration={ recipients="test@test.com", subject="Form1", send_from="test1@test1.com", itemType="email"}
+							, action={ id="email" }
+						}
+					];
+
+				service.$( "getForm" ).$args( id = basedOnFormId ).$results( form1 );
+				mockFormDao.$( "insertData" ).$args(data = cloneFormData).$results( newFormId );
+				service.$( "getFormItems" ).$args( id = basedOnFormId ).$results( formItems );
+				service.$( "addItem" ).$results( CreateUUId() );
+				mockActionsService.$( "getFormActions" ).$args( id=basedOnFormId ).$results( formActions );
+				mockActionsService.$( "addAction" ).$results( CreateUUId() );
+
+				expect(
+					service.cloneForm(
+						  basedOnFormId = basedOnFormId
+						, name          = name
+						, description  = description
+					)
+				).toBe( newFormId );
+
+			});
+		});
 	}
 
 	private function getService() {

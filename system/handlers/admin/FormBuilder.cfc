@@ -581,6 +581,36 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function cloneForm( event, rc, prc, args ) {
+		prc.pageTitle    = translateResource( "formbuilder:cloneForm.page.title" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "formbuilder:cloneForm.page.title" )
+			, link  = ''
+		);
+	}
+
+	public void function cloneFormAction( event, rc, prc ) {
+		_permissionsCheck( "addform", event );
+
+		var basedOnFormId    = rc.basedOnFormId ?: "";
+		var formData         = event.getCollectionForForm( "preside-objects.formbuilder_form.admin.cloneForm" );
+		var validationResult = validateForm( formName="preside-objects.formbuilder_form.admin.cloneForm", formData=formData );
+		var persist          = "";
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist                  = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.cloneForm", queryString="id=#basedOnFormId#" ), persistStruct=persist );
+		} else {
+			// Here cloning a form with items and actions from original form, except submission data
+			var newFormId    = formBuilderService.cloneForm( argumentCollection = rc );
+			messagebox.info( translateResource( "formbuilder:cloned.success.message" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=#newFormId#" ) );
+		}
+	}
+
 // VIEWLETS
 	private string function formDataTableGridFields( event, rc, prc, args ) {
 		args.canEdit = hasCmsPermission( permissionKey="formbuilder.editform" );
