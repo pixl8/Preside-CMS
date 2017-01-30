@@ -188,7 +188,7 @@ component displayName="AssetManager Service" {
 		var restrictions = getFolderRestrictions( arguments.folderId );
 		var assets       = _getAssetDao().selectData(
 			  filter       = { id = arguments.assetIds }
-			, selectFields = [ "asset_type", "size", "asset_folder","title"]
+			, selectFields = [ "asset_type", "size", "asset_folder", "title" ]
 		);
 
 		for( var asset in assets ) {
