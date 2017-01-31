@@ -1730,9 +1730,28 @@ component displayName="Preside Object Service" {
 
 		var all        = Duplicate( arguments.data );
 		var fieldRegex = _getAlaisedFieldRegex();
+		var entities   = _getEntityNames();
 		var field      = "";
-		var matches    = "";
-		var match      = "";
+		var addMatches = function( required string input ){
+			var matches = _reSearch( fieldRegex, arguments.input );
+			if ( StructKeyExists( matches, "$2" ) ) {
+				for( var match in matches.$2 ){
+					var matchEntities = match.listToArray( "$" );
+					var matched       = true;
+
+					for( var entity in matchEntities ) {
+						if ( !entities.keyExists( entity ) ) {
+							matched = false;
+							break;
+						}
+					}
+
+					if ( matched ) {
+						objects[ match ] = 1;
+					}
+				}
+			}
+		};
 
 		objects = {}
 
@@ -1747,57 +1766,26 @@ component displayName="Preside Object Service" {
 		}
 
 		for( field in arguments.selectFields ){
-			matches = _reSearch( fieldRegex, field );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( field );
 		}
 		for( field in ListToArray( arguments.orderBy ) ){
-			matches = _reSearch( fieldRegex, ListFirst( field, " " ) );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( ListFirst( field, " " ) );
 		}
 		if ( isSimpleValue( filter ) ) {
-			matches = _reSearch( fieldRegex, filter );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( filter );
 		}
 		if ( Len( Trim( having ) ) ) {
-			matches = _reSearch( fieldRegex, having );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( having );
 		}
 
 		for( var join in extraJoins ) {
-			matches = _reSearch( fieldRegex, "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
 		}
 		for( var extraFilter in extraFilters ) {
 			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
 				for( var join in extraFilter.extraJoins ) {
-					matches = _reSearch( fieldRegex, "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
-					if ( StructKeyExists( matches, "$2" ) ) {
-						for( match in matches.$2 ){
-							objects[ match ] = 1;
-						}
-					}
+					addMatches( "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
 				}
-
 			}
 		}
 
@@ -2133,22 +2121,25 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _getAlaisedFieldRegex() {
-		if ( not StructKeyExists( this, "_aliasedFieldRegex" ) ) {
-			var entities = {};
+		var entityPattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+
+		return "(^|\s|,|\(|\)|`|\[)((#entityPattern#)(\$(#entityPattern#))*)[`\]]?\.[`\[]?(#entityPattern#)(\s|$|\)|,|`|\])";
+	}
+
+	private struct function _getEntityNames() {
+		if ( !StructKeyExists( this, "_entityNames" ) ) {
+			this._entityNames = {};
 
 			for( var objName in _getObjects() ){
-				entities[ objName ] = 1;
+				this._entityNames[ objName ] = 1;
 
 				for( var propertyName in getObjectProperties( objName ) ) {
-					entities[ propertyName ] = 1;
+					this._entityNames[ propertyName ] = 1;
 				}
 			}
-			entities = StructKeyList( entities, "|" );
-
-			_aliasedFieldRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)[`\]]?\.[`\[]?([a-zA-Z_][a-zA-Z0-9_]*)(\s|$|\)|,|`|\])";
 		}
 
-		return _aliasedFieldRegex;
+		return this._entityNames;
 	}
 
 	private string function _getAlaisedAliasRegex() {
