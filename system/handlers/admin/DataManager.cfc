@@ -194,6 +194,7 @@
 			var objectName     = rc.object ?: "";
 			var extraFilters   = [];
 			var filterByFields = ListToArray( rc.filterByFields ?: "" );
+			var orderBy        = rc.orderBy ?: "label";
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
@@ -212,6 +213,7 @@
 				, searchQuery  = rc.q       ?: ""
 				, savedFilters = ListToArray( rc.savedFilters ?: "" )
 				, extraFilters = extraFilters
+				, orderBy      = orderBy
 				, ids          = ListToArray( rc.values ?: "" )
 			);
 
