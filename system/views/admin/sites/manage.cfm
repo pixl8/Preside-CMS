@@ -8,7 +8,7 @@
 		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sites.addSite" )#" data-global-key="a">
 			<button class="btn btn-success btn-sm">
 				<i class="fa fa-plus"></i>
-				#translateResource( uri="cms:sites.addrecord.title", data=[ LCase( objectTitleSingular ) ] )#
+				#translateResource( uri="cms:sites.addrecord.title", data=[  objectTitleSingular  ] )#
 			</button>
 		</a>
 	</div>
