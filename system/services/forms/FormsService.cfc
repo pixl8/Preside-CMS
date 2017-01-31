@@ -750,51 +750,53 @@ component displayName="Forms service" {
 		}
 		theForm.tabs = [];
 
-		tabs = XmlSearch( xml, "/form/tab" );
+		if ( !_itemBelongsToDisabledFeature( theForm ) ) {
+			tabs = XmlSearch( xml, "/form/tab" );
 
-		for ( var i=1; i lte ArrayLen( tabs ); i++ ) {
-			var attribs = tabs[i].xmlAttributes;
+			for ( var i=1; i lte ArrayLen( tabs ); i++ ) {
+				var attribs = tabs[i].xmlAttributes;
 
-			var tab = {
-				  title       = attribs.title       ?: ""
-				, description = attribs.description ?: ""
-				, id          = attribs.id          ?: ""
-				, fieldsets   = []
-			}
-			StructAppend( tab, attribs, false );
-
-			if ( StructKeyExists( tabs[i], "fieldset" ) ) {
-				for( var n=1; n lte ArrayLen( tabs[i].fieldset ); n++ ){
-					attribs = tabs[i].fieldset[n].xmlAttributes;
-
-					var fieldset = {
-						  title       = attribs.title       ?: ""
-						, description = attribs.description ?: ""
-						, id          = attribs.id          ?: ""
-						, fields      = []
-					};
-					StructAppend( fieldset, attribs, false );
-
-					if ( StructKeyExists( tabs[i].fieldset[n], "field" ) ) {
-						for( var x=1; x lte ArrayLen( tabs[i].fieldset[n].field ); x++ ){
-							var field = {};
-
-							for( var key in tabs[i].fieldset[n].field[x].xmlAttributes ){
-								field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
-							}
-
-							_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
-							field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
-
-							ArrayAppend( fieldset.fields, field );
-						}
-					}
-
-					ArrayAppend( tab.fieldsets, fieldset );
+				var tab = {
+					  title       = attribs.title       ?: ""
+					, description = attribs.description ?: ""
+					, id          = attribs.id          ?: ""
+					, fieldsets   = []
 				}
-			}
+				StructAppend( tab, attribs, false );
 
-			ArrayAppend( theForm.tabs, tab );
+				if ( StructKeyExists( tabs[i], "fieldset" ) ) {
+					for( var n=1; n lte ArrayLen( tabs[i].fieldset ); n++ ){
+						attribs = tabs[i].fieldset[n].xmlAttributes;
+
+						var fieldset = {
+							  title       = attribs.title       ?: ""
+							, description = attribs.description ?: ""
+							, id          = attribs.id          ?: ""
+							, fields      = []
+						};
+						StructAppend( fieldset, attribs, false );
+
+						if ( StructKeyExists( tabs[i].fieldset[n], "field" ) ) {
+							for( var x=1; x lte ArrayLen( tabs[i].fieldset[n].field ); x++ ){
+								var field = {};
+
+								for( var key in tabs[i].fieldset[n].field[x].xmlAttributes ){
+									field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
+								}
+
+								_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
+								field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
+
+								ArrayAppend( fieldset.fields, field );
+							}
+						}
+
+						ArrayAppend( tab.fieldsets, fieldset );
+					}
+				}
+
+				ArrayAppend( theForm.tabs, tab );
+			}
 		}
 
 		return theForm;
