@@ -3,7 +3,7 @@
 	id                  = rc.id ?: "";
 	recordLabel         = prc.recordLabel;
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-	editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[ LCase( objectTitleSingular ), recordLabel ] );
+	editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[  objectTitleSingular , recordLabel ] );
 	useVersioning       = prc.useVersioning ?: false;
 
 	prc.pageIcon  = "pencil";

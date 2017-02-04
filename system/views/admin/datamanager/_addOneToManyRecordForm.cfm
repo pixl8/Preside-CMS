@@ -9,7 +9,7 @@
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
-	addRecordButton     = translateResource( uri="cms:datamanager.addrecord.btn", data=[ LCase( objectTitleSingular ) ] );
+	addRecordButton     = translateResource( uri="cms:datamanager.addrecord.btn", data=[  objectTitleSingular  ] );
 	formId              = "addForm-" & CreateUUId();
 </cfscript>
 

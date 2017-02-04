@@ -1,7 +1,7 @@
 <cfscript>
 	objectName          = "website_benefit";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
+	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
 	prioritizeBtn       = translateResource( uri="cms:websitebenefitsmanager.prioritize.btn" );
 
 	prc.pageIcon     = "unlock";

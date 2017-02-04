@@ -22,9 +22,9 @@
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.object#:editRecord.prompt", defaultValue="" );
 	formId              = "editForm-" & CreateUUId();
 
-	param name="args.editRecordLabel"   type="string"  default=translateResource( uri="cms:datamanager.savechanges.btn"        , data=[ LCase( objectTitleSingular ) ] );
-	param name="args.publishLabel"      type="string"  default=translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ LCase( objectTitleSingular ) ] );
-	param name="args.saveDraftLabel"    type="string"  default=translateResource( uri="cms:datamanager.edit.record.draft.btn"  , data=[ LCase( objectTitleSingular ) ] );
+	param name="args.editRecordLabel"   type="string"  default=translateResource( uri="cms:datamanager.savechanges.btn"        , data=[ objectTitleSingular ] );
+	param name="args.publishLabel"      type="string"  default=translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ objectTitleSingular ] );
+	param name="args.saveDraftLabel"    type="string"  default=translateResource( uri="cms:datamanager.edit.record.draft.btn"  , data=[ objectTitleSingular ] );
 </cfscript>
 
 <cfoutput>

@@ -19,10 +19,10 @@
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
 	formId              = "addForm-" & CreateUUId();
-	
-	param name="args.addRecordLabel"        type="string"  default=translateResource( uri="cms:datamanager.addrecord.btn"         , data=[ LCase( objectTitleSingular ) ] );
-	param name="args.publishLabel"          type="string"  default=translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ LCase( objectTitleSingular ) ] );
-	param name="args.saveDraftLabel"        type="string"  default=translateResource( uri="cms:datamanager.add.record.draft.btn"  , data=[ LCase( objectTitleSingular ) ] );
+
+	param name="args.addRecordLabel"        type="string"  default=translateResource( uri="cms:datamanager.addrecord.btn"         , data=[ objectTitleSingular ] );
+	param name="args.publishLabel"          type="string"  default=translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ objectTitleSingular ] );
+	param name="args.saveDraftLabel"        type="string"  default=translateResource( uri="cms:datamanager.add.record.draft.btn"  , data=[ objectTitleSingular ] );
 </cfscript>
 
 <cfoutput>

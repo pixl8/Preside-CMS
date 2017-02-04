@@ -4,7 +4,7 @@
 	id                  = rc.id ?: "";
 	recordLabel         = prc.recordLabel ?: "Unknown";
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-	recordHistoryTitle  = translateResource( uri="cms:datamanager.translationRecordhistory.title", data=[ recordLabel, LCase( objectTitleSingular ), language.name ] );
+	recordHistoryTitle  = translateResource( uri="cms:datamanager.translationRecordhistory.title", data=[ recordLabel,  objectTitleSingular , language.name ] );
 
 	prc.pageIcon  = "history";
 	prc.pageTitle = recordHistoryTitle;

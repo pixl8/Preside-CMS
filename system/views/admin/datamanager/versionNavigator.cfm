@@ -16,15 +16,15 @@
 
 	if ( args.isDraft ) {
 		alertClass   = "warning";
-		alertMessage = translateResource( uri="cms:version.navigator.#( args.isLatest ? 'latest.draft.version.message' : 'old.draft.version.message' )#", data=[ LCase( objectTitleSingular ) ] );
+		alertMessage = translateResource( uri="cms:version.navigator.#( args.isLatest ? 'latest.draft.version.message' : 'old.draft.version.message' )#", data=[  objectTitleSingular  ] );
 	} else {
 		isLatestPublished = args.version == args.latestPublishedVersion;
 		alertClass        = args.isLatest || isLatestPublished ? "success" : "warning";
 
 		if ( !args.isLatest && isLatestPublished ) {
-			alertMessage = translateResource( uri="cms:version.navigator.current.published.version.message", data=[ LCase( objectTitleSingular ) ] );
+			alertMessage = translateResource( uri="cms:version.navigator.current.published.version.message", data=[  objectTitleSingular  ] );
 		} else {
-			alertMessage = translateResource( uri="cms:version.navigator.#( args.isLatest ? 'current.version.message' : 'old.version.message' )#", data=[ LCase( objectTitleSingular ) ] );
+			alertMessage = translateResource( uri="cms:version.navigator.#( args.isLatest ? 'current.version.message' : 'old.version.message' )#", data=[  objectTitleSingular  ] );
 		}
 	}
 </cfscript>
