@@ -47,17 +47,17 @@
 				<cfif args.draftsEnabled>
 					<cfif args.canSaveDraft>
 						<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.add.record.draft.btn", data=[ LCase( objectTitleSingular ) ] )#
+							<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.add.record.draft.btn", data=[  objectTitleSingular  ] )#
 						</button>
 					</cfif>
 					<cfif args.canPublish>
 						<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ LCase( objectTitleSingular ) ] )#
+							<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.add.record.publish.btn", data=[  objectTitleSingular  ] )#
 						</button>
 					</cfif>
 				<cfelse>
 					<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.addrecord.btn", data=[ LCase( objectTitleSingular ) ] )#
+						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.addrecord.btn", data=[  objectTitleSingular  ] )#
 					</button>
 				</cfif>
 			</div>

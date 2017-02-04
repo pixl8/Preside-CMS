@@ -14,7 +14,7 @@
 </cfscript>
 
 <cfoutput>
-	<p>#translateResource( uri="cms:datamanager.cascadeDelete.intro", data=[ "<strong>#LCase( objectTitlePural )#</strong>" ] )#</p>
+	<p>#translateResource( uri="cms:datamanager.cascadeDelete.intro", data=[ "<strong>#objectTitlePural#</strong>" ] )#</p>
 
 	<div class="row">
 		<div class="col-sm-4">

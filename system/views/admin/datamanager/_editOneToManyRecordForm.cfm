@@ -11,7 +11,7 @@
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue=args.object );
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.object#:editRecord.prompt", defaultValue="" );
-	saveButton          = translateResource( uri="cms:datamanager.savechanges.btn", data=[ LCase( objectTitleSingular ) ] );
+	saveButton          = translateResource( uri="cms:datamanager.savechanges.btn", data=[  objectTitleSingular  ] );
 	formId              = "editForm-" & CreateUUId();
 </cfscript>
 
