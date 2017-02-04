@@ -237,7 +237,7 @@ component {
 				StructDelete( prop, "type" );
 			}
 			if ( !isCoreProperty ) {
-				defaultAttributes.generate = ( prop.generator ?: "" ) == "none" ? "never" : "always";
+				defaultAttributes.generate = ( prop.generator ?: "none" ) == "none" ? "never" : "always";
 				StructAppend( prop, defaultAttributes, false );
 			}
 
