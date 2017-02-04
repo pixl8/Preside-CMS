@@ -2825,6 +2825,22 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test089_updateData_shouldGenerateFieldValues_forPropsThatGenerateAlways" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+
+			poService.dbSync();
+
+			var obj       = poService.getObject( "object_with_generated_fields" );
+			var recordId  = obj.insertData( data={ firstname="Fred", lastname="Smith", title="Mrs" } );
+			obj.updateData( id=recordId, data={ firstname="Roberta", lastname="Holness", title="Miss" } );
+			var record    = obj.selectData( id=recordId );
+
+			super.assertEquals( "Miss Roberta Holness", record.label );
+			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+		</cfscript>
+	</cffunction>
+
 
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">

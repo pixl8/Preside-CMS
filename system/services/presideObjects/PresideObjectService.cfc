@@ -540,6 +540,11 @@ component displayName="Preside Object Service" {
 				cleanedData.delete( key );
 			}
 		}
+		cleanedData.append( _addGeneratedValues(
+			  operation  = "update"
+			, objectName = arguments.objectName
+			, data       = cleanedData
+		) );
 
 		if ( !Len( Trim( arguments.id ?: "" ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceUpdateAll ) {
 			throw(
