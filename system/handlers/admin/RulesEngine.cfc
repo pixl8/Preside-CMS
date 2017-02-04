@@ -157,7 +157,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object      = "rules_engine_condition"
-				, gridFields  = "condition_name,context,datemodified"
+				, gridFields  = "condition_name,context,filter_object,datemodified"
 				, actionsView = "/admin/rulesEngine/_conditionsTableActions"
 			}
 		);
