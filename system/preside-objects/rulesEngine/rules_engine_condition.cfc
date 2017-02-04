@@ -6,8 +6,8 @@
  * @labelfield condition_name
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Rules engine: condition" {
-	property name="condition_name" type="string"  dbtype="varchar"    maxlength=200 required=true uniqueindexes="name";
-	property name="context"        type="string"  dbtype="varchar"    maxlength=100 required=false indexes="context";
-	property name="expressions"    type="string"  dbtype="text"                     required=true;
-	property name="filter_object"  type="string"  dbtype="varchar"    maxlength=100 required=false indexes="filter_object";
+	property name="condition_name" type="string" dbtype="varchar"  required=true  maxlength=200  uniqueindexes="contextname|2,filterobjectname|2";
+	property name="context"        type="string" dbtype="varchar"  required=false maxlength=100  uniqueindexes="contextname|1"                    indexes="context";
+	property name="filter_object"  type="string" dbtype="varchar"  required=false maxlength=100  uniqueindexes="filterobjectname|1";
+	property name="expressions"    type="string" dbtype="longtext" required=true;
 }
