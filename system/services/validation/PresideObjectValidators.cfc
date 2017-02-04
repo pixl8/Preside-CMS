@@ -31,11 +31,11 @@ component output=false validationProvider=true singleton=true {
 				return false;
 			}
 
-			if ( Len( Trim( arguments.data[ field ] ) ) ) {
-				filter &= delimiter & "#dbAdapter.escapeEntity( field )# = :#field#";
-			} else {
-				filter &= delimiter & "(#dbAdapter.escapeEntity( field )# = :#field# or #dbAdapter.escapeEntity( field )# is null)";
+			if ( !Len( Trim( arguments.data[ field ] ) ) ) {
+				return true; // yes! a unique index should be by-passed when any field is null
 			}
+
+			filter &= delimiter & "#dbAdapter.escapeEntity( field )# = :#field#";
 			filterParams[ field ]  = arguments.data[ field ];
 
 			delimiter = " and ";
