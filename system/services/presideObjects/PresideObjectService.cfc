@@ -319,6 +319,11 @@ component displayName="Preside Object Service" {
 		var manyToManyData     = {};
 		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName );
 
+		cleanedData.append( _addGeneratedValues(
+			  operation  = "insert"
+			, objectName = arguments.objectName
+			, data       = cleanedData
+		) );
 		for( key in cleanedData ){
 			if ( args.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(many|one)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
@@ -335,14 +340,7 @@ component displayName="Preside Object Service" {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
 		if ( StructKeyExists( obj.properties, idField ) ) {
-			if ( not StructKeyExists( cleanedData, idField ) or not Len( Trim( cleanedData[ idField ] ) ) ) {
-				newId = _generateNewIdWhenNecessary( generator=( obj.properties[ idField ].generator ?: "UUID" ) );
-				if ( Len( Trim( newId ) ) ) {
-					cleanedData[ idField ] = newId;
-				}
-			} else {
-				newId = cleanedData[ idField ];
-			}
+			newId = cleanedData[ idField ] ?: "";
 		}
 		if ( objectIsVersioned( args.objectName ) ) {
 			cleanedData._version_is_draft = cleanedData._version_has_drafts = args.isDraft;
@@ -542,6 +540,11 @@ component displayName="Preside Object Service" {
 				cleanedData.delete( key );
 			}
 		}
+		cleanedData.append( _addGeneratedValues(
+			  operation  = "update"
+			, objectName = arguments.objectName
+			, data       = cleanedData
+		) );
 
 		if ( !Len( Trim( arguments.id ?: "" ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceUpdateAll ) {
 			throw(
@@ -2507,6 +2510,62 @@ component displayName="Preside Object Service" {
 		}
 
 		return newData;
+	}
+
+	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data ) {
+		var props     = getObjectProperties( arguments.objectName );
+		var newData   = Duplicate( arguments.data );
+		var generated = {};
+		var genOps    = arguments.operation == "insert" ? [ "insert", "always" ] : [ "always" ];
+
+		for( var propName in props ){
+			var prop = props[ propName ];
+
+			if ( genOps.findNoCase( prop.generate ?: "" ) ) {
+				if ( arguments.operation == "insert" && Len( Trim( arguments.data[ propName ] ?: "" ) ) ) {
+					continue;
+				}
+
+				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop );
+				if ( !IsNull( generatedValue ) ) {
+					generated[ propName ] = newData[ propName ] = generatedValue;
+				}
+			}
+		}
+
+		return generated;
+	}
+
+	private any function _generateValue( required string objectName, required string generator, required struct data, required struct prop ) {
+		switch( ListFirst( arguments.generator, ":" ) ) {
+			case "UUID":
+				return CreateUUId();
+			break;
+			case "timestamp":
+				return DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
+			break;
+			case "method":
+				var obj = getObject( arguments.objectName );
+
+				return obj[ ListRest( arguments.generator, ":" ) ]( arguments.data );
+			break;
+			case "hash":
+				if ( Len( Trim( prop.generateFrom ?: "" ) ) ) {
+					var valueToHash = "";
+					for( var field in ListToArray( prop.generateFrom ) ) {
+						if ( arguments.data.keyExists( field ) ) {
+							valueToHash &= arguments.data[ field ];
+						} else {
+							return;
+						}
+					}
+
+					return Hash( valueToHash );
+				}
+			break;
+		}
+
+		return;
 	}
 
 	private struct function _getDraftExclusionFilter( required string objectName ) {
