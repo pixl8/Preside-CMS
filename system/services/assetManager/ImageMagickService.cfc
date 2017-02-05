@@ -17,24 +17,17 @@ component displayname="ImageMagick"  {
 
 	public binary function resize(
 		  required binary  asset
-		,          numeric width               = 0
-		,          numeric height              = 0
-		,          string  quality             = "highPerformance"
-		,          boolean maintainAspectRatio = false
-		,          string  gravity             = 'center'
+		,          numeric width                = 0
+		,          numeric height               = 0
+		,          string  quality              = "highPerformance"
+		,          boolean maintainAspectRatio  = false
+		,          string  gravity              = 'center'
 	) {
 
 		var imageBinary = arguments.asset;
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
-		var currentImageInfo = getImageInformation( imageBinary );
-
-		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
-			return imageBinary;
-		}
-
-		var currentImageInfo  = {};
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
 		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
 
@@ -99,11 +92,7 @@ component displayname="ImageMagick"  {
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
-		var currentImageInfo = getImageInformation( imageBinary );
-
-		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
-			return imageBinary;
-		}
+		var currentImageInfo  = getImageInformation( imageBinary );
 
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
 		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
@@ -118,6 +107,11 @@ component displayname="ImageMagick"  {
 			shrinkToHeight = 0;
 		} else {
 			shrinkToWidth = 0;
+		}
+
+		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
+			shrinkToWidth  = currentImageInfo.width;
+			shrinkToHeight = currentImageInfo.height;
 		}
 
 		try {
@@ -153,7 +147,7 @@ component displayname="ImageMagick"  {
 		,          boolean crop      = false
 		,          string  gravity   = 'center'
 	) {
-		var defaultSettings = "-auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
+		var defaultSettings = "-coalesce -auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
 		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings# -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
 		var interlace       = $getPresideSetting( "asset-manager", "imagemagick_interlace" );
 

@@ -69,6 +69,8 @@ component {
 
 		_doBrowserEtagLookup( etag );
 
+		setting showdebugoutput=false;
+
 		header name="cache-control" value="max-age=#( 2400 )#"; // cache for 20 min
 		header name="etag" value=etag;
 		content reset=true type="application/javascript";WriteOutput(js);abort;

@@ -1,12 +1,14 @@
-component output=false {
+component {
 
 	property name="presideObjectService" inject="presideObjectService";
-	property name="dataManagerService" inject="dataManagerService";
+	property name="dataManagerService"   inject="dataManagerService";
 
-	public string function index( event, rc, prc, args={} ) output=false {
-		var targetObject = args.object        ?: "";
-		var ajax         = args.ajax          ?: true;
-		var savedFilters = args.objectFilters ?: "";
+	public string function index( event, rc, prc, args={} ) {
+
+		var targetObject       = args.object        ?: "";
+		var ajax               = args.ajax          ?: true;
+		var savedFilters       = args.objectFilters ?: "";
+		var orderBy            = args.orderBy       ?: "label";
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
@@ -14,18 +16,18 @@ component output=false {
 
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#"
+					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&q=%QUERY"
+				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&q=%QUERY"
 			);
 		} else {
 			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
 				  objectName   = targetObject
 				, selectFields = [ "#targetObject#.id", "${labelfield} as label" ]
-				, orderBy      = "label"
+				, orderBy      = orderBy
 				, savedFilters = ListToArray( savedFilters )
 			);
 		}

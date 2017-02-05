@@ -1,11 +1,11 @@
-component extends="coldbox.system.Interceptor" output=false {
+component extends="coldbox.system.Interceptor" {
 
 	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
 	property name="featureService"                   inject="delayedInjector:featureService";
 	property name="loginService"                     inject="delayedInjector:loginService";
 
 // PUBLIC
-	public void function configure() output=false {}
+	public void function configure() {}
 
 	public void function postReadPresideObjects( event, interceptData ) {
 		if ( featureService.isFeatureEnabled( "multilingual" ) ) {

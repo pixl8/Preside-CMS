@@ -17,6 +17,13 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 		return result;
 	}
 
+	public any function clearQuiet( required any objectKey ) output=false {
+		request[ _requestKey ] = request[ _requestKey ] ?: {};
+		request[ _requestKey ].delete( arguments.objectKey );
+
+		return super.clearQuiet( argumentCollection=arguments );
+	}
+
 	public any function get( required string objectKey ) output=false {
 		request[ _requestKey ] = request[ _requestKey ] ?: {};
 

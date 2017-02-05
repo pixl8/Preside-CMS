@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
 	property name="rulesEngineFilterService"    inject="rulesEngineFilterService";
 	property name="dataManagerService"          inject="dataManagerService";
+	property name="messageBox"                  inject="coldbox:plugin:messageBox";
 
 	function preHandler() {
 		super.preHandler( argumentCollection=arguments );
@@ -59,22 +60,31 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function addConditionAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="add" );
-
-		runEvent(
+		var object = "rules_engine_condition";
+		var newId  = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object           = "rules_engine_condition"
-				, errorAction      = "rulesEngine.addCondition"
-				, viewRecordAction = "rulesEngine.editCondition"
-				, addAnotherAction = "rulesEngine.addCondition"
-				, successAction    = "rulesEngine"
+				  object            = object
+				, errorAction       = "rulesEngine.addCondition"
+				, redirectOnSuccess = false
 				, audit             = true
 				, auditType         = "rulesEngine"
 				, auditAction       = "add_rules_engine_condition"
 			}
 		);
+
+		var newRecordLink = event.buildAdminLink( linkTo="rulesEngine.editCondition", queryString="object=#object#&id=#newId#" );
+
+		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[ translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ) , '<a href="#newRecordLink#">#( rc.condition_name ?: '' )#</a>'
+		] ) );
+
+		if ( Val( rc._addanother ?: 0 ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine.addCondition" ), persist="_addAnother", queryString="context=#rc.context#" );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
+		}
 	}
 
 	public void function editCondition( event, rc, prc ) {
@@ -113,7 +123,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object        = "rules_engine_condition"
 				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.editCondition", queryString="id=" & conditionId )
-				, successUrl    = event.buildAdminLink( linkTo="rulesEngine" )
+				, successAction = "rulesEngine"
 				, audit         = true
 				, auditType     = "rulesEngine"
 				, auditAction   = "edit_rules_engine_condition"

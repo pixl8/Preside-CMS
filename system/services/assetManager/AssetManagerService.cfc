@@ -188,7 +188,7 @@ component displayName="AssetManager Service" {
 		var restrictions = getFolderRestrictions( arguments.folderId );
 		var assets       = _getAssetDao().selectData(
 			  filter       = { id = arguments.assetIds }
-			, selectFields = [ "asset_type", "size", "asset_folder" ]
+			, selectFields = [ "asset_type", "size", "asset_folder", "title" ]
 		);
 
 		for( var asset in assets ) {
@@ -197,6 +197,7 @@ component displayName="AssetManager Service" {
 				, size            = asset.size
 				, currentFolderId = asset.asset_folder
 				, folderId        = arguments.folderId
+				, title           = asset.title
 				, throwIfNot      = arguments.throwIfNot
 				, restrictions    = restrictions
 			);
@@ -214,12 +215,14 @@ component displayName="AssetManager Service" {
 		, required string  size
 		, required string  folderId
 		,          string  currentFolderId = ""
+		,          string  title           = ""
 		,          boolean throwIfNot   = false
 		,          struct  restrictions = getFolderRestrictions( arguments.folderId )
 	) {
 		var typeDisallowed = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
 		var sizeInMb       = arguments.size / 1048576;
 		var tooBig         = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+		var fileExist      = _getAssetDao().dataExists( filter = { title = arguments.title,  asset_folder = arguments.folderId} );
 
 		if ( typeDisallowed  ) {
 			if ( arguments.throwIfNot ) {
@@ -257,6 +260,17 @@ component displayName="AssetManager Service" {
 
 				return false;
 			}
+		}
+
+		if ( fileExist ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.AssetManager.asset.file.exist.in.folder"
+					, message = "Cannot add file to asset folder due file is already exist in the folder. "
+				);
+			}
+
+			return false;
 		}
 
 		return true;
@@ -471,7 +485,7 @@ component displayName="AssetManager Service" {
 		}
 
 		records = assetDao.selectData(
-			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder" ]
+			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder", "asset.width", "asset.height" ]
 			, filter       = filter
 			, filterParams = params
 			, maxRows      = arguments.maxRows
@@ -1209,6 +1223,21 @@ component displayName="AssetManager Service" {
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
 		var storagePath     = "/derivatives/#derivativeSlug#/#filename#";
 
+		if( fileext == 'pdf' ){
+			var pdfAttributes = {
+				  action      = "getinfo"
+				, source      = assetBinary
+				, name        = 'result'
+			};
+			try{
+				pdf attributeCollection=pdfAttributes;
+			} catch( e ) {
+				if( e.detail == 'Bad user Password' ){
+					throw( type = "AssetManager.Password error" );
+				}
+			}
+		}
+
 		for( var transformation in transformations ) {
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
 				assetBinary = _applyAssetTransformation(
@@ -1368,12 +1397,20 @@ component displayName="AssetManager Service" {
 				, "asset_version.created_by"
 				, "asset_version.updated_by"
 				, "asset.title"
+				, "asset.asset_folder"
+				, "asset.is_trashed"
 			]
 		);
 
-		var versionImageDimension =  _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
-
 		if ( versionToMakeActive.recordCount ) {
+			var versionImageDimension = _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
+			var generatedAssetUrl     = generateAssetUrl(
+				  id          = arguments.assetId
+				, versionId   = arguments.versionId
+				, storagePath = versionToMakeActive.storage_path
+				, folder      = versionToMakeActive.asset_folder
+				, trashed 	  = IsBoolean( versionToMakeActive.is_trashed ) && versionToMakeActive.is_trashed
+			);
 			var result = _getAssetDao().updateData( id=arguments.assetId, data={
 				  active_version   = arguments.versionId
 				, storage_path     = versionToMakeActive.storage_path
@@ -1384,6 +1421,7 @@ component displayName="AssetManager Service" {
 				, updated_by       = versionToMakeActive.updated_by
 				, width            = versionImageDimension.width  ?: ""
 				, height           = versionImageDimension.height ?: ""
+				, asset_url 	   = generatedAssetUrl
 			} );
 
 			for( var a in versionToMakeActive ) { var auditDetail = a; }

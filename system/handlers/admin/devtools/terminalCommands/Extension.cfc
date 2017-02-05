@@ -98,7 +98,7 @@ component output=false hint="Manage preside extensions" {
 		var extensionUrl = cliArgs[2];
 
 		if ( !ReFindNoCase( "^https?://.*?\.zip$", extensionUrl ) ) {
-			return Chr(10) & "[[b;red;]Invalid extension path. Extensions must be a URL to a zip file.:] " & e.message & Chr(10);
+			return Chr(10) & "[[b;red;]Invalid extension path. Extensions must be a URL to a zip file.] " & Chr(10);
 		}
 
 		var tmpDir       = GetTempDirectory() & "/" & Hash( extensionUrl );

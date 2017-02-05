@@ -131,7 +131,7 @@ component extends="coldbox.system.Coldbox" output="false" {
 						renderedContent = cbController.getPlugin( "Utilities" ).marshallData( argumentCollection=renderData );
 
 					// Check for Event Handler return results
-					} elseif ( StructKeyExists( refResults, "results" ) ) {
+					} else if ( StructKeyExists( refResults, "results" ) ) {
 						renderedContent = refResults.results;
 					} else {
 						// Render Layout/View pair via set variable to eliminate whitespace--->

@@ -94,7 +94,7 @@ component {
 	 * Retuns a form's actions in an ordered array
 	 *
 	 * @autodoc
-	 * @id.hint ID of the form who's actions you wish to get
+	 * @id.hint ID of the form whose actions you wish to get
 	 */
 	public array function getFormActions( required string id ) {
 		var result = [];
@@ -124,7 +124,7 @@ component {
 	 * a given form
 	 *
 	 * @autodoc
-	 * @formid.hint The ID of the form who's actions you want to count
+	 * @formid.hint The ID of the form whose actions you want to count
 	 *
 	 */
 	public numeric function getActionCount( required string formId ) {
@@ -196,7 +196,7 @@ component {
 
 	/**
 	 * Sets the sort order of actions within a form. Returns the number
-	 * of actions who's order has been set.
+	 * of actions whose order has been set.
 	 *
 	 * @autodoc
 	 * @items.hint Array of action ids in the order they should be set
@@ -251,7 +251,7 @@ component {
 	 * in the form
 	 *
 	 * @autodoc
-	 * @formId.hint         ID of the form who's actions we are to trigger
+	 * @formId.hint         ID of the form whose actions we are to trigger
 	 * @submissionData.hint The form submission itself
 	 */
 	public void function triggerSubmissionActions( required string formId, required struct submissionData ) {
@@ -286,7 +286,17 @@ component {
 		return _configuredActions;
 	}
 	private void function _setConfiguredActions( required array configuredActions ) {
-		_configuredActions = arguments.configuredActions;
+		_configuredActions = [];
+
+		for( var action in arguments.configuredActions ) {
+			if ( IsStruct( action ) ) {
+				if ( Len( Trim( action.feature ?: "" ) ) && !$isFeatureEnabled( action.feature ) ) {
+					continue;
+				}
+				action = action.id;
+			}
+			_configuredActions.append( action );
+		}
 	}
 
 	private any function _getValidationEngine() {

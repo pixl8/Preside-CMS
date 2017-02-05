@@ -17,14 +17,14 @@ component {
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
 		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
 		this.COLDBOX_RELOAD_PASSWORD                 = arguments.reloadPassword;
-		this.name                                    = arguments.name
+		this.name                                    = arguments.name;
 		this.scriptProtect                           = arguments.scriptProtect;
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
 		this.statelessRequest                        = isStatelessRequest( _getUrl() );
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
-		this.showDbSyncScripts                       = arguments.showDbSyncScripts
+		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -220,9 +220,9 @@ component {
 				admin action="getCompilerSettings" returnVariable="luceeCompilerSettings";
 				admin action               = "updateCompilerSettings"
 				      dotNotationUpperCase = false
-					  suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
-					  nullSupport          = luceeCompilerSettings.nullSupport
-					  templateCharset      = luceeCompilerSettings.templateCharset;
+				      suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
+				      nullSupport          = luceeCompilerSettings.nullSupport
+				      templateCharset      = luceeCompilerSettings.templateCharset;
 			} catch( security e ) {
 				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
 			}
@@ -379,7 +379,6 @@ component {
 		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
 		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
 		var sessionsEnabled      = IsBoolean( applicationSettings.sessionManagement ) && applicationSettings.sessionManagement;
-
 		if ( sessionsEnabled ) {
 			for( var key in session ) {
 				if ( ignoreKeys.findNoCase( key ) ) {
@@ -410,22 +409,63 @@ component {
 		var allCookies     = resp.getHeaders( "Set-Cookie" );
 		var cleanedCookies = [];
 
-		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
-			var cooky = allCookies[ i ];
-			if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
-				cleanedCookies.append( cooky );
+		if ( ArrayLen( allCookies ) ) {
+			for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
+				var cooky = allCookies[ i ];
+				if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
+					cleanedCookies.append( cooky );
+				}
 			}
-		}
 
-		resp.setHeader( "Set-Cookie", "" );
-		for( var i=1; i <= cleanedCookies.len(); i++ ) {
-			if ( i == 1 ) {
-				resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+			if ( !cleanedCookies.len() ) {
+				if ( !resp.isCommitted() ) {
+					_resetHttpResponseWithoutCookies( resp );
+				} else {
+					resp.setHeader( "Set-Cookie", "empty=cookie;HttpOnly" );
+				}
 			} else {
-				resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
+				for( var i=1; i <= cleanedCookies.len(); i++ ) {
+					if ( i == 1 ) {
+						resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+					} else {
+						resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
+					}
+				}
 			}
 		}
 	}
+
+	private void function _resetHttpResponseWithoutCookies( required any resp ) {
+		var status      = resp.getStatus();
+		var contentType = resp.getContentType();
+		var encoding    = resp.getCharacterEncoding();
+		var locale      = resp.getLocale();
+		var headerNames = resp.getHeaderNames().toArray();
+		var headers     = {};
+
+		for( var headerName in headerNames ) {
+			if ( headerName != "Set-Cookie" ) {
+				headers[ headerName ] = resp.getHeaders( headerName );
+			}
+		}
+
+		resp.reset();
+		resp.setStatus( JavaCast( "int", status ) );
+		resp.setContentType( contentType );
+		resp.setCharacterEncoding( encoding );
+		resp.setLocale( locale );
+
+		for( var headerName in headers ) {
+			for( var i=1; i<=ArrayLen( headers[ headerName ] ); i++ ){
+				if ( i == 1 ) {
+					resp.setHeader( headerName, headers[ headerName ][ i ] );
+				} else {
+					resp.addHeader( headerName, headers[ headerName ][ i ] );
+				}
+			}
+		}
+	}
+
 
 	private void function _cleanupCookies() {
 		var pc             = getPageContext();
@@ -436,7 +476,11 @@ component {
 
 		if ( IsNull( cbController ) || isStatelessRequest( _getUrl() ) ) {
 			if ( ArrayLen( allCookies ) ) {
-				resp.setHeader( "Set-Cookie", "" );
+				if ( !resp.isCommitted() ) {
+					_resetHttpResponseWithoutCookies( resp );
+				} else {
+					resp.setHeader( "Set-Cookie", "empty=cookie;HttpOnly" );
+				}
 			}
 			return;
 		}
@@ -453,7 +497,6 @@ component {
 			if ( !Len( Trim( cooky ) ) ) {
 				continue;
 			}
-
 
 			if ( sessionCookies.findNoCase( cooky.listFirst( "=" ) ) ) {
 				cooky = _stripExpiryDateFromCookieToMakeASessionCookie( cooky );

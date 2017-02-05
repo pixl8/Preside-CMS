@@ -378,9 +378,9 @@ component singleton=true {
 
 			if (  Len( Trim ( arguments.forceJoins ) ) ) {
 				joinType = arguments.forceJoins;
-			} elseif ( currentJoinType == "left" ) {
+			} else if ( currentJoinType == "left" ) {
 				joinType = "left";
-			} elseif ( IsBoolean( relationship.required ?: "" ) && relationship.required ) {
+			} else if ( IsBoolean( relationship.required ?: "" ) && relationship.required ) {
 				joinType = "inner";
 			} else {
 				joinType = "left";
@@ -461,7 +461,7 @@ component singleton=true {
 					found = Duplicate( join );
 					found.object = foreignObj;
 					return found;
-				} elseif ( join.type eq "one-to-many" && join.alias == arguments.columnName ) {
+				} else if ( join.type eq "one-to-many" && join.alias == arguments.columnName ) {
 					found = Duplicate( join );
 					found.object = foreignObj;
 					return found;

@@ -302,7 +302,7 @@
 			var constraints = "";
 			var cascadeType = _getDbAdapter().supportsCascadeUpdateDelete() ? "cascade" : "error";
 			var expectedResult = {
-				"fk_9a2cb7e9423ef863c7903bb6fcd47d62" = {
+				"fk_42709d43f4e9e0a700118b1d05838c80" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -310,7 +310,7 @@
 					, on_update = cascadeType
 					, on_delete = cascadeType
 				},
-				"fk_974b4dc11f57ab136c6b4692ee879f77" = {
+				"fk_dca37975fb35a68ddd367abaa9fc79ff" = {
 					  pk_table  = "ptest_object_b"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
@@ -318,7 +318,7 @@
 					, on_update = cascadeType
 					, on_delete = cascadeType
 				},
-				"fk_c1b6799c2f91c4924d0b170b238ad57d" = {
+				"fk_04256baa79b5ed9099b1dde0da7eb613" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -344,7 +344,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
 			var expectedResult = {
-				"fk_7b0efa45ba5b99ef2e95c33daa364812" = {
+				"fk_142d828e532be648a208122b793acd09" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -352,7 +352,7 @@
 					, on_update = "cascade"
 					, on_delete = "set null"
 				},
-				"fk_fe1fa86e7f112dd7c84afaeeac1da997" = {
+				"fk_ee8b3bcde97ee8b5b8dff6de1bb5682f" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
@@ -1362,12 +1362,12 @@
 			var result    = "";
 			var key       = "";
 			var expected  = {
-				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
-				, object_d         = { name="object_d"        , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade-if-no-cycle-check" }
-				, related_to_a     = { name="related_to_a"    , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade-if-no-cycle-check" }
+				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
+				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
+				, object_d     = { name="object_d"    , control="default"  , dbtype="int"     , generator="none", generate="never" , maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade-if-no-cycle-check" }
+				, related_to_a = { name="related_to_a", control="default"  , dbtype="int"     , generator="none", generate="never" , maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade-if-no-cycle-check" }
 			};
 
 			result = poService.getObjectProperties( objectName = "object_b" );
@@ -1388,6 +1388,7 @@
 				, control      = "default"
 				, dbtype       = "int"
 				, generator    = "none"
+				, generate     = "never"
 				, maxLength    = 0
 				, relatedTo    = "object_d"
 				, relationship = "many-to-one"
@@ -1475,6 +1476,8 @@
 			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', #_getNowSql()#, #_getNowSql()# )" );
+			q.execute();
+			q.setSQL( "insert into ptest_object_g ( object_e, datemodified, datecreated) values ('TEST-UUID', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.listForeignObjectsBlockingDelete(
@@ -1904,14 +1907,14 @@
 			var obj                      = poService.getObject( "object_to_be_merged" );
 			var mergedProperties         = poService.getObjectProperties( "object_to_be_merged" );
 			var expectedMergedProperties = {
-				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, id                          = { name="id"                         , control="none"     , dbtype="varchar" , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label                       = { name="label"                      , control="textinput", dbtype="varchar" , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
+				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, id                          = { name="id"                         , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
+				, label                       = { name="label"                      , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 
-				, propertyThatWillBePreserved = { name="propertyThatWillBePreserved", type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
-				, propertyWhosTypeWillChange  = { name="propertyWhosTypeWillChange" , type="numeric", dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
-				, addedProperty               = { name="addedProperty"              , type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
+				, propertyThatWillBePreserved = { name="propertyThatWillBePreserved", type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", generate="never", required="false" }
+				, propertyWhosTypeWillChange  = { name="propertyWhosTypeWillChange" , type="numeric", dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", generate="never", required="false" }
+				, addedProperty               = { name="addedProperty"              , type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", generate="never", required="false" }
 			};
 			var actualPropNames   = mergedProperties.keyArray();
 			var expectedPropNames = [ 'addedProperty','datecreated','datemodified','id','label','propertyThatWillBePreserved','propertyWhosTypeWillChange' ];
@@ -2579,6 +2582,22 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test080_01_insertData_shouldPopulateGeneratedFieldsWithTheirGeneratedValues" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+
+			poService.dbSync();
+
+			var obj       = poService.getObject( "object_with_generated_fields" );
+			var recordId  = obj.insertData( data={ firstname="Fred", lastname="Smith", title="Mrs" } );
+			var record    = obj.selectData( id=recordId );
+
+			super.assertEquals( "Mrs Fred Smith", record.label );
+			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
+			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test081_dbSync_shouldNotCreateDbFieldsForOneToManyRelationshipTypeProperties" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
@@ -2777,6 +2796,50 @@
 			);
 
 			super.assertEquals( 2, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test088_insertDataFromSelect_should_enable_selecting_data_from_one_object_and_inserting_into_another_with_a_single_db_call" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/twoLookups/" ] );
+
+			poService.dbSync();
+
+			var obja = poService.getObject( "lookup_a" );
+			var objb = poService.getObject( "lookup_b" );
+
+			obja.insertData( data={ label="Hello world 1" } );
+			obja.insertData( data={ label="Hello world 2" } );
+			obja.insertData( data={ label="Hello world 3" } );
+			obja.insertData( data={ label="Hello world 4" } );
+
+			super.assertEquals( 4, obja.selectData().recordCount );
+			super.assertEquals( 0, objb.selectData().recordCount );
+
+			var insertedCount = objb.insertDataFromSelect( fieldList=[ "id", "label", "datecreated", "datemodified" ], selectDataArgs={
+				  objectName   = "lookup_a"
+				, selectFields = [ "id", "label", "Now()", "Now()" ]
+			} );
+
+			super.assertEquals( 4, insertedCount);
+			super.assertEquals( 4, objb.selectData().recordCount );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test089_updateData_shouldGenerateFieldValues_forPropsThatGenerateAlways" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+
+			poService.dbSync();
+
+			var obj       = poService.getObject( "object_with_generated_fields" );
+			var recordId  = obj.insertData( data={ firstname="Fred", lastname="Smith", title="Mrs" } );
+			obj.updateData( id=recordId, data={ firstname="Roberta", lastname="Holness", title="Miss" } );
+			var record    = obj.selectData( id=recordId );
+
+			super.assertEquals( "Miss Roberta Holness", record.label );
+			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
 		</cfscript>
 	</cffunction>
 

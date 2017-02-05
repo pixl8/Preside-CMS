@@ -3,15 +3,15 @@
 	id                  = rc.id ?: "";
 	recordLabel         = prc.recordLabel;
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-	editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[ LCase( objectTitleSingular ), recordLabel ] );
+	editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[  objectTitleSingular , recordLabel ] );
 	useVersioning       = prc.useVersioning ?: false;
 
 	prc.pageIcon  = "pencil";
 	prc.pageTitle = editRecordTitle;
 
 	deleteRecordLink = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#id#" );
-	deleteRecordPrompt = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, recordLabel ] )
-	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.btn" )
+	deleteRecordPrompt = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, recordLabel ] );
+	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.btn" );
 
 	canDelete        = prc.canDelete;
 	canTranslate     = prc.canTranslate;

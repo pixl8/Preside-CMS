@@ -38,6 +38,10 @@ component extends="testbox.system.BaseSpec" {
 				} ).toThrow( type="preside.antisamyservice.policy.not.found" );
 			} );
 
+			it( "should not replace & characters in input", function(){
+				expect( antiSamy.clean( "&" ) ).toBe( "&" );
+			} );
+
 		} );
 
 	}

@@ -353,7 +353,9 @@
 
 		UberSelect.prototype.setup_search_engine = function(){
 			var uberSelect = this
-			  , i;
+			  , i
+			  , prefetch_url = this.form_field.getAttribute( "data-prefetch-url" )
+			  , remote_url   = this.form_field.getAttribute( "data-remote-url" );
 
 			if ( isNaN( this.prefetch_ttl ) ) {
 				this.prefetch_ttl = 0;
@@ -365,10 +367,18 @@
 				if ( this.local_options[i].empty ) { this.local_options.splice( i, 1 ); }
 			}
 
+			if( this.filter && this.filter.length ){
+				this.prefetch_url = prefetch_url + this.filter;
+				this.remote_url   = remote_url + this.filter;
+			}else{
+				this.prefetch_url = prefetch_url;
+				this.remote_url   = remote_url;
+			}
+
 			this.search_engine = new Bloodhound( {
 				  local          : this.local_options
-				, prefetch       : ( this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" ) )
-				, remote         : ( this.remote_url = this.form_field.getAttribute( "data-remote-url" ) )
+				, prefetch       : this.prefetch_url
+				, remote         : this.remote_url
 				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
 			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
 			 	, limit          : 100 // a sensible limit, should probably be configurable, right?!
@@ -500,7 +510,31 @@
 				this.selected_item = this.container.find('.chosen-single').first();
 			}
 
+			this.setup_filter();
 			this.setup_search_engine();
+
+			if ( typeof this.filter_field !== "undefined" ) {
+				this.filter_field.on('change',function(){
+					$uberSelect.setup_filter();
+					$uberSelect.setup_search_engine();
+				});
+			}
+		};
+
+		UberSelect.prototype.setup_filter = function() {
+
+			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
+			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
+			  , filterByValue;
+
+			this.filter_field = $( "input[name='" + filterBy + "']" );
+
+			filterByValue = this.filter_field.val();
+
+			if ( typeof filterByValue !== "undefined" ) {
+				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
+			}
+
 		};
 
 		UberSelect.prototype.register_observers = function() {

@@ -186,23 +186,23 @@ component {
 	public struct function getRecordsForGridListing(
 		  required string  objectName
 		, required array   gridFields
-		,          numeric startRow     = 1
-		,          numeric maxRows      = 10
-		,          string  orderBy      = ""
-		,          string  searchQuery  = ""
-		,          any     filter       = {}
-		,          struct  filterParams = {}
+		,          numeric startRow      = 1
+		,          numeric maxRows       = 10
+		,          string  orderBy       = ""
+		,          string  searchQuery   = ""
+		,          any     filter        = {}
+		,          struct  filterParams  = {}
+		,          boolean draftsEnabled = areDraftsEnabledForObject( arguments.objectName )
 		,          array   extraFilters = []
-
 	) {
 
 		var result = { totalRecords = 0, records = "" };
 		var args   = {
 			  objectName         = arguments.objectName
-			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
+			, selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled )
 			, startRow           = arguments.startRow
 			, maxRows            = arguments.maxRows
-			, orderBy            = arguments.orderBy
+			, orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy )
 			, filter             = arguments.filter
 			, filterParams       = arguments.filterParams
 			, groupBy            = "#arguments.objectName#.id"
@@ -239,7 +239,7 @@ component {
 		,          any     filterParams = {}
 	) {
 		var result = { totalRecords = 0, records = "" };
-		var dao    = _getPresideObjectService().getPresideObject( arguments.objectName );
+		var dao    = _getPresideObjectService().getObject( arguments.objectName );
 		var args   = {
 			  objectName       = arguments.objectName
 			, id               = arguments.recordId
@@ -358,7 +358,7 @@ component {
 		,          array   extraFilters = []
 		,          string  searchQuery  = ""
 		,          numeric maxRows      = 1000
-		,          string  orderBy      = "label asc"
+		,          string  orderBy      = "label"
 	) {
 		var result = [];
 		var records = "";
@@ -390,7 +390,7 @@ component {
 
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
-		} elseif ( Len( Trim( arguments.searchQuery ) ) ) {
+		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, arguments.selectFields );
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
@@ -438,7 +438,7 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) {
+	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
 		var field                    = "";
 		var i                        = "";
@@ -470,7 +470,7 @@ component {
 			sqlFields.append( "#objName#.#dateModifiedField# as dateModified" );
 		}
 
-		if ( areDraftsEnabledForObject( arguments.objectName ) ) {
+		if ( arguments.draftsEnabled ) {
 			sqlFields.append( "_version_has_drafts" );
 			sqlFields.append( "_version_is_draft"   );
 		}
@@ -518,6 +518,22 @@ component {
 		}
 
 		return sqlFields;
+	}
+
+	private string function _prepareOrderByForObject( required string objectName, required string orderBy ) {
+		if( Len( Trim( arguments.orderBy ) ) ) {
+			var orderByField      = ListFirst( arguments.orderBy, " " );
+			var orderDirection    = ListRest( arguments.orderBy, " " );
+			var fieldRelationship = _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relationship ?: "";
+
+			if ( fieldRelationship == "many-to-one" ) {
+				var relatedLabelField = _getFullFieldName( "label", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+
+				return relatedLabelField & " " & ListRest( arguments.orderBy, " " );
+			}
+		}
+
+		return arguments.orderBy;
 	}
 
 	private string function _buildSearchFilter( required string q, required string objectName, required array gridFields ) {

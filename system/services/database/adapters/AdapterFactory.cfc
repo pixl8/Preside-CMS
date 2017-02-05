@@ -11,7 +11,7 @@ component {
 	 */
 	public any function init( required any dbInfoService ) {
 		_setDbInfoService( arguments.dbInfoService );
-		_setAdapters( {} )
+		_setAdapters( {} );
 
 		return this;
 	}

@@ -119,9 +119,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, tableName   = "pobj_mypivotobject"
 					, versioned   = true
 					, properties  = {
-						  source      = { name="source"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object"            , required=true, type="string", onDelete="cascade" }
-						, target      = { name="target"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object_with_prefix", required=true, type="string", onDelete="cascade" }
-						, sort_order  = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
+						  source      = { name="source"    , control="auto", dbtype="varchar", maxLength="35", generator="none", generate="never", relationship="many-to-one", relatedTo="simple_object"            , required=true, type="string", onDelete="cascade" }
+						, target      = { name="target"    , control="auto", dbtype="varchar", maxLength="35", generator="none", generate="never", relationship="many-to-one", relatedTo="simple_object_with_prefix", required=true, type="string", onDelete="cascade" }
+						, sort_order  = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", generate="never", relationship="none", required=false }
 					  }
 				};
 				var autoObject = getReader().getAutoPivotObjectDefinition(
@@ -152,6 +152,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  name         = "id"
 					, type         = "string"
 					, pk           = true
+					, generate     = "insert"
 					, generator    = "UUID"
 					, dbtype       = "varchar"
 					, control      = "none"
@@ -187,6 +188,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  name         = "mytestobject_id"
 					, type         = "string"
 					, pk           = true
+					, generate     = "insert"
 					, generator    = "UUID"
 					, dbtype       = "varchar"
 					, control      = "none"
@@ -229,6 +231,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, relationship = "none"
 					, relatedto    = "none"
 					, generator    = "none"
+					, generate     = "never"
 					, required     = true
 				} );
 			} );
@@ -261,6 +264,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, relationship = "none"
 					, relatedto    = "none"
 					, generator    = "none"
+					, generate     = "never"
 					, required     = true
 					, aliases      = "datemodified"
 				} );
@@ -297,6 +301,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, relationship = "none"
 					, relatedto    = "none"
 					, generator    = "none"
+					, generate     = "never"
 					, required     = true
 				} );
 			} );
@@ -329,6 +334,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, relationship = "none"
 					, relatedto    = "none"
 					, generator    = "none"
+					, generate     = "never"
 					, required     = true
 					, aliases      = "datecreated"
 				} );

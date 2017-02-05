@@ -4,7 +4,7 @@
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" {
 
-	property name="asset_folder" relationship="many-to-one"                          required=true   uniqueindexes="assetfolder|1";
+	property name="asset_folder" relationship="many-to-one"                          required=true   uniqueindexes="assetfolder|1" onupdate="cascade-if-no-cycle-check";
 
 	property name="title"             type="string"  dbtype="varchar" maxLength=150     required=true   uniqueindexes="assetfolder|2";
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true   uniqueindexes="assetpath";

@@ -29,6 +29,11 @@ component {
 			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
 
 			var objName = ListLast( objPath, "/" );
+
+			if( !isValid( "regex", objName, "[a-zA-Z_][a-zA-Z0-9_]*" ) ) {
+				throw( type="PresideObjectService.invalidObjectName", message="The filename, [#objName#], is not a valid preside object filename. Filenames should start with either a letter or underscrore (_) and contain only letters, underscores and numbers" );
+			}
+
 			var obj     = {};
 
 			obj.instance = CreateObject( "component", objPath );
@@ -82,7 +87,7 @@ component {
 		_defineLabelField( meta );
 		_addDefaultsToProperties( meta.properties );
 		_mergeSystemPropertyDefaults( meta );
-		_deletePropertiesMarkedForDeletion( meta );
+		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
 		_fixOrderOfProperties( meta );
 
 		meta.dbFieldList = _calculateDbFieldList( meta.properties );
@@ -112,9 +117,9 @@ component {
 			, tablePrefix = sourceObject.tablePrefix
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
 			, properties  = {
-				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
-				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
-				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"                      , dbtype="int"                            , maxLength=0                                   , generator="none", relationship="none"                           , required=false }
+				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
+				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
+				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"          , dbtype="int"                , maxLength=0                       , generator="none", generate="never", relationship="none"                           , required=false }
 			  }
 		};
 
@@ -231,7 +236,8 @@ component {
 			if ( ( prop.type ?: "" ) == "any" ) {
 				StructDelete( prop, "type" );
 			}
-			if ( not isCoreProperty ) {
+			if ( !isCoreProperty ) {
+				defaultAttributes.generate = ( prop.generator ?: "none" ) == "none" ? "never" : "always";
 				StructAppend( prop, defaultAttributes, false );
 			}
 
@@ -265,15 +271,15 @@ component {
 		var dateModifiedField = arguments.meta.dateModifiedField ?: "datemodified";
 
 		var defaults = {
-			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
-			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
-			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
-			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
+			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
+			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
 		};
 
 		if ( arguments.meta.propertyNames.find( "label" ) ) {
 			StructAppend( arguments.meta.properties.label, defaults.label, false );
-		} elseif ( !arguments.meta.noLabel ) {
+		} else if ( !arguments.meta.noLabel ) {
 			arguments.meta.properties[ "label" ] = defaults[ "label" ];
 			ArrayPrepend( arguments.meta.propertyNames, "label" );
 		}
@@ -316,12 +322,14 @@ component {
 
 	}
 
-	private void function _deletePropertiesMarkedForDeletion( required struct meta ) {
+	private void function _deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( required struct meta ) {
 		for( var propertyName in meta.properties ) {
-			var prop = meta.properties[ propertyName ];
+			var prop              = meta.properties[ propertyName ];
+			var featureService    = _getFeatureService();
 			var markedForDeletion = IsBoolean( prop.deleted ?: "" ) && prop.deleted;
+			var inDisabledFeature = Len( Trim( prop.feature ?: "" ) ) && !featureService.isFeatureEnabled( prop.feature );
 
-			if ( markedForDeletion ) {
+			if ( markedForDeletion || inDisabledFeature ) {
 				meta.properties.delete( propertyName );
 				meta.propertyNames.delete( propertyName );
 			}

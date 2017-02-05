@@ -186,7 +186,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 					expected &= '} ';
 				expected &= '} ';
 			expected &= '}; ';
-		expected &= '} )( presideJQuery )'
+		expected &= '} )( presideJQuery )';
 
 		super.assertEquals( expected, engine.getJqueryValidateJs( ruleset="testRuleset" ) );
 	}

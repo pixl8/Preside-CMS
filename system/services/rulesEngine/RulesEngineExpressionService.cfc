@@ -25,7 +25,7 @@ component displayName="RulesEngine Expression Service" {
 	) {
 		_setFieldTypeService( fieldTypeService );
 		_setContextService( contextService );
-		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) )
+		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) );
 
 		return this;
 	}
@@ -201,7 +201,7 @@ component displayName="RulesEngine Expression Service" {
 	 * > Choose an event
 	 *
 	 * @audotodoc
-	 * @expressionId.hint ID of the expression who's field we want to get the label of
+	 * @expressionId.hint ID of the expression whose field we want to get the label of
 	 * @fieldName.hint    Name of the field
 	 */
 	public string function getDefaultFieldLabel( required string expressionId, required string fieldName ) {
@@ -352,7 +352,7 @@ component displayName="RulesEngine Expression Service" {
 	 * and preprocesses all the field values ready for evaluation.
 	 *
 	 * @autodoc
-	 * @expressionId.hint     ID of the expression who's fields are configured
+	 * @expressionId.hint     ID of the expression whose fields are configured
 	 * @configuredFields.hint Saved field configuration for the expression instance
 	 *
 	 */

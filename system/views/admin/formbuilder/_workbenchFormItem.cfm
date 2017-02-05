@@ -10,6 +10,7 @@
 	    data-item-type="#args.type.id#"
 	    data-requires-configuration="#args.type.requiresConfiguration#"
 	    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#args.type.id#&itemid=#args.id#' )#"
+	    data-config-clone="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#args.type.id#&itemid=#args.id#&clone=true' )#"
 	    data-config-title="#translateResource( uri='formbuilder:itemconfig.modal.title', data=[ args.type.title ] )#">
 
 		<div class="pull-left">
@@ -26,7 +27,9 @@
 				<cfelse>
 					<a class="grey disabled"><i class="fa fa-pencil"></i></a>
 				</cfif>
-
+				<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
+					<i class="fa fa-fw fa-clone"></i>
+				</a>
 				<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
 					<i class="fa fa-trash"></i>
 				</a>

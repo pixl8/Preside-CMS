@@ -209,15 +209,16 @@ component displayName="Multilingual Preside Object Service" {
 	 * @autodoc           true
 	 * @objectName.hint   The name of the source object
 	 * @selectFields.hint Array of select fields as passed into the presideObjectService.selectData() method
-	 * @adapter.hint      Database adapter to be used in generating the select query SQL
 	 */
-	public void function mixinTranslationSpecificSelectLogicToSelectDataCall( required string objectName, required array selectFields, required any adapter ) {
+	public void function mixinTranslationSpecificSelectLogicToSelectDataCall( required string objectName, required array selectFields ) {
+		var adapter = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );
+
 		for( var i=1; i <= arguments.selectFields.len(); i++ ) {
 			var field = arguments.selectFields[ i ];
 			var resolved = _resolveSelectField( arguments.objectName, field );
 
 			if ( !resolved.isEmpty() && isMultilingual( resolved.objectName, resolved.propertyName ) ) {
-				arguments.selectFields[ i ] = _transformSelectFieldToGetTranslationIfExists( arguments.objectName, resolved.selector, resolved.alias, arguments.adapter );
+				arguments.selectFields[ i ] = _transformSelectFieldToGetTranslationIfExists( arguments.objectName, resolved.selector, resolved.alias, adapter );
 			}
 		}
 	}
@@ -362,7 +363,7 @@ component displayName="Multilingual Preside Object Service" {
 			if ( mappedRecords.keyExists( language.id ) ) {
 				language.status = mappedRecords[ language.id ] ? "active" : "inprogress";
 			} else {
-				language.status = "notstarted"
+				language.status = "notstarted";
 			}
 		}
 
@@ -392,7 +393,7 @@ component displayName="Multilingual Preside Object Service" {
 	/**
 	 * Returns the name of the given object's corresponding translation object
 	 *
-	 * @objectName.hint Name of the object who's corresponding translation object name we wish to get
+	 * @objectName.hint Name of the object whose corresponding translation object name we wish to get
 	 * @autodoc         true
 	 *
 	 */
@@ -436,7 +437,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * and record ID
 	 *
 	 * @autodoc
-	 * @objectName.hint Name of the object who's record we are to save the translation for
+	 * @objectName.hint Name of the object whose record we are to save the translation for
 	 * @id.hint         ID of the record we are to save the translation for
 	 * @languageId.hint ID of the language that the translation is for
 	 * @data.hint       Structure of data containing to save in the translation record

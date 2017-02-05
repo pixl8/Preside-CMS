@@ -1,16 +1,28 @@
 <cfscript>
 	param name="args.objectName"            type="string";
 	param name="args.addRecordAction"       type="string";
+	param name="args.formName"              type="string"  default="preside-objects.#args.objectName#.admin.add";
+	param name="args.mergeWithFormName"     type="string"  default="";
 	param name="args.allowAddAnotherSwitch" type="boolean";
 	param name="args.draftsEnabled"         type="boolean" default=false;
 	param name="args.canPublish"            type="boolean" default=false;
 	param name="args.canSaveDraft"          type="boolean" default=false;
 	param name="args.validationResult"      type="any"     default=( rc.validationResult ?: '' );
 	param name="args.cancelAction"          type="string"  default=event.buildAdminLink( linkTo="datamanager.object", querystring='id=#args.objectName#' );
+	param name="args.cancelLabel"           type="string"  default=translateResource( "cms:datamanager.cancel.btn" );
+	param name="args.hiddenFields"          type="struct"  default={};
+	param name="args.fieldLayout"           type="string"  default="formcontrols.layouts.field";
+	param name="args.fieldsetLayout"        type="string"  default="formcontrols.layouts.fieldset";
+	param name="args.tabLayout"             type="string"  default="formcontrols.layouts.tab";
+	param name="args.formLayout"            type="string"  default="formcontrols.layouts.form";
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
 	formId              = "addForm-" & CreateUUId();
+
+	param name="args.addRecordLabel"        type="string"  default=translateResource( uri="cms:datamanager.addrecord.btn"         , data=[ objectTitleSingular ] );
+	param name="args.publishLabel"          type="string"  default=translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ objectTitleSingular ] );
+	param name="args.saveDraftLabel"        type="string"  default=translateResource( uri="cms:datamanager.add.record.draft.btn"  , data=[ objectTitleSingular ] );
 </cfscript>
 
 <cfoutput>
@@ -20,11 +32,22 @@
 	</cfif>
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#args.addRecordAction#">
+		<cfloop collection="#args.hiddenFields#" item="hiddenField">
+			<cfif !listFindNoCase( "object,id,version", hiddenField )>
+				<input type="hidden" name="#hiddenField#" value="#HTMLEditFormat( args.hiddenFields[ hiddenField ] )#" />
+			</cfif>
+		</cfloop>
+
 		#renderForm(
-			  formName         = "preside-objects.#args.objectName#.admin.add"
-			, context          = "admin"
-			, formId           = formId
-			, validationResult = args.validationResult
+			  formName          = args.formName
+			, mergeWithFormName = args.mergeWithFormName
+			, context           = "admin"
+			, formId            = formId
+			, validationResult  = args.validationResult
+			, fieldLayout       = args.fieldLayout
+			, fieldsetLayout    = args.fieldsetLayout
+			, tabLayout         = args.tabLayout
+			, formLayout        = args.formLayout
 		)#
 
 		<div class="form-actions row">
@@ -41,23 +64,23 @@
 			<div class="col-md-offset-2">
 				<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
-					#translateResource( "cms:datamanager.cancel.btn" )#
+					#args.cancelLabel#
 				</a>
 
 				<cfif args.draftsEnabled>
 					<cfif args.canSaveDraft>
 						<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.add.record.draft.btn", data=[ LCase( objectTitleSingular ) ] )#
+							<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
 						</button>
 					</cfif>
 					<cfif args.canPublish>
 						<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ LCase( objectTitleSingular ) ] )#
+							<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
 						</button>
 					</cfif>
 				<cfelse>
 					<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.addrecord.btn", data=[ LCase( objectTitleSingular ) ] )#
+						<i class="fa fa-save bigger-110"></i> #args.addRecordLabel#
 					</button>
 				</cfif>
 			</div>

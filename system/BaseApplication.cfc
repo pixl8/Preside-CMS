@@ -1,5 +1,5 @@
 /**
- * This exists for legacy applications prior to Preside 10.2.2 who's
+ * This exists for legacy applications prior to Preside 10.2.2 whose
  * Application.cfc extends `preside.system.BaseApplication`.
  *
  * Applications using versions of Preside 10.2.2 or above should use

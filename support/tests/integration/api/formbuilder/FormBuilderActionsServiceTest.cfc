@@ -24,6 +24,36 @@ component extends="testbox.system.BaseSpec"{
 					, { id="webhook", title="webhook title", iconclass="webhook icon", description="webhook description", configFormName="formbuilder.actions.webhook", submissionHandler="formbuilder.actions.webhook.onSubmit" }
 				] );
 			} );
+
+			it( "should miss out a configured action when the action is configured to belong to a non-enabled feature", function(){
+				var actions = [ "email", { id="slack", feature="enabledFeature" }, { id="webhook", feature="notimplemented" } ];
+				var service = getService( actions, false );
+
+				for( var action in actions ) {
+					if ( ( action.feature ?: "" ) != "notimplemented" ) {
+						if ( Len( action.feature ?: "" ) ) {
+							service.$( "$isFeatureEnabled" ).$args( action.feature ).$results( true );
+							action = action.id;
+						}
+						service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:title"      , defaultValue=action    ).$results( "#action# title"       );
+						service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:description", defaultValue=""        ).$results( "#action# description" );
+						service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:iconclass"  , defaultValue="fa-send" ).$results( "#action# icon"        );
+					} else {
+						service.$( "$isFeatureEnabled" ).$args( action.feature ).$results( false );
+					}
+				}
+
+				service = service.init(
+					  configuredActions = actions
+					, validationEngine  = mockValidationEngine
+					, formsService      = mockFormsService
+				);
+
+				expect( service.listActions() ).toBe( [
+					  { id="email", title="email title", iconclass="email icon", description="email description", configFormName="formbuilder.actions.email", submissionHandler="formbuilder.actions.email.onSubmit" }
+					, { id="slack", title="slack title", iconclass="slack icon", description="slack description", configFormName="formbuilder.actions.slack", submissionHandler="formbuilder.actions.slack.onSubmit" }
+				] );
+			} );
 		} );
 
 		describe( "getActionConfig", function(){
@@ -95,21 +125,26 @@ component extends="testbox.system.BaseSpec"{
 		} );
 	}
 
-	private function getService( array configuredActions=[] ) {
+	private function getService( array configuredActions=[], boolean init=true ) {
 		variables.mockValidationEngine = createEmptyMock( "preside.system.services.validation.ValidationEngine" );
 		variables.mockFormsService     = createEmptyMock( "preside.system.services.forms.FormsService" );
 		variables.mockActionDao        = createStub();
 		variables.mockColdbox          = createStub();
 
-		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderActionsService(
-			  configuredActions = arguments.configuredActions
-			, validationEngine  = mockValidationEngine
-			, formsService      = mockFormsService
-		) );
+		var service = CreateMock( object=CreateObject( "preside.system.services.formbuilder.FormBuilderActionsService" ) );
+
+		if ( arguments.init ) {
+			service = service.init(
+				  configuredActions = arguments.configuredActions
+				, validationEngine  = mockValidationEngine
+				, formsService      = mockFormsService
+			);
+		}
 
 		service.$( "$translateResource", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$getPresideObject" ).$args( "formbuild_formaction" ).$results( mockActionDao );
+		service.$( "$isFeatureEnabled", true );
 
 		return service;
 	}

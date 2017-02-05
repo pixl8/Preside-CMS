@@ -146,6 +146,7 @@ component displayName="Preside Object Service" {
 	 * @extraJoins.hint          An array of explicit joins to add to the query (can define subquery joins this way)
 	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
 	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @distinct.hint           Whether or not the record set should be a 'distinct' select
 	 * @selectFields.docdefault  []
 	 * @filter.docdefault        {}
 	 * @filterParams.docdefault  {}
@@ -173,28 +174,17 @@ component displayName="Preside Object Service" {
 		,          array   extraJoins          = []
 		,          boolean recordCountOnly     = false
 		,          boolean getSqlAndParamsOnly = false
-
+		,          boolean distinct            = false
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=arguments );
-		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 
+		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
 		}
 
-		if ( args.useCache ) {
-			args.cachekey = args.objectName & "_" & Hash( LCase( SerializeJson( args ) ) );
-
-			_announceInterception( "onCreateSelectDataCacheKey", args );
-
-			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
-			if ( not IsNull( cachedResult ) ) {
-				return cachedResult;
-			}
-		}
-
-		args.objMeta = _getObject( args.objectName ).meta;
-		args.adapter = _getAdapter( args.objMeta.dsn );
+		var objMeta = _getObject( args.objectName ).meta;
+		var adapter = _getAdapter( objMeta.dsn );
 
 		args.selectFields   = _parseSelectFields( argumentCollection=args );
 
@@ -203,9 +193,22 @@ component displayName="Preside Object Service" {
 		}
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
-			, adapter            = args.adapter
-			, columnDefinitions  = args.objMeta.properties
+			, adapter            = adapter
+			, columnDefinitions  = objMeta.properties
 		);
+
+		if ( args.useCache ) {
+			args.cachekey = args.objectName & "_" & Hash( LCase( Serialize( args ) ) );
+
+			_announceInterception( "onCreateSelectDataCacheKey", args );
+
+			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
+			if ( !IsNull( cachedResult ) ) {
+				return cachedResult;
+			}
+		}
+		args.adapter     = adapter;
+		args.objMeta     = objMeta;
 		args.orderBy     = _parseOrderBy( args.orderBy, args.objectName, args.adapter );
 		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
@@ -217,6 +220,7 @@ component displayName="Preside Object Service" {
 				, filter             = args.preparedFilter.filter
 				, params             = args.preparedFilter.params
 				, originalTableName  = args.objMeta.tableName
+				, distinct           = args.distinct
 			);
 		} else {
 			var sql = args.adapter.getSelectSql(
@@ -227,6 +231,7 @@ component displayName="Preside Object Service" {
 				, filter             = args.preparedFilter.filter
 				, having             = args.preparedFilter.having
 				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
+				, distinct           = args.distinct
 			);
 
 			if ( arguments.recordCountOnly ) {
@@ -251,7 +256,7 @@ component displayName="Preside Object Service" {
 				, cacheKey     = args.cacheKey
 				, filter       = args.preparedFilter.filter
 				, filterParams = args.preparedFilter.filterParams
-				, joinTargets  = args.joinTargets
+				, joins        = args.joins
 			);
 		}
 
@@ -274,8 +279,9 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
+	 * @autodoc                      true
 	 * @objectName.hint              Name of the object in which to to insert a record
-	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
+	 * @data.hint                    Structure of data whose keys map to the properties that are defined on the object
 	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
 	 * @isDraft.hint                 Whether or not to save the record as a draft record
 	 * @useVersioning.hint           Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
@@ -313,6 +319,11 @@ component displayName="Preside Object Service" {
 		var manyToManyData     = {};
 		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName );
 
+		cleanedData.append( _addGeneratedValues(
+			  operation  = "insert"
+			, objectName = arguments.objectName
+			, data       = cleanedData
+		) );
 		for( key in cleanedData ){
 			if ( args.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(many|one)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
@@ -329,14 +340,7 @@ component displayName="Preside Object Service" {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
 		if ( StructKeyExists( obj.properties, idField ) ) {
-			if ( not StructKeyExists( cleanedData, idField ) or not Len( Trim( cleanedData[ idField ] ) ) ) {
-				newId = _generateNewIdWhenNecessary( generator=( obj.properties[ idField ].generator ?: "UUID" ) );
-				if ( Len( Trim( newId ) ) ) {
-					cleanedData[ idField ] = newId;
-				}
-			} else {
-				newId = cleanedData[ idField ];
-			}
+			newId = cleanedData[ idField ] ?: "";
 		}
 		if ( objectIsVersioned( args.objectName ) ) {
 			cleanedData._version_is_draft = cleanedData._version_has_drafts = args.isDraft;
@@ -407,6 +411,47 @@ component displayName="Preside Object Service" {
 		return newId;
 	}
 
+
+	/**
+	 * Inserts records into a database based on a selectData() set of arguments and provided
+	 * fieldlist.
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object in which to to insert records
+	 * @selectDataArgs.hint Struct of arguments that are valid to pass to the [[presideobjectservice-selectdata]] method
+	 * @fieldList.hint      Array of table field names that the select fields in the select statement should map to for the insert
+	 */
+	public numeric function insertDataFromSelect(
+		  required string objectName
+		, required struct selectDataArgs
+		, required array  fieldList
+	) {
+		var obj       = _getObject( arguments.objectName ).meta;
+		var adapter   = _getAdapter( obj.dsn );
+		var selectSql = selectData( argumentCollection=arguments.selectDataArgs, getSqlAndParamsOnly=true );
+		var insertSql = adapter.getInsertSql(
+			  tableName     = obj.tableName
+			, insertColumns = arguments.fieldList
+			, selectStatement = selectSql.sql
+		);
+
+		var result = _runSql(
+			  sql        = insertSql[ 1 ]
+			, dsn        = obj.dsn
+			, params     = selectSql.params
+			, returnType = "info"
+		);
+
+		clearRelatedCaches(
+			  objectName              = arguments.objectName
+			, filter                  = ""
+			, filterParams            = {}
+			, clearSingleRecordCaches = false
+		);
+
+		return Val( result.recordCount );
+	}
+
 	/**
 	 * Updates records in the database with a new set of data. Returns the number of records affected by the operation.
 	 * \n
@@ -437,7 +482,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint              Name of the object who's records you want to update
+	 * @objectName.hint              Name of the object whose records you want to update
 	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
 	 * @id.hint                      ID of a single record to update
 	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
@@ -491,10 +536,15 @@ component displayName="Preside Object Service" {
 			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(one|many)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 				cleanedData.delete( key );
-			} elseif ( !ListFindNoCase( obj.dbFieldList, key ) ) {
+			} else if ( !ListFindNoCase( obj.dbFieldList, key ) ) {
 				cleanedData.delete( key );
 			}
 		}
+		cleanedData.append( _addGeneratedValues(
+			  operation  = "update"
+			, objectName = arguments.objectName
+			, data       = cleanedData
+		) );
 
 		if ( !Len( Trim( arguments.id ?: "" ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceUpdateAll ) {
 			throw(
@@ -537,7 +587,9 @@ component displayName="Preside Object Service" {
 
 			if ( arguments.useVersioning ) {
 				if ( arguments.isDraft ) {
-					cleanedData = { _version_has_drafts = true };
+					if ( !_isDraft( argumentCollection=arguments ) ) {
+						cleanedData = { _version_has_drafts = true };
+					}
 				} else {
 					cleanedData._version_is_draft   = false;
 					cleanedData._version_has_drafts = false;
@@ -646,7 +698,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint     Name of the object from who's database table records are to be deleted
+	 * @objectName.hint     Name of the object from whose database table records are to be deleted
 	 * @id.hint             ID of a record to delete
 	 * @filter.hint         Filter for records to delete, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @filterParams.hint   Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
@@ -816,7 +868,7 @@ component displayName="Preside Object Service" {
 	 *
 	 * @sourceObject.hint   The object that contains the many-to-many property
 	 * @sourceProperty.hint The name of the property that is defined as a many-to-many relationship
-	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @sourceId.hint       ID of the record whose related data we are to synchronize
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 */
 	public boolean function syncManyToManyData(
@@ -899,7 +951,7 @@ component displayName="Preside Object Service" {
 	 * @autodoc
 	 * @sourceObject.hint   The object that contains the one-to-many property
 	 * @sourceProperty.hint The name of the property that is defined as a one-to-many relationship
-	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @sourceId.hint       ID of the record whose related data we are to synchronize
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 *
 	 */
@@ -956,8 +1008,8 @@ component displayName="Preside Object Service" {
 	 * // the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
 	 * ```
 	 *
-	 * @objectName.hint       Name of the object who's related data we wish to retrieve
-	 * @id.hint               ID of the record who's related data we wish to retrieve
+	 * @objectName.hint       Name of the object whose related data we wish to retrieve
+	 * @id.hint               ID of the record whose related data we wish to retrieve
 	 * @fromVersionTable.hint Whether or not to retrieve the data from the version history table for the object
 	 * @specificVersion.hint  If retrieving from the version history, set a specific version number to retrieve
 	 */
@@ -992,8 +1044,8 @@ component displayName="Preside Object Service" {
 	/**
 	 * Returns a summary query of all the versions of a given record (by ID),  optionally filtered by field name
 	 *
-	 * @objectName.hint Name of the object who's record we wish to retrieve the version history for
-	 * @id.hint         ID of the record who's history we wish to view
+	 * @objectName.hint Name of the object whose record we wish to retrieve the version history for
+	 * @id.hint         ID of the record whose history we wish to view
 	 * @fieldName.hint  Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
 	 *
 	 */
@@ -1094,7 +1146,7 @@ component displayName="Preside Object Service" {
 	/**
 	 * Returns whether or not the passed field exists on the passed object
 	 *
-	 * @objectName.hint Name of the object who's field you wish to check
+	 * @objectName.hint Name of the object whose field you wish to check
 	 * @fieldName.hint  Name of the field you wish to check the existance of
 	 */
 	public boolean function fieldExists( required string objectName, required string fieldName ) autodoc=true {
@@ -1164,8 +1216,8 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint    Name of the object who's attribute we wish to get
-	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @objectName.hint    Name of the object whose attribute we wish to get
+	 * @attributeName.hint Name of the attribute whose value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
@@ -1191,9 +1243,9 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint    Name of the object who's property attribute we wish to get
-	 * @propertyName.hint  Name of the property who's attribute we wish to get
-	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @objectName.hint    Name of the object whose property attribute we wish to get
+	 * @propertyName.hint  Name of the property whose attribute we wish to get
+	 * @attributeName.hint Name of the attribute whose value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
@@ -1208,7 +1260,7 @@ component displayName="Preside Object Service" {
 	 * This method, returns the object name that can be used to reference the version history object
 	 * for a given object.
 	 *
-	 * @sourceObjectName.hint Name of the object who's version object name we wish to retrieve
+	 * @sourceObjectName.hint Name of the object whose version object name we wish to retrieve
 	 */
 	public string function getVersionObjectName( required string sourceObjectName ) autodoc=true {
 		var obj = _getObject( arguments.sourceObjectName );
@@ -1297,7 +1349,7 @@ component displayName="Preside Object Service" {
 
 		for( foreignObjName in joins ){
 			for( join in joins[ foreignObjName ] ) {
-				if ( join.type == "one-to-many" && join.ondelete !== "cascade" ) {
+				if ( join.type == "one-to-many" && join.ondelete == "error" ) {
 					filter = { "#join.fk#" = arguments.recordId };
 					recordCount = selectData( objectName=foreignObjName, selectFields=["count(*) as record_count"], filter=filter, useCache=false ).record_count;
 
@@ -1419,24 +1471,26 @@ component displayName="Preside Object Service" {
 		,          boolean clearSingleRecordCaches = true
 	) {
 		var cacheMaps   = _getCacheMaps();
+		var cache       = _getDefaultQueryCache();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
 		var idField     = getIdField( objectName );
-		var keysToClear = "";
+		var keysToClear = [];
 		var objIds      = "";
 		var objId       = "";
 
 		if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
 			lock name=lockName type="exclusive" timeout=10 {
 				if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
-					keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
+					keysToClear = StructKeyArray( cacheMaps[ arguments.objectName ].__complexFilter );
+					StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
 
 					if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
 						objIds = arguments.filter.id;
-					} elseif ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, idField ) ) {
+					} else if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, idField ) ) {
 						objIds = arguments.filter[ idField ];
-					} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, "id" ) ) {
 						objIds = arguments.filterParams.id;
-					} elseif ( StructKeyExists( arguments.filterParams, idField ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, idField ) ) {
 						objIds = arguments.filterParams[ idField ];
 					}
 
@@ -1447,22 +1501,21 @@ component displayName="Preside Object Service" {
 					if ( IsArray( objIds ) and ArrayLen( objIds ) ) {
 						for( objId in objIds ){
 							if ( StructKeyExists( cacheMaps[ arguments.objectName ], objId ) ) {
-								keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+								ArrayAppend( keysToClear, StructKeyArray( cacheMaps[ arguments.objectName ][ objId ] ), true );
 								StructDelete( cacheMaps[ arguments.objectName ], objId );
 							}
 						}
-						StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
-					} elseif ( arguments.clearSingleRecordCaches ) {
+					} else if ( arguments.clearSingleRecordCaches ) {
 						for( objId in cacheMaps[ arguments.objectName ] ) {
 							if ( objId neq "__complexFilter" ) {
-								keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+								ArrayAppend( keysToClear, StructKeyArray( cacheMaps[ arguments.objectName ][ objId ] ), true );
 							}
 						}
 						StructDelete( cacheMaps, arguments.objectName );
 					}
 
-					if ( ListLen( keysToClear ) ) {
-						_getDefaultQueryCache().clearMulti( keysToClear );
+					for( var key in keysToClear ){
+						cache.clearQuiet( key );
 					}
 				}
 			}
@@ -1680,9 +1733,28 @@ component displayName="Preside Object Service" {
 
 		var all        = Duplicate( arguments.data );
 		var fieldRegex = _getAlaisedFieldRegex();
+		var entities   = _getEntityNames();
 		var field      = "";
-		var matches    = "";
-		var match      = "";
+		var addMatches = function( required string input ){
+			var matches = _reSearch( fieldRegex, arguments.input );
+			if ( StructKeyExists( matches, "$2" ) ) {
+				for( var match in matches.$2 ){
+					var matchEntities = match.listToArray( "$" );
+					var matched       = true;
+
+					for( var entity in matchEntities ) {
+						if ( !entities.keyExists( entity ) ) {
+							matched = false;
+							break;
+						}
+					}
+
+					if ( matched ) {
+						objects[ match ] = 1;
+					}
+				}
+			}
+		};
 
 		objects = {}
 
@@ -1697,57 +1769,26 @@ component displayName="Preside Object Service" {
 		}
 
 		for( field in arguments.selectFields ){
-			matches = _reSearch( fieldRegex, field );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( field );
 		}
 		for( field in ListToArray( arguments.orderBy ) ){
-			matches = _reSearch( fieldRegex, ListFirst( field, " " ) );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( ListFirst( field, " " ) );
 		}
 		if ( isSimpleValue( filter ) ) {
-			matches = _reSearch( fieldRegex, filter );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( filter );
 		}
 		if ( Len( Trim( having ) ) ) {
-			matches = _reSearch( fieldRegex, having );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( having );
 		}
 
 		for( var join in extraJoins ) {
-			matches = _reSearch( fieldRegex, "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
 		}
 		for( var extraFilter in extraFilters ) {
 			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
 				for( var join in extraFilter.extraJoins ) {
-					matches = _reSearch( fieldRegex, "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
-					if ( StructKeyExists( matches, "$2" ) ) {
-						for( match in matches.$2 ){
-							objects[ match ] = 1;
-						}
-					}
+					addMatches( "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
 				}
-
 			}
 		}
 
@@ -1945,6 +1986,7 @@ component displayName="Preside Object Service" {
 		, required string  groupBy
 		, required numeric maxRows
 		, required numeric startRow
+		,          boolean distinct = false
 	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
@@ -1992,6 +2034,7 @@ component displayName="Preside Object Service" {
 			, groupBy       = arguments.groupBy
 			, maxRows       = arguments.maxRows
 			, startRow      = arguments.startRow
+			, distinct      = arguments.distinct
 		} );
 		_announceInterception( "postPrepareVersionSelect", args );
 
@@ -2081,22 +2124,25 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _getAlaisedFieldRegex() {
-		if ( not StructKeyExists( this, "_aliasedFieldRegex" ) ) {
-			var entities = {};
+		var entityPattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+
+		return "(^|\s|,|\(|\)|`|\[)((#entityPattern#)(\$(#entityPattern#))*)[`\]]?\.[`\[]?(#entityPattern#)(\s|$|\)|,|`|\])";
+	}
+
+	private struct function _getEntityNames() {
+		if ( !StructKeyExists( this, "_entityNames" ) ) {
+			this._entityNames = {};
 
 			for( var objName in _getObjects() ){
-				entities[ objName ] = 1;
+				this._entityNames[ objName ] = 1;
 
 				for( var propertyName in getObjectProperties( objName ) ) {
-					entities[ propertyName ] = 1;
+					this._entityNames[ propertyName ] = 1;
 				}
 			}
-			entities = StructKeyList( entities, "|" );
-
-			_aliasedFieldRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)[`\]]?\.[`\[]?([a-zA-Z_][a-zA-Z0-9_]*)(\s|$|\)|,|`|\])";
 		}
 
-		return _aliasedFieldRegex;
+		return this._entityNames;
 	}
 
 	private string function _getAlaisedAliasRegex() {
@@ -2168,22 +2214,16 @@ component displayName="Preside Object Service" {
 		, required string cacheKey
 		, required any    filter
 		, required struct filterParams
-		, required array  joinTargets
+		, required array  joins
 	) {
 		var cacheMaps   = _getCacheMaps();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
 		var idField     = getIdField( arguments.objectName );
 		var fullIdField = "#arguments.objectName#.#idField#";
 		var objId       = "";
-		var id          = "";
-		var joinObj     = "";
 
 		lock name=lockName type="exclusive" timeout=10 {
-			if ( not StructKeyExists( cacheMaps, arguments.objectName ) ) {
-				cacheMaps[ arguments.objectName ] = {
-					__complexFilter = {}
-				};
-			}
+			cacheMaps[ arguments.objectName ] = cacheMaps[ arguments.objectName ] ?: { __complexFilter = {} };
 
 			if ( IsStruct( arguments.filter ) ) {
 				if ( arguments.filter.keyExists( "id" ) ) {
@@ -2214,21 +2254,19 @@ component displayName="Preside Object Service" {
 			}
 
 			if ( IsArray( objId ) ) {
-				for( id in objId ){
+				for( var id in objId ){
 					cacheMaps[ arguments.objectName ][ id ][ arguments.cacheKey ] = 1;
 				}
-			} elseif ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
+			} else if ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
 				cacheMaps[ arguments.objectName ][ objId ][ arguments.cacheKey ] = 1;
 			} else {
 				cacheMaps[ arguments.objectName ].__complexFilter[ arguments.cacheKey ] = 1;
 			}
 
-			for( joinObj in arguments.joinTargets ) {
-				if ( not StructKeyExists( cacheMaps, joinObj ) ) {
-					cacheMaps[ joinObj ] = {
-						__complexFilter = {}
-					};
-				}
+			for( var join in arguments.joins ) {
+				var joinObj = join.joinToObject ?: "";
+
+				cacheMaps[ joinObj ] = cacheMaps[ joinObj ] ?: { __complexFilter = {} };
 				cacheMaps[ joinObj ].__complexFilter[ arguments.cacheKey ] = 1;
 			}
 		}
@@ -2427,7 +2465,9 @@ component displayName="Preside Object Service" {
 				result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
 			}
 			result.having = ReReplaceNoCase( result.having, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
-			result.params = result.params ?: [];
+		}
+		result.params = result.params ?: [];
+		if ( result.filterParams.count() ) {
 			result.params.append( _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
@@ -2472,6 +2512,62 @@ component displayName="Preside Object Service" {
 		return newData;
 	}
 
+	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data ) {
+		var props     = getObjectProperties( arguments.objectName );
+		var newData   = Duplicate( arguments.data );
+		var generated = {};
+		var genOps    = arguments.operation == "insert" ? [ "insert", "always" ] : [ "always" ];
+
+		for( var propName in props ){
+			var prop = props[ propName ];
+
+			if ( genOps.findNoCase( prop.generate ?: "" ) ) {
+				if ( arguments.operation == "insert" && Len( Trim( arguments.data[ propName ] ?: "" ) ) ) {
+					continue;
+				}
+
+				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop );
+				if ( !IsNull( generatedValue ) ) {
+					generated[ propName ] = newData[ propName ] = generatedValue;
+				}
+			}
+		}
+
+		return generated;
+	}
+
+	private any function _generateValue( required string objectName, required string generator, required struct data, required struct prop ) {
+		switch( ListFirst( arguments.generator, ":" ) ) {
+			case "UUID":
+				return CreateUUId();
+			break;
+			case "timestamp":
+				return DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
+			break;
+			case "method":
+				var obj = getObject( arguments.objectName );
+
+				return obj[ ListRest( arguments.generator, ":" ) ]( arguments.data );
+			break;
+			case "hash":
+				if ( Len( Trim( prop.generateFrom ?: "" ) ) ) {
+					var valueToHash = "";
+					for( var field in ListToArray( prop.generateFrom ) ) {
+						if ( arguments.data.keyExists( field ) ) {
+							valueToHash &= arguments.data[ field ];
+						} else {
+							return;
+						}
+					}
+
+					return Hash( valueToHash );
+				}
+			break;
+		}
+
+		return;
+	}
+
 	private struct function _getDraftExclusionFilter( required string objectName ) {
 		return {
 			  filter       = "#arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft"
@@ -2497,6 +2593,14 @@ component displayName="Preside Object Service" {
 		}
 
 		return arguments.propertyName;
+	}
+
+	private boolean function _isDraft( array extraFilters=[] ) {
+		var draftCheckFilters = Duplicate( arguments.extraFilters );
+
+		draftCheckFilters.append( { filter={ _version_is_draft=true } } );
+
+		return dataExists( argumentCollection=arguments, extraFilters=draftCheckFilters );
 	}
 
 // SIMPLE PRIVATE PROXIES

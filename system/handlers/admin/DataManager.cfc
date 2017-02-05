@@ -191,15 +191,29 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = rc.object ?: "";
+			var objectName     = rc.object ?: "";
+			var extraFilters   = [];
+			var filterByFields = ListToArray( rc.filterByFields ?: "" );
+			var orderBy        = rc.orderBy ?: "label";
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
+			for( var filterByField in filterByFields ) {
+				if( !isEmpty( rc[filterByField] ?: "" ) ){
+					extraFilters.append({
+						  filter       = "#filterByField# = :#filterByField#"
+						, filterParams = { "#filterByField#" = rc[filterByField] }
+					})
+				}
+			}
 
 			var records = dataManagerService.getRecordsForAjaxSelect(
 				  objectName   = rc.object  ?: ""
 				, maxRows      = rc.maxRows ?: 1000
 				, searchQuery  = rc.q       ?: ""
 				, savedFilters = ListToArray( rc.savedFilters ?: "" )
+				, extraFilters = extraFilters
+				, orderBy      = orderBy
 				, ids          = ListToArray( rc.values ?: "" )
 			);
 
@@ -291,13 +305,13 @@
 			_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
 
 			if ( !presideObjectService.objectIsVersioned( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
 			if ( !prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -334,13 +348,13 @@
 			_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
 
 			if ( !presideObjectService.objectIsVersioned( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 			if ( not prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
@@ -375,7 +389,7 @@
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_checkPermission( argumentCollection=arguments, key="edit", object=object );
 			if ( !recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -432,7 +446,7 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 			if ( !sourceIds.len() ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -727,7 +741,7 @@
 			}
 
 			if ( not prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -735,7 +749,7 @@
 			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
 			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
-			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
+			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 
 			if ( prc.canTranslate ) {
@@ -831,7 +845,7 @@
 			}
 
 			if ( not prc.sourceRecord.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -892,7 +906,7 @@
 
 			var record = presideObjectService.selectData( objectName=object, filter={ id=id } );
 			if ( !record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -1095,7 +1109,7 @@
 
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 			if ( not prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", querystring="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" ) );
 			}
 			prc.record = queryRowToStruct( prc.record );
@@ -1153,7 +1167,7 @@
 			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
 
 			if ( ! datamanagerService.isSortable( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -1184,7 +1198,7 @@
 			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
 
 			if ( ! datamanagerService.isSortable( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -1197,7 +1211,7 @@
 				, sortedIds  = ListToArray( rc.ordered ?: "" )
 			);
 
-			messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ LCase( objectName ) ] ) );
+			messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectName  ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 		</cfscript>
 	</cffunction>
@@ -1294,8 +1308,8 @@
 				}
 			}
 
-			args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( linkTo='datamanager.translateRecord'         , queryString='object=#args.object#&id=#args.id#&language=#language#&version=' )
-			args.allVersionsUrl = args.allVersionsUrl ?: event.buildAdminLink( linkTo='datamanager.translationRecordHistory', queryString='object=#args.object#&id=#args.id#&language=#language#' )
+			args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( linkTo='datamanager.translateRecord'         , queryString='object=#args.object#&id=#args.id#&language=#language#&version=' );
+			args.allVersionsUrl = args.allVersionsUrl ?: event.buildAdminLink( linkTo='datamanager.translationRecordHistory', queryString='object=#args.object#&id=#args.id#&language=#language#' );
 
 			return renderView( view="admin/datamanager/versionNavigator", args=args );
 		</cfscript>
@@ -1313,6 +1327,7 @@
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
 		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
+		<cfargument name="extraFilters"        type="array"   required="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1328,7 +1343,7 @@
 			var sortOrder           = dtHelper.getSortOrder();
 			var expressionFilter    = rc.sFilterExpression ?: "";
 			var savedFilters        = ListToArray( rc.sSavedFilterExpressions ?: "" );
-			var extraFilters        = [];
+			var extraFilters        = arguments.extraFilters ?: [];
 
 			try {
 				extraFilters.append( rulesEngineFilterService.prepareFilter(
@@ -1358,13 +1373,14 @@
 			}
 
 			var results = dataManagerService.getRecordsForGridListing(
-				  objectName   = object
-				, gridFields   = gridFields
-				, filter       = arguments.filter
-				, startRow     = dtHelper.getStartRow()
-				, maxRows      = dtHelper.getMaxRows()
-				, orderBy      = sortOrder
-				, searchQuery  = dtHelper.getSearchQuery()
+				  objectName    = object
+				, gridFields    = gridFields
+				, filter        = arguments.filter
+				, startRow      = dtHelper.getStartRow()
+				, maxRows       = dtHelper.getMaxRows()
+				, orderBy       = sortOrder
+				, searchQuery   = dtHelper.getSearchQuery()
+				, draftsEnabled = arguments.draftsEnabled
 				, extraFilters = extraFilters
 			);
 			var records = Duplicate( results.records );
@@ -1577,10 +1593,14 @@
 		<cfargument name="rc"                type="struct"  required="true"  />
 		<cfargument name="prc"               type="struct"  required="true"  />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default=""     />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
-		<cfargument name="successAction"     type="string"  required="false" default=""     />
+		<cfargument name="errorAction"       type="string"  required="false" default="" />
+		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="viewRecordAction"  type="string"  required="false" default="" />
+		<cfargument name="viewRecordUrl"     type="string"  required="false" default="#event.buildAdminLink( linkTo=( viewRecordAction.len() ? viewRecordAction : "datamanager.viewRecord" ), querystring="object=#arguments.object#&id={newid}" )#" />
+		<cfargument name="addAnotherAction"  type="string"  required="false" default="" />
+		<cfargument name="addAnotherUrl"     type="string"  required="false" default="#( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
@@ -1606,11 +1626,8 @@
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 				persist = formData;
 				persist.validationResult = validationResult;
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#object#" ), persistStruct=persist );
-				}
+
+				setNextEvent( url=errorUrl, persistStruct=persist );
 			}
 
 			if ( arguments.draftsEnabled ) {
@@ -1650,7 +1667,7 @@
 				return newId;
 			}
 
-			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+			newRecordLink = replaceNoCase( viewRecordUrl, "{newid}", newId, "all" );
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
@@ -1658,17 +1675,9 @@
 			] ) );
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				if ( Len( addAnotherAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
-				}
+				setNextEvent( url=addAnotherUrl, persist="_addAnother" );
 			} else {
-				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#newId#" ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
-				}
+				setNextEvent( url=replaceNoCase( successUrl, "{newid}", newId, "all" ) );
 			}
 		</cfscript>
 	</cffunction>
@@ -1775,7 +1784,7 @@
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
-		<cfargument name="postActionUrl"     type="string"  required="false" default="#( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) )#" />
+		<cfargument name="postActionUrl"     type="string"  required="false" default="#( rc.postActionUrl ?: ( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
 		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_delete_record" />
@@ -1806,7 +1815,7 @@
 				blockers = presideObjectService.listForeignObjectsBlockingDelete( object, ids );
 
 				if ( ArrayLen( blockers ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#&postAction=#postAction#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids) } );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids), postActionUrl=postActionUrl } );
 				}
 			} else {
 				try {
@@ -1867,6 +1876,7 @@
 		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
 		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
 		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
+		<cfargument name="validationResult"  type="any"     required="false" />
 
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
@@ -1883,13 +1893,13 @@
 			var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
 
 			if ( !existingRecord.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 
 				setNextEvent( url=missingUrl );
 			}
 
 			formData.id = id;
-			validationResult = validateForm( formName=formName, formData=formData );
+			validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ) );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
