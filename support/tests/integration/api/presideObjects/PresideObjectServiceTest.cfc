@@ -2593,6 +2593,7 @@
 			var record    = obj.selectData( id=recordId );
 
 			super.assertEquals( "Mrs Fred Smith", record.label );
+			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
 		</cfscript>
 	</cffunction>
@@ -2838,6 +2839,7 @@
 
 			super.assertEquals( "Miss Roberta Holness", record.label );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
 		</cfscript>
 	</cffunction>
 

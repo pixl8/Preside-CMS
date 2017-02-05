@@ -2526,7 +2526,7 @@ component displayName="Preside Object Service" {
 					continue;
 				}
 
-				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData );
+				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop.generateFrom ?: "" );
 				if ( !IsNull( generatedValue ) ) {
 					generated[ propName ] = newData[ propName ] = generatedValue;
 				}
@@ -2536,7 +2536,7 @@ component displayName="Preside Object Service" {
 		return generated;
 	}
 
-	private any function _generateValue( required string objectName, required string generator, required struct data ) {
+	private any function _generateValue( required string objectName, required string generator, required struct data, required string generateFrom ) {
 		switch( ListFirst( arguments.generator, ":" ) ) {
 			case "UUID":
 				return CreateUUId();
@@ -2548,6 +2548,20 @@ component displayName="Preside Object Service" {
 				var obj = getObject( arguments.objectName );
 
 				return obj[ ListRest( arguments.generator, ":" ) ]( arguments.data );
+			break;
+			case "hash":
+				if ( Len( Trim( arguments.generateFrom ) ) ) {
+					var valueToHash = "";
+					for( var field in ListToArray( arguments.generateFrom ) ) {
+						if ( arguments.data.keyExists( field ) ) {
+							valueToHash &= arguments.data[ field ];
+						} else {
+							return;
+						}
+					}
+
+					return Hash( valueToHash );
+				}
 			break;
 		}
 
