@@ -95,12 +95,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.record = rulesEngineConditionService.getConditionRecord( id );
 
-		if ( not prc.record.recordCount ) {
+		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:rulesEngine.condition.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
 		rc.context = prc.record.context;
+		rc.filter_object = prc.record.filter_object;
 
 		prc.pageTitle    = translateResource( uri="cms:rulesEngine.edit.condition.page.title", data=[ prc.record.condition_name ] );
 		prc.pageSubTitle = translateResource( uri="cms:rulesEngine.edit.condition.page.subtitle", data=[ prc.record.condition_name ] );
