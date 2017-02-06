@@ -274,6 +274,53 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( data=NumberFormat( count ), type="text" );
 	}
 
+	public void function quickAddConditionForm( event, rc, prc ) {
+		prc.modalClasses = "modal-dialog-less-padding";
+		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.setView( view="/admin/rulesEngine/quickAddConditionForm", layout="adminModalDialog" );
+	}
+
+	public void function quickEditConditionForm( event, rc, prc ) {
+		prc.modalClasses = "modal-dialog-less-padding";
+		event.include( "/js/admin/specific/datamanager/quickEditForm/" );
+
+		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
+		if ( prc.record.recordCount ) {
+			prc.record       = queryRowToStruct( prc.record );
+			rc.context       = prc.record.context;
+			rc.filter_object = prc.record.filter_object;
+		} else {
+			prc.record = {};
+		}
+
+		event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
+	}
+
+	public void function quickAddConditionAction( event, rc, prc ) {
+		runEvent(
+			  event          = "admin.DataManager._quickAddRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object         = "rules_engine_condition"
+				, formName       = "preside-objects.rules_engine_condition.admin.quickadd"
+			  }
+		);
+	}
+
+	public void function quickEditConditionAction( event, rc, prc ) {
+		runEvent(
+			  event          = "admin.DataManager._quickEditRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object         = "rules_engine_condition"
+				, formName       = "preside-objects.rules_engine_condition.admin.quickedit"
+			  }
+		);
+	}
+
+
 	public void function quickAddFilterForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
 		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
