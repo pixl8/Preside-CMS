@@ -204,16 +204,11 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		if ( objectsFilterable.len() == 1 ) {
-			var objectName = renderContent( "objectName", objectsFilterable[ 1 ] );
-			prc.pageDescription = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.single.object", data=[ objectName ] );
-		} else {
-			prc.pageDescription = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.multi.objects", data=[ objectName ] );
-		}
-
-
 		prc.pageTitle    = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.page.title" );
 		prc.pageSubTitle = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.page.subtitle" );
+
+		var objectName      = renderContent( "objectName", objectsFilterable[ 1 ] );
+		prc.pageDescription = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.single.object", data=[ objectName ] );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.breadcrumb.title" )
@@ -497,7 +492,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		var objectsFilterable = rulesEngineConditionService.listObjectsFilterableByCondition( expressionArray );
 
-		if ( objectsFilterable.len() ) {
+		if ( objectsFilterable.len() == 1 ) {
 			var persist = {
 				  formData          = arguments.formData
 				, objectsFilterable = objectsFilterable
