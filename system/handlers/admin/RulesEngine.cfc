@@ -70,6 +70,8 @@ component extends="preside.system.base.AdminHandler" {
 			rc.context = "";
 
 			formName = "preside-objects.#object#.admin.add.filter";
+		} else {
+			rc.filter_object = "";
 		}
 
 		var newId    = runEvent(
@@ -138,6 +140,8 @@ component extends="preside.system.base.AdminHandler" {
 			rc.context = "";
 
 			formName = "preside-objects.#object#.admin.edit.filter";
+		} else if ( Len( Trim( rc.context ?: "" ) ) ) {
+			rc.filter_object = "";
 		}
 
 		runEvent(
