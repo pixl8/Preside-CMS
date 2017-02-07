@@ -478,7 +478,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _conditionToFilterCheck( event, rc, prc, required string action, required struct formData ) {
-		if( Len( Trim( rc.convertAction ?: "" ) ) || Len( Trim( rc.filter_object ) ) ) {
+		if( Len( Trim( rc.convertAction ?: "" ) ) || Len( Trim( rc.filter_object ?: "" ) ) ) {
 			return;
 		}
 
