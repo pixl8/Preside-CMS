@@ -60,14 +60,26 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function addConditionAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="add" );
-		var object = "rules_engine_condition";
-		var newId  = runEvent(
+		var object   = "rules_engine_condition";
+		var formName = "preside-objects.#object#.admin.add";
+		var formData = event.getCollectionForForm( formName );
+
+		_conditionToFilterCheck( argumentCollection=arguments, action="add", formData=formData );
+
+		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+			rc.context = "";
+
+			formName = "preside-objects.#object#.admin.add.filter";
+		}
+
+		var newId    = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
 				  object            = object
-				, errorAction       = "rulesEngine.addCondition"
+				, errorUrl          = event.buildAdminLink( "rulesEngine.addCondition" )
+				, formName          = formName
 				, redirectOnSuccess = false
 				, audit             = true
 				, auditType         = "rulesEngine"
@@ -115,7 +127,18 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function editConditionAction( event, rc, prc ) {
 		var conditionId = rc.id ?: "";
+		var object   = "rules_engine_condition";
+		var formName = "preside-objects.#object#.admin.edit";
+		var formData = event.getCollectionForForm( formName );
+
 		_checkPermissions( argumentCollection=arguments, key="edit" );
+
+		_conditionToFilterCheck( argumentCollection=arguments, action="edit", formData=formData );
+		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+			rc.context = "";
+
+			formName = "preside-objects.#object#.admin.edit.filter";
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
@@ -125,10 +148,72 @@ component extends="preside.system.base.AdminHandler" {
 				  object        = "rules_engine_condition"
 				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.editCondition", queryString="id=" & conditionId )
 				, successAction = "rulesEngine"
+				, formName      = formName
 				, audit         = true
 				, auditType     = "rulesEngine"
 				, auditAction   = "edit_rules_engine_condition"
 			}
+		);
+	}
+
+	public void function convertConditionToFilter( event, rc, prc ) {
+		var action        = rc.saveAction ?: "";
+		var permissionKey = "";
+
+		switch( action ) {
+			case "quickadd":
+			case "add":
+				permissionKey = "add";
+			break;
+			case "edit":
+			case "quickedit":
+				permissionKey = "edit";
+			break;
+			default:
+				event.notFound();
+		}
+		_checkPermissions( argumentCollection=arguments, key=permissionKey );
+
+		switch( action ) {
+			case "add":
+				prc.submitAction = event.buildAdminLink( "rulesEngine.addConditionAction" );
+			break;
+			case "edit":
+				prc.submitAction = event.buildAdminLink( "rulesEngine.editConditionAction" );
+			break;
+		}
+
+
+		if ( permissionKey == "edit" ) {
+			var id = rc.id ?: "";
+			prc.record = rulesEngineConditionService.getConditionRecord( id );
+
+			if ( !prc.record.recordCount ) {
+				messageBox.error( translateResource( uri="cms:rulesEngine.condition.not.found.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
+			}
+			prc.record = queryRowToStruct( prc.record );
+		}
+
+		var objectsFilterable = rc.objectsFilterable ?: [];
+		if ( !IsArray( objectsFilterable ) || !objectsFilterable.len() ) {
+			event.notFound();
+		}
+
+		if ( objectsFilterable.len() == 1 ) {
+			var objectName = renderContent( "objectName", objectsFilterable[ 1 ] );
+			prc.pageDescription = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.single.object", data=[ objectName ] );
+		} else {
+			prc.pageDescription = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.multi.objects", data=[ objectName ] );
+		}
+
+
+		prc.pageTitle    = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.page.title" );
+		prc.pageSubTitle = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.page.subtitle" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.breadcrumb.title" )
+			, link  = ""
 		);
 	}
 
@@ -389,6 +474,34 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !hasCmsPermission( permissionKey=permKey ) ) {
 			event.adminAccessDenied();
+		}
+	}
+
+	private void function _conditionToFilterCheck( event, rc, prc, required string action, required struct formData ) {
+		if( Len( Trim( rc.convertAction ?: "" ) ) || Len( Trim( rc.filter_object ) ) ) {
+			return;
+		}
+
+		try {
+			var expressionArray = DeSerializeJson( formData.expressions ?: "" );
+		} catch( any e ){
+			return;
+		}
+
+		if ( !isArray( expressionArray ) ) {
+			return;
+		}
+		var objectsFilterable = rulesEngineConditionService.listObjectsFilterableByCondition( expressionArray );
+
+		if ( objectsFilterable.len() ) {
+			var persist = {
+				  formData          = arguments.formData
+				, objectsFilterable = objectsFilterable
+				, saveAction        = arguments.action
+				, id                = rc.id ?: ""
+			}
+
+			setNextEvent( url=event.buildAdminLink( linkto="rulesEngine.convertConditionToFilter" ), persistStruct=persist );
 		}
 	}
 }
