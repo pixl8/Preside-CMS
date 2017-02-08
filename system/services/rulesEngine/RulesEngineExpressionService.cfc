@@ -322,7 +322,7 @@ component displayName="RulesEngine Expression Service" {
 		, required struct fields
 		, required string context
 		, required any    validationResult
-		,          string filterObject
+		,          string filterObject = ""
 	) {
 		var expression = _getRawExpression( arguments.expressionId, false );
 
