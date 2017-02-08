@@ -141,6 +141,7 @@ component displayName="RulesEngine Condition Service" {
 		for( var i=1; i<=arguments.expressionArray.len(); i++ ) {
 			var item     = arguments.expressionArray[i];
 			var isOddRow = ( i mod 2 == 1 );
+			var objects  = [];
 
 			if ( isOddRow ) {
 				if ( IsArray( item ) ) {
