@@ -27,7 +27,7 @@
 				);
 			}
 
-			return getPlugin( "Renderer" ).renderView( argumentCollection=arguments );
+			return getSingleton( "presideRenderer" ).renderView( argumentCollection=arguments );
 		</cfscript>
 	</cffunction>
 

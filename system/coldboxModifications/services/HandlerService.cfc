@@ -31,7 +31,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		instance.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
 	}
 
-	public array function getHandlerListing( required string directory, required string invocationPath ) output=false {
+	public array function getHandlerListing( required string directory, string invocationPath ) output=false {
 		var i                = 1;
 		var thisAbsolutePath = "";
 		var cleanHandler     = "";
@@ -52,7 +52,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 			cleanHandler = removeChars(replacenocase(cleanHandler,"/",".","all"),1,1);
 
 			//Clean Extension
-			cleanHandler = getUtil().ripExtension(cleanhandler);
+			cleanHandler = controller.getUtil().ripExtension(cleanhandler);
 
 			//Add data to array
 			actions = _getCfcMethods( getComponentMetaData( ListAppend( arguments.invocationPath, cleanHandler, "." ) ) );

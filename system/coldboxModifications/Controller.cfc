@@ -1,15 +1,20 @@
-component extends="coldbox.system.web.Controller" output=false {
+component extends="coldbox.system.web.Controller" {
 
-	public any function init() output=false {
+	public any function init() {
 		super.init( argumentCollection = arguments );
 
 		services.handlerService     = new preside.system.coldboxModifications.services.HandlerService( this );
+		services.moduleService      = new preside.system.coldboxModifications.services.ModuleService( this );
 		services.interceptorService = new preside.system.coldboxModifications.services.InterceptorService( this );
 		services.requestService     = new preside.system.coldboxModifications.services.RequestService( this );
-		instance.wireBox            = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
+		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
 	}
 
-	public boolean function handlerExists( required string event ) output=false {
+	function getRenderer(){
+		return variables.wireBox.getInstance( "presideRenderer" );
+	}
+
+	public boolean function handlerExists( required string event ) {
 		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
 		var handlerSvc = "";
 		var handler    = "";
@@ -44,7 +49,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 	}
 
-	public boolean function viewExists( required string view ) output=false {
+	public boolean function viewExists( required string view ) {
 		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
 		var cacheKey   = "view exists: " & arguments.view;
 		var exists     = cache.get( cacheKey );
@@ -54,7 +59,7 @@ component extends="coldbox.system.web.Controller" output=false {
 			return exists;
 		}
 
-		targetView = getPlugin( "Renderer" ).locateView( ListChangeDelims( arguments.view, "/", "." ) );
+		targetView = getRenderer().locateView( ListChangeDelims( arguments.view, "/", "." ) );
 		exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
 
 		cache.set( cacheKey, exists );
@@ -62,11 +67,11 @@ component extends="coldbox.system.web.Controller" output=false {
 		return exists;
 	}
 
-	public boolean function viewletExists( required string event ) output=false {
+	public boolean function viewletExists( required string event ) {
 		return handlerExists( arguments.event ) or viewExists( arguments.event );
 	}
 
-	public any function renderViewlet( required string event, struct args={}, boolean private=true, boolean prepostExempt=true  ) output=false {
+	public any function renderViewlet( required string event, struct args={}, boolean private=true, boolean prepostExempt=true  ) {
 		var result        = "";
 		var view          = "";
 		var handler       = arguments.event;
@@ -91,7 +96,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 
 		try {
-			return getPlugin( "Renderer" ).renderView(
+			return getRenderer().renderView(
 				  view = view
 				, args = arguments.args
 			);
@@ -110,12 +115,12 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 	}
 
-	public any function getRequestContext() output=false {
+	public any function getRequestContext() {
 		return getRequestService().getContext();
 	}
 
-	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) output=false {
-		var target = arguments.fwSetting ? instance.coldboxSettings : instance.configSettings;
+	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) {
+		var target = arguments.fwSetting ? variables.coldboxSettings : variables.configSettings;
 
 		if ( target.keyExists( arguments.name ) ) {
 			return target[ arguments.name ];
@@ -129,15 +134,13 @@ component extends="coldbox.system.web.Controller" output=false {
 			return arguments.defaultValue;
 		}
 
-		getUtil().throwit(
-			  message = "The setting #arguments.name# does not exist."
-			, detail  = "FWSetting flag is #arguments.FWSetting#"
-			, type    = "Controller.SettingNotFoundException"
-		);
+		throw( message="The setting #arguments.name# does not exist.",
+			   detail="FWSetting flag is #arguments.FWSetting#",
+			   type="Controller.SettingNotFoundException");
 	}
 
 // private helpers
-	private boolean function _actionExistsInHandler( required struct handlerMeta, required string action ) output=false {
+	private boolean function _actionExistsInHandler( required struct handlerMeta, required string action ) {
 		if ( StructKeyExists( arguments.handlerMeta, "extends" ) and _actionExistsInHandler( arguments.handlerMeta.extends, arguments.action ) ) {
 			return true;
 		}

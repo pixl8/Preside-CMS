@@ -1,4 +1,4 @@
-component extends="coldbox.system.plugins.i18n" output=false {
+component extends="preside.system.modules.cbi18n.models.i18n" output=false {
 
 	property name="resourceBundleService" inject="resourceBundleService";
 	property name="widgetsService"        inject="widgetsService";
@@ -25,7 +25,7 @@ component extends="coldbox.system.plugins.i18n" output=false {
 		}
 
 		if ( ArrayLen( arguments.data ) ) {
-			translated = getController().getPlugin( "ResourceBundle" ).formatRBString(
+			translated = getController().getInstance( "ResourceService" ).formatRBString(
 				  rbString         = translated
 				, substituteValues = arguments.data
 			);

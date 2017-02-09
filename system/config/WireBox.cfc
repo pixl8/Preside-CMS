@@ -67,6 +67,7 @@
 			.initArg( name="rootUrl"         , value="" );
 
 		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
+		map( "presideRenderer" ).asSingleton().to( "preside.system.coldboxModifications.services.Renderer" );
 	}
 
 	private void function _loadExtensionConfigurations() {

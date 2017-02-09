@@ -218,7 +218,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
 		event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
 
-		content reset=true type="text/html";header statusCode="401";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		content reset=true type="text/html";header statusCode="401";WriteOutput( getSingleton( "presideRenderer" ).renderLayout() );abort;
 	}
 
 	public void function audit( userId=getAdminUserId() ) output=false {
@@ -289,10 +289,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function _getSticker() output=false {
-		return getController().getPlugin(
-			  plugin       = "StickerForPreside"
-			, customPlugin = true
-		);
+		return getModel( "StickerForPreside" );
 	}
 
 	public any function getModel( required string beanName ) output=false {
@@ -697,13 +694,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	public void function notFound() output=false {
 		announceInterception( "onNotFound" );
 		getController().runEvent( "general.notFound" );
-		content reset=true type="text/html";header statusCode="404";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		content reset=true type="text/html";header statusCode="404";WriteOutput( getSingleton( "presideRenderer" ).renderLayout() );abort;
 	}
 
 	public void function accessDenied( required string reason ) output=false {
 		announceInterception( "onAccessDenied" , arguments );
 		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments }, private=true );
-		WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		WriteOutput( getSingleton( "presideRenderer" ).renderLayout() );abort;
 	}
 
 // private helpers
