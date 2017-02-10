@@ -5,6 +5,10 @@ component extends="coldbox.system.interceptors.SES" output=false {
 	property name="urlRedirectsService"              inject="delayedInjector:urlRedirectsService";
 	property name="siteService"                      inject="delayedInjector:siteService";
 	property name="adminRouteHandler"                inject="delayedInjector:adminRouteHandler";
+	property name="assetRouteHandler"                inject="delayedInjector:assetRouteHandler";
+	property name="plainStoredFileRouteHandler"      inject="delayedInjector:plainStoredFileRouteHandler";
+	property name="staticAssetRouteHandler"          inject="delayedInjector:staticAssetRouteHandler";
+	property name="restRouteHandler"                 inject="delayedInjector:restRouteHandler";
 	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
 	property name="multilingualIgnoredUrlPatterns"   inject="coldbox:setting:multilingual.ignoredUrlPatterns";
 
@@ -84,7 +88,8 @@ component extends="coldbox.system.interceptors.SES" output=false {
 				  domain = domain
 				, path   = pathInfo
 			);
-			if ( Len( Trim( site.id ?: "" ) ) ) {
+
+			if ( Len( Trim( site.id ?: "" ) ) && event.isAdminUser() && !_isNonSiteSpecificRequest( pathInfo, event ) ) {
 				siteService.setActiveAdminSite( site.id );
 			}
 
@@ -232,5 +237,12 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			}
 			getController().setNextEvent( url=redirectUrl, statusCode=301 );
 		}
+	}
+
+	private boolean function _isNonSiteSpecificRequest( required string pathInfo, required any event ) {
+		return assetRouteHandler.match( pathInfo, event )
+		    || plainStoredFileRouteHandler.match( pathInfo, event )
+		    || staticAssetRouteHandler.match( pathInfo, event )
+		    || restRouteHandler.match( pathInfo, event );
 	}
 }
