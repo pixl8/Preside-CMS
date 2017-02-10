@@ -414,11 +414,16 @@ component {
 	public string function getPrefetchCachebusterForAjaxSelect( required string  objectName ) {
 		var obj     = _getPresideObjectService().getObject( arguments.objectName );
 		var dmField = obj.getDateModifiedField();
-		var records = obj.selectData(
-			selectFields = [ "Max( #dmField# ) as lastmodified" ]
-		);
 
-		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
+		if ( _getPresideObjectService().getObjectProperties( arguments.objectName ).keyExists( dmField ) ) {
+			var records = obj.selectData(
+				selectFields = [ "Max( #dmField# ) as lastmodified" ]
+			);
+
+			return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
+		}
+
+		return Hash( Now() );
 	}
 
 	public boolean function areDraftsEnabledForObject( required string objectName ) {
