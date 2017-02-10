@@ -10,7 +10,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="storageProviderService"           inject="storageProviderService";
 	property name="storageLocationService"           inject="storageLocationService";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
-	property name="datatableHelper"                  inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="datatableHelper"                  inject="jQueryDatatablesHelpers";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 
 	function preHandler( event, rc, prc ) {

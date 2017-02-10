@@ -1022,7 +1022,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var optionsCol = [];
 		var statusCol  = [];
-		var dtHelper   = getMyPlugin( "JQueryDatatablesHelpers" );
+		var dtHelper   = getModel( "JQueryDatatablesHelpers" );
 		var results    = siteTreeService.getManagedChildrenForDataTable(
 			  objectName   = pageType
 			, parentId     = parentId
