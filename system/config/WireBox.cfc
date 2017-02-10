@@ -14,6 +14,7 @@
 	private void function _setupCustomDslProviders() {
 		mapDSL( "presidecms", "preside.system.coldboxModifications.PresideWireboxDsl" );
 		mapDSL( "delayedInjector", "preside.system.coldboxModifications.DelayedInjectorDsl" );
+		mapDSL( "coldbox", "preside.system.coldboxModifications.LegacyDslBuilder" );
 	}
 
 	private void function _mapCommonSystemServices() {
