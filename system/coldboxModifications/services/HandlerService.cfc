@@ -113,7 +113,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 				}
 			}
 
-			controller.getPlugin("Logger").error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
+			getController().getLogBox().getLogger(this).error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
 		}
 
 		// Do View Dispatch Check Procedures
@@ -130,8 +130,8 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 	}
 
 	public any function getHandler( required any ehBean, required any requestContext ) output=false {
-		try {
 			return super.getHandler( argumentCollection=arguments );
+		try {
 		} catch( expression e ) {
 			if ( ( e.message ?: "" ) contains "has no accessible Member with name" ) {
 				invalidEvent( arguments.ehBean.getFullEvent(), arguments.ehBean );

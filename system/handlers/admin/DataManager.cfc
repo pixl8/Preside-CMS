@@ -8,7 +8,7 @@
 	<cfproperty name="siteService"                      inject="siteService"                      />
 	<cfproperty name="versioningService"                inject="versioningService"                />
 	<cfproperty name="rulesEngineFilterService"         inject="rulesEngineFilterService"         />
-	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
+	<cfproperty name="messageBox"                       inject="messagebox@cbmessagebox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />

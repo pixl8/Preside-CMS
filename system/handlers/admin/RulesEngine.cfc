@@ -5,7 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
 	property name="rulesEngineFilterService"    inject="rulesEngineFilterService";
 	property name="dataManagerService"          inject="dataManagerService";
-	property name="messageBox"                  inject="coldbox:plugin:messageBox";
+	property name="messageBox"                  inject="messagebox@cbmessagebox";
 
 	function preHandler() {
 		super.preHandler( argumentCollection=arguments );

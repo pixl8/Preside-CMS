@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="notificationService" inject="notificationService";
-	property name="messageBox"          inject="coldbox:plugin:messageBox";
+	property name="messageBox"          inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );

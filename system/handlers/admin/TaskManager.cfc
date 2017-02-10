@@ -3,7 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="taskManagerService"         inject="taskManagerService";
 	property name="taskHistoryDao"             inject="presidecms:object:taskmanager_task_history";
 	property name="systemConfigurationService" inject="systemConfigurationService";
-	property name="messageBox"                 inject="coldbox:plugin:messageBox";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );

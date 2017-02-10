@@ -11,7 +11,7 @@ component displayName="Website login service" {
 
 // constructor
 	/**
-	 * @sessionStorage.inject             coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject             sessionStorage
 	 * @cookieService.inject              cookieService
 	 * @userDao.inject                    presidecms:object:website_user
 	 * @userLoginTokenDao.inject          presidecms:object:website_user_login_token

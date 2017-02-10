@@ -10,7 +10,7 @@ component {
 	/**
 	 * @presideObjectService.inject PresideObjectService
 	 * @contentRenderer.inject      ContentRendererService
-	 * @i18nPlugin.inject           coldbox:plugin:i18n
+	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 */

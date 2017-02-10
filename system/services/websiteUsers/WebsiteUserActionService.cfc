@@ -10,7 +10,7 @@ component displayName="Website user action service" {
 // CONSTRUCTOR
 	/**
 	 * @websiteVisitorService.inject websiteVisitorService
-	 * @sessionStorage.inject        coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject        sessionStorage
 	 */
 	public any function init(
 		  required any websiteVisitorService

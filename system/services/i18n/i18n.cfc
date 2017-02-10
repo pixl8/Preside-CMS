@@ -1,16 +1,24 @@
 component extends="preside.system.modules.cbi18n.models.i18n" output=false {
 
 	property name="resourceBundleService" inject="resourceBundleService";
+	property name="resourceService"       inject="resourceService@cbi18n";
 	property name="widgetsService"        inject="widgetsService";
 	property name="presideObjectService"  inject="presideObjectService";
+	property name="controller"            inject="coldbox";
+
+	public any function init() {
+		super.init( argumentCollection=arguments );
+		return this;
+	}
 
 	public void function init_i18n() {
+		configure();
 		// do nothing to override behaviour we don't want for Preside
 	}
 
 	public string function translateResource(
 		  required string uri
-		,          string defaultValue = getController().getSetting( "UnknownTranslation" )
+		,          string defaultValue = variables.controller.getSetting( "UnknownTranslation" )
 		,          string language     = getFWLanguageCode()
 		,          string country      = getFWCountryCode()
 		,          array  data = []
@@ -25,7 +33,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" output=false {
 		}
 
 		if ( ArrayLen( arguments.data ) ) {
-			translated = getController().getInstance( "ResourceService" ).formatRBString(
+			translated = variables.controller.getWirebox().getInstance( "resourceservice@cbi18n" ).formatRBString(
 				  rbString         = translated
 				, substituteValues = arguments.data
 			);

@@ -9,7 +9,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="errorLogService"                  inject="errorLogService";
 	property name="storageProviderService"           inject="storageProviderService";
 	property name="storageLocationService"           inject="storageLocationService";
-	property name="messageBox"                       inject="coldbox:plugin:messageBox";
+	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="datatableHelper"                  inject="coldbox:myplugin:JQueryDatatablesHelpers";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 

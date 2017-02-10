@@ -29,9 +29,10 @@
         "sticker":"1.1.0",
         "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v0.8.3",
         "coldbox":"4.3.0+188",
-        "cbcompat":"1.1.0.000",
         "presidecmseditor":"github:pixl8/Preside-Editor#4.5.8",
-        "cbi18n":"^1.3.1+56"
+        "cbi18n":"1.3.1+56",
+        "cbmessagebox":"2.2.0+10",
+        "cbstorages":"1.3.0+14"
     },
     "devDependencies":{
         "testbox":"2.3.0+00044"
@@ -42,8 +43,9 @@
         "coldbox":"system/externals/coldbox",
         "testbox":"support/tests/testbox",
         "presidecmseditor":"system/assets/ckeditor",
-        "cbcompat":"system/modules/cbcompat",
-        "cbi18n":"system/modules/cbi18n"
+        "cbi18n":"system/modules/cbi18n",
+        "cbmessagebox":"system/modules/cbmessagebox",
+        "cbstorages":"system/modules/cbstorages"
     },
     "ignore":[
         ".git/*",

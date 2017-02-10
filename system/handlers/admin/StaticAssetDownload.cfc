@@ -1,5 +1,5 @@
 component {
-	property name="i18n"       inject="coldbox:plugin:i18n";
+	property name="i18n"       inject="i18n";
 	property name="appMapping" inject="coldbox:setting:appMapping";
 
 	function download( event, rc, prc ) {
