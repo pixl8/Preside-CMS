@@ -1221,6 +1221,33 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test031_2_selectData_shouldSelectDataUsingExplicitlyDefinedFilterParamWithArrayValues" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+			var result    = "";
+
+			poService.dbSync();
+
+			poService.insertData( objectName="object_a", data={ label="1" } );
+			poService.insertData( objectName="object_a", data={ label="2" } );
+			poService.insertData( objectName="object_a", data={ label="3" } );
+			poService.insertData( objectName="object_a", data={ label="4" } );
+
+			result = poService.selectData(
+				  objectname   = "object_a"
+				, filter       = "label in ( :selectedLabels )"
+				, filterParams = {
+					selectedLabels = { type="varchar", value=[ "1", "2" ] }
+				  }
+				, orderBy      = "label"
+			);
+
+			super.assertEquals( 2, result.recordCount, "Expected 2 records to be returned" );
+			super.assertEquals( "1", result.label[ 1 ] );
+			super.assertEquals( "2", result.label[ 2 ] );
+		</cfscript>
+	</cffunction>
+
 
 	<cffunction name="test032_selectData_shouldAllowSortingOfData" returntype="void">
 		<cfscript>
