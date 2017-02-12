@@ -1685,11 +1685,11 @@ component displayName="Preside Object Service" {
 					  name  = paramName
 					, value = param
 				};
+			}
 
-				if ( IsArray( param.value ) ) {
-					param.value = ArrayToList( param.value );
-					param.list  = true;
-				}
+			if ( IsArray( param.value ) ) {
+				param.value = ArrayToList( param.value );
+				param.list  = true;
 			}
 
 			if ( not StructKeyExists( param, "type" ) ) {
