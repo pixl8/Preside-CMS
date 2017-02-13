@@ -360,13 +360,12 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickAddConditionForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
-		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+
 		event.setView( view="/admin/rulesEngine/quickAddConditionForm", layout="adminModalDialog" );
 	}
 
 	public void function quickEditConditionForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
-		event.include( "/js/admin/specific/datamanager/quickEditForm/" );
 
 		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
 		if ( prc.record.recordCount ) {
@@ -381,27 +380,58 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function quickAddConditionAction( event, rc, prc ) {
-		runEvent(
-			  event          = "admin.DataManager._quickAddRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object         = "rules_engine_condition"
-				, formName       = "preside-objects.rules_engine_condition.admin.quickadd"
-			  }
-		);
+		var object   = "rules_engine_condition";
+		var formName = "preside-objects.#object#.admin.quickadd";
+		var formData = event.getCollectionForForm( formName );
+
+		_checkPermissions( argumentCollection=arguments, key="add" );
+
+		if ( !_conditionToFilterCheck( argumentCollection=arguments, action="quickadd", formData=formData, ajax=true ) ) {
+			if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+				rc.context = "";
+
+				formName = "preside-objects.#object#.admin.quickadd.filter";
+			} else {
+				rc.filter_object = "";
+			}
+			runEvent(
+				  event          = "admin.DataManager._quickAddRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object         = "rules_engine_condition"
+					, formName       = formName
+				  }
+			);
+		}
 	}
 
 	public void function quickEditConditionAction( event, rc, prc ) {
-		runEvent(
-			  event          = "admin.DataManager._quickEditRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object         = "rules_engine_condition"
-				, formName       = "preside-objects.rules_engine_condition.admin.quickedit"
-			  }
-		);
+		var object   = "rules_engine_condition";
+		var formName = "preside-objects.#object#.admin.quickedit";
+		var formData = event.getCollectionForForm( formName );
+
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+
+		if ( !_conditionToFilterCheck( argumentCollection=arguments, action="quickedit", formData=formData, ajax=true ) ) {
+			if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+				rc.context = "";
+
+				formName = "preside-objects.#object#.admin.quickedit.filter";
+			} else {
+				rc.filter_object = "";
+			}
+
+			runEvent(
+				  event          = "admin.DataManager._quickEditRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object   = "rules_engine_condition"
+					, formName = formName
+				  }
+			);
+		}
 	}
 
 
@@ -476,31 +506,48 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	private void function _conditionToFilterCheck( event, rc, prc, required string action, required struct formData ) {
+	private boolean function _conditionToFilterCheck( event, rc, prc, required string action, required struct formData, boolean ajax=false ) {
 		if( Len( Trim( rc.convertAction ?: "" ) ) || Len( Trim( rc.filter_object ?: "" ) ) ) {
-			return;
+			return false;
 		}
 
 		try {
 			var expressionArray = DeSerializeJson( formData.expressions ?: "" );
 		} catch( any e ){
-			return;
+			return false;
 		}
 
 		if ( !isArray( expressionArray ) ) {
-			return;
+			return false;
 		}
 		var objectsFilterable = rulesEngineConditionService.listObjectsFilterableByCondition( expressionArray );
 
 		if ( objectsFilterable.len() == 1 ) {
-			var persist = {
-				  formData          = arguments.formData
-				, objectsFilterable = objectsFilterable
-				, saveAction        = arguments.action
-				, id                = rc.id ?: ""
-			}
+			if ( arguments.ajax ) {
+				var objectName      = renderContent( "objectName", objectsFilterable[ 1 ] );
+				var response = { success=false, convertPrompt=renderView( view="/admin/rulesEngine/convertConditionToFilter", args={
+					  id                = rc.id ?: ""
+					, formData          = arguments.formData
+					, objectsFilterable = objectsFilterable
+					, saveAction        = arguments.action
+					, submitAction      = event.buildAdminLink( linkto="rulesEngine.#arguments.action#ConditionAction" )
+					, pageDescription   = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.single.object", data=[ objectName ] )
+				} ) };
 
-			setNextEvent( url=event.buildAdminLink( linkto="rulesEngine.convertConditionToFilter" ), persistStruct=persist );
+				event.renderData( data=response, type="json" );
+
+				return true;
+			} else {
+				var persist = {
+					  formData          = arguments.formData
+					, objectsFilterable = objectsFilterable
+					, saveAction        = arguments.action
+					, id                = rc.id ?: ""
+				}
+				setNextEvent( url=event.buildAdminLink( linkto="rulesEngine.convertConditionToFilter" ), persistStruct=persist );
+			}
 		}
+
+		return false;
 	}
 }
