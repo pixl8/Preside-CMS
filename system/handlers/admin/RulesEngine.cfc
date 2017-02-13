@@ -372,11 +372,14 @@ component extends="preside.system.base.AdminHandler" {
 			prc.record       = queryRowToStruct( prc.record );
 			rc.context       = prc.record.context;
 			rc.filter_object = prc.record.filter_object;
+
+			if ( Len( Trim( rc.filter_object ?: "" ) ) ) {
+				event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
+			}
 		} else {
 			prc.record = {};
+			event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
 		}
-
-		event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
 	}
 
 	public void function quickAddConditionAction( event, rc, prc ) {
@@ -407,16 +410,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function quickEditConditionAction( event, rc, prc ) {
-		var object   = "rules_engine_condition";
-		var formName = "preside-objects.#object#.admin.quickedit";
-		var formData = event.getCollectionForForm( formName );
+		var object      = "rules_engine_condition";
+		var formName    = "preside-objects.#object#.admin.quickedit";
+		var formData    = event.getCollectionForForm( formName );
+		var conditionId = rc.id ?: "";
+		var record      = rulesEngineConditionService.getConditionRecord( conditionId );
 
 		_checkPermissions( argumentCollection=arguments, key="edit" );
+		if ( !record.recordCount ) {
+			event.notFound();
+		}
 
-		if ( !_conditionToFilterCheck( argumentCollection=arguments, action="quickedit", formData=formData, ajax=true ) ) {
-			if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+		if ( Len( Trim( record.filter_object ) ) || !_conditionToFilterCheck( argumentCollection=arguments, action="quickedit", formData=formData, ajax=true ) ) {
+			if ( Len( Trim( record.filter_object ) ) || ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
 				rc.context = "";
 
+				formName = "preside-objects.#object#.admin.quickedit.filter";
 				formName = "preside-objects.#object#.admin.quickedit.filter";
 			} else {
 				rc.filter_object = "";
