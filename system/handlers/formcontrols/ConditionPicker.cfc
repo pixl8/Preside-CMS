@@ -17,14 +17,14 @@ component  {
 
 		if ( IsTrue( args.quickAdd ?: "" ) ) {
 			args.quickAddUrl = event.buildAdminLink(
-				  linkTo      = "datamanager.quickAddForm"
-				, querystring = "object=rules_engine_condition&context=#context#&multiple=#multiple#"
+				  linkTo      = "rulesEngine.quickAddConditionForm"
+				, querystring = "context=#context#&multiple=#multiple#"
 			);
 		}
 		if ( IsTrue( args.quickEdit ?: "" ) ) {
 			args.quickEditUrl = event.buildAdminLink(
-				  linkTo      = "datamanager.quickEditForm"
-				, querystring = "object=rules_engine_condition&context=#context#&multiple=#multiple#&id="
+				  linkTo      = "rulesEngine.quickEditConditionForm"
+				, querystring = "context=#context#&multiple=#multiple#&id="
 			);
 		}
 

@@ -313,6 +313,7 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint     ID of the expression to validate
 	 * @fields.hint           Struct of saved field configurations for the expression instance to validate
 	 * @context.hint          Context in which the expression is being used
+	 * @filterObject.hint     Object for which the expression is being used as a filter
 	 * @validationResult.hint [[api-validationresult]] object with which to record errors
 	 *
 	 */
@@ -321,6 +322,7 @@ component displayName="RulesEngine Expression Service" {
 		, required struct fields
 		, required string context
 		, required any    validationResult
+		,          string filterObject = ""
 	) {
 		var expression = _getRawExpression( arguments.expressionId, false );
 
@@ -329,9 +331,16 @@ component displayName="RulesEngine Expression Service" {
 			return false;
 		}
 
-		if ( !expression.contexts.findNoCase( arguments.context ) && !expression.contexts.findNoCase( "global" ) ) {
-			arguments.validationResult.setGeneralMessage( "The [#arguments.expressionId#] expression cannot be used in the [#arguments.context#] context" );
-			return false;
+		if ( arguments.filterObject.len() ) {
+			if ( !expression.filterObjects.findNoCase( arguments.filterObject ) ) {
+				arguments.validationResult.setGeneralMessage( "The [#arguments.expressionId#] expression cannot be used to filter the [#arguments.filterObject#] object" );
+				return false;
+			}
+		} else {
+			if ( !expression.contexts.findNoCase( arguments.context ) && !expression.contexts.findNoCase( "global" ) ) {
+				arguments.validationResult.setGeneralMessage( "The [#arguments.expressionId#] expression cannot be used in the [#arguments.context#] context" );
+				return false;
+			}
 		}
 
 		for ( var fieldName in expression.fields ) {
