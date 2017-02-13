@@ -4,6 +4,8 @@
 
 	formId      = "addForm-" & CreateUUId();
 	conditionId = rc.id ?: "";
+	isFilter    = Len( Trim( prc.record.filter_object ?: "" ) );
+	formName    = "preside-objects.rules_engine_condition.admin.quickedit" & ( isFilter ? ".filter" : "" );
 </cfscript>
 
 <cfoutput>
@@ -11,7 +13,7 @@
 		<input name="id" type="hidden" value="#conditionId#">
 
 		#renderForm(
-			  formName         = "preside-objects.rules_engine_condition.admin.quickedit"
+			  formName         = formName
 			, context          = "admin"
 			, formId           = formId
 			, savedData        = prc.record ?: {}

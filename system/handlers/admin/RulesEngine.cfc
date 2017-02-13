@@ -117,14 +117,22 @@ component extends="preside.system.base.AdminHandler" {
 		rc.context = prc.record.context;
 		rc.filter_object = prc.record.filter_object;
 
-		prc.pageTitle    = translateResource( uri="cms:rulesEngine.edit.condition.page.title", data=[ prc.record.condition_name ] );
-		prc.pageSubTitle = translateResource( uri="cms:rulesEngine.edit.condition.page.subtitle", data=[ prc.record.condition_name ] );
+		if ( Len( Trim( rc.filter_object ) ) ) {
+			prc.pageTitle    = translateResource( uri="cms:rulesEngine.edit.filter.page.title", data=[ prc.record.condition_name ] );
+			prc.pageSubTitle = translateResource( uri="cms:rulesEngine.edit.filter.page.subtitle", data=[ prc.record.condition_name ] );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:rulesEngine.edit.filter.breadcrumb.title", data=[ prc.record.condition_name ] )
+				, link  = event.buildAdminLink( linkTo="rulesengine.editCondition", queryString="id=" & id )
+			);
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:rulesEngine.edit.condition.breadcrumb.title", data=[ prc.record.condition_name ] )
-			, link  = event.buildAdminLink( linkTo="rulesengine.editCondition", queryString="id=" & id )
-		);
-
+		} else {
+			prc.pageTitle    = translateResource( uri="cms:rulesEngine.edit.condition.page.title", data=[ prc.record.condition_name ] );
+			prc.pageSubTitle = translateResource( uri="cms:rulesEngine.edit.condition.page.subtitle", data=[ prc.record.condition_name ] );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:rulesEngine.edit.condition.breadcrumb.title", data=[ prc.record.condition_name ] )
+				, link  = event.buildAdminLink( linkTo="rulesengine.editCondition", queryString="id=" & id )
+			);
+		}
 	}
 
 	public void function editConditionAction( event, rc, prc ) {
