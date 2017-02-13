@@ -1,10 +1,10 @@
 <cfscript>
-	description            = prc.pageDescription ?: "";
-	formData               = rc.formData         ?: {};
-	formData.id            = rc.id               ?: "";
-	formData.saveAction    = rc.saveAction       ?: "";
-	formData.filter_object = rc.objectsFilterable[ 1 ] ?: "";
-	submitAction           = prc.submitAction    ?: "";
+	description            = args.pageDescription        ?: ( prc.pageDescription       ?: "" );
+	formData               = args.formData               ?: ( rc.formData               ?: {} );
+	formData.id            = args.id                     ?: ( rc.id                     ?: "" );
+	formData.saveAction    = args.saveAction             ?: ( rc.saveAction             ?: "" );
+	formData.filter_object = args.objectsFilterable[ 1 ] ?: ( rc.objectsFilterable[ 1 ] ?: "" );
+	submitAction           = args.submitAction           ?: ( prc.submitAction          ?: "" );
 </cfscript>
 <cfoutput>
 	<div class="alert alert-warning">
