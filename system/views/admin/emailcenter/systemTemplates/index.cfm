@@ -10,7 +10,7 @@
 		</p>
 	<cfelse>
 		<div class="table-responsive">
-			<table class="table table-striped table-hover">
+			<table class="table table-striped table-hover static-data-table">
 				<thead>
 					<tr>
 						<th>#translateResource( "cms:th.title"       )#</th>
