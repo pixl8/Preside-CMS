@@ -1,4 +1,5 @@
 <cfparam name="args.body"                              default="" />
+<cfparam name="args.stats"                             default="" />
 <cfparam name="args.tab"                               default="preview" />
 <cfparam name="args.canEdit" type="boolean"            default="false" />
 <cfparam name="args.canConfigureLayout" type="boolean" default="false" />
@@ -46,6 +47,7 @@
 </cfscript>
 
 <cfoutput>
+	#args.stats#
 	<div class="tabbable">
 		<ul class="nav nav-tabs">
 			<cfloop array="#tabs#" index="i" item="tab">

@@ -36,4 +36,6 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="schedule_measure"        type="numeric" dbtype="int"                  required=false ignoreChangesForVersioning=true;
 	property name="schedule_sent"           type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true;
 	property name="schedule_next_send_date" type="date"    dbtype="datetime"             required=false ignoreChangesForVersioning=true;
+
+	property name="send_logs" relationship="one-to-many" relatedto="email_template_send_log" relationshipKey="email_template";
 }

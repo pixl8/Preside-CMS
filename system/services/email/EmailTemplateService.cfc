@@ -593,6 +593,180 @@ component {
 		return attachments;
 	}
 
+	/**
+	 * Gets a count of emails sent in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getSentCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs.sent_date >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs.sent_date <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs.id ) as sent_count" ]
+			, filter       = { id=arguments.templateId, "send_logs.sent"=true }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.sent_count ?: "" );
+	}
+
+	/**
+	 * Gets a count of delivered  emails sent in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getDeliveredCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs.delivered_date >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs.delivered_date <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs.id ) as delivered_count" ]
+			, filter       = { id=arguments.templateId, "send_logs.delivered"=true }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.delivered_count ?: "" );
+	}
+
+	/**
+	 * Gets a count of opened emails sent in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getOpenedCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs.opened_date >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs.opened_date <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs.id ) as opened_count" ]
+			, filter       = { id=arguments.templateId, "send_logs.opened"=true }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.opened_count ?: "" );
+	}
+
+	/**
+	 * Gets a count of emails failed in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getFailedCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs.failed_date >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs.failed_date <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs.id ) as failed_count" ]
+			, filter       = { id=arguments.templateId, "send_logs.failed"=true }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.failed_count ?: "" );
+	}
+
+	/**
+	 * Collates various stat counts for the given template in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public struct function getStats(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		return {
+			  sent      = getSentCount( argumentCollection=arguments )
+			, delivered = getDeliveredCount( argumentCollection=arguments )
+			, failed    = getFailedCount( argumentCollection=arguments )
+			, opened    = getOpenedCount( argumentCollection=arguments )
+		};
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
