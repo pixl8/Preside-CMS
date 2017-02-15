@@ -11,6 +11,15 @@
 
 <cfsavecontent variable="body">
 	<cfoutput>
+		#renderViewlet( event='admin.datamanager.versionNavigator', args={
+			  object           = "email_template"
+			, id               = templateId
+			, version          = rc.version ?: ""
+			, isDraft          = IsTrue( savedTemplate._version_is_draft ?: "" )
+			, baseUrl          = event.buildAdminLink( linkto="emailCenter.systemTemplates.edit", queryString="template=#templateId#&version=" )
+			, allVersionsUrl   = event.buildAdminLink( linkto="emailCenter.systemTemplates.versionHistory", queryString="template=#templateId#" )
+		} )#
+
 		<div class="row">
 			<div class="col-md-8 col-lg-7 col-sm-12">
 				<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#editTemplateAction#">
@@ -56,14 +65,5 @@
 </cfsavecontent>
 
 <cfoutput>
-	#renderViewlet( event='admin.datamanager.versionNavigator', args={
-		  object           = "email_template"
-		, id               = templateId
-		, version          = rc.version ?: ""
-		, isDraft          = IsTrue( savedTemplate._version_is_draft ?: "" )
-		, baseUrl          = event.buildAdminLink( linkto="emailCenter.systemTemplates.edit", queryString="template=#templateId#&version=" )
-		, allVersionsUrl   = event.buildAdminLink( linkto="emailCenter.systemTemplates.versionHistory", queryString="template=#templateId#" )
-	} )#
-
 	#renderViewlet( event="admin.emailcenter.systemtemplates._templateTabs", args={ body=body, tab="edit" } )#
 </cfoutput>
