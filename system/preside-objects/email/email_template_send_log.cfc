@@ -19,6 +19,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="sent"           type="boolean" dbtype="boolean" default=false;
 	property name="failed"         type="boolean" dbtype="boolean" default=false;
 	property name="delivered"      type="boolean" dbtype="boolean";
+	property name="hard_bounced"   type="boolean" dbtype="boolean";
 	property name="opened"         type="boolean" dbtype="boolean";
 	property name="marked_as_spam" type="boolean" dbtype="boolean";
 	property name="unsubscribed"   type="boolean" dbtype="boolean";
@@ -26,11 +27,13 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="sent_date"           type="date" dbtype="datetime";
 	property name="failed_date"         type="date" dbtype="datetime";
 	property name="delivered_date"      type="date" dbtype="datetime";
+	property name="hard_bounced_date"   type="date" dbtype="datetime";
 	property name="opened_date"         type="date" dbtype="datetime";
 	property name="marked_as_spam_date" type="date" dbtype="datetime";
 	property name="unsubscribed_date"   type="date" dbtype="datetime";
 
 	property name="click_count" type="numeric" dbtype="int" default=0;
 
-	property name="failed_reason" type="string" dbtype="text";
+	property name="failed_reason" type="string"  dbtype="text";
+	property name="failed_code"   type="numeric" dbtype="int";
 }

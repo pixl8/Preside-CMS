@@ -75,14 +75,85 @@ component {
 	 * @autodoc     true
 	 * @id.hint     ID of the email to mark as failed
 	 * @reason.hint Failure reason to record
+	 * @code.hint   Failure code to record
 	 *
 	 */
-	public void function markAsFailed( required string id, required string reason ) {
-		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
-			  failed        = true
-			, failed_date   = _getNow()
-			, failed_reason = arguments.reason
-		} );
+	public void function markAsFailed( required string id, required string reason, string code="" ) {
+		$getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
+			, filterParams = { id=arguments.id, failed=false, opened=false }
+			, data={
+				  failed        = true
+				, failed_date   = _getNow()
+				, failed_reason = arguments.reason
+				, failed_code   = ( Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "" )
+			  }
+		);
+	}
+
+
+	/**
+	 * Marks the given email as 'marked as spam'
+	 *
+	 * @autodoc     true
+	 * @id.hint     ID of the email to mark as marked as spam
+	 *
+	 */
+	public void function markAsMarkedAsSpam( required string id ) {
+		$getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( marked_as_spam is null or marked_as_spam = :marked_as_spam )"
+			, filterParams = { id=arguments.id, marked_as_spam=false }
+			, data={
+				  marked_as_spam      = true
+				, marked_as_spam_date = _getNow()
+			  }
+		);
+	}
+
+	/**
+	 * Marks the given email as 'unsubscribed'
+	 *
+	 * @autodoc     true
+	 * @id.hint     ID of the email to mark as unsubsribed
+	 *
+	 */
+	public void function markAsUnsubscribed( required string id ) {
+		$getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( unsubscribed is null or unsubscribed = :unsubscribed )"
+			, filterParams = { id=arguments.id, unsubscribed=false }
+			, data={
+				  unsubscribed      = true
+				, unsubscribed_date = _getNow()
+			  }
+		);
+	}
+
+	/**
+	 * Marks the given email as hard bounced (cannot deliver due to address unkown)
+	 *
+	 * @autodoc     true
+	 * @id.hint     ID of the email to mark as failed
+	 * @reason.hint Failure reason to record
+	 * @code.hint   Failure code to record
+	 *
+	 */
+	public void function markAsHardBounced( required string id, required string reason, string code="" ) {
+		var updated = $getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( hard_bounced is null or hard_bounced = :hard_bounced ) and ( opened is null or opened = :opened )"
+			, filterParams = { id=arguments.id, hard_bounced=false, opened=false }
+			, data={
+				  hard_bounced      = true
+				, hard_bounced_date = _getNow()
+			  }
+		);
+
+		if ( updated ) {
+			markAsFailed(
+				  id     = arguments.id
+				, reason = arguments.reason
+				, code   = arguments.code
+			);
+		}
 	}
 
 	/**
@@ -93,7 +164,15 @@ component {
 	 * @softMark.hint Used when some other action has occurred that indicates that the message was therefore delivered. i.e. we may not know *when* but we do now know that it *was* delivered.
 	 */
 	public void function markAsDelivered( required string id, boolean softMark=false ) {
-		var data = { delivered = true };
+		var data = {
+			  delivered         = true
+			, hard_bounced      = false
+			, hard_bounced_date = ""
+			, failed            = false
+			, failed_date       = ""
+			, failed_reason     = ""
+			, failed_code       = ""
+		};
 
 		if ( !arguments.softMark ) {
 			data.delivered_date = _getNow();

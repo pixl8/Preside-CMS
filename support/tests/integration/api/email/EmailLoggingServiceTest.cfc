@@ -100,7 +100,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "markAsDelivered()", function(){
-			it( "should mark the given message as delivered when not already delivered and update the delivery date", function(){
+			it( "should mark the given message as delivered when not already delivered and update the delivery date + ensure not marked as failed or hard bounced", function(){
 				var service = _getService();
 				var logId   = CreateUUId();
 
@@ -112,7 +112,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
 					  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
 					, filterParams = { id=logId, delivered=false }
-					, data         = { delivered=true, delivered_date=nowish }
+					, data         = {
+						  delivered         = true
+						, delivered_date    = nowish
+						, failed            = false
+						, failed_date       = ""
+						, failed_reason     = ""
+						, failed_code       = ""
+						, hard_bounced      = false
+						, hard_bounced_date = ""
+					  }
 				} );
 			} );
 
@@ -128,7 +137,62 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
 					  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
 					, filterParams = { id=logId, delivered=false }
-					, data         = { delivered=true }
+					, data         = {
+						  delivered         = true
+						, failed            = false
+						, failed_date       = ""
+						, failed_reason     = ""
+						, failed_code       = ""
+						, hard_bounced      = false
+						, hard_bounced_date = ""
+					  }
+				} );
+			} );
+		} );
+
+		describe( "markAsFailed()", function(){
+			it( "should mark the given message as failed when not already failed and update the failure date", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+				var reason  = "Recipient does not want to see you right now" & CreateUUId();
+				var code    = 610;
+
+				mockLogDao.$( "updateData" );
+
+				service.markAsFailed( logId, reason, code );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
+					, filterParams = { id=logId, failed=false, opened=false }
+					, data         = { failed=true, failed_date=nowish, failed_reason=reason, failed_code=code }
+				} );
+			} );
+		} );
+
+		describe( "markAsHardBounced()", function(){
+			it( "should mark the given message as hard bounced when not already bounced, update the bounced date + set as failed", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+				var reason  = "Unknown address" & CreateUUId();
+				var code    = 550;
+
+				mockLogDao.$( "updateData", 1 );
+				service.$( "markAsFailed" );
+
+				service.markAsHardBounced( logId, reason, code );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter       = "id = :id and ( hard_bounced is null or hard_bounced = :hard_bounced ) and ( opened is null or opened = :opened )"
+					, filterParams = { id=logId, hard_bounced=false, opened=false }
+					, data         = { hard_bounced=true, hard_bounced_date=nowish }
+				} );
+				expect( service.$callLog().markAsFailed.len() ).toBe( 1 );
+				expect( service.$callLog().markAsFailed[1] ).toBe( {
+					  id     = logId
+					, reason = reason
+					, code   = code
 				} );
 			} );
 		} );
@@ -175,6 +239,42 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
 				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId, true ] );
 				expect( service.$callLog().recordActivity.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "markAsMarkedAsSpam()", function(){
+			it( "should mark the given message as marked as spam when not already done so", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData" );
+
+				service.markAsMarkedAsSpam( logId );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter       = "id = :id and ( marked_as_spam is null or marked_as_spam = :marked_as_spam )"
+					, filterParams = { id=logId, marked_as_spam=false }
+					, data         = { marked_as_spam=true, marked_as_spam_date=nowish }
+				} );
+			} );
+		} );
+
+		describe( "markAsUnsubscribed()", function(){
+			it( "should mark the given message as unsubscribed when not already done so", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData" );
+
+				service.markAsUnsubscribed( logId );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  filter       = "id = :id and ( unsubscribed is null or unsubscribed = :unsubscribed )"
+					, filterParams = { id=logId, unsubscribed=false }
+					, data         = { unsubscribed=true, unsubscribed_date=nowish }
+				} );
 			} );
 		} );
 

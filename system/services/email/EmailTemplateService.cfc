@@ -346,6 +346,7 @@ component {
 					t.layout           = blueprint.layout;
 					t.recipient_type   = blueprint.recipient_type;
 					t.blueprint_filter = blueprint.recipient_filter;
+					t.service_provider = blueprint.service_provider;
 				}
 			}
 
