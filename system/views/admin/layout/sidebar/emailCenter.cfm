@@ -9,11 +9,11 @@
 		} );
 	}
 
-	if ( hasCmsPermission( "emailcenter.blueprints.navigate" ) ) {
-		subMenuItems.append(  {
-			  link  = event.buildAdminLink( linkTo="emailcenter.blueprints" )
-			, title = translateResource( "cms:emailcenter.blueprints.menu.title" )
-			, active = ReFindNoCase( "^admin\.emailcenter\.blueprints", event.getCurrentEvent() )
+	if ( hasCmsPermission( "emailcenter.systemTemplates.navigate" ) ) {
+		subMenuItems.append( {
+			  link  = event.buildAdminLink( linkTo="emailcenter.systemtemplates" )
+			, title = translateResource( "cms:emailcenter.systemtemplates.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.systemtemplates", event.getCurrentEvent() )
 		} );
 	}
 
@@ -25,11 +25,11 @@
 		} );
 	}
 
-	if ( hasCmsPermission( "emailcenter.systemTemplates.navigate" ) ) {
-		subMenuItems.append( {
-			  link  = event.buildAdminLink( linkTo="emailcenter.systemtemplates" )
-			, title = translateResource( "cms:emailcenter.systemtemplates.menu.title" )
-			, active = ReFindNoCase( "^admin\.emailcenter\.systemtemplates", event.getCurrentEvent() )
+	if ( hasCmsPermission( "emailcenter.blueprints.navigate" ) ) {
+		subMenuItems.append(  {
+			  link  = event.buildAdminLink( linkTo="emailcenter.blueprints" )
+			, title = translateResource( "cms:emailcenter.blueprints.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.blueprints", event.getCurrentEvent() )
 		} );
 	}
 
