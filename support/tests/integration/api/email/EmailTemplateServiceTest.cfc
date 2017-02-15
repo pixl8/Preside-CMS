@@ -584,16 +584,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getTemplate( id=template, version=version ) ).toBe( expected );
 			} );
 
-			it( "should return recipient_type, filter and layout fields from the template's blueprint when the template has a non-empty blueprint", function(){
+			it( "should return recipient_type, filter, service_provider and layout fields from the template's blueprint when the template has a non-empty blueprint", function(){
 				var service       = _getService();
 				var template      = CreateUUId();
 				var mockResult    = QueryNew( 'email_blueprint', 'varchar', [[CreateUUId()]]);
-				var mockBlueprint = QueryNew( 'recipient_type,layout,recipient_filter', 'varchar,varchar,varchar', [[CreateUUId(),CreateUUId(),CreateUUId()]]);
+				var mockBlueprint = QueryNew( 'recipient_type,layout,recipient_filter,service_provider', 'varchar,varchar,varchar,varchar', [[CreateUUId(),CreateUUId(),CreateUUId(),CreateUUId()]]);
 				var expected      = {
 					  email_blueprint  = mockResult.email_blueprint
 					, recipient_type   = mockBlueprint.recipient_type
 					, layout           = mockBlueprint.layout
 					, blueprint_filter = mockBlueprint.recipient_filter
+					, service_provider = mockBlueprint.service_provider
 				};
 
 				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false, specificVersion=0 ).$results( mockResult );
