@@ -1188,6 +1188,170 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getSentCount()", function(){
+			it( "should return count of sends for the given template for all time when no date range passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'sent_count', 'int', [[635]] );
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as sent_count" ]
+					, filter       = { id=templateId, "send_logs.sent"=true }
+					, forceJoins   = "inner"
+					, extraFilters = []
+				).$results( stats );
+
+				expect( service.getSentCount( templateId ) ).toBe( 635 );
+			} );
+
+			it( "should add date filters when dateFrom and dateTo passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'sent_count', 'int', [[23]] );
+				var dateFrom   = "1900-01-01";
+				var dateTo   = "1999-06-29";
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as sent_count" ]
+					, filter       = { id=templateId, "send_logs.sent"=true }
+					, forceJoins   = "inner"
+					, extraFilters = [
+						  { filter="send_logs.sent_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="send_logs.sent_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+					]
+				).$results( stats );
+
+				expect( service.getSentCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
+			} );
+		} );
+
+		describe( "getDeliveredCount()", function(){
+			it( "should return count of successful deliveries for the given template for all time when no date range passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'delivered_count', 'int', [[635]] );
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as delivered_count" ]
+					, filter       = { id=templateId, "send_logs.delivered"=true }
+					, forceJoins   = "inner"
+					, extraFilters = []
+				).$results( stats );
+
+				expect( service.getDeliveredCount( templateId ) ).toBe( 635 );
+			} );
+
+			it( "should add date filters when dateFrom and dateTo passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'delivered_count', 'int', [[23]] );
+				var dateFrom   = "1900-01-01";
+				var dateTo   = "1999-06-29";
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as delivered_count" ]
+					, filter       = { id=templateId, "send_logs.delivered"=true }
+					, forceJoins   = "inner"
+					, extraFilters = [
+						  { filter="send_logs.delivered_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="send_logs.delivered_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+					]
+				).$results( stats );
+
+				expect( service.getDeliveredCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
+			} );
+		} );
+
+		describe( "getOpenedCount()", function(){
+			it( "should return count of successful opens for the given template for all time when no date range passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'opened_count', 'int', [[635]] );
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as opened_count" ]
+					, filter       = { id=templateId, "send_logs.opened"=true }
+					, forceJoins   = "inner"
+					, extraFilters = []
+				).$results( stats );
+
+				expect( service.getOpenedCount( templateId ) ).toBe( 635 );
+			} );
+
+			it( "should add date filters when dateFrom and dateTo passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'opened_count', 'int', [[23]] );
+				var dateFrom   = "1900-01-01";
+				var dateTo   = "1999-06-29";
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as opened_count" ]
+					, filter       = { id=templateId, "send_logs.opened"=true }
+					, forceJoins   = "inner"
+					, extraFilters = [
+						  { filter="send_logs.opened_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="send_logs.opened_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+					]
+				).$results( stats );
+
+				expect( service.getOpenedCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
+			} );
+		} );
+
+		describe( "getFailedCount()", function(){
+			it( "should return count of successful opens for the given template for all time when no date range passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'failed_count', 'int', [[635]] );
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as failed_count" ]
+					, filter       = { id=templateId, "send_logs.failed"=true }
+					, forceJoins   = "inner"
+					, extraFilters = []
+				).$results( stats );
+
+				expect( service.getFailedCount( templateId ) ).toBe( 635 );
+			} );
+
+			it( "should add date filters when dateFrom and dateTo passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'failed_count', 'int', [[23]] );
+				var dateFrom   = "1900-01-01";
+				var dateTo   = "1999-06-29";
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( send_logs.id ) as failed_count" ]
+					, filter       = { id=templateId, "send_logs.failed"=true }
+					, forceJoins   = "inner"
+					, extraFilters = [
+						  { filter="send_logs.failed_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="send_logs.failed_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+					]
+				).$results( stats );
+
+				expect( service.getFailedCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
+			} );
+		} );
+
+		describe( "getStats()", function(){
+			it( "should get counts and return in a struct based on args passed", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var dateFrom   = "2017-06-12";
+				var dateTo     = "2017-07-19";
+				var stats      = { sent=4985, delivered=4980, failed=5, opened=234 };
+
+				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.sent );
+				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.delivered );
+				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.failed );
+				service.$( "getOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.opened );
+
+				expect( service.getStats( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ) ).toBe( stats );
+			} );
+		} );
 	}
 
 	private any function _getService( boolean initialize=true ) {

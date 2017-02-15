@@ -1,3 +1,4 @@
+<cfparam name="args.stats"                                 default="" />
 <cfparam name="args.body"                                  default="" />
 <cfparam name="args.tab"                                   default="preview" />
 <cfparam name="args.canEdit"                type="boolean" default="false" />
@@ -69,6 +70,7 @@
 <cfoutput>
 	#renderViewlet( "admin.emailcenter.customtemplates._customTemplateActions" )#
 
+	#args.stats#
 	<div class="tabbable">
 		<ul class="nav nav-tabs">
 			<cfloop array="#tabs#" index="i" item="tab">

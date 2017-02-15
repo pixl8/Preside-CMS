@@ -448,6 +448,7 @@ component extends="preside.system.base.AdminHandler" {
 		var canSaveDraft    = hasCmsPermission( "emailcenter.customtemplates.savedraft" );
 		var canPublish      = hasCmsPermission( "emailcenter.customtemplates.publish"   );
 
+		args.stats                  = renderViewlet( event="admin.emailCenter.templateStatsSummary", args={ templateId=template.id } );
 		args.canEdit                = canSaveDraft || canPublish;
 		args.canConfigureLayout     = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.customtemplates.configureLayout" );
 		args.canEditSendOptions     = hasCmsPermission( "emailcenter.customtemplates.editSendOptions" );
