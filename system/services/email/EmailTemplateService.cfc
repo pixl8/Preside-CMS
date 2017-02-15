@@ -574,17 +574,18 @@ component {
 		var attachments         = [];
 		var assets              = $getPresideObject( "email_template" ).selectData(
 			  id           = arguments.templateId
-			, selectFields = [ "attachments.id", "attachments.title" ]
+			, selectFields = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
 			, orderBy      = "email_template_attachment.sort_order"
 		);
 
 		for ( var asset in assets ) {
 			var binary = assetManagerService.getAssetBinary( id=asset.id, throwOnMissing=false );
+			var type   = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=false );
 
 			if ( !IsNull( binary ?: NullValue() ) ) {
 				attachments.append({
 					  binary          = binary
-					, name            = asset.title
+					, name            = asset.title & "." & ( type.extension ?: "" )
 					, removeAfterSend = false
 				});
 			}
