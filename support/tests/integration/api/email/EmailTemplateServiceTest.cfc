@@ -1153,10 +1153,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return an array of attachment binaries & titles using the asset manager service with configured template attachments", function(){
 				var service    = _getService();
 				var templateId = CreateUUId();
-				var assets     = QueryNew( 'id,title', 'varchar,varchar', [
-					  [ CreateUUId(), "Title 1" ]
-					, [ CreateUUId(), "Title 2" ]
-					, [ CreateUUId(), "Title 3" ]
+				var assets     = QueryNew( 'id,title,asset_type', 'varchar,varchar,varchar', [
+					  [ CreateUUId(), "Title 1", "pdf" ]
+					, [ CreateUUId(), "Title 2", "pdf" ]
+					, [ CreateUUId(), "Title 3", "pdf" ]
 				] );
 				var binaries = [
 					  ToBinary( ToBase64( CreateUUId() ) )
@@ -1168,18 +1168,19 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				for( var i=1; i<=assets.recordCount; i++ ) {
 					expected.append({
 						  binary          = binaries[ i ]
-						, name            = assets.title[ i ]
+						, name            = assets.title[ i ] & ".pdf"
 						, removeAfterSend = false
 					});
 					mockAssetManagerService.$( "getAssetBinary" ).$args(
 						  id             = assets.id[ i ]
 						, throwOnMissing = false
 					).$results( binaries[ i ] );
+					mockAssetManagerService.$( "getAssetType", { extension="pdf" } );
 				}
 
 				mockTemplateDao.$( "selectData" ).$args(
 					  id           = templateId
-					, selectFields = [ "attachments.id", "attachments.title" ]
+					, selectFields = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
 					, orderBy      = "email_template_attachment.sort_order"
 				).$results( assets );
 
