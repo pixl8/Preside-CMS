@@ -497,7 +497,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.savedTranslation = {};
 
 		var version = rc.version ?: versioningService.getLatestVersionNumber(
-			  objectName = translationPageObject
+			  objectName = prc.pageIsMultilingual ? translationPageObject : translationPageTypeObject
 			, filter     = { _translation_source_record=pageId, _translation_language=prc.language.id }
 		);
 
@@ -593,7 +593,7 @@ component extends="preside.system.base.AdminHandler" {
 		formData = event.getCollectionForForm( formName );
 		formData._translation_language = languageId
 		formData.id = multilingualPresideObjectService.getExistingTranslationId(
-			  objectName = "page"
+			  objectName = pageIsMultilingual ? "page" : page.page_type
 			, id         = pageId
 			, languageId = languageId
 		);
