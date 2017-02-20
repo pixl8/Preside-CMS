@@ -276,7 +276,7 @@ component displayName="Multilingual Preside Object Service" {
 			var versionedObject    = selectDataArgs.objectName;
 
 			if ( !isMultilingual( selectDataArgs.objectName ) ) {
-				if ( poService.isPageType( selectDataArgs.objectName ) ) {
+				if ( poService.isPageType( selectDataArgs.objectName ) && isMultilingual( "page" ) ) {
 					versionedObject = "page";
 				} else {
 					return;
