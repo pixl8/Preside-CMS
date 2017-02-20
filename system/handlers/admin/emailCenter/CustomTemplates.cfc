@@ -216,16 +216,11 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function sendoptions( event, rc, prc ) {
+	public void function sendOptions( event, rc, prc ) {
 		_checkPermissions( event=event, key="editSendOptions" );
 		_getTemplate( argumentCollection=arguments, allowDrafts=true, fromVersionTable=false );
 
 		var templateId = rc.id ?: "";
-
-		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
-		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
-			event.notFound();
-		}
 		prc.filterObject = rc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
 		prc.anonymousOnly = !prc.filterObject.len();
 
@@ -246,7 +241,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function saveSendOptionsAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="editSendOptions" );
-		_getTemplate( argumentCollection=arguments );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true, fromVersionTable=false );
 
 		var id            = rc.id ?: "";
 		var filterObject  = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
@@ -480,14 +475,15 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	private any function _getTemplate( event, rc, prc, allowDrafts=false ) {
+	private any function _getTemplate( event, rc, prc, allowDrafts=false, fromVersionTable=arguments.allowDrafts ) {
 		var id      = rc.id ?: "";
 		var version = Val( rc.version ?: "" );
 
 		prc.record = prc.template = emailTemplateService.getTemplate(
-			  id          = id
-			, allowDrafts = arguments.allowDrafts
-			, version     = arguments.allowDrafts ? version : 0
+			  id               = id
+			, allowDrafts      = arguments.allowDrafts
+			, version          = arguments.allowDrafts ? version : 0
+			, fromVersionTable = arguments.fromVersionTable
 		);
 
 		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
