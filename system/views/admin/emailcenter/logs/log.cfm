@@ -30,17 +30,6 @@
 				, message         = translateResource( "cms:mailcenter.logs.action.prepared.message" )
 			} )#
 
-			<cfif IsTrue( prc.log.failed )>
-				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
-					  logDate         = prc.log.failed_date
-					, emailAddress    = prc.log.recipient
-					, datecreated     = prc.log.failed_date
-					, actionIconClass = "fa-exclamation-circle red"
-					, actionTitle     = translateResource( uri="cms:mailcenter.logs.action.failed.title" )
-					, message         = translateResource( uri="cms:mailcenter.logs.action.failed.message", data=[ prc.log.failed_reason ] )
-				} )#
-			</cfif>
-
 			<cfif IsTrue( prc.log.sent )>
 				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
 					  logDate         = prc.log.sent_date
@@ -49,6 +38,17 @@
 					, actionIconClass = "fa-paper-plane"
 					, actionTitle     = translateResource( "cms:mailcenter.logs.action.sent.title" )
 					, message         = translateResource( "cms:mailcenter.logs.action.sent.message" )
+				} )#
+			</cfif>
+
+			<cfif IsTrue( prc.log.failed )>
+				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
+					  logDate         = prc.log.failed_date
+					, emailAddress    = prc.log.recipient
+					, datecreated     = prc.log.failed_date
+					, actionIconClass = "fa-exclamation-circle red"
+					, actionTitle     = translateResource( uri="cms:mailcenter.logs.action.failed.title" )
+					, message         = translateResource( uri="cms:mailcenter.logs.action.failed.message", data=[ prc.log.failed_reason ] )
 				} )#
 			</cfif>
 
