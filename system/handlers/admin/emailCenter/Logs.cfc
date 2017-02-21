@@ -40,7 +40,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template_send_log"
-				, gridFields    = "email_template,recipient,subject,datecreated,sent,opened,click_count"
+				, gridFields    = "email_template,recipient,subject,datecreated,sent,delivered,failed,opened,click_count"
 				, actionsView   = "admin.emailCenter.logs._logGridActions"
 			}
 		);

@@ -226,6 +226,7 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
+		prc.showClicks   = IsTrue( prc.template.track_clicks ?: "" );
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.log.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.log.page.subTitle", data=[ prc.template.name ] );
 
@@ -242,7 +243,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template_send_log"
-				, gridFields    = "recipient,subject,datecreated,sent,opened,click_count"
+				, gridFields    = "recipient,subject,datecreated,sent,delivered,failed,opened,click_count"
 				, actionsView   = "admin.emailCenter.logs._logGridActions"
 				, filter        = { "email_template_send_log.email_template" = ( rc.template ?: "" ) }
 			}

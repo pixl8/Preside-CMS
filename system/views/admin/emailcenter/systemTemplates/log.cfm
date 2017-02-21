@@ -1,7 +1,12 @@
 <cfscript>
 	templateId = rc.template ?: "";
 	ajaxUrl    = event.buildAdminLink( linkTo="emailCenter.systemTemplates.getLogsForAjaxDataTables", querystring="template=" & templateid );
-	gridFields = [ "recipient", "subject", "datecreated", "sent", "opened", "click_count" ];
+	showClicks = IsTrue( prc.showClicks ?: "" );
+	gridFields = [ "recipient", "subject", "datecreated", "sent", "delivered", "failed", "opened" ];
+
+	if ( showClicks ) {
+		gridFields.append( "click_count" );
+	}
 </cfscript>
 <cfoutput>
 	<cfsavecontent variable="body">
