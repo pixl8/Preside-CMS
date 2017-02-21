@@ -349,6 +349,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.log.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.log.page.subtitle", data=[ prc.record.name ] );
+		prc.showClicks   = IsTrue( prc.template.track_clicks ?: "" );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.log.page.breadcrumb", data=[ prc.record.name ] )
@@ -363,7 +364,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template_send_log"
-				, gridFields    = "recipient,subject,datecreated,sent,opened,click_count"
+				, gridFields    = "recipient,subject,datecreated,sent,delivered,failed,opened,click_count"
 				, actionsView   = "admin.emailCenter.logs._logGridActions"
 				, filter        = { "email_template_send_log.email_template" = ( rc.id ?: "" ) }
 			}
