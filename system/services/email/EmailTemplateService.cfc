@@ -223,6 +223,7 @@ component {
 
 		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
 		message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
 
 		return message;
 	}
@@ -880,6 +881,11 @@ component {
 			  linkTo      = "email.viewOnline"
 			, queryString = "mid=#viewOnlineId#"
 		);
+	}
+
+// PRIVATE HELPERS
+	private string function _addIFrameBaseLinkTagForPreviewHtml( required string html ) {
+		return html.replace( "</head>", '<base target="_parent"></head>' );
 	}
 
 // GETTERS AND SETTERS
