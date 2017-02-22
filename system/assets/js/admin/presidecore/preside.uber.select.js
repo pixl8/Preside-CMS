@@ -277,10 +277,12 @@
 			}
 			this.selected_option_count = 0;
 			_ref = this.form_field.options;
-			for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-				option = _ref[_i];
-				if (option.selected) {
-					this.selected_option_count += 1;
+			if ( _ref ){
+				for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+					option = _ref[_i];
+					if (option.selected) {
+						this.selected_option_count += 1;
+					}
 				}
 			}
 			return this.selected_option_count;
