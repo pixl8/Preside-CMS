@@ -85,7 +85,7 @@
 	setupBehaviours();
 
 	window.quickAdd = {
-		  submitForm : submitFormgit
+		  submitForm : submitForm
 		, focusForm  : focusForm
 	};
 
