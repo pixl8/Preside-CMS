@@ -72,6 +72,9 @@
 
 	resetForm = function(){
 		$quickAddForm.trigger( "reset" );
+		for (instance in CKEDITOR.instances){
+			CKEDITOR.instances[instance].setData("");
+		}
 	};
 
 	focusForm = function(){
@@ -82,7 +85,7 @@
 	setupBehaviours();
 
 	window.quickAdd = {
-		  submitForm : submitForm
+		  submitForm : submitFormgit
 		, focusForm  : focusForm
 	};
 
