@@ -1100,7 +1100,7 @@
 
 			if ( this.is_multiple ) {
 				selectedValues = this.hidden_field.val().split( "," );
-				for( i=0; i<selectedValues.len(); i++ ) {
+				for( i=0; i<selectedValues.length; i++ ) {
 					if ( selectedValues[ i ] == value ) {
 						return;
 					}
