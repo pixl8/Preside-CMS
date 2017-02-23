@@ -8,7 +8,6 @@
 	defaultValue            = args.defaultValue     ?: "";
 	records                 = args.records          ?: QueryNew('');
 	extraClasses            = args.extraClasses     ?: "";
-	selectedTemplate        = args.selectedTemplate ?: "{{text}}";
 	multiple                = isBoolean( args.multiple ?: "" ) && args.multiple;
 	sortable                = isBoolean( args.sortable ?: "" ) && args.sortable;
 	disabled                = isBoolean( args.disabled ?: "" ) && args.disabled;
@@ -17,11 +16,10 @@
 	targetFields            = len( args.targetFields ) ? args.targetFields : fields;
 	formName                = args.formName         ?: "";
 	relationshipKey         = args.relationshipKey  ?: args.sourceObject;
+	configuratorLabelUrl    = event.buildAdminLink( linkTo="labels.render", querystring="objectName=#object#" );
 	configuratorAddUrl      = event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
 	objectSingularName      = translateResource( "preside-objects.#object#:title.singular" );
 	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ lcase( objectSingularName ) ] );
-
-	selectedTemplateId      = Len( Trim( selectedTemplate ) )            ? "selected_template_" & CreateUUId() : "";
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -32,11 +30,6 @@
 </cfscript>
 
 <cfoutput>
-	<cfif !disabled>
-		<cfif Len( Trim( selectedTemplate ) ) >
-			<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-		</cfif>
-	</cfif>
 	<input class = "#inputClass# object-configurator #extraClasses#"
 			name  = "#inputName#"
 			id    = "#inputId#"
@@ -50,9 +43,7 @@
 			<cfif IsBoolean( sortable ) && sortable>
 				data-sortable = "true"
 			</cfif>
-			<cfif Len( Trim( selectedTemplateId ) )>
-				data-selected-template = "#selectedTemplateId#"
-			</cfif>
+			data-configurator-label-url     = "#configuratorLabelUrl#"
 			data-configurator-form-url      = "#configuratorAddUrl#"
 			data-configurator-modal-title   = "#configuratorModalTitle#"
 			data-relationship-key           = "#relationshipKey#"

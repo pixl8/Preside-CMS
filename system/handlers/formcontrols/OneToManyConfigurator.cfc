@@ -1,6 +1,7 @@
 component {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService" inject="PresideObjectService";
+	property name="labelRendererService" inject="LabelRendererService";
 
 	public string function index( event, rc, prc, args={} ) {
 		var targetObject  = args.relatedTo ?: "";
@@ -8,12 +9,13 @@ component {
 		var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( targetObject );
 		var hasSortOrder  = presideObjectService.getObjectProperties( targetObject ).keyExists( "sort_order" );
 		var orderBy       = hasSortOrder ? "sort_order" : "";
-		
+		var labelFields   = labelRendererService.getSelectFieldsForLabel( targetObject );
+
 		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
 			var records       = presideObjectService.selectData(
 				  objectName       = targetObject
 				, filter           = { "#targetFk#"=args.savedData.id }
-				, selectFields     = [ "id", "label" ]
+				, selectFields     = labelFields.append( "id" )
 				, orderBy          = orderBy
 				, useCache         = false
 				, fromVersionTable = useVersioning
@@ -22,8 +24,12 @@ component {
 
 			args.savedValue   = [];
 			for( var record in records ) {
-				record.__fromDb = true;
-				args.savedValue.append( serializeJSON( record ) );
+				var item = {
+					  __fromDb = true
+					, id       = record.id
+					, label    = labelRendererService.renderLabel( targetObject, record )
+				};
+				args.savedValue.append( serializeJSON( item ) );
 			}
 			args.defaultValue = args.savedValue = ArrayToList( args.savedValue );
 		}
@@ -31,7 +37,6 @@ component {
 		args.object           = targetObject;
 		args.multiple         = args.multiple ?: true;
 		args.sortable         = ( args.sortable ?: false ) && hasSortOrder;
-		args.selectedTemplate = args.labelTemplate ?: presideObjectService.getObjectAttribute( targetObject, "configuratorLabelTemplate" );
 		args.formName         = args.formName      ?: presideObjectService.getObjectAttribute( targetObject, "configuratorFormName" );
 		args.fields           = args.fields        ?: "";
 		args.targetFields     = args.targetFields  ?: "";

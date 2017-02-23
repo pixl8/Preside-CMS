@@ -3,6 +3,7 @@
 	var PresideObjectConfigurator = (function() {
 		function PresideObjectConfigurator( $originalInput ) {
 			this.$originalInput = $originalInput;
+			this.labelRenderer  = $originalInput.data( "configuratorLabelUrl" )
 			this.setupUberSelect();
 
 			if ( this.$originalInput.hasClass( 'configurator-add' ) ) {
@@ -265,8 +266,18 @@
 		};
 
 		PresideObjectConfigurator.prototype.addRecordToControl = function( recordData ){
-			recordData.label = Mustache.render( this.uberSelect.selected_template, recordData );
-			this.uberSelect.select_item( recordData );
+			var presideObjectConfigurator = this, labelData = {};
+
+			for( var key in recordData ) {
+				if ( key != 'value' ) {
+					labelData[ key ] = recordData[ key ];
+				}
+			}
+
+			$.get( this.labelRenderer, labelData, function( data ) {
+				recordData.label = data.label;
+				presideObjectConfigurator.uberSelect.select_item( recordData );
+			} );
 		};
 
 		PresideObjectConfigurator.prototype.closeConfiguratorDialog = function(){
