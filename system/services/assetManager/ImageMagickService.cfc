@@ -332,7 +332,7 @@ component displayname="ImageMagick"  {
 
 			for ( var key in operations ) {
 				if ( operations[ key ] < ticksNow ) {
-					operations.delete[ key ];
+					operations.delete( key );
 				}
 			}
 
