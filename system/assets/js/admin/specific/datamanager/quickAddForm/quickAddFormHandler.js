@@ -72,10 +72,16 @@
 
 	resetForm = function(){
 		$quickAddForm.trigger( "reset" );
-		for (instance in CKEDITOR.instances){
-			CKEDITOR.instances[instance].setData("");
-		}
+		clearRicheditor();
 	};
+
+	clearRicheditor = function() {
+		if( typeof( CKEDITOR ) !== "undefined" ){
+			for ( instance in CKEDITOR.instances ){
+				CKEDITOR.instances[ instance ].setData( "" );
+			}
+		}
+	}
 
 	focusForm = function(){
 		$quickAddForm.find( "input,select,textarea" ).not( ":hidden" ).first().focus();
