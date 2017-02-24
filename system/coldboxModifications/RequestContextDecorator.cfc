@@ -38,7 +38,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true ) output=false {
 		var fetchSite = Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId();
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
-		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
+		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
 
 		if ( cgi.server_port != 80 ) {
 			siteUrl &= ":#cgi.server_port#";
@@ -79,8 +79,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return site.id ?: "";
 	}
 
-	public string function buildLink() output=false {
+	public string function buildLink( string siteId="", string queryString="" ) output=false {
 		var prc = getRequestContext().getCollection( private=true );
+
+		if ( arguments.siteId.len() ) {
+			arguments.queryString = ListAppend( arguments.queryString, "_sid=" & arguments.siteId, "&" );
+		}
 
 		announceInterception(
 			  state         = "onBuildLink"
@@ -162,7 +166,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 // Admin specific
-	public string function buildAdminLink( string linkTo="", string queryString="" ) output=false {
+	public string function buildAdminLink( string linkTo="", string queryString="", string siteId=this.getSiteId() ) output=false {
 		arguments.linkTo = ListAppend( "admin", arguments.linkTo, "." );
 
 		if ( isActionRequest( arguments.linkTo ) ) {

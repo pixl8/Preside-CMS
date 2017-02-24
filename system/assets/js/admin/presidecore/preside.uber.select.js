@@ -781,6 +781,9 @@
 			}
 
 			if ( _data.length != _ref.length && uberSelect.remote_url && uberSelect.remote_url.length ) {
+				for( ; _i<_len; _i++ ){
+					uberSelect.add_to_hidden_field( _ref[_i] );
+				}
 				uberSelect.fetch_items_by_value( uberSelect.value.join( ","), function( data ){
 					var _i=0; _len=data.length;
 					for( ; _i<_len; _i++ ){
@@ -1052,6 +1055,7 @@
 				if ( item ) {
 					uberSelect.select_item( item );
 				} else if ( uberSelect.remote_url && uberSelect.remote_url.length ) {
+					this.add_to_hidden_field( value );
 					uberSelect.fetch_items_by_value( value, function( data ){
 						var _i=0; _len=data.length;
 						for( ; _i<_len; _i++ ){
@@ -1072,16 +1076,40 @@
 				return false;
 			}
 
+			this.add_to_hidden_field( item.value );
+
 			if ( this.is_multiple ) {
 				this.choice_build( item );
-				this.hidden_field.val( this.hidden_field.val() + "," + item.value );
-
 			} else {
 				this.selected = [];
 				this.single_set_selected_text( Mustache.render( this.selected_template, item ) );
-				this.hidden_field.val( item.value );
 			}
+
 			this.selected.push( item );
+		}
+
+		UberSelect.prototype.add_to_hidden_field = function( value ){
+			var selectedValues, i;
+
+			if ( this.is_multiple && this.max_selected_options <= this.choices_count() ) {
+				this.form_field_jq.trigger("chosen:maxselected", {
+					userSelect: this
+				} );
+				return false;
+			}
+
+			if ( this.is_multiple ) {
+				selectedValues = this.hidden_field.val().split( "," );
+				for( i=0; i<selectedValues.length; i++ ) {
+					if ( selectedValues[ i ] == value ) {
+						return;
+					}
+				}
+
+				this.hidden_field.val( this.hidden_field.val() + "," + value );
+			} else {
+				this.hidden_field.val( value );
+			}
 		}
 
 		UberSelect.prototype.single_set_selected_text = function(text) {

@@ -77,17 +77,28 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 // private utility methods
 	private void function _detectIncomingSite( event, interceptData ) output=false {
-		var pathInfo = super.getCGIElement( "path_info", event );
-		var domain   = super.getCGIElement( "server_name", event );
-		var site     = "";
+		var pathInfo       = super.getCGIElement( "path_info", event );
+		var domain         = super.getCGIElement( "server_name", event );
+		var explicitSiteId = event.getValue( name="_sid", defaultValue="" ).trim();
+		var site           = {};
+
+		if ( explicitSiteId.len() ) {
+			site = siteService.getSite( explicitSiteId );
+		}
 
 		if ( adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
-			site = siteService.getActiveAdminSite( domain=domain );
+			if ( site.count() ) {
+				siteService.setActiveAdminSite( site.id );
+			} else {
+				site = siteService.getActiveAdminSite( domain=domain );
+			}
 		} else {
-			site = siteService.matchSite(
-				  domain = domain
-				, path   = pathInfo
-			);
+			if ( !site.count() ) {
+				site = siteService.matchSite(
+					  domain = domain
+					, path   = pathInfo
+				);
+			}
 
 			if ( Len( Trim( site.id ?: "" ) ) && event.isAdminUser() && !_isNonSiteSpecificRequest( pathInfo, event ) ) {
 				siteService.setActiveAdminSite( site.id );
