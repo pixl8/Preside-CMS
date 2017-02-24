@@ -83,7 +83,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var prc = getRequestContext().getCollection( private=true );
 
 		if ( arguments.siteId.len() ) {
-			arguments.queryString = ListAppend( arguments.queryString, "_sid=" & arguments.siteId, "&" );
+			arguments.queryString = ListPrepend( arguments.queryString, "_sid=" & arguments.siteId, "&" );
 		}
 
 		announceInterception(
@@ -170,7 +170,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		arguments.linkTo = ListAppend( "admin", arguments.linkTo, "." );
 
 		if ( isActionRequest( arguments.linkTo ) ) {
-			arguments.queryString = ListAppend( arguments.queryString, "csrfToken=" & this.getCsrfToken(), "&" );
+			arguments.queryString = ListPrepend( arguments.queryString, "csrfToken=" & this.getCsrfToken(), "&" );
 		}
 
 		return buildLink( argumentCollection = arguments );
