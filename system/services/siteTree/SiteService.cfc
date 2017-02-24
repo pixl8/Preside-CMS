@@ -105,6 +105,13 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			}
 		}
 
+		var matchedSite = matchSite( arguments.domain, "/" );
+		if ( matchedSite.count() && permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ matchedSite.id ] ) ) {
+			_getSessionStorage().setVar( "_activeSite", matchedSite );
+
+			return matchedSite;
+		}
+
 		var siteDao   = _getSiteDao();
 		var dbAdapter = siteDao.getDbAdapter();
 		var sites     = siteDao.selectData(
@@ -112,6 +119,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			, filterParams = { domain = arguments.domain }
 			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc, #dbAdapter.getLengthFunctionSql( 'path' )#"
 		);
+
 
 		for( var site in sites ) {
 			if ( permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ site.id ] ) ) {
