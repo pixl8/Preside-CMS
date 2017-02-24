@@ -25,9 +25,9 @@ component {
 			args.savedValue   = [];
 			for( var record in records ) {
 				var item = {
-					  __fromDb = true
-					, id       = record.id
-					, label    = labelRendererService.renderLabel( targetObject, record )
+					  id       = record.id
+					, __fromDb = true
+					, __label  = labelRendererService.renderLabel( targetObject, record )
 				};
 				args.savedValue.append( serializeJSON( item ) );
 			}

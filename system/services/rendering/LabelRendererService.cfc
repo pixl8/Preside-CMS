@@ -7,25 +7,26 @@ component {
 
 // CONSTRUCTOR
 
-	/**
-	 * @coldbox.inject              coldbox
-	 * @presideObjectService.inject PresideObjectService
-	 */
-	public any function init( required any coldbox, required any presideObjectService ) {
-		_setColdbox( arguments.coldbox );
-		_setPresideObjectService( arguments.presideObjectService );
-
+	public any function init() {
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public array function getSelectFieldsForLabel( required string objectName ) {
-		var selectFieldsHandler = "renderers.labels.#objectName#.selectFields";
+	public boolean function rendererExistsFor( required string objectName ) {
+		var selectFieldsHandler = _getSelectFieldsHandler( objectName );
+		var renderLabelHandler  = _getRenderLabelHandler( objectName );
 
-		if ( _getColdbox().handlerExists( selectFieldsHandler ) ) {
-			return _getColdbox().runEvent(
+		return $getColdbox().handlerExists( selectFieldsHandler ) && $getColdbox().handlerExists( renderLabelHandler );
+	}
+
+	public array function getSelectFieldsForLabel( required string objectName ) {
+		var selectFieldsHandler = _getSelectFieldsHandler( objectName );
+
+		if ( $getColdbox().handlerExists( selectFieldsHandler ) ) {
+			return $getColdbox().runEvent(
 				  event          = selectFieldsHandler
 				, prePostExempt  = true
+				, private        = true
 			);
 		} else {
 			return [ "${labelfield} as label" ];
@@ -33,12 +34,13 @@ component {
 	}
 
 	public string function renderLabel( required string objectName, struct args={} ) {
-		var renderLabelHandler = "renderers.labels.#objectName#.renderLabel";
-
-		if ( _getColdbox().handlerExists( renderLabelHandler ) ) {
-			return _getColdbox().runEvent(
+		var renderLabelHandler   = _getRenderLabelHandler( objectName );
+		
+		if ( $getColdbox().handlerExists( renderLabelHandler ) ) {
+			return $getColdbox().runEvent(
 				  event          = renderLabelHandler
 				, prePostExempt  = true
+				, private        = true
 				, eventArguments = args
 			);
 		} else {
@@ -47,20 +49,12 @@ component {
 	}
 
 // PRIVATE HELPERS
-	
-
-// GETTERS AND SETTERS
-	private any function _getColdbox() {
-		return _coldbox;
-	}
-	private void function _setColdbox( required any coldbox ) {
-		_coldbox = arguments.coldbox;
+	private string function _getSelectFieldsHandler( required string objectName ) {
+		return "renderers.labels.#objectName#._selectFields";
 	}
 
-	private any function _getPresideObjectService() {
-		return _presideObjectService;
+	private string function _getRenderLabelHandler( required string objectName ) {
+		return "renderers.labels.#objectName#._renderLabel";
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) {
-		_presideObjectService = arguments.presideObjectService;
-	}
+
 }

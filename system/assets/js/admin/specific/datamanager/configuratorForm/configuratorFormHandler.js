@@ -14,25 +14,7 @@
 
 	submitForm = function(){
 		if ( $configuratorForm.valid() ) {
-			var formData       = $configuratorForm.serializeObject()
-			  , $objectPickers = $configuratorForm.find( 'div.object-picker' );
-
-			$objectPickers.each(function() {
-				var $objectPicker = $( this )
-				  , $labels       = $objectPicker.find( 'li.active-result' )
-				  , $input        = $objectPicker.find( '.chosen-hidden-field' )
-				  , inputValues   = $input.val().split();
-
-				formData[ $input.attr( 'name' ) + '__label' ] = $labels.map( function() {
-					var item = $( this ).data( 'item' );
-					for( var i=0; i<inputValues.length; i++ ){
-						if ( inputValues[ i ] == item.value ) {
-							return item.text;
-						}
-					}
-				} ).get().join( ', ' );
-			});
-
+			var formData = $configuratorForm.serializeObject();
 			addRecordToCallingControl( formData );
 			getParentControl().closeConfiguratorDialog();
 		}

@@ -43,7 +43,7 @@
 
 				choice = $('<li />', {
 					"class": "search-choice"
-				}).html("<span>" + item.label + "</span>");
+				}).html("<span>" + item.__label + "</span>");
 				if ( item.disabled ) {
 					choice.addClass('search-choice-disabled');
 				} else {
@@ -93,7 +93,7 @@
 					this.hidden_field.val( this.selected.map( function( item ){ return item.value } ).join() );
 				} else {
 					this.selected = [];
-					this.single_set_selected_text( item.label );
+					this.single_set_selected_text( item.__label );
 					this.hidden_field.val( item.value );
 				}
 			}
@@ -275,7 +275,7 @@
 			}
 
 			$.get( this.labelRenderer, labelData, function( data ) {
-				recordData.label = data.label;
+				recordData.__label = data.label;
 				presideObjectConfigurator.uberSelect.select_item( recordData );
 			} );
 		};

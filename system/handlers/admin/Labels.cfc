@@ -4,7 +4,7 @@ component {
 
 	public void function render( event, rc, prc ) {
 		var objectName = rc.objectName ?: "";
-		var result     = { label="object_name_required" };
+		var result     = {};
 
 		if ( len( objectName ) ) {
 			result.label = labelRendererService.renderLabel( objectName, rc );
