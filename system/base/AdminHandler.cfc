@@ -16,6 +16,7 @@
 			event.includeData( {
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy" )
 				, adminBaseUrl = event.getAdminPath()
+				, siteId       = event.getSiteId()
 			} );
 			event.includeData( event.getCollection() );
 

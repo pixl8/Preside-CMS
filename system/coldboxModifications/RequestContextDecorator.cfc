@@ -79,8 +79,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return site.id ?: "";
 	}
 
-	public string function buildLink() output=false {
+	public string function buildLink( string siteId="", string queryString="" ) output=false {
 		var prc = getRequestContext().getCollection( private=true );
+
+		if ( arguments.siteId.len() ) {
+			arguments.queryString = ListAppend( arguments.queryString, "_sid=" & arguments.siteId, "&" );
+		}
 
 		announceInterception(
 			  state         = "onBuildLink"
@@ -162,7 +166,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 // Admin specific
-	public string function buildAdminLink( string linkTo="", string queryString="" ) output=false {
+	public string function buildAdminLink( string linkTo="", string queryString="", string siteId=this.getSiteId() ) output=false {
 		arguments.linkTo = ListAppend( "admin", arguments.linkTo, "." );
 
 		if ( isActionRequest( arguments.linkTo ) ) {
