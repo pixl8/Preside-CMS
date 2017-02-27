@@ -383,6 +383,8 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( Len( Trim( rc.filter_object ?: "" ) ) ) {
 				event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
+			} else {
+				event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
 			}
 		} else {
 			prc.record = {};
