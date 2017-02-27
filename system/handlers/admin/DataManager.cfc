@@ -729,6 +729,8 @@
 					args.savedData = queryRowToStruct( record );
 				}
 			}
+			args.sourceIdField = rc.sourceIdField ?: "";
+			args.sourceId      = rc.sourceId      ?: "";
 
 			event.setView( view="/admin/datamanager/configuratorForm", layout="adminModalDialog", args=args );
 		</cfscript>

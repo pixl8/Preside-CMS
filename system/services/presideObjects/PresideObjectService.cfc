@@ -387,7 +387,7 @@ component displayName="Preside Object Service" {
 					} else if ( relationship == "one-to-many" ) {
 						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
 
-						if ( isOneToManyConfiguratorData ) {
+						if ( isOneToManyConfigurator ) {
 							syncOneToManyConfiguratorData(
 								  sourceObject     = args.objectName
 								, sourceProperty   = key

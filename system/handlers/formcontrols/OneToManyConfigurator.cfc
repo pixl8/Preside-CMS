@@ -7,15 +7,16 @@ component {
 		var targetObject  = args.relatedTo ?: "";
 		var targetFk      = args.relationshipKey ?: args.sourceObject;
 		var targetIdField = presideObjectService.getIdField( targetObject );
+		var sourceIdField = presideObjectService.getIdField( args.sourceObject );
 		var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( targetObject );
 		var hasSortOrder  = presideObjectService.getObjectProperties( targetObject ).keyExists( "sort_order" );
 		var orderBy       = hasSortOrder ? "sort_order" : "";
 		var labelFields   = labelRendererService.getSelectFieldsForLabel( targetObject );
 
-		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
+		if ( Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
 			var records       = presideObjectService.selectData(
 				  objectName       = targetObject
-				, filter           = { "#targetFk#"=args.savedData[ targetIdField ] }
+				, filter           = { "#targetFk#"=args.savedData[ sourceIdField ] }
 				, selectFields     = labelFields.append( "#targetObject#.#targetIdField# as id" )
 				, orderBy          = orderBy
 				, useCache         = false

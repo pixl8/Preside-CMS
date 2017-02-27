@@ -126,6 +126,7 @@
 			var iframeSrc                 = this.$originalInput.data( "configuratorFormUrl" )
 			  , modalTitle                = this.$originalInput.data( "configuratorModalTitle" )
 			  , relationshipKey           = this.$originalInput.data( "relationshipKey" )
+			  , sourceObject              = this.$originalInput.data( "sourceObject" )
 			  , fields                    = this.$originalInput.data( "configuratorFields" ).split( "," )
 			  , targetFields              = this.$originalInput.data( "configuratorTargetFields" ).split( "," )
 			  , $form                     = this.$originalInput.closest( 'form' )
@@ -164,7 +165,8 @@
 					}
 				};
 
-			configuratorArgs[ relationshipKey ] = $( '[name=id] ', $form ).filter( ':first' ).val();
+			configuratorArgs[ 'sourceId' ]      = $( '[name=id] ', $form ).filter( ':first' ).val();
+			configuratorArgs[ 'sourceIdField' ] = relationshipKey;
 			for( var i=0; i<fields.length; i++ ) {
 				var targetField = targetFields[ i ]
 				  , $field      = $( '[name=' + fields[ i ] + ']', this.$originalInput.closest( 'form' ) );
@@ -176,7 +178,6 @@
 			for( var arg in configuratorArgs ) {
 				iframeSrc += '&' + arg + '=' + configuratorArgs[ arg ];
 			}
-		
 
 			this.$configuratorAddButton = $( '<a class="btn btn-default configurator-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.$originalInput.attr( "tabindex" ) && this.$originalInput.attr( "tabindex" ) != "-1" ) {

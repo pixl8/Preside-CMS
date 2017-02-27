@@ -15,9 +15,13 @@
 		<cfif len( rc.id ?: "" )>
 			<input type="hidden" name="id" value="#rc.id#">
 		</cfif>
+		<cfif len( args.sourceId )>
+			<input type="hidden" name="#args.sourceIdField#" value="#args.sourceId#">
+		</cfif>
 		<cfif len( rc.configurator__index ?: "" )>
 			<input type="hidden" name="configurator__index" value="#rc.configurator__index#">
 		</cfif>
+		<input type="hidden" name="configurator__formname" value="#args.formName#">
 
 		#renderForm(
 			  formName         = formName

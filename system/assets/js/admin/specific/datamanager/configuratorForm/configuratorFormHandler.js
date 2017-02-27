@@ -14,7 +14,9 @@
 
 	submitForm = function(){
 		if ( $configuratorForm.valid() ) {
+			// $configuratorForm.find(':checkbox:not(:checked)').attr('value', '0').prop('checked', true);
 			var formData = $configuratorForm.serializeObject();
+			console.log(formData);
 			addRecordToCallingControl( formData );
 			getParentControl().closeConfiguratorDialog();
 		}
