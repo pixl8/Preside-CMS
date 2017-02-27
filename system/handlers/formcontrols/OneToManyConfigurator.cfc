@@ -6,6 +6,7 @@ component {
 	public string function index( event, rc, prc, args={} ) {
 		var targetObject  = args.relatedTo ?: "";
 		var targetFk      = args.relationshipKey ?: args.sourceObject;
+		var targetIdField = presideObjectService.getIdField( targetObject );
 		var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( targetObject );
 		var hasSortOrder  = presideObjectService.getObjectProperties( targetObject ).keyExists( "sort_order" );
 		var orderBy       = hasSortOrder ? "sort_order" : "";
@@ -14,8 +15,8 @@ component {
 		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
 			var records       = presideObjectService.selectData(
 				  objectName       = targetObject
-				, filter           = { "#targetFk#"=args.savedData.id }
-				, selectFields     = labelFields.append( "id" )
+				, filter           = { "#targetFk#"=args.savedData[ targetIdField ] }
+				, selectFields     = labelFields.append( "#targetObject#.#targetIdField# as id" )
 				, orderBy          = orderBy
 				, useCache         = false
 				, fromVersionTable = useVersioning

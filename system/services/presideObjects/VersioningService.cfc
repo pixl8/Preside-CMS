@@ -671,16 +671,17 @@ component {
 	}
 
 	private boolean function _oneToManyConfiguratorDataChanged( required string sourceObject, required string sourceProperty, required string sourceId, required string newData ) {
-		var poService    = $getPresideObjectService();
-		var prop         = poService.getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
-		var targetFk     = prop.relationshipKey ?: arguments.sourceObject;
-		var targetObject = prop.relatedTo    ?: "";
-		var newDataItems = len( newData ) ? deserializeJSON( "[ #newData# ]" ) : [];
+		var poService     = $getPresideObjectService();
+		var prop          = poService.getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var targetFk      = prop.relationshipKey ?: arguments.sourceObject;
+		var targetObject  = prop.relatedTo       ?: "";
+		var targetIdField = poService.getIdField( targetObject );
+		var newDataItems  = len( newData ) ? deserializeJSON( "[ #newData# ]" ) : [];
 		
 		var existingRecords  = poService.selectData(
 			  objectName       = targetObject
 			, filter           = { "#targetFk#"=arguments.sourceId }
-			, selectFields     = [ "id" ]
+			, selectFields     = [ "#targetObject#.#targetIdField# as id" ]
 			, useCache         = false
 			, recordCountOnly  = true
 		);

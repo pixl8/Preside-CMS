@@ -724,7 +724,7 @@
 			_checkPermission( argumentCollection=arguments, key="add", object=object );
 
 			if ( fromDb ) {
-				record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+				record = presideObjectService.selectData( objectName=object, id=id, useCache=false );
 				if ( record.recordCount ) {
 					args.savedData = queryRowToStruct( record );
 				}

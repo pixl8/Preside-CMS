@@ -1052,6 +1052,7 @@ component displayName="Preside Object Service" {
 		var prop             = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObjectName = prop.relatedTo ?: "";
 		var targetObject     = getObject( targetObjectName );
+		var targetIdField    = targetObject.getIdField();
 		var targetFk         = prop.relationshipKey ?: arguments.sourceObject;
 		var records          = deserializeJSON( "[#configuratorData#]" );
 		var existingIds      = [];
@@ -1070,8 +1071,8 @@ component displayName="Preside Object Service" {
 
 		if ( existingIds.len() ) {
 			extraFilters.append({
-				  filter       = "#targetObjectName#.id not in ( :#targetObjectName#.id )"
-				, filterParams = { "#targetObjectName#.id"=existingIds }
+				  filter       = "#targetObjectName#.#targetIdField# not in ( :#targetObjectName#.#targetIdField# )"
+				, filterParams = { "#targetObjectName#.#targetIdField#"=existingIds }
 			});
 		}
 
