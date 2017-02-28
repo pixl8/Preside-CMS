@@ -707,6 +707,35 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="configuratorForm" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object     = rc.object   ?: "";
+			var id         = rc.id       ?: "";
+			var fromDb     = rc.__fromDb ?: false;
+			var args       = {};
+			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var record     = "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="add", object=object );
+
+			if ( fromDb ) {
+				record = presideObjectService.selectData( objectName=object, id=id, useCache=false );
+				if ( record.recordCount ) {
+					args.savedData = queryRowToStruct( record );
+				}
+			}
+			args.sourceIdField = rc.sourceIdField ?: "";
+			args.sourceId      = rc.sourceId      ?: "";
+
+			event.setView( view="/admin/datamanager/configuratorForm", layout="adminModalDialog", args=args );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="editRecord" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
