@@ -1059,7 +1059,6 @@ component displayName="Preside Object Service" {
 		var sort_order       = 0;
 		var filter           = { "#targetObjectName#.#targetFk#"=sourceId };
 		var extraFilters     = [];
-		var formsService     = $getColdbox().getWirebox().getInstance( "formsService");
 
 		for( var record in records ) {
 			record[ "sort_order" ] = ++sort_order;
@@ -1083,14 +1082,6 @@ component displayName="Preside Object Service" {
 		);
 
 		for (var record in records ) {
-			var formName = record.configurator__formname ?: "";
-			if ( len( formName ) ) {
-				var formFields = formsService.listFields( formName );
-				for( var field in formFields ){
-					record[ field ] = ( record[ field ] ?: "" );
-				}
-			}
-
 			if ( len( record.id ?: "" ) ) {
 				targetObject.updateData(
 					  id            = record.id
