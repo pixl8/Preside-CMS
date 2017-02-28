@@ -1470,10 +1470,11 @@ component displayName="Preside Object Service" {
 				ArrayAppend( params, param );
 			} else if ( IsArray( arguments.data[ key ] ) ) {
 				param = {
-					  name  = paramName
-					, value = ArrayToList( arguments.data[ key ] )
-					, type  = dataType
-					, list  = true
+					  name      = paramName
+					, value     = ArrayToList( arguments.data[ key ], chr( 31 ) )
+					, type      = dataType
+					, list      = true
+					, separator = chr( 31 )
 				};
 
 				ArrayAppend( params, param );
@@ -1513,11 +1514,12 @@ component displayName="Preside Object Service" {
 					  name  = paramName
 					, value = param
 				};
+			}
 
-				if ( IsArray( param.value ) ) {
-					param.value = ArrayToList( param.value );
-					param.list  = true;
-				}
+			if ( IsArray( param.value ) ) {
+				param.value     = ArrayToList( param.value, chr( 31 ) );
+				param.list      = true;
+				param.separator = chr( 31 );
 			}
 
 			if ( not StructKeyExists( param, "type" ) ) {
