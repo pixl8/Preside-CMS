@@ -29132,7 +29132,8 @@ td.presidecms .visible-print {
 .presidecms .chosen-container.non-searchable ul.chosen-choices {
   min-height: 41px;
 }
-.presidecms .chosen-container.quick-add .chosen-single {
+.presidecms .chosen-container.quick-add .chosen-single,
+.presidecms .chosen-container.configurator-add .chosen-single {
   height: 41px;
   line-height: 39px;
 }
@@ -30957,13 +30958,15 @@ fieldset[disabled] .presidecms .btn {
 .presidecms .uber-browser-dialog .modal-dialog .modal-body {
   padding: 0;
 }
-.presidecms .chosen-container.quick-add {
+.presidecms .chosen-container.quick-add,
+.presidecms .chosen-container.configurator-add {
   width: calc(100% - 50px) !important;
   width: -moz-calc(100% - 50px) !important;
   width: -webkit-calc(100% - 50px) !important;
   width: -o-calc(100% - 50px) !important;
 }
-.presidecms .chosen-container.quick-add ~ .btn {
+.presidecms .chosen-container.quick-add ~ .btn,
+.presidecms .chosen-container.configurator-add ~ .btn {
   font-size: 17px;
   padding: 0;
   height: 41px;
@@ -30974,13 +30977,15 @@ fieldset[disabled] .presidecms .btn {
   vertical-align: top;
   border: 1px solid #abbac3;
 }
-.presidecms .chosen-container.quick-add ~ .btn i {
+.presidecms .chosen-container.quick-add ~ .btn i,
+.presidecms .chosen-container.configurator-add ~ .btn i {
   display: inline-block;
   vertical-align: middle;
   line-height: normal;
   margin: -4px 0 0;
 }
-.presidecms .chosen-container.quick-add.chosen-container-single .chosen-single .remove-choice-link {
+.presidecms .chosen-container.quick-add.chosen-container-single .chosen-single .remove-choice-link,
+.presidecms .chosen-container.configurator-add.chosen-container-single .chosen-single .remove-choice-link {
   top: 20px;
 }
 .presidecms .chosen-container .fa {
@@ -31110,15 +31115,21 @@ fieldset[disabled] .presidecms .btn {
   margin-left: 0;
 }
 .quick-add-modal .modal-dialog,
-.quick-edit-modal .modal-dialog {
+.quick-edit-modal .modal-dialog,
+.configurator-add-modal .modal-dialog,
+.configurator-edit-modal .modal-dialog {
   width: 922px;
 }
 .quick-add-modal .modal-dialog .modal-body,
-.quick-edit-modal .modal-dialog .modal-body {
+.quick-edit-modal .modal-dialog .modal-body,
+.configurator-add-modal .modal-dialog .modal-body,
+.configurator-edit-modal .modal-dialog .modal-body {
   padding: 0;
 }
 .quick-add-modal .modal-dialog .modal-footer,
-.quick-edit-modal .modal-dialog .modal-footer {
+.quick-edit-modal .modal-dialog .modal-footer,
+.configurator-add-modal .modal-dialog .modal-footer,
+.configurator-edit-modal .modal-dialog .modal-footer {
   margin-top: 0;
 }
 .presidecms .modal-content {

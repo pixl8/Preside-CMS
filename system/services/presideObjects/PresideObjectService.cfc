@@ -318,6 +318,7 @@ component displayName="Preside Object Service" {
 		var cleanedData        = _addDefaultValuesToDataSet( args.objectName, args.data );
 		var manyToManyData     = {};
 		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName );
+		var versionNumber      = 0;
 
 		cleanedData.append( _addGeneratedValues(
 			  operation  = "insert"
@@ -348,7 +349,7 @@ component displayName="Preside Object Service" {
 
 		transaction {
 			if ( requiresVersioning ) {
-				_getVersioningService().saveVersionForInsert(
+				versionNumber = _getVersioningService().saveVersionForInsert(
 					  objectName     = args.objectName
 					, data           = cleanedData
 					, manyToManyData = manyToManyData
@@ -384,12 +385,25 @@ component displayName="Preside Object Service" {
 							, targetIdList   = manyToManyData[ key ]
 						);
 					} else if ( relationship == "one-to-many" ) {
-						syncOneToManyData(
-							  sourceObject   = args.objectName
-							, sourceProperty = key
-							, sourceId       = newId
-							, targetIdList   = manyToManyData[ key ]
-						);
+						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
+
+						if ( isOneToManyConfigurator ) {
+							syncOneToManyConfiguratorData(
+								  sourceObject     = args.objectName
+								, sourceProperty   = key
+								, sourceId         = newId
+								, configuratorData = manyToManyData[ key ]
+								, versionNumber    = versionNumber
+							);
+						} else {
+							syncOneToManyData(
+								  sourceObject   = args.objectName
+								, sourceProperty = key
+								, sourceId       = newId
+								, targetIdList   = manyToManyData[ key ]
+							);
+							
+						}
 					}
 				}
 			}
@@ -528,6 +542,7 @@ component displayName="Preside Object Service" {
 		var manyToManyData     = {}
 		var key                = "";
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
+		var versionNumber      = 0;
 		var preparedFilter     = "";
 		var idField            = getIdField( arguments.objectName );
 		var dateModifiedField  = getDateModifiedField( arguments.objectName );
@@ -572,7 +587,7 @@ component displayName="Preside Object Service" {
 
 		transaction {
 			if ( requiresVersioning ) {
-				_getVersioningService().saveVersionForUpdate(
+				versionNumber = _getVersioningService().saveVersionForUpdate(
 					  objectName           = arguments.objectName
 					, id                   = arguments.id ?: NullValue()
 					, filter               = preparedFilter.filter
@@ -611,7 +626,6 @@ component displayName="Preside Object Service" {
 				, filter        = preparedFilter.filter
 				, joins         = joins
 			);
-
 			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
 			if ( StructCount( manyToManyData ) ) {
@@ -642,13 +656,26 @@ component displayName="Preside Object Service" {
 							);
 						}
 					} else if ( relationship == "one-to-many" ) {
+						var isOneToManyConfigurator = isOneToManyConfiguratorObject( arguments.objectName, key );
+
 						for( var updatedId in updatedRecords ) {
-							syncOneToManyData(
-								  sourceObject   = arguments.objectName
-								, sourceProperty = key
-								, sourceId       = updatedId
-								, targetIdList   = manyToManyData[ key ]
-							);
+							if ( isOneToManyConfigurator ) {
+								syncOneToManyConfiguratorData(
+									  sourceObject     = arguments.objectName
+									, sourceProperty   = key
+									, sourceId         = updatedId
+									, configuratorData = manyToManyData[ key ]
+									, versionNumber    = versionNumber
+								);
+							} else {
+								syncOneToManyData(
+									  sourceObject   = arguments.objectName
+									, sourceProperty = key
+									, sourceId       = updatedId
+									, targetIdList   = manyToManyData[ key ]
+								);
+
+							}
 						}
 					}
 				}
@@ -987,6 +1014,86 @@ component displayName="Preside Object Service" {
 				  filter = { id=records }
 				, data   = { "#targetFk#" = arguments.sourceId }
 			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Synchronizes a record's related one-to-many configurator object data for a given property. Returns true on success, false otherwise.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * presideObjectService.syncOneToManyConfiguratorData(
+	 * \t      sourceObject     = "event"
+	 * \t    , sourceProperty   = "sessions"
+	 * \t    , sourceId         = rc.eventId
+	 * \t    , configuratorData = rc.configuratorData // serialized array of JSON objects, without surrounding []
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 * @sourceObject.hint     The object that contains the one-to-many property
+	 * @sourceProperty.hint   The name of the property that is defined as a one-to-many relationship
+	 * @sourceId.hint         ID of the record whose related data we are to synchronize
+	 * @configuratorData.hint Comma separated JSON object strings representing records in the related object
+	 *
+	 */
+	public boolean function syncOneToManyConfiguratorData(
+		  required string  sourceObject
+		, required string  sourceProperty
+		, required string  sourceId
+		, required string  configuratorData
+		, required numeric versionNumber
+	) {
+		var prop             = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var targetObjectName = prop.relatedTo ?: "";
+		var targetObject     = getObject( targetObjectName );
+		var targetIdField    = targetObject.getIdField();
+		var targetFk         = prop.relationshipKey ?: arguments.sourceObject;
+		var records          = deserializeJSON( "[#configuratorData#]" );
+		var existingIds      = [];
+		var sort_order       = 0;
+		var filter           = { "#targetObjectName#.#targetFk#"=sourceId };
+		var extraFilters     = [];
+
+		for( var record in records ) {
+			record[ "sort_order" ] = ++sort_order;
+			record[ targetFk ]     = sourceId;
+
+			if ( len( record.id ?: "" ) ) {
+				existingIds.append( record.id );
+			}
+		}
+
+		if ( existingIds.len() ) {
+			extraFilters.append({
+				  filter       = "#targetObjectName#.#targetIdField# not in ( :#targetObjectName#.#targetIdField# )"
+				, filterParams = { "#targetObjectName#.#targetIdField#"=existingIds }
+			});
+		}
+
+		targetObject.deleteData(
+			  filter       = filter
+			, extraFilters = extraFilters
+		);
+
+		for (var record in records ) {
+			if ( len( record.id ?: "" ) ) {
+				targetObject.updateData(
+					  id            = record.id
+					, data          = record
+					, versionNumber = versionNumber
+				);
+			} else {
+				targetObject.insertData(
+					  data          = record
+					, versionNumber = versionNumber
+				);
+			}
 		}
 
 		return true;
@@ -1412,6 +1519,9 @@ component displayName="Preside Object Service" {
 					default      : return "manyToManySelect";
 				}
 			case "one-to-many":
+				if ( isOneToManyConfiguratorObject( arguments.relatedTo ) ) {
+					return "oneToManyConfigurator";
+				}
 				return "oneToManyManager";
 		}
 
@@ -1525,6 +1635,22 @@ component displayName="Preside Object Service" {
 		if ( Len( Trim( derivedFrom ) ) ) {
 			clearRelatedCaches( argumentCollection=arguments, objectName=derivedFrom );
 		}
+	}
+
+
+	public boolean function isOneToManyConfiguratorObject( required string objectName, string propertyName ) {
+		var prop             = len( arguments.propertyName ?: "" ) ? getObjectProperty( arguments.objectName, arguments.propertyName ) : "";
+		var relationship     = prop.relationship ?: "";
+		var targetObjectName = prop.relatedTo    ?: "";
+		var configurator     = false;
+
+		if ( !len( arguments.propertyName ?: "" ) ) {
+			configurator = getObjectAttribute( arguments.objectName, "oneToManyConfigurator", false );
+		} else if ( relationship == "one-to-many" ) {
+			configurator = getObjectAttribute( targetObjectName, "oneToManyConfigurator", false );
+		}
+
+		return IsBoolean( configurator ) && configurator;
 	}
 
 // PRIVATE HELPERS

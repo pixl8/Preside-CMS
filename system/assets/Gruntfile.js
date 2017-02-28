@@ -30,6 +30,7 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/preside.iframe.modal.js'
 					, 'js/admin/presidecore/preside.asset.picker.js'
 					, 'js/admin/presidecore/preside.object.picker.js'
+					, 'js/admin/presidecore/preside.object.configurator.js'
 					, 'js/admin/presidecore/preside.imageDimension.picker.js'
 					, 'js/admin/presidecore/formFields.js'
 					, 'js/admin/presidecore/list.js'

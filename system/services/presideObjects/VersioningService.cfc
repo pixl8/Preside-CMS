@@ -96,6 +96,7 @@ component {
 				, id           = oldData.id
 				, selectFields = versionedManyToManyFields
 			) : {};
+
 			var newDataForChangedFieldsCheck = Duplicate( arguments.data );
 
 			newDataForChangedFieldsCheck.append( arguments.manyToManyData );
@@ -200,6 +201,15 @@ component {
 					, versionNumber    = arguments.versionNumber
 					, versionAuthor    = arguments.versionAuthor
 				);
+			} else if ( relationship == "one-to-many" && poService.isOneToManyConfiguratorObject( arguments.objectName, propertyName ) ) {
+				_saveOneToManyConfiguratorVersion(
+					  sourceObjectName = arguments.objectName
+					, sourceObjectId   = recordId
+					, joinPropertyName = propertyName
+					, values           = manyToManyData[ propertyName ]
+					, versionNumber    = arguments.versionNumber
+					, versionAuthor    = arguments.versionAuthor
+				);				
 			}
 		}
 
@@ -214,7 +224,7 @@ component {
 		var properties           = poService.getObjectProperties( arguments.objectName );
 		var ignoredFields        = _getIgnoredFieldsForVersioning( arguments.objectName );
 
-		if ( IsNull( oldManyToMay ) ) {
+		if ( IsNull( oldManyToManyData ) ) {
 			oldManyToManyData = poService.getDeNormalizedManyToManyData(
 				  objectName = arguments.objectName
 				, id         = arguments.recordId
@@ -230,9 +240,14 @@ component {
 				continue;
 			}
 
-			var isManyToManyField = ( properties[ field ].relationship ?: "" ) == "many-to-many";
+			var isManyToManyField   = ( properties[ field ].relationship ?: "" ) == "many-to-many";
+			var isConfiguratorField = poService.isOneToManyConfiguratorObject( arguments.objectName, field );
 			if ( isManyToManyField ) {
 				if ( StructKeyExists( oldManyToManyData, field ) && Compare( oldManyToManyData[ field ], arguments.newData[ field ] ) ) {
+					changedFields.append( field );
+				}
+			} else if ( isConfiguratorField ) {
+				if ( _oneToManyConfiguratorDataChanged( sourceObject=arguments.objectName, sourceProperty=field, sourceId=arguments.recordId, newData=arguments.newData[ field ] ) ) {
 					changedFields.append( field );
 				}
 			} else {
@@ -613,6 +628,77 @@ component {
 		}
 	}
 
+	private void function _saveOneToManyConfiguratorVersion(
+		  required string  sourceObjectName
+		, required string  sourceObjectId
+		, required string  joinPropertyName
+		, required string  values
+		, required numeric versionNumber
+		, required string  versionAuthor
+	) {
+		var poService       = $getPresideObjectService();
+		var prop            = poService.getObjectProperty( arguments.sourceObjectName, arguments.joinPropertyName );
+		var targetObject    = prop.relatedTo ?: "";
+		var targetFk        = prop.relationshipKey ?: arguments.sourceObjectName;
+		var recordsToSave   = deserializeJSON( "[ #values# ]" );
+		var versionedTarget = poService.getVersionObjectName( targetObject );
+		var sort_order      = 0;
+
+		if ( Len( Trim( versionedTarget ) ) and Len( Trim( targetObject ) ) ) {
+			transaction {
+				for( var record in recordsToSave ) {
+					if ( record.__fromDb ?: false ) {
+						record = poService.selectData( objectName=targetObject, id=record.id );
+						record = queryRowToStruct( record );
+					}
+
+					record[ targetFk ] = sourceObjectId;
+					record.sort_order  = ++sort_order;
+
+					if ( len( record.id ?: "" ) ) {
+						poService.updateData(
+							  objectName              = targetObject
+							, id                      = record.id
+							, data                    = record
+							, updateManyToManyRecords = true
+							, forceVersionCreation    = true
+							, versionNumber           = arguments.versionNumber
+						);
+					}
+				}
+			}
+		}
+	}
+
+	private boolean function _oneToManyConfiguratorDataChanged( required string sourceObject, required string sourceProperty, required string sourceId, required string newData ) {
+		var poService     = $getPresideObjectService();
+		var prop          = poService.getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var targetFk      = prop.relationshipKey ?: arguments.sourceObject;
+		var targetObject  = prop.relatedTo       ?: "";
+		var targetIdField = poService.getIdField( targetObject );
+		var newDataItems  = len( newData ) ? deserializeJSON( "[ #newData# ]" ) : [];
+		
+		var existingRecords  = poService.selectData(
+			  objectName       = targetObject
+			, filter           = { "#targetFk#"=arguments.sourceId }
+			, selectFields     = [ "#targetObject#.#targetIdField# as id" ]
+			, useCache         = false
+			, recordCountOnly  = true
+		);
+
+		if ( existingRecords != newDataItems.len() ) {
+			return true;
+		}
+
+		for( var item in newDataItems ) {
+			if ( !( item.__fromDb ?: false ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private array function _getIgnoredFieldsForVersioning( required string objectName ) {
 		var ignoredFields = [ $getPresideObjectService().getDateModifiedField( arguments.objectName ) ];
 		var properties    = $getPresideObjectService().getObjectProperties( arguments.objectName );
@@ -647,4 +733,17 @@ component {
 
 		return versionedFields;
 	}
+
+	private struct function queryRowToStruct( required query qry, numeric row = 1 ) {
+		var strct = StructNew();
+		var cols  = ListToArray( arguments.qry.columnList );
+		var col   = "";
+
+		for( col in cols ){
+			strct[col] = arguments.qry[col][arguments.row];
+		}
+
+		return strct;
+	}
+
 }
