@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $quickAddForm = $( ".quick-add-form" ).first()
-	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, addAnother, showSuccessMessage;
+	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, addAnother, showSuccessMessage, clearRicheditor;
 
 	setupBehaviours = function(){
 		$quickAddForm.submit( handleSubmission );
