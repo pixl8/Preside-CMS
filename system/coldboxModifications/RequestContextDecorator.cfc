@@ -102,7 +102,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public string function getProtocol() output=false {
-		return cgi.server_protocol contains "https" ? "https" : "http";
+		return ( cgi.https ?: "" ) == "on" ? "https" : "http";
 	}
 
 	public string function getServerName() output=false {
