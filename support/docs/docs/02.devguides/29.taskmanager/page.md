@@ -29,11 +29,12 @@ component {
 	/**
 	 * Rebuilds the search indexes from scratch, ensuring that they are all up to date with the latest data
 	 *
-	 * @priority     13
-	 * @schedule     0 *\/15 * * * *
-	 * @timeout      120
-	 * @displayName  Rebuild search indexes
-	 * @displayGroup default
+	 * @priority         13
+	 * @schedule         0 *\/15 * * * *
+	 * @timeout          120
+	 * @displayName      Rebuild search indexes
+	 * @displayGroup     search
+	 * @exclusivityGroup search
 	 */
 	private boolean function rebuildSearchIndexes( event, rc, prc, logger ) {
 		return elasticSearchEngine.rebuildIndexes( logger=arguments.logger ?: NullValue() );
@@ -89,6 +90,16 @@ Tasks can be given a timeout value using the `@timeout` attribute. Values are in
 ### Display groups
 
 You can optionally use display groups to break-up the view of tasks in to multiple grouped tabs. For example, you may have a group for maintenance tasks and another group for CRM data syncs. Simply use the `@displayGroup` attribute and tasks with the same "display group" will be grouped together in tabs.
+
+### Exclusivity groups
+
+You can optionally use exclusivity groups to ensure that related tasks do not run concurrently. For example, you may have several data syncing tasks that would be problematic if they all ran at the same time.
+
+By default, the exclusivity group for a task is set to the *display group* of the task.
+
+It you set the exclusivity group of a task to `none`, the task can be run at any point in time.
+
+Use the `@exclusivityGroup` attribute to declare your exclusivity groups per task (or leave alone to use display group).
 
 >>> If no groups are specified, a default group of "default" will be used.
 
