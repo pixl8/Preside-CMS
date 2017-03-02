@@ -22,7 +22,12 @@ component displayName="Tenancy service" {
 		var tenant = ( objectMeta.tenant ?: "" ).trim();
 
 		if ( tenant.len() ) {
-			var config        = _getTenancyConfig();
+			var config = _getTenancyConfig();
+
+			if ( !config.keyExists( tenant ) ) {
+				throw( type="preside.tenancy.invalid.tenant", message="The tenant, [#tenant#], could not be found in the configured tenants." );
+			}
+
 			var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
 			var tenancyObject = config[ tenant ].object;
 			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade" };
@@ -39,7 +44,6 @@ component displayName="Tenancy service" {
 			}
 		}
 	}
-
 
 	public string function findObjectTenancyForeignKey( required string tenant, required struct objectMeta ) {
 		var props = objectMeta.properties ?: {};

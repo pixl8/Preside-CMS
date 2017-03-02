@@ -77,6 +77,22 @@ component extends="testbox.system.BaseSpec"{
 				expect( meta.propertyNames ).toBe( decorated.propertyNames );
 			} );
 
+			it( "should throw an informative error when the defined tenant is not configured", function(){
+				var service     = _getService();
+				var meta        = { tenant="blah" };
+				var errorThrown = false;
+
+				try {
+					service.injectObjectTenancyProperties( meta );
+				} catch( "preside.tenancy.invalid.tenant" e ) {
+					errorThrown = true;
+					expect( e.message ).toBe( "The tenant, [blah], could not be found in the configured tenants." );
+				}
+
+				expect( errorThrown ).toBeTrue( "No error was thrown" );
+
+			} );
+
 			it( "should add tenancy FKs into all indexes and unique indexes of the other properties", function(){
 				fail( "but we haven't implemented this yet" );
 			} );
