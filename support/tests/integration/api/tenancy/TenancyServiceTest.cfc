@@ -286,18 +286,14 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-		describe( "addTenancyFieldsToInsertData()", function() {
+		describe( "getTenancyFieldsForInsertData()", function() {
 			it( "should do nothing when the object is not using tenancy", function(){
 				var service    = _getService();
 				var objectName = "test";
-				var data       = { blah=CreateUUId(), title="Test title" };
-				var untouched  = Duplicate( data );
 
 				service.$( "getObjectTenant" ).$args( objectName ).$results( "" );
 
-				service.addTenancyFieldsToInsertData( objectName, data );
-
-				expect( data ).toBe( untouched );
+				expect( service.getTenancyFieldsForInsertData( objectName ) ).toBe( {} );
 			} );
 
 			it( "should add the currently set tenant ID for the tenant that the object uses", function(){
@@ -305,19 +301,14 @@ component extends="testbox.system.BaseSpec"{
 				var objectName = "testthis";
 				var tenant     = "test";
 				var tenantId   = CreateUUId();
-				var data       = { blah=CreateUUId(), title="Test title" };
-				var modified   = Duplicate( data );
 				var fk         = CreateUUId();
-
-				modified[ fk ] = tenantId;
+				var expected   = { "#fk#"=tenantId };
 
 				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
 				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
 				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
 
-				service.addTenancyFieldsToInsertData( objectName, data );
-
-				expect( data ).toBe( modified );
+				expect( service.getTenancyFieldsForInsertData( objectName ) ).toBe( expected );
 			} );
 		} );
 

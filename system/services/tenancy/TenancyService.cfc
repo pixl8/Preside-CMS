@@ -156,12 +156,18 @@ component displayName="Tenancy service" {
 		return newCacheKey;
 	}
 
-	public void function addTenancyFieldsToInsertData( required string objectName, required struct data ) {
+	public struct function getTenancyFieldsForInsertData( required string objectName ) {
 		var tenant = getObjectTenant( arguments.objectName );
+		var fields = {};
 
 		if ( tenant.len() ) {
-			arguments.data[ getTenantFkForObject( arguments.objectName ) ] = getTenantId( tenant );
+			var fk       = getTenantFkForObject( arguments.objectName );
+			var tenantId = getTenantId( tenant );
+
+			fields[ fk ] = tenantId;
 		}
+
+		return fields;
 	}
 
 	public struct function getTenancyFilter( required string objectName ) {
