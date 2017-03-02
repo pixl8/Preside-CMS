@@ -20,10 +20,16 @@ component displayName="Tenancy service" {
 // PUBLIC API
 	public void function injectObjectTenancyProperties( required struct objectMeta, required string objectName ) {
 		var siteFiltered = IsBoolean( objectMeta.siteFiltered ?: "" ) && objectMeta.siteFiltered;
-		var tenant       = siteFiltered ? "site" : ( objectMeta.tenant ?: "" ).trim();
+		if ( siteFiltered ) {
+			objectMeta.tenant = "site";
+		}
+
+		var tenant = ( objectMeta.tenant ?: "" ).trim();
 
 		if ( tenant.len() ) {
 			var config = _getTenancyConfig();
+			if ( siteFiltered ) {
+			}
 
 			if ( !config.keyExists( tenant ) ) {
 				throw(
@@ -112,6 +118,12 @@ component displayName="Tenancy service" {
 		var config = _getTenancyConfig();
 
 		return config[ tenant ].defaultFk ?: "";
+	}
+
+	public boolean function objectIsUsingTenancy( required string objectName, required string tenant ) {
+		var objectTenant = $getPresideObjectService().getObjectAttribute( objectName, "tenant" );
+
+		return objectTenant == arguments.tenant;
 	}
 
 // GETTERS AND SETTERS

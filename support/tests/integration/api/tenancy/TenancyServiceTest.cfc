@@ -188,12 +188,40 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getDefaultFkForTenant( tenant ) ).toBe( "" );
 			} );
 		} );
-/*
+
 		describe( "objectIsUsingTenancy()", function(){
-			it( "should do a bunch of stuff", function(){
-				fail( "but not yet implemented" );
+			it( "should return true when the passed in object is using the supplied tenant", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = CreateUUId();
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName, "tenant" ).$results( tenant );
+
+				expect( service.objectIsUsingTenancy( objectname, tenant ) ).toBe( true );
+			} );
+
+			it( "should return false when the passed-in object does not have any tenant", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = CreateUUId();
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName, "tenant" ).$results( "" );
+
+				expect( service.objectIsUsingTenancy( objectname, tenant ) ).toBe( false );
+			} );
+
+			it( "should return false when the passed-in object has a different tenant", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = CreateUUId();
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName, "tenant" ).$results( CreateUUId() );
+
+				expect( service.objectIsUsingTenancy( objectname, tenant ) ).toBe( false );
 			} );
 		} );
+
+/*
 
 		describe( "decorateSelectDataCacheKey()", function(){
 			it( "should do a bunch of stuff", function(){
@@ -233,7 +261,10 @@ component extends="testbox.system.BaseSpec"{
 			tenancyConfig = arguments.tenancyConfig
 		);
 
+		mockPresideObjectService = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+
 		service = createMock( object=service );
+		service.$( "$getPresideObjectService", mockPresideObjectService );
 
 		return service;
 	}
