@@ -34,17 +34,62 @@ component displayName="Tenancy service" {
 			var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
 			var tenancyObject = config[ tenant ].object;
 			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade" };
+			var indexNames    = [];
 
 			objectMeta.propertyNames    = objectMeta.propertyNames ?: [];
 			objectMeta.tenancyConfig    = { fk=fk };
 			objectMeta.properties       = objectMeta.properties ?: {};
 			objectMeta.properties[ fk ] = objectMeta.properties[ fk ] ?: {};
 
-			StructAppend( objectMeta.properties[ fk ], fkProperty, false );
-
 			if ( !objectMeta.propertyNames.findNoCase( fk ) ) {
 				objectMeta.propertyNames.append( fk );
 			}
+
+			for( var prop in objectMeta.properties ){
+				if ( prop == fk ) { continue; }
+
+				prop = objectMeta.properties[ prop ];
+
+				if ( Len( Trim( prop.indexes ?: "" ) ) ) {
+					var newIndexDefinition = "";
+
+					for( var ix in ListToArray( prop.indexes ) ) {
+						var indexName = ListFirst( ix, "|" ) & "|1";
+						if ( !ListFindNoCase( fkProperty.indexes, indexName ) ) {
+							fkProperty.indexes = ListAppend( fkProperty.indexes, indexName );
+						}
+
+						if ( ListLen( ix, "|" ) > 1 ) {
+							newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
+						} else {
+							newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
+						}
+					}
+
+					prop.indexes = newIndexDefinition;
+				}
+
+				if ( Len( Trim( prop.uniqueindexes ?: "" ) ) ) {
+					var newIndexDefinition = "";
+
+					for( var ix in ListToArray( prop.uniqueindexes ) ) {
+						var indexName = ListFirst( ix, "|" ) & "|1";
+						if ( !ListFindNoCase( ( fkProperty.uniqueIndexes ?: "" ), indexName ) ) {
+							fkProperty.uniqueIndexes = ListAppend( ( fkProperty.uniqueIndexes ?: "" ), indexName );
+						}
+
+						if ( ListLen( ix, "|" ) > 1 ) {
+							newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
+						} else {
+							newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
+						}
+					}
+
+					prop.uniqueindexes = newIndexDefinition;
+				}
+			}
+
+			StructAppend( objectMeta.properties[ fk ], fkProperty, false );
 		}
 	}
 

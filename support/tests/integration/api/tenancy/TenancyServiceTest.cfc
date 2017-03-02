@@ -5,7 +5,7 @@ component extends="testbox.system.BaseSpec"{
 			it( "should do nothing to the passed object metadata when it is not using tenancy", function(){
 				var service    = _getService();
 				var meta       = { tenant="", blah=CreateUUId() };
-				var objectName = "Test";
+				var objectName = "test";
 				var untouched  = Duplicate( meta );
 
 				service.injectObjectTenancyProperties( meta, objectName );
@@ -17,7 +17,7 @@ component extends="testbox.system.BaseSpec"{
 				var config     = _getDefaultTestConfig();
 				var service    = _getService( config );
 				var meta       = { tenant="test" };
-				var objectName = "Test";
+				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
 				decorated.tenancyConfig = { fk=config.test.defaultFk };
@@ -31,7 +31,7 @@ component extends="testbox.system.BaseSpec"{
 				var config     = _getDefaultTestConfig();
 				var service    = _getService( config );
 				var meta       = { tenant="site", properties={} };
-				var objectName = "Test";
+				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
 				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="_site", ondelete="cascade", onupdate="cascade" };
@@ -47,7 +47,7 @@ component extends="testbox.system.BaseSpec"{
 				var meta       = { tenant="site", properties={
 					site = { required=true, test=CreateUUId() }
 				} };
-				var objectName = "Test";
+				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
 				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=true, indexes="_site", test=meta.properties.site.test, ondelete="cascade", onupdate="cascade" };
@@ -61,7 +61,7 @@ component extends="testbox.system.BaseSpec"{
 				var config     = _getDefaultTestConfig();
 				var service    = _getService( config );
 				var meta       = { tenant="test", propertyNames=[] };
-				var objectName = "Test";
+				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
 				decorated.propertyNames = [ config.test.defaultFk ];
@@ -76,7 +76,7 @@ component extends="testbox.system.BaseSpec"{
 				var service    = _getService( config );
 				var meta       = { tenant="test", propertyNames=[ config.test.defaultFk ] };
 				var decorated  = Duplicate( meta );
-				var objectName = "Test";
+				var objectName = "test";
 
 				service.injectObjectTenancyProperties( meta, objectName );
 
@@ -87,13 +87,13 @@ component extends="testbox.system.BaseSpec"{
 				var service     = _getService();
 				var meta        = { tenant="blah" };
 				var errorThrown = false;
-				var objectName  = "Test";
+				var objectName  = "test";
 
 				try {
 					service.injectObjectTenancyProperties( meta, objectName );
 				} catch( "preside.tenancy.invalid.tenant" e ) {
 					errorThrown = true;
-					expect( e.message ).toBe( "The [Test] object specified the tenant, [blah], but this tenant is not amongst the configured tenants for the system." );
+					expect( e.message ).toBe( "The [test] object specified the tenant, [blah], but this tenant is not amongst the configured tenants for the system." );
 				}
 
 				expect( errorThrown ).toBeTrue( "No error was thrown" );
@@ -101,7 +101,38 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should add tenancy FKs into all indexes and unique indexes of the other properties", function(){
-				fail( "but we haven't implemented this yet" );
+				var config     = _getDefaultTestConfig();
+				var service    = _getService( config );
+				var meta       = { tenant="site", properties={
+					  prop1 = { indexes="ix1", uniqueindexes="ux1" }
+					, prop2 = { indexes="ix2|1,ix3" }
+					, prop3 = { indexes="ix2|2", uniqueindexes="ux2|2" }
+					, prop4 = { uniqueindexes="ux2|1" }
+				} };
+				var objectName = "test";
+				var decorated  = Duplicate( meta );
+
+				decorated.properties.prop1.indexes       = "ix1|2";
+				decorated.properties.prop1.uniqueindexes = "ux1|2";
+				decorated.properties.prop2.indexes       = "ix2|2,ix3|2";
+				decorated.properties.prop3.indexes       = "ix2|3";
+				decorated.properties.prop3.uniqueindexes = "ux2|3";
+				decorated.properties.prop4.uniqueindexes = "ux2|2";
+
+				decorated.properties.site = {
+					  name          = "site"
+					, relationship  = "many-to-one"
+					, relatedTo     = "site"
+					, required      = false
+					, indexes       = "_site,ix1|1,ix2|1,ix3|1"
+					, uniqueindexes = "ux1|1,ux2|1"
+					, ondelete      = "cascade"
+					, onupdate      = "cascade"
+				};
+
+				service.injectObjectTenancyProperties( meta, objectName );
+
+				expect( meta.properties ).toBe( decorated.properties );
 			} );
 		} );
 
