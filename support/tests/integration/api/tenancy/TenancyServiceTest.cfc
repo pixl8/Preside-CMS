@@ -57,6 +57,39 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( meta.properties ).toBe( decorated.properties );
 			} );
+
+			it( "should add the injected properties to the array of property names stored against the objects meta", function(){
+				var config    = _getDefaultTestConfig();
+				var service   = _getService( config );
+				var meta      = { tenants="site,test", propertyNames=[] };
+				var decorated = Duplicate( meta );
+
+				decorated.propertyNames = [ "site", config.test.defaultFk ];
+				decorated.propertyNames.sort( "textnocase" );
+
+				service.injectObjectTenancyProperties( meta );
+
+				meta.propertyNames = meta.propertyNames ?: [];
+				meta.propertyNames.sort( "textnocase" );
+
+				expect( meta.propertyNames ).toBe( decorated.propertyNames );
+			} );
+
+			it( "should not add the injected properties to the array of property names stored against the objects meta when those object names are already present", function(){
+				var config    = _getDefaultTestConfig();
+				var service   = _getService( config );
+				var meta      = { tenants="site,test", propertyNames=[ "site", config.test.defaultFk ] };
+				var decorated = Duplicate( meta );
+
+				decorated.propertyNames.sort( "textnocase" );
+
+				service.injectObjectTenancyProperties( meta );
+
+				meta.propertyNames = meta.propertyNames ?: [];
+				meta.propertyNames.sort( "textnocase" );
+
+				expect( meta.propertyNames ).toBe( decorated.propertyNames );
+			} );
 		} );
 
 		describe( "findObjectTenancyForeignKey()", function(){

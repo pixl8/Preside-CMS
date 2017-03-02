@@ -24,6 +24,8 @@ component displayName="Tenancy service" {
 
 		if ( tenants.len() ) {
 			objectMeta.tenancyConfig = {};
+			objectMeta.propertyNames = objectMeta.propertyNames ?: [];
+
 			for( var tenant in tenants ) {
 				var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
 				var tenancyObject = config[ tenant ].object;
@@ -34,6 +36,10 @@ component displayName="Tenancy service" {
 				objectMeta.properties[ fk ] = objectMeta.properties[ fk ] ?: {};
 
 				StructAppend( objectMeta.properties[ fk ], fkProperty, false );
+
+				if ( !objectMeta.propertyNames.findNoCase( fk ) ) {
+					objectMeta.propertyNames.append( fk );
+				}
 			}
 		}
 	}
