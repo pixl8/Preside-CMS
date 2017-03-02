@@ -380,6 +380,9 @@ component {
 		settings.rulesEngine.contexts.page       = { object="page" };
 		settings.rulesEngine.contexts.user       = { object="website_user" };
 
+		settings.tenancy = {};
+		settings.tenancy.site = { object="site", defaultfk="site" };
+
 		settings.email = _getEmailSettings();
 
 		_loadConfigurationFromExtensions();
