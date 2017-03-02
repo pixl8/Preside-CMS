@@ -27,6 +27,49 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( meta.tenancyConfig ?: "" ).toBe( decorated.tenancyConfig );
 			} );
+
+			it( "should not add any properties when the tenancy FK is already defined", function(){
+				var config    = _getDefaultTestConfig();
+				var service   = _getService( config );
+				var meta      = { tenants="site", properties={
+					site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="site" }
+				} };
+				var decorated = Duplicate( meta );
+
+				service.injectObjectTenancyProperties( meta );
+
+				expect( meta.properties ).toBe( decorated.properties );
+			} );
+
+			it( "should inject the tenancy foreign keys when not already defined on the object", function(){
+				var config    = _getDefaultTestConfig();
+				var service   = _getService( config );
+				var meta      = { tenants="site,test", properties={} };
+				var decorated = Duplicate( meta );
+
+				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="site" };
+				decorated.properties[ config.test.defaultFk ] = { name=config.test.defaultFk, relationship="many-to-one", relatedTo=config.test.object, required=false, indexes=config.test.defaultFk };
+
+				service.injectObjectTenancyProperties( meta );
+
+				expect( meta.properties ).toBe( decorated.properties );
+			} );
+
+			it( "should decorate the pre-existing tenancy foreign keys", function(){
+				var config    = _getDefaultTestConfig();
+				var service   = _getService( config );
+				var meta      = { tenants="site,test", properties={
+					site = { required=true, test=CreateUUId() }
+				} };
+				var decorated = Duplicate( meta );
+
+				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=true, indexes="site", test=meta.properties.site.test };
+				decorated.properties[ config.test.defaultFk ] = { name=config.test.defaultFk, relationship="many-to-one", relatedTo=config.test.object, required=false, indexes=config.test.defaultFk };
+
+				service.injectObjectTenancyProperties( meta );
+
+				expect( meta.properties ).toBe( decorated.properties );
+			} );
 		} );
 
 		describe( "findObjectTenancyForeignKey()", function(){

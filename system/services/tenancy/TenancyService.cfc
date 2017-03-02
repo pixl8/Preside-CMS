@@ -20,11 +20,20 @@ component displayName="Tenancy service" {
 // PUBLIC API
 	public void function injectObjectTenancyProperties( required struct objectMeta ) {
 		var tenants = ListToArray( objectMeta.tenants ?: "" );
+		var config  = _getTenancyConfig();
 
 		if ( tenants.len() ) {
 			objectMeta.tenancyConfig = {};
 			for( var tenant in tenants ) {
-				objectMeta.tenancyConfig[ tenant ] = { fk=findObjectTenancyForeignKey( tenant, objectMeta ) };
+				var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
+				var tenancyObject = config[ tenant ].object;
+				var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes=fk };
+
+				objectMeta.tenancyConfig[ tenant ] = { fk=fk };
+				objectMeta.properties = objectMeta.properties ?: {};
+				objectMeta.properties[ fk ] = objectMeta.properties[ fk ] ?: {};
+
+				StructAppend( objectMeta.properties[ fk ], fkProperty, false );
 			}
 		}
 	}
