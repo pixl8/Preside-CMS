@@ -274,26 +274,55 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-/*
+		describe( "getTenantFkForObject()", function(){
+			it( "should return the configured FK for the given object", function(){
+				var service       = _getService();
+				var objectName    = CreateUUId();
+				var tenancyConfig = { fk=CreateUUId() };
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName, "tenancyConfig" ).$results( tenancyConfig );
+
+				expect( service.getTenantFkForObject( objectname ) ).toBe( tenancyConfig.fk );
+			} );
+		} );
+
 		describe( "addTenancyFieldsToInsertData()", function() {
-			it( "should do a bunch of stuff", function(){
-				fail( "but not yet implemented" );
+			it( "should do nothing when the object is not using tenancy", function(){
+				var service = _getService();
+				var objectName = "test";
+				var data       = { blah=CreateUUId(), title="Test title" };
+				var untouched  = Duplicate( data );
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( "" );
+
+				service.addTenancyFieldsToInsertData( objectName, data );
+
+				expect( data ).toBe( untouched );
+			} );
+
+			it( "should add the currently set tenant ID for the tenant that the object uses", function(){
+				var service    = _getService();
+				var objectName = "testthis";
+				var tenant     = "test";
+				var tenantId   = CreateUUId();
+				var data       = { blah=CreateUUId(), title="Test title" };
+				var modified   = Duplicate( data );
+				var fk         = CreateUUId();
+
+				modified[ fk ] = tenantId;
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
+				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
+
+				service.addTenancyFieldsToInsertData( objectName, data );
+
+				expect( data ).toBe( modified );
 			} );
 		} );
 
+/*
 		describe( "getTenancyFilter()", function(){
-			it( "should do a bunch of stuff", function(){
-				fail( "but not yet implemented" );
-			} );
-		} );
-
-		describe( "setTenantId()", function(){
-			it( "should do a bunch of stuff", function(){
-				fail( "but not yet implemented" );
-			} );
-		} );
-
-		describe( "getTenantId()", function(){
 			it( "should do a bunch of stuff", function(){
 				fail( "but not yet implemented" );
 			} );

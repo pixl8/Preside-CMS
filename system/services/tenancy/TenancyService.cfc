@@ -124,6 +124,12 @@ component displayName="Tenancy service" {
 		return $getPresideObjectService().getObjectAttribute( objectName, "tenant" );
 	}
 
+	public string function getTenantFkForObject( required string objectName ) {
+		var tenancyConfig = $getPresideObjectService().getObjectAttribute( objectName, "tenancyConfig" );
+
+		return tenancyConfig.fk ?: "";
+	}
+
 	public boolean function objectIsUsingTenancy( required string objectName, required string tenant ) {
 		var objectTenant = getObjectTenant( arguments.objectName );
 
@@ -148,6 +154,14 @@ component displayName="Tenancy service" {
 		}
 
 		return newCacheKey;
+	}
+
+	public void function addTenancyFieldsToInsertData( required string objectName, required struct data ) {
+		var tenant = getObjectTenant( arguments.objectName );
+
+		if ( tenant.len() ) {
+			arguments.data[ getTenantFkForObject( arguments.objectName ) ] = getTenantId( tenant );
+		}
 	}
 
 // GETTERS AND SETTERS
