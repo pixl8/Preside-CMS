@@ -27,7 +27,7 @@ component displayName="Tenancy service" {
 			for( var tenant in tenants ) {
 				var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
 				var tenancyObject = config[ tenant ].object;
-				var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes=fk };
+				var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade" };
 
 				objectMeta.tenancyConfig[ tenant ] = { fk=fk };
 				objectMeta.properties = objectMeta.properties ?: {};
