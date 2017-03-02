@@ -248,16 +248,15 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-		describe( "decorateSelectDataCacheKey()", function(){
-			it( "should do nothing when the object is not using any tenancy", function(){
+		describe( "getTenancyCacheKey()", function(){
+			it( "should return empty string when the object is not using any tenancy", function(){
 				var service    = _getService();
 				var objectName = CreateUUId();
 				var tenant     = "";
-				var cacheKey   = CreateUUId();
 
 				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
 
-				expect( service.decorateSelectDataCacheKey( objectName, cacheKey ) ).toBe( cacheKey );
+				expect( service.getTenancyCacheKey( objectName ) ).toBe( "" );
 			} );
 
 			it( "should add the current tenant value on to the end of the cache key when the object has a tenant", function(){
@@ -265,12 +264,11 @@ component extends="testbox.system.BaseSpec"{
 				var objectName = CreateUUId();
 				var tenant     = "mytenant";
 				var tenantId   = CreateUUId();
-				var cacheKey   = CreateUUId();
 
 				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
 				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
 
-				expect( service.decorateSelectDataCacheKey( objectName, cacheKey ) ).toBe( cacheKey & "-" & tenantId );
+				expect( service.getTenancyCacheKey( objectName ) ).toBe( "-" & tenantId );
 			} );
 		} );
 

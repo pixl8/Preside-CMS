@@ -145,15 +145,14 @@ component displayName="Tenancy service" {
 		return request.__presideTenancy[ arguments.tenant ] ?: "";
 	}
 
-	public string function decorateSelectDataCacheKey( required string objectName, required string originalCacheKey ) {
-		var newCacheKey = arguments.originalCacheKey;
-		var tenant      = getObjectTenant( arguments.objectName );
+	public string function getTenancyCacheKey( required string objectName ) {
+		var tenant = getObjectTenant( arguments.objectName );
 
 		if ( tenant.len() ) {
-			newCacheKey &= "-" & getTenantId( tenant );
+			return "-" & getTenantId( tenant );
 		}
 
-		return newCacheKey;
+		return "";
 	}
 
 	public struct function getTenancyFieldsForInsertData( required string objectName ) {
