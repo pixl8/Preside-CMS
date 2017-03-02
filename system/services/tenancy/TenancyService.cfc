@@ -18,14 +18,17 @@ component displayName="Tenancy service" {
 	}
 
 // PUBLIC API
-	public void function injectObjectTenancyProperties( required struct objectMeta ) {
+	public void function injectObjectTenancyProperties( required struct objectMeta, required string objectName ) {
 		var tenant = ( objectMeta.tenant ?: "" ).trim();
 
 		if ( tenant.len() ) {
 			var config = _getTenancyConfig();
 
 			if ( !config.keyExists( tenant ) ) {
-				throw( type="preside.tenancy.invalid.tenant", message="The tenant, [#tenant#], could not be found in the configured tenants." );
+				throw(
+					  type    = "preside.tenancy.invalid.tenant"
+					, message = "The [#arguments.objectName#] object specified the tenant, [#tenant#], but this tenant is not amongst the configured tenants for the system."
+				);
 			}
 
 			var fk            = findObjectTenancyForeignKey( tenant, objectMeta );

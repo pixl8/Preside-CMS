@@ -3,76 +3,82 @@ component extends="testbox.system.BaseSpec"{
 	function run(){
 		describe( "injectObjectTenancyProperties()", function(){
 			it( "should do nothing to the passed object metadata when it is not using tenancy", function(){
-				var service   = _getService();
-				var meta      = { tenant="", blah=CreateUUId() };
-				var untouched = Duplicate( meta );
+				var service    = _getService();
+				var meta       = { tenant="", blah=CreateUUId() };
+				var objectName = "Test";
+				var untouched  = Duplicate( meta );
 
-				service.injectObjectTenancyProperties( meta );
+				service.injectObjectTenancyProperties( meta, objectName );
 
 				expect( meta ).toBe( untouched );
 			} );
 
 			it( "should add metadata about the tenancy configuration of the object when object configured for tenancy", function(){
-				var config    = _getDefaultTestConfig();
-				var service   = _getService( config );
-				var meta      = { tenant="test" };
-				var decorated = Duplicate( meta );
+				var config     = _getDefaultTestConfig();
+				var service    = _getService( config );
+				var meta       = { tenant="test" };
+				var objectName = "Test";
+				var decorated  = Duplicate( meta );
 
 				decorated.tenancyConfig = { fk=config.test.defaultFk };
 
-				service.injectObjectTenancyProperties( meta );
+				service.injectObjectTenancyProperties( meta, objectName );
 
 				expect( meta.tenancyConfig ?: "" ).toBe( decorated.tenancyConfig );
 			} );
 
 			it( "should inject the tenancy foreign keys when not already defined on the object", function(){
-				var config    = _getDefaultTestConfig();
-				var service   = _getService( config );
-				var meta      = { tenant="site", properties={} };
-				var decorated = Duplicate( meta );
+				var config     = _getDefaultTestConfig();
+				var service    = _getService( config );
+				var meta       = { tenant="site", properties={} };
+				var objectName = "Test";
+				var decorated  = Duplicate( meta );
 
 				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="_site", ondelete="cascade", onupdate="cascade" };
 
-				service.injectObjectTenancyProperties( meta );
+				service.injectObjectTenancyProperties( meta, objectName );
 
 				expect( meta.properties ).toBe( decorated.properties );
 			} );
 
 			it( "should decorate the pre-existing tenancy foreign keys", function(){
-				var config    = _getDefaultTestConfig();
-				var service   = _getService( config );
-				var meta      = { tenant="site", properties={
+				var config     = _getDefaultTestConfig();
+				var service    = _getService( config );
+				var meta       = { tenant="site", properties={
 					site = { required=true, test=CreateUUId() }
 				} };
-				var decorated = Duplicate( meta );
+				var objectName = "Test";
+				var decorated  = Duplicate( meta );
 
 				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=true, indexes="_site", test=meta.properties.site.test, ondelete="cascade", onupdate="cascade" };
 
-				service.injectObjectTenancyProperties( meta );
+				service.injectObjectTenancyProperties( meta, objectName );
 
 				expect( meta.properties ).toBe( decorated.properties );
 			} );
 
 			it( "should add the injected property to the array of property names stored against the objects meta", function(){
-				var config    = _getDefaultTestConfig();
-				var service   = _getService( config );
-				var meta      = { tenant="test", propertyNames=[] };
-				var decorated = Duplicate( meta );
+				var config     = _getDefaultTestConfig();
+				var service    = _getService( config );
+				var meta       = { tenant="test", propertyNames=[] };
+				var objectName = "Test";
+				var decorated  = Duplicate( meta );
 
 				decorated.propertyNames = [ config.test.defaultFk ];
 
-				service.injectObjectTenancyProperties( meta );
+				service.injectObjectTenancyProperties( meta, objectName );
 
 				expect( meta.propertyNames ).toBe( decorated.propertyNames );
 			} );
 
 			it( "should not add the injected properties to the array of property names stored against the objects meta when those object names are already present", function(){
-				var config    = _getDefaultTestConfig();
-				var service   = _getService( config );
-				var meta      = { tenant="test", propertyNames=[ config.test.defaultFk ] };
-				var decorated = Duplicate( meta );
+				var config     = _getDefaultTestConfig();
+				var service    = _getService( config );
+				var meta       = { tenant="test", propertyNames=[ config.test.defaultFk ] };
+				var decorated  = Duplicate( meta );
+				var objectName = "Test";
 
-				service.injectObjectTenancyProperties( meta );
+				service.injectObjectTenancyProperties( meta, objectName );
 
 				expect( meta.propertyNames ).toBe( decorated.propertyNames );
 			} );
@@ -81,12 +87,13 @@ component extends="testbox.system.BaseSpec"{
 				var service     = _getService();
 				var meta        = { tenant="blah" };
 				var errorThrown = false;
+				var objectName  = "Test";
 
 				try {
-					service.injectObjectTenancyProperties( meta );
+					service.injectObjectTenancyProperties( meta, objectName );
 				} catch( "preside.tenancy.invalid.tenant" e ) {
 					errorThrown = true;
-					expect( e.message ).toBe( "The tenant, [blah], could not be found in the configured tenants." );
+					expect( e.message ).toBe( "The [Test] object specified the tenant, [blah], but this tenant is not amongst the configured tenants for the system." );
 				}
 
 				expect( errorThrown ).toBeTrue( "No error was thrown" );
