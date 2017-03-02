@@ -19,27 +19,23 @@ component displayName="Tenancy service" {
 
 // PUBLIC API
 	public void function injectObjectTenancyProperties( required struct objectMeta ) {
-		var tenants = ListToArray( objectMeta.tenants ?: "" );
-		var config  = _getTenancyConfig();
+		var tenant = ( objectMeta.tenant ?: "" ).trim();
 
-		if ( tenants.len() ) {
-			objectMeta.tenancyConfig = {};
-			objectMeta.propertyNames = objectMeta.propertyNames ?: [];
+		if ( tenant.len() ) {
+			var config        = _getTenancyConfig();
+			var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
+			var tenancyObject = config[ tenant ].object;
+			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade" };
 
-			for( var tenant in tenants ) {
-				var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
-				var tenancyObject = config[ tenant ].object;
-				var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade" };
+			objectMeta.propertyNames    = objectMeta.propertyNames ?: [];
+			objectMeta.tenancyConfig    = { fk=fk };
+			objectMeta.properties       = objectMeta.properties ?: {};
+			objectMeta.properties[ fk ] = objectMeta.properties[ fk ] ?: {};
 
-				objectMeta.tenancyConfig[ tenant ] = { fk=fk };
-				objectMeta.properties = objectMeta.properties ?: {};
-				objectMeta.properties[ fk ] = objectMeta.properties[ fk ] ?: {};
+			StructAppend( objectMeta.properties[ fk ], fkProperty, false );
 
-				StructAppend( objectMeta.properties[ fk ], fkProperty, false );
-
-				if ( !objectMeta.propertyNames.findNoCase( fk ) ) {
-					objectMeta.propertyNames.append( fk );
-				}
+			if ( !objectMeta.propertyNames.findNoCase( fk ) ) {
+				objectMeta.propertyNames.append( fk );
 			}
 		}
 	}
