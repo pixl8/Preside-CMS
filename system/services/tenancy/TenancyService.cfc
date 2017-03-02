@@ -4,7 +4,6 @@
  *
  * @presideService true
  * @singleton      true
- * @autodoc        true
  */
 component displayName="Tenancy service" {
 
@@ -20,7 +19,35 @@ component displayName="Tenancy service" {
 
 // PUBLIC API
 	public void function injectObjectTenancyProperties( required struct objectMeta ) {
-		return;
+		var tenants = ListToArray( objectMeta.tenants ?: "" );
+
+		if ( tenants.len() ) {
+			objectMeta.tenancyConfig = {};
+			for( var tenant in tenants ) {
+				objectMeta.tenancyConfig[ tenant ] = { fk=findObjectTenancyForeignKey( tenant, objectMeta ) };
+			}
+		}
+	}
+
+
+	public string function findObjectTenancyForeignKey( required string tenant, required struct objectMeta ) {
+		var props = objectMeta.properties ?: {};
+		for( var propName in props ) {
+			var prop = props[ propName ];
+			var fkForTenant = ListToArray( prop.fkForTenant ?: "" );
+
+			if ( fkForTenant.findNoCase( arguments.tenant ) ) {
+				return propName;
+			}
+		}
+
+		return getDefaultFkForTenant( arguments.tenant );
+	}
+
+	public string function getDefaultFkForTenant( required string tenant ) {
+		var config = _getTenancyConfig();
+
+		return config[ tenant ].defaultFk ?: "";
 	}
 
 // GETTERS AND SETTERS
