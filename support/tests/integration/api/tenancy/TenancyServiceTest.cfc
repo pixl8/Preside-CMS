@@ -134,6 +134,20 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( meta.properties ).toBe( decorated.properties );
 			} );
+
+			it( "should treat the 'siteFiltered=true' attribute on an object to be a synonym of tenant=site", function(){
+				var config     = _getDefaultTestConfig();
+				var service    = _getService( config );
+				var meta       = { sitefiltered=true };
+				var objectName = "test";
+				var decorated  = Duplicate( meta );
+
+				decorated.tenancyConfig = { fk="site" };
+
+				service.injectObjectTenancyProperties( meta, objectName );
+
+				expect( meta.tenancyConfig ?: "" ).toBe( decorated.tenancyConfig );
+			} );
 		} );
 
 		describe( "findObjectTenancyForeignKey()", function(){

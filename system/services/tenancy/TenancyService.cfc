@@ -19,7 +19,8 @@ component displayName="Tenancy service" {
 
 // PUBLIC API
 	public void function injectObjectTenancyProperties( required struct objectMeta, required string objectName ) {
-		var tenant = ( objectMeta.tenant ?: "" ).trim();
+		var siteFiltered = IsBoolean( objectMeta.siteFiltered ?: "" ) && objectMeta.siteFiltered;
+		var tenant       = siteFiltered ? "site" : ( objectMeta.tenant ?: "" ).trim();
 
 		if ( tenant.len() ) {
 			var config = _getTenancyConfig();
