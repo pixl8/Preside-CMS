@@ -120,10 +120,34 @@ component displayName="Tenancy service" {
 		return config[ tenant ].defaultFk ?: "";
 	}
 
+	public string function getObjectTenant( required string objectName ) {
+		return $getPresideObjectService().getObjectAttribute( objectName, "tenant" );
+	}
+
 	public boolean function objectIsUsingTenancy( required string objectName, required string tenant ) {
-		var objectTenant = $getPresideObjectService().getObjectAttribute( objectName, "tenant" );
+		var objectTenant = getObjectTenant( arguments.objectName );
 
 		return objectTenant == arguments.tenant;
+	}
+
+	public void function setTenantId( required string tenant, required string id ) {
+		request.__presideTenancy = request.__presideTenancy ?: {};
+		request.__presideTenancy[ arguments.tenant ] = arguments.id;
+	}
+
+	public string function getTenantId( required string tenant ) {
+		return request.__presideTenancy[ arguments.tenant ] ?: "";
+	}
+
+	public string function decorateSelectDataCacheKey( required string objectName, required string originalCacheKey ) {
+		var newCacheKey = arguments.originalCacheKey;
+		var tenant      = getObjectTenant( arguments.objectName );
+
+		if ( tenant.len() ) {
+			newCacheKey &= "-" & getTenantId( tenant );
+		}
+
+		return newCacheKey;
 	}
 
 // GETTERS AND SETTERS

@@ -221,14 +221,60 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-/*
+		describe( "getObjectTenant()", function(){
+			it( "should return the @tenant attribute defined on the object", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = CreateUUId();
 
-		describe( "decorateSelectDataCacheKey()", function(){
-			it( "should do a bunch of stuff", function(){
-				fail( "but not yet implemented" );
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName, "tenant" ).$results( tenant );
+
+				expect( service.getObjectTenant( objectname ) ).toBe( tenant );
 			} );
 		} );
 
+		describe( "get/setTenantId()", function(){
+			it( "should set the ID of the given tenant for the request", function(){
+				var service  = _getService();
+				var tenant   = "site";
+				var tenantId = CreateUUId();
+
+				expect( service.getTenantId( tenant ) ).toBe( "" );
+				service.setTenantId( tenant, tenantId );
+				expect( service.getTenantId( tenant ) ).toBe( tenantId );
+				expect( service.getTenantId( "test" ) ).toBe( "" );
+				expect( service.getTenantId( tenant ) ).toBe( tenantId );
+
+			} );
+		} );
+
+		describe( "decorateSelectDataCacheKey()", function(){
+			it( "should do nothing when the object is not using any tenancy", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = "";
+				var cacheKey   = CreateUUId();
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+
+				expect( service.decorateSelectDataCacheKey( objectName, cacheKey ) ).toBe( cacheKey );
+			} );
+
+			it( "should add the current tenant value on to the end of the cache key when the object has a tenant", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = "mytenant";
+				var tenantId   = CreateUUId();
+				var cacheKey   = CreateUUId();
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
+
+				expect( service.decorateSelectDataCacheKey( objectName, cacheKey ) ).toBe( cacheKey & "-" & tenantId );
+			} );
+		} );
+
+/*
 		describe( "addTenancyFieldsToInsertData()", function() {
 			it( "should do a bunch of stuff", function(){
 				fail( "but not yet implemented" );
