@@ -288,7 +288,7 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "addTenancyFieldsToInsertData()", function() {
 			it( "should do nothing when the object is not using tenancy", function(){
-				var service = _getService();
+				var service    = _getService();
 				var objectName = "test";
 				var data       = { blah=CreateUUId(), title="Test title" };
 				var untouched  = Duplicate( data );
@@ -321,13 +321,32 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-/*
 		describe( "getTenancyFilter()", function(){
-			it( "should do a bunch of stuff", function(){
-				fail( "but not yet implemented" );
+			it( "should return empty struct when the passed object is not using tenancy", function(){
+				var service    = _getService();
+				var objectName = "test";
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( "" );
+
+				expect( service.getTenancyFilter( objectName ) ).toBe( {} );
+			} );
+
+			it( "should return a simple field based filter for the passed object, using the object name and fk name for the tenant", function(){
+				var service    = _getService();
+				var objectName = "testthis";
+				var tenant     = "test";
+				var tenantId   = CreateUUId();
+				var fk         = CreateUUId();
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
+				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
+
+				expect( service.getTenancyFilter( objectName ) ).toBe( {
+					filter = { "#objectName#.#fk#" = tenantId }
+				} );
 			} );
 		} );
-*/
 	}
 
 // PRIVATE HELPERS

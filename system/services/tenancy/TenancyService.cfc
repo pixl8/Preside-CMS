@@ -164,6 +164,19 @@ component displayName="Tenancy service" {
 		}
 	}
 
+	public struct function getTenancyFilter( required string objectName ) {
+		var tenant = getObjectTenant( arguments.objectName );
+
+		if ( tenant.len() ) {
+			var fk       = getTenantFkForObject( arguments.objectName );
+			var tenantId = getTenantId( tenant );
+
+			return { filter={ "#arguments.objectName#.#fk#"=tenantId } };
+		}
+
+		return {};
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getTenancyConfig() {
 		return _tenancyConfig;
