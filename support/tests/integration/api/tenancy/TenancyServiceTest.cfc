@@ -34,7 +34,7 @@ component extends="testbox.system.BaseSpec"{
 				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
-				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="_site", ondelete="cascade", onupdate="cascade" };
+				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="_site", ondelete="cascade", onupdate="cascade", control="none" };
 
 				service.injectObjectTenancyProperties( meta, objectName );
 
@@ -50,7 +50,7 @@ component extends="testbox.system.BaseSpec"{
 				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
-				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=true, indexes="_site", test=meta.properties.site.test, ondelete="cascade", onupdate="cascade" };
+				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=true, indexes="_site", test=meta.properties.site.test, ondelete="cascade", onupdate="cascade", control="none" };
 
 				service.injectObjectTenancyProperties( meta, objectName );
 
@@ -128,6 +128,7 @@ component extends="testbox.system.BaseSpec"{
 					, uniqueindexes = "ux1|1,ux2|1"
 					, ondelete      = "cascade"
 					, onupdate      = "cascade"
+					, control       = "none"
 				};
 
 				service.injectObjectTenancyProperties( meta, objectName );
