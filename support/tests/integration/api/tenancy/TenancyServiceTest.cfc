@@ -336,6 +336,41 @@ component extends="testbox.system.BaseSpec"{
 				} );
 			} );
 		} );
+
+		describe( "setRequestTenantIds()", function(){
+			it( "should call each configured tenant's convention or configuration based 'setId' handler if exists", function(){
+				var config  = {
+					  site = { object="site", defaultfk="site" }
+					, test = { object=CreateUUId(), defaultFk=CreateUUId() }
+					, anothertest = { object=CreateUUId(), defaultFk=CreateUUId(), setIdHandler="some.handler" }
+				};
+				var service = _getService( config );
+
+				mockColdbox.$( "handlerExists" ).$args( "tenancy.site.setId" ).$results( false );
+				mockColdbox.$( "handlerExists" ).$args( "tenancy.test.setId" ).$results( true );
+				mockColdbox.$( "handlerExists" ).$args( "some.handler" ).$results( true );
+				mockColdbox.$( "runEvent" );
+
+				service.setRequestTenantIds();
+
+				var runEventLog = mockColdbox.$callLog().runEvent;
+				expect( runEventLog.len() ).toBe( 2 );
+
+				runEventLog.sort( function( a, b ){
+					return a.event > b.event ? 1 : -1;
+				} )
+
+				expect( runEventLog ).toBe( [{
+					  event         = "some.handler"
+					, private       = true
+					, prePostExempt = true
+				},{
+					  event         = "tenancy.test.setId"
+					, private       = true
+					, prePostExempt = true
+				}] );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -345,9 +380,11 @@ component extends="testbox.system.BaseSpec"{
 		);
 
 		mockPresideObjectService = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		mockColdbox              = CreateEmptyMock( "preside.system.coldboxModifications.Controller" );
 
 		service = createMock( object=service );
 		service.$( "$getPresideObjectService", mockPresideObjectService );
+		service.$( "$getColdbox", mockColdbox );
 
 		return service;
 	}

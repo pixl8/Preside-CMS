@@ -182,6 +182,23 @@ component displayName="Tenancy service" {
 		return {};
 	}
 
+	public void function setRequestTenantIds() {
+		var config  = _getTenancyConfig();
+		var coldbox = $getColdbox();
+
+		for( var tenant in config ) {
+			var handler = config[ tenant ].setIdHandler ?: "tenancy.#tenant#.setId";
+
+			if ( coldbox.handlerExists( handler ) ) {
+				coldbox.runEvent(
+					  event         = handler
+					, private       = true
+					, prePostExempt = true
+				);
+			}
+		}
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getTenancyConfig() {
 		return _tenancyConfig;
