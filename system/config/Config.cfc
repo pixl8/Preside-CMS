@@ -48,7 +48,7 @@ component {
 			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
-			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
+			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
