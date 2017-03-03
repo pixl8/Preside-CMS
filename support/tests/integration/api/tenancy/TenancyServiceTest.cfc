@@ -338,37 +338,36 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "setRequestTenantIds()", function(){
-			it( "should call each configured tenant's convention or configuration based 'setId' handler if exists", function(){
+			it( "should call each configured tenant's convention or configuration based 'getId' handler if exists", function(){
 				var config  = {
-					  site = { object="site", defaultfk="site" }
-					, test = { object=CreateUUId(), defaultFk=CreateUUId() }
-					, anothertest = { object=CreateUUId(), defaultFk=CreateUUId(), setIdHandler="some.handler" }
+					  site        = { object="site"      , defaultfk="site" }
+					, test        = { object=CreateUUId(), defaultFk=CreateUUId() }
+					, anothertest = { object=CreateUUId(), defaultFk=CreateUUId(), getIdHandler="some.handler" }
 				};
-				var service = _getService( config );
+				var service       = _getService( config );
+				var testId        = CreateUUId();
+				var anothertestId = CreateUUId();
 
-				mockColdbox.$( "handlerExists" ).$args( "tenancy.site.setId" ).$results( false );
-				mockColdbox.$( "handlerExists" ).$args( "tenancy.test.setId" ).$results( true );
+				mockColdbox.$( "handlerExists" ).$args( "tenancy.site.getId" ).$results( false );
+				mockColdbox.$( "handlerExists" ).$args( "tenancy.test.getId" ).$results( true );
 				mockColdbox.$( "handlerExists" ).$args( "some.handler" ).$results( true );
-				mockColdbox.$( "runEvent" );
-
-				service.setRequestTenantIds();
-
-				var runEventLog = mockColdbox.$callLog().runEvent;
-				expect( runEventLog.len() ).toBe( 2 );
-
-				runEventLog.sort( function( a, b ){
-					return a.event > b.event ? 1 : -1;
-				} )
-
-				expect( runEventLog ).toBe( [{
+				mockColdbox.$( "runEvent" ).$args(
 					  event         = "some.handler"
 					, private       = true
 					, prePostExempt = true
-				},{
-					  event         = "tenancy.test.setId"
+				).$results( anothertestId );
+				mockColdbox.$( "runEvent" ).$args(
+					  event         = "tenancy.test.getId"
 					, private       = true
 					, prePostExempt = true
-				}] );
+				).$results( testId );
+
+				service.setRequestTenantIds();
+
+				expect( service.getTenantId( "test" ) ).toBe( testId );
+				expect( service.getTenantId( "anothertest" ) ).toBe( anothertestId );
+
+
 			} );
 		} );
 	}

@@ -187,14 +187,18 @@ component displayName="Tenancy service" {
 		var coldbox = $getColdbox();
 
 		for( var tenant in config ) {
-			var handler = config[ tenant ].setIdHandler ?: "tenancy.#tenant#.setId";
+			var handler = config[ tenant ].getIdHandler ?: "tenancy.#tenant#.getId";
 
 			if ( coldbox.handlerExists( handler ) ) {
-				coldbox.runEvent(
+				var id = coldbox.runEvent(
 					  event         = handler
 					, private       = true
 					, prePostExempt = true
 				);
+
+				if ( !IsNull( id ) ) {
+					setTenantId( tenant, id );
+				}
 			}
 		}
 	}
