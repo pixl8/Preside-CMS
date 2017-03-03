@@ -173,10 +173,34 @@ component displayName="Tenancy service" {
 		var tenant = getObjectTenant( arguments.objectName );
 
 		if ( tenant.len() ) {
-			var fk       = getTenantFkForObject( arguments.objectName );
-			var tenantId = getTenantId( tenant );
+			var fk            = getTenantFkForObject( arguments.objectName );
+			var tenantId      = getTenantId( tenant );
+			var config        = _getTenancyConfig();
+			var filterHandler = config[ tenant ].getFilterHandler ?: "tenancy.#tenant#.getFilter";
+			var coldbox       = $getColdbox();
+			var defaultFilter = { filter={ "#arguments.objectName#.#fk#"=tenantId } };
 
-			return { filter={ "#arguments.objectName#.#fk#"=tenantId } };
+			if ( coldbox.handlerExists( filterHandler ) ) {
+				var filter = coldbox.runEvent(
+					  event          = filterHandler
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = {
+						  objectName    = arguments.objectName
+						, fk            = fk
+						, defaultFilter = defaultFilter
+						, tenantId      = tenantId
+					  }
+				);
+
+				if ( IsNull( filter ) ) {
+					return defaultFilter;
+				}
+
+				return filter;
+			}
+
+			return defaultFilter;
 		}
 
 		return {};

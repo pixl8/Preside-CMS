@@ -331,10 +331,38 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
 				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
 				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
+				mockColdbox.$( "handlerExists", false );
 
 				expect( service.getTenancyFilter( objectName ) ).toBe( {
 					filter = { "#objectName#.#fk#" = tenantId }
 				} );
+			} );
+
+			it( "should return the result of calling the tenants custom filter handler when tenant supplies one", function(){
+				var service    = _getService();
+				var objectName = "testthis";
+				var tenant     = "test";
+				var tenantId   = CreateUUId();
+				var fk         = CreateUUId();
+				var filter     = { crazy="test", test=CreateUUId() };
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
+				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
+				mockColdbox.$( "handlerExists" ).$args( "tenancy.test.getFilter" ).$results( true );
+				mockColdbox.$( "runEvent" ).$args(
+					  event         = "tenancy.test.getFilter"
+					, private       = true
+					, prePostExempt = true
+					, eventArguments = {
+						  objectName    = objectName
+						, fk            = fk
+						, defaultFilter = { filter={ "#objectName#.#fk#" = tenantId } }
+						, tenantId      = tenantId
+					}
+				).$results( filter );
+
+				expect( service.getTenancyFilter( objectName ) ).toBe( filter );
 			} );
 		} );
 
