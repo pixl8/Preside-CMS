@@ -1,0 +1,16 @@
+{
+    "trayIcon":"/home/dom/.CommandBox/commands/preside/_resources/trayicon_hires.png",
+    "name":"presidedocs",
+    "openbrowser":"false",
+    "web":{
+        "webroot":"",
+        "host":"presidedocs.local",
+        "rewrites":{
+            "config":"urlrewrite.xml",
+            "enable":"true"
+        },
+        "http":{
+            "port":"80"
+        }
+    }
+}
