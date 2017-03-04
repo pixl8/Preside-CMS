@@ -2641,10 +2641,15 @@ component displayName="Preside Object Service" {
 	}
 
 	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data ) {
+		var obj       = getObject( arguments.objectName );
 		var props     = getObjectProperties( arguments.objectName );
 		var newData   = Duplicate( arguments.data );
 		var generated = {};
 		var genOps    = arguments.operation == "insert" ? [ "insert", "always" ] : [ "always" ];
+
+		if ( isSimpleValue( obj ) ) {
+			return generated;
+		}
 
 		for( var propName in props ){
 			var prop = props[ propName ];
