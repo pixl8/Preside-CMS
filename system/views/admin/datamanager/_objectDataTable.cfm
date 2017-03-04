@@ -29,6 +29,8 @@
 			  linkTo      = "rulesEngine.superQuickAddFilterForm"
 			, querystring = "filter_object=#args.objectName#&multiple=false&expressions="
 		);
+
+		favourites = renderViewlet( event="admin.rulesEngine.dataGridFavourites", args={ objectName=args.objectName } );
 	}
 </cfscript>
 <cfoutput>
@@ -90,6 +92,10 @@
 						</div>
 					</div>
 				</div>
+			</div>
+
+			<div class="object-listing-table-favourites hide" id="#tableId#-favourites">
+				#favourites#
 			</div>
 		</cfif>
 

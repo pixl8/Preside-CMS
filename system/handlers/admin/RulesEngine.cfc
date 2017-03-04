@@ -516,6 +516,16 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+// VIWLETS
+	private string function dataGridFavourites( event, rc, prc, args ) {
+		var objectName = args.objectName ?: "";
+
+		args.favourites = rulesEngineFilterService.getFavourites( objectName );
+
+		return renderView( view="/admin/rulesEngine/_dataGridFavourites", args=args );
+	}
+
+
 // PRIVATE HELPERS
 	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permKey = "rulesEngine." & arguments.key;

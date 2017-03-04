@@ -20,6 +20,8 @@
 			  , showFilters
 			  , showSimpleSearch
 			  , dtSettings
+			  , getFavourite
+			  , setFavourite
 			  , object              = tableSettings.objectName     || cfrequest.objectName     || ""
 			  , datasourceUrl       = tableSettings.datasourceUrl  || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 			  , isMultilingual      = tableSettings.isMultilingual || cfrequest.isMultilingual || false
@@ -31,6 +33,7 @@
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
+			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
 			  , enabledContextHotkeys;
 
 			setupDatatable = function(){
@@ -179,14 +182,20 @@
 					fnServerParams : function( aoData ) {
 						if ( allowFilter ) {
 							aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
-							aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
+							var favourite = getFavourite();
+							if ( favourite && favourite.length ) {
+								aoData.push( { "name": "sSavedFilterExpressions", "value": favourite } );
+							} else {
+								aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
+							}
 						}
 					},
 					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
 						if ( allowFilter ) {
 							oData.oFilter = {
-								  filter  : $filterDiv.find( "[name=filter]" ).val()
-								, filters : $filterDiv.find( "[name=filters]" ).val()
+								  filter    : $filterDiv.find( "[name=filter]" ).val()
+								, filters   : $filterDiv.find( "[name=filters]" ).val()
+								, favourite : getFavourite()
 							};
 						}
 
@@ -273,6 +282,20 @@
 
 				$searchContainer.prepend( $searchTitle );
 				$searchContainer.prepend( $filterLink );
+				if ( $favouritesDiv.length ) {
+					$searchContainer.append( $favouritesDiv );
+					$favouritesDiv.removeClass( "hide" );
+					$favouritesDiv.on( "click", ".filter", function( e ){
+						e.preventDefault();
+						var $filter = $( this )
+						  , $otherFilters = $filter.siblings( ".filter" );
+
+						$otherFilters.removeClass( "active" );
+						$filter.toggleClass( "active" ).find( ":focus" ).blur();
+
+						datatable.fnDraw();
+					} );
+				}
 				$searchContainer.parent().append( $filterDiv );
 
 				$filterDiv.hide().removeClass( "hide" ).find( ".well" ).removeClass( "well" );
@@ -299,6 +322,28 @@
 				if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
 					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
 						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
+					} else if ( settings.oLoadedState.oFilter.favourite && settings.oLoadedState.oFilter.favourite.length ) {
+						setFavourite( settings.oLoadedState.oFilter.favourite );
+					}
+				}
+			};
+
+			getFavourite = function() {
+				if ( $favouritesDiv.length ) {
+					var $active = $favouritesDiv.find( ".filter.active:first" );
+					if ( $active.length ) {
+						return $active.data( "filterId" );
+					}
+				}
+
+				return "";
+			};
+
+			setFavourite = function( id ) {
+				if ( $favouritesDiv.length ) {
+					$favouritesDiv.find( ".filter" ).removeClass( "active" );
+					if ( id.length ) {
+						$favouritesDiv.find( ".filter[ data-filter-id='" + id + "' ]" ).addClass( "active" );
 					}
 				}
 			};
@@ -340,6 +385,7 @@
 				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
 				$searchContainer.fadeOut( 100, function(){
 					$searchContainer.find( "input.data-table-search" ).val( "" );
+					setFavourite( "" );
 					datatable.fnFilter("");
 					$filterDiv.fadeIn( 100 );
 				} );
@@ -366,7 +412,7 @@
 					  , modalTitle          = i18n.translateResource( "cms:rulesEngine.save.filter.modal" )
 					  , modalOptions        = {
 							title     : modalTitle,
-							className : "",
+							className : "filter-quick-save-modal",
 							buttons   : {
 								cancel : {
 									  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
