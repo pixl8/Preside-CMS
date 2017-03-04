@@ -110,6 +110,33 @@
 	.object-listing-table-filter .form-actions {
 		display : block;
 	}
+
+	.object-listing-table-favourites {
+		margin-top : 10px;
+
+		.nav-pills {
+			margin-left : 0;
+		}
+		.filter-title {
+			a {
+				padding-left  : 0;
+				padding-right : 0;
+				color         : @default-light-font-colour;
+
+				&:hover {
+					background-color : transparent;
+				}
+			}
+		}
+
+		.filter {
+			a {
+				padding-right : 8px;
+				padding-left  : 8px;
+				margin-left   : 5px;
+			}
+		}
+	}
 }
 
 .table {
@@ -142,6 +169,21 @@
 
 				outline: 0 !important;
 			}
+		}
+	}
+
+}
+
+.filter-quick-save-modal {
+	.modal-dialog {
+		width  : 850px;
+	}
+}
+
+@media ( max-width: 900px ){
+	.filter-quick-save-modal {
+		.modal-dialog {
+			width  : 95%;
 		}
 	}
 }

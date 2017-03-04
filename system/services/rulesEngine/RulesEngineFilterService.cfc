@@ -183,6 +183,14 @@ component displayName="Rules Engine Filter Service" {
 		return [];
 	}
 
+	public query function getFavourites( required string objectName ) {
+		return $getPresideObject( "rules_engine_condition" ).selectData(
+			  selectFields = [ "id", "condition_name" ]
+			, filter       = { filter_object=arguments.objectName, is_favourite=true }
+			, orderBy      = "condition_name"
+		);
+	}
+
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS
