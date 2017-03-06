@@ -778,7 +778,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockFeatureService.$( "isFeatureEnabled" ).$args( "disabled-feature" ).$results( false );
 		mockFeatureService.$( "isFeatureEnabled", true );
 
-		return createMock( object=new preside.system.services.forms.FormsService(
+		var service = createMock( object=new preside.system.services.forms.FormsService(
 			  presideObjectService = poService
 			, siteService          = mockSiteService
 			, logger               = _getTestLogger()
@@ -791,5 +791,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, configuredControls   = {}
 			, featureService       = mockFeatureService
 		) );
+
+		service.$( "$hasAdminPermission", true );
+
+		return service;
 	}
 }
