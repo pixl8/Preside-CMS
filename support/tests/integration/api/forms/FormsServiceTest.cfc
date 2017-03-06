@@ -341,6 +341,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( result ).toBe( expected );
 			} );
 
+			it( "should return the struct _minus_ any fields, tabs or fieldsets that the currently logged in admin user does not have access to when 'stripPermissionedFields' is passed as true", function(){
+				var formsSvc        = _getFormsService( "/tests/resources/formsService/forms1" );
+				var stripped        = { tabs=[] };
+				var permContext     = CreateUUId();
+				var permContextKeys = [ CreateUUId() ];
+				var formName        = "test.form";
+				var realDefinition  = formsSvc.getForm( formName )
+
+				formsSvc.$( "removePermissionedFieldsFromFormDefinition" ).$args(
+					  formDefinition        = realDefinition
+					, permissionContext     = permContext
+					, permissionContextKeys = permContextKeys
+				).$results( stripped );
+
+				expect( formsSvc.getForm(
+					  formName                = formName
+					, stripPermissionedFields = true
+					, permissionContext       = permContext
+					, permissionContextKeys   = permContextKeys
+				) ).toBe( stripped );
+			} );
+
 		} );
 
 		describe( "readForm()", function(){

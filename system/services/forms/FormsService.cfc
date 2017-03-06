@@ -79,41 +79,55 @@ component displayName="Forms service" {
 	/**
 	 * Returns the raw structural definition of the given form
 	 *
-	 * @autodoc
-	 * @formName.hint          The name of the form to get
-	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
+	 * @autodoc                      true
+	 * @formName.hint                The name of the form to get
+	 * @autoMergeSiteForm.hint       Whether or not to automatically merge any matching form definitions in the current active site template
+	 * @stripPermissionedFields.hint Whether or not to strip tabs, fieldsets and fields to which the logged in admin user does not have permission
+	 * @permissionContext.hint       When checking for permissioned fields, the permission context to use. See [[permissionservice-haspermission]].
+	 * @permissionContextKeys.hint   When checking for permissioned fields, the permission context keys to use. See [[permissionservice-haspermission]].
 	 */
-	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) {
-		var forms        = _getForms();
-		var objectName   = "";
-		var form         = "";
+	public struct function getForm(
+		  required string  formName
+		,          boolean autoMergeSiteForm       = true
+		,          boolean stripPermissionedFields = false
+		,          string  permissionContext       = ""
+		,          array   permissionContextKeys   = []
+	) {
+		var forms                  = _getForms();
+		var objectName             = "";
+		var theForm                = "";
+		var siteTemplateFormName   = arguments.autoMergeSiteForm ? ( _getSiteTemplatePrefix() & arguments.formName ) : "";
+		var siteTemplateFormExists = arguments.autoMergeSiteForm ? ( siteTemplateFormName != arguments.formName && formExists( siteTemplateFormName, false ) ) : false;
 
-		if ( arguments.autoMergeSiteForm ) {
-			var siteTemplateFormName   = _getSiteTemplatePrefix() & arguments.formName;
-			var siteTemplateFormExists = siteTemplateFormName != arguments.formName && formExists( siteTemplateFormName, false );
-
-			if ( siteTemplateFormExists ) {
-				if ( formExists( arguments.formName, false )  ) {
-					return mergeForms( arguments.formName, siteTemplateFormName, false );
-				}
-
-				return forms[ siteTemplateFormName ];
+		if ( arguments.autoMergeSiteForm && siteTemplateFormExists ) {
+			if ( formExists( arguments.formName, false )  ) {
+				theForm = mergeForms( arguments.formName, siteTemplateFormName, false );
+			} else {
+				theForm = forms[ siteTemplateFormName ];
+			}
+		} else if ( formExists( arguments.formName ) ) {
+			theForm = forms[ arguments.formName ];
+		} else {
+			objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+			if ( _getPresideObjectService().objectExists( objectName ) ) {
+				theForm = getDefaultFormForPresideObject( objectName );
+			} else {
+				throw(
+					  type = "FormsService.MissingForm"
+					, message = "The form, [#arguments.formName#], could not be found"
+				);
 			}
 		}
 
-		if ( formExists( arguments.formName ) ) {
-			return forms[ arguments.formName ];
+		if ( arguments.stripPermissionedFields ) {
+			theForm = removePermissionedFieldsFromFormDefinition(
+				  formDefinition        = theForm
+				, permissionContext     = arguments.permissionContext
+				, permissionContextKeys = arguments.permissionContextKeys
+			);
 		}
 
-		objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-		if ( _getPresideObjectService().objectExists( objectName ) ) {
-			return getDefaultFormForPresideObject( objectName );
-		}
-
-		throw(
-			  type = "FormsService.MissingForm"
-			, message = "The form, [#arguments.formName#], could not be found"
-		);
+		return theForm;
 	}
 
 	/**
