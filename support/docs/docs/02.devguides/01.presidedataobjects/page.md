@@ -756,3 +756,5 @@ component {
     // ...
 }
 ```
+
+>>>> As of Preside 10.8.0, this method is deprecated and you should instead use `@tenant site`. See [[data-tenancy]].

@@ -18,6 +18,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 // URL related
 	public void function setSite( required struct site ) output=false {
+		getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
 		getRequestContext().setValue(
 			  name    = "_site"
 			, value   =  arguments.site
@@ -300,7 +301,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
