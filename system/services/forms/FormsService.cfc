@@ -1,6 +1,7 @@
 /**
  * @singleton
  * @autodoc
+ * @presideService
  */
 component displayName="Forms service" {
 
@@ -655,6 +656,72 @@ component displayName="Forms service" {
 		_registerForm( arguments.formName, rawDefinition );
 
 		return arguments.formName;
+	}
+
+	/**
+	 * Takes a form defintion (struct) and removes all the tabs, fieldsets and fields
+	 * to which the currently logged in admin user does not have permission to edit.
+	 * Returns a new structure with the potentially removed elements.
+	 *
+	 * @autodoc                    true
+	 * @formDefinition.hint        Original form definition (remains untouched by this method)
+	 * @permissionContext.hint     Optional context for permission lookups (see [[permissionsservice-haspermission]])
+	 * @permissionContextKeys.hint Optional array of context keys for permission lookups (see [[permissionsservice-haspermission]])
+	 *
+	 */
+	public struct function removePermissionedFieldsFromFormDefinition(
+		  required struct formDefinition
+		,          string permissionContext     = ""
+		,          array  permissionContextKeys = []
+	) {
+		var strippedDefinition = Duplicate( formDefinition );
+		var tabs               = strippedDefinition.tabs ?: [];
+
+		for( var i=tabs.len(); i>0; i-- ) {
+			var tab           = tabs[ i ];
+			var permissionKey = ( tab.permissionKey ?: "" ).trim();
+			var removeTab     = permissionKey.len() && !$hasAdminPermission(
+				  permissionKey = permissionKey
+				, context       = arguments.permissionContext
+				, contextKeys   = arguments.permissionContextKeys
+			);
+
+			if ( removeTab ) {
+				tabs.deleteAt( i );
+			} else {
+				var fieldsets = tab.fieldsets ?: [];
+				for( var n=fieldsets.len(); n>0; n-- ) {
+					var fieldset = fieldsets[ n ];
+					var fieldsetPermissionKey = ( fieldset.permissionKey ?: "" ).trim();
+					var removeFieldset = fieldsetPermissionKey.len() && !$hasAdminPermission(
+						  permissionKey = fieldsetPermissionKey
+						, context       = arguments.permissionContext
+						, contextKeys   = arguments.permissionContextKeys
+					);
+
+					if ( removeFieldset ) {
+						fieldsets.deleteAt( n );
+					} else {
+						var fields = fieldset.fields;
+						for( var x=fields.len(); x>0; x-- ){
+							var field              = fields[ x ];
+							var fieldPermissionKey = field.permissionKey ?: "";
+							var removeField = fieldPermissionKey.len() && !$hasAdminPermission(
+								  permissionKey = fieldPermissionKey
+								, context       = arguments.permissionContext
+								, contextKeys   = arguments.permissionContextKeys
+							);
+
+							if ( removeField ) {
+								fields.deleteAt( x );
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return strippedDefinition;
 	}
 
 	/**

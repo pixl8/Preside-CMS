@@ -650,6 +650,92 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 		} );
+
+		describe( "removePermissionedFieldsFromFormDefinition()", function(){
+			var service         = _getFormsService( "/tests/resources/formsService/forms1" );
+			var permContext     = "testcontext";
+			var permContextKeys = [ CreateUUId(), CreateUUId() ];
+
+			service.$( "$hasAdminPermission" ).$args(
+				  permissionKey = "yes.permission"
+				, context       = permContext
+				, contextKeys   = permContextKeys
+			).$results( true );
+			service.$( "$hasAdminPermission" ).$args(
+				  permissionKey = "no.permission"
+				, context       = permContext
+				, contextKeys   = permContextKeys
+			).$results( false );
+
+			it( "should do nothing to a form that does not have any permissions defined", function(){
+				var formDefinition  = {
+					tabs = [
+						  { id="one"  , fieldsets=[ { fields=[ { name="field1" } ] } ] }
+						, { id="two"  , fieldsets=[ { fields=[ { name="field2" } ] } ] }
+						, { id="three", fieldsets=[ { fields=[ { name="field3" } ] } ] }
+					]
+				};
+
+				expect( service.removePermissionedFieldsFromFormDefinition( formDefinition ) ).toBe( formDefinition );
+			} );
+
+
+			it( "should remove fields that are tagged with permission keys that the user does not have access to", function(){
+				var formDefinition  = {
+					tabs = [
+						  { id="one"  , fieldsets=[ { fields=[ { name="field1", permissionKey=""               } ] } ] }
+						, { id="two"  , fieldsets=[ { fields=[ { name="field2", permissionKey="no.permission"  } ] } ] }
+						, { id="three", fieldsets=[ { fields=[ { name="field3", permissionKey="yes.permission" } ] } ] }
+					]
+				};
+				var expectedStrippedForm = Duplicate( formDefinition );
+
+				expectedStrippedForm.tabs[2].fieldsets[1].fields.deleteAt( 1 );
+
+				expect( service.removePermissionedFieldsFromFormDefinition(
+					  formDefinition        = formDefinition
+					, permissionContext     = permContext
+					, permissionContextKeys = permContextKeys
+				) ).toBe( expectedStrippedForm );
+			} );
+
+			it( "should remove entire fieldsets that are tagged with permission keys that the user does not have access to", function(){
+				var formDefinition  = {
+					tabs = [
+						  { id="one"  , fieldsets=[ { permissionKey="no.permission" , fields=[ { name="field1" } ] } ] }
+						, { id="two"  , fieldsets=[ { permissionKey="yes.permission", fields=[ { name="field2" } ] } ] }
+						, { id="three", fieldsets=[ { permissionKey=""              , fields=[ { name="field3" } ] } ] }
+					]
+				};
+				var expectedStrippedForm = Duplicate( formDefinition );
+
+				expectedStrippedForm.tabs[1].fieldsets.deleteAt( 1 );
+
+				expect( service.removePermissionedFieldsFromFormDefinition(
+					  formDefinition        = formDefinition
+					, permissionContext     = permContext
+					, permissionContextKeys = permContextKeys
+				) ).toBe( expectedStrippedForm );
+			} );
+
+			it( "should remove entire tabs that are tagged with permission keys that the user does not have access to", function(){
+				var formDefinition  = {
+					tabs = [
+						  { id="one"  , permissionKey=""              , fieldsets=[ { fields=[ { name="field1" } ] } ] }
+						, { id="two"  , permissionKey="yes.permission", fieldsets=[ { fields=[ { name="field2" } ] } ] }
+						, { id="three", permissionKey="no.permission" , fieldsets=[ { fields=[ { name="field3" } ] } ] }
+					]
+				};
+				var expectedStrippedForm = Duplicate( formDefinition );
+				expectedStrippedForm.tabs.deleteAt( 3 );
+
+				expect( service.removePermissionedFieldsFromFormDefinition(
+					  formDefinition        = formDefinition
+					, permissionContext     = permContext
+					, permissionContextKeys = permContextKeys
+				) ).toBe( expectedStrippedForm );
+			} );
+		} );
 	}
 
 	private any function _getFormsService(
@@ -670,7 +756,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockFeatureService.$( "isFeatureEnabled" ).$args( "disabled-feature" ).$results( false );
 		mockFeatureService.$( "isFeatureEnabled", true );
 
-		return new preside.system.services.forms.FormsService(
+		return createMock( object=new preside.system.services.forms.FormsService(
 			  presideObjectService = poService
 			, siteService          = mockSiteService
 			, logger               = _getTestLogger()
@@ -682,6 +768,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, defaultContextName   = "index"
 			, configuredControls   = {}
 			, featureService       = mockFeatureService
-		);
+		) );
 	}
 }
