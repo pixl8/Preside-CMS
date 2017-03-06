@@ -104,7 +104,7 @@ component {
 }
 ```
 
-If our active customer tenant is "Acme LTD", we only want to see articles who's main customer is "Acme LTD" **OR** who's partner customers contain "Acme LTD".
+If our active customer tenant is "Acme LTD", we only want to see articles whose main customer is "Acme LTD" **OR** whose partner customers contain "Acme LTD".
 
 To implement this logic, you need to create a `getFilter()` handler action in your tenancy handler. This method will take four arguments (as well as the standard Coldbox handler arguments):
 
