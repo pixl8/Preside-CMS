@@ -941,7 +941,7 @@
 
 			var formName         = "preside-objects.#translationObjectName#.admin.edit";
 			var version          = rc.version ?: "";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext=object, permissionKeys=[] );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
 			var obj              = "";
@@ -954,7 +954,7 @@
 				, languageId   = languageId
 			);
 
-			var validationResult = validateForm( formName=formName, formData=formData );
+			var validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext=object, permissionKeys=[] );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1618,29 +1618,32 @@
 	</cffunction>
 
 	<cffunction name="_addRecordAction" access="private" returntype="any" output="false">
-		<cfargument name="event"             type="any"     required="true"  />
-		<cfargument name="rc"                type="struct"  required="true"  />
-		<cfargument name="prc"               type="struct"  required="true"  />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default="" />
-		<cfargument name="viewRecordUrl"     type="string"  required="false" default="#event.buildAdminLink( linkTo=( viewRecordAction.len() ? viewRecordAction : "datamanager.viewRecord" ), querystring="object=#arguments.object#&id={newid}" )#" />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default="" />
-		<cfargument name="addAnotherUrl"     type="string"  required="false" default="#( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
-		<cfargument name="successAction"     type="string"  required="false" default="" />
-		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
-		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="" />
-		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
-		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
-		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
-		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
+		<cfargument name="event"                   type="any"     required="true"  />
+		<cfargument name="rc"                      type="struct"  required="true"  />
+		<cfargument name="prc"                     type="struct"  required="true"  />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="errorAction"             type="string"  required="false" default="" />
+		<cfargument name="errorUrl"                type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="viewRecordAction"        type="string"  required="false" default="" />
+		<cfargument name="viewRecordUrl"           type="string"  required="false" default="#event.buildAdminLink( linkTo=( viewRecordAction.len() ? viewRecordAction : "datamanager.viewRecord" ), querystring="object=#arguments.object#&id={newid}" )#" />
+		<cfargument name="addAnotherAction"        type="string"  required="false" default="" />
+		<cfargument name="addAnotherUrl"           type="string"  required="false" default="#( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="successAction"           type="string"  required="false" default="" />
+		<cfargument name="successUrl"              type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
+		<cfargument name="redirectOnSuccess"       type="boolean" required="false" default="true" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="audit"                   type="boolean" required="false" default="false" />
+		<cfargument name="auditAction"             type="string"  required="false" default="" />
+		<cfargument name="auditType"               type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"           type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"              type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"            type="boolean" required="false" default="false" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionKeys"          type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			var formData         = event.getCollectionForForm( arguments.formName );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
 			var validationResult = "";
@@ -1649,7 +1652,7 @@
 			var persist          = "";
 			var isDraft          = false;
 
-			validationResult = validateForm( formName=arguments.formName, formData=formData );
+			validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1712,21 +1715,24 @@
 	</cffunction>
 
 	<cffunction name="_addOneToManyRecordAction" access="private" returntype="any" output="false">
-		<cfargument name="event"             type="any"     required="true"  />
-		<cfargument name="rc"                type="struct"  required="true"  />
-		<cfargument name="prc"               type="struct"  required="true"  />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object          ?: '' )#" />
-		<cfargument name="parentId"          type="string"  required="false" default="#( rc.parentId        ?: '' )#" />
-		<cfargument name="relationshipKey"   type="string"  required="false" default="#( rc.relationshipKey ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default=""     />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
-		<cfargument name="successAction"     type="string"  required="false" default=""     />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="event"                   type="any"     required="true"  />
+		<cfargument name="rc"                      type="struct"  required="true"  />
+		<cfargument name="prc"                     type="struct"  required="true"  />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object          ?: '' )#" />
+		<cfargument name="parentId"                type="string"  required="false" default="#( rc.parentId        ?: '' )#" />
+		<cfargument name="relationshipKey"         type="string"  required="false" default="#( rc.relationshipKey ?: '' )#" />
+		<cfargument name="errorAction"             type="string"  required="false" default=""     />
+		<cfargument name="viewRecordAction"        type="string"  required="false" default=""     />
+		<cfargument name="addAnotherAction"        type="string"  required="false" default=""     />
+		<cfargument name="successAction"           type="string"  required="false" default=""     />
+		<cfargument name="redirectOnSuccess"       type="boolean" required="false" default="true" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionKeys"          type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			var formData         = event.getCollectionForForm( arguments.formName );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
 			var validationResult = "";
@@ -1736,7 +1742,7 @@
 
 			formData[ arguments.relationshipKey ] = arguments.parentId;
 
-			validationResult = validateForm( formName=arguments.formName, formData=formData );
+			validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1780,15 +1786,18 @@
 	</cffunction>
 
 	<cffunction name="_quickAddRecordAction" access="public" returntype="void" output="false">
-		<cfargument name="event"    type="any"    required="true" />
-		<cfargument name="rc"       type="struct" required="true" />
-		<cfargument name="prc"      type="struct" required="true" />
-		<cfargument name="object"   type="string" required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="formName" type="string" required="false" default="preside-objects.#arguments.object#.admin.quickadd" />
+		<cfargument name="event"                   type="any"    required="true" />
+		<cfargument name="rc"                      type="struct" required="true" />
+		<cfargument name="prc"                     type="struct" required="true" />
+		<cfargument name="object"                  type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName"                type="string" required="false" default="preside-objects.#arguments.object#.admin.quickadd" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionKeys"          type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			var formData         = event.getCollectionForForm( arguments.formName );
-			var validationResult = validateForm( formName=arguments.formName, formData=formData );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
+			var validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 
 			if ( validationResult.validated() ) {
 				var obj = presideObjectService.getObject( object );
@@ -1886,33 +1895,36 @@
 	</cffunction>
 
 	<cffunction name="_editRecordAction" access="private" returntype="void" output="false">
-		<cfargument name="event"             type="any"     required="true" />
-		<cfargument name="rc"                type="struct"  required="true" />
-		<cfargument name="prc"               type="struct"  required="true" />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="recordId"          type="string"  required="false" default="#( rc.id     ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.editRecord", querystring="object=#arguments.object#&id=#arguments.recordId#" ) )#" />
-		<cfargument name="missingUrl"        type="string"  required="false" default="#event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" )#" />
-		<cfargument name="successAction"     type="string"  required="false" default="" />
-		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
-		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
-		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="" />
-		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
-		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
-		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
-		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
-		<cfargument name="validationResult"  type="any"     required="false" />
+		<cfargument name="event"                   type="any"     required="true" />
+		<cfargument name="rc"                      type="struct"  required="true" />
+		<cfargument name="prc"                     type="struct"  required="true" />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="recordId"                type="string"  required="false" default="#( rc.id     ?: '' )#" />
+		<cfargument name="errorAction"             type="string"  required="false" default="" />
+		<cfargument name="errorUrl"                type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.editRecord", querystring="object=#arguments.object#&id=#arguments.recordId#" ) )#" />
+		<cfargument name="missingUrl"              type="string"  required="false" default="#event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" )#" />
+		<cfargument name="successAction"           type="string"  required="false" default="" />
+		<cfargument name="successUrl"              type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
+		<cfargument name="redirectOnSuccess"       type="boolean" required="false" default="true" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#object#.admin.edit" />
+		<cfargument name="mergeWithFormName"       type="string"  required="false" default="" />
+		<cfargument name="audit"                   type="boolean" required="false" default="false" />
+		<cfargument name="auditAction"             type="string"  required="false" default="" />
+		<cfargument name="auditType"               type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"           type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"              type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"            type="boolean" required="false" default="false" />
+		<cfargument name="validationResult"        type="any"     required="false" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionKeys"          type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
+			arguments.formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
 
 			var id               = rc.id      ?: "";
 			var version          = rc.version ?: "";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var obj              = "";
 			var validationResult = "";
@@ -1928,7 +1940,7 @@
 			}
 
 			formData.id = id;
-			validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ) );
+			validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1995,20 +2007,23 @@
 	</cffunction>
 
 	<cffunction name="_quickEditRecordAction" access="private" returntype="void" output="false">
-		<cfargument name="event"             type="any"     required="true" />
-		<cfargument name="rc"                type="struct"  required="true" />
-		<cfargument name="prc"               type="struct"  required="true" />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.quickedit" />
+		<cfargument name="event"                   type="any"     required="true" />
+		<cfargument name="rc"                      type="struct"  required="true" />
+		<cfargument name="prc"                     type="struct"  required="true" />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#arguments.object#.admin.quickedit" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionKeys"          type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
 			var id               = rc.id      ?: "";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 			var validationResult = "";
 
-			if ( presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+			if ( presideObjectService.dataExists( objectName=arguments.object, filter={ id=id } ) ) {
 				formData.id = id;
-				validationResult = validateForm( formName=formName, formData=formData );
+				validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionKeys=arguments.permissionKeys );
 
 				if ( validationResult.validated() ) {
 					presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );

@@ -144,14 +144,19 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return collection;
 	}
 
-	public struct function getCollectionForForm( string formName="" ) output=false {
+	public struct function getCollectionForForm(
+		  string  formName                = ""
+		, boolean stripPermissionedFields = true
+		, string  permissionContext       = ""
+		, array   permissionKeys          = []
+	) output=false {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
 		var rc           = getRequestContext().getCollection();
 		var collection   = {};
 
 		for( var name in formNames ) {
-			var formFields = formsService.listFields( name );
+			var formFields = formsService.listFields( argumentCollection=arguments, formName=name );
 			for( var field in formFields ){
 				collection[ field ] = ( rc[ field ] ?: "" );
 			}
