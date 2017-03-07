@@ -18,7 +18,7 @@ Forms are defined using xml files that live under a `/forms` directory. A typica
             <field binding="my_obj.another_field" sortorder="20" />
         </fieldset>
     </tab>
-    <tab id="advanced" sortorder="20">
+    <tab id="advanced" sortorder="20" permissionkey="advancedsettings.edit">
         <fieldset id="advanced" sortorder="10">
             <field binding="my_obj.advanced_option" sortorder="10" />
         </fieldset>
@@ -57,6 +57,7 @@ var formData = event.getCollectionForForm( "eventsmanager.create.event" );
 * [[presideforms-merging]]
 * [[presideforms-dynamic]]
 * [[presideforms-features]]
+* [[presideforms-permissioning]]
 * [[systemforms|Reference: System form definitions]]
 * [[systemformcontrols|Reference: System form controls]]
 
