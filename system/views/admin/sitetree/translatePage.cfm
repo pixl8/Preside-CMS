@@ -50,12 +50,15 @@
 		<input type="hidden" name="language" value="#currentLanguageId#" />
 
 		#renderForm(
-			  formName          = prc.mainFormName ?: ""
-			, mergeWithFormName = prc.mergeFormName ?: ""
-			, context           = "admin"
-			, formId            = formId
-			, savedData         = prc.savedTranslation ?: {}
-			, validationResult  = rc.validationResult ?: ""
+			  formName                = prc.mainFormName ?: ""
+			, mergeWithFormName       = prc.mergeFormName ?: ""
+			, context                 = "admin"
+			, formId                  = formId
+			, savedData               = prc.savedTranslation ?: {}
+			, validationResult        = rc.validationResult ?: ""
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionKeys          = ( prc.pagePermissionContext ?: [] )
 		)#
 
 		<div class="form-actions row">
