@@ -24,7 +24,7 @@
 			, validationResult        = validationResult
 			, stripPermissionedFields = true
 			, permissionContext       = "page"
-			, permissionKeys          = ( prc.pagePermissionContext ?: [] )
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
 
 		<div class="form-actions row">
