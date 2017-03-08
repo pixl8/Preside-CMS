@@ -1,8 +1,11 @@
 <cfscript>
-	param name="args.objectName"            type="string"  default=( rc.object ?: '' );
-	param name="args.formName"              type="string"  default=( rc.formName ?: '' );
-	param name="args.validationResult"      type="any"     default=( rc.validationResult ?: '' );
-	param name="args.savedData"             type="struct"  default={};
+	param name="args.objectName"              type="string"  default=( rc.object ?: '' );
+	param name="args.formName"                type="string"  default=( rc.formName ?: '' );
+	param name="args.validationResult"        type="any"     default=( rc.validationResult ?: '' );
+	param name="args.savedData"               type="struct"  default={};
+	param name="args.stripPermissionedFields" type="boolean" default=true;
+	param name="args.permissionContext"       type="string"  default=args.objectName;
+	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
 
 	formId   = "addForm-" & CreateUUId();
 	formName = len( args.formName ) ? args.formName : "preside-objects.#args.objectName#.admin.quickadd";
@@ -23,11 +26,14 @@
 		</cfif>
 
 		#renderForm(
-			  formName         = formName
-			, context          = "admin"
-			, formId           = formId
-			, validationResult = args.validationResult
-			, savedData        = args.savedData
+			  formName                = formName
+			, context                 = "admin"
+			, formId                  = formId
+			, validationResult        = args.validationResult
+			, savedData               = args.savedData
+			, stripPermissionedFields = args.stripPermissionedFields
+			, permissionContext       = args.permissionContext
+			, permissionContextKeys   = args.permissionContextKeys
 		)#
 	</form>
 </cfoutput>

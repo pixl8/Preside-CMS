@@ -28,11 +28,14 @@
 		<input type="hidden" name="page_type"   value="#( rc.page_type   ?: '')#" />
 
 		#renderForm(
-			  formName          = mainFormName
-			, mergeWithFormName = mergeFormName
-			, context           = "admin"
-			, formId            = formId
-			, validationResult  = validationResult
+			  formName                = mainFormName
+			, mergeWithFormName       = mergeFormName
+			, context                 = "admin"
+			, formId                  = formId
+			, validationResult        = validationResult
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
 
 		<div class="form-actions row">
