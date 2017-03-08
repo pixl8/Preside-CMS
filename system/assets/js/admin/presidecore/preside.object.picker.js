@@ -60,8 +60,6 @@
 					}
 				};
 
-			this.quickAddIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
-
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.uberSelect.isSearchable() && this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.uberSelect.search_field.attr( "tabindex" ) );
@@ -70,6 +68,8 @@
 			}
 
 			this.$quickAddButton.on( "click", function( e ) {
+				var filters = presideObjectPicker.getFiltersForQuickAdd();
+				presideObjectPicker.quickAddIframeModal = new PresideIframeModal( iframeSrc + filters, "100%", "100%", callbacks, modalOptions );
 				presideObjectPicker.quickAddIframeModal.open();
 			} );
 
@@ -186,6 +186,20 @@
 
 		PresideObjectPicker.prototype.getQuickEditIFrame = function(){
 			return this.quickEditIframe;
+		};
+
+		PresideObjectPicker.prototype.getFiltersForQuickAdd = function(){
+			var filterBy        = this.$originalInput.data( 'filterBy' )
+			  , filterByField   = this.$originalInput.data( 'filterByField' ) || filterBy
+			  , $filterField    = $( 'input[name="' + filterBy + '"]' )
+			  , filterByValue   = $filterField.val()
+			  , filters         = [];
+
+			if ( typeof filterByValue !== 'undefined' ) {
+				filters.push ( '&', filterByField, '=', filterByValue, '&filterByFields=', filterByField );
+			}
+
+			return filters.join( '' );
 		};
 
 		return PresideObjectPicker;
