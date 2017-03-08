@@ -15,7 +15,7 @@
 
 		PresideObjectPicker.prototype.setupUberSelect = function(){
 			this.$originalInput.uberSelect({
-				  allow_single_deselect  : true
+				  allow_single_deselect  : !this.$originalInput.hasClass( 'non-deselectable' )
 				, inherit_select_classes : true
 				, searchable             : !this.$originalInput.hasClass( 'non-searchable' )
 			});

@@ -12,6 +12,7 @@
 	prefetchUrl             = args.prefetchUrl      ?: "";
 	records                 = args.records          ?: QueryNew('');
 	searchable              = args.searchable       ?: true;
+	deselectable            = args.deselectable     ?: true;
 	multiple                = args.multiple         ?: false;
 	extraClasses            = args.extraClasses     ?: "";
 	resultTemplate          = args.resultTemplate   ?: "{{text}}";
@@ -54,6 +55,9 @@
 
 	if ( !searchable ) {
 		extraClasses = ListAppend( extraClasses, "non-searchable", " " );
+	}
+	if ( !deselectable ) {
+		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
 	}
 
 	filterBy      = args.filterBy      ?: "";
