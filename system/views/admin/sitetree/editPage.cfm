@@ -158,13 +158,18 @@
 		<input type="hidden" name="id" value="#event.getValue( name='id', defaultValue='' )#" />
 
 		#renderForm(
-			  formName          = mainFormName
-			, mergeWithFormName = mergeFormName
-			, context           = "admin"
-			, formId            = formId
-			, savedData         = page
-			, validationResult  = validationResult
+			  formName                = mainFormName
+			, mergeWithFormName       = mergeFormName
+			, context                 = "admin"
+			, formId                  = formId
+			, savedData               = page
+			, validationResult        = validationResult
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
+
+
 
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
