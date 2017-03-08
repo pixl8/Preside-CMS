@@ -9,6 +9,8 @@ component {
 		var ajax          = args.ajax          ?: true;
 		var savedFilters  = args.objectFilters ?: "";
 		var orderBy       = args.orderBy       ?: "label";
+		var filterBy      = args.filterBy      ?: "";
+		var filterByField = args.filterByField ?: filterBy;
 		var savedData     = args.savedData     ?: {};
 
 		if ( IsBoolean( ajax ) && ajax ) {
@@ -25,10 +27,23 @@ component {
 				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&q=%QUERY"
 			);
 		} else {
+			var filter = {};
+			var i      = 0;
+			filterBy      = listToArray( filterBy );
+			filterByField = listToArray( filterByField );
+			
+			for( var key in filterBy ) {
+				i++;
+				if ( structKeyExists( savedData, key ) ) {
+					filter[ filterByField[ i ] ] = savedData[ key ];
+				}
+			}
+
 			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
 				  objectName   = targetObject
 				, selectFields = [ "#targetObject#.id", "${labelfield} as label" ]
 				, orderBy      = orderBy
+				, filter       = filter
 				, savedFilters = ListToArray( savedFilters )
 			);
 		}
