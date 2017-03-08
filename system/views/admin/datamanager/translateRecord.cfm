@@ -24,7 +24,9 @@
 	canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
 	canPublish    = IsTrue( prc.canPublish    ?: "" );
 
-
+	stripPermissionedFields = IsTrue( prc.stripPermissionedFields ?: true );
+	permissionContext       = prc.permissionContext       ?: object;
+	permissionContextKeys   = prc.permissionContextKeys   ?: [];
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -69,11 +71,14 @@
 		</cfif>
 
 		#renderForm(
-			  formName           = formName
-			, context            = "admin"
-			, formId             = formId
-			, savedData          = prc.record ?: {}
-			, validationResult   = rc.validationResult ?: ""
+			  formName                = formName
+			, context                 = "admin"
+			, formId                  = formId
+			, savedData               = prc.record ?: {}
+			, validationResult        = rc.validationResult ?: ""
+			, stripPermissionedFields = stripPermissionedFields
+			, permissionContext       = permissionContext
+			, permissionContextKeys   = permissionContextKeys
 		)#
 
 		<div class="col-md-offset-2">
