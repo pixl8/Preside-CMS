@@ -5,10 +5,11 @@ component {
 
 	public string function index( event, rc, prc, args={} ) {
 
-		var targetObject       = args.object        ?: "";
-		var ajax               = args.ajax          ?: true;
-		var savedFilters       = args.objectFilters ?: "";
-		var orderBy            = args.orderBy       ?: "label";
+		var targetObject  = args.object        ?: "";
+		var ajax          = args.ajax          ?: true;
+		var savedFilters  = args.objectFilters ?: "";
+		var orderBy       = args.orderBy       ?: "label";
+		var savedData     = args.savedData     ?: {};
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {

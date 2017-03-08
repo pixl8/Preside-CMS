@@ -25,6 +25,8 @@
 	param name="args.editRecordLabel"   type="string"  default=translateResource( uri="cms:datamanager.savechanges.btn"        , data=[ objectTitleSingular ] );
 	param name="args.publishLabel"      type="string"  default=translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ objectTitleSingular ] );
 	param name="args.saveDraftLabel"    type="string"  default=translateResource( uri="cms:datamanager.edit.record.draft.btn"  , data=[ objectTitleSingular ] );
+
+	args.record.append( args.hiddenFields, false );
 </cfscript>
 
 <cfoutput>
