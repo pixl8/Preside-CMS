@@ -113,7 +113,7 @@ component displayName="Forms service" {
 				theForm = getDefaultFormForPresideObject( objectName );
 			} else {
 				throw(
-					  type = "FormsService.MissingForm"
+					  type    = "FormsService.MissingForm"
 					, message = "The form, [#arguments.formName#], could not be found"
 				);
 			}
@@ -192,7 +192,7 @@ component displayName="Forms service" {
 	 */
 	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[] ) {
 		var frm            = getForm( argumentCollection=arguments );
-		var ignoreControls = [ "readonly", "oneToManyManager" ]
+		var ignoreControls = [ "readonly", "oneToManyManager" ];
 		var fields         = [];
 
 
@@ -685,7 +685,7 @@ component displayName="Forms service" {
 	}
 
 	/**
-	 * Takes a form defintion (struct) and removes all the tabs, fieldsets and fields
+	 * Takes a form definition (struct) and removes all the tabs, fieldsets and fields
 	 * to which the currently logged in admin user does not have permission to edit.
 	 * Returns a new structure with the potentially removed elements.
 	 *
@@ -1022,7 +1022,7 @@ component displayName="Forms service" {
 		  required string  formName
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = ""
-		,          array   permissionContextKeys          = []
+		,          array   permissionContextKeys   = []
 	) {
 		var objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
 		var rulesetName = "";

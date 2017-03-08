@@ -347,7 +347,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var permContext     = CreateUUId();
 				var permContextKeys = [ CreateUUId() ];
 				var formName        = "test.form";
-				var realDefinition  = formsSvc.getForm( formName )
+				var realDefinition  = formsSvc.getForm( formName );
 
 				formsSvc.$( "removePermissionedFieldsFromFormDefinition" ).$args(
 					  formDefinition        = realDefinition
