@@ -12,27 +12,27 @@ component output=false {
 		var assetId         = rc.assetId      ?: "";
 		var versionId       = rc.versionId    ?: "";
 		var derivativeName  = rc.derivativeId ?: "";
-		var isTrashed       = IsTrue( rc.isTrashed ) ?: "";
+		var isTrashed       = IsTrue( rc.isTrashed ?: "" );
 		var asset           = "";
-		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
+		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ), "asset.is_trashed" ];
 
-		if ( Len( Trim( derivativeName ) ) ) {
-			try {
+		try {
+			if ( Len( Trim( derivativeName ) ) ) {
 				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
-			} catch ( "AssetManager.assetNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "AssetManager.versionNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "storageProvider.objectNotFound" e ) {
-				asset = QueryNew('');
+			} elseif( Len( Trim( versionId ) ) ) {
+				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
+			} else {
+				asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
 			}
-		} elseif( Len( Trim( versionId ) ) ) {
-			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
-		} else {
-			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
+		} catch ( "AssetManager.assetNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "AssetManager.versionNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "storageProvider.objectNotFound" e ) {
+			asset = QueryNew('');
 		}
 
-		if ( asset.recordCount ) {
+		if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
 			var assetBinary = "";
 			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
 			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
