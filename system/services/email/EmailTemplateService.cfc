@@ -536,10 +536,11 @@ component {
 	 */
 	public array function listDueOneTimeScheduleTemplates() {
 		var records = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "id" ]
-			, filter       = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
-			, extraFilters = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=_getNow() } } ]
-			, orderBy      = "schedule_date"
+			  selectFields       = [ "id" ]
+			, filter             = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
+			, extraFilters       = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=_getNow() } } ]
+			, orderBy            = "schedule_date"
+			, allowDraftVersions = false
 		);
 
 		return records.recordCount ? ValueArray( records.id ) : [];

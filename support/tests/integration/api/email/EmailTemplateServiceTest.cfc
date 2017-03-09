@@ -1121,10 +1121,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "_getNow", nowish );
 				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "id" ]
-					, filter       = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
-					, extraFilters = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=nowish } } ]
-					, orderby      = "schedule_date"
+					  selectFields       = [ "id" ]
+					, filter             = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
+					, extraFilters       = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=nowish } } ]
+					, orderby            = "schedule_date"
+					, allowDraftVersions = false
 				).$results( templateRecords );
 
 				expect( service.listDueOneTimeScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );
@@ -1139,10 +1140,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "_getNow", nowish );
 				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "id" ]
-					, filter       = { sending_method="scheduled", schedule_type="repeat" }
-					, extraFilters = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=nowish } } ]
-					, orderby      = "schedule_next_send_date"
+					  selectFields       = [ "id" ]
+					, filter             = { sending_method="scheduled", schedule_type="repeat" }
+					, extraFilters       = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=nowish } } ]
+					, orderby            = "schedule_next_send_date"
+					, allowDraftVersions = false
 				).$results( templateRecords );
 
 				expect( service.listDueRepeatedScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );
