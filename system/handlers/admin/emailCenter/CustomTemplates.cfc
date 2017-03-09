@@ -458,10 +458,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( template.count() ) {
 			args.canSend       = template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.scheduleType  = template.schedule_type ?: "";
+			args.nextSendDate  = template.schedule_next_send_date ?: "";
 			args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
 			args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
 
-			if ( args.canSend || args.canDelete || args.canToggleLock ) {
+			if ( args.canSend || args.canDelete || args.canToggleLock || args.scheduleType == "repeat" ) {
 				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
 			}
 		}
