@@ -24,6 +24,7 @@ script:
 
 notifications:
   email: false
+  webhooks: https://pixl8-preside-cms.getbadges.io/api/app/webhook/706b9f2f-93d8-4948-b279-ebfbaea9a7a8
   slack:
     secure: GOg8gziksTpVHkAUPUlcMngYkz4Z1Ro9ou/dUzDS6yC2TTYX2lzfyhYonZElyT/01bnMB8liR+NUx7d+Q6ozt56OODLfKz/mpNsxWhaCFivcD+shN+TYhzKM8DTVRGFxZjTXhC7mxQiPLMl/CtcJtYhkTlYLvlx+V4DmD/TiPCQ=
 
