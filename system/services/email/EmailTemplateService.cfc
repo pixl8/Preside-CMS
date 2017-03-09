@@ -553,10 +553,11 @@ component {
 	 */
 	public array function listDueRepeatedScheduleTemplates() {
 		var records = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "id" ]
-			, filter       = { sending_method="scheduled", schedule_type="repeat" }
-			, extraFilters = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=_getNow() } } ]
-			, orderBy      = "schedule_next_send_date"
+			  selectFields       = [ "id" ]
+			, filter             = { sending_method="scheduled", schedule_type="repeat" }
+			, extraFilters       = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=_getNow() } } ]
+			, orderBy            = "schedule_next_send_date"
+			, allowDraftVersions = false
 		);
 
 		return records.recordCount ? ValueArray( records.id ) : [];
