@@ -30,11 +30,12 @@
 			  , objectTitle         = tableSettings.objectTitle    || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
 			  , allowSearch         = tableSettings.allowSearch    || cfrequest.allowSearch
 			  , allowFilter         = tableSettings.allowFilter    || cfrequest.allowFilter
+			  , favouritesUrl       = tableSettings.favouritesUrl  || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
-			  , enabledContextHotkeys;
+			  , enabledContextHotkeys, refreshFavourites;
 
 			setupDatatable = function(){
 				var $tableHeaders        = $listingTable.find( 'thead > tr > th')
@@ -328,6 +329,18 @@
 				}
 			};
 
+			refreshFavourites = function(){
+				$.ajax({
+					  url     : favouritesUrl
+					, cache   : false
+					, success : function( resp ) {
+						$favouritesDiv.fadeOut( 200, function(){
+							$favouritesDiv.html( resp ).fadeIn( 200 );
+						} )
+					  }
+				});
+			};
+
 			getFavourite = function() {
 				if ( $favouritesDiv.length ) {
 					var $active = $favouritesDiv.find( ".filter.active:first" );
@@ -398,6 +411,7 @@
 				$filterDiv.fadeOut( 100, function(){
 					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
 					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
+					refreshFavourites();
 					datatable.fnDraw();
 					$searchContainer.fadeIn( 100 );
 				} );
