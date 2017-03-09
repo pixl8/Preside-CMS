@@ -24,6 +24,20 @@ component extends="testbox.system.BaseSpec" {
 
 	 			expect( tasks ).toBe( expected );
 			} );
+
+			it( "should filter tasks by exclusivity group when passed", function(){
+				var tasks = {
+					  dothis          = { handler="sometask"             , frequency="*/10 * * * *", exclusivityGroup="test1" }
+					, doSomethingElse = { handler="anothertask.something", frequency="43 2 * * *"  , exclusivityGroup="test2" }
+				};
+	 			var tm       = _getTaskManagerService( tasks );
+	 			var expected = [ "doSomethingElse" ];
+	 			var tasks    = tm.listTasks( exclusivityGroup="test2" );
+
+	 			tasks.sort( "textnocase" );
+
+	 			expect( tasks ).toBe( expected );
+			} );
 		} );
 
 		describe( "getTask()", function(){
@@ -574,20 +588,27 @@ component extends="testbox.system.BaseSpec" {
 		} );
 
 		describe( "getRunnableTasks()", function(){
-			it( "should return an array of all the tasks that require running based on their database status", function(){
-				var tm             = _getTaskManagerService();
-				var dummyRecordset = QueryNew( "task_key", "varchar", [["task_1"], ["task_2"],["task_3"] ]);
-				var tasks          = [ "task_1", "task_2", "task_3" ];
+			it( "should return an array of all the tasks that require running based on their database status, taking mutual exclusivity into account", function(){
+				var tm             = _getTaskManagerService({
+					  task_1 = { exclusivityGroup="test" }
+					, task_2 = { exclusivityGroup="none" }
+					, task_3 = { exclusivityGroup="group" }
+					, task_4 = { exclusivityGroup="group" }
+					, task_5 = { exclusivityGroup="test" }
+				});
+				var dummyRecordset = QueryNew( "task_key", "varchar", [["task_1"], ["task_2"],["task_3"], ["task_4"] ]);
+				var tasks          = [ "task_2", "task_3" ];
 				var rightNow       = Now();
 
 				tm.$( "_getOperationDate", rightNow );
+				tm.$( "tasksAreRunning" ).$args( "test" ).$results( true );
+				tm.$( "tasksAreRunning" ).$args( "group" ).$results( false );
 
 				mockTaskDao.$( "selectData" ).$args(
 					  selectFields = [ "task_key" ]
 					, filter       = "enabled = :enabled and is_running = :is_running and next_run < :next_run"
 					, filterParams = { enabled=true, is_running=false, next_run=rightNow }
 					, orderBy      = "priority desc"
-					, maxRows      = 1
 				).$results( dummyRecordset );
 
 				expect( tm.getRunnableTasks() ).toBe( tasks );
