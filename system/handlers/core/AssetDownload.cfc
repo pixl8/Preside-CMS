@@ -12,35 +12,35 @@ component output=false {
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
-		var isTrashed         = IsTrue( rc.isTrashed ) ?: "";
+		var isTrashed         = IsTrue( rc.isTrashed ?: "" );
 		var asset             = "";
-		var assetSelectFields = [ "asset.title" ];
+		var assetSelectFields = [ "asset.title", "asset.is_trashed" ];
 		var passwordProtected = false;
 
-		if ( Len( Trim( derivativeName ) ) ) {
-			arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
+		try {
+			if ( Len( Trim( derivativeName ) ) ) {
+				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
 
-			try {
 				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
-			} catch ( "AssetManager.assetNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "AssetManager.versionNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "storageProvider.objectNotFound" e ) {
-				asset = QueryNew('');
-			} catch( "AssetManager.Password error" e ){
-				asset = QueryNew('');
-				passwordProtected = true;
+			} else if( Len( Trim( versionId ) ) ) {
+				arrayAppend( assetSelectFields , "asset_version.asset_type" );
+				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
+			} else {
+				arrayAppend( assetSelectFields , "asset.asset_type" );
+				asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
 			}
-		} else if( Len( Trim( versionId ) ) ) {
-			arrayAppend( assetSelectFields , "asset_version.asset_type" );
-			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
-		} else {
-			arrayAppend( assetSelectFields , "asset.asset_type" );
-			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
+		} catch ( "AssetManager.assetNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "AssetManager.versionNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "storageProvider.objectNotFound" e ) {
+			asset = QueryNew('');
+		} catch( "AssetManager.Password error" e ){
+			asset = QueryNew('');
+			passwordProtected = true;
 		}
 
-		if ( asset.recordCount ) {
+		if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
 			var assetBinary = "";
 			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
 			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
