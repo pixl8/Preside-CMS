@@ -40,53 +40,55 @@ component output=false {
 			passwordProtected = true;
 		}
 
-		if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
-			var assetBinary = "";
-			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
-			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
-			_doBrowserEtagLookup( etag );
+		try {
+			if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
+				var assetBinary = "";
+				var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
+				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
+				_doBrowserEtagLookup( etag );
 
-			if ( Len( Trim( derivativeName ) ) ) {
-				assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
-			} else {
-				assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
+				if ( Len( Trim( derivativeName ) ) ) {
+					assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
+				} else {
+					assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
+				}
+
+				announceInterception( "onDownloadAsset", {
+					  assetId        = assetId
+					, derivativeName = derivativeName
+					, asset          = asset
+				} );
+
+				var filename = _getFilenameForAsset( asset.title, type.extension );
+				if ( type.serveAsAttachment ) {
+					websiteUserActionService.recordAction(
+						  action     = "download"
+						, type       = "asset"
+						, userId     = getLoggedInUserId()
+						, identifier = assetId
+					);
+					header name="Content-Disposition" value="attachment; filename=""#filename#""";
+				} else {
+					header name="Content-Disposition" value="inline; filename=""#filename#""";
+				}
+
+				header name="etag" value=etag;
+				header name="cache-control" value="max-age=31536000";
+				content
+					reset    = true
+					variable = assetBinary
+					type     = type.mimeType;
+				abort;
+			} else if( passwordProtected ){
+				assetBinary = fileReadBinary(event.buildLink( systemStaticAsset = "/images/asset-type-icons/48px/locked-pdf.png" ));
+				header name="Content-Disposition" value="inline; filename=""ProctedPDF""";
+				content
+					reset    = true
+					variable = assetBinary
+					type     = 'png';
+				abort;
 			}
-
-			announceInterception( "onDownloadAsset", {
-				  assetId        = assetId
-				, derivativeName = derivativeName
-				, asset          = asset
-			} );
-
-			var filename = _getFilenameForAsset( asset.title, type.extension );
-			if ( type.serveAsAttachment ) {
-				websiteUserActionService.recordAction(
-					  action     = "download"
-					, type       = "asset"
-					, userId     = getLoggedInUserId()
-					, identifier = assetId
-				);
-				header name="Content-Disposition" value="attachment; filename=""#filename#""";
-			} else {
-				header name="Content-Disposition" value="inline; filename=""#filename#""";
-			}
-
-			header name="etag" value=etag;
-			header name="cache-control" value="max-age=31536000";
-			content
-				reset    = true
-				variable = assetBinary
-				type     = type.mimeType;
-			abort;
-		} else if( passwordProtected ){
-			assetBinary = fileReadBinary(event.buildLink( systemStaticAsset = "/images/asset-type-icons/48px/locked-pdf.png" ));
-			header name="Content-Disposition" value="inline; filename=""ProctedPDF""";
-			content
-				reset    = true
-				variable = assetBinary
-				type     = 'png';
-			abort;
-		}
+		} catch ( "storageProvider.objectNotFound" e ) {}
 
 		event.renderData( data="404 not found", type="text", statusCode=404 );
 
