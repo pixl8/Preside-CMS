@@ -20,8 +20,8 @@
 			  , showFilters
 			  , showSimpleSearch
 			  , dtSettings
-			  , getFavourite
-			  , setFavourite
+			  , getFavourites
+			  , setFavourites
 			  , object              = tableSettings.objectName     || cfrequest.objectName     || ""
 			  , datasourceUrl       = tableSettings.datasourceUrl  || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 			  , isMultilingual      = tableSettings.isMultilingual || cfrequest.isMultilingual || false
@@ -183,9 +183,9 @@
 					fnServerParams : function( aoData ) {
 						if ( allowFilter ) {
 							aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
-							var favourite = getFavourite();
-							if ( favourite && favourite.length ) {
-								aoData.push( { "name": "sSavedFilterExpressions", "value": favourite } );
+							var favourites = getFavourites();
+							if ( favourites && favourites.length ) {
+								aoData.push( { "name": "sSavedFilterExpressions", "value": favourites } );
 							} else {
 								aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
 							}
@@ -194,9 +194,9 @@
 					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
 						if ( allowFilter ) {
 							oData.oFilter = {
-								  filter    : $filterDiv.find( "[name=filter]" ).val()
-								, filters   : $filterDiv.find( "[name=filters]" ).val()
-								, favourite : getFavourite()
+								  filter     : $filterDiv.find( "[name=filter]" ).val()
+								, filters    : $filterDiv.find( "[name=filters]" ).val()
+								, favourites : getFavourites()
 							};
 						}
 
@@ -291,7 +291,6 @@
 						var $filter = $( this )
 						  , $otherFilters = $filter.siblings( ".filter" );
 
-						$otherFilters.removeClass( "active" );
 						$filter.toggleClass( "active" ).find( ":focus" ).blur();
 
 						datatable.fnDraw();
@@ -323,8 +322,8 @@
 				if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
 					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
 						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
-					} else if ( settings.oLoadedState.oFilter.favourite && settings.oLoadedState.oFilter.favourite.length ) {
-						setFavourite( settings.oLoadedState.oFilter.favourite );
+					} else if ( settings.oLoadedState.oFilter.favourites && settings.oLoadedState.oFilter.favourites.length ) {
+						setFavourites( settings.oLoadedState.oFilter.favourites );
 					}
 				}
 			};
@@ -341,22 +340,29 @@
 				});
 			};
 
-			getFavourite = function() {
+			getFavourites = function() {
 				if ( $favouritesDiv.length ) {
-					var $active = $favouritesDiv.find( ".filter.active:first" );
-					if ( $active.length ) {
-						return $active.data( "filterId" );
-					}
+					var favourites = [];
+
+					$favouritesDiv.find( ".filter.active" ).each( function(){
+						favourites.push( $( this ).data( "filterId" ) );
+					} );
+
+					return favourites.join( "," );
 				}
 
 				return "";
 			};
 
-			setFavourite = function( id ) {
+			setFavourites = function( ids ) {
+				var i;
+
 				if ( $favouritesDiv.length ) {
+					ids = ids.split( "," );
 					$favouritesDiv.find( ".filter" ).removeClass( "active" );
-					if ( id.length ) {
-						$favouritesDiv.find( ".filter[ data-filter-id='" + id + "' ]" ).addClass( "active" );
+
+					for( i=0; i<ids.length; i++ ) {
+						$favouritesDiv.find( ".filter[ data-filter-id='" + ids[i] + "' ]" ).addClass( "active" );
 					}
 				}
 			};
@@ -398,7 +404,7 @@
 				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
 				$searchContainer.fadeOut( 100, function(){
 					$searchContainer.find( "input.data-table-search" ).val( "" );
-					setFavourite( "" );
+					setFavourites( "" );
 					datatable.fnFilter("");
 					$filterDiv.fadeIn( 100 );
 				} );
