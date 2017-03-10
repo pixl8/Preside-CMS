@@ -118,8 +118,9 @@
 	} );
 	for( i=1; i < $tableHeaders.length-1; i++ ){
 		colConfig.push( {
-			  mData  : $( $tableHeaders.get(i) ).data( 'field' )
-			, sWidth : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
+			  mData     : $( $tableHeaders.get(i) ).data( 'field' )
+			, sWidth    : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
+			, bSortable : true
 		} );
 	}
 	colConfig.push( {
@@ -137,11 +138,11 @@
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
 		processing    : true,
-		bStateSave    : false,
-		bPaginate     : false,
-		bLengthChange : false,
+		bStateSave    : true,
+		bPaginate     : true,
+		bLengthChange : true,
 		aaSorting     : [],
-		sDom          : "t",
+		sDom          : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
