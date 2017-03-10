@@ -70,7 +70,7 @@
 					</div>
 				</div>
 
-				<div id="quick-filter-form" class="in">
+				<div id="quick-filter-form" class="in clearfix">
 					#renderFormControl(
 						  name      = "filter"
 						, id        = "filter"
