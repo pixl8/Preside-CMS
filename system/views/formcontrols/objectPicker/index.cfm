@@ -15,8 +15,10 @@
 	deselectable            = args.deselectable     ?: true;
 	multiple                = args.multiple         ?: false;
 	extraClasses            = args.extraClasses     ?: "";
-	resultTemplate          = args.resultTemplate   ?: "{{text}}";
-	selectedTemplate        = args.selectedTemplate ?: "{{text}}";
+	labelRenderer           = args.labelRenderer    ?: "";
+	defaultTemplate         = len( labelRenderer ) ? "{{{text}}}" : "{{text}}";
+	resultTemplate          = args.resultTemplate   ?: defaultTemplate;
+	selectedTemplate        = args.selectedTemplate ?: defaultTemplate;
 	disabled                = isBoolean( args.disabled ?: "" ) && args.disabled;
 	disabledValues          = args.disabledValues   ?: "";
 	quickAdd                = args.quickAdd         ?: false;
@@ -116,7 +118,9 @@
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<option>#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
 			<cfloop query="records">
-				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#HtmlEditFormat( records.label )#</option>
+				<cfset labelArgs=queryRowToStruct( records, records.currentRow ) />
+				<cfset labelArgs.labelRenderer = labelRenderer />
+				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#renderViewlet( event="admin.Labels.render", args=labelArgs )#</option>
 			</cfloop>
 		</cfif>
 	</select>

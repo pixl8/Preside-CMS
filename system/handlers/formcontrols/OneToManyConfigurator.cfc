@@ -11,7 +11,8 @@ component {
 		var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( targetObject );
 		var hasSortOrder  = presideObjectService.getObjectProperties( targetObject ).keyExists( "sort_order" );
 		var orderBy       = hasSortOrder ? "sort_order" : "";
-		var labelFields   = labelRendererService.getSelectFieldsForLabel( targetObject );
+		var labelRenderer = args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
+		var labelFields   = labelRendererService.getSelectFieldsForLabel( labelRenderer );
 
 		if ( Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
 			var records       = presideObjectService.selectData(
@@ -29,7 +30,7 @@ component {
 				var item = {
 					  id       = record.id
 					, __fromDb = true
-					, __label  = labelRendererService.renderLabel( targetObject, record )
+					, __label  = labelRendererService.renderLabel( labelRenderer=labelRenderer, args=record )
 				};
 				args.savedValue.append( serializeJSON( item ) );
 			}
