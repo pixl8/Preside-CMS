@@ -10,13 +10,15 @@ component {
 	/**
 	 * @presideObjectService.inject PresideObjectService
 	 * @contentRenderer.inject      ContentRendererService
+	 * @labelRendererService.inject LabelRendererService
 	 * @i18nPlugin.inject           coldbox:plugin:i18n
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 */
-	public any function init( required any presideObjectService, required any contentRenderer, required any i18nPlugin, required any permissionService, required any siteService ) {
+	public any function init( required any presideObjectService, required any contentRenderer, required any labelRendererService, required any i18nPlugin, required any permissionService, required any siteService ) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
+		_setLabelRendererService( arguments.labelRendererService );
 		_setI18nPlugin( arguments.i18nPlugin );
 		_setPermissionService( arguments.permissionService );
 		_setSiteService( arguments.siteService );
@@ -352,13 +354,14 @@ component {
 
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName
-		,          array   ids          = []
-		,          array   selectFields = []
-		,          array   savedFilters = []
-		,          array   extraFilters = []
-		,          string  searchQuery  = ""
-		,          numeric maxRows      = 1000
-		,          string  orderBy      = "label"
+		,          array   ids           = []
+		,          array   selectFields  = []
+		,          array   savedFilters  = []
+		,          array   extraFilters  = []
+		,          string  searchQuery   = ""
+		,          numeric maxRows       = 1000
+		,          string  orderBy       = "label"
+		,          string  labelRenderer = ""
 	) {
 		var result = [];
 		var records = "";
@@ -370,8 +373,8 @@ component {
 			, maxRows      = arguments.maxRows
 			, orderBy      = arguments.orderBy
 		};
-		var transormResult = function( required struct result ) {
-			result.text = result.label;
+		var transformResult = function( required struct result, required string labelRenderer ) {
+			result.text = _getLabelRendererService().renderLabel( labelRenderer, result );
 			result.value = result.id;
 			result.delete( "label" );
 			result.delete( "id" );
@@ -381,12 +384,15 @@ component {
 		var labelField         = _getPresideOBjectService().getLabelField( arguments.objectName );
 		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
-
-		args.selectFields.delete( labelField );
-		args.selectFields.append( replacedLabelField );
-		args.selectFields.delete( "id" );
+		if ( len( arguments.labelRenderer ) ) {
+			args.selectFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+			args.orderBy      = _getLabelRendererService().getOrderByForLabels( arguments.labelRenderer, { orderBy=args.orderBy } );
+		} else {
+			args.selectFields.delete( labelField );
+			args.selectFields.append( replacedLabelField );
+			args.selectFields.delete( "id" );
+		}
 		args.selectFields.append( "#arguments.objectName#.#idField# as id" );
-
 
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
@@ -398,14 +404,14 @@ component {
 		records = _getPresideObjectService().selectData( argumentCollection = args );
 		if ( arguments.ids.len() ) {
 			var tmp = {};
-			for( var r in records ) { tmp[ r.id ] = transormResult( r ) };
+			for( var r in records ) { tmp[ r.id ] = transformResult( r, arguments.labelRenderer ) };
 			for( var id in arguments.ids ){
 				if ( tmp.keyExists( id ) ) {
 					result.append( tmp[id] );
 				}
 			}
 		} else {
-			for( var r in records ) { result.append( transormResult( r ) ); }
+			for( var r in records ) { result.append( transformResult( r, arguments.labelRenderer ) ); }
 		}
 
 		return result;
@@ -620,6 +626,13 @@ component {
 	}
 	private void function _setContentRenderer( required any contentRenderer ) {
 		_contentRenderer = arguments.contentRenderer;
+	}
+
+	private any function _getLabelRendererService() {
+		return _labelRendererService;
+	}
+	private void function _setLabelRendererService( required any labelRendererService ) {
+		_labelRendererService = arguments.labelRendererService;
 	}
 
 	private any function _getI18nPlugin() {

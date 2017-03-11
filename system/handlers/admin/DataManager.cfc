@@ -194,7 +194,8 @@
 			var objectName     = rc.object ?: "";
 			var extraFilters   = [];
 			var filterByFields = ListToArray( rc.filterByFields ?: "" );
-			var orderBy        = rc.orderBy ?: "label";
+			var orderBy        = rc.orderBy       ?: "label";
+			var labelRenderer  = rc.labelRenderer ?: "";
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
@@ -208,13 +209,14 @@
 			}
 
 			var records = dataManagerService.getRecordsForAjaxSelect(
-				  objectName   = rc.object  ?: ""
-				, maxRows      = rc.maxRows ?: 1000
-				, searchQuery  = rc.q       ?: ""
-				, savedFilters = ListToArray( rc.savedFilters ?: "" )
-				, extraFilters = extraFilters
-				, orderBy      = orderBy
-				, ids          = ListToArray( rc.values ?: "" )
+				  objectName    = rc.object  ?: ""
+				, maxRows       = rc.maxRows ?: 1000
+				, searchQuery   = rc.q       ?: ""
+				, savedFilters  = ListToArray( rc.savedFilters ?: "" )
+				, extraFilters  = extraFilters
+				, orderBy       = orderBy
+				, ids           = ListToArray( rc.values ?: "" )
+				, labelRenderer = labelRenderer
 			);
 
 			event.renderData( type="json", data=records );
