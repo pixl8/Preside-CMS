@@ -12,17 +12,10 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public boolean function rendererExistsFor( required string objectName ) {
-		var selectFieldsHandler = _getSelectFieldsHandler( objectName );
-		var renderLabelHandler  = _getRenderLabelHandler( objectName );
+	public array function getSelectFieldsForLabel( required string labelRenderer ) {
+		var selectFieldsHandler = _getSelectFieldsHandler( labelRenderer );
 
-		return $getColdbox().handlerExists( selectFieldsHandler ) && $getColdbox().handlerExists( renderLabelHandler );
-	}
-
-	public array function getSelectFieldsForLabel( required string objectName ) {
-		var selectFieldsHandler = _getSelectFieldsHandler( objectName );
-
-		if ( $getColdbox().handlerExists( selectFieldsHandler ) ) {
+		if ( len( labelRenderer ) && $getColdbox().handlerExists( selectFieldsHandler ) ) {
 			return $getColdbox().runEvent(
 				  event          = selectFieldsHandler
 				, prePostExempt  = true
@@ -33,10 +26,24 @@ component {
 		}
 	}
 
-	public string function renderLabel( required string objectName, struct args={} ) {
-		var renderLabelHandler   = _getRenderLabelHandler( objectName );
+	public string function getOrderByForLabels( required string labelRenderer, struct args={} ) {
+		var orderByHandler = _getOrderByHandler( labelRenderer );
+
+		if ( len( labelRenderer ) && $getColdbox().handlerExists( orderByHandler ) ) {
+			return $getColdbox().runEvent(
+				  event          = orderByHandler
+				, prePostExempt  = true
+				, private        = true
+			);
+		} else {
+			return args.orderBy;
+		}
+	}
+
+	public string function renderLabel( required string labelRenderer, struct args={} ) {
+		var renderLabelHandler   = _getRenderLabelHandler( labelRenderer );
 		
-		if ( $getColdbox().handlerExists( renderLabelHandler ) ) {
+		if ( len( labelRenderer ) && $getColdbox().handlerExists( renderLabelHandler ) ) {
 			return $getColdbox().runEvent(
 				  event          = renderLabelHandler
 				, prePostExempt  = true
@@ -44,17 +51,21 @@ component {
 				, eventArguments = args
 			);
 		} else {
-			return args.label ?: "";
+			return HTMLEditFormat( args.label ?: "" );
 		}
 	}
 
 // PRIVATE HELPERS
-	private string function _getSelectFieldsHandler( required string objectName ) {
-		return "renderers.labels.#objectName#._selectFields";
+	private string function _getSelectFieldsHandler( required string labelRenderer ) {
+		return "renderers.labels.#labelRenderer#._selectFields";
 	}
 
-	private string function _getRenderLabelHandler( required string objectName ) {
-		return "renderers.labels.#objectName#._renderLabel";
+	private string function _getOrderByHandler( required string labelRenderer ) {
+		return "renderers.labels.#labelRenderer#._orderBy";
+	}
+
+	private string function _getRenderLabelHandler( required string labelRenderer ) {
+		return "renderers.labels.#labelRenderer#._renderLabel";
 	}
 
 }
