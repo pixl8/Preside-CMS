@@ -59,11 +59,14 @@ component {
 			, groupBy             = "#objectName#.#idField#"
 			, extraFilters        = subQueryExtraFilters
 			, getSqlAndParamsOnly = true
-		).sql;
-
+		);
+		var subQueryParams = {};
 		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
-		var paramName     = subQueryAlias;
 		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} 0";
+
+		for( var param in subQuery.params ) {
+			subQueryParams[ param.name ] = param;
+		}
 
 		if ( _is ) {
 			filterSql = filterSql.replace( "${operator}", ">" );
@@ -73,9 +76,9 @@ component {
 
 		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 
-		return [ { filter=filterSql, extraJoins=[ {
+		return [ { filter=filterSql, filterParams=subQueryParams, extraJoins=[ {
 			  type           = "left"
-			, subQuery       = subQuery
+			, subQuery       = subQuery.sql
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
 			, joinToTable    = prefix
