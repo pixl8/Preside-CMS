@@ -44,6 +44,10 @@ component {
 		var relatedIdField = presideObjectService.getIdField( arguments.relatedTo );
 
 		if ( _is ) {
+			if ( arguments.parentPropertyName.len() ) {
+				prefix = ListPrepend( prefix, arguments.parentPropertyName, "$" )
+			}
+
 			return [ {
 				  filter       = "#prefix#.#relatedIdField# in (:#paramName#)"
 				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
