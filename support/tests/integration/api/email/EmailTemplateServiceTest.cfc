@@ -230,6 +230,32 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 			} );
 
+			it( "should set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date is right now", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var nextSendDate = DateAdd( "d", 2, nowish );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 2
+					, schedule_unit           = "day"
+					, schedule_start_date     = DateAdd( "d", -4, nowish )
+					, schedule_end_date       = ""
+					, schedule_next_send_date = nowish
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( nextSendDate );
+			} );
+
 			it( "should set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date later than newly calculated send date", function(){
 				var service      = _getService();
 				var templateId   = CreateUUId();
