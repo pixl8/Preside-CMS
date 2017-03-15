@@ -95,7 +95,7 @@ component extends="preside.system.base.AdminHandler" {
 		] ) );
 
 		if ( Val( rc._addanother ?: 0 ) ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine.addCondition" ), persist="_addAnother", queryString="context=#rc.context#" );
+			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine.addCondition", queryString="context=#rc.context#" ), persist="_addAnother" );
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
 		}
