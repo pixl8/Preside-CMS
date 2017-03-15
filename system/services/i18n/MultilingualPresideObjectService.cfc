@@ -89,6 +89,7 @@ component displayName="Multilingual Preside Object Service" {
 		translationObject.tableName    = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
 		translationObject.derivedFrom  = arguments.objectName;
 		translationObject.siteFiltered = false;
+		translationObject.tenant       = "";
 		translationObject.isPageType   = false;
 
 		for( var propertyName in translationProperties ) {
