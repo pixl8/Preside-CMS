@@ -32,13 +32,15 @@ component {
 		var quickadd  = IsTrue( config.quickAdd  ?: true );
 		var quickEdit = IsTrue( config.quickEdit ?: true );
 
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "filterPicker"
 			, multiple     = multiple
 			, sortable     = sortable
-			, quickadd     = true//quickadd
-			, quickEdit    = true//quickEdit
+			, quickadd     = true
+			, quickEdit    = true
 			, filterObject = rc.object ?: "global"
 			, label        = translateResource( "cms:rulesEngine.fieldtype.filter.config.label" )
 			, savedValue   = arguments.value
