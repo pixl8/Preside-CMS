@@ -64,6 +64,9 @@ component extends="preside.system.base.AdminHandler" {
 		var formName = "preside-objects.#object#.admin.add";
 		var formData = event.getCollectionForForm( formName );
 
+		formData._addAnother = rc._addAnother ?: 0;
+		formData.context     = rc.context     ?: "";
+
 		_conditionToFilterCheck( argumentCollection=arguments, action="add", formData=formData );
 
 		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
