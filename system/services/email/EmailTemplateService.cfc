@@ -493,7 +493,7 @@ component {
 				if ( !expired ) {
 					var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit, template.schedule_start_date );
 
-					if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date < nowish || template.schedule_next_send_date > newSendDate ) {
+					if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date <= nowish || template.schedule_next_send_date > newSendDate ) {
 						updatedData.schedule_next_send_date = newSendDate;
 					} else {
 						updatedData.delete( "schedule_next_send_date" );
@@ -811,7 +811,7 @@ component {
 			var measureFromStart = DateDiff( cfunit, arguments.startDate, nowish ) + arguments.measure;
 			var nextDate         = DateAdd( cfunit, measureFromStart, arguments.startDate );
 
-			while( nextDate < Now() ) {
+			while( nextDate <= nowish ) {
 				nextDate = DateAdd( cfunit, 1, nextDate );
 			}
 
