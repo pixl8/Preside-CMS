@@ -25,6 +25,8 @@ component {
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  argumentCollection = config
 			, name               = "value"

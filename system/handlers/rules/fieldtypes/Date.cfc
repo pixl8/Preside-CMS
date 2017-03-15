@@ -13,6 +13,8 @@ component {
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "datePicker"

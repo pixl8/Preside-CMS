@@ -48,6 +48,8 @@ component {
 			labels.append( action.label );
 		}
 
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "select"

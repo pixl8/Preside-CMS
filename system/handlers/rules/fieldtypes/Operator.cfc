@@ -40,6 +40,8 @@ component {
 			labels.append( translateResource( uri="cms:rulesEngine.operator.#variety#.#operatorValue#" ) );
 		}
 
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "select"
