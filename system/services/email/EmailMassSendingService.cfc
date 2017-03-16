@@ -120,6 +120,7 @@ component {
 				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
 				, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
 				, extraFilters = extraFilters
+				, distinct     = true
 			  }
 		);
 	}
@@ -192,6 +193,7 @@ component {
 			  selectFields    = [ "id" ]
 			, extraFilters    = getTemplateRecipientFilters( arguments.templateId )
 			, recordCountOnly = true
+			, distinct        = true
 		);
 	}
 
