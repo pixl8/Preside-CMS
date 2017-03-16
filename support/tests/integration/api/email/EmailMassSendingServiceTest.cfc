@@ -35,6 +35,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, objectName   = recipientObject
 						, extraFilters = [ preparedFilter, dupeCheckFilter ]
 						, filterParams = { template = { type="cf_sql_varchar", value=templateId } }
+						, distinct     = true
 					}
 				).$results( queuedCount );
 
@@ -113,6 +114,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, objectName   = recipientObject
 						, extraFilters = [ dupeCheckFilter ]
 						, filterParams = { template = { type="cf_sql_varchar", value=templateId } }
+						, distinct     = true
 					}
 				).$results( queuedCount )
 
@@ -160,6 +162,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, objectName   = recipientObject
 						, extraFilters = extraFilters
 						, filterParams = { template = { type="cf_sql_varchar", value=templateId } }
+						, distinct     = true
 					}
 				).$results( queuedCount )
 
