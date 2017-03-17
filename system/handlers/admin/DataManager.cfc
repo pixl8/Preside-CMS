@@ -1779,6 +1779,16 @@
 
 			obj = presideObjectService.getObject( object );
 
+			if ( !Len( labelField ) ) {
+				labelField = "id";
+			} else {
+				try {
+					presideObjectService.getObjectProperty( object, labelField );
+				} catch ( any e ) {
+					labelField = "id";
+				}
+			}
+			
 			records = obj.selectData( selectField=[labelField], filter={ id = ids }, useCache=false );
 
 			if ( records.recordCount neq ids.len() ) {
