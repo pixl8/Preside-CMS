@@ -11,7 +11,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.listApplications() ).toBe( [] );
 			} );
 
-			it( "should return an array of application IDs who's features are active", function(){
+			it( "should return an array of application IDs whose features are active", function(){
 				var service = getService();
 
 				service.$( "$isFeatureEnabled" ).$args( "cms" ).$results( true );

@@ -26,7 +26,7 @@ component {
 	 * which they were defined in the enum.
 	 *
 	 * @autodoc   true
-	 * @enum.hint ID of the enum who's items you wish to list
+	 * @enum.hint ID of the enum whose items you wish to list
 	 *
 	 */
 	public array function listItems( required string enum ) {

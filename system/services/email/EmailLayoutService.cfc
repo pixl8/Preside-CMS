@@ -70,7 +70,7 @@ component {
 	 * exists within the system.
 	 *
 	 * @autodoc true
-	 * @layout  The ID of the layout who's existance you want to check
+	 * @layout  The ID of the layout whose existance you want to check
 	 *
 	 */
 	public boolean function layoutExists( required string layout ) {
@@ -130,7 +130,7 @@ component {
 	 * an empty string is returned.
 	 *
 	 * @autodoc     true
-	 * @layout.hint ID of the layout who's form name you wish to get
+	 * @layout.hint ID of the layout whose form name you wish to get
 	 */
 	public string function getLayoutConfigFormName( required string layout ) {
 		if ( layoutExists( arguments.layout ) ) {
@@ -148,10 +148,10 @@ component {
 	 * Saves the given layout configuration in the database.
 	 *
 	 * @autodoc            true
-	 * @layout.hint        ID of the layout who's configuration you want to save
+	 * @layout.hint        ID of the layout whose configuration you want to save
 	 * @config.hint        Struct of configuration data to save
-	 * @emailTemplate.hint Optional ID of a specific email template who's layout configuration you wish to save
-	 * @blueprint.hint     Optional ID of a specific email blueprint who's layout configuration you wish to save
+	 * @emailTemplate.hint Optional ID of a specific email template whose layout configuration you wish to save
+	 * @blueprint.hint     Optional ID of a specific email blueprint whose layout configuration you wish to save
 	 *
 	 */
 	public boolean function saveLayoutConfig(
@@ -183,9 +183,9 @@ component {
 	 * Returns the saved config for an email layout and optional email template combination.
 	 *
 	 * @autodoc            true
-	 * @layout.hint        ID of the layout who's configuration you wish to get
-	 * @emailTemplate.hint Optional ID of specific email template who's layout configuration you wish to get
-	 * @blueprint.hint     Optional ID of specific email blueprint who's layout configuration you wish to get
+	 * @layout.hint        ID of the layout whose configuration you wish to get
+	 * @emailTemplate.hint Optional ID of specific email template whose layout configuration you wish to get
+	 * @blueprint.hint     Optional ID of specific email blueprint whose layout configuration you wish to get
 	 * @merged.hint        If true, and layout, emailTemplate and blueprint supplied, the method will return a combined set of settings (global, blueprint + template specific)
 	 */
 	public struct function getLayoutConfig(

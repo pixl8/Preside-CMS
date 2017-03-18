@@ -99,7 +99,7 @@ component {
 	 * if no provider configured, the default provider.
 	 *
 	 * @autodoc         true
-	 * @templateId.hint ID of the template who's provider we are to get
+	 * @templateId.hint ID of the template whose provider we are to get
 	 *
 	 */
 	public string function getProviderForTemplate( required string templateId ) {
@@ -119,7 +119,7 @@ component {
 	 * the given provider.
 	 *
 	 * @autodoc       true
-	 * @provider.hint ID of the provider who's config form name you wish to get
+	 * @provider.hint ID of the provider whose config form name you wish to get
 	 */
 	public string function getProviderConfigFormName( required string provider ) {
 		var rawProviders = _getConfiguredProviders();
@@ -132,7 +132,7 @@ component {
 	 * given provider
 	 *
 	 * @autodoc       true
-	 * @provider.hint ID of the provider who's send action you wish to get
+	 * @provider.hint ID of the provider whose send action you wish to get
 	 */
 	public string function getProviderSendAction( required string provider ) {
 		var rawProviders = _getConfiguredProviders();
@@ -146,7 +146,7 @@ component {
 	 * given provider
 	 *
 	 * @autodoc       true
-	 * @provider.hint ID of the provider who's validate settings action you wish to get
+	 * @provider.hint ID of the provider whose validate settings action you wish to get
 	 */
 	public string function getProviderValidateSettingsAction( required string provider ) {
 		var rawProviders = _getConfiguredProviders();
@@ -159,7 +159,7 @@ component {
 	 * Returns whether or not the given provider is enabled.
 	 *
 	 * @autodoc true
-	 * @provider.hint ID of the provider who's enabled/disabled status you wish to check
+	 * @provider.hint ID of the provider whose enabled/disabled status you wish to check
 	 */
 	public boolean function isProviderEnabled( required string provider ) {
 		var disabledProviders = $getPresideSetting( "email", "disabledProviders" ).listToArray();
@@ -177,7 +177,7 @@ component {
 	 * Returns configured settings structure for the given provider
 	 *
 	 * @autodoc       true
-	 * @provider.hint ID of the provider who's settings you wish to get
+	 * @provider.hint ID of the provider whose settings you wish to get
 	 */
 	public struct function getProviderSettings( required string provider ) {
 		var categoryName = getProviderSettingsCategory( arguments.provider );
@@ -189,7 +189,7 @@ component {
 	 * Returns the system config category for the given provider
 	 *
 	 * @autodoc       true
-	 * @provider.hint ID of the provider who's settings category you wish to get
+	 * @provider.hint ID of the provider whose settings category you wish to get
 	 */
 	public string function getProviderSettingsCategory( required string provider ) {
 		return "emailServiceProvider#arguments.provider#";
@@ -264,7 +264,7 @@ component {
 	 * object with any validation errors.
 	 *
 	 * @autodoc true
-	 * @provider.hint         Provider who's settings we are to validate
+	 * @provider.hint         Provider whose settings we are to validate
 	 * @settings.hint         Struct of settings to validate
 	 * @validationResult.hint Pre-initialized validationResult object - any validation results will be added to this object and returned
 	 *
@@ -292,7 +292,7 @@ component {
 	 * Saves the settings for a particular service provider and optional site
 	 *
 	 * @autodoc       true
-	 * @provider.hint ID of the provider who's settings you want to save
+	 * @provider.hint ID of the provider whose settings you want to save
 	 * @settings.hint Structure of settings to save
 	 * @site.hint     Optional ID of preside site to save the settings against
 	 */

@@ -77,7 +77,7 @@ component displayName="Email Recipient Type Service" {
 	 * The array is sorted by title.
 	 *
 	 * @autodoc            true
-	 * @recipientType.hint ID of the recipient type who's parameters you wish to get
+	 * @recipientType.hint ID of the recipient type whose parameters you wish to get
 	 *
 	 */
 	public array function listRecipientTypeParameters( required string recipientType ) {
@@ -118,7 +118,7 @@ component displayName="Email Recipient Type Service" {
 	 * for the given recipient type and provided args (e.g. could contain user id)
 	 *
 	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type who's params we are to prepare
+	 * @recipientType.hint The ID of the recipient type whose params we are to prepare
 	 * @recipientId.hint   The ID of the recipient
 	 * @args.hint          Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to prepare the params. e.g. { userId=idofUserToSendEmailTo }.
 	 */
@@ -146,7 +146,7 @@ component displayName="Email Recipient Type Service" {
 	 * email template.
 	 *
 	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type who's preview params we are to get
+	 * @recipientType.hint The ID of the recipient type whose preview params we are to get
 	 */
 	public struct function getPreviewParameters( required string recipientType ) {
 		var handlerAction = "email.recipientType.#recipientType#.getPreviewParameters";
@@ -167,7 +167,7 @@ component displayName="Email Recipient Type Service" {
 	 * args.
 	 *
 	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type who's to address we are to get
+	 * @recipientType.hint The ID of the recipient type whose to address we are to get
 	 * @recipientId.hint   ID of the recipient of the email
 	 */
 	public string function getToAddress(
@@ -192,7 +192,7 @@ component displayName="Email Recipient Type Service" {
 	 * Returns the configured filter object for the given recipient type
 	 *
 	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type who's filter object we are to get
+	 * @recipientType.hint The ID of the recipient type whose filter object we are to get
 	 */
 	public string function getFilterObjectForRecipientType( required string recipientType ) {
 		var types = _getConfiguredRecipientTypes();
@@ -205,7 +205,7 @@ component displayName="Email Recipient Type Service" {
 	 * corresponds to this recipient type
 	 *
 	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type who's log property name we are to get
+	 * @recipientType.hint The ID of the recipient type whose log property name we are to get
 	 */
 	public string function getRecipientIdLogPropertyForRecipientType( required string recipientType ) {
 		var types = _getConfiguredRecipientTypes();
@@ -218,7 +218,7 @@ component displayName="Email Recipient Type Service" {
 	 * Returns the configured grid fields for showing recipients of this type
 	 *
 	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type who's grid fields we are to get
+	 * @recipientType.hint The ID of the recipient type whose grid fields we are to get
 	 */
 	public array function getGridFieldsForRecipientType( required string recipientType ) {
 		var types = _getConfiguredRecipientTypes();
