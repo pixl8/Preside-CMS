@@ -24,6 +24,7 @@ System provided form controls for the [[presideforms]]:
 * [[formcontrol-manyToOneSelect]]
 * [[formcontrol-notificationTopicPicker]]
 * [[formcontrol-objectPicker]]
+* [[formcontrol-oneToManyConfigurator]]
 * [[formcontrol-oneToManyManager]]
 * [[formcontrol-oneToManySelect]]
 * [[formcontrol-pageLayoutPicker]]

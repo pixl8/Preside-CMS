@@ -5,7 +5,7 @@ title: Label renderers
 
 ## Overview
 
-When a [[formcontrol-objectPicker]] is displayed, by default the text on both the selectable and selected options is taken from the record's label (either the `label` field or whatever fields has been defined on the object using the `@labelField` annotation).
+When an [[formcontrol-objectPicker|Object Picker]] is displayed, by default the text on both the selectable and selected options is taken from the record's label (either the `label` field or whatever fields has been defined on the object using the `@labelField` annotation).
 
 However, there are times when you will need more control over what gets displayed as the label. You might want to combine more than one field to identify the record accurately; you might even want to add an icon, picture or other HTML into the label.
 
