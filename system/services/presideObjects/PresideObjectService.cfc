@@ -209,7 +209,7 @@ component displayName="Preside Object Service" {
 		}
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
-		args.orderBy     = _parseOrderBy( args.orderBy, args.objectName, args.adapter );
+		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
 		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
