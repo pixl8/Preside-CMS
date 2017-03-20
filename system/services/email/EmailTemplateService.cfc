@@ -569,7 +569,7 @@ component {
 	 * attachments.
 	 *
 	 * @autodoc
-	 * @templateId.hint ID of the template who's attachments you want to get
+	 * @templateId.hint ID of the template whose attachments you want to get
 	 *
 	 */
 	public array function getAttachments( required string templateId ) {

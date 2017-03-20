@@ -17,7 +17,7 @@ The expectation is that, for more involved sites, these core systems will be ext
 
 ## Users and Benefits
 
-We provide a simple model of **users** and **benefits** with two core preside objects, `website_user` and `website_benefit`. A user can have multiple benefits. User benefit's are analogous to user groups.
+We provide a simple model of **users** and **benefits** with two core preside objects, `website_user` and `website_benefit`. A user can have multiple benefits. User benefits are analogous to user groups.
 
 >>> We have kept the fields for both objects to a bare minimum so as to not impose unwanted logic to your sites. You are encouraged to extend these objects to add your site specific data needs.
 
@@ -229,7 +229,7 @@ public void function addCommentAction( event, rc, prc ) {
 
 >>> When checking a context permission, you pass an array of context keys to the `hasWebsitePermission()` method. The returned grant or deny permission will be the one associated with the first found context key in the array.
 
->>>This allows us to implement cascading permission schemes. For site tree access permissions for example, we pass an array of page ids. The first page id is the current page, the next id is it's parent, and so on.
+>>>This allows us to implement cascading permission schemes. For site tree access permissions for example, we pass an array of page ids. The first page id is the current page, the next id is its parent, and so on.
 
 ## Partial restrictions in site tree pages
 

@@ -1140,7 +1140,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "listDueOneTimeScheduleTemplates()", function(){
-			it( "should fetch all the templates using 'fixeddate' schedule who have not been sent and who's send date is in the past", function(){
+			it( "should fetch all the templates using 'fixeddate' schedule who have not been sent and whose send date is in the past", function(){
 				var service = _getService();
 				var templateRecords = QueryNew( 'id', 'varchar', [[CreateUUId()], [CreateUUId()]] );
 				var nowish = Now();
@@ -1159,7 +1159,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "listDueRepeatedScheduleTemplates()", function(){
-			it( "should fetch all the templates using 'repeat' schedule who's next send date is in the past and when current date is between start and end date", function(){
+			it( "should fetch all the templates using 'repeat' schedule whose next send date is in the past and when current date is between start and end date", function(){
 				var service = _getService();
 				var templateRecords = QueryNew( 'id', 'varchar', [[CreateUUId()], [CreateUUId()]] );
 				var nowish = Now();

@@ -62,7 +62,7 @@ component {
 	 * The array is sorted by title.
 	 *
 	 * @autodoc       true
-	 * @template.hint ID of the template who's parameters you wish to get
+	 * @template.hint ID of the template whose parameters you wish to get
 	 *
 	 */
 	public array function listTemplateParameters( required string template ) {
@@ -103,7 +103,7 @@ component {
 	 * to prepare dynamic parameters for the email render.
 	 *
 	 * @autodoc       true
-	 * @template.hint The template who's parameters are to be prepared
+	 * @template.hint The template whose parameters are to be prepared
 	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
 	 *
 	 */
@@ -129,7 +129,7 @@ component {
 	 * to prepare parameters for the email preview render.
 	 *
 	 * @autodoc       true
-	 * @template.hint The template who's parameters are to be previewed
+	 * @template.hint The template whose parameters are to be previewed
 	 *
 	 */
 	public struct function getPreviewParameters( required string template ) {
@@ -152,7 +152,7 @@ component {
 	 * to prepare dynamic attachments for the email send.
 	 *
 	 * @autodoc       true
-	 * @template.hint The template who's attachments are to be prepared
+	 * @template.hint The template whose attachments are to be prepared
 	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
 	 *
 	 */
@@ -177,7 +177,7 @@ component {
 	 * email template configuration set in Config.cfc.
 	 *
 	 * @autodoc       true
-	 * @template.hint ID of the template who's default layout you wish to get
+	 * @template.hint ID of the template whose default layout you wish to get
 	 */
 	public string function getDefaultLayout( required string template ) {
 		var templates = _getConfiguredTemplates();
@@ -190,7 +190,7 @@ component {
 	 * viewlet.
 	 *
 	 * @autodoc       true
-	 * @template.hint ID of the template who's default subject you wish to get
+	 * @template.hint ID of the template whose default subject you wish to get
 	 */
 	public string function getDefaultSubject( required string template ) {
 		var viewlet = "email.template.#arguments.template#.defaultSubject";
@@ -207,7 +207,7 @@ component {
 	 * viewlet.
 	 *
 	 * @autodoc       true
-	 * @template.hint ID of the template who's default html body you wish to get
+	 * @template.hint ID of the template whose default html body you wish to get
 	 */
 	public string function getDefaultHtmlBody( required string template ) {
 		var viewlet = "email.template.#arguments.template#.defaultHtmlBody";
@@ -225,7 +225,7 @@ component {
 	 * viewlet.
 	 *
 	 * @autodoc       true
-	 * @template.hint ID of the template who's default text body you wish to get
+	 * @template.hint ID of the template whose default text body you wish to get
 	 */
 	public string function getDefaultTextBody( required string template ) {
 		var viewlet = "email.template.#arguments.template#.defaultTextBody";
@@ -243,7 +243,7 @@ component {
 	 * email template configuration set in Config.cfc.
 	 *
 	 * @autodoc       true
-	 * @template.hint ID of the template who's recipient type you wish to get
+	 * @template.hint ID of the template whose recipient type you wish to get
 	 */
 	public string function getRecipientType( required string template ) {
 		var templates = _getConfiguredTemplates();
