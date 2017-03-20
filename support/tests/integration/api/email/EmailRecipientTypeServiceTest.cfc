@@ -18,7 +18,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.listRecipientTypes() ).toBe( expected );
 			} );
 
-			it( "should exclude recipient types who's feature is disabled", function(){
+			it( "should exclude recipient types whose feature is disabled", function(){
 				var service = _getService( enabledFeatures=[ "cms" ], disabledFeatures=[ "websiteUsers" ] );
 				var expected = [
 					  { id="adminUser"  , title="Admin user"             , description=CreateUUId() }

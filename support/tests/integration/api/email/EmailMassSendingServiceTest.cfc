@@ -74,7 +74,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				try {
 					service.queueSendout( templateId );
 				} catch( "preside.mass.email.invalid.recipient.type" e ) {
-					expect( e.message ).toBe( "The template, [#templateId#], cannot be queued for mass sending because it's recipient type, [#recipientType#], does not cite a filter object from which to draw the recipients" );
+					expect( e.message ).toBe( "The template, [#templateId#], cannot be queued for mass sending because its recipient type, [#recipientType#], does not cite a filter object from which to draw the recipients" );
 					errorThrown = true;
 				}
 

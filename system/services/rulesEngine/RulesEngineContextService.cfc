@@ -99,7 +99,7 @@ component displayName="RulesEngine Context Service" {
 	 * Returns the configured object (if any) for the given context
 	 *
 	 * @autodoc true
-	 * @context.hint ID of the context who's configured object you wish to get
+	 * @context.hint ID of the context whose configured object you wish to get
 	 */
 	public string function getContextObject( required string context ) {
 		var contexts = _getConfiguredContexts();
@@ -111,7 +111,7 @@ component displayName="RulesEngine Context Service" {
 	 * Returns an array of context ids for the given object
 	 *
 	 * @autodoc true
-	 * @objectName.hint Object who's contexts you wish to get
+	 * @objectName.hint Object whose contexts you wish to get
 	 */
 	public array function getObjectContexts( required string objectName ) {
 		var contexts = _getConfiguredContexts();
@@ -147,7 +147,7 @@ component displayName="RulesEngine Context Service" {
 	 * set of args to the payload's context getting handler.
 	 *
 	 * @autodoc true
-	 * @context.hint ID of the context who's payload we are to get
+	 * @context.hint ID of the context whose payload we are to get
 	 * @args.hint    Optional set of args to send to the context getPayload() handler
 	 */
 	public struct function getContextPayload( required string context, struct args={} ) {

@@ -291,7 +291,7 @@ component {
 
 The implementation of 500 error pages is more straight forward than the 40x templates and involves only creating a flat `500.htm` file in your webroot. The reason behind this is that a server error may be caused by your site's layout code, or may even occur before PresideCMS code is called at all; in which case the code to render your error template will not be available.
 
-If you do not create a `500.htm` in your webroot, PresideCMS will use it's own default template for errors. This can be found at `/preside/system/html/500.htm`.
+If you do not create a `500.htm` in your webroot, PresideCMS will use its own default template for errors. This can be found at `/preside/system/html/500.htm`.
 
 ### Bypassing the error template
 

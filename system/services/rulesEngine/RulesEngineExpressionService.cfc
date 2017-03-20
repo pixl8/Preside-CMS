@@ -267,9 +267,9 @@ component displayName="RulesEngine Expression Service" {
 	 * and configured fields.
 	 *
 	 * @autodoc               true
-	 * @expressionId.hint     The ID of the expression who's filters you wish to prepare
-	 * @objectName.hint       The object who's records are to be filtered
-	 * @configuredFields.hint A structure of fields configured for the expression instance who's filter we are preparing
+	 * @expressionId.hint     The ID of the expression whose filters you wish to prepare
+	 * @objectName.hint       The object whose records are to be filtered
+	 * @configuredFields.hint A structure of fields configured for the expression instance whose filter we are preparing
 	 * @filterPrefix.hint     An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
 	 */
 	public array function prepareExpressionFilters(
@@ -424,7 +424,7 @@ component displayName="RulesEngine Expression Service" {
 	 * Returns an array of configured objects that can be filtered by this expression
 	 *
 	 * @autodoc true
-	 * @expressionId.hint ID of the expression who's filterable objects you wish to retrieve
+	 * @expressionId.hint ID of the expression whose filterable objects you wish to retrieve
 	 */
 	public array function getFilterObjectsForExpression( required string expressionId ) {
 		var expression = _getRawExpression( expressionId, false );
