@@ -2018,6 +2018,49 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_batchEditForm" access="private" returntype="string" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+		<cfargument name="args"  type="struct"  required="true" />
+
+		<cfscript>
+			var object      = args.object ?: "";
+			var field       = args.field  ?: "";
+			var ids         = args.ids    ?: "";
+			var recordCount = ListLen( ids );
+			var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
+			var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
+
+			args.fieldFormControl = formsService.renderFormControlForObjectField(
+			      objectName = object
+			    , fieldName  = field
+			);
+
+			if ( presideObjectService.isManyToManyProperty( object, field ) ) {
+				args.multiEditBehaviourControl = renderFormControl(
+					  type   = "select"
+					, name   = "multiValueBehaviour"
+					, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
+					, values = [ "append", "overwrite", "delete" ]
+					, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+				);
+
+				args.batchEditWarning = args.batchEditWarning ?: translateResource(
+					  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+					, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				);
+			} else {
+				args.batchEditWarning = args.batchEditWarning ?: translateResource(
+					  uri  = "cms:datamanager.batch.edit.warning"
+					, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				);
+			}
+
+			return renderView( view="/admin/datamanager/_batchEditForm", args=args );
+		</cfscript>
+	</cffunction>
+
 <!--- private utility methods --->
 	<cffunction name="_getObjectFieldsForGrid" access="private" returntype="array" output="false">
 		<cfargument name="objectName" type="string" required="true" />

@@ -1,0 +1,9 @@
+<cfoutput>
+	#renderViewlet( event="admin.datamanager._batchEditForm", args={
+		  saveChangesAction = event.buildAdminLink( linkTo='${handlerRoot}.batchEditFieldAction' )
+		, cancelAction      = event.buildAdminLink( linkTo="${handlerRoot}" )
+		, object            = "${objectId}"
+		, ids               = rc.id    ?: ""
+		, field             = rc.field ?: ""
+	} )#
+</cfoutput>

@@ -1,12 +1,15 @@
 <cfscript>
 	objectName          = "${objectId}"
-	gridFields          = [ "${labelfield}" ];
+	gridFields          = ${explodedGridFields};
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
 	addRecordTitle      = translateResource( uri = "cms:datamanager.addrecord.title"            , data = [ LCase( objectTitleSingular ) ] );
 	canAdd              = IsTrue( prc.canAdd    ?: false );
 	canDelete           = IsTrue( prc.canDelete ?: false );
+// BEGIN BATCHEDIT
+	batchEditableFields = prc.batchEditableFields       ?: {};
+// END BATCHEDIT
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -24,8 +27,13 @@
 		  objectName          = objectName
 		, useMultiActions     = canDelete
 		, datasourceUrl       = event.buildAdminLink( linkTo="${handlerRoot}.getRecordsForAjaxDataTables" )
-		, multiActionUrl      = event.buildAdminLink( linkTo='${handlerRoot}.deleteAction' )
+		, multiActionUrl      = event.buildAdminLink( linkTo='${handlerRoot}.multiAction' )
 		, gridFields          = gridFields
+// BEGIN DRAFTS
 		, draftsEnabled       = true
+// END DRAFTS
+// BEGIN BATCHEDIT
+		, batchEditableFields = batchEditableFields
+// END BATCHEDIT
 	} )#
 </cfoutput>

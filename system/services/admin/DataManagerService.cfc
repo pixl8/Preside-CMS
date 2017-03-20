@@ -286,6 +286,8 @@ component {
 		, required array  sourceIds
 		, required string value
 		,          string multiEditBehaviour = "append"
+		,          string auditAction        = "datamanager_batch_edit_record"
+		,          string auditCategory      = "datamanager"
 	) {
 		var pobjService  = _getPresideObjectService();
 		var isMultiValue = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
@@ -330,17 +332,17 @@ component {
 					targetIdList = targetIdList.toList();
 					targetIdList = ListRemoveDuplicates( targetIdList );
 
-					pobjService.syncManyToManyData(
-						  sourceObject   = objectName
-						, sourceProperty = updateField
-						, sourceId       = sourceId
-						, targetIdList   = targetIdList
+					pobjService.updateData(
+						  objectName              = objectName
+						, id                      = sourceId
+						, data                    = { "#updateField#" = targetIdList }
+						, updateManyToManyRecords = true
 					);
 				}
 
 				$audit(
-					  action   = "datamanager_batch_edit_record"
-					, type     = "datamanager"
+					  action   = arguments.auditAction
+					, type     = arguments.auditCategory
 					, recordId = sourceid
 					, detail   = Duplicate( arguments )
 				);
