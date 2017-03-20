@@ -508,6 +508,15 @@ component hint="Create various preside system entities such as widgets and page 
 		if ( !StructKeyExists( params, "i18nFile" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="i18n filename (e.g. 'eventsmanager'): ", required=true, paramName="i18nFile" } );
 		}
+		if ( !StructKeyExists( params, "gridFields" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Grid fields:", required=false, default="${labelfield},datemodified", paramName="gridFields" } );
+		}
+		if ( !StructKeyExists( params, "useDrafts" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Use drafts: ", required=false, paramName="useDrafts", default="Y", validityRegex="^[YyNn]$" } );
+		}
+		if ( !StructKeyExists( params, "allowBatchEdit" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Allow batch edit: ", required=false, paramName="allowBatchEdit", default="Y", validityRegex="^[YyNn]$" } );
+		}
 		if ( !StructKeyExists( params, "extension" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
 		}
@@ -533,6 +542,9 @@ component hint="Create various preside system entities such as widgets and page 
 				, i18nFile         = params.i18nFile
 				, icon             = params.icon
 				, description      = params.description
+				, gridFields       = params.gridFields
+				, useDrafts        = ( params.useDrafts      == "Y" )
+				, allowBatchEdit   = ( params.allowBatchEdit == "Y" )
 				, extension        = params.extension
 			);
 		} catch ( any e ) {

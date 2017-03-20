@@ -519,16 +519,19 @@ component singleton=true {
 	}
 
 	public array function scaffoldCrudAdmin(
-		  required string objectId
-		, required string objectName
-		, required string objectNamePlural
-		, required string handler
-		, required string permissionKey
-		, required string auditCategory
-		, required string i18nFile
-		, required string icon
-		, required string description
-		, required string extension
+		  required string  objectId
+		, required string  objectName
+		, required string  objectNamePlural
+		, required string  handler
+		, required string  permissionKey
+		, required string  auditCategory
+		, required string  i18nFile
+		, required string  icon
+		, required string  description
+		, required string  gridFields
+		, required boolean useDrafts
+		, required boolean allowBatchEdit
+		, required string  extension
 	) {
 		var templateVars = {
 			  objectId           = arguments.objectId
@@ -542,6 +545,9 @@ component singleton=true {
 			, overalldescription = arguments.description
 			, translationFile    = arguments.i18nFile
 			, permissionKey      = arguments.permissionKey
+			, gridFields         = arguments.gridFields
+			, useDrafts          = arguments.useDrafts
+			, allowBatchEdit     = arguments.allowBatchEdit
 			, labelfield         = _getPresideObjectService().getObjectAttribute( arguments.objectId, "labelfield" )
 		};
 
@@ -549,18 +555,25 @@ component singleton=true {
 			var resourceRoot = "/preside/system/services/devtools/scaffoldingResources/crudAdmin/";
 			var template     = FileRead( resourceRoot & arguments.templateName );
 
-			template = template.replaceNoCase( "${objectId}"          , templateVars.objectId          , "all" )
-			template = template.replaceNoCase( "${objectNamePlural}"  , templateVars.objectNamePlural  , "all" )
-			template = template.replaceNoCase( "${iconClass}"         , templateVars.iconClass         , "all" )
-			template = template.replaceNoCase( "${objectName}"        , templateVars.objectName        , "all" )
-			template = template.replaceNoCase( "${handlerRoot}"       , templateVars.handlerRoot       , "all" )
-			template = template.replaceNoCase( "${auditCategory}"     , templateVars.auditCategory     , "all" )
-			template = template.replaceNoCase( "${overalldescription}", templateVars.overalldescription, "all" )
-			template = template.replaceNoCase( "${translationFile}"   , templateVars.translationFile   , "all" )
-			template = template.replaceNoCase( "${pageIcon}"          , templateVars.pageIcon          , "all" )
-			template = template.replaceNoCase( "${permissionKey}"     , templateVars.permissionKey     , "all" )
-			template = template.replaceNoCase( "${labelfield}"        , templateVars.labelfield        , "all" )
-			template = template.replaceNoCase( "${handlerFolder}"     , templateVars.handlerFolder     , "all" )
+			template = template.replaceNoCase( "${objectId}"          , templateVars.objectId          , "all" );
+			template = template.replaceNoCase( "${objectNamePlural}"  , templateVars.objectNamePlural  , "all" );
+			template = template.replaceNoCase( "${iconClass}"         , templateVars.iconClass         , "all" );
+			template = template.replaceNoCase( "${objectName}"        , templateVars.objectName        , "all" );
+			template = template.replaceNoCase( "${handlerRoot}"       , templateVars.handlerRoot       , "all" );
+			template = template.replaceNoCase( "${auditCategory}"     , templateVars.auditCategory     , "all" );
+			template = template.replaceNoCase( "${overalldescription}", templateVars.overalldescription, "all" );
+			template = template.replaceNoCase( "${translationFile}"   , templateVars.translationFile   , "all" );
+			template = template.replaceNoCase( "${pageIcon}"          , templateVars.pageIcon          , "all" );
+			template = template.replaceNoCase( "${permissionKey}"     , templateVars.permissionKey     , "all" );
+			template = template.replaceNoCase( "${gridFields}"        , templateVars.gridFields        , "all" );
+			template = template.replaceNoCase( "${explodedGridFields}", SerializeJson( ListToArray( templateVars.gridFields ) ), "all" );
+			template = template.replaceNoCase( "${labelfield}"        , templateVars.labelfield        , "all" );
+			template = template.replaceNoCase( "${handlerFolder}"     , templateVars.handlerFolder     , "all" );
+
+			template = template.reReplaceNoCase( "// BEGIN DRAFTS(.*?)// END DRAFTS", ( templateVars.useDrafts ? "\1" : "" ), "all" );
+			template = template.reReplaceNoCase( "// BEGIN NO DRAFTS(.*?)// END NO DRAFTS", ( templateVars.useDrafts ? "" : "\1" ), "all" );
+
+			template = template.reReplaceNoCase( "// BEGIN BATCHEDIT(.*?)// END BATCHEDIT", ( templateVars.allowBatchEdit ? "\1" : "" ), "all" );
 
 			return template;
 		}
@@ -578,6 +591,10 @@ component singleton=true {
 			, auditprops  = { content=readAndReplaceTemplate( "audit.properties"         ), path="i18n/auditlog/#templateVars.auditCategory#.properties" }
 		};
 		var scaffoldedFiles = [];
+
+		if ( arguments.allowBatchEdit ) {
+			templates.batcheditfieldcfm = { content=readAndReplaceTemplate( "batchEditField.cfm.txt" ), path="views/admin/#templateVars.handlerFolder#/batchEditField.cfm" };
+		}
 
 		_ensureExtensionExists( arguments.extension );
 		for( var templateId in templates ) {

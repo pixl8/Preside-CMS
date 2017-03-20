@@ -20,8 +20,10 @@
 		, editRecordAction = event.buildAdminLink( linkTo='${handlerRoot}.editAction' )
 		, cancelAction     = event.buildAdminLink( linkTo='${handlerRoot}' )
 		, useVersioning    = true
+// BEGIN DRAFTS
 		, draftsEnabled    = true
 		, canPublish       = IsTrue( prc.canSaveDraft ?: "" )
 		, canSaveDraft     = IsTrue( prc.canPublish   ?: "" )
+// END DRAFTS
 	} )#
 </cfoutput>

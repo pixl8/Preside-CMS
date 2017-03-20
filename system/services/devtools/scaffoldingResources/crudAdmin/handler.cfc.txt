@@ -2,6 +2,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="dao"        inject="presidecms:object:${objectId}";
 	property name="messageBox" inject="coldbox:plugin:messageBox";
+// BEGIN BATCHEDIT
+	property name="dataManagerService" inject="dataManagerService";
+// END BATCHEDIT
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -22,6 +25,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.canAdd    = hasCmsPermission( "${permissionKey}.add"    );
 		prc.canDelete = hasCmsPermission( "${permissionKey}.delete" );
+
+// BEGIN BATCHEDIT
+		prc.batchEditableFields = dataManagerService.listBatchEditableFields( "${objectId}" );
+// END BATCHEDIT
 	}
 
 	function add( event, rc, prc ) {
@@ -29,13 +36,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageTitle    = translateResource( "${translationFile}:add.page.title" );
 		prc.pageSubtitle = translateResource( "${translationFile}:add.page.subtitle" );
-
+// BEGIN DRAFTS
 		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish" );
 		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft"   );
-
 		if ( !prc.canPublish && !prc.canSaveDraft ) {
 			event.adminAccessDenied();
 		}
+// END DRAFTS
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "${translationFile}:add.page.breadcrumb" )
@@ -45,12 +52,13 @@ component extends="preside.system.base.AdminHandler" {
 	function addAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="add" );
 
+// BEGIN DRAFTS
 		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
 		_checkPermissions( event=event, key=saveAction );
 
 		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish" );
 		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft" );
-
+// END DRAFTS
 		runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
@@ -63,21 +71,30 @@ component extends="preside.system.base.AdminHandler" {
 				, redirectOnSuccess = true
 				, audit             = true
 				, auditType         = "${auditCategory}"
+// BEGIN DRAFTS
 				, auditAction       = saveAction == "publish" ? "add_record" : "add_draft_record"
 				, draftsEnabled     = true
 				, canPublish        = prc.canPublish
 				, canSaveDraft      = prc.canSaveDraft
+// END DRAFTS
+// BEGIN NO DRAFTS
+				, auditAction       = "add_record"
+				, draftsEnabled     = false
+// END NO DRAFTS
 			}
 		);
 	}
 
 	function edit( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
+
+// BEGIN DRAFTS
 		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft" );
 		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish"   );
 		if ( !prc.canSaveDraft && !prc.canPublish ) {
 			event.adminAccessDenied()
 		}
+// END DRAFTS
 
 		var id      = rc.id ?: "";
 		var version = Val( rc.version ?: "" );
@@ -85,7 +102,9 @@ component extends="preside.system.base.AdminHandler" {
 		prc.record = dao.selectData(
 			  filter             = { id=id }
 			, fromVersionTable   = true
+// BEGIN DRAFTS
 			, allowDraftVersions = true
+// END DRAFTS
 			, specificVersion    = version
 		);
 
@@ -107,8 +126,10 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( event=event, key="edit" );
 
 		var id = rc.id ?: "";
+// BEGIN DRAFTS
 		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
 		_checkPermissions( event=event, key=saveAction );
+// END DRAFTS
 
 		prc.record = dao.selectData( filter={ id=id } );
 
@@ -128,10 +149,16 @@ component extends="preside.system.base.AdminHandler" {
 				, redirectOnSuccess = true
 				, audit             = true
 				, auditType         = "${auditCategory}"
+// BEGIN DRAFTS
 				, auditAction       = ( saveAction == "publish" ? "publish_record" : "save_draft" )
 				, draftsEnabled     = true
 				, canPublish        = hasCmsPermission( "${permissionKey}.publish" )
 				, canSaveDraft      = hasCmsPermission( "${permissionKey}.saveDraft"   )
+// END DRAFTS
+// BEGIN NO DRAFTS
+				, auditAction       = "edit"
+				, draftsEnabled     = false
+// END NO DRAFTS
 			}
 		);
 	}
@@ -152,6 +179,78 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		);
 	}
+
+	function multiAction( event, rc, prc ) {
+		var action = rc.multiAction ?: "";
+		var ids    = rc.id          ?: "";
+
+		switch( action ){
+// BEGIN BATCHEDIT
+			case "batchUpdate":
+				setNextEvent(
+					  url           = event.buildAdminLink( linkTo="${handlerRoot}.batchEditField", queryString="field=#( rc.field ?: '' )#" )
+					, persistStruct = { id = ids }
+				);
+			break;
+// END BATCHEDIT
+			case "delete":
+				return deleteAction( argumentCollection = arguments );
+			break;
+		}
+		messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+	}
+
+// BEGIN BATCHEDIT
+	function batchEditField( event, rc, prc ) {
+		var ids         = Trim( rc.id    ?: "" );
+		var field       = Trim( rc.field ?: "" );
+		var fieldName   = translateResource( uri="preside-objects.${objectId}:field.#field#.title", defaultValue=field );
+		var recordCount = ids.listLen();
+
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+		if ( !field.len() || !ids.len() ) {
+			messageBox.error( translateResource( uri="${translationFile}:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+		}
+
+		prc.pageTitle    = translateResource( uri="${translationFile}:batchedit.page.title", data=[ fieldName, recordCount ] );
+		prc.pageSubtitle = translateResource( uri="${translationFile}:batchedit.page.subtitle", data=[ fieldName, recordCount ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="${translationFile}:batchedit.page.breadcrumb", data=[ fieldName ] )
+			, link  = ""
+		);
+	}
+
+	function batchEditFieldAction( event, rc, prc ) {
+		var updateField = rc.updateField ?: "";
+		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
+
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+		if ( !sourceIds.len() ) {
+			messageBox.error( translateResource( uri="${translationFile}:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+		}
+
+		var success = datamanagerService.batchEditField(
+			  objectName         = "${objectId}"
+			, fieldName          = updateField
+			, sourceIds          = sourceIds
+			, value              = rc[ updateField ]      ?: ""
+			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+			, auditCategory      = "${auditCategory}"
+			, auditAction        = "batch_edit_record"
+		);
+
+		if( success ) {
+			messageBox.info( translateResource( uri="${translationFile}:batchedit.confirmation" ) );
+		} else {
+			messageBox.error( translateResource( uri="${translationFile}:batchedit.error" ) );
+		}
+		setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+	}
+// END BATCHEDIT
 
 	public void function versionHistory( event, rc, prc ) {
 		var id = rc.id ?: "";
@@ -179,9 +278,11 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "${objectId}"
-				, gridFields    = "${labelfield}"
+				, gridFields    = "${gridFields}"
 				, actionsView   = "admin.${handlerFolder}._gridActions"
+// BEGIN DRAFTS
 				, draftsEnabled = true
+// END DRAFTS
 			}
 		);
 	}
