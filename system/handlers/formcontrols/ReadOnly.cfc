@@ -1,12 +1,15 @@
 component {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService"   inject="presideObjectService";
+	property name="contentRendererService" inject="contentRendererService";
 
 	public string function index( event, rc, prc, args={} ) {
-		var renderer = args.renderer ?: "";
-		var type     = presideObjectService.getObjectPropertyAttribute( args.sourceObject, args.name, "type" );
+		var properties = presideObjectService.getObjectProperties( args.sourceObject );
+		var prop       = properties[ args.name ] ?: {};
+		
+		args.renderer  = args.renderer ?: contentRendererService.getRendererForField( prop );
 
-		if ( listFindNoCase( "date,datetime", type ) ) {
+		if ( !contentRendererService.rendererExists( args.renderer ) ) {
 			args.renderer = type;
 		}
 

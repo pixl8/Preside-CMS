@@ -17,8 +17,8 @@ If the object property being rendered is a `date` or `datetime`, the control wil
                 <td>The name of the content renderer to use to format the data on screen.</td>
             </tr>
             <tr>
-                <th>context (optional)</th>
-                <td>The renderer context to use to render the data - for example, in admin screens you may wish to use the `admin` context. Default is "default".</td>
+                <th>rendererContext (optional)</th>
+                <td>The renderer context to use to render the data - for example, in admin screens you may wish to use the `admin` context. Default is "readonly" (which will fall back to "default" if the readonly contet is not defined).</td>
             </tr>
         </tbody>
     </table>
@@ -28,6 +28,6 @@ If the object property being rendered is a `date` or `datetime`, the control wil
 
 ```xml
 <field binding="my_protected_object.title"               control="readonly"   />
-<field binding="my_protected_object.date"                control="readonly"   renderer="custom_date_renderer" context="admin" />
+<field binding="my_protected_object.date"                control="readonly"   renderer="custom_date_renderer" rendererContext="admin" />
 <field binding="my_protected_object.website_description" control="richeditor" />
 ```
