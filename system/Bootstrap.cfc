@@ -155,7 +155,6 @@ component {
 				if ( _reloadRequired() ) {
 					_announceInterception( "prePresideReload" );
 
-
 					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
 
 					_clearExistingApplication();
@@ -181,6 +180,7 @@ component {
 	private void function _clearExistingApplication() {
 		onApplicationEnd( application );
 		application.clear();
+		request.delete( "cb_requestcontext" );
 		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
