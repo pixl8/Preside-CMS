@@ -10,10 +10,6 @@ component {
 		args.renderer  = args.renderer ?: contentRendererService.getRendererForField( prop );
 
 		if ( !contentRendererService.rendererExists( args.renderer ) ) {
-			args.renderer = type;
-		}
-
-		if ( renderer == "none" ) {
 			args.renderer = "";
 		}
 
