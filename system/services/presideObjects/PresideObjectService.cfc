@@ -135,6 +135,7 @@ component displayName="Preside Object Service" {
 	 * @extraFilters.hint        An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @orderBy.hint             Plain SQL order by string
 	 * @groupBy.hint             Plain SQL group by string
+	 * @autoGroupBy.hint         Whether or not to try to automatically calculate group by fields for the query
 	 * @having.hint              Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
 	 * @maxRows.hint             Maximum number of rows to select
 	 * @startRow.hint            Offset the recordset when using maxRows
@@ -163,6 +164,7 @@ component displayName="Preside Object Service" {
 		,          array   savedFilters        = []
 		,          string  orderBy             = ""
 		,          string  groupBy             = ""
+		,          boolean autoGroupBy         = false
 		,          string  having              = ""
 		,          numeric maxRows             = 0
 		,          numeric startRow            = 1
@@ -211,6 +213,10 @@ component displayName="Preside Object Service" {
 		args.objMeta     = objMeta;
 		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
 		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
+		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
+			args.groupBy = _autoCalculateGroupBy( args.selectFields );
+		}
+
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
 
@@ -2793,6 +2799,24 @@ component displayName="Preside Object Service" {
 		draftCheckFilters.append( { filter={ _version_is_draft=true } } );
 
 		return dataExists( argumentCollection=arguments, extraFilters=draftCheckFilters );
+	}
+
+	private string function _autoCalculateGroupBy( required array selectFields ) {
+		var groupBy            = "";
+		var hasAggregateFields = false;
+		var aggregateRegex     = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
+
+
+		for( var field in selectFields ) {
+			var isAggregate = field.reFindNoCase( aggregateRegex );
+			hasAggregateFields = hasAggregateFields || isAggregate;
+
+			if ( !isAggregate ) {
+				groupBy = groupBy.listAppend( field.reReplace( "^(.*?) as .*$", "\1" ) );
+			}
+		}
+
+		return hasAggregateFields ? groupBy : "";
 	}
 
 // SIMPLE PRIVATE PROXIES
