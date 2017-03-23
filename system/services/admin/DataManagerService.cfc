@@ -618,7 +618,7 @@ component {
 
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
-		return ( prop.type ?: "" ) == "string";
+		return ( prop.type ?: "" ) == "string" && !( prop.formula ?: "" ).len();
 	}
 
 // GETTERS AND SETTERS
