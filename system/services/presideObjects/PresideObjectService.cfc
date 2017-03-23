@@ -2460,12 +2460,14 @@ component displayName="Preside Object Service" {
 		var rebuilt = [];
 
 		for( var item in items ) {
-			var propertyName = Trim( ListFirst( item, " " ) );
+			var propertyName = _expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
 			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
 			var aliased      = _autoAliasBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
 
 			if ( propertyName != aliased ) {
 				item = aliased & direction;
+			} else {
+				item = propertyName & direction;
 			}
 
 			rebuilt.append( Trim( item ) );
@@ -2718,6 +2720,7 @@ component displayName="Preside Object Service" {
 		  required string  objectName
 		, required string  expression
 		, required any     dbAdapter
+		,          boolean includeAlias = true
 	) {
 		var props             = getObjectProperties( arguments.objectName );
 		var expanded          = arguments.expression;
@@ -2749,10 +2752,14 @@ component displayName="Preside Object Service" {
 				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
 			}
 
-			if ( expanded.findNoCase( " as " ) ) {
-				expanded = expanded.reReplace( "^(.*?)( as .*$)", "#formula#\2" );
+			if ( arguments.includeAlias ) {
+				if ( expanded.findNoCase( " as " ) ) {
+					expanded = expanded.reReplace( "^(.*?)( as .*$)", "#formula#\2" );
+				} else {
+					expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
+				}
 			} else {
-				expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
+				expanded = formula;
 			}
 		}
 

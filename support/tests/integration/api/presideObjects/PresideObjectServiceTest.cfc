@@ -2898,7 +2898,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test090_selectData_shouldReplaceForumulaPropertyWithItsDefinedFormulaInSelectFields" returntype="void">
+	<cffunction name="test090_selectData_shouldReplaceFormulaPropertyWithItsDefinedFormulaInSelectFields" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
 			var aIds      = [];
@@ -2945,6 +2945,42 @@
 			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
 			super.assertEquals( result.id         , cId, "Expected record ID mismatch" );
 			super.assertEquals( result.a_count    , 3  , "Forumla field not calculated correctly" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test091_selectData_shouldReplaceForumulaPropertyWithItsDefinedFormulaInOrderByClause" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds      = [];
+			var bIds      = [];
+			var cIds      = [];
+			var dIds      = [];
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 1", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2", lots_of_a="#aIds[2]#" }, insertManyToManyRecords=true ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[1] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[2] } ) );
+
+			var result = poService.selectData(
+				  objectName   = "object_d"
+				, selectFields = [ "obj_c.a_count", "id" ]
+				, groupBy      = "object_d.id"
+				, orderBy      = "obj_c.a_count desc"
+			);
+
+			super.assertEquals( result.recordCount, 2      , "Expected record count mismatch" );
+			super.assertEquals( result.id[1]      , dIds[1], "Expected record ID mismatch" );
+			super.assertEquals( result.a_count[1] , 3      , "Forumla field not calculated correctly" );
+			super.assertEquals( result.id[2]      , dIds[2], "Expected record ID mismatch" );
+			super.assertEquals( result.a_count[2] , 1      , "Forumla field not calculated correctly" );
 		</cfscript>
 	</cffunction>
 
