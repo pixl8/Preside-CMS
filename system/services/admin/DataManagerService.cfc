@@ -207,7 +207,7 @@ component {
 			, orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy )
 			, filter             = arguments.filter
 			, filterParams       = arguments.filterParams
-			, groupBy            = "#arguments.objectName#.id"
+			, autoGroupBy        = true
 			, allowDraftVersions = true
 			, extraFilters       = arguments.extraFilters
 		};
