@@ -387,6 +387,7 @@ component {
 		if ( len( arguments.labelRenderer ) ) {
 			args.selectFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
 			args.orderBy      = _getLabelRendererService().getOrderByForLabels( arguments.labelRenderer, { orderBy=args.orderBy } );
+			args.groupBy      = _getLabelRendererService().getGroupByForLabels( arguments.labelRenderer );
 		} else {
 			args.selectFields.delete( labelField );
 			args.selectFields.append( replacedLabelField );
