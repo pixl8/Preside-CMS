@@ -2898,6 +2898,55 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test090_selectData_shouldReplaceForumulaPropertyWithItsDefinedFormulaInSelectFields" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds      = [];
+			var bId       = "";
+			var cId       = "";
+			var dId       = "";
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bId = poService.insertData( objectName="object_b", data={ label="isn't this lovely", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true );
+			cId = poService.insertData( objectName="object_c", data={ label="isn't this lovely", obj_b=bId } );
+			dId = poService.insertData( objectName="object_d", data={ label="isn't this lovely", obj_c=cId } );
+
+			var result = poService.selectData(
+				  objectName   = "object_d"
+				, selectFields = [ "obj_c.a_count", "id" ]
+				, groupBy      = "object_d.id"
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , dId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Forumla field not calculated correctly" );
+
+			var result = poService.selectData(
+				  objectName   = "object_c"
+				, selectFields = [ "object_c.a_count", "id" ]
+				, groupBy      = "object_c.id"
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , cId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Forumla field not calculated correctly" );
+
+			var result = poService.selectData(
+				  objectName   = "object_c"
+				, selectFields = [ "a_count", "id" ]
+				, groupBy      = "object_c.id"
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , cId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Forumla field not calculated correctly" );
+		</cfscript>
+	</cffunction>
 
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">

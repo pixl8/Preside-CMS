@@ -80,7 +80,6 @@ component {
 		meta.propertyNames = meta.propertyNames ?: [];
 		meta.properties    = meta.properties    ?: {};
 
-
 		_defineIdField( meta );
 		_defineCreatedField( meta );
 		_defineModifiedField( meta );
@@ -89,6 +88,7 @@ component {
 		_mergeSystemPropertyDefaults( meta );
 		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
 		_fixOrderOfProperties( meta );
+
 
 		meta.dbFieldList = _calculateDbFieldList( meta.properties );
 		meta.tableName   = LCase( meta.tablePrefix & meta.tableName );
@@ -246,6 +246,10 @@ component {
 			}
 
 			if ( [ "many-to-many", "one-to-many" ].find( prop.relationship ?: "" ) ) {
+				prop.dbtype = "none";
+			}
+
+			if ( ( prop.formula ?: "" ).len() ) {
 				prop.dbtype = "none";
 			}
 		}

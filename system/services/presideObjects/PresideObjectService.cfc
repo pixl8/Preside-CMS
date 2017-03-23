@@ -402,7 +402,7 @@ component displayName="Preside Object Service" {
 								, sourceId       = newId
 								, targetIdList   = manyToManyData[ key ]
 							);
-							
+
 						}
 					}
 				}
@@ -2436,6 +2436,12 @@ component displayName="Preside Object Service" {
 				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
 			}
 
+			fields[i] = _expandFormulaFields(
+				  objectName = arguments.objectName
+				, expression = fields[i]
+				, dbAdapter  = adapter
+			);
+
 			fields[i] = _autoAliasBareProperty(
 				  objectName   = arguments.objectName
 				, propertyName = fields[i]
@@ -2706,6 +2712,52 @@ component displayName="Preside Object Service" {
 			  filter       = "#arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft"
 			, filterparams = { "#arguments.objectName#._version_is_draft" = false }
 		};
+	}
+
+	private string function _expandFormulaFields(
+		  required string  objectName
+		, required string  expression
+		, required any     dbAdapter
+	) {
+		var props             = getObjectProperties( arguments.objectName );
+		var expanded          = arguments.expression;
+		var propertyName      = expanded;
+		var prefix            = "";
+		var relatedObjectName = "";
+
+		if ( ListLen( expression, "." ) == 2 ) {
+			propertyName = ListLast( arguments.expression, "." );
+			if ( ListFirst( expression, "." ) != arguments.objectName ) {
+				prefix            = ListFirst( arguments.expression, "." );
+				relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
+
+				if ( objectExists( relatedObjectName ) ) {
+					props = getObjectProperties( relatedObjectName );
+				}
+			} else {
+				prefix = "";
+			}
+		}
+
+		var formula = props[ propertyName ].formula ?: "";
+
+		if ( Len( Trim( formula ) ) ) {
+			if ( formula.findNoCase( "${prefix}" ) ) {
+				if ( prefix.len() ) {
+					prefix &= formula.reFindNoCase( "\$\{prefix\}(\S+)?\." ) ? "$" : ".";
+				}
+				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
+			}
+
+			if ( expanded.findNoCase( " as " ) ) {
+				expanded = expanded.reReplace( "^(.*?)( as .*$)", "#formula#\2" );
+			} else {
+				expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
+			}
+		}
+
+
+		return expanded;
 	}
 
 	private string function _autoAliasBareProperty(
