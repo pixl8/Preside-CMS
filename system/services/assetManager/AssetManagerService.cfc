@@ -356,9 +356,8 @@ component displayName="AssetManager Service" {
 			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "storage_location.name as storage_location" ]
 			, filter       = filter
 			, extraFilters = [ _getExcludeHiddenFilter() ]
-			, groupBy      = "asset_folder.id"
+			, groupBy      = "asset_folder.id,asset_folder.label,asset_folder.access_restriction,asset_folder.is_system_folder,storage_location.name"
 			, orderBy      = "label"
-
 		);
 
 		for ( var folder in folders ) {

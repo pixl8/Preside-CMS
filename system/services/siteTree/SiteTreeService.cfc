@@ -67,7 +67,7 @@ component {
 			, filter             = filter
 			, filterParams       = { trashed = arguments.trash, page_type = allowedPageTypes }
 			, useCache           = arguments.useCache
-			, groupBy            = "page.id"
+			, autoGroupBy        = true
 			, allowDraftVersions = arguments.allowDrafts
 		};
 

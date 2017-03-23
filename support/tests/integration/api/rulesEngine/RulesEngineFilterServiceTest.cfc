@@ -158,7 +158,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extraFilters = expectedFilters
 					, someArgument = randomArgs.someArgument
 					, anotherArg   = randomArgs.anotherArg
-					, groupby      = "#dummyObject#.id"
+					, autoGroupBy  = true
 				} );
 			} );
 		} );

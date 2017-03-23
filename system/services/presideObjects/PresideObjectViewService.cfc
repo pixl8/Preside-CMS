@@ -57,6 +57,7 @@ component displayName="Preside Object View Service" {
 	public any function renderView(
 		  required string  presideObject
 		, required string  view
+		,          boolean autoGroupBy  = true
 		,          string  returntype   = "string"
 		,          struct  args         = {}
 		,          boolean cache        = false

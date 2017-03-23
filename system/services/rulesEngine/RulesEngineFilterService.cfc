@@ -139,7 +139,7 @@ component displayName="Rules Engine Filter Service" {
 			  objectName      = arguments.objectName
 			, expressionArray = arguments.expressionArray
 		) );
-		args.groupby = args.groupBy ?: "#objectName#.id";
+		args.autoGroupBy = true;
 
 		args.delete( "expressionArray" );
 

@@ -536,7 +536,7 @@ component displayName="Website permissions service" {
 		if ( $isFeatureEnabled( "websiteBenefits" ) ) {
 			return _getBenefitsDao().selectData(
 				  selectFields = [ "website_benefit.id", "website_benefit.combined_benefits_are_inclusive", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
-				, groupBy      = "website_benefit.id"
+				, groupBy      = "website_benefit.id,website_benefit.combined_benefits_are_inclusive"
 				, forceJoins   = "inner"
 			);
 		}
