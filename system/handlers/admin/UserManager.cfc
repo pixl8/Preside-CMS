@@ -17,7 +17,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  title = translateResource( "cms:usermanager.groupspage.title" )
 				, link  = event.buildAdminLink( linkTo="usermanager.groups" )
 			);
-		} elseif ( event.getCurrentAction() contains "user" ) {
+		} else if ( event.getCurrentAction() contains "user" ) {
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:usermanager.userspage.title" )
 				, link  = event.buildAdminLink( linkTo="usermanager.users" )

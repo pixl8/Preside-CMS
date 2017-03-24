@@ -27,6 +27,7 @@
 	  , saveItem
 	  , launchConfiguration
 	  , editItem
+	  , cloneItem
 	  , deleteItem
 	  , saveSortOrder;
 
@@ -59,7 +60,7 @@
 
 	setupClickBehaviours = function(){
 		$itemsContainer.on( "click", ".edit-link", editItem );
-
+		$itemsContainer.on( "click", ".clone-link", cloneItem );
 		$itemsContainer.on( "click", ".delete-link", deleteItem );
 	};
 
@@ -101,7 +102,9 @@
 			var $newItem = $( data.itemView );
 
 			$item.after( $newItem );
-			$item.remove();
+			if( typeof $item.enableCloneItem === "undefined" ) {
+				$item.remove();
+			}
 			saveSortOrder();
 		};
 
@@ -133,7 +136,9 @@
 	};
 
 	launchConfiguration = function( $item ){
-		var itemData = $item.data()
+		var itemData       = $item.data()
+		  , configEndpoint = typeof $item.enableCloneItem === "undefined" ? itemData.configEndpoint : itemData.configClone
+		  , itemDataId     = typeof $item.enableCloneItem === "undefined" ? itemData.id             : ""
 		  , onCancelDialog
 		  , onIFrameLoad
 		  , onDialogOk
@@ -141,11 +146,11 @@
 		  , modalIframe;
 
 		onDialogOk = function(){
-			modalIframe.validateFormBuilderItemConfig( formId, itemData.id || "", function( valid ){
+			modalIframe.validateFormBuilderItemConfig( formId, itemDataId || "", function( valid ){
 				if ( valid ) {
 					var config = modalIframe.getFormBuilderItemConfig();
 
-					if ( typeof itemData.id === "undefined" ) {
+					if ( typeof itemDataId === "undefined" || typeof $item.enableCloneItem !== "undefined" ) {
 						saveNewItem( itemData.itemType, config, $item );
 					} else {
 						saveItem( config, $item );
@@ -161,7 +166,7 @@
 		onCancelDialog = function(){
 			var itemData = $item.data();
 
-			if ( typeof itemData.id === "undefined" ) {
+			if ( typeof itemDataId === "undefined" ) {
 				$item.remove();
 			}
 		};
@@ -170,7 +175,7 @@
 			modalIframe = iframe;
 		};
 
-		modal = new PresideIframeModal( itemData.configEndpoint, "100%", "100%", {
+		modal = new PresideIframeModal( configEndpoint, "100%", "100%", {
 	  		  onLoad   : onIFrameLoad
 	  		, onok     : onDialogOk
 	  		, oncancel : onCancelDialog
@@ -183,7 +188,7 @@
 		modal.open();
 		$( 'button[class="bootbox-close-button close"]' ).on( "click", function( e ){
 			var itemData = $item.data();
-			if ( typeof itemData.id === "undefined" ) {
+			if ( typeof itemDataId === "undefined" ) {
 				$item.remove();
 			}
 		});
@@ -193,6 +198,15 @@
 		var $link  = $( this )
 		  , $item  = $link.closest( ".form-item" );
 
+		e.preventDefault();
+
+		launchConfiguration( $item );
+	};
+
+	cloneItem = function( e ) {
+		var $link             = $( this )
+		  , $item             = $link.closest( ".form-item" );
+		$item.enableCloneItem = true;
 		e.preventDefault();
 
 		launchConfiguration( $item );

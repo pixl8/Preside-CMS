@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Rules engine condition: edit form
+
+This form is used for editing a rules engine condition
+-->
+<form>
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="rules_engine_condition.context"        control="hidden" />
+			<field binding="rules_engine_condition.filter_object"  control="hidden" />
+			<field binding="rules_engine_condition.condition_name" control="textinput"                   label="preside-objects.rules_engine_condition:field.condition_name.filter.title" />
+			<field binding="rules_engine_condition.expressions"    control="rulesEngineConditionBuilder" label="preside-objects.rules_engine_condition:field.expressions.filter.title">
+				<rule validator="rulesEngineCondition" />
+			</field>
+		</fieldset>
+	</tab>
+</form>

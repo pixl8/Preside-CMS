@@ -1,7 +1,7 @@
 <cfscript>
 	objectName          = rc.object ?: "";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
+	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
 
 	prc.pageIcon  = "plus";
 	prc.pageTitle = addRecordTitle;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="basic">
+		<fieldset id="basic" sortorder="10">
+			<field binding="email_template.name"            control="textinput" sortorder="10" />
+			<field binding="email_template.subject"         control="textinput" sortorder="20" />
+			<field binding="email_template.email_blueprint" required="true"     sortorder="30" quickadd="true" />
+		</fieldset>
+	</tab>
+</form>

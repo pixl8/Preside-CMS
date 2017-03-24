@@ -6,7 +6,7 @@
 		  , pickerConfig     = $thisPicker.data()
 		  , relativeToField  = pickerConfig.relativeToField
 		  , relativeOperator = pickerConfig.relativeOperator
-		  , conf, form, relativeField, datePicker;
+		  , conf, $form, relativeField, datePicker;
 
 		conf = {
 			  autoclose : true
@@ -32,6 +32,12 @@
 
 		$thisPicker.datepicker( conf ).next().on( "click", function(){
 			$( this ).prev().focus();
+		});
+
+		$thisPicker.on("changeDate", function(){
+			if ( typeof $.validator !== 'undefined' ) {
+				$thisPicker.valid();
+			}
 		});
 
 		datePicker = $thisPicker.data( "datepicker" );

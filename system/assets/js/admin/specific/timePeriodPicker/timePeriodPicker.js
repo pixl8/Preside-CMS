@@ -53,6 +53,8 @@
 					break;
 					case "recent":
 					case "upcoming":
+					case "futureplus":
+					case "pastminus":
 						$measureControl.removeClass( "hide" );
 						$unitControlContainer.removeClass( "hide" );
 						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
@@ -83,8 +85,15 @@
 					break;
 					case "recent":
 					case "upcoming":
+					case "futureplus":
+					case "pastminus":
 						val.measure = $measureControl.val();
 						val.unit    = getSelectedUnit();
+					break;
+
+					case "future":
+					case "past":
+						val.type = val.type;
 					break;
 
 					default:

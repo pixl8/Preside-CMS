@@ -7,7 +7,7 @@ Form items are what provide the input and display definition of the form. _i.e. 
 
 ![Screenshot showing a configuration of a date picker item](images/screenshots/formbuilder_configureitem.jpg)
 
-The core system provides a basic set of item types who's configuration can be modified and extended by your application or extensions. You are also able to introduce new item types in your application or extensions.
+The core system provides a basic set of item types whose configuration can be modified and extended by your application or extensions. You are also able to introduce new item types in your application or extensions.
 
 # Anatomy of an item type
 
@@ -49,7 +49,7 @@ multipleChoice.title=Multiple choice
 content.title=Content and layout
 ```
 
-Each item _type_ subsequently has it's own `.properties` file that lives at `/i18n/formbuilder/item-types/(itemtype).properties`. A bare minimum `.properties` file for an item type should define a `title` and `iconclass` key, but it could also be used to define labels for the item type's configuration form. For example:
+Each item _type_ subsequently has its own `.properties` file that lives at `/i18n/formbuilder/item-types/(itemtype).properties`. A bare minimum `.properties` file for an item type should define a `title` and `iconclass` key, but it could also be used to define labels for the item type's configuration form. For example:
 
 ```properties
 # /i18n/formbuilder/item-types/date.properties
@@ -70,7 +70,7 @@ field.relativeToCurrentDate.help=Whether or not the date value entered into this
 
 field.relativeToField.title=Another field in the form
 field.relativeToField.placeholder=e.g. start_date
-field.relativeToField.help=The name of the field who's value should be used as a relative constraint when validating the value of this field
+field.relativeToField.help=The name of the field whose value should be used as a relative constraint when validating the value of this field
 
 tab.validation.title=Date limits
 fieldset.fixed.title=Fixed dates
@@ -144,7 +144,7 @@ The `args` struct passed to the viewlet will contain any saved configuration for
 
 #### renderInput.cfm (no handler version)
 
-An alternative example of an input renderer might be for an item type that is _not_ a form control, e.g. the 'content' item type. It's viewlet could be implemented simply as a view, `/views/formbuilder/item-types/content/renderInput.cfm`:
+An alternative example of an input renderer might be for an item type that is _not_ a form control, e.g. the 'content' item type. Its viewlet could be implemented simply as a view, `/views/formbuilder/item-types/content/renderInput.cfm`:
 
 ```lucee
 <cfoutput>
@@ -155,7 +155,7 @@ An alternative example of an input renderer might be for an item type that is _n
 </cfoutput>
 ```
 
-`args.body` is available to the item type because it is defined in it's configuration form.
+`args.body` is available to the item type because it is defined in its configuration form.
 
 ### renderResponse()
 

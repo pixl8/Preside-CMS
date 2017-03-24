@@ -35,7 +35,8 @@ component output=false {
 				, data = [ translateResource( uri=presideObjectService.getResourceBundleUriRoot( "asset" ) & "title", defaultValue=translateResource( "cms:datamanager.records" ) ) ]
 			);
 		}
-
+		event.include( assetId="/js/admin/specific/assetpicker/" );
+		event.include( assetId="/css/admin/specific/assetpicker/" );
 		return renderView( view="formcontrols/assetPicker/index", args=args );
 	}
 }

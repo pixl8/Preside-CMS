@@ -3,6 +3,8 @@ component {
 	property name="presideObjectService"       inject="presideObjectService";
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="taskmanagerService"         inject="taskmanagerService";
+	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
+	property name="emailLayoutService"         inject="emailLayoutService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -157,5 +159,31 @@ component {
 		var recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
 
 		return translateResource( uri="auditlog.frontendeditor:#args.action#.message", data=[ userLink, objectTitle, recordLabel ] );
+	}
+
+	private string function emailtemplate( event, rc, prc, args={} ) {
+		var action     = args.action            ?: "";
+		var known_as   = args.known_as          ?: "";
+		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var recordId   = args.record_id         ?: "";
+		var label      = renderLabel( "email_template", recordId );
+		var type       = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "customtemplates";
+		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.#type#.template", queryString="template=" & recordId );
+		var recordLink = '<a href="#recordUrl#">#label#</a>';
+
+		return translateResource( uri="auditlog.emailtemplate:#action#.message", data=[ userLink, recordLink ] );
+	}
+
+	private string function emailLayout( event, rc, prc, args={} ) {
+		var action     = args.action            ?: "";
+		var known_as   = args.known_as          ?: "";
+		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var recordId   = args.record_id         ?: "";
+		var layout     = emailLayoutService.getLayout( recordId );
+		var label      = layout.title ?: "Unknown";
+		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.layouts.layout", queryString="layout=" & recordId );
+		var recordLink = '<a href="#recordUrl#">#label#</a>';
+
+		return translateResource( uri="auditlog.emaillayout:#action#.message", data=[ userLink, recordLink ] );
 	}
 }

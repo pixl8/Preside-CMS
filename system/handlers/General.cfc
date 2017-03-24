@@ -6,12 +6,14 @@ component {
 	property name="adminLoginService"         inject="loginService";
 	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
+	property name="expressionGenerator"       inject="rulesEngineAutoPresideObjectExpressionGenerator";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
 		_performDbMigrations();
 		_populateDefaultLanguages();
+		_populateAutoRulesEngineExpressions();
 		announceInterception( "onApplicationStart" );
 	}
 
@@ -92,6 +94,7 @@ component {
 				, reloadPresideObjects = devSettings
 				, reloadWidgets        = devSettings
 				, reloadPageTypes      = devSettings
+				, reloadStatic         = devSettings
 			};
 		} else {
 			devSettings = {
@@ -102,6 +105,7 @@ component {
 				, reloadPresideObjects = IsBoolean( devSettings.reloadPresideObjects ?: "" ) and devSettings.reloadPresideObjects
 				, reloadWidgets        = IsBoolean( devSettings.reloadWidgets        ?: "" ) and devSettings.reloadWidgets
 				, reloadPageTypes      = IsBoolean( devSettings.reloadPageTypes      ?: "" ) and devSettings.reloadPageTypes
+				, reloadStatic         = IsBoolean( devSettings.reloadStatic         ?: "" ) and devSettings.reloadStatic
 			};
 		}
 
@@ -115,7 +119,7 @@ component {
 				applicationReloadService.reloadPresideObjects();
 				applicationReloadService.dbSync();
 				anythingReloaded = true;
-			} elseif ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
+			} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
 				applicationReloadService.reloadPresideObjects();
 				anythingReloaded = true;
 			}
@@ -140,7 +144,7 @@ component {
 				anythingReloaded = true;
 			}
 
-			if ( event.valueExists( "fwReinitStatic" ) and Hash( rc.fwReinitStatic ) eq reloadPassword ) {
+			if ( devSettings.reloadStatic or ( event.valueExists( "fwReinitStatic" ) and Hash( rc.fwReinitStatic ) eq reloadPassword ) ) {
 				applicationReloadService.reloadStatic();
 				anythingReloaded = true;
 			}
@@ -178,5 +182,9 @@ component {
 		if ( isFeatureEnabled( "multilingual" ) ) {
 			getModel( "multilingualPresideObjectService" ).populateCoreLanguageSet();
 		}
+	}
+
+	private void function _populateAutoRulesEngineExpressions() {
+		expressionGenerator.generateAndRegisterAutoExpressions();
 	}
 }

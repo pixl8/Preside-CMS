@@ -202,6 +202,9 @@ component {
 					if ( StructKeyExists( fieldAttributes, "dbType" ) and ListFindNoCase( "timestamp,datetime", fieldAttributes.dbType ) ) {
 						return "datetime";
 					}
+					if ( StructKeyExists( fieldAttributes, "dbType" ) and fieldAttributes.dbType == "date" ) {
+						return "date";
+					}
 				break;
 			}
 		}

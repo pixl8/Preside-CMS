@@ -63,7 +63,7 @@ You can pass the following arguments to the viewlet through the `args` structure
             </tr>
         </thead>
         <tbody>
-            <tr><td>`rootPage`</td> <td>ID of the page who's children make up the top level of the menu. This defaults to the site's homepage.</td></tr>
+            <tr><td>`rootPage`</td> <td>ID of the page whose children make up the top level of the menu. This defaults to the site's homepage.</td></tr>
             <tr><td>`depth`</td>    <td>Number of nested dropdown levels to drill into. Default is 1, i.e. just render the immediate children of the root page and have no drop downs</td></tr>
 
             <tr>
@@ -106,7 +106,7 @@ You can pass the following arguments to the viewlet through the `args` structure
 
 ### Overriding the view
 
-You might find yourself in a position where the HTML markup provided by the core implementation does not suit your needs. You can override this markup by providing a view at `/views/core/navigaton/mainNavigation.cfm`. The view will be passed a single argument, `args.menuItems`, which is an array of structs who's structure looks like this:
+You might find yourself in a position where the HTML markup provided by the core implementation does not suit your needs. You can override this markup by providing a view at `/views/core/navigaton/mainNavigation.cfm`. The view will be passed a single argument, `args.menuItems`, which is an array of structs whose structure looks like this:
 
 ```luceescript
 [
@@ -204,7 +204,7 @@ This viewlet works in exactly the same way to the main navigation viewlet, howev
 
 ### Overriding the view
 
-Override the markup for the sub navigation viewlet by providing a view file at `/views/core/navigaton/subNavigation.cfm`. The view will be passed two arguments, `args.menuItems` and `args.rootTitle`. The `args.menuItems` argument is the nested array of menu items. The `args.rootTitle` argument is the title of the root page of the menu (who's children makeup the top level of the menu).
+Override the markup for the sub navigation viewlet by providing a view file at `/views/core/navigaton/subNavigation.cfm`. The view will be passed two arguments, `args.menuItems` and `args.rootTitle`. The `args.menuItems` argument is the nested array of menu items. The `args.rootTitle` argument is the title of the root page of the menu (whose children makeup the top level of the menu).
 
 The core view looks like this:
 

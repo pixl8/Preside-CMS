@@ -4,6 +4,17 @@ component {
 
 	private string function index( event, rc, prc, args={} ) {
 		args.ruleContext = args.ruleContext ?: ( rc.context ?: "" );
+		args.object      = rc.filter_object ?: "";
+
+		if ( !args.ruleContext.len() && args.object.len() ) {
+			return runEvent(
+				  event          = "formcontrols.RulesEngineFilterBuilder.index"
+				, eventArguments = { args=args }
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
 		args.expressions = expressionService.listExpressions( args.ruleContext );
 
 		event.include( "/js/admin/specific/rulesEngineConditionBuilder/"  )

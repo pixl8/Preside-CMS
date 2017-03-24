@@ -1,7 +1,7 @@
 component {
 	this.name = "presidecmsDocumentationLocalServer-" & Hash( GetCurrentTemplatePath() );
 
-	this.cwd     = GetDirectoryFromPath( GetCurrentTemplatePath() )
+	this.cwd     = GetDirectoryFromPath( GetCurrentTemplatePath() );
 	this.baseDir = ExpandPath( this.cwd & "../" );
 
 	this.mappings[ "/api"      ] = this.baseDir & "api";
@@ -11,9 +11,9 @@ component {
 	public boolean function onRequest( required string requestedTemplate ) output=true {
 		if ( _isSearchIndexRequest() ) {
 			_renderSearchIndex();
-		} elseif ( _isAssetRequest() ) {
+		} else if ( _isAssetRequest() ) {
 			_renderAsset();
-		} elseif ( _isImageRequest() ) {
+		} else if ( _isImageRequest() ) {
 			_renderImage();
 		} else {
 			_renderPage();

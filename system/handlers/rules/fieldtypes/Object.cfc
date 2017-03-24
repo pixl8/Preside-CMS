@@ -32,6 +32,8 @@ component {
 		var sortable      = IsTrue( config.sortable ?: true );
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( object );
 
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "objectPicker"

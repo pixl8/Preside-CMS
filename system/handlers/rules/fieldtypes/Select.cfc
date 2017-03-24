@@ -27,6 +27,8 @@ component {
 		var multiple      = IsTrue( config.multiple ?: true );
 		var sortable      = IsTrue( config.sortable ?: true );
 
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "select"

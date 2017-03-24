@@ -134,7 +134,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "createTranslationObject()", function(){
-			it( "should return an object who's table name is the source object prepended with ""_translation""", function(){
+			it( "should return an object whose table name is the source object prepended with ""_translation""", function(){
 				var svc               = _getService();
 				var dummyProps        = StructNew( "linked" );
 

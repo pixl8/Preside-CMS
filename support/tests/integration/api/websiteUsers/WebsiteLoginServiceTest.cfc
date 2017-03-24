@@ -250,7 +250,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var mockRecord          = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
 		var testCookie          = { loginId="fred", expiry=20, series="someseries", token="sometoken" };
 		var alertThrown         = false;
-		var testAlertClosure    = function(){ alertThrown = true };
+		var testAlertClosure    = function(){ alertThrown = true; };
 
 		StructDelete( request, "_presideWebsiteAutoLoginResult" );
 
@@ -342,9 +342,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		userService.$( "_createTemporaryResetTokenExpiry", testExpiryDate );
 		mockBCryptService.$( "hashpw" ).$args( testTempKey ).$results( testTempKeyHashed );
 		mockEmailService.$( "send" ).$args(
-			  template = "resetWebsitePassword"
-			, to       = [ testUserRecord.email_address ]
-			, args     = { resetToken = testTempToken & "-" & testTempKey, expires=testExpiryDate, username=testUserRecord.display_name, loginid=testUserRecord.login_id }
+			  template    = "resetWebsitePassword"
+			, recipientId = testUserRecord.id
+			, args        = { resetToken = testTempToken & "-" & testTempKey }
 		).$results( true );
 		mockUserDao.$( "updateData" ).$args(
 			  id   = testUserRecord.id
@@ -384,7 +384,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		).$results( true );
 
 		super.assertFalse( userService.validateResetPasswordToken( testToken ) );
-		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() )
+		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() );
 	}
 
 	function test20_validateResetPasswordToken_shouldReturnFalseAndClearToken_whenRecordFoundAndNotExipiredByHashedKeyDoesNotMatch() output=false {
