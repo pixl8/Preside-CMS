@@ -38,16 +38,13 @@ component {
 		,          boolean _is   = true
 		,          string  value = ""
 	){
-		var prefix         = filterPrefix.len() ? filterPrefix : propertyName;
+		var defaultPrefix  = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
+		var prefix         = filterPrefix.len() ? ( filterPrefix & "$#propertyName#" ) : defaultPrefix;
 		var paramName      = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var filterParams   = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 		var relatedIdField = presideObjectService.getIdField( arguments.relatedTo );
 
 		if ( _is ) {
-			if ( arguments.parentPropertyName.len() ) {
-				prefix = ListPrepend( prefix, arguments.parentPropertyName, "$" )
-			}
-
 			return [ {
 				  filter       = "#prefix#.#relatedIdField# in (:#paramName#)"
 				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
