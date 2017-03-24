@@ -372,6 +372,7 @@ component {
 			, extraFilters = arguments.extraFilters
 			, maxRows      = arguments.maxRows
 			, orderBy      = arguments.orderBy
+			, autoGroupBy  = true
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
 			result.text = _getLabelRendererService().renderLabel( labelRenderer, result );
