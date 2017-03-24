@@ -515,6 +515,26 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "getMergedFormName()", function(){
+
+			it( "should return a single form name combining two form names", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/merging" );
+				var result   = formsSvc.getMergedFormName( "form1", "form2" );
+				var expected = "form1.merged.with.form2";
+
+				expect( result ).toBe( expected );
+			} );
+
+			it( "should return a single form name combining three form names", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/merging" );
+				var result   = formsSvc.getMergedFormName( "form1", [ "form2", "form3" ] );
+				var expected = "form1.merged.with.form2.merged.with.form3";
+
+				expect( result ).toBe( expected );
+			} );
+
+		} );
+
 		describe( "mergeForms()", function(){
 
 			it( "should return a single form definition composed of two form definitions", function(){
@@ -532,6 +552,69 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 							fields=[
 								{ name="anotherfield", rules=[], sortorder=5 },
 								{ name="somename", control="overridenControl", required="false", rules=[], sortorder=10 }
+							]
+						},{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="meh", required=false, rules=[] }
+							]
+						},{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="meh2", blah="blah", rules=[] }
+							]
+						}]
+
+					},{
+						title="",
+						description="",
+						id = "",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="mehsomemore", required="false", rules=[] }
+							]
+						}]
+					},{
+						title="",
+						description="",
+						id = "",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="intab3", required="false", rules=[] }
+							]
+						}]
+					}]
+				};
+
+				expect( result ).toBe( expected );
+			} );
+
+			it( "should return a single form definition composed of three form definitions", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/merging" );
+				var result   = formsSvc.mergeForms( "form1", [ "form2", "form3" ] );
+				var expected = {
+					tabs = [{
+						title="A new title",
+						description="",
+						id = "sometab",
+						fieldsets=[{
+							title="Another new title",
+							description="A description",
+							id="somefieldset",
+							fields=[
+								{ name="anotherfield", rules=[], sortorder=5 },
+								{ name="somename", control="overridenControl", required="false", rules=[], sortorder=10 },
+								{ name="fieldfromform3", rules=[], sortorder=30 }
 							]
 						},{
 							title="",
