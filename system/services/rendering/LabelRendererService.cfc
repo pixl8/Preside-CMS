@@ -6,8 +6,13 @@
 component {
 
 // CONSTRUCTOR
+	/**
+	 * @labelRendererCache.inject  cachebox:LabelRendererCache
+	 *
+	 */
+	public any function init( required any labelRendererCache ) {
+		_setLabelRendererCache( arguments.labelRendererCache );
 
-	public any function init() {
 		return this;
 	}
 
@@ -55,6 +60,25 @@ component {
 		}
 	}
 
+	public string function getRendererCacheDate( required string labelRenderer ) {
+		var cacheDate      = createDateTime( 1970, 1, 1, 0, 0, 0 );
+		var cache          = _getLabelRendererCache();
+		var rendererExists = len( labelRenderer ) && $getColdbox().handlerExists( _getSelectFieldsHandler( labelRenderer ) );
+
+		if ( rendererExists ) {
+			var cached = cache.get( labelRenderer );
+
+			if ( !IsNull( cached ) ) {
+				cacheDate = cached;
+			} else {
+				cacheDate = now();
+				cache.set( labelRenderer, cacheDate );
+			}
+		}
+
+		return cacheDate;
+	}
+
 // PRIVATE HELPERS
 	private string function _getSelectFieldsHandler( required string labelRenderer ) {
 		return "renderers.labels.#labelRenderer#._selectFields";
@@ -66,6 +90,14 @@ component {
 
 	private string function _getRenderLabelHandler( required string labelRenderer ) {
 		return "renderers.labels.#labelRenderer#._renderLabel";
+	}
+
+
+	private any function _getLabelRendererCache() {
+		return _labelRendererCache;
+	}
+	private void function _setLabelRendererCache( required any labelRendererCache ) {
+		_labelRendererCache = arguments.labelRendererCache;
 	}
 
 }
