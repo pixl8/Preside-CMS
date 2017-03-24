@@ -31,20 +31,6 @@ component {
 		}
 	}
 
-	public string function getGroupByForLabels( required string labelRenderer, struct args={} ) {
-		var groupByHandler = _getGroupByHandler( labelRenderer );
-
-		if ( len( labelRenderer ) && $getColdbox().handlerExists( groupByHandler ) ) {
-			return $getColdbox().runEvent(
-				  event          = groupByHandler
-				, prePostExempt  = true
-				, private        = true
-			);
-		} else {
-			return "";
-		}
-	}
-
 	public string function getOrderByForLabels( required string labelRenderer, struct args={} ) {
 		var orderByHandler = _getOrderByHandler( labelRenderer );
 
@@ -96,10 +82,6 @@ component {
 // PRIVATE HELPERS
 	private string function _getSelectFieldsHandler( required string labelRenderer ) {
 		return "renderers.labels.#labelRenderer#._selectFields";
-	}
-
-	private string function _getGroupByHandler( required string labelRenderer ) {
-		return "renderers.labels.#labelRenderer#._groupBy";
 	}
 
 	private string function _getOrderByHandler( required string labelRenderer ) {
