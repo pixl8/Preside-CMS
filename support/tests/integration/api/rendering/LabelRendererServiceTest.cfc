@@ -38,13 +38,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			it( "should return custom orderby if label renderer exists and orderby method defined", function(){
 				var service         = _getService();
 				var labelRenderer   = "custom_label_renderer";
-				var selectHandler   = service.getOrderByHandler( labelRenderer );
+				var orderByHandler  = service.getOrderByHandler( labelRenderer );
 				var defaultOrderBy  = "label";
 				var expectedOrderBy = "column_one, column_two";
 
-				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
+				mockColdboxController.$( "handlerExists" ).$args( orderByHandler ).$results( true );
 				mockColdboxController.$( "runEvent"      ).$args(
-					  event          = selectHandler
+					  event          = orderByHandler
 					, prePostExempt  = true
 					, private        = true ).$results( expectedOrderBy );
 				
@@ -54,11 +54,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			it( "should return default orderby if label renderer does not exist or orderby method not defined", function(){
 				var service         = _getService();
 				var labelRenderer   = "custom_label_renderer";
-				var selectHandler   = service.getOrderByHandler( labelRenderer );
+				var orderByHandler  = service.getOrderByHandler( labelRenderer );
 				var defaultOrderBy  = "label";
 				var expectedOrderBy = "label";
 
-				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( false );
+				mockColdboxController.$( "handlerExists" ).$args( orderByHandler ).$results( false );
 				
 				expect( service.getOrderByForLabels( labelRenderer, { orderBy=defaultOrderBy } ) ).toBe( expectedOrderBy );
 			} );
@@ -108,14 +108,59 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 		} );
 
+
+		describe( "getRendererCacheDate()", function(){
+
+			it( "should return current datetime if label renderer exists but is not in cache", function(){
+				var service         = _getService();
+				var labelRenderer   = "custom_label_renderer";
+				var selectHandler   = service.getSelectFieldsHandler( labelRenderer );
+				var expectedDate    = Now();
+
+				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
+				mockLabelRendererCache.$( "get" ).$args( labelRenderer ).$results( nullValue() );
+				mockLabelRendererCache.$( "set" ).$args( labelRenderer, expectedDate ).$results( expectedDate );
+				
+				expect( service.getRendererCacheDate( labelRenderer ) ).toBeGTE( expectedDate );
+			} );
+
+			it( "should return cached datetime if label renderer exists and is in cache", function(){
+				var service         = _getService();
+				var labelRenderer   = "custom_label_renderer";
+				var selectHandler   = service.getSelectFieldsHandler( labelRenderer );
+				var expectedDate    = createDateTime( 2017, 1, 1, 10, 30, 0 );
+
+				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
+				mockLabelRendererCache.$( "get" ).$args( labelRenderer ).$results( expectedDate );
+				
+				expect( service.getRendererCacheDate( labelRenderer ) ).toBe( expectedDate );
+			} );
+
+			it( "should return default datetime if label renderer does not exist", function(){
+				var service         = _getService();
+				var labelRenderer   = "custom_label_renderer";
+				var selectHandler   = service.getSelectFieldsHandler( labelRenderer );
+				var expectedDate    = createDateTime( 1970, 1, 1, 0, 0, 0 );
+
+				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( false );
+				
+				expect( service.getRendererCacheDate( labelRenderer ) ).toBe( expectedDate );
+			} );
+
+		} );
+
 	}
 
 // PRIVATE HELPERS
 	private any function _getService() {
-		var service = createMock( object=CreateObject( "preside.system.services.rendering.LabelRendererService" ) );
+		mockLabelRendererCache = createStub();
+		mockColdboxController  = createStub();
 
-		mockColdboxController = createStub();
-		service.$( "$getColdbox", mockColdboxController );
+		var service = createMock( object= new preside.system.services.rendering.LabelRendererService(
+			labelRendererCache = mockLabelRendererCache
+		) );
+
+		service.$( "$getColdbox"           , mockColdboxController );
 
 		makePublic( service, "_getSelectFieldsHandler", "getSelectFieldsHandler" );
 		makePublic( service, "_getOrderByHandler"     , "getOrderByHandler"      );
