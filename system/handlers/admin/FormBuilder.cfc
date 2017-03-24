@@ -82,8 +82,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
-			item.configuration.name  = isTrue( clone ) ? "" : item.configuration.name;
-			item.configuration.label = isTrue( clone ) ? "" : item.configuration.label;
+			item.configuration.name  = isTrue( clone ) ? "" : ( item.configuration.name  ?: "" );
+			item.configuration.label = isTrue( clone ) ? "" : ( item.configuration.label ?: "" );
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
 			}
