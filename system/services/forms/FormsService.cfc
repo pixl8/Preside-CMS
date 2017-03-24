@@ -131,12 +131,12 @@ component displayName="Forms service" {
 	}
 
 	/**
-	 * Merges the definitions of two forms, register the new form and
+	 * Merges the definitions of two or more forms, register the new form and
 	 * and returns the raw structure of the merged form as the result.
 	 *
 	 * @autodoc
 	 * @formName.hint          Name of the source form
-	 * @mergeWithFormName.hint Name of the form to merge with
+	 * @mergeWithFormName.hint Name (or array of names) of the form(s) to merge with
 	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
 	 */
 	public struct function mergeForms( required string formName, required any mergeWithFormName, boolean autoMergeSiteForm=true ) {
@@ -638,11 +638,11 @@ component displayName="Forms service" {
 	}
 
 	/**
-	 * Returns the resultant form name that is generated when merging two form definitions
+	 * Returns the resultant form name that is generated when merging two or more form definitions
 	 *
 	 * @autodoc
 	 * @formName.hint          Name of the source form
-	 * @mergeWithFormName.hint Name of the form that is merged with the source form
+	 * @mergeWithFormName.hint Name (or array of names) of the form(s) to be merged with the source form
 	 * @createIfNotExists.hint Whether or not to create and register the form definition if it does not already exist.
 	 */
 	public string function getMergedFormName( required string formName, required any mergeWithFormName, boolean createIfNotExists=true ) {
