@@ -33,37 +33,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		} );
 
 
-		describe( "getGroupByForLabels()", function(){
-
-			it( "should return custom groupby if label renderer exists and groupby method defined", function(){
-				var service         = _getService();
-				var labelRenderer   = "custom_label_renderer";
-				var groupByHandler  = service.getGroupByHandler( labelRenderer );
-				var expectedGroupBy = "group_by_column";
-
-				mockColdboxController.$( "handlerExists" ).$args( groupByHandler ).$results( true );
-				mockColdboxController.$( "runEvent"      ).$args(
-					  event          = groupByHandler
-					, prePostExempt  = true
-					, private        = true ).$results( expectedGroupBy );
-				
-				expect( service.getGroupByForLabels( labelRenderer ) ).toBe( expectedGroupBy );
-			} );
-
-			it( "should return empty string if label renderer does not exist or groupby method not defined", function(){
-				var service         = _getService();
-				var labelRenderer   = "custom_label_renderer";
-				var groupByHandler  = service.getGroupByHandler( labelRenderer );
-				var expectedGroupBy = "";
-
-				mockColdboxController.$( "handlerExists" ).$args( groupByHandler ).$results( false );
-				
-				expect( service.getGroupByForLabels( labelRenderer ) ).toBe( expectedGroupBy );
-			} );
-
-		} );
-
-
 		describe( "getOrderByForLabels()", function(){
 
 			it( "should return custom orderby if label renderer exists and orderby method defined", function(){
@@ -194,7 +163,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		service.$( "$getColdbox"           , mockColdboxController );
 
 		makePublic( service, "_getSelectFieldsHandler", "getSelectFieldsHandler" );
-		makePublic( service, "_getGroupByHandler"     , "getGroupByHandler"      );
 		makePublic( service, "_getOrderByHandler"     , "getOrderByHandler"      );
 		makePublic( service, "_getRenderLabelHandler" , "getRenderLabelHandler"  );
 
