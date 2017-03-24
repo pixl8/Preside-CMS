@@ -19,7 +19,7 @@ component {
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
-				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject );
+				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
 					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#"

@@ -418,19 +418,23 @@ component {
 		return result;
 	}
 
-	public string function getPrefetchCachebusterForAjaxSelect( required string  objectName ) {
-		var obj     = _getPresideObjectService().getObject( arguments.objectName );
-		var dmField = obj.getDateModifiedField();
+	public string function getPrefetchCachebusterForAjaxSelect( required string objectName, string labelRenderer="" ) {
+		var obj               = _getPresideObjectService().getObject( arguments.objectName );
+		var dmField           = obj.getDateModifiedField();
+		var lastModified      = Now();
+		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
 
 		if ( _getPresideObjectService().getObjectProperties( arguments.objectName ).keyExists( dmField ) ) {
 			var records = obj.selectData(
 				selectFields = [ "Max( #dmField# ) as lastmodified" ]
 			);
 
-			return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
+			if ( IsDate( records.lastmodified ) ) {
+				lastModified = records.lastmodified;
+			}
 		}
 
-		return Hash( Now() );
+		return Hash( max( lastModified, rendererCacheDate ) );
 	}
 
 	public boolean function areDraftsEnabledForObject( required string objectName ) {
