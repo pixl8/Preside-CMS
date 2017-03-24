@@ -503,7 +503,8 @@ component {
 			var fieldRelationship = _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relationship ?: "";
 
 			if ( fieldRelationship == "many-to-one" ) {
-				var relatedLabelField = _getFullFieldName( "label", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+				var relatedToObjectField = _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo;
+				var relatedLabelField    = _getFullFieldName( _getPresideObjectService().getObjectAttribute( relatedToObjectField, "labelfield", "label" ), relatedToObjectField );
 
 				return relatedLabelField & " " & ListRest( arguments.orderBy, " " );
 			}
