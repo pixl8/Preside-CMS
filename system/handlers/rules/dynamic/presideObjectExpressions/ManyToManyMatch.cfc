@@ -41,7 +41,7 @@ component {
 	){
 		var paramName     = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var defaultPrefix = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
-		var prefix        = filterPrefix.len() ? filterPrefix : defaultPrefix;
+		var prefix        = filterPrefix.len() ? ( filterPrefix & "$#propertyName#" ) : defaultPrefix;
 		var idField       = presideObjectService.getIdField( relatedTo );
 
 		if ( _possesses ) {
