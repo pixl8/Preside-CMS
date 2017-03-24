@@ -29,10 +29,6 @@ component {
 		];
 	}
 
-	private string function _groupBy( event, rc, prc ) {
-		return "";
-	}
-
 	private string function _orderBy( event, rc, prc ) {
 		return "label";
 	}
@@ -47,13 +43,11 @@ component {
 }
 ```
 
-There are four methods defined in this handler.
+There are three methods defined in this handler.
 
 `_selectFields()` should return an array of all the fields that will be required to build the label. They don't all have to come from the object in question - you can use fields from related objects, using the same `selectFields` syntax as if you were doing a `selectData()` call. In this case, we are retreiving the name of the category (stored in the object's `label` field) and the colour that has been assigned to it.
 
-`_groupBy()` (optional) returns a string representing the SQL group by definition. There are cases (such as when you are using an aggregation function in your select fields) when this will be needed. As above, this is just as in `selectData()`. By default, an empty string is returned, which means that no grouping is applied.
-
-`_orderBy()` (optional) returns a string representing the SQL sort order that we want to use for the records in our object picker. In this case, we want them to be sorted by the category name. Again, this is just as in `selectData()`.
+`_orderBy()` simply returns a string representing the SQL sort order that we want to use for the records in our object picker. In this case, we want them to be sorted by the category name. Again, this is just as in `selectData()`.
 
 Finally, `_renderLabel()` defines how the various bits of data are combined to construct the label. Here we are creating a coloured square which is displayed in front of the category name.
 
