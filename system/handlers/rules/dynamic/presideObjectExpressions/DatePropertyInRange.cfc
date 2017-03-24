@@ -40,13 +40,13 @@ component {
 
 		if ( IsDate( _time.from ?: "" ) ) {
 			var fromParam = "datePropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
-			sql   = propertySql & ">= :#fromParam#";
+			sql   = propertySql & " >= :#fromParam#";
 			params[ fromParam ] = { value=_time.from, type="cf_sql_timestamp" };
 			delim = " and ";
 		}
 		if ( IsDate( _time.to ?: "" ) ) {
 			var toParam = "datePropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
-			sql   &= delim & propertySql & "<= :#toParam#";
+			sql   &= delim & propertySql & " <= :#toParam#";
 			params[ toParam ] = { value=_time.to, type="cf_sql_timestamp" };
 		}
 
