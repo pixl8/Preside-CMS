@@ -822,7 +822,7 @@ component extends="preside.system.base.AdminHandler" {
 		var rootFolderName   = translateResource( "cms:assetmanager.root.folder" );
 		var processedRecords = [];
 
-		for ( record in records ) {
+		for( var record in records ) {
 			record.icon        = renderAsset( record.value, "pickerIcon" );
 			record.largerImage = event.buildLink( assetId=record.value, derivative='adminThumbnail' );
 
