@@ -4,7 +4,7 @@
 	param name="args.relationshipKey"         type="string";
 	param name="args.addRecordAction"         type="string";
 	param name="args.allowAddAnotherSwitch"   type="boolean";
-	param name="args.stripPermissionedFields" type="boolean" default=true
+	param name="args.stripPermissionedFields" type="boolean" default=true;
 	param name="args.permissionContext"       type="string"  default=args.objectName;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
 	param name="args.validationResult"        type="any"     default=( rc.validationResult ?: '' );
