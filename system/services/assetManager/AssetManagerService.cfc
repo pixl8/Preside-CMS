@@ -456,8 +456,8 @@ component displayName="AssetManager Service" {
 
 	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100, string savedFilters="" ) {
 		var assetDao    = _getAssetDao();
-		var filter      = "( asset.is_trashed = :is_trashed )";
-		var params      = { is_trashed = false };
+		var filter      = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
+		var params      = { is_trashed=false, "asset_folder.hidden"=false };
 		var types       = _getTypes();
 		var records     = "";
 		var result      = [];
