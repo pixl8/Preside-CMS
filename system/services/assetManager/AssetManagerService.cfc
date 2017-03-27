@@ -464,15 +464,15 @@ component displayName="AssetManager Service" {
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
-			params.id = { value=ArrayToList( arguments.ids ), list=true };
+			params.id = arguments.ids;
 		}
 		if ( arguments.allowedTypes.len() ) {
-			params.asset_type = { value="", list=true };
+			params.asset_type = [];
 
 			for( var typeName in expandTypeList( arguments.allowedTypes ) ){
-				params.asset_type.value = ListAppend( params.asset_type.value, typeName );
+				params.asset_type.append( typeName );
 			}
-			if ( Len( Trim( params.asset_type.value ) ) ){
+			if ( params.asset_type.len() ){
 				filter &= " and ( asset.asset_type in (:asset_type) )";
 			} else {
 				params.delete( "asset_type" );
