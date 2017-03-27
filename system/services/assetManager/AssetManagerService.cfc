@@ -306,6 +306,7 @@ component displayName="AssetManager Service" {
 			, filter       = {
 				  parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
 				, is_trashed    = false
+				, hidden        = false
 			  }
 		);
 
