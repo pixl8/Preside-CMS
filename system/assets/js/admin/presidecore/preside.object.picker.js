@@ -189,18 +189,30 @@
 		};
 
 		PresideObjectPicker.prototype.getFiltersForQuickAdd = function(){
-			var filterBy        = this.$originalInput.data( 'filterBy' )
-			  , filterByField   = this.$originalInput.data( 'filterByField' ) || filterBy
-			  , $filterField    = $( 'input[name="' + filterBy + '"]' )
-			  , filterByValue   = $filterField.val()
-			  , filters         = [];
+			var filterBy      = this.$originalInput.data( 'filterBy' )
+			  , filterByField = this.$originalInput.data( 'filterByField' ) || filterBy
+			  , filters       = []
+			  , filterByValue;
 
-			if ( typeof filterByValue !== 'undefined' ) {
-				filters.push ( '&', filterByField, '=', filterByValue, '&filterByFields=', filterByField );
+			if ( filterBy !== null ) {
+				filterByValue = this.getFilterValue( filterBy );
+				if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+					filters.push ( '&', filterByField, '=', filterByValue, '&filterByFields=', filterByField );
+				}
 			}
 
 			return filters.join( '' );
 		};
+
+		PresideObjectPicker.prototype.getFilterValue = function( filterBy ) {
+			var field = $( 'input[name="' + filterBy + '"]' );
+
+			if ( field.length ) {
+				return field.val();
+			}
+
+			return cfrequest[ filterBy ] || null;
+		}
 
 		return PresideObjectPicker;
 	})();

@@ -524,17 +524,23 @@
 		};
 
 		UberSelect.prototype.setup_filter = function() {
-
 			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
 			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
-			  , filterByValue;
+			  , filterInput, filterByValue;
 
-			this.filter_field = $( "input[name='" + filterBy + "']" );
+			if ( filterBy !== null && filterBy.length ) {
+				filterInput = $( "input[name='" + filterBy + "']" );
 
-			filterByValue = this.filter_field.val();
+				if ( filterInput.length ) {
+					this.filter_field = filterInput;
+					filterByValue = this.filter_field.val();
+				} else {
+					filterByValue = cfrequest[ filterBy ] || null;
+				}
 
-			if ( typeof filterByValue !== "undefined" ) {
-				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
+				if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+					this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
+				}
 			}
 
 		};
