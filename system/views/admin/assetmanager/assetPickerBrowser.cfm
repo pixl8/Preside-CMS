@@ -11,7 +11,7 @@
 	folders = renderView(
 		  view          = "admin/assetManager/_folderBrowserListingForPicker"
 		, presideObject = "asset_folder"
-		, filter        = { parent_folder=activeFolder }
+		, filter        = { parent_folder=activeFolder, hidden=false }
 		, orderBy       = "label asc"
 	);
 
