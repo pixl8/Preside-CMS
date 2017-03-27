@@ -306,6 +306,7 @@ component displayName="AssetManager Service" {
 			, filter       = {
 				  parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
 				, is_trashed    = false
+				, hidden        = false
 			  }
 		);
 
@@ -454,25 +455,25 @@ component displayName="AssetManager Service" {
 		return result;
 	}
 
-	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
+	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100, string savedFilters="" ) {
 		var assetDao    = _getAssetDao();
-		var filter      = "( asset.is_trashed = :is_trashed )";
-		var params      = { is_trashed = false };
+		var filter      = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
+		var params      = { is_trashed=false, "asset_folder.hidden"=false };
 		var types       = _getTypes();
 		var records     = "";
 		var result      = [];
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
-			params.id = { value=ArrayToList( arguments.ids ), list=true };
+			params.id = arguments.ids;
 		}
 		if ( arguments.allowedTypes.len() ) {
-			params.asset_type = { value="", list=true };
+			params.asset_type = [];
 
 			for( var typeName in expandTypeList( arguments.allowedTypes ) ){
-				params.asset_type.value = ListAppend( params.asset_type.value, typeName );
+				params.asset_type.append( typeName );
 			}
-			if ( Len( Trim( params.asset_type.value ) ) ){
+			if ( params.asset_type.len() ){
 				filter &= " and ( asset.asset_type in (:asset_type) )";
 			} else {
 				params.delete( "asset_type" );
@@ -487,6 +488,7 @@ component displayName="AssetManager Service" {
 			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder", "asset.width", "asset.height" ]
 			, filter       = filter
 			, filterParams = params
+			, savedFilters = ListToArray( arguments.savedFilters )
 			, maxRows      = arguments.maxRows
 			, orderBy      = "asset.datemodified desc"
 		);

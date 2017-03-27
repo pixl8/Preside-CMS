@@ -1,12 +1,13 @@
-<cfparam name="args.label" type="string" />
-<cfparam name="args.id"    type="string" />
+<cfparam name="args.label"        type="string" />
+<cfparam name="args.id"           type="string" />
 
 <cfscript>
 	allowedTypes = rc.allowedTypes ?: "";
 	multiple     = rc.multiple     ?: "";
+	savedFilters = rc.savedFilters ?: "";
 	folderLink   = event.buildAdminLink(
 		  linkTo      = "assetManager.assetPickerBrowser"
-		, queryString = "folder=#args.id#&allowedTypes=#allowedTypes#&multiple=#multiple#"
+		, queryString = "folder=#args.id#&allowedTypes=#allowedTypes#&savedFilters=#savedFilters#&multiple=#multiple#"
 	);
 </cfscript>
 
