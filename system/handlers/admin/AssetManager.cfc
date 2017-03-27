@@ -816,6 +816,7 @@ component extends="preside.system.base.AdminHandler" {
 		var records = assetManagerService.searchAssets(
 			  maxRows      = rc.maxRows      ?: 1000
 			, searchQuery  = rc.q            ?: ""
+			, savedFilters = rc.savedFilters ?: ""
 			, ids          = ListToArray( rc.values       ?: "" )
 			, allowedTypes = ListToArray( rc.allowedTypes ?: "" )
 		);

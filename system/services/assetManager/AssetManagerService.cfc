@@ -454,7 +454,7 @@ component displayName="AssetManager Service" {
 		return result;
 	}
 
-	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
+	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100, string savedFilters="" ) {
 		var assetDao    = _getAssetDao();
 		var filter      = "( asset.is_trashed = :is_trashed )";
 		var params      = { is_trashed = false };
@@ -487,6 +487,7 @@ component displayName="AssetManager Service" {
 			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder", "asset.width", "asset.height" ]
 			, filter       = filter
 			, filterParams = params
+			, savedFilters = ListToArray( arguments.savedFilters )
 			, maxRows      = arguments.maxRows
 			, orderBy      = "asset.datemodified desc"
 		);

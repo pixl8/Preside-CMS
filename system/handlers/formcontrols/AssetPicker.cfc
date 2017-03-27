@@ -6,6 +6,7 @@ component output=false {
 	public string function index( event, rc, prc, args={} ) output=false {
 		var allowedTypes        = args.allowedTypes ?: "";
 		var maxFileSize         = args.maxFileSize  ?: "";
+		var savedFilters        = args.objectFilters ?: "";
 		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( ListToArray( allowedTypes ) );
 
 		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
@@ -24,8 +25,8 @@ component output=false {
 		}
 
 		args.multiple    = args.multiple ?: ( ( args.relationship ?: "" ) == "many-to-many" );
-		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="maxRows=100&allowedTypes=#allowedTypes#&prefetchCacheBuster=#prefetchCacheBuster#" );
-		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="q=%QUERY&allowedTypes=#allowedTypes#" );
+		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="maxRows=100&allowedTypes=#allowedTypes#&savedFilters=#savedFilters#&prefetchCacheBuster=#prefetchCacheBuster#" );
+		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="q=%QUERY&allowedTypes=#allowedTypes#&savedFilters=#savedFilters#" );
 		args.browserUrl  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#" );
 		args.uploaderUrl = event.buildAdminLink( linkTo="assetmanager.assetPickerUploader", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#&maxFileSize=#maxFileSize#" );
 
