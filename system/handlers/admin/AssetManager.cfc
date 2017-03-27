@@ -757,8 +757,9 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="assets.pick" );
 
 		var allowedTypes = rc.allowedTypes ?: "";
-		var multiple     = rc.multiple ?: "";
+		var multiple     = rc.multiple     ?: "";
 
+		prc.savedFilters = rc.savedFilters ?: "";
 		prc.allowedTypes = assetManagerService.expandTypeList( ListToArray( allowedTypes ) );
 
 		event.setLayout( "adminModalDialog" );
@@ -766,14 +767,14 @@ component extends="preside.system.base.AdminHandler" {
 		prc._adminBreadCrumbs = [];
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:home.title" )
-			, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#&savedFilters=#prc.savedFilters#" )
 		);
 		if ( Len( Trim( rc.folder ?: "" ) ) ) {
 			prc.folderAncestors = assetManagerService.getFolderAncestors( id=rc.folder );
 			for( var f in prc.folderAncestors ){
 				event.addAdminBreadCrumb(
 					  title = f.label
-					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#f.id#&allowedTypes=#allowedTypes#&multiple=#multiple#" )
+					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#f.id#&allowedTypes=#allowedTypes#&savedFilters=#prc.savedFilters#&multiple=#multiple#" )
 				);
 			}
 
@@ -781,7 +782,7 @@ component extends="preside.system.base.AdminHandler" {
 			if ( prc.folder.recordCount ){
 				event.addAdminBreadCrumb(
 					  title = prc.folder.label
-					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#prc.folder.id#&allowedTypes=#allowedTypes#&multiple=#multiple#" )
+					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#prc.folder.id#&allowedTypes=#allowedTypes#&savedFilters=#prc.savedFilters#&multiple=#multiple#" )
 				);
 			}
 		}

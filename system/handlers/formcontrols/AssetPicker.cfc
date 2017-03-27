@@ -27,7 +27,7 @@ component output=false {
 		args.multiple    = args.multiple ?: ( ( args.relationship ?: "" ) == "many-to-many" );
 		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="maxRows=100&allowedTypes=#allowedTypes#&savedFilters=#savedFilters#&prefetchCacheBuster=#prefetchCacheBuster#" );
 		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="q=%QUERY&allowedTypes=#allowedTypes#&savedFilters=#savedFilters#" );
-		args.browserUrl  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#" );
+		args.browserUrl  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#&savedFilters=#savedFilters#&multiple=#( args.multiple ? 'true' : 'false' )#" );
 		args.uploaderUrl = event.buildAdminLink( linkTo="assetmanager.assetPickerUploader", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#&maxFileSize=#maxFileSize#" );
 
 		if ( !Len( Trim( args.placeholder ?: "" ) ) ) {
