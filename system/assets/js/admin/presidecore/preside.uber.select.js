@@ -277,10 +277,12 @@
 			}
 			this.selected_option_count = 0;
 			_ref = this.form_field.options;
-			for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-				option = _ref[_i];
-				if (option.selected) {
-					this.selected_option_count += 1;
+			if ( _ref ){
+				for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+					option = _ref[_i];
+					if (option.selected) {
+						this.selected_option_count += 1;
+					}
 				}
 			}
 			return this.selected_option_count;
@@ -962,6 +964,15 @@
 			if (!this.is_disabled) {
 				return this.choice_destroy($(evt.target));
 			}
+		};
+
+		UberSelect.prototype.clear = function() {
+			var uberSelect = this;
+
+			uberSelect.clear_suggestions();
+			uberSelect.search_choices.find( ".search-choice" ).each( function(){
+				uberSelect.choice_destroy( $( this ) );
+			} );
 		};
 
 		UberSelect.prototype.choice_destroy = function(link) {

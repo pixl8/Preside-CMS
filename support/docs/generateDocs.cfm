@@ -13,6 +13,7 @@
 	apiDocsPath      = "/preside/support/docs/docs/05.reference/01.api";
 	indexDocPath     = apiDocsPath & "/chapter.md";
 	srcToPresideDocs = new SourceToPresideDocs();
+	createdDocs      = {};
 
 	if ( DirectoryExists( apiDocsPath ) ) {
 		DirectoryDelete( apiDocsPath, true );
@@ -34,11 +35,18 @@
 
 		meta = GetComponentMetaData( componentPath );
 		if ( IsBoolean( meta.autodoc ?: "" ) && meta.autodoc ) {
-			filename = LCase( ListLast( componentPath, '.' ) );
-			srcToPresideDocs.createCFCDocumentation( componentPath, apiDocsPath );
-			indexDoc.append( "* [[api-" & filename & "]]" & Chr(10) );
+			result = srcToPresideDocs.createCFCDocumentation( componentPath, apiDocsPath );
+			if ( result.success ) {
+				createdDocs[ result.filename ] = { title = result.title };
+			}
 		}
 	}
+
+	sortedDocs = createdDocs.sort( "textnocase", "asc", "title" );
+	for( doc in sortedDocs ){
+		indexDoc.append( "* [[" & doc & "]]" & Chr(10) );
+	}
+
 	FileWrite( indexDocPath, indexDoc.toString() );
 
 	// PRESIDE OBJECTS
@@ -46,6 +54,7 @@
 	fullPresidePath = ExpandPath( "/preside" );
 	apiDocsPath     = "/preside/support/docs/docs/05.reference/02.presideobjects";
 	indexDocPath    = apiDocsPath & "/chapter.md";
+	createdDocs     = {};
 
 	if ( DirectoryExists( apiDocsPath ) ) {
 		DirectoryDelete( apiDocsPath, true );
@@ -63,9 +72,15 @@
 		componentPath = ReReplace( componentPath, "\.cfc$", "" );
 		componentPath = ListChangeDelims( componentPath, ".", "\/" );
 
-		filename = LCase( ListLast( componentPath, '.' ) );
-		srcToPresideDocs.createPresideObjectDocumentation( componentPath, apiDocsPath );
-		indexDoc.append( "* [[presideobject-" & filename & "]]" & Chr(10) );
+		result = srcToPresideDocs.createPresideObjectDocumentation( componentPath, apiDocsPath );
+		if ( result.success ) {
+			createdDocs[ result.filename ] = { title = result.title };
+		}
+	}
+
+	sortedDocs = createdDocs.sort( "textnocase", "asc", "title" );
+	for( doc in sortedDocs ){
+		indexDoc.append( "* [[" & doc & "]]" & Chr(10) );
 	}
 
 	FileWrite( indexDocPath, indexDoc.toString() );
@@ -74,7 +89,7 @@
 	xmlFiles        = DirectoryList( "/preside/system/forms", true, "path", "*.xml" );
 	formsDocsPath   = "/preside/support/docs/docs/05.reference/03.systemforms";
 	indexDocPath    = formsDocsPath & "/chapter.md";
-	createdDocs     = [];
+	createdDocs     = {};
 
 	if ( DirectoryExists( formsDocsPath ) ) {
 		DirectoryDelete( formsDocsPath, true );
@@ -90,11 +105,12 @@
 	for( file in xmlFiles ) {
 		result = srcToPresideDocs.writeXmlFormDocumentation( file, formsDocsPath );
 		if ( result.success ) {
-			createdDocs.append( result.filename );
+			createdDocs[ result.filename ] = { title = result.title }; 
 		}
 	}
-	createdDocs.sort( "textnocase" );
-	for( doc in createdDocs ){
+
+	sortedDocs = createdDocs.sort( "textnocase", "asc", "title" );
+	for( doc in sortedDocs ){
 		indexDoc.append( "* [[form-" & doc & "]]" & Chr(10) );
 	}
 

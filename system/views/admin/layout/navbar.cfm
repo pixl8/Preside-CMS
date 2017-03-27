@@ -1,7 +1,6 @@
 <cfscript>
 	systemMenu        = renderView( "/admin/layout/systemMenu" );
 	userMenu          = renderView( "/admin/layout/userMenu" );
-	localePicker      = renderViewlet( event='admin.Layout.localePicker' );
 	applicationNav    = renderViewlet( event="admin.layout.applicationNav" );
 	sitePicker        = renderViewlet( "admin.sites.sitePicker" );
 	notificationsMenu = renderViewlet( "admin.notifications.notificationNavPromo" );
@@ -22,7 +21,6 @@
 				<ul class="nav ace-nav">
 					<li>#notificationsMenu#</li>
 					<li>#userMenu#</li>
-					<li>#localePicker#</li>
 
 					<cfif Len( Trim( systemMenu ) )>
 						<li>#systemMenu#</li>

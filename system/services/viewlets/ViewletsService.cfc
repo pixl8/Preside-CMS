@@ -68,7 +68,7 @@ component {
 			}
 
 			if ( arguments.viewletName.reFindNoCase( "\.index$" ) ) {
-				arguments.viewletName = arguments.viewletName.reReplaceNoCase( "\.index$", "" )
+				arguments.viewletName = arguments.viewletName.reReplaceNoCase( "\.index$", "" );
 
 				if ( arguments.siteTemplate == "" ) {
 					viewlets.core[ arguments.viewletName ] = true;

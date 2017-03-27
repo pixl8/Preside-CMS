@@ -2,6 +2,7 @@
  * Expression handler for "Current page was embargoed within x days"
  *
  * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 

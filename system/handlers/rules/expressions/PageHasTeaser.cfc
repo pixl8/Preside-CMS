@@ -2,6 +2,7 @@
  * Expression handler for "Current page has/does not have a teaser"
  *
  * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 

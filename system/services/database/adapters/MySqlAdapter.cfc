@@ -150,14 +150,16 @@ component extends="BaseAdapter" {
 		, required array   selectColumns
 		,          any     filter        = {}
 		,          string  orderBy       = ""
+		,          string  having        = ""
 		,          string  groupBy       = ""
 		,          string  tableAlias    = ""
 		,          array   joins         = []
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
+		,          boolean distinct      = false
 
 	) {
-		var sql         = "select";
+		var sql         = arguments.distinct ? "select distinct" : "select";
 		var delim       = " ";
 		var col         = "";
 
@@ -183,6 +185,10 @@ component extends="BaseAdapter" {
 
 		if ( Len( Trim ( arguments.groupBy ) ) ) {
 			sql &= " group by " & arguments.groupBy;
+		}
+
+		if ( Len( Trim ( arguments.having ) ) ) {
+			sql &= " having " & arguments.having;
 		}
 
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
