@@ -55,6 +55,7 @@
 			this.options = options != null ? options : {};
 			this.is_multiple = this.form_field.multiple;
 			this.selected = [];
+			this.fieldPopulatedDeferred = $.Deferred();
 			this.setup_preselected_value();
 			this.set_sortable_options();
 			this.set_rendering_templates();
@@ -402,6 +403,7 @@
 						chosen: uberSelect
 					});
 				}
+				uberSelect.fieldPopulatedDeferred.resolve();
 			} );
 		};
 
@@ -526,20 +528,25 @@
 		UberSelect.prototype.setup_filter = function() {
 			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
 			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
-			  , filterInput, filterByValue;
+			  , filterInput, filterByValue, i;
 
 			if ( filterBy !== null && filterBy.length ) {
-				filterInput = $( "input[name='" + filterBy + "']" );
+				filterBy      = filterBy.split( ',' );
+				filterByField = filterByField.split( ',' );
 
-				if ( filterInput.length ) {
-					this.filter_field = filterInput;
-					filterByValue = this.filter_field.val();
-				} else {
-					filterByValue = cfrequest[ filterBy ] || null;
-				}
+				for( i=0; i<filterBy.length; i++ ) {
+					filterInput = $( "input[name='" + filterBy[ i ] + "']" );
 
-				if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
-					this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
+					if ( filterInput.length ) {
+						this.filter_field = filterInput;
+						filterByValue = this.filter_field.val();
+					} else {
+						filterByValue = cfrequest[ filterBy[ i ] ] || null;
+					}
+
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+						this.filter = '&' + filterByField[ i ] + '='+ filterByValue + '&filterByFields=' + filterByField[ i ];
+					}
 				}
 			}
 

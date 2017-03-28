@@ -194,17 +194,19 @@
 			var objectName     = rc.object ?: "";
 			var extraFilters   = [];
 			var filterByFields = ListToArray( rc.filterByFields ?: "" );
+			var filterValue    = "";
 			var orderBy        = rc.orderBy       ?: "label";
 			var labelRenderer  = rc.labelRenderer ?: "";
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 			for( var filterByField in filterByFields ) {
-				if( !isEmpty( rc[filterByField] ?: "" ) ){
+				filterValue = rc[filterByField] ?: "";
+				if( !isEmpty( filterValue ) ){
 					extraFilters.append({
-						  filter       = "#filterByField# = :#filterByField#"
-						, filterParams = { "#filterByField#" = rc[filterByField] }
-					})
+						  filter       = "#filterByField# in ( :#filterByField# )"
+						, filterParams = { "#filterByField#" = listToArray( filterValue ) }
+					});
 				}
 			}
 
