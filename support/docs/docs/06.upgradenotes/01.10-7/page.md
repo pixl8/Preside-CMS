@@ -1,6 +1,6 @@
 ---
 id: 10-7-upgrade-notes
-title: Upgrading to 10.7.x from 10.6.x and below
+title: Upgrading notes for 10.6 -> 10.7
 ---
 
 ## General notes
