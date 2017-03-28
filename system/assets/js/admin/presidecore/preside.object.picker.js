@@ -195,9 +195,15 @@
 			  , filterByValue;
 
 			if ( filterBy !== null ) {
-				filterByValue = this.getFilterValue( filterBy );
-				if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
-					filters.push ( '&', filterByField, '=', filterByValue, '&filterByFields=', filterByField );
+				filterBy      = filterBy.split( ',' );
+				filterByField = filterByField.split( ',' );
+
+				for( var i=0; i<=filterBy.length; i++ ) {
+					filterByValue = this.getFilterValue( filterBy[ i ] );
+
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+						filters.push ( '&', filterByField[ i ], '=', filterByValue, '&filterByFields=', filterByField[ i ] );
+					}
 				}
 			}
 

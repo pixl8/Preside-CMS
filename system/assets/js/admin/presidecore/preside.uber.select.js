@@ -529,17 +529,22 @@
 			  , filterInput, filterByValue;
 
 			if ( filterBy !== null && filterBy.length ) {
-				filterInput = $( "input[name='" + filterBy + "']" );
+				filterBy      = filterBy.split( ',' );
+				filterByField = filterByField.split( ',' );
 
-				if ( filterInput.length ) {
-					this.filter_field = filterInput;
-					filterByValue = this.filter_field.val();
-				} else {
-					filterByValue = cfrequest[ filterBy ] || null;
-				}
+				for( var i=0; i<filterBy.length; i++ ) {
+					filterInput = $( "input[name='" + filterBy[ i ] + "']" );
 
-				if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
-					this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
+					if ( filterInput.length ) {
+						this.filter_field = filterInput;
+						filterByValue = this.filter_field.val();
+					} else {
+						filterByValue = cfrequest[ filterBy[ i ] ] || null;
+					}
+
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+						this.filter = '&' + filterByField[ i ] + '='+ filterByValue + '&filterByFields=' + filterByField[ i ];
+					}
 				}
 			}
 
