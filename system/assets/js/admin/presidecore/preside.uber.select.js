@@ -55,6 +55,7 @@
 			this.options = options != null ? options : {};
 			this.is_multiple = this.form_field.multiple;
 			this.selected = [];
+			this.fieldPopulatedDeferred = $.Deferred();
 			this.setup_preselected_value();
 			this.set_sortable_options();
 			this.set_rendering_templates();
@@ -402,6 +403,7 @@
 						chosen: uberSelect
 					});
 				}
+				uberSelect.fieldPopulatedDeferred.resolve();
 			} );
 		};
 

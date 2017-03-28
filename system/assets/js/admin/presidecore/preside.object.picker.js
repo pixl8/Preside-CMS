@@ -3,14 +3,47 @@
 	var PresideObjectPicker = (function() {
 		function PresideObjectPicker( $originalInput ) {
 			this.$originalInput = $originalInput;
-			this.setupUberSelect();
+			var _this           = this
+			  , filteredOn      = []
+			  , filterBy        = $originalInput.data( "filterBy" )
+			  , $filterObjectPicker;
 
-			if ( this.$originalInput.hasClass( 'quick-add' ) ) {
-				this.setupQuickAdd();
+			if ( typeof filterBy !== "undefined" && filterBy.length ) {
+				filterBy = filterBy.split( ',' );
+
+				for( var i=0; i<filterBy.length; i++ ) {
+					$filterObjectPicker = $( "input[name='" + filterBy[ i ] + "'], select[name='" + filterBy[ i ] + "']" ).closest( '.form-group' ).find( '.object-picker' );
+
+					if ( $filterObjectPicker.length ) {
+						var formFieldDeferred       = "objectPicker_" + $filterObjectPicker.attr( "id" );
+	 					window[ formFieldDeferred ] = window[ formFieldDeferred ] || $.Deferred();
+
+	 					filteredOn.push( window[ formFieldDeferred ] );
+	 				}
+				}
 			}
-			if ( this.$originalInput.hasClass( 'quick-edit' ) ) {
-				this.setupQuickEdit();
-			}
+
+			$.when.apply( $, filteredOn ).done( function() {
+				var formFieldDeferred       = "objectPicker_" + _this.$originalInput.attr( "id" )
+				  , formFieldAjaxDeferred   = formFieldDeferred + "_ajax";
+				  
+ 				window[ formFieldDeferred ]  = window[ formFieldDeferred ] || $.Deferred();
+ 				_this.fieldPopulatedDeferred = $.Deferred();
+
+				_this.setupUberSelect();
+
+				if ( _this.$originalInput.hasClass( 'quick-add' ) ) {
+					_this.setupQuickAdd();
+				}
+				if ( _this.$originalInput.hasClass( 'quick-edit' ) ) {
+					_this.setupQuickEdit();
+				}
+
+ 				$.when( _this.uberSelect.fieldPopulatedDeferred ).done( function() {
+ 					window[ formFieldDeferred ].resolve();
+ 				} );
+			} );
+			
 		}
 
 		PresideObjectPicker.prototype.setupUberSelect = function(){
