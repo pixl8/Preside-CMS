@@ -194,6 +194,7 @@
 			var objectName     = rc.object ?: "";
 			var extraFilters   = [];
 			var filterByFields = ListToArray( rc.filterByFields ?: "" );
+			var filterValue    = "";
 			var orderBy        = rc.orderBy       ?: "label";
 			var labelRenderer  = rc.labelRenderer ?: "";
 
@@ -202,17 +203,10 @@
 			for( var filterByField in filterByFields ) {
 				filterValue = rc[filterByField] ?: "";
 				if( !isEmpty( filterValue ) ){
-					if ( isValid( "UUID", listFirst( filterValue ) ) ) {
-						extraFilters.append({
-							  filter       = "#filterByField# in ( :#filterByField# )"
-							, filterParams = { "#filterByField#" = listToArray( filterValue ) }
-						})
-					} else {
-						extraFilters.append({
-							  filter       = "#filterByField# = :#filterByField#"
-							, filterParams = { "#filterByField#" = filterValue }
-						})
-					}
+					extraFilters.append({
+						  filter       = "#filterByField# in ( :#filterByField# )"
+						, filterParams = { "#filterByField#" = listToArray( filterValue ) }
+					});
 				}
 			}
 
