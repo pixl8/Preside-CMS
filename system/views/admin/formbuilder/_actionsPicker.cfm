@@ -1,4 +1,7 @@
-<cfset actions = args.actions ?: [] />
+<cfscript>
+	actions = args.actions ?: [];
+	formid  = rc.id        ?: "";
+</cfscript>
 
 <cfoutput>
 	<div class="accordion-style2 formbuilder-item-type-picker">
@@ -11,7 +14,7 @@
 						    data-item-template="true"
 						    data-item-type="#action.id#"
 						    data-requires-configuration="true"
-						    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.actionConfigDialog', queryString='action=#action.id#' )#"
+						    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.actionConfigDialog', queryString='action=#action.id#&formId=#formId#' )#"
 						    data-config-title="#translateResource( uri="formbuilder:action.config.modal.title", data=[ action.title ] )#">
 
 							<span><i class="fa fa-fw #action.iconclass#"></i> #action.title#</span>

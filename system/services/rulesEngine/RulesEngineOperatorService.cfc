@@ -36,10 +36,16 @@ component displayName="RulesEngine Operator Service" {
 				return leftHandSide != rightHandSide;
 			case "contains":
 				return leftHandSide.findNoCase( rightHandSide ) > 0;
+			case "notcontains":
+				return !leftHandSide.findNoCase( rightHandSide ) > 0;
 			case "startsWith":
 				return leftHandSide.lCase().startsWith( rightHandSide.lCase() );
+			case "notStartsWith":
+				return !leftHandSide.lCase().startsWith( rightHandSide.lCase() );
 			case "endsWith":
 				return leftHandSide.lCase().endsWith( rightHandSide.lCase() );
+			case "notendsWith":
+				return !leftHandSide.lCase().endsWith( rightHandSide.lCase() );
 		}
 
 		return false;

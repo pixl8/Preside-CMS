@@ -57,7 +57,7 @@ component extends="coldbox.system.plugins.i18n" output=false {
 			js &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
 		}
 
-		js &= "return rb; } )();"
+		js &= "return rb; } )();";
 
 		return js;
 	}

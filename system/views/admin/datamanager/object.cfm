@@ -4,8 +4,8 @@
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
-	addRecordTitle      = translateResource( uri = "cms:datamanager.addrecord.title"            , data = [ LCase( objectTitleSingular ) ] );
-	managePermsTitle    = translateResource( uri = "cms:datamanager.manageperms.link"           , data = [ LCase( objectTitleSingular ) ] );
+	addRecordTitle      = translateResource( uri = "cms:datamanager.addrecord.title"            , data = [  objectTitleSingular  ] );
+	managePermsTitle    = translateResource( uri = "cms:datamanager.manageperms.link"           , data = [  objectTitleSingular  ] );
 
 	prc.pageIcon        = "puzzle-piece";
 	prc.pageTitle       = objectTitle;

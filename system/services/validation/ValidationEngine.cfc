@@ -85,14 +85,14 @@ component displayName="Validation Engine" {
 
 		if ( rulesetExists( arguments.ruleset ) ) {
 			rules = _getRuleset( arguments.ruleset );
-			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules )
+			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules );
 
 			js = "( function( $ ){ ";
 				js &= _generateCustomValidatorsJs( rules ) & " ";
 				js &= "return { ";
 					js &= "rules : { "    & Trim( rulesAndMessagesJs.rules    ) & " }, ";
 					js &= "messages : { " & Trim( rulesAndMessagesJs.messages ) & " } ";
-				js &= "}; "
+				js &= "}; ";
 			js &= "} )( #jqueryReference# )";
 		}
 

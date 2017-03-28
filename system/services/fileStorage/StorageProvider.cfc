@@ -36,7 +36,7 @@ interface displayname="Storage provider" {
 	 * name, path, size and lastmodified.
 	 *
 	 * @autodoc
-	 * @path.hint    A path prefix that the method should use when deciding which objects to return. Any object who's path begins with the provide path should be returned.
+	 * @path.hint    A path prefix that the method should use when deciding which objects to return. Any object whose path begins with the provide path should be returned.
 	 * @private.hint Whether or not the objects exist in the private store
 	 *
 	 */

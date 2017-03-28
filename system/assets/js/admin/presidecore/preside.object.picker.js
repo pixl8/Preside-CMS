@@ -15,7 +15,7 @@
 
 		PresideObjectPicker.prototype.setupUberSelect = function(){
 			this.$originalInput.uberSelect({
-				  allow_single_deselect  : true
+				  allow_single_deselect  : !this.$originalInput.hasClass( 'non-deselectable' )
 				, inherit_select_classes : true
 				, searchable             : !this.$originalInput.hasClass( 'non-searchable' )
 			});
@@ -60,8 +60,6 @@
 					}
 				};
 
-			this.quickAddIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
-
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.uberSelect.isSearchable() && this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.uberSelect.search_field.attr( "tabindex" ) );
@@ -70,6 +68,8 @@
 			}
 
 			this.$quickAddButton.on( "click", function( e ) {
+				var filters = presideObjectPicker.getFiltersForQuickAdd();
+				presideObjectPicker.quickAddIframeModal = new PresideIframeModal( iframeSrc + filters, "100%", "100%", callbacks, modalOptions );
 				presideObjectPicker.quickAddIframeModal.open();
 			} );
 
@@ -187,6 +187,32 @@
 		PresideObjectPicker.prototype.getQuickEditIFrame = function(){
 			return this.quickEditIframe;
 		};
+
+		PresideObjectPicker.prototype.getFiltersForQuickAdd = function(){
+			var filterBy      = this.$originalInput.data( 'filterBy' )
+			  , filterByField = this.$originalInput.data( 'filterByField' ) || filterBy
+			  , filters       = []
+			  , filterByValue;
+
+			if ( filterBy !== null ) {
+				filterByValue = this.getFilterValue( filterBy );
+				if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+					filters.push ( '&', filterByField, '=', filterByValue, '&filterByFields=', filterByField );
+				}
+			}
+
+			return filters.join( '' );
+		};
+
+		PresideObjectPicker.prototype.getFilterValue = function( filterBy ) {
+			var field = $( 'input[name="' + filterBy + '"]' );
+
+			if ( field.length ) {
+				return field.val();
+			}
+
+			return cfrequest[ filterBy ] || null;
+		}
 
 		return PresideObjectPicker;
 	})();

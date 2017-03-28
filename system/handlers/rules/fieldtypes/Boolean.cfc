@@ -9,6 +9,7 @@ component {
 		, hasHasNot      = { truthy="cms:rulesEngine.boolean.has"     , falsey="cms:rulesEngine.boolean.hasNot"  }
 		, hasDoesNotHave = { truthy="cms:rulesEngine.boolean.posesses", falsey="cms:rulesEngine.boolean.doesNotPosess"  }
 		, didDidNot      = { truthy="cms:rulesEngine.boolean.did"     , falsey="cms:rulesEngine.boolean.didNot"  }
+		, doesDoesNot    = { truthy="cms:rulesEngine.boolean.does"    , falsey="cms:rulesEngine.boolean.doesNot" }
 		, wasWasNot      = { truthy="cms:rulesEngine.boolean.was"     , falsey="cms:rulesEngine.boolean.wasNot"  }
 		, willWillNot    = { truthy="cms:rulesEngine.boolean.will"    , falsey="cms:rulesEngine.boolean.willNot" }
 		, areAreNot      = { truthy="cms:rulesEngine.boolean.are"     , falsey="cms:rulesEngine.boolean.areNot"  }

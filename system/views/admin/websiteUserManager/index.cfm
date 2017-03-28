@@ -1,5 +1,5 @@
 <cfscript>
-	objectName          = "website_user"
+	objectName          = "website_user";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 
 	prc.pageIcon     = "group";
@@ -14,7 +14,7 @@
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websiteUserManager.addUser" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>
-					#translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] )#
+					#translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] )#
 				</button>
 			</a>
 		</cfif>

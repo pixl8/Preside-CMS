@@ -17,7 +17,7 @@ In the example above, the field's definition will be taken from the `title` prop
 
 ### Default forms
 
-If you attempt to make use of a form that does not have an XML definition and who's name starts with "preside-objects.name_of_object.", a default form will be returned based on the preside object CFC file (in this case, "name_of_object"). 
+If you attempt to make use of a form that does not have an XML definition and whose name starts with "preside-objects.name_of_object.", a default form will be returned based on the preside object CFC file (in this case, "name_of_object"). 
 
 For example, if there is no `/forms/preside-objects/blog_category/admin.add.xml` file defined and we do something like the call below, an automatic form definition will be used based on the `blog_category` preside object:
 

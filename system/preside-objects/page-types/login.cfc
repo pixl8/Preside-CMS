@@ -7,4 +7,7 @@
  *
  */
 
-component extends="preside.system.base.SystemPresideObject" displayName="Page type: Login" {}
+component extends="preside.system.base.SystemPresideObject" displayName="Page type: Login" {
+    property name="login_required" type="string" dbtype="varchar" control="textArea";
+    property name="login_failed"   type="string" dbtype="varchar" control="textArea";
+}

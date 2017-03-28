@@ -1,5 +1,5 @@
 <cfscript>
-	formId  = ( rc.id ?: "" )
+	formId  = ( rc.id ?: "" );
 	theForm = prc.form ?: QueryNew('');
 </cfscript>
 
