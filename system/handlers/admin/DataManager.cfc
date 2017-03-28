@@ -200,11 +200,19 @@
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 			for( var filterByField in filterByFields ) {
-				if( !isEmpty( rc[filterByField] ?: "" ) ){
-					extraFilters.append({
-						  filter       = "#filterByField# = :#filterByField#"
-						, filterParams = { "#filterByField#" = rc[filterByField] }
-					})
+				filterValue = rc[filterByField] ?: "";
+				if( !isEmpty( filterValue ) ){
+					if ( isValid( "UUID", listFirst( filterValue ) ) ) {
+						extraFilters.append({
+							  filter       = "#filterByField# in ( :#filterByField# )"
+							, filterParams = { "#filterByField#" = listToArray( filterValue ) }
+						})
+					} else {
+						extraFilters.append({
+							  filter       = "#filterByField# = :#filterByField#"
+							, filterParams = { "#filterByField#" = filterValue }
+						})
+					}
 				}
 			}
 
