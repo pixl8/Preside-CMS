@@ -528,13 +528,13 @@
 		UberSelect.prototype.setup_filter = function() {
 			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
 			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
-			  , filterInput, filterByValue;
+			  , filterInput, filterByValue, i;
 
 			if ( filterBy !== null && filterBy.length ) {
 				filterBy      = filterBy.split( ',' );
 				filterByField = filterByField.split( ',' );
 
-				for( var i=0; i<filterBy.length; i++ ) {
+				for( i=0; i<filterBy.length; i++ ) {
 					filterInput = $( "input[name='" + filterBy[ i ] + "']" );
 
 					if ( filterInput.length ) {

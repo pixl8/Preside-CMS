@@ -6,12 +6,12 @@
 			var _this           = this
 			  , filteredOn      = []
 			  , filterBy        = $originalInput.data( "filterBy" )
-			  , $filterObjectPicker;
+			  , $filterObjectPicker, i;
 
 			if ( typeof filterBy !== "undefined" && filterBy.length ) {
 				filterBy = filterBy.split( ',' );
 
-				for( var i=0; i<filterBy.length; i++ ) {
+				for( i=0; i<filterBy.length; i++ ) {
 					$filterObjectPicker = $( "input[name='" + filterBy[ i ] + "'], select[name='" + filterBy[ i ] + "']" ).closest( '.form-group' ).find( '.object-picker' );
 
 					if ( $filterObjectPicker.length ) {
@@ -225,13 +225,13 @@
 			var filterBy      = this.$originalInput.data( 'filterBy' )
 			  , filterByField = this.$originalInput.data( 'filterByField' ) || filterBy
 			  , filters       = []
-			  , filterByValue;
+			  , filterByValue, i;
 
 			if ( filterBy !== null ) {
 				filterBy      = filterBy.split( ',' );
 				filterByField = filterByField.split( ',' );
 
-				for( var i=0; i<=filterBy.length; i++ ) {
+				for( i=0; i<=filterBy.length; i++ ) {
 					filterByValue = this.getFilterValue( filterBy[ i ] );
 
 					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
