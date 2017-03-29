@@ -15,7 +15,7 @@ component {
 
 // PUBLIC API
 	public any function clean( required string input, string policy="myspace" ) {
-		var antiSamyResult = _getAntiSamy().scan( arguments.input, _getPolicyFile( arguments.policy ) );
+		var antiSamyResult = _getAntiSamy().scan( arguments.input, _getPolicy( arguments.policy ) );
 		var cleanHtml      = antiSamyResult.getCleanHtml();
 
 		return _removeUnwantedCleanses( cleanHtml, arguments.policy );
@@ -35,23 +35,35 @@ component {
 	}
 
 	private void function _setupAntiSamy() {
-		var jars = DirectoryList( _getLibPath(), false, "path", "*.jar" );
-
-		_setAntiSamy( CreateObject( "java", "org.owasp.validator.html.AntiSamy", jars ) );
+		_setAntiSamy( CreateObject( "java", "org.owasp.validator.html.AntiSamy", _listJars() ) );
 	}
 
-	private array function _listJars( required string directory ) {
-		return ;
+	private any function _getPolicy( required string policy ) {
+		_policies = _policies ?: {};
+
+		if ( !_policies.keyExists( arguments.policy ) ) {
+			var policyFile    = _getPolicyFile( arguments.policy );
+			var policyFactory = CreateObject( "java", "org.owasp.validator.html.Policy", _listJars() );
+
+			_policies[ arguments.policy ] = policyFactory.getInstance( policyFile );
+		}
+
+		return _policies[ arguments.policy ];
 	}
 
-	private string function _getPolicyFile( required string policy ) {
+	private array function _listJars() {
+		return DirectoryList( _getLibPath(), false, "path", "*.jar" );
+	}
+
+	private any function _getPolicyFile( required string policy ) {
 		var policies = _getPolicyFiles();
+		var filePath = policies[ arguments.policy ] ?: throw( type="preside.antisamyservice.policy.not.found", message="The policy [#arguments.policy#] was not found. Existing policies: '#SerializeJson( policies.keyArray() )#" );
 
-		return policies[ arguments.policy ] ?: throw( type="preside.antisamyservice.policy.not.found", message="The policy [#arguments.policy#] was not found. Existing policies: '#SerializeJson( policies.keyArray() )#" );
+		return CreateObject( "java", "java.io.File" ).init( filePath );
 	}
 
 	private string function _removeUnwantedCleanses( required string tooCleanString, required string policy ) {
-		var antiSamyResult   = _getAntiSamy().scan( "&", _getPolicyFile( arguments.policy ) );
+		var antiSamyResult   = _getAntiSamy().scan( "&", _getPolicy( arguments.policy ) );
 		var cleanedAmpersand = antiSamyResult.getCleanHtml();
 		var uncleaned        = arguments.tooCleanString;
 
