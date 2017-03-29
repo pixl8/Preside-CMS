@@ -526,9 +526,9 @@
 		};
 
 		UberSelect.prototype.setup_filter = function() {
-			var filterBy            = this.form_field.getAttribute( "data-filter-by" )
-			  , filterByField       = this.form_field.getAttribute( "data-filter-by-field" )
-			  , filters             = []
+			var filterBy      = this.form_field.getAttribute( "data-filter-by" )
+			  , filterByField = this.form_field.getAttribute( "data-filter-by-field" )
+			  , filters       = []
 			  , filterInput, filterByValue, i;
 
 			if ( filterBy !== null && filterBy.length ) {
