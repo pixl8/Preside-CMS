@@ -660,7 +660,7 @@ component {
 			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft, skipTrivialInterceptors=pageType.isSystemPageType() );
 		}
 
-		_announceInterception( "postAddSiteTreePage", pageTypeObjData );
+		$announceInterception( "postAddSiteTreePage", pageTypeObjData );
 
 		if ( Len( Trim( pageId ) ) && arguments.audit ) {
 			var auditDetail = Duplicate( arguments );
@@ -824,7 +824,7 @@ component {
 		var interceptionArgs              = arguments;
 		    interceptionArgs.existingPage = existingPage;
 
-		_announceInterception( "postEditSiteTreePage", interceptionArgs );
+		$announceInterception( "postEditSiteTreePage", interceptionArgs );
 
 		if ( updated && !arguments.skipAudit ) {
 			for( var p in existingPage ) { existingPage = p };
