@@ -4,15 +4,20 @@ component {
 	property name="contentRendererService" inject="contentRendererService";
 
 	public string function index( event, rc, prc, args={} ) {
-		var properties = presideObjectService.getObjectProperties( args.sourceObject );
-		var prop       = properties[ args.name ] ?: {};
-		
-		args.renderer  = args.renderer ?: contentRendererService.getRendererForField( prop );
+		var sourceObject = args.sourceObject ?: "";
 
-		if ( !contentRendererService.rendererExists( args.renderer ) ) {
+		if( sourceObject.len() ) {
+			var properties = presideObjectService.getObjectProperties( sourceObject );
+			var prop       = properties[ args.name ] ?: {};
+
+			args.renderer  = args.renderer ?: contentRendererService.getRendererForField( prop );
+		}
+
+		if ( !contentRendererService.rendererExists( args.renderer ?: "" ) ) {
 			args.renderer = "";
 		}
 
 		return renderView( view="formcontrols/readOnly/index", args=args );
 	}
+
 }
