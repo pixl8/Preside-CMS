@@ -526,8 +526,9 @@
 		};
 
 		UberSelect.prototype.setup_filter = function() {
-			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
-			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
+			var filterBy      = this.form_field.getAttribute( "data-filter-by" )
+			  , filterByField = this.form_field.getAttribute( "data-filter-by-field" )
+			  , filters       = []
 			  , filterInput, filterByValue, i;
 
 			if ( filterBy !== null && filterBy.length ) {
@@ -545,8 +546,12 @@
 					}
 
 					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
-						this.filter = '&' + filterByField[ i ] + '='+ filterByValue + '&filterByFields=' + filterByField[ i ];
+						filters.push ( '&', filterByField[ i ], '=', filterByValue, '&filterByFields=', filterByField[ i ] );
 					}
+				}
+
+				if ( filters.length ) {
+					this.filter = filters.join( '' );
 				}
 			}
 
