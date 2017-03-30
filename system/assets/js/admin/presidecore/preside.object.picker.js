@@ -227,7 +227,7 @@
 			  , filters       = []
 			  , filterByValue, i;
 
-			if ( filterBy !== null ) {
+			if ( typeof filterBy !== "undefined" && filterBy.length ) {
 				filterBy      = filterBy.split( ',' );
 				filterByField = filterByField.split( ',' );
 
