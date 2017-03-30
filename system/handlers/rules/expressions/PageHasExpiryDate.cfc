@@ -2,6 +2,7 @@
  * Expression handler for "Current page has/does not have an expiry date"
  *
  * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 

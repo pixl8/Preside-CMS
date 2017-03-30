@@ -8,10 +8,10 @@ component {
 		args.labels = [];
 
 		if ( !futureOnly ) {
-			args.values.append( [ "recent", "since", "before" ], true );
+			args.values.append( [ "recent", "since", "before", "future", "futureplus" ], true );
 		}
 		if ( !pastOnly ) {
-			args.values.append( [ "upcoming", "until", "after" ], true );
+			args.values.append( [ "upcoming", "until", "after", "past", "pastminus" ], true );
 		}
 
 		for( var value in args.values ){

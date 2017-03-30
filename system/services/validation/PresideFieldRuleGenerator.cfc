@@ -142,18 +142,18 @@ component output="false" singleton=true {
 		// text length
 		if ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) and StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="rangeLength", params={ minLength = Val( field.minLength ), maxLength = Val( field.maxLength ) } } );
-		} elseif ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) ) {
+		} else if ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="minLength", params={ length = Val( field.minLength ) } } );
-		} elseif ( StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
+		} else if ( StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="maxLength", params={ length = Val( field.maxLength ) } } );
 		}
 
 		// min/max values
 		if ( StructKeyExists( field, "minValue" ) and StructKeyExists( field, "maxValue" ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="range", params={ min = Val( field.minValue ), max = Val( field.maxValue ) } } );
-		} elseif ( StructKeyExists( field, "minValue" ) ) {
+		} else if ( StructKeyExists( field, "minValue" ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="min", params={ min = Val( field.minValue ) } } );
-		} elseif ( StructKeyExists( field, "maxValue" ) ) {
+		} else if ( StructKeyExists( field, "maxValue" ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="max", params={ max = Val( field.maxValue ) } } );
 		}
 
@@ -169,6 +169,11 @@ component output="false" singleton=true {
 		// password policies
 		if ( Len( Trim( field.passwordPolicyContext ?: "" ) ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="meetsPasswordPolicy", params={ passwordPolicyContext = field.passwordPolicyContext } } );
+		}
+
+		// enum
+		if ( Len( Trim( field.enum ?: "" ) ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum } } );
 		}
 
 		for( rule in rules ){

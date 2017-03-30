@@ -47,7 +47,7 @@ Form items are what provide the input and display definition of the form. _i.e. 
 
 ![Screenshot showing a configuration of a date picker item](images/screenshots/formbuilder_configureitem.jpg)
 
-The core system provides a basic set of item types who's configuration can be modified and extended by your application or extensions. You are also able to introduce new item types in your application or extensions.
+The core system provides a basic set of item types whose configuration can be modified and extended by your application or extensions. You are also able to introduce new item types in your application or extensions.
 
 See [[formbuilder-itemtypes]] for more detail.
 

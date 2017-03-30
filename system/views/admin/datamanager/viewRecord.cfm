@@ -4,8 +4,8 @@
 	record                 = event.getValue( name="record", defaultValue=QueryNew(''), private=true );
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	viewRecordPrompt       = translateResource( uri="preside-objects.#objectName#:viewRecord.prompt", defaultValue="", data=[ record.label ] );
-	viewRecordTitle        = translateResource( uri="cms:datamanager.viewRecord.title", data=[ LCase( objectTitleSingular ), record.label ] );
-	deleteRecordPrompt     = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ LCase( objectTitleSingular ), record.label ] );
+	viewRecordTitle        = translateResource( uri="cms:datamanager.viewRecord.title", data=[  objectTitleSingular , record.label ] );
+	deleteRecordPrompt     = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[  objectTitleSingular , record.label ] );
 
 	prc.pageIcon  = "zoom-in";
 	prc.pageTitle = viewRecordTitle;

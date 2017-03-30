@@ -12,7 +12,7 @@ The `objectPicker` control allows users to select one or multiple records from a
         <tbody>
             <tr>
                 <th>object (required)</th>
-                <td>Name of the object who's records the user can select</td>
+                <td>Name of the object whose records the user can select</td>
             </tr>
             <tr>
                 <th>ajax (optional)</th>
@@ -29,6 +29,10 @@ The `objectPicker` control allows users to select one or multiple records from a
             <tr>
                 <th>remoteUrl (optional)</th>
                 <td>When ajax is set to "true", you can additionally supply a specific URL for fetching records to match typed searches</td>
+            </tr>
+            <tr>
+                <th>orderBy (optional)</th>
+                <td>Specify which column(s) to sort the select list on. Default is "label", which sorts alphabetically on the text displayed in the picker.</td>
             </tr>
             <tr>
                 <th>placeholder (optional)</th>

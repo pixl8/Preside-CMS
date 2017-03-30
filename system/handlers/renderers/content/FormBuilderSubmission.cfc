@@ -4,8 +4,8 @@ component  {
 
 
 	private string function default( event, rc, prc, args={} ){
-		args.responses = _preRenderResponses( argumentCollection=arguments );
-
+		args.noResponse = translateResource( "formbuilder:no.response.placeholder" );
+		args.responses  = _preRenderResponses( argumentCollection=arguments );
 		if ( IsSimpleValue( args.responses ) ) {
 			return args.responses;
 		}
@@ -43,14 +43,18 @@ component  {
 
 // HELPERS
 	private any function _preRenderResponses( event, rc, prc, args={} ) {
+		var noResponse        = args.noResponse ?: translateResource( "formbuilder:no.response.placeholder" );
 		var responses         = args.data ?: "";
 		var formId            = ( rc.formId ?: ( rc.id ?: ( rc.form ?: "" ) ) );
 		var formItems         = formBuilderService.getFormItems( formId );
 		var rendered          = "";
 		var renderedResponses = [];
 
+		if( !formItems.len() ){
+			return noResponse;
+		}
 
-		if ( !IsJson( responses ) || !formItems.len() || !IsStruct( DeserializeJSON( responses ) ) ) {
+		if ( !IsJson( responses ) || !IsStruct( DeserializeJSON( responses ) ) ) {
 			return responses;
 		}
 

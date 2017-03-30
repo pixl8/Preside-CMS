@@ -231,7 +231,7 @@ settings.rest.apis[ "/myapi/v2" ] = { corsEnabled=true };
 
 ## Basic caching
 
-The framework automatically adds `ETag` response headers for GET and HEAD REST requests. These are a simple MD5 hash of the serialized response body. In addition, if the REST request includes a `If-None-Match` request header who's value matches the generated `ETag`, the framework will set an empty response body and set the status of the response to `304 Not modified`.
+The framework automatically adds `ETag` response headers for GET and HEAD REST requests. These are a simple MD5 hash of the serialized response body. In addition, if the REST request includes a `If-None-Match` request header whose value matches the generated `ETag`, the framework will set an empty response body and set the status of the response to `304 Not modified`.
 
 More advanced caching can be achieved using the CacheBox framework that is built in to ColdBox (and therefore PresideCMS). See the [ColdBox docs](http://wiki.coldbox.org/wiki/CacheBox.cfm) for further details.
 

@@ -37,7 +37,7 @@
 	</cfif>
 
 
-	<form id="#formId#" method="post" action="#event.buildAdminLink( linkTo='sysConfig.saveCategoryAction' )#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal">
+	<form id="#formId#" method="post" action="#event.buildAdminLink( linkTo='sysConfig.saveCategoryAction' )#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" enctype="multipart/form-data">
 		<input type="hidden" name="id"   value="#categoryId#">
 		<input type="hidden" name="site" value="#site#">
 

@@ -1,6 +1,7 @@
 /**
- * Expression handler for "Day of the week is any of the following:"
+ * Expression handler for "Current date is between"
  *
+ * @expressionCategory currentdate
  */
 component {
 

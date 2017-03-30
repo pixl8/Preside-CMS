@@ -79,6 +79,28 @@ component displayName="RulesEngine Time Period Service" {
 					, from = _getCurrentDateTime()
 				};
 			break;
+
+			case "future":
+			return { from=_getCurrentDateTime() };
+
+			case "futureplus":
+				try {
+					return { from = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), _getCurrentDateTime() ) };
+				} catch( any e ) {
+					return {};
+				}
+			break;
+
+			case "past":
+			return { to=_getCurrentDateTime() };
+
+			case "pastminus":
+				try {
+					return { to = DateAdd( ( timePeriod.unit ?: "" ), 0-( timePeriod.measure ?: "" ), _getCurrentDateTime() ) };
+				} catch( any e ) {
+					return {};
+				}
+			break;
 		}
 
 		return {};

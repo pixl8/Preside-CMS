@@ -14,19 +14,22 @@ component {
 	 * @componentPath.hint Component path used to instantiate the component, e.g. "preside.system.presideobjects.PresideObjectService"
 	 *
 	 */
-	public void function createCFCDocumentation( required string componentPath, required string docsPath, string pagetype="service" ) {
-		var meta     = GetComponentMetaData( arguments.componentPath );
-		var doc      = CreateObject( "java", "java.lang.StringBuffer" );
-		var objName  = ListLast( arguments.componentPath, "." );
-		var pageName = LCase( objName );
-		var pageDir  = arguments.docsPath & "/" & pageName;
-		var pageFile = pageDir & "/#arguments.pagetype#.md";
-		var title    = meta.displayName ?: objName;
-		var singleton = IsBoolean( meta.singleton ?: "" ) && meta.singleton;
+	public struct function createCFCDocumentation( required string componentPath, required string docsPath, string pagetype="service" ) {
+		var returnStruct = { success=true };
+		var meta         = GetComponentMetaData( arguments.componentPath );
+		var doc          = CreateObject( "java", "java.lang.StringBuffer" );
+		var objName      = ListLast( arguments.componentPath, "." );
+		var pageName     = LCase( objName );
+		var pageDir      = arguments.docsPath & "/" & pageName;
+		var pageFile     = pageDir & "/#arguments.pagetype#.md";
+		var singleton    = IsBoolean( meta.singleton ?: "" ) && meta.singleton;
 
 		DirectoryCreate( pageDir );
 
-		doc.append( _mdMeta( title=title, id="api-#pageName#" ) );
+		returnStruct.filename = "api-" & pageName;
+		returnStruct.title    = meta.displayName ?: objName;
+
+		doc.append( _mdMeta( title=returnStruct.title, id=returnStruct.filename ) );
 
 		doc.append( DOUBLELINE & _mdTitle( "Overview", 2 ) & DOUBLELINE );
 
@@ -53,6 +56,8 @@ component {
 		}
 
 		FileWrite( pageFile, doc.toString() );
+
+		return returnStruct;
 	}
 
 	/**
@@ -62,18 +67,21 @@ component {
 	 * @componentPath.hint Component path used to instantiate the component, e.g. "preside.system.preside-objects.page"
 	 *
 	 */
-	public void function createPresideObjectDocumentation( required string componentPath, required string docsPath ) {
-		var meta     = GetComponentMetaData( arguments.componentPath );
-		var doc      = CreateObject( "java", "java.lang.StringBuffer" );
-		var objName  = ListLast( arguments.componentPath, "." );
-		var pageName = LCase( objName );
-		var pageDir  = arguments.docsPath & "/" & pageName;
-		var pageFile = pageDir & "/presideobject.md";
-		var title    = meta.displayName ?: objName;
+	public struct function createPresideObjectDocumentation( required string componentPath, required string docsPath ) {
+		var returnStruct = { success=true };
+		var meta         = GetComponentMetaData( arguments.componentPath );
+		var doc          = CreateObject( "java", "java.lang.StringBuffer" );
+		var objName      = ListLast( arguments.componentPath, "." );
+		var pageName     = LCase( objName );
+		var pageDir      = arguments.docsPath & "/" & pageName;
+		var pageFile     = pageDir & "/presideobject.md";
 
 		DirectoryCreate( pageDir );
 
-		doc.append( _mdMeta( title=title, id="presideobject-" & pageName ) );
+		returnStruct.filename = "presideobject-" & pageName;
+		returnStruct.title    = meta.displayName ?: objName;
+
+		doc.append( _mdMeta( title=returnStruct.title, id=returnStruct.filename ) );
 		doc.append( NEWLINE & _mdTitle( "Overview" ) & DOUBLELINE );
 
 		if ( Len( Trim( meta.hint ?: "" ) ) ) {
@@ -109,6 +117,8 @@ component {
 		}
 
 		FileWrite( pageFile, doc.toString() );
+
+		return returnStruct;
 	}
 
 
@@ -148,6 +158,7 @@ component {
 		source = Replace( source, Chr(9), INDENT, "all" );
 
 		returnStruct.filename = LCase( ReReplace( title, "\W", "", "all" ) );
+		returnStruct.title    = title;
 
 		var doc = CreateObject( "java", "java.lang.StringBuffer" );
 

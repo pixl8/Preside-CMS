@@ -3,7 +3,7 @@
 	prc.pageTitle = translateResource( uri="cms:sitetree.pageHistory.title", data=[ prc.page.title ] );
 	prc.pageSubTitle = translateResource( uri="cms:sitetree.pageHistory.subtitle", data=[ prc.page.title ] );
 
-	id = rc.id ?: ""
+	id = rc.id ?: "";
 </cfscript>
 
 <cfoutput>

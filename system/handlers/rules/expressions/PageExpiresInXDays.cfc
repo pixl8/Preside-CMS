@@ -2,6 +2,7 @@
  * Expression handler for "Current page expires in x days"
  *
  * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 

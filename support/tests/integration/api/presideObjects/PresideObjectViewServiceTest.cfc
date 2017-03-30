@@ -15,6 +15,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var expectedArguments = {
 					  objectName   = "object_b"
 					, selectFields = [ "label as title", "object_b.datecreated as datecreated", "object_b.id as _id" ]
+					, autoGroupBy  = true
 				};
 
 				mockPresideObjectService.$( "selectData", QueryNew('') );
@@ -43,15 +44,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					, anything      = "really"
 				}
 				var expectedArguments = {
-					  objectName   = "object_b"
-					, selectFields = [ "label as title", "object_e.label as category", "object_b.datecreated as datecreated", "object_b.id as _id" ]
-					, sortBy = "this"
-					, filter = "fubar = :this"
-					, filterArgs = { this = "is a test" }
-					, anything = "really"
-					, returnType = "string"
-					, args       = {}
+					  objectName         = "object_b"
+					, selectFields       = [ "label as title", "object_e.label as category", "object_b.datecreated as datecreated", "object_b.id as _id" ]
+					, sortBy             = "this"
+					, filter             = "fubar = :this"
+					, filterArgs         = { this = "is a test" }
+					, anything           = "really"
+					, returnType         = "string"
+					, args               = {}
 					, allowDraftVersions = false
+					, autoGroupBy        = true
 				};
 				var actualForwardedArgs = "";
 				var expectedArgumemntNames = StructKeyArray( expectedArguments );

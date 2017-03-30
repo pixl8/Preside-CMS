@@ -1,5 +1,5 @@
 /**
- * Handler for rules engine 'boolean type'
+ * Handler for rules engine 'condition' type
  *
  */
 component {
@@ -29,6 +29,8 @@ component {
 	private string function renderConfigScreen( string value="", struct config={} ) {
 		var multiple = IsTrue( config.multiple ?: true );
 		var sortable = IsTrue( config.sortable ?: true );
+
+		rc.delete( "value" );
 
 		return renderFormControl(
 			  name         = "value"

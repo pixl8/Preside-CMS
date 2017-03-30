@@ -372,6 +372,35 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBeTrue();
 			} );
 
+			it( "should supplement the payload with a payload retrieved automaticaly from the context", function(){
+				var service      = _getService();
+				var payload      = { blah=CreateUUId() };
+				var extraPayload = { test=CreateUUId() };
+				var finalPayload = { blah=payload.blah, test=extraPayload.test };
+				var context      = CreateUUId();
+				var conditionId  = CreateUUId();
+				var condition    = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
+
+				mockContextService.$( "getContextPayload" ).$args( context=context, args=payload ).$results( extraPayload );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = finalPayload
+				).$results( true );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeTrue();
+			} );
+
 			it( "should return false when it contains a single expression that evaluates to false for the given payload", function(){
 				var service     = _getService();
 				var payload     = { blah=CreateUUId() };
@@ -862,21 +891,70 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBeFalse();
 			} );
 		} );
+
+		describe( "listObjectsFilterableByCondition()", function(){
+			it( "should return an array of objects that are commonly applicable amongst all the expressions in the given condition", function(){
+				var service = _getService();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "another.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "final.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "test.expression"    ).$results( [ "object_a", "object_d", "object_b" ] );
+				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "another.expression" ).$results( [ "object_a", "object_c", "object_d" ] );
+				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "final.expression"   ).$results( [ "object_a", "object_b", "object_c", "object_d" ] );
+
+				expect( service.listObjectsFilterableByCondition( condition ) ).toBe( [ "object_a", "object_d" ] );
+			} );
+
+			it( "should return an empty array when no objects are commonly shared amongst all the expressions", function(){
+				var service = _getService();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "another.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "final.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "test.expression"    ).$results( [ "object_a", "object_d", "object_b" ] );
+				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "another.expression" ).$results( [ "object_e" ] );
+				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "final.expression"   ).$results( [ "object_a", "object_b", "object_c", "object_d" ] );
+
+				expect( service.listObjectsFilterableByCondition( condition ) ).toBe( [] );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
 	private any function _getService() {
 		variables.mockColdbox = createStub();
 		variables.mockExpressionService = createEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionService" );
+		variables.mockContextService = createEmptyMock( "preside.system.services.rulesEngine.RulesEngineContextService" );
 		variables.mockConditionDao = createStub();
 
 		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineConditionService(
-			expressionService = mockExpressionService
+			  expressionService = mockExpressionService
+			, contextService    = mockContextService
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$getPresideObject" ).$args( "rules_engine_condition" ).$results( mockConditionDao );
 		mockExpressionService.$( "isExpressionValid", true );
+		mockContextService.$( "getContextPayload", {} );
 
 		return service;
 	}
