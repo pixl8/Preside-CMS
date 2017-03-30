@@ -11,6 +11,6 @@ In this chapter, you will find detailed notes on any upgrade considerations betw
 
 ## Individual upgrade guides
 
->>>>> If you are updating over multiple major versions, e.g. from `10.6.x` to `10.8.x`, you should read the upgrade notes for each release in between.
+Note: If you are updating over multiple major versions, e.g. from `10.6.x` to `10.8.x`, you should read the upgrade notes for each release in between.
 
 * [[10-7-upgrade-notes]]
