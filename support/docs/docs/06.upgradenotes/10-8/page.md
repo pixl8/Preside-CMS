@@ -25,13 +25,13 @@ After upgrade, navigate to **Email Centre > Settings > SMTP (tab)**. Any previou
 
 ### Create a layout / multiple layouts
 
-If your existing application has programmed an email layout, you should migrate it using the new [[emailcentre-layouts]] system. This will allow end users to use and configure the layout for custom emails as well as prepare you for migrating your custom system email templates to the new system.
+If your existing application has programmed an email layout, you should migrate it using the new layouts system, see [[creatingAnEmailLayout]]. This will allow end users to use and configure the layout for custom emails as well as prepare you for migrating your custom system email templates to the new system.
 
 ### Migrate system email templates
 
 The [[emailtemplating|legacy email template system]] will continue to work. However, we would advise migrating any templates you have to the new system to make the end-user experience as good as it can be (and avoid future maintenance headaches).
 
-See [[emailcentre-systemtemplates]] for a full guide to creating system email templates in 10.8.0.
+See [[systemEmailTemplates]] for a full guide to creating system email templates in 10.8.0.
 
 ## Rules engine filters
 
