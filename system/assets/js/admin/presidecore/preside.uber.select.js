@@ -482,6 +482,7 @@
 			}
 
 			this.container.append( '<input type="hidden" class="chosen-hidden-field" />');
+			this.disabled_if_unfiltered = this.form_field_jq.data( 'disabledIfUnfiltered' ) == true;
 			this.hidden_field = this.container.find( 'input.chosen-hidden-field' ).first();
 			this.hidden_field.attr( 'name', this.form_field_jq.attr( 'name' ) );
 			this.hidden_field.data( "uberSelect", this );
@@ -516,11 +517,13 @@
 
 			this.setup_filter();
 			this.setup_search_engine();
+			this.disable_if_unfiltered();
 
 			if ( typeof this.filter_field !== "undefined" ) {
 				this.filter_field.on('change',function(){
 					$uberSelect.setup_filter();
 					$uberSelect.setup_search_engine();
+					$uberSelect.disable_if_unfiltered();
 				});
 			}
 		};
@@ -556,6 +559,19 @@
 			}
 
 		};
+
+		UberSelect.prototype.disable_if_unfiltered = function() {
+			if ( this.disabled_if_unfiltered ) {
+				if ( this.filter_field.val().length ) {
+					this.form_field_jq.removeAttr( 'disabled' );
+					this.container.siblings( '.quick-add-btn' ).removeClass( 'disabled' );
+				} else {
+					this.form_field_jq.attr( 'disabled', 'disabled' );
+					this.container.siblings( '.quick-add-btn' ).addClass( 'disabled' );
+				}
+				this.search_field_disabled();
+			}
+		}
 
 		UberSelect.prototype.register_observers = function() {
 			var _this = this;

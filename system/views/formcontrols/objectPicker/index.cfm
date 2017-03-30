@@ -62,8 +62,9 @@
 		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
 	}
 
-	filterBy      = args.filterBy      ?: "";
-	filterByField = args.filterByField ?: filterBy;
+	filterBy             = args.filterBy             ?: "";
+	filterByField        = args.filterByField        ?: filterBy;
+	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
 </cfscript>
 
 <cfoutput>
@@ -84,6 +85,9 @@
 				</cfif>
 				<cfif !isEmpty( filterByField )>
 					data-filter-by-field='#filterByField#'
+				</cfif>
+				<cfif !isEmpty( disabledIfUnfiltered )>
+					data-disabled-if-unfiltered='#disabledIfUnfiltered#'
 				</cfif>
 			</cfif>
 			<cfif disabled>disabled</cfif>
