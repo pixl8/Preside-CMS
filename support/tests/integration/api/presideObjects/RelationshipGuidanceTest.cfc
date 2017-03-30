@@ -293,13 +293,13 @@
 					, tablePrefix = "pobj_"
 					, versioned   = false
 					, properties  = {
-						  obj_a = { name="obj_a", control="auto", type="numeric", dbtype="smallint", maxLength="0" , generator="none", relationship="many-to-one", relatedTo="obj_a", required=true, onDelete="cascade", onUpdate="cascade" }
-						, obj_b = { name="obj_b", control="auto", type="string" , dbtype="varchar" , maxLength="35", generator="none", relationship="many-to-one", relatedTo="obj_b", required=true, onDelete="cascade", onUpdate="cascade" }
-						, sort_order = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
+						  obj_a = { name="obj_a", control="auto", type="numeric", dbtype="smallint", maxLength="0" , generator="none", generate="never", relationship="many-to-one", relatedTo="obj_a", required=true, onDelete="cascade", onUpdate="cascade" }
+						, obj_b = { name="obj_b", control="auto", type="string" , dbtype="varchar" , maxLength="35", generator="none", generate="never", relationship="many-to-one", relatedTo="obj_b", required=true, onDelete="cascade", onUpdate="cascade" }
+						, sort_order = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", generate="never", relationship="none", required=false }
 					  }
 					, relationships = {
-						  "fk_e6b193a815d27df2cdc8482ee9c045bf" = { pk_table="pobj_obj_a", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_a", on_update="cascade", on_delete="cascade" }
-						, "fk_4f17cab05b8b011a3794ef069d336264" = { pk_table="pobj_obj_b", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_b", on_update="cascade", on_delete="cascade" }
+						  "fk_4a66d2b6e74d782ba00f9d7415b82ea6" = { pk_table="pobj_obj_a", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_a", on_update="cascade", on_delete="cascade" }
+						, "fk_87af648ebd957bdebdc810cb8ccf04be" = { pk_table="pobj_obj_b", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_b", on_update="cascade", on_delete="cascade" }
 					  }
 				  }
 			};

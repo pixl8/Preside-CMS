@@ -1,7 +1,7 @@
 <cfscript>
 	menuItems = args.menuItems ?: [];
 
-	ulNestedClass           = args.ulNestedClass           ?: 'dropdown-menu'
+	ulNestedClass           = args.ulNestedClass           ?: 'dropdown-menu';
 	liCurrentClass          = args.liCurrentClass          ?: 'active';
 	liHasChildrenClass      = args.liHasChildrenClass      ?: 'dropdown';
 	liHasChildrenAttributes = args.liHasChildrenAttributes ?: '';
@@ -31,4 +31,15 @@
 			</cfif>
 		</li>
 	</cfloop>
+	<cfif IsFeatureEnabled( "websiteusers" )>
+		<cfif IsLoggedIn()>
+			<li>
+				<a href="#event.buildLink( linkTo="login.logout" )#">Logout</a>
+			</li>
+		<cfelse>
+			<li>
+				<a href="#event.buildLink( page="login" )#">Login</a>
+			</li>
+		</cfif>
+	</cfif>
 </cfoutput>

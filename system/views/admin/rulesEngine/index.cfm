@@ -29,6 +29,6 @@
 		  objectName      = objectName
 		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=rulesengine.getConditionsForAjaxDataTables" )
-		, gridFields      = [ "condition_name", "context", "datemodified" ]
+		, gridFields      = [ "condition_name", "context", "filter_object", "datemodified" ]
 	} )#
 </cfoutput>

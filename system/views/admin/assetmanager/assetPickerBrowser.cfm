@@ -1,6 +1,7 @@
 <cfscript>
 	activeFolder = Trim( rc.folder  ?: "" );
 	allowedTypes = prc.allowedTypes ?: [];
+	savedFilters = prc.savedFilters ?: "";
 
 	rootFolder   = prc.rootFolderId ?: 0;
 	if ( not Len( activeFolder ) ) {
@@ -8,10 +9,10 @@
 	}
 
 	folders = renderView(
-		  view           = "admin/assetManager/_folderBrowserListingForPicker"
-		, presideObject  = "asset_folder"
-		, filter         = { parent_folder = activeFolder }
-		, orderBy        = "label asc"
+		  view          = "admin/assetManager/_folderBrowserListingForPicker"
+		, presideObject = "asset_folder"
+		, filter        = { parent_folder=activeFolder, hidden=false }
+		, orderBy       = "label asc"
 	);
 
 
@@ -20,10 +21,11 @@
 		assetFilter.asset_type = allowedTypes;
 	}
 	assets = renderView(
-		  view           = "admin/assetManager/_assetBrowserListingForPicker"
-		, presideObject  = "asset"
-		, filter         = assetFilter
-		, orderBy        = "title asc"
+		  view          = "admin/assetManager/_assetBrowserListingForPicker"
+		, presideObject = "asset"
+		, filter        = assetFilter
+		, savedFilters  = listToArray( savedFilters )
+		, orderBy       = "title asc"
 	);
 
 	multiple = IsBoolean( rc.multiple ?: "" ) && rc.multiple;

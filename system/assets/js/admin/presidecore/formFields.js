@@ -1,6 +1,7 @@
 ( function( $ ){
 
-	$(".object-picker").presideObjectPicker();
+    $(".object-picker").presideObjectPicker();
+	$(".object-configurator").presideObjectConfigurator();
 	$(".asset-picker").uberAssetSelect();
 	$(".image-dimension-picker").imageDimensionPicker();
 

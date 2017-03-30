@@ -3,13 +3,17 @@
 <cfparam name="args.configuration" type="struct" />
 <cfparam name="args.placeholder"   type="string" />
 
+<cfscript>
+	formId = rc.id ?: "";
+</cfscript>
+
 <cfoutput>
 	<li class="item-type ui-draggable form-item"
 	    data-id="#args.id#"
 	    data-item-template="false"
 	    data-item-type="#args.action.id#"
 	    data-requires-configuration="true"
-	    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.actionConfigDialog', queryString='action=#args.action.id#&actionId=#args.id#' )#"
+	    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.actionConfigDialog', queryString='action=#args.action.id#&actionId=#args.id#&formId=#formId#' )#"
 	    data-config-title="#translateResource( uri='formbuilder:action.config.modal.title', data=[ args.action.title ] )#">
 
 		<div class="pull-left">

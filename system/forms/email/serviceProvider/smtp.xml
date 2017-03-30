@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Email service provider config form: SMTP
+
+This form is used for configuring the SMTP mail server and other mail related settings
+-->
+<form i18nBaseUri="email.serviceProvider.smtp:">
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field sortorder="10" name="server"           control="textinput"   required="false" />
+			<field sortorder="20" name="port"             control="spinner"     required="false" default="25" maxValue="99999" />
+			<field sortorder="30" name="username"         control="textinput"   required="false" />
+			<field sortorder="40" name="password"         control="password"    required="false" outputSavedValue="true" />
+			<field sortorder="50" name="check_connection" control="yesnoswitch" required="false" />
+		</fieldset>
+	</tab>
+</form>

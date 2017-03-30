@@ -32,11 +32,17 @@ component {
 			break;
 			case "recent":
 			case "upcoming":
+			case "pastminus":
+			case "futureplus":
 				type = timePeriod.type;
 				data = [
 					  NumberFormat( Val( timePeriod.measure ?: "" ) )
 					, translateResource( "cms:time.period.unit.#( timePeriod.unit ?: 'd' )#" )
 				];
+			break;
+			case "future":
+			case "past":
+				type = timePeriod.type;
 			break;
 			default:
 				type = "alltime";
@@ -46,6 +52,8 @@ component {
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
+		rc.delete( "value" );
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "timePeriodPicker"

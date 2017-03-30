@@ -28,7 +28,7 @@ component {
 
 		if ( ancestors.len() >= startLevel ){
 			args.rootTitle = Len( Trim( ancestors[ startLevel ].navigation_title ?: "" ) ) ? ancestors[ startLevel ].navigation_title : ancestors[ startLevel ].title;
-		} elseif( ( event.getPageProperty( "_hierarchy_depth", 0 ) + 1 ) == startLevel ) {
+		} else if( ( event.getPageProperty( "_hierarchy_depth", 0 ) + 1 ) == startLevel ) {
 			args.rootTitle = Len( Trim( event.getPageProperty( "navigation_title", "" ) ) ) ? event.getPageProperty( "navigation_title", "" ) : event.getPageProperty( "title", "" );
 		} else {
 			args.rootTitle = "";

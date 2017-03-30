@@ -2,7 +2,7 @@
 	isDraft   = IsTrue( args._version_is_draft );
 	hasDrafts = IsTrue( args._version_has_drafts );
 
-	statusText   = translateResource( "cms:datamanager.record.status.published" )
+	statusText   = translateResource( "cms:datamanager.record.status.published" );
 	statusIcon   = "check-circle";
 	statusColour = "green";
 

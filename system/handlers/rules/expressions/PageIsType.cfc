@@ -1,7 +1,8 @@
 /**
  * Expression handler for "Current page is/is not all/any of the following types: {type list}"
  *
- * @expressionContexts  page
+ * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 

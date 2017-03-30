@@ -19,7 +19,7 @@ html.presidecms {
 }
 .presidecms .login-layout .widget-box .cms-brand {
   height: 48px;
-  text-indent: -999px;
+  text-indent: -999em;
   background: url(../../../../images/logos/preside-logo-for-login.png ) no-repeat center center;
 }
 .presidecms .login-layout .widget-box .cms-brand.pulled-left {

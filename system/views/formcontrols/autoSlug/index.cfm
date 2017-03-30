@@ -13,5 +13,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" class="#inputClass# auto-slug" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#HtmlEditFormat( value )#" data-based-on="#basedOn#" tabindex="#getNextTabIndex()#">
+	<input type="text" class="#inputClass# auto-slug form-control" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#HtmlEditFormat( value )#" data-based-on="#basedOn#" tabindex="#getNextTabIndex()#">
 </cfoutput>

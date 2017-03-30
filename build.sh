@@ -9,7 +9,7 @@ echo "Welcome to the PresideCMS Test runner and build suite :)";
 echo "--------------------------------------------------------";
 echo "";
 echo "This script will install dependencies, run tests, and conditionally build docs and package preside into a ZIP file.";
-echo "Each of these operations can be run independantly with the following commands:";
+echo "Each of these operations can be run independently with the following commands:";
 echo "";
 echo "box install                      - installs dependencies";
 echo "./test.sh                        - runs tests";

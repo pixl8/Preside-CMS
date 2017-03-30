@@ -55,6 +55,7 @@
 			this.options = options != null ? options : {};
 			this.is_multiple = this.form_field.multiple;
 			this.selected = [];
+			this.fieldPopulatedDeferred = $.Deferred();
 			this.setup_preselected_value();
 			this.set_sortable_options();
 			this.set_rendering_templates();
@@ -277,10 +278,12 @@
 			}
 			this.selected_option_count = 0;
 			_ref = this.form_field.options;
-			for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-				option = _ref[_i];
-				if (option.selected) {
-					this.selected_option_count += 1;
+			if ( _ref ){
+				for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+					option = _ref[_i];
+					if (option.selected) {
+						this.selected_option_count += 1;
+					}
 				}
 			}
 			return this.selected_option_count;
@@ -400,6 +403,7 @@
 						chosen: uberSelect
 					});
 				}
+				uberSelect.fieldPopulatedDeferred.resolve();
 			} );
 		};
 
@@ -522,17 +526,33 @@
 		};
 
 		UberSelect.prototype.setup_filter = function() {
+			var filterBy      = this.form_field.getAttribute( "data-filter-by" )
+			  , filterByField = this.form_field.getAttribute( "data-filter-by-field" )
+			  , filters       = []
+			  , filterInput, filterByValue, i;
 
-			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
-			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
-			  , filterByValue;
+			if ( filterBy !== null && filterBy.length ) {
+				filterBy      = filterBy.split( ',' );
+				filterByField = filterByField.split( ',' );
 
-			this.filter_field = $( "input[name='" + filterBy + "']" );
+				for( i=0; i<filterBy.length; i++ ) {
+					filterInput = $( "input[name='" + filterBy[ i ] + "']" );
 
-			filterByValue = this.filter_field.val();
+					if ( filterInput.length ) {
+						this.filter_field = filterInput;
+						filterByValue = this.filter_field.val();
+					} else {
+						filterByValue = cfrequest[ filterBy[ i ] ] || null;
+					}
 
-			if ( typeof filterByValue !== "undefined" ) {
-				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+						filters.push ( '&', filterByField[ i ], '=', filterByValue, '&filterByFields=', filterByField[ i ] );
+					}
+				}
+
+				if ( filters.length ) {
+					this.filter = filters.join( '' );
+				}
 			}
 
 		};
@@ -962,6 +982,15 @@
 			if (!this.is_disabled) {
 				return this.choice_destroy($(evt.target));
 			}
+		};
+
+		UberSelect.prototype.clear = function() {
+			var uberSelect = this;
+
+			uberSelect.clear_suggestions();
+			uberSelect.search_choices.find( ".search-choice" ).each( function(){
+				uberSelect.choice_destroy( $( this ) );
+			} );
 		};
 
 		UberSelect.prototype.choice_destroy = function(link) {

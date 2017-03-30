@@ -15,6 +15,7 @@ component displayName="RulesEngine Expression Reader Service" {
 		, _did      = "didDidNot"
 		, _was      = "wasWasNot"
 		, _are      = "areAreNot"
+		, _does     = "doesDoesNot"
 		, _will     = "willWillNot"
 		, _ever     = "everNever"
 		, _all      = "allAny"
@@ -35,7 +36,7 @@ component displayName="RulesEngine Expression Reader Service" {
 // PUBLIC API
 	/**
 	 * Reads all the expressions from an array of directories potentially containing handler CFC files
-	 * and returns a structure who's keys are the IDs of expressions and who's values are the
+	 * and returns a structure whose keys are the IDs of expressions and whose values are the
 	 * detailed configuration of the expression as defined in the handler CFC actions
 	 *
 	 * @autodoc
@@ -53,7 +54,7 @@ component displayName="RulesEngine Expression Reader Service" {
 
 	/**
 	 * Reads all the expressions from a directory of handler CFC files
-	 * and returns a structure who's keys are the IDs of expressions and who's values are the
+	 * and returns a structure whose keys are the IDs of expressions and whose values are the
 	 * detailed configuration of the expression as defined in the handler CFC actions
 	 *
 	 * @autodoc
@@ -81,7 +82,7 @@ component displayName="RulesEngine Expression Reader Service" {
 
 	/**
 	 * Reads the configured rules engine expressions from the given handler CFC file.
-	 * Returns a struct who's keys are IDs of expressions and who's values are the
+	 * Returns a struct whose keys are IDs of expressions and whose values are the
 	 * detailed configuration of the expression as defined in the handler CFC actions
 	 *
 	 * @autodoc
@@ -91,22 +92,41 @@ component displayName="RulesEngine Expression Reader Service" {
 	public struct function getExpressionsFromCfc( required string componentPath, required string rootPath ) {
 		var meta        = getComponentMetadata( arguments.componentPath );
 		var feature     = meta.feature ?: "";
+		var category    = meta.expressionCategory ?: "default";
 
 		if ( Len( Trim( feature ) ) && !$isFeatureEnabled( feature ) ) {
 			return {};
 		}
 
-		var functions   = meta.functions ?: [];
-		var baseId      = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
-		var expressions = {};
+		var functions     = meta.functions ?: [];
+		var baseId        = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
+		var filterObjects = [];
+		var expressions   = {};
 
 		for( var func in functions ) {
 			if ( func.name == "evaluateExpression" ) {
 				expressions[ baseId ] = {
-					  contexts = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
-					, fields   = getExpressionFieldsFromFunctionDefinition( func )
+					  contexts              = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
+					, fields                = getExpressionFieldsFromFunctionDefinition( func )
+					, filterObjects         = filterObjects
+					, category              = category
+					, expressionHandler     = "rules.expressions.#baseId#.evaluateExpression"
+					, filterHandler         = filterObjects.len() ? "rules.expressions.#baseId#.prepareFilters" : ""
+					, labelHandler          = "rules.expressions.#baseId#.getLabel"
+					, textHandler           = "rules.expressions.#baseId#.getText"
+					, expressionHandlerArgs = {}
+					, filterHandlerArgs     = {}
+					, labelHandlerArgs      = {}
+					, textHandlerArgs       = {}
 				};
-				break;
+
+			} else if ( func.name == "prepareFilters" ) {
+				filterObjects = ListToArray( func.objects ?: "" );
+				if ( expressions.keyExists( baseId ) ) {
+					expressions[ baseId ].filterObjects = filterObjects;
+					expressions[ baseId ].filterHandler = "rules.expressions.#baseId#.prepareFilters";
+					break;
+				}
 			}
 		}
 
