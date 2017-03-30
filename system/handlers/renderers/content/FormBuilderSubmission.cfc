@@ -43,6 +43,7 @@ component  {
 
 // HELPERS
 	private any function _preRenderResponses( event, rc, prc, args={} ) {
+		var noResponse        = args.noResponse ?: translateResource( "formbuilder:no.response.placeholder" );
 		var responses         = args.data ?: "";
 		var formId            = ( rc.formId ?: ( rc.id ?: ( rc.form ?: "" ) ) );
 		var formItems         = formBuilderService.getFormItems( formId );
@@ -50,7 +51,7 @@ component  {
 		var renderedResponses = [];
 
 		if( !formItems.len() ){
-			return args.noResponse;
+			return noResponse;
 		}
 
 		if ( !IsJson( responses ) || !IsStruct( DeserializeJSON( responses ) ) ) {
