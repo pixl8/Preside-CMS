@@ -71,7 +71,7 @@ param.edit_booking_link.description=A link to the page where delegate's can edit
 
 The template itself has a `title` and `description` key. Any defined parameters can also then have `title` and `description` keys, prefixed with `param.{paramid}.`.
 
-### 3. Handler for rendering
+### 3. Handler for generating parameters and defaults
 
 The final part of creating a system transactional email template is the handler. This should live at `/handlers/email/template/{templateId}.cfc` and have the following signature:
 

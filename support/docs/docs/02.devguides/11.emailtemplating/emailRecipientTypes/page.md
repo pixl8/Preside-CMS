@@ -37,3 +37,92 @@ settings.email.templates.recipientTypes.eventDelegate   = {
 * `gridFields` - array of properties defined on the `filterObject` that should be displayed in the grid that shows when listing the potential recipients of an email
 * `recipientIdLogProperty` - foreign key property on the [[presideobject-email_template_send_log]] object that should be used for storing the recipient ID in send logs (see below)
 * `feature` - an optional string value indicating the feature that the recipient type belongs to. If the feature is disabled, the recipient type will not be available.
+
+### 2. i18n property file
+
+Each recipient type should have a corresponding `.properties` file to provide labels for the type and any parameters that are declared. The file must live at `/i18n/email/recipientType/{recipientTypeId}.properties`. An example:
+
+```properties
+title=Event delegate
+description=Email sent to delegates of events
+
+param.first_name.title=First name
+param.first_name.description=First name of the delegate
+
+# ...
+```
+
+The recipient type itself has a `title` and `description` key. Any defined parameters can also then have `title` and `description` keys, prefixed with `param.{paramid}.`.
+
+### 3. Handler for generating parameters
+
+Recipient types require a handler for returning parameters for a recipient and for returning the recipient's email address. This should live at `/handlers/email/recipientType/{recipientTypeId}.cfc` and have the following signature:
+
+```luceescript
+component {
+	private struct function prepareParameters( required string recipientId ) {}
+
+	private struct function getPreviewParameters() {}
+
+	private string function getToAddress( required string recipientId ) {}
+}
+```
+
+#### prepareParameters()
+
+The `prepareParameters()` method should return a struct whose keys are the IDs of the parameters that are defined in `Config.cfc` (see above) and whose values are either:
+
+* a string value to be used in both plain text and html emails
+* a struct with `html` and `text` keys whose values are strings to be used in their respective email renders
+
+The purpose here is to allow variables in an email's body and/or subject to be replaced with details of the recipient. The method accepts a `recipientId` argument so that you can make a DB query to get the required details. For example:
+
+```luceescript
+// handlers/email/recipientType/EventDelegate.cfc
+component {
+
+	property name="bookingService" inject="bookingService";
+	
+	private struct function prepareParameters( required string recipientId ) {
+		var delegate = bookingService.getDelegate( arguments.recipientId );
+
+		return {
+			  first_name = delegate.first_name
+			, last_name = delegate.last_name
+			// ... etc
+		};
+	}
+
+	// ...
+}
+```
+
+#### getPreviewParameters()
+
+The `getPreviewParameters()` method has the exact same purpose as the `getParameters()` method _except_ that it should return a static set of parameters that can be used to preview any emails that are set to send to this recipient type. It does not accept any arguments.
+
+For example:
+
+```luceescript
+private struct function prepareParameters() {
+	return {
+		  first_name = "Example"
+		, last_name  = "Delegate"
+		// ... etc
+	};
+}
+```
+
+#### getToAddress()
+
+The `getToAddress()` method accepts a `recipientId` argument and must return the email address to which to send email. For example:
+
+```luceescript
+private struct function getToAddress( required string recipientId ) {
+	var delegate = bookingService.getDelegate( arguments.recipientId );
+
+	return delegate.email_address ?: "";
+}
+```
+
+### 4. Email log foreign key
