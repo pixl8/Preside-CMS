@@ -20,7 +20,7 @@ component {
 
 		params.notification_body = {
 			  text = notificationService.renderNotification( arguments.topic, arguments.data, "emailText" )
-			, html = notificationService.renderNotification( arguments.topic, arguments.data, "emailJt,;" )
+			, html = notificationService.renderNotification( arguments.topic, arguments.data, "emailHtml" )
 		};
 		params.notification_subject = Trim( notificationService.renderNotification( arguments.topic, arguments.data, "emailSubject" ) );
 
