@@ -11,16 +11,15 @@ title: Creating an email layout
 
 Email layouts are created by convention. Each layout is defined as a pair of [[presideViewlets|Preside viewlets]], one for the HTML version of the layout, another for the text only version of the layout. The convention based viewlet ids are `email.layout.{layoutid}.html` and `email.layout.{layoutid}.text`.
 
-The viewlets receive four common variables in their `args` argument:
+The viewlets receive three common variables in their `args` argument:
 
 * `subject` - the email subject
 * `body` - the main body of the email
-* `unsubscribeLink` - a link to use for unsubscribing (may be empty for transactional emails, for example)
 * `viewOnlineLink` - a link to view the full email online (may be empty for transactional emails, for example)
 
 In addition, the viewlets will also receive args from the layout's config form, if it has one (see 3, below).
 
-An overly simple example:
+A very simple example:
 
 ```lucee
 <!-- /views/email/layout/default/html.cfm -->
@@ -32,21 +31,21 @@ An overly simple example:
     <body>
         <a href="#args.viewOnlineLink#">View in a browser</a>
         #args.body#
-        <a href="#args.unsubscribeLink#">Unsubscribe</a>
     </body>
-</html></cfoutput>
+</html>
+</cfoutput>
 ```
 
 ```lucee
 <!-- /views/email/layout/default/text.cfm -->
-<cfoutput>#args.subject#
+<cfoutput>
+#args.subject#
 #repeatString( '=', args.subject.len() )#
 
 View online: #args.viewOnlineLink#
 
 #args.body#
-
-Unsubscribe: #args.unsubscribeLink#</cfoutput>
+</cfoutput>
 ```
 
 ### 2. Provide translatable title and description
