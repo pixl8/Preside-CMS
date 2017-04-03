@@ -102,6 +102,11 @@
 
 			this.$quickAddButton.on( "click", function( e ) {
 				var filters = presideObjectPicker.getFiltersForQuickAdd();
+
+				if ( presideObjectPicker.uberSelect.is_disabled ) {
+					return;
+				}
+
 				presideObjectPicker.quickAddIframeModal = new PresideIframeModal( iframeSrc + filters, "100%", "100%", callbacks, modalOptions );
 				presideObjectPicker.quickAddIframeModal.open();
 			} );
