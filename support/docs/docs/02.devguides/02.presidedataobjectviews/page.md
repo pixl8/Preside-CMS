@@ -15,7 +15,7 @@ PresideCMS provides a feature that allows you to autowire your data model to you
 )#
 ```
 
-In the expample above, the `/views/events/preview.cfm` view will get rendered for each *event* record that matches the supplied filter, `{ event_category = rc.category }`. Each rendered view will be passed the database fields that it needs as individual arguments.
+In the example above, the `/views/events/preview.cfm` view will get rendered for each *event* record that matches the supplied filter, `{ event_category = rc.category }`. Each rendered view will be passed the database fields that it needs as individual arguments.
 
 In order for the `renderView()` function to know what fields to select for your view, the view itself must declare what fields it requires. It does this using the `<cf_presideparam>` custom tag. Using our "event preview" example from above, our view file might look something like this:
 
