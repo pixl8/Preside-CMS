@@ -1820,7 +1820,7 @@ component displayName="Preside Object Service" {
 				};
 			}
 
-			if ( !isNULL(param.value) && IsArray( param.value ) ) {
+			if ( !IsNull( param.value ) && IsArray( param.value ) ) {
 				param.value     = ArrayToList( param.value, chr( 31 ) );
 				param.list      = true;
 				param.separator = chr( 31 );
