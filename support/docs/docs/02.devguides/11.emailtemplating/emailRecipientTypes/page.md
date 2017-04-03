@@ -126,3 +126,29 @@ private struct function getToAddress( required string recipientId ) {
 ```
 
 ### 4. Email log foreign key
+
+When email is sent through the [[emailservice-send|emailService.send()]] method, Preside keeps a DB log record for the send in the [[presideobject-email_template_send_log]] object. This record is used to track delivery, opens, clicks, etc. for the email.
+
+In order to be able to later report on which recipients have engaged with email, you should add a foreign key property to the object that relates to the core object of your recipient type. For example, add a `/preside-objects/email_template_send_log.cfc` file to your application/extension:
+
+```luceescript
+/**
+ * extend the core email_template_send_log object
+ * to add our foreign key for event delegate recipient
+ * type
+ *
+ */
+component {
+	// important: this must NOT be a required field
+	property name="delegate_recipient" relationship="many-to-one" relatedto="event_delegate" required=false;
+}
+```
+
+This extra property is then referenced in the configuration of your recipient type in your application's/extension's `Config.cfc` file (see above):
+
+```luceescript
+settings.email.templates.recipientTypes.eventDelegate   = {
+	// ...
+	, recipientIdLogProperty = "delegate_recipient"
+};
+```
