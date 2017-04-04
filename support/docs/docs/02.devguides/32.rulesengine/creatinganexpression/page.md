@@ -105,3 +105,30 @@ component {
 Notice the annotations around the `emsEvent` argument above. Here they define the `object` field type and specify that the object for the field type is `ems_event` and that multiple selection is turned off.
 
 >>>>>> We prefer to leave the `event`, `rc`, `prc` and `payload` arguments out of the function definition to more cleanly show the expression fields; this is a preference though, and you can define them if you wish.
+
+## The prepareFilters handler action
+
+The `prepareFilters()` handler action accepts the same dynamic arguments based on the configured expression as the `evaluateExpression()` action. However, instead of returning a boolean result, the method must return an array of **preside data object filters**. A simplistic example:
+
+```luceescript
+component {
+
+    // ...
+
+    private boolean function prepareFilters(
+          required string eventId       // arguments from configured expression 
+        , required string objectName    // always passed to prepareFilters()
+        , required string filterPrefix  // always passed to prepareFilters()
+    ) {
+        var paramName = "eventId" & CreateUUId(); // important to avoid clashing SQL param names
+        var fieldPrefix = arguments.filterPrefix.len() ? arguments.filterPrefix : arguments.objectName;
+
+        return [ {
+            filter = "#fieldPrefix#.event = :#paramName#"
+            filterParams = { "#paramName#" = arguments.eventId }
+        } ];
+    }
+
+}
+
+```
