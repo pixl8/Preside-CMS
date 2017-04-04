@@ -132,3 +132,19 @@ component {
 }
 
 ```
+
+### Arguments
+
+Your `prepareFilters()` method will _always_ receice `objectName` and `filterPrefix` arguments. 
+
+`objectName` is the name of the object being filtered. 
+
+`filterPrefix` is a calculated prefix that should be put in front of any fields on the object that you use in filters. If the prefix is empty, then we are filtering _directly_ on the object (you may wish to then use the object name as a prefix as we have done in the example above). This is to allow filters to be nested and to be able to be buried deep in a traversal of the database entity relationships.
+
+Any other arguments will by dynamically generated based on the expression's `evaluateExpression` definition and the user configured expression fields.
+
+### A complex filter example
+
+A rules engine filter can get a little complicated quite easily. We may need to join on subqueries for example to be able to use some kind of statistical filter in conjunction with other dynamically generated filters. What follows is a more realistic example where we are filtering on whether or not website users have cancelled their place on an event:
+
+TODO.
