@@ -135,7 +135,7 @@ component {
 
 ### Arguments
 
-Your `prepareFilters()` method will _always_ receice `objectName` and `filterPrefix` arguments. 
+Your `prepareFilters()` method will _always_ receive `objectName` and `filterPrefix` arguments. 
 
 `objectName` is the name of the object being filtered. 
 
