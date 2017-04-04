@@ -1,0 +1,107 @@
+---
+id: rulesengineexpressions
+title: Creating a rules engine expression
+---
+
+## Summary
+
+Rules engine expressions are a combination of an i18n resource file (`.properties` file) and a convention based handler that implements an `evaluateExpression` action and, optionally, a `prepareFilters` action should the expression be available for building filters.
+
+>>> An expression can be scaffolded using the dev console `new ruleexpression` command
+
+
+## i18n resource file
+
+By convention, expression resource files must live at: `/i18n/rules/expressions/{idofexpression}.properties`. This file must, at a minimum, declare two keys, `label` and `text`:
+
+```properties
+label=User cancelled their place on an event
+text=User {_has} cancelled their place on the event: {emsEvent}
+```
+
+The `label` item is used in the expression library selection box:
+
+![Screenshot showing expression library selection box](images/screenshots/rulesEngineExpressionLibrary.jpg)
+
+The `text` item is used in the condition builder, with `{somevar}` placeholders switched out for configurable fields:
+
+![Screenshot showing expression being configured in condition builder](images/screenshots/rulesEngineExpressionInBuilder.jpg)
+
+Default expression field texts (for required fields that have yet to be configured) can also be declared by convention in the `.properties` file. In the example above, the `{emsEvent}` field label is declared thus:
+
+```properties
+label=User cancelled their place on an event
+text=User {_has} cancelled their place on the event: {emsEvent}
+
+field.emsEvent.label=select an event
+```
+
+>>> Note the `{_has}` field. Chances are, if a field starts with an underscore, `_`, it is a "magic" system field that is automatically configured for you. See "Magic field names", in [[rulesenginefieldtypes]].
+
+## The evaluateExpression handler action
+
+Each expression must implement a handler with an `evaluateExpression` action (method) that returns `true` or `false` depending on the payload and configured expression field values. The handler must live at `/handlers/rules/expressions/{idOfExpression}.cfc`:
+
+```luceescript
+// /handlers/rules/expressions/userIsLoggedIn.cfc
+/**
+ * Expression handler for "User is/is not logged in"
+ *
+ * @feature websiteUsers
+ * @expressionContexts webrequest
+ */
+component {
+
+    private boolean function evaluateExpression( boolean _is=true ) {
+        return arguments._is == isLoggedIn();
+    }
+
+}
+```
+
+### Expression context
+
+The handler CFC file can be annotated with an `expressionContexts` attribute that will define in what contexts the expression can be used.
+
+### Arguments passed to the evaluateExpression method
+
+Becuase it is a ColdBox handler action, the method will always receive `event`, `rc` and `prc` arguments for you to use when relevant. In addition, the method will also always receive a `payload` argument that is a structure containing data relevant to the _context_ in which the expression is being evaluated. For example, the **webrequest** context provides a payload with `page` and `user` keys, each with a structure containing details of the current page and logged in user, respectively.
+
+Any further arguments are treated as **expression fields** and should map to the `{placeholder}` fields defined in your expression resource file's `text` key. These arguments can also be decorated to further configure the field. For example, you may wish to define the field type + any further arguments that the field type requires:
+
+```luceescript
+/**
+ * @expressionContexts user
+ */
+component {
+
+    property name="emsUserQueriesService" inject="emsUserQueriesService";
+
+    /**
+     * @emsEvent.fieldType object
+     * @emsEvent.object    ems_event
+     * @emsEvent.multiple  false
+     *
+     */
+    private boolean function evaluateExpression(
+          required string  emsEvent
+        ,          boolean _has = true
+    ) {
+        var userId = payload.user.id ?: "";
+
+        if ( !userId.len() || !emsEvent.len() ) {
+            return !_has;
+        }
+
+        var hasCancelled = emsUserQueriesService.userHasCancelledAttendance( userId, emsEvent );
+
+        return hasCancelled == _has;
+    }
+
+}
+
+```
+
+Notice the annotations around the `emsEvent` argument above. Here they define the `object` field type and specify that the object for the field type is `ems_event` and that multiple selection is turned off.
+
+>>>>>> We prefer to leave the `event`, `rc`, `prc` and `payload` arguments out of the function definition to more cleanly show the expression fields; this is a preference though, and you can define them if you wish.
