@@ -147,4 +147,47 @@ Any other arguments will by dynamically generated based on the expression's `eva
 
 A rules engine filter can get a little complicated quite easily. We may need to join on subqueries for example to be able to use some kind of statistical filter in conjunction with other dynamically generated filters. What follows is a more realistic example where we are filtering on whether or not website users have cancelled their place on an event:
 
-TODO.
+```luceescript
+component {
+
+    // ...
+
+    private boolean function prepareFilters(
+          required string eventId       // arguments from configured expression 
+          required boolean _has         // arguments from configured expression 
+        , required string objectName    // always passed to prepareFilters()
+        , required string filterPrefix  // always passed to prepareFilters()
+    ) {
+        var paramName     = "eventId" & CreateUUId();
+        var params        = { "#paramName#"={ value=arguments.eventId, type="cf_sql_varchar" } };
+        var subQueryAlias = "eventCancellations" & CreateUUId();
+        var filterSql     = "#subQueryAlias#.cancellation_count #( arguments._has ? '>' : '=' )# 0";
+        var fieldPrefix   = arguments.filterPrefix.len() ? arguments.filterPrefix : arguments.objectName;
+        
+
+        // generate a subquery with user ID and cancellation count
+        // fields filtered by the passed eventID
+        var subQuery = eventCancellationDao.selectData(
+              getSqlAndParamsOnly = true
+            , selectFields        = [ "Count( id ) as cancellation_count", "website_user as id" ]
+            , groupBy             = "website_user"
+            , filter              = "event = :#paramName#"
+            , filterParams        = params
+        );
+
+        // return a preside object data filter that includes 'extraJoins'
+        // array to allow us to join on our subquery
+        return [ { filter=filterSql, filterParams=params, extraJoins=[ {
+              type           = "left"
+            , subQuery       = subQuery.sql
+            , subQueryAlias  = subQueryAlias
+            , subQueryColumn = "id"
+            , joinToTable    = fieldPrefix
+            , joinToColumn   = "id"
+        } ] } ];
+
+    }
+
+}
+
+```
