@@ -90,7 +90,7 @@ component displayName="RulesEngine Condition Service" {
 	 * @autodoc
 	 * @conditionId.hint ID of the condition stored in the database
 	 * @context.hint     The context of the evaluation, e.g. 'webrequest', or 'workflow', etc.
-	 * @payload.hint     Payload for the given context, e.g. a structure containing workflow state, or information about the current web request
+	 * @payload.hint     Payload for the given context, e.g. a structure containing workflow state, or information about the current web request. This will be calculated automatically and is here largely for backward compatibility + ability to supply some custom payloads
 	 */
 	public boolean function evaluateCondition(
 		  required string conditionId
