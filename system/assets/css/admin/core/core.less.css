@@ -13,8 +13,8 @@
 }
 @font-face {
   font-family: 'PresideFontAwesome';
-  src: url('font/fontawesome-webfont.eot?v=4.1.0');
-  src: url('font/fontawesome-webfont.eot?#iefix&v=4.1.0') format('embedded-opentype'), url('font/fontawesome-webfont.woff?v=4.1.0') format('woff'), url('font/fontawesome-webfont.ttf?v=4.1.0') format('truetype'), url('font/fontawesome-webfont.svg?v=4.1.0#fontawesomeregular') format('svg');
+  src: url('font/fontawesome-webfont.eot?v=4.7.0');
+  src: url('font/fontawesome-webfont.eot?#iefix&v=4.7.0') format('embedded-opentype'), url('font/fontawesome-webfont.woff?v=4.7.0') format('woff'), url('font/fontawesome-webfont.ttf?v=4.7.0') format('truetype'), url('font/fontawesome-webfont.svg?v=4.7.0#fontawesomeregular') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -55,7 +55,7 @@ html.presidecms .outer-container {
  */
   /*! normalize.css v2.1.0 | MIT License | git.io/normalize */
   /*!
- *  Font Awesome 4.5.0 by @davegandy - http://fontawesome.io - @fontawesome
+ *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
  */
   /* FONT PATH
@@ -6275,31 +6275,31 @@ td.presidecms .visible-print {
   }
 }
 .presidecms .fa-rotate-90 {
-  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=1)";
   -webkit-transform: rotate(90deg);
   -ms-transform: rotate(90deg);
   transform: rotate(90deg);
 }
 .presidecms .fa-rotate-180 {
-  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2)";
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 .presidecms .fa-rotate-270 {
-  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=3)";
   -webkit-transform: rotate(270deg);
   -ms-transform: rotate(270deg);
   transform: rotate(270deg);
 }
 .presidecms .fa-flip-horizontal {
-  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1);
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)";
   -webkit-transform: scale(-1, 1);
   -ms-transform: scale(-1, 1);
   transform: scale(-1, 1);
 }
 .presidecms .fa-flip-vertical {
-  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1);
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)";
   -webkit-transform: scale(1, -1);
   -ms-transform: scale(1, -1);
   transform: scale(1, -1);
@@ -7538,7 +7538,7 @@ td.presidecms .visible-print {
 .presidecms .fa-digg:before {
   content: "\f1a6";
 }
-.presidecms .fa-pied-piper:before {
+.presidecms .fa-pied-piper-pp:before {
   content: "\f1a7";
 }
 .presidecms .fa-pied-piper-alt:before {
@@ -7664,6 +7664,7 @@ td.presidecms .visible-print {
   content: "\f1ce";
 }
 .presidecms .fa-ra:before,
+.presidecms .fa-resistance:before,
 .presidecms .fa-rebel:before {
   content: "\f1d0";
 }
@@ -7986,6 +7987,7 @@ td.presidecms .visible-print {
   content: "\f23e";
 }
 .presidecms .fa-battery-4:before,
+.presidecms .fa-battery:before,
 .presidecms .fa-battery-full:before {
   content: "\f240";
 }
@@ -8238,6 +8240,255 @@ td.presidecms .visible-print {
 }
 .presidecms .fa-percent:before {
   content: "\f295";
+}
+.presidecms .fa-gitlab:before {
+  content: "\f296";
+}
+.presidecms .fa-wpbeginner:before {
+  content: "\f297";
+}
+.presidecms .fa-wpforms:before {
+  content: "\f298";
+}
+.presidecms .fa-envira:before {
+  content: "\f299";
+}
+.presidecms .fa-universal-access:before {
+  content: "\f29a";
+}
+.presidecms .fa-wheelchair-alt:before {
+  content: "\f29b";
+}
+.presidecms .fa-question-circle-o:before {
+  content: "\f29c";
+}
+.presidecms .fa-blind:before {
+  content: "\f29d";
+}
+.presidecms .fa-audio-description:before {
+  content: "\f29e";
+}
+.presidecms .fa-volume-control-phone:before {
+  content: "\f2a0";
+}
+.presidecms .fa-braille:before {
+  content: "\f2a1";
+}
+.presidecms .fa-assistive-listening-systems:before {
+  content: "\f2a2";
+}
+.presidecms .fa-asl-interpreting:before,
+.presidecms .fa-american-sign-language-interpreting:before {
+  content: "\f2a3";
+}
+.presidecms .fa-deafness:before,
+.presidecms .fa-hard-of-hearing:before,
+.presidecms .fa-deaf:before {
+  content: "\f2a4";
+}
+.presidecms .fa-glide:before {
+  content: "\f2a5";
+}
+.presidecms .fa-glide-g:before {
+  content: "\f2a6";
+}
+.presidecms .fa-signing:before,
+.presidecms .fa-sign-language:before {
+  content: "\f2a7";
+}
+.presidecms .fa-low-vision:before {
+  content: "\f2a8";
+}
+.presidecms .fa-viadeo:before {
+  content: "\f2a9";
+}
+.presidecms .fa-viadeo-square:before {
+  content: "\f2aa";
+}
+.presidecms .fa-snapchat:before {
+  content: "\f2ab";
+}
+.presidecms .fa-snapchat-ghost:before {
+  content: "\f2ac";
+}
+.presidecms .fa-snapchat-square:before {
+  content: "\f2ad";
+}
+.presidecms .fa-pied-piper:before {
+  content: "\f2ae";
+}
+.presidecms .fa-first-order:before {
+  content: "\f2b0";
+}
+.presidecms .fa-yoast:before {
+  content: "\f2b1";
+}
+.presidecms .fa-themeisle:before {
+  content: "\f2b2";
+}
+.presidecms .fa-google-plus-circle:before,
+.presidecms .fa-google-plus-official:before {
+  content: "\f2b3";
+}
+.presidecms .fa-fa:before,
+.presidecms .fa-font-awesome:before {
+  content: "\f2b4";
+}
+.presidecms .fa-handshake-o:before {
+  content: "\f2b5";
+}
+.presidecms .fa-envelope-open:before {
+  content: "\f2b6";
+}
+.presidecms .fa-envelope-open-o:before {
+  content: "\f2b7";
+}
+.presidecms .fa-linode:before {
+  content: "\f2b8";
+}
+.presidecms .fa-address-book:before {
+  content: "\f2b9";
+}
+.presidecms .fa-address-book-o:before {
+  content: "\f2ba";
+}
+.presidecms .fa-vcard:before,
+.presidecms .fa-address-card:before {
+  content: "\f2bb";
+}
+.presidecms .fa-vcard-o:before,
+.presidecms .fa-address-card-o:before {
+  content: "\f2bc";
+}
+.presidecms .fa-user-circle:before {
+  content: "\f2bd";
+}
+.presidecms .fa-user-circle-o:before {
+  content: "\f2be";
+}
+.presidecms .fa-user-o:before {
+  content: "\f2c0";
+}
+.presidecms .fa-id-badge:before {
+  content: "\f2c1";
+}
+.presidecms .fa-drivers-license:before,
+.presidecms .fa-id-card:before {
+  content: "\f2c2";
+}
+.presidecms .fa-drivers-license-o:before,
+.presidecms .fa-id-card-o:before {
+  content: "\f2c3";
+}
+.presidecms .fa-quora:before {
+  content: "\f2c4";
+}
+.presidecms .fa-free-code-camp:before {
+  content: "\f2c5";
+}
+.presidecms .fa-telegram:before {
+  content: "\f2c6";
+}
+.presidecms .fa-thermometer-4:before,
+.presidecms .fa-thermometer:before,
+.presidecms .fa-thermometer-full:before {
+  content: "\f2c7";
+}
+.presidecms .fa-thermometer-3:before,
+.presidecms .fa-thermometer-three-quarters:before {
+  content: "\f2c8";
+}
+.presidecms .fa-thermometer-2:before,
+.presidecms .fa-thermometer-half:before {
+  content: "\f2c9";
+}
+.presidecms .fa-thermometer-1:before,
+.presidecms .fa-thermometer-quarter:before {
+  content: "\f2ca";
+}
+.presidecms .fa-thermometer-0:before,
+.presidecms .fa-thermometer-empty:before {
+  content: "\f2cb";
+}
+.presidecms .fa-shower:before {
+  content: "\f2cc";
+}
+.presidecms .fa-bathtub:before,
+.presidecms .fa-s15:before,
+.presidecms .fa-bath:before {
+  content: "\f2cd";
+}
+.presidecms .fa-podcast:before {
+  content: "\f2ce";
+}
+.presidecms .fa-window-maximize:before {
+  content: "\f2d0";
+}
+.presidecms .fa-window-minimize:before {
+  content: "\f2d1";
+}
+.presidecms .fa-window-restore:before {
+  content: "\f2d2";
+}
+.presidecms .fa-times-rectangle:before,
+.presidecms .fa-window-close:before {
+  content: "\f2d3";
+}
+.presidecms .fa-times-rectangle-o:before,
+.presidecms .fa-window-close-o:before {
+  content: "\f2d4";
+}
+.presidecms .fa-bandcamp:before {
+  content: "\f2d5";
+}
+.presidecms .fa-grav:before {
+  content: "\f2d6";
+}
+.presidecms .fa-etsy:before {
+  content: "\f2d7";
+}
+.presidecms .fa-imdb:before {
+  content: "\f2d8";
+}
+.presidecms .fa-ravelry:before {
+  content: "\f2d9";
+}
+.presidecms .fa-eercast:before {
+  content: "\f2da";
+}
+.presidecms .fa-microchip:before {
+  content: "\f2db";
+}
+.presidecms .fa-snowflake-o:before {
+  content: "\f2dc";
+}
+.presidecms .fa-superpowers:before {
+  content: "\f2dd";
+}
+.presidecms .fa-wpexplorer:before {
+  content: "\f2de";
+}
+.presidecms .fa-meetup:before {
+  content: "\f2e0";
+}
+.presidecms .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.presidecms .sr-only-focusable:active,
+.presidecms .sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
 }
 .presidecms .ui-helper-hidden {
   display: none;
@@ -23822,7 +24073,7 @@ td.presidecms .visible-print {
   content: "\f00d";
   display: inline-block;
   color: #888;
-  font-family: FontAwesome;
+  font-family: PresideFontAwesome;
   font-size: 13px;
   position: absolute;
   right: 2px;
@@ -26264,7 +26515,7 @@ td.presidecms .visible-print {
   margin: 0 1px;
 }
 .presidecms .ui-pg-div .ui-icon:before {
-  font-family: FontAwesome;
+  font-family: PresideFontAwesome;
   display: inline;
 }
 .presidecms .ui-jqgrid .ui-icon-pencil {
@@ -27015,7 +27266,7 @@ td.presidecms .visible-print {
 .presidecms .star-half-png {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  font-family: "FontAwesome";
+  font-family: "PresideFontAwesome";
   font-style: normal;
   font-variant: normal;
   font-weight: normal;
