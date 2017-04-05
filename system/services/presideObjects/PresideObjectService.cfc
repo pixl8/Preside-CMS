@@ -1502,7 +1502,12 @@ component displayName="Preside Object Service" {
 		, string  relatedTo    = ""
 		, string  enum         = ""
 		, numeric maxLength    = 0
+		, string  formula      = ""
 	) {
+		if ( Len( Trim( formula ) ) ) {
+			return "none";
+		}
+
 		switch( arguments.relationship ){
 			case "many-to-one" :
 				switch( arguments.relatedTo ) {
