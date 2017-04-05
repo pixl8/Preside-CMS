@@ -114,7 +114,10 @@ The `prepareFilters()` handler action accepts the same dynamic arguments based o
 component {
 
     // ...
-
+    /**
+     * @objects event_session
+     *
+     */
     private boolean function prepareFilters(
           required string eventId       // arguments from configured expression 
         , required string objectName    // always passed to prepareFilters()
@@ -133,6 +136,33 @@ component {
 
 ```
 
+### Annotations
+
+The `prepareFilters()` method expects an `objects` annotation that is a comma separated list of objects that the filter can apply to. You may have some common fields across different objects that require a custom expression, specifying multiple objects will make this possible. e.g.
+
+```luceescript
+/**
+ * @expressionContexts page,event,profile,article
+ */
+component {
+
+    private boolean function evaluateExpression() {
+        // ...
+    }
+
+    /**
+     * @objects page,event,profile,article
+     *
+     */
+    private array function prepareFilters() {
+        // ...
+    }    
+}
+
+```
+
+Notice how the `@expressionContexts` for the CFC is also likely to want to be the same list of objects.
+
 ### Arguments
 
 Your `prepareFilters()` method will _always_ receive `objectName` and `filterPrefix` arguments. 
@@ -145,28 +175,32 @@ Any other arguments will by dynamically generated based on the expression's `eva
 
 ### A complex filter example
 
-A rules engine filter can get a little complicated quite easily. We may need to join on subqueries for example to be able to use some kind of statistical filter in conjunction with other dynamically generated filters. What follows is a more realistic example where we are filtering on whether or not website users have cancelled their place on an event:
+A rules engine filter can get a little complicated quite easily. For example, we may need to join on subqueries to be able to use some kind of statistical filter in conjunction with other dynamically generated filters. What follows is a more realistic example. Here we are filtering on whether or not website users have cancelled their place on a specific event:
 
 ```luceescript
 component {
 
     // ...
 
+    /**
+     * @objects website_user
+     */
     private boolean function prepareFilters(
           required string eventId       // arguments from configured expression 
           required boolean _has         // arguments from configured expression 
         , required string objectName    // always passed to prepareFilters()
         , required string filterPrefix  // always passed to prepareFilters()
     ) {
+        // setup params and filter clause for the passed eventId
         var paramName     = "eventId" & CreateUUId();
         var params        = { "#paramName#"={ value=arguments.eventId, type="cf_sql_varchar" } };
         var subQueryAlias = "eventCancellations" & CreateUUId();
         var filterSql     = "#subQueryAlias#.cancellation_count #( arguments._has ? '>' : '=' )# 0";
         var fieldPrefix   = arguments.filterPrefix.len() ? arguments.filterPrefix : arguments.objectName;
-        
 
         // generate a subquery with user ID and cancellation count
-        // fields filtered by the passed eventID
+        // fields filtered by the passed eventID.
+        // notice the 'getSqlAndParamsOnly' argument (added in 10.8.0)
         var subQuery = eventCancellationDao.selectData(
               getSqlAndParamsOnly = true
             , selectFields        = [ "Count( id ) as cancellation_count", "website_user as id" ]
