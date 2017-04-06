@@ -254,16 +254,14 @@ The `generator` attribute itself then allows you to use a system pre-defined gen
 component {
     // ...
 
-    property name="alternative_pk" type="string" dbtype="varchar" maxlength=35 generate="insert" generator="UUID";
-    property name="description" type="string" dbtype="text";
-    property name="description_hash" type="string" maxlength=32 generate="always" generator="method:hashDescription";
+    property name="alternative_pk"   type="string" dbtype="varchar" maxlength=35 generate="insert" generator="UUID";
+    property name="description"      type="string" dbtype="text";
+    property name="description_hash" type="string" dbtype="varchar" maxlength=32 generate="always" generator="method:hashDescription";
 
     // ...
 
-    /**
-     * The method will receive a single argument that is the struct 
-     * of data passed to the insertData() or updateData() methods
-     */
+    // The method will receive a single argument that is the struct 
+    // of data passed to the insertData() or updateData() methods
     public any function hashDescription( required struct changedData ) {
         if ( changedData.keyExists( "description" ) ) {
             if ( changedData.description.len() ) {
@@ -282,6 +280,59 @@ The core system provides you with three named generators:
 * `UUID` - uses `CreateUUId()` to generate a UUID for your field. This is used by default for the primary key in preside objects.
 * `timestamp` - uses `Now()` to auto generate a timestamp for your field
 * `hash` - used in conjunction with a `generateFrom` attribute that should be a list of other properties which to concatenate and generate an MD5 hash from
+
+### Formula fields
+
+Properties that define a formula are not generated as fields in your database tables. Instead, they are made available to your application to be selected in `selectData` queries. The value of the `formula` attribute should be a valid SQL statement that can be used in a SQL `select` statement and include `${prefix}` tokens before any field definitions (see below for an explanation). For example:
+
+```luceescript
+/**
+ * @datamanagerGridFields title,comment_count,datemodified
+ *
+ */
+component {
+    // ...
+
+    property name="comments" relationship="one-to-many" relatedto="article_comment";
+    property name="comment_count" formula="Count( distinct ${prefix}comments.id )" type="numeric";
+
+    // ...
+}
+```
+
+```luceescript
+articles = articleDao.selectData(
+    selectFields = [ "id", "title", "comment_count" ]
+);
+```
+
+Formula fields can also be used in your DataManager data grids and be assigned labels in your object's i18n `.properties` file.
+
+#### Formula ${prefix} token
+
+The `${prefix}` token in formula fields allows your formula field to be used in more complex select queries that traverse your data model's relationships. Another example, this time a `person` cfc:
+
+```luceescript
+component {
+    // ...
+    property name="first_name" ...;
+    property name="last_name"  ...;
+
+    property name="full_name" formula="Concat( ${prefix}first_name, ' ', ${prefix}last_name )";
+    // ... 
+}
+```
+Now, let us imagine we have a company object, with an "employees" `one-to-many` property that relates to our `person` object above. We may want to select employees from a company:
+
+```luceescript
+var employees = companyDao.selectData(
+      id           = arguments.companyId
+    , selectFields = [ "employees.id", "employees.full_name" ]
+);
+```
+
+The `${prefix}` token allows us to take the `employees.` prefix of the `full_name` field and replace it so that the final select SQL becomes: `Concat( employees.first_name, ' ', employees.last_name )`. Without a `${prefix}` token, your formula field will only work when selecting directly from the object in which the property is defined, it will not work when traversing relationships as with the example above.
+
 
 ### Defining relationships with properties
 
