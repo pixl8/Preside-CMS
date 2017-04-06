@@ -632,6 +632,7 @@ In addition to the four core methods above, there are also further utility metho
 * [[presideobjectservice-syncmanytomanydata]]
 * [[presideobjectservice-getdenormalizedmanytomanydata]]
 * [[presideobjectservice-getrecordversions]]
+* [[presideobjectservice-insertdatafromselect]]
 
 
 #### Specifying fields for selection
