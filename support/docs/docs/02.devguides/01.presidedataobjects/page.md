@@ -14,7 +14,7 @@ The Preside Data Objects system is deeply integrated into the CMS:
 *  The Data Manager provides a GUI for managing your client specific data and is based on entirely on Preside Data Objects
 * Your preside objects can have their data tied to individual [[workingwithmultiplesites]], without the need for any extra programming of site filters.
 
-The following guide is intended as a thorough overview of Preside Data Objects. For API reference documentation.
+The following guide is intended as a thorough overview of Preside Data Objects. For API reference documentation, see [[api-presideobjectservice]].
 
 ## Object CFC Files
 
@@ -117,7 +117,9 @@ While you can add any arbitrary attributes to properties (and use them for your 
             <tr><td>maxValue</td>             <td>No</td>  <td>*N/A*</td>     <td>The maximum numeric value of data that can be saved to this field. *For numeric types only*.</td>                                                                                                                                                                    </tr>
             <tr><td>format</td>               <td>No</td>  <td>*N/A*</td>     <td>Either a regular expression or named validation filter (reference needed) to validate the incoming data for this field</td>                                                                                                                                          </tr>
             <tr><td>pk</td>                   <td>No</td>  <td>**false**</td> <td>Whether or not this field is the primary key for the object, *one field per object*. By default, your object will have an *id* field that is defined as the primary key. See :ref:`preside-objects-default-properties` below.</td>                                   </tr>
-            <tr><td>generator</td>            <td>No</td>  <td>"none"</td>    <td>Named generator for generating a value for this field when inserting a new record with the value of this field ommitted. Valid values are *increment* and *UUID*. Useful for primary key generation.</td>                                                            </tr>
+            <tr><td>generator</td>            <td>No</td>  <td>"none"</td>    <td>Named generator for generating a value for this field when inserting/updating a record with the value of this field ommitted. See "Generated fields", below.</td>
+            <tr><td>generate</td>             <td>No</td>  <td>"never"</td>   <td>If using a generator, indicates when to generate the value. Valid values are "never", "insert" and "always".</td>
+            <tr><td>formula</td>              <td>No</td>  <td>""</td>        <td>Allows you to define a field that does not exist in the database, but can be selected and used in the application. This attribute should consist of arbitrary SQL to produce a value. See "Formula fields", below.</td>
             <tr><td>relationship</td>         <td>No</td>  <td>"none"</td>    <td>Either *none*, *many-to-one* or *many-to-many*. See :ref:`preside-objects-relationships`, below.</td>                                                                                                                                                                </tr>
             <tr><td>relatedTo</td>            <td>No</td>  <td>"none"</td>    <td>Name of the Preside Object that the property is defining a relationship with. See :ref:`preside-objects-relationships`, below.</td>                                                                                                                                  </tr>
             <tr><td>relatedVia</td>           <td>No</td>  <td>""</td>        <td>Name of the object through which a many-to-many relationship will pass. If it does not exist, the system will created it for you.  See :ref:`preside-objects-relationships`, below.</td>                                                                             </tr>
@@ -235,6 +237,51 @@ component  {
     }
 }
 ```
+
+>>> As of Preside 10.8.0, this approach is deprecated and you should use generated fields instead (see below)
+
+### Generated fields
+
+As of **10.8.0**, generators allow you to dynamically generate the value of a property when a record is first being inserted and, optionally, when a record is updated. The `generate` attribute of a property dictates _when_ to use a generator. Valid values are:
+
+* `never` (default), never generate the value
+* `insert`, only generate a value when a record is first inserted
+* `always`, generate a value on both insert and update of records
+
+The `generator` attribute itself then allows you to use a system pre-defined generator or use your own by prefixing the generator with `method:` (the method name that follows should be defined on your object). For example:
+
+```luceescript
+component {
+    // ...
+
+    property name="alternative_pk" type="string" dbtype="varchar" maxlength=35 generate="insert" generator="UUID";
+    property name="description" type="string" dbtype="text";
+    property name="description_hash" type="string" maxlength=32 generate="always" generator="method:hashDescription";
+
+    // ...
+
+    /**
+     * The method will receive a single argument that is the struct 
+     * of data passed to the insertData() or updateData() methods
+     */
+    public any function hashDescription( required struct changedData ) {
+        if ( changedData.keyExists( "description" ) ) {
+            if ( changedData.description.len() ) {
+                return Hash( changedData.description );
+            }
+
+            return "";
+        }
+        return; // return NULL to not alter the value when no description is being updated
+    }
+}
+```
+
+The core system provides you with three named generators:
+
+* `UUID` - uses `CreateUUId()` to generate a UUID for your field. This is used by default for the primary key in preside objects.
+* `timestamp` - uses `Now()` to auto generate a timestamp for your field
+* `hash` - used in conjunction with a `generateFrom` attribute that should be a list of other properties which to concatenate and generate an MD5 hash from
 
 ### Defining relationships with properties
 
