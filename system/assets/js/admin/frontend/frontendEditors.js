@@ -486,7 +486,12 @@
 				$editor.data( "_rawContent", content );
 
 				originalValue = content;
-				$contentInput.val( content );
+
+				if( typeof CKEDITOR.instances.content != "undefined" ){
+					CKEDITOR.instances.content.setData(content );
+				} else {
+					$contentInput.val( content );
+				}
 
 				notify( versionIcon + i18n.translateResource( "cms:frontendeditor.version.loaded.notification" ) );
 			};
