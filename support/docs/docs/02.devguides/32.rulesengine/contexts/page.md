@@ -21,11 +21,11 @@ settings.rulesEngine.contexts.user       = { object="website_user" };
 
 ### Contexts with subcontexts
 
-Notice how the `webrequest` context is made up of two subcontexts, `page` and `user`. In theory, this can be endlessly nested, though the practical uses of that may be limited. The idea here is that contexts like `webrequest` want payloads from other sources such as page, currently logged in user and perhaps form builder form submission (in the future).
+Notice how the `webrequest` context is made up of two subcontexts, `page` and `user`. In theory, this can be endlessly nested, though the practical uses of that may be limited. The idea here is that contexts like `webrequest` want payloads from other sources such as page, currently logged-in user, and perhaps form builder form submission (in the future).
 
 ### Context object
 
-If a context defines an object, it is expected that this context should work with _filters_ that are saved against the object. Also, it is expected that the payload for the context be a structure with a single key who's name is the object. e.g. the payload for `user` context should look like this:
+If a context defines an object, it is expected that this context should work with _filters_ that are saved against the object. Also, it is expected that the payload for the context be a structure with a single key whose name is the object. e.g. the payload for `user` context should look like this:
 
 ```luceescript
 userContext = { 
