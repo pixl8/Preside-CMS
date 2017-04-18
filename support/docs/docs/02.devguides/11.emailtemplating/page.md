@@ -5,7 +5,7 @@ title: Email Centre
 
 ## Overview
 
-As of 10.8.0, Preside comes with a sophisticated but simple system for email templating that allows developers and content editors to work together to create a highly tailored system of delivering both marketing and transactional email.
+As of 10.8.0, Preside comes with a sophisticated but simple system for email templating that allows developers and content editors to work together to create a highly tailored system for delivering both marketing and transactional email.
 
 >>> See [[emailtemplating]] for documentation on the basic email templating system prior to 10.8.0
 
@@ -32,7 +32,7 @@ Editorial email templates will work out-of-the-box and require no custom develop
 
 ### Recipient types
 
-Recipient types are configured to allow the email centre to send intelligently to different types of recipient. Each email template is configured to send to a specific recipient type. The core system provides, three types:
+Recipient types are configured to allow the email centre to send intelligently to different types of recipient. Each email template is configured to send to a specific recipient type. The core system provides three types:
 
 1. Website user
 2. Admin user

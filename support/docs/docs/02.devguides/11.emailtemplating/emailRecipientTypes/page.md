@@ -5,7 +5,7 @@ title: Creating and configuring email recipient types
 
 ## Email recipient types
 
-Defining and configuring recipient types allows your email editors to inject useful variables into their email templates. It also allows the system to keep a track of emails that have been sent to specific recipients and to use the correct email address for the recipient.
+Defining and configuring recipient types allows your email editors to inject useful variables into their email templates. It also allows the system to keep track of emails that have been sent to specific recipients and to use the correct email address for the recipient.
 
 ## Configuring recipient types
 
@@ -88,7 +88,7 @@ component {
 
 		return {
 			  first_name = delegate.first_name
-			, last_name = delegate.last_name
+			, last_name  = delegate.last_name
 			// ... etc
 		};
 	}

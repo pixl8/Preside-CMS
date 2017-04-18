@@ -27,7 +27,7 @@ The system comes with several built in expression field types. These may be auto
 
 ## Creating custom field types
 
-New field types can be created for your expressions. They are defined by creating a ColdBox handler at `/handlers/rules/fieldtypes/{idoffieldtype}.cfc`, that the following actions:
+New field types can be created for your expressions. They are defined by creating a ColdBox handler at `/handlers/rules/fieldtypes/{idOfFieldType}.cfc`, that the following actions:
 
 * `renderConfiguredField()` (required) should return a string that is a rendered representation of the configured field. This will appear in the condition builder
 * `renderConfigScreen()` (required) should return a string with a render configuration screen (just the innards of a form). The most simple implementation is to render a form with a single field named 'value'. If you do so, the system will take care of the rest
@@ -45,7 +45,7 @@ component {
     private string function renderConfiguredField( string value="", struct config={} ) {
         var timePeriod = {};
         var data       = [];
-        var type       = "alltime"
+        var type       = "alltime";
 
         try {
             timePeriod = DeserializeJson( arguments.value );
@@ -84,7 +84,7 @@ component {
         return renderFormControl(
               name         = "value"
             , type         = "timePeriodPicker"
-            , pastOnly     = IsTrue( config.pastOnly ?: "" )
+            , pastOnly     = IsTrue( config.pastOnly   ?: "" )
             , futureOnly   = IsTrue( config.futureOnly ?: "" )
             , label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" )
             , savedValue   = arguments.value
@@ -102,7 +102,7 @@ component {
 
 ## Magic field names
 
-The system provides a set of core expression field names that will auto configure themselves so that you do not need to provide resource translations or configure the field through annotations in your handler.
+The system provides a set of core expression field names that will auto-configure themselves so that you do not need to provide resource translations or configure the field through annotations in your handler.
 
 ## Boolean fields
 
@@ -120,7 +120,7 @@ These magic fields will always evaluate to `true` or `false` but show different 
 
 ## Operator fields
 
-These special fields provide the user with a way to configure an operator that may relate to another field. i.e. "more than" "5"
+These special fields provide the user with a way to configure an operator that may relate to another field. i.e. "more than" "5".
 
 * `_stringOperator`: gives the user a list of different string comparisons to choose from (contains, equals, etc.)
 * `_dateOperator`: gives the user a list of date comparisons to choose from

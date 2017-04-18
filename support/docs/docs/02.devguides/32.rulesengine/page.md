@@ -55,9 +55,9 @@ Here, the `{_is}` is an expression field that users can configure to be *is* or 
 
 ### Expression field types
 
-Expression fields are typed so that the user experience of configuring the field can be taylored to the type of field. For example, `boolean` types are configured with just a single click to toggle them from `true` to `false`. `object` types will present the user with a record picker with data selected from the configured preside object for the field.
+Expression fields are typed so that the user experience of configuring the field can be tailored to the type of field. For example, `boolean` types are configured with just a single click to toggle them from `true` to `false`. `object` types will present the user with a record picker with data selected from the configured preside object for the field.
 
-See [[rulesenginefieldtypes]] for a full guide
+See [[rulesenginefieldtypes]] for a full guide.
 
 ![Screenshot showing configuration of an object type field](images/screenshots/rulesEngineObjectFieldConfiguration.jpg)
 
