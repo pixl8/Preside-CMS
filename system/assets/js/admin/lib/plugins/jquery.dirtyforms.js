@@ -17,8 +17,10 @@
 			  , $controls = $form.find( "input,textarea,select" )
 			  , isDirty   = false;
 
-			$form.data( "_cleanState", $form.serialize() );
-			$form.on( "change keyup click", "input,textarea,select", function(){
+			$( document ).ajaxStop( function () {
+				$form.data( "_cleanState", $form.serialize() );
+			});
+			$form.on( "change blur keyup click", "input,textarea,select", function(){
 				var isClean = $form.serialize() === $form.data( "_cleanState" );
 
 				if ( isClean === isDirty ) {
