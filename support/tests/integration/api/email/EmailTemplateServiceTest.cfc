@@ -1365,18 +1365,35 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getQueuedCount()", function(){
+			it( "should return count of queued emails", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var stats      = QueryNew( 'queued_count', 'int', [[459]] );
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( queued_emails.id ) as queued_count" ]
+					, filter       = { id=templateId }
+					, forceJoins   = "inner"
+				).$results( stats );
+
+				expect( service.getQueuedCount( templateId ) ).toBe( 459 );
+			} );
+		} );
+
 		describe( "getStats()", function(){
 			it( "should get counts and return in a struct based on args passed", function(){
 				var service    = _getService();
 				var templateId = CreateUUId();
 				var dateFrom   = "2017-06-12";
 				var dateTo     = "2017-07-19";
-				var stats      = { sent=4985, delivered=4980, failed=5, opened=234 };
+				var stats      = { sent=4985, delivered=4980, failed=5, opened=234, queued=340 };
 
 				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.sent );
 				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.delivered );
 				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.failed );
 				service.$( "getOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.opened );
+				service.$( "getQueuedCount" ).$args( templateId=templateId ).$results( stats.queued );
 
 				expect( service.getStats( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ) ).toBe( stats );
 			} );
