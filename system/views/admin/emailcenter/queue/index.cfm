@@ -4,6 +4,18 @@
 </cfscript>
 
 <cfoutput>
+	<cfif hasClearPerms>
+		<div class="top-right-button-group">
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="emailcenter.queue.clear" )#">
+				<button class="btn btn-danger btn-sm">
+					<i class="fa fa-fw fa-trash"></i>
+					#translateResource( "cms:emailcenter.queue.clear.all.btn" )#
+				</button>
+			</a>
+		</div>
+	</cfif>
+
+
 	<cfif !queueSummary.recordcount>
 		<p class="alert alert-success">
 			<i class="fa fa-fw fa-check"></i>
