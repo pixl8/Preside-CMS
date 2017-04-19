@@ -11,17 +11,17 @@ component output=false {
 			return "< 1s"
 		}
 
-		data = data / 1000;
+		data = data \ 1000;
 		if ( data < 60 ) {
 			return NumberFormat( data ) & "s";
 		}
 
-		data = data / 60;
+		data = data \ 60;
 		if ( data < 60 ) {
 			return NumberFormat( data ) & "m";
 		}
 
-		data = data / 60;
+		data = data \ 60;
 		if ( data < 24 ) {
 			return NumberFormat( data ) & "h";
 		}
@@ -41,19 +41,19 @@ component output=false {
 			return "< 1s"
 		}
 
-		data = data / 1000;
+		data = data \ 1000;
 		if ( data < 60 ) {
 			return NumberFormat( data ) & "s";
 		}
 
 		remainder = data mod 60;
-		data = data / 60;
+		data = data \ 60;
 		if ( data < 60 ) {
 			return NumberFormat( data ) & "m " & NumberFormat( remainder ) & "s";
 		}
 
 		remainder = data mod 60;
-		data = data / 60;
+		data = data \ 60;
 		if ( data < 24 ) {
 			return NumberFormat( data ) & "h " & NumberFormat( data ) & "m " & NumberFormat( remainder mod 60 ) & "s";
 		}
