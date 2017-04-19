@@ -39,4 +39,6 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 
 	property name="send_logs"     relationship="one-to-many" relatedto="email_template_send_log" relationshipKey="email_template";
 	property name="queued_emails" relationship="one-to-many" relatedto="email_mass_send_queue"   relationshipKey="template";
+
+	property name="queued_email_count" formula="Count( ${prefix}queued_emails.id )" type="numeric";
 }

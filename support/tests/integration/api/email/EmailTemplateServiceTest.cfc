@@ -1398,17 +1398,40 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getStats( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ) ).toBe( stats );
 			} );
 		} );
+
+		describe( "getQueueStats()", function(){
+			it( "should get counts of queued emails grouped by template", function(){
+				var service = _getService();
+				var stats   = QueryNew( 'queued_count,id,name', 'int,varchar,varchar', [
+					  [ 324   , CreateUUId(), "Template 1" ]
+					, [ 132654, CreateUUId(), "Template 2" ]
+					, [ 1     , CreateUUId(), "Template 3" ]
+					, [ 464   , CreateUUId(), "Template 4" ]
+					, [ 116   , CreateUUId(), "Template 5" ]
+				] );
+
+				mockQueueDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( email_mass_send_queue.id ) as queued_count", "template.id", "template.name" ]
+					, autoGroupBy  = true
+					, orderBy      = "template.name"
+				).$results( stats );
+
+				expect( service.getQueueStats() ).toBe( stats );
+			} );
+		} );
 	}
 
 	private any function _getService( boolean initialize=true ) {
 		var service = createMock( object=CreateObject( "preside.system.services.email.EmailTemplateService" ) );
 
 		mockTemplateDao          = createStub();
+		mockQueueDao             = createStub();
 		mockBlueprintDao         = createStub();
 		mockViewOnlineContentDao = createStub();
 		mockRequestContext       = createStub();
 
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
+		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
 		service.$( "$getPresideObject" ).$args( "email_blueprint" ).$results( mockBlueprintDao );
 		service.$( "$getPresideObject" ).$args( "email_template_view_online_content" ).$results( mockViewOnlineContentDao );
 		service.$( "$audit" );

@@ -791,6 +791,64 @@ component {
 		};
 	}
 
+	/**
+	 * Returns a query of queued email counts grouped by email template
+	 *
+	 * @autodoc    true
+	 */
+	public query function getQueueStats() {
+		return $getPresideObject( "email_mass_send_queue" ).selectData(
+			  autoGroupBy  = true
+			, orderBy      = "template.name"
+			, selectFields = [
+				  "Count( email_mass_send_queue.id ) as queued_count"
+				, "template.id"
+				, "template.name"
+			  ]
+		);
+	}
+
+	/**
+	 * Returns number of queued email counts optionally filtered
+	 * by template ID
+	 *
+	 * @autodoc         true
+	 * @templateId.hint Optioanl id of the template for which to get the count. If not provided, the number of queued emails will be for all templates.
+	 */
+	public numeric function getQueueCount( string templateId="" ) {
+		var filter = {};
+
+		if ( arguments.templateId.len() ) {
+			filter.template = arguments.templateId;
+		}
+
+		return $getPresideObject( "email_mass_send_queue" ).selectData(
+			  recordCountOnly = true
+			, filter          = filter
+		);
+	}
+
+	/**
+	 * Clears queued emails optionally filtered
+	 * by template ID
+	 *
+	 * @autodoc         true
+	 * @templateId.hint Optioanl id of the template who's queued emails you wish to clear. If not provided, all queued emails will be cleared
+	 */
+	public numeric function clearQueue( string templateId="" ) {
+		var filter = {};
+
+		if ( arguments.templateId.len() ) {
+			filter.template = arguments.templateId;
+		}
+
+		return $getPresideObject( "email_mass_send_queue" ).deleteData(
+			  filter         = filter
+			, forceDeleteAll = !arguments.templateId.len()
+		);
+	}
+
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
