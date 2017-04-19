@@ -49,6 +49,14 @@
 		} );
 	}
 
+	if ( hasCmsPermission( "emailcenter.queue.view" ) ) {
+		subMenuItems.append(  {
+			  link  = event.buildAdminLink( linkTo="emailcenter.queue" )
+			, title = translateResource( "cms:emailcenter.queue.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.queue", event.getCurrentEvent() )
+		} );
+	}
+
 	if ( subMenuItems.len() ) {
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
