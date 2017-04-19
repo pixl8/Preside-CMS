@@ -6,6 +6,11 @@ component extends="preside.system.base.AdminHandler" {
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
+		if ( !isFeatureEnabled( "emailcenter" ) || !isFeatureEnabled( "customEmailTemplates" ) ) {
+			event.notFound();
+		}
+
+
 		if ( !hasCmsPermission( "emailCenter.queue.view" ) ) {
 			event.adminAccessDenied();
 		}

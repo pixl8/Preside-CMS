@@ -8,6 +8,10 @@ component extends="preside.system.base.AdminHandler" {
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
 
+		if ( !isFeatureEnabled( "emailcenter" ) ) {
+			event.notFound();
+		}
+
 		if ( !hasCmsPermission( "emailcenter.settings.manage" ) ) {
 			event.adminAccessDenied();
 		}
