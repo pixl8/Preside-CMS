@@ -750,6 +750,25 @@ component {
 	}
 
 	/**
+	 * Gets a count of queued emails for
+	 * the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 */
+	public numeric function getQueuedCount(
+		  required string templateId
+	) {
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( queued_emails.id ) as queued_count" ]
+			, filter       = { id=arguments.templateId }
+			, forceJoins   = "inner"
+		);
+
+		return Val( result.queued_count ?: "" );
+	}
+
+	/**
 	 * Collates various stat counts for the given template in the given
 	 * timeframe for the given template.
 	 *
@@ -768,6 +787,7 @@ component {
 			, delivered = getDeliveredCount( argumentCollection=arguments )
 			, failed    = getFailedCount( argumentCollection=arguments )
 			, opened    = getOpenedCount( argumentCollection=arguments )
+			, queued    = getQueuedCount( templateId=arguments.templateId )
 		};
 	}
 
