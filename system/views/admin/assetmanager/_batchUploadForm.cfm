@@ -13,11 +13,7 @@
 	)#
 
 	<div class="form-actions row">
-		<div class="col-md-offset-2">
-			<a class="btn btn-info choose-files-trigger" tabindex="#getNextTabIndex()#">
-				<i class="fa fa-plus bigger-110"></i>
-				#translateResource( "cms:assetManager.dropzone.choose.files.button" )#
-			</a>
+		<div class="col-md-offset-3">
 			<a class="btn btn-success upload-files-trigger" tabindex="#getNextTabIndex()#" disabled>
 				<i class="fa fa-cloud-upload bigger-110"></i>
 				#translateResource( "cms:assetManager.dropzone.upload.button" )#
