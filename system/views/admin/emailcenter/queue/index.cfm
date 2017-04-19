@@ -4,7 +4,7 @@
 </cfscript>
 
 <cfoutput>
-	<cfif hasClearPerms>
+	<cfif hasClearPerms && queueSummary.recordcount>
 		<div class="top-right-button-group">
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="emailcenter.queue.clear" )#">
 				<button class="btn btn-danger btn-sm">
