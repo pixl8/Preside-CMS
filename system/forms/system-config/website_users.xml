@@ -12,6 +12,7 @@ This form is used to configure the core website users system.
 			<field sortorder="30" name="reset_password_token_expiry" control="spinner"            required="false" default="60"   label="system-config.website_users:reset_password_token_expiry.label" help="system-config.website_users:reset_password_token_expiry.help" maxValue="999999"/>
 			<field sortorder="40" name="default_post_login_page"     control="siteTreePagePicker" required="false"                label="system-config.website_users:default_post_login_page.label"     help="system-config.website_users:default_post_login_page.help"     />
 			<field sortorder="50" name="default_post_logout_page"    control="siteTreePagePicker" required="false"                label="system-config.website_users:default_post_logout_page.label"    help="system-config.website_users:default_post_logout_page.help"    />
+			<field sortorder="60" name="login_attempt_condition"     control="conditionPicker" rulecontext="webrequest" label="system-config.website_users:condition.label" />
 		</fieldset>
 	</tab>
 </form>

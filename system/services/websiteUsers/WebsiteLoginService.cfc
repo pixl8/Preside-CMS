@@ -76,6 +76,8 @@ component displayName="Website login service" {
 
 					return true;
 				} else {
+					recordLoginAttempts( userId=userRecord.id, invalid_login_attempts=val( userRecord.invalid_login_attempts )+1 );
+
 					$recordWebsiteUserAction(
 						  action = "failedLogin"
 						, type   = "login"
@@ -441,9 +443,14 @@ component displayName="Website login service" {
 				, type   = "login"
 			);
 
-			_getUserDao().updateData( id=userId, data={
-				last_logged_in = Now()
-			} );
+			_getUserDao().updateData(
+				  id=userId
+				, data={
+					  last_logged_in         = Now()
+					, invalid_login_attempts = 0
+					, invalid_login_at       = ''
+				}
+			);
 
 			return true;
 		}
@@ -488,8 +495,17 @@ component displayName="Website login service" {
 		} );
 	}
 
-// private helpers
-	private struct function _getUserByLoginId( required string loginId ) {
+	public void function recordLoginAttempts(
+		  required string userId
+		,          numeric invalid_login_attempts = 0
+		,          boolean lockout_permanently    = 0
+		) autodoc=true {
+		var formData = arguments.invalid_login_attempts == 1 ? { invalid_login_attempts=arguments.invalid_login_attempts, invalid_login_at=Now(), lockout_permanently=arguments.lockout_permanently } : { invalid_login_attempts=arguments.invalid_login_attempts, lockout_permanently=arguments.lockout_permanently };
+
+		_getUserDao().updateData( id=arguments.userId, data=formData );
+	}
+
+	public struct function _getUserByLoginId( required string loginId ) {
 		var record = _getUserDao().selectData(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = arguments.loginId }
@@ -503,6 +519,7 @@ component displayName="Website login service" {
 		return {};
 	}
 
+// private helpers
 	private boolean function _validatePassword( required string plainText, required string hashed ) {
 		return _getBCryptService().checkPw( plainText=arguments.plainText, hashed=arguments.hashed );
 	}

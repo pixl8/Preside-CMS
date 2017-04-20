@@ -48,6 +48,20 @@ component displayName="RulesEngine Web Request Service" {
 		);
 	}
 
+	public boolean function evaluateConditionForNonLoggedInUser( required string conditionId, required string loginId ) {
+		var event   = $getRequestContext();
+		var payload = {
+			  page = event.getValue( name="presidePage", defaultValue={}, private=true )
+			, user =  _getWebsiteLoginService()._getUserByLoginId( loginId=arguments.loginId )
+		};
+
+		return _getConditionService().evaluateCondition(
+			  conditionId = arguments.conditionId
+			, context     = "webrequest"
+			, payload     = payload
+		);
+	}
+
 // GETTERS AND SETTERS
 	private any function _getConditionService() {
 		return _conditionService;
