@@ -41,14 +41,13 @@ component output=false singleton=true {
 					param.value = IsBoolean( param.value ) and param.value ? 'true' : 'false';
 				}
 
-				if ( not Len( Trim( param.value ) ) ) {
-					param.null = true;
-					arguments.sql = _transformNullClauses( arguments.sql, param.name );
-				}
-
 				param.cfsqltype = param.type; // mistakenly had thought we could do param.type - alas no, so need to fix it to the correct argument name here
 
-				q.addParam( argumentCollection = param );
+				if ( not Len( Trim( param.value ) ) ) {
+					arguments.sql = _transformNullClauses( arguments.sql, param.name );
+				} else {
+					q.addParam( argumentCollection = param );
+				}
 			}
 		}
 		q.setSQL( arguments.sql );
