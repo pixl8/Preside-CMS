@@ -60,6 +60,12 @@
 
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
+				<cfif categoryId == 'email'>
+					<button class="btn btn-warning" id="testConnection" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-external-link bigger-110"></i>
+						#translateResource( "cms:sysConfig.testConnection.button" )#
+					</button>
+				</cfif>
 				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
 					<i class="fa fa-check bigger-110"></i>
 					#translateResource( "cms:sysConfig.save.button" )#

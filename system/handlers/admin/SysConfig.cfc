@@ -76,7 +76,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public any function saveCategoryAction( event, rc, prc ) {
-		var categoryId = rc.id ?: "";
+		var categoryId = rc.id   ?: "";
 		var siteId     = rc.site ?: "";
 
 		try {
@@ -147,6 +147,42 @@ component extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:sysconfig.saved" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#" ) );
+	}
+
+
+	public any function testEmailConnection( event, rc, prc ) {
+		var message  = "";
+		var siteId   = rc.site ?: ""
+		var category = systemConfigurationService.getConfigCategory( id = 'email' );
+		var formName = Len( Trim( siteId ) ) ? category.getSiteForm() : category.getForm();
+		var formData = arguments.rc;
+
+		var validationResult = validateForm(
+			  formName      = formName
+			, formData      = formData
+			, ignoreMissing = Len( Trim( siteId ) )
+		);
+
+		announceInterception( "preSaveSystemConfig", {
+			  category         = 'email'
+			, configuration    = formData
+			, validationResult = validationResult
+		} );
+
+		var connectionStatus = validationResult.validated();
+
+		if( connectionStatus ){
+				message  = translateResource( "cms:sysConfig.testConnection.success" )
+			}else{
+				var messages = validationResult.getMessages();
+				message      = translateResource( "cms:sysConfig.testConnection.error" );
+				for( var msg in messages ){
+					message = message & "</br>" & translateResource( uri=messages[msg].message, data=messages[msg].params );
+				}
+			}
+
+		event.renderData( type = "json", data = { msg = message, connection=connectionStatus } );
+
 	}
 
 // VIEWLETS
