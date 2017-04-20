@@ -497,6 +497,15 @@ component {
 			var result   = [];
 			var extraFilters = [];
 
+			if( !args.isSubMenu && page.id == parent && page.page_type == 'homepage' && !page.exclude_from_navigation ){
+				result.append ( {
+					  id       = parent
+					, title    = Len( Trim( page.navigation_title ?: "" ) ) ? page.navigation_title : page.title
+					, children = []
+					, active   = arrayLen( activeTree ) == 1 && activeTree[1] == parent
+				} );
+			}
+
 			if ( disallowedPageTypes.len() ) {
 				extraFilters.append({
 					  filter = "page_type not in (:page_type)"
@@ -558,6 +567,8 @@ component {
 				, "page._hierarchy_depth"
 				, "page.page_type"
 				, "parent_page.page_type as parent_type"
+				, "page.navigation_title"
+				, "page.title"
 			]
 		);
 
