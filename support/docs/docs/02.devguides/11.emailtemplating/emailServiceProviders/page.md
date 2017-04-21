@@ -104,7 +104,7 @@ component {
 }
 ```
 
-#### Send()
+#### send()
 
 The send method accepts a structure of `sendArgs` that contain `recipient`, `subject`, `body`, etc. and a structure of `settings` that are the saved configuration settings of your service provider. The method should return `true` if sending was successful.
 

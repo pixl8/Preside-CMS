@@ -5,6 +5,10 @@ component extends="preside.system.base.AdminHandler" {
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
+		if ( !isFeatureEnabled( "emailcenter" ) ) {
+			event.notFound();
+		}
+
 		if ( !hasCmsPermission( "emailCenter.logs.view" ) ) {
 			event.adminAccessDenied();
 		}

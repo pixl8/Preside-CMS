@@ -57,7 +57,7 @@ component {
 
 ### Using saved filters
 
-You can use saved filters in your every day code to enhance the user experience and flexibility of your systems. Given a saved filter ID (from the `rules_engine_condition` object), you can use the [[rulesenginefilterservice-preparefilter|RulesEngineFilterService.prepareFilter()]] method to get an `extraFilters` filter array to pass to your `selectData()` call.
+You can use saved filters in your everyday code to enhance the user experience and flexibility of your systems. Given a saved filter ID (from the `rules_engine_condition` object), you can use the [[rulesenginefilterservice-preparefilter|RulesEngineFilterService.prepareFilter()]] method to get an `extraFilters` filter array to pass to your `selectData()` call.
 
 A useful example of this is a "Latest news" widget that allows you to choose a dynamic filter with which to filter the news to show. The widget form could look like this (see [[formcontrol-filterpicker]] for documentation on the filter picker):
 
@@ -90,7 +90,6 @@ component {
                 , filterId   = arguments.filter
             );
         }
-
 
         return newsDao.selectData(
               filter       = { published = true }

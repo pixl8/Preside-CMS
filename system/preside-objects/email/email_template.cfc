@@ -37,5 +37,8 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="schedule_sent"           type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true;
 	property name="schedule_next_send_date" type="date"    dbtype="datetime"             required=false ignoreChangesForVersioning=true;
 
-	property name="send_logs" relationship="one-to-many" relatedto="email_template_send_log" relationshipKey="email_template";
+	property name="send_logs"     relationship="one-to-many" relatedto="email_template_send_log" relationshipKey="email_template";
+	property name="queued_emails" relationship="one-to-many" relatedto="email_mass_send_queue"   relationshipKey="template";
+
+	property name="queued_email_count" formula="Count( ${prefix}queued_emails.id )" type="numeric";
 }

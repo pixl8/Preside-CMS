@@ -240,12 +240,13 @@ component {
 		,          any     filter       = ""
 		,          any     filterParams = {}
 	) {
-		var result = { totalRecords = 0, records = "" };
-		var dao    = _getPresideObjectService().getObject( arguments.objectName );
-		var args   = {
+		var result            = { totalRecords = 0, records = "" };
+		var idField           = _getPresideOBjectService().getIdField( arguments.objectName );
+		var dateModifiedField = _getPresideOBjectService().getDateModifiedField( arguments.objectName );
+		var args    = {
 			  objectName       = arguments.objectName
 			, id               = arguments.recordId
-			, selectFields     = [ "#dao.getIdField()# as id", "_version_is_draft as published", "#dao.getDateModifiedField()# as datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
+			, selectFields     = [ "#idField# as id", "_version_is_draft as published", "#dateModifiedField# as datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy

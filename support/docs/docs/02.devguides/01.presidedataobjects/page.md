@@ -309,6 +309,8 @@ articles = articleDao.selectData(
 
 Formula fields can also be used in your DataManager data grids and be assigned labels in your object's i18n `.properties` file.
 
+>>> Note that formula fields are only selected when _explicitly defined_ in your `selectFields`. If you leave `selectData` to return "all" fields, only the properties that are stored in the database will be returned.
+
 #### Formula ${prefix} token
 
 The `${prefix}` token in formula fields allows your formula field to be used in more complex select queries that traverse your data model's relationships. Another example, this time a `person` cfc:

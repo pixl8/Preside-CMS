@@ -347,7 +347,14 @@ component displayName="Preside Object Service" {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
 		if ( StructKeyExists( obj.properties, idField ) ) {
-			newId = cleanedData[ idField ] ?: "";
+			if ( not StructKeyExists( cleanedData, idField ) or not Len( Trim( cleanedData[idField] ) ) ) {
+				newId = _generateNewIdWhenNecessary( generator=( obj.properties[idField].generator ?: "UUID" ) );
+				if ( Len( Trim( newId ) ) ) {
+					cleanedData[idField]= newId;
+				}
+			}else{
+				newId = cleanedData[idField];
+			}
 		}
 		if ( objectIsVersioned( args.objectName ) ) {
 			cleanedData._version_is_draft = cleanedData._version_has_drafts = args.isDraft;
@@ -1863,7 +1870,7 @@ component displayName="Preside Object Service" {
 		var having     = arguments.preparedFilter.having ?: "";
 		var key        = "";
 		var cache      = _getCache();
-		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#";
+		var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
 		var objects    = cache.get( cacheKey );
 
 		if ( not IsNull( objects ) ) {
@@ -1937,6 +1944,16 @@ component displayName="Preside Object Service" {
 		cache.set( cacheKey, objects );
 
 		return objects;
+	}
+
+	private string function _removeDynamicElementsFromForeignObjectsCacheKey( required string cacheKey ) {
+		var staticCacheKey = arguments.cacheKey;
+
+		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{32}", "", "all" );
+		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}", "", "all" );
+		staticCacheKey = staticCacheKey.reReplaceNoCase( "field\s?\(.*?\)", "", "all" );
+
+		return staticCacheKey;
 	}
 
 	private struct function _cleanupPropertyAliases() {

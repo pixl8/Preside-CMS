@@ -750,6 +750,25 @@ component {
 	}
 
 	/**
+	 * Gets a count of queued emails for
+	 * the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 */
+	public numeric function getQueuedCount(
+		  required string templateId
+	) {
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( queued_emails.id ) as queued_count" ]
+			, filter       = { id=arguments.templateId }
+			, forceJoins   = "inner"
+		);
+
+		return Val( result.queued_count ?: "" );
+	}
+
+	/**
 	 * Collates various stat counts for the given template in the given
 	 * timeframe for the given template.
 	 *
@@ -768,8 +787,67 @@ component {
 			, delivered = getDeliveredCount( argumentCollection=arguments )
 			, failed    = getFailedCount( argumentCollection=arguments )
 			, opened    = getOpenedCount( argumentCollection=arguments )
+			, queued    = getQueuedCount( templateId=arguments.templateId )
 		};
 	}
+
+	/**
+	 * Returns a query of queued email counts grouped by email template
+	 *
+	 * @autodoc    true
+	 */
+	public query function getQueueStats() {
+		return $getPresideObject( "email_mass_send_queue" ).selectData(
+			  autoGroupBy  = true
+			, orderBy      = "template.name"
+			, selectFields = [
+				  "Count( email_mass_send_queue.id ) as queued_count"
+				, "template.id"
+				, "template.name"
+			  ]
+		);
+	}
+
+	/**
+	 * Returns number of queued email counts optionally filtered
+	 * by template ID
+	 *
+	 * @autodoc         true
+	 * @templateId.hint Optioanl id of the template for which to get the count. If not provided, the number of queued emails will be for all templates.
+	 */
+	public numeric function getQueueCount( string templateId="" ) {
+		var filter = {};
+
+		if ( arguments.templateId.len() ) {
+			filter.template = arguments.templateId;
+		}
+
+		return $getPresideObject( "email_mass_send_queue" ).selectData(
+			  recordCountOnly = true
+			, filter          = filter
+		);
+	}
+
+	/**
+	 * Clears queued emails optionally filtered
+	 * by template ID
+	 *
+	 * @autodoc         true
+	 * @templateId.hint Optioanl id of the template who's queued emails you wish to clear. If not provided, all queued emails will be cleared
+	 */
+	public numeric function clearQueue( string templateId="" ) {
+		var filter = {};
+
+		if ( arguments.templateId.len() ) {
+			filter.template = arguments.templateId;
+		}
+
+		return $getPresideObject( "email_mass_send_queue" ).deleteData(
+			  filter         = filter
+			, forceDeleteAll = !arguments.templateId.len()
+		);
+	}
+
 
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {

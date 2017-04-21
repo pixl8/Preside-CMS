@@ -5,7 +5,7 @@ title: Email Centre
 
 ## Overview
 
-As of 10.8.0, Preside comes with a sophisticated but simple system for email templating that allows developers and content editors to work together to create a highly tailored system of delivering both marketing and transactional email.
+As of 10.8.0, Preside comes with a sophisticated but simple system for email templating that allows developers and content editors to work together to create a highly tailored system for delivering both marketing and transactional email.
 
 >>> See [[emailtemplating]] for documentation on the basic email templating system prior to 10.8.0
 
@@ -32,7 +32,7 @@ Editorial email templates will work out-of-the-box and require no custom develop
 
 ### Recipient types
 
-Recipient types are configured to allow the email centre to send intelligently to different types of recipient. Each email template is configured to send to a specific recipient type. The core system provides, three types:
+Recipient types are configured to allow the email centre to send intelligently to different types of recipient. Each email template is configured to send to a specific recipient type. The core system provides three types:
 
 1. Website user
 2. Admin user
@@ -49,3 +49,41 @@ The core provides a default SMTP provider and you are free to create multiple di
 ### General settings
 
 Navigating to **Email centre -> Settings** reveals a settings form for general email sending configuration. You may wish to add to this default configuration form, or retrieve settings programmatically. See [[emailSettings]] for a full guide.
+
+## Feature switches and permissions
+
+### Features
+
+The email centre admin UI can be switched off using the `emailCentre` feature switch. In your application's `Config.cfc` file:
+
+```luceescript
+settings.features.emailCenter.enabled = false;
+```
+
+Furthermore, there is a separate feature switch to enable/disable _custom_ email template admin UIs, `customEmailTemplates`:
+
+
+```luceescript
+settings.features.customEmailTemplates.enabled = false;
+```
+
+Both features are enabled by default. The `customEmailTemplates` feature is only available when the the `emailCenter` feature is also enabled; disabling just the `emailCenter` feature has the effect of disabling both features.
+
+### Permissions
+
+The email centre comes with a set of permission keys that can be used to fine tune your administrator roles. The permissions are defined as:
+
+```luceescript
+settings.adminPermissions.emailCenter = {
+	  layouts          = [ "navigate", "configure" ]
+	, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send" ]
+	, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
+	, serviceProviders = [ "manage" ]
+	, settings         = [ "navigate", "manage" ]
+	, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
+	, logs             = [ "view" ]
+	, queue            = [ "view", "clear" ]
+  }
+```
+
+The default `sysadmin` and `contentadmin` user roles have access to all of these permissions _except_ for the `emailCenter.queue.view` and `emailCenter.queue.clear` permissions. For a full guide to customizing admin permissions and roles, see [[cmspermissioning]].

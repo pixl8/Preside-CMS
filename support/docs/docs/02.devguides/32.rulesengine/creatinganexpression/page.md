@@ -12,7 +12,7 @@ Rules engine expressions are a combination of an i18n resource file (`.propertie
 
 ## i18n resource file
 
-By convention, expression resource files must live at: `/i18n/rules/expressions/{idofexpression}.properties`. This file must, at a minimum, declare two keys, `label` and `text`:
+By convention, expression resource files must live at: `/i18n/rules/expressions/{idOfExpression}.properties`. This file must, at a minimum, declare two keys, `label` and `text`:
 
 ```properties
 label=User cancelled their place on an event
@@ -67,7 +67,7 @@ The handler CFC file can be annotated with an `expressionContexts` attribute tha
 
 Becuase it is a ColdBox handler action, the method will always receive `event`, `rc` and `prc` arguments for you to use when relevant. In addition, the method will also always receive a `payload` argument that is a structure containing data relevant to the _context_ in which the expression is being evaluated. For example, the **webrequest** context provides a payload with `page` and `user` keys, each with a structure containing details of the current page and logged in user, respectively.
 
-Any further arguments are treated as **expression fields** and should map to the `{placeholder}` fields defined in your expression resource file's `text` key. These arguments can also be decorated to further configure the field. For example, you may wish to define the field type + any further arguments that the field type requires:
+Any further arguments are treated as **expression fields** and should map to the `{placeholder}` fields defined in your expression resource file's `text` key. These arguments can also be decorated to configure the field further. For example, you may wish to define the field type + any further arguments that the field type requires:
 
 ```luceescript
 /**
@@ -104,7 +104,7 @@ component {
 
 Notice the annotations around the `emsEvent` argument above. Here they define the `object` field type and specify that the object for the field type is `ems_event` and that multiple selection is turned off.
 
->>>>>> We prefer to leave the `event`, `rc`, `prc` and `payload` arguments out of the function definition to more cleanly show the expression fields; this is a preference though, and you can define them if you wish.
+>>>>>> We prefer to leave the `event`, `rc`, `prc` and `payload` arguments out of the function definition to show the expression fields more cleanly; this is a preference though, and you can define them if you wish.
 
 ## The prepareFilters handler action
 
@@ -123,11 +123,11 @@ component {
         , required string objectName    // always passed to prepareFilters()
         , required string filterPrefix  // always passed to prepareFilters()
     ) {
-        var paramName = "eventId" & CreateUUId(); // important to avoid clashing SQL param names
+        var paramName   = "eventId" & CreateUUId();  // important to avoid clashing SQL param names
         var fieldPrefix = arguments.filterPrefix.len() ? arguments.filterPrefix : arguments.objectName;
 
         return [ {
-            filter = "#fieldPrefix#.event = :#paramName#"
+            filter       = "#fieldPrefix#.event = :#paramName#"
             filterParams = { "#paramName#" = arguments.eventId }
         } ];
     }
@@ -161,7 +161,7 @@ component {
 
 ```
 
-Notice how the `@expressionContexts` for the CFC is also likely to want to be the same list of objects.
+Notice how the `@expressionContexts` for the CFC is also likely to be the same list of objects.
 
 ### Arguments
 
@@ -169,7 +169,7 @@ Your `prepareFilters()` method will _always_ receive `objectName` and `filterPre
 
 `objectName` is the name of the object being filtered. 
 
-`filterPrefix` is a calculated prefix that should be put in front of any fields on the object that you use in filters. If the prefix is empty, then we are filtering _directly_ on the object (you may wish to then use the object name as a prefix as we have done in the example above). This is to allow filters to be nested and to be able to be buried deep in a traversal of the database entity relationships.
+`filterPrefix` is a calculated prefix that should be put in front of any fields on the object that you use in filters. If the prefix is empty, then we are filtering _directly_ on the object (you may then wish to use the object name as a prefix as we have done in the example above). This is to allow filters to be nested and to be able to be buried deep in a traversal of the database entity relationships.
 
 Any other arguments will by dynamically generated based on the expression's `evaluateExpression` definition and the user configured expression fields.
 
@@ -186,10 +186,10 @@ component {
      * @objects website_user
      */
     private boolean function prepareFilters(
-          required string eventId       // arguments from configured expression 
-          required boolean _has         // arguments from configured expression 
-        , required string objectName    // always passed to prepareFilters()
-        , required string filterPrefix  // always passed to prepareFilters()
+          required string  eventId       // arguments from configured expression 
+        , required boolean _has          // arguments from configured expression 
+        , required string  objectName    // always passed to prepareFilters()
+        , required string  filterPrefix  // always passed to prepareFilters()
     ) {
         // setup params and filter clause for the passed eventId
         var paramName     = "eventId" & CreateUUId();

@@ -59,7 +59,7 @@ description=Use the transactional layout for emails that happen as a result of s
 
 ### 3. Provide optional configuration form
 
-If you want your application's content editors to be able to tweak layout options, you can also provide a configuration form at `/forms/email/layout/{layoutid}.xml`. This will allow end user's to configure global defaults for the layout and to tweak settings per email. For example:
+If you want your application's content editors to be able to tweak layout options, you can also provide a configuration form at `/forms/email/layout/{layoutid}.xml`. This will allow end-users to configure global defaults for the layout and to tweak settings per email. For example:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
