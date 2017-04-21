@@ -349,6 +349,7 @@ component {
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
 		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
+		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 

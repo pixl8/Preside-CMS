@@ -31,7 +31,7 @@ component {
 			  argumentCollection = config
 			, name               = "value"
 			, type               = "enumSelect"
-			, multiple           = true
+			, multiple           = IsTrue( arguments.config.multiple ?: true )
 			, label              = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.enum.config.label" )
 			, savedValue         = arguments.value
 			, defaultValue       = arguments.value
