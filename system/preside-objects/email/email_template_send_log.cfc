@@ -36,4 +36,6 @@ component extends="preside.system.base.SystemPresideObject" {
 
 	property name="failed_reason" type="string"  dbtype="text";
 	property name="failed_code"   type="numeric" dbtype="int";
+
+	property name="activities" relationship="one-to-many" relatedto="email_template_send_log_activity" relationshipkey="message";
 }
