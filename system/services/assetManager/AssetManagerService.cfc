@@ -915,7 +915,7 @@ component displayName="AssetManager Service" {
 			return "";
 		}
 
-		if ( Len( Trim( asset.asset_url ) ) ) {
+		if ( Len( Trim( asset.asset_url ) ) && findNoCase( UrlEncodedFormat( version ), asset.asset_url ) ) {
 			return asset.asset_url;
 		}
 
