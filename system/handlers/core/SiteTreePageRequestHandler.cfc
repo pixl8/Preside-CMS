@@ -65,7 +65,7 @@ component output=false {
 				  view          = view
 				, presideObject = pageType.getPresideObject()
 				, filter        = { page = pageId }
-				, groupby       = pageType.getPresideObject() & ".id" // ensure we only get a single record should the view be joining on one-to-many relationships
+				, groupby       = pageType.getPresideObject() & ".id,title,main_content" // ensure we only get a single record should the view be joining on one-to-many relationships
 			);
 		}
 
