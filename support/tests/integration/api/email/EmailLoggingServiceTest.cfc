@@ -427,6 +427,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 
 		mockRecipientTypeService.$( "getRecipientId", "" );
 		mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType", "" );
+		mockRecipientTypeService.$( "getRecipientAdditionalLogProperties", {} );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
 
