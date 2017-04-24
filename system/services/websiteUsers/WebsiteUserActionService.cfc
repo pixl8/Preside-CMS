@@ -324,6 +324,61 @@ component displayName="Website user action service" {
 		} ] } ];
 	}
 
+	public array function getUserLastPerformedActionFilter(
+		  required string  type
+		, required string  action
+		,          string  dateFrom           = ""
+		,          string  dateTo             = ""
+		,          string  identifier         = ""
+		,          string  filterPrefix       = ""
+		,          string  parentPropertyName = ""
+	) {
+		if ( !IsDate( arguments.dateFrom ) && !IsDate( arguments.dateTo ) ) {
+			return [];
+		}
+
+		var paramSuffix    = _getRandomFilterParamSuffix();
+		var subqueryFilter = "actions.action = :action#paramSuffix# and actions.type = :type#paramSuffix#";
+		var subqueryAlias  = "lastPerformed" & paramSuffix;
+		var overallFilter  = "";
+		var delimiter      = "";
+		var params         = {
+			  "action#paramSuffix#" = { type="cf_sql_varchar", value=arguments.action }
+			, "type#paramSuffix#"   = { type="cf_sql_varchar", value=arguments.type   }
+		};
+
+		if ( IsDate( arguments.datefrom ) ) {
+			overallFilter = "#subqueryAlias#.action_date >= :datefrom#paramSuffix#";
+			params[ "datefrom#paramSuffix#" ] = { type="cf_sql_timestamp", value=arguments.datefrom };
+			delimiter = " and ";
+		}
+		if ( IsDate( arguments.dateto ) ) {
+			overallFilter &= delimiter & "#subqueryAlias#.action_date <= :dateto#paramSuffix#";
+			params[ "dateto#paramSuffix#" ] = { type="cf_sql_timestamp", value=arguments.dateto };
+		}
+		if ( arguments.identifier.len() ) {
+			subqueryFilter &= " and actions.identifier = :identifier#paramSuffix#";
+			params[ "identifier#paramSuffix#" ] = { type="cf_sql_varchar", value=arguments.identifier };
+		}
+
+		var subquery = $getPresideObject( "website_user" ).selectData(
+			  selectFields        = [ "Max( actions.datecreated ) as action_date", "website_user.id" ]
+			, filter              = subqueryFilter
+			, groupBy             = "website_user.id"
+			, getSqlAndParamsOnly = true
+			, forceJoins          = "inner"
+		);
+
+		return [ { filter=overallFilter, filterParams=params, extraJoins=[ {
+			  type           = "left"
+			, subQuery       = subquery.sql
+			, subQueryAlias  = subqueryAlias
+			, subQueryColumn = "id"
+			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "website_user" )
+			, joinToColumn   = "id"
+		} ] } ];
+	}
+
 // PRIVATE HELPERS
 	private boolean function _sessionsAreDisabled() {
 		var applicationSettings = getApplicationSettings( true );

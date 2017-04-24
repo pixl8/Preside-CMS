@@ -41,4 +41,24 @@ component {
 		return true;
 	}
 
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  action
+		,          struct  _pastTime
+		,          string  filterPrefix
+		,          string  parentPropertyName
+	) {
+		return websiteUserActionService.getUserPerformedActionFilter(
+			  action             = ListRest( arguments.action, "." )
+			, type               = ListFirst( arguments.action, "." )
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
+	}
+
 }
