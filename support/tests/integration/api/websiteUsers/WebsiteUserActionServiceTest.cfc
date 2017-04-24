@@ -398,6 +398,132 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( count );
 			} );
 		} );
+
+		describe( "getUserPerformedActionFilter()", function(){
+			it( "should return a filter to match users that have performed the given action & type", function(){
+				var service          = _getService();
+				var testAction       = CreateUUId();
+				var testType         = CreateUUId();
+				var dummySubquerySql = CreateUUId();
+				var expected         = [{}];
+
+				expected[ 1 ].filter       = "actionCount#testFilterSuffix#.action_count > 0";
+				expected[ 1 ].filterParams = {
+					  "action#testFilterSuffix#" = { type="cf_sql_varchar", value=testAction }
+					, "type#testFilterSuffix#"   = { type="cf_sql_varchar", value=testType   }
+				};
+				expected[ 1 ].extraJoins   = [ {
+					  type           = "left"
+					, subQuery       = dummySubquerySql
+					, subQueryAlias  = "actionCount" & testFilterSuffix
+					, subQueryColumn = "id"
+					, joinToTable    = "website_user"
+					, joinToColumn   = "id"
+				} ];
+
+				mockUserDao.$( "selectData" ).$args(
+					  selectFields        = [ "Count( actions.id ) as action_count", "website_user.id" ]
+					, filter              = "actions.action = :action#testFilterSuffix# and actions.type = :type#testFilterSuffix#"
+					, groupby             = "website_user.id"
+					, getSqlAndParamsOnly = true
+					, forceJoins          = "inner"
+				).$results( { sql=dummySubquerySql, params={} } );
+
+
+				var filter = service.getUserPerformedActionFilter(
+					  action = testAction
+					, type   = testType
+				);
+
+				expect( filter ).toBe( expected );
+			} );
+
+			it( "should return a filter to match users that have NOT performed the given action when 'has' is false", function(){
+				var service          = _getService();
+				var testAction       = CreateUUId();
+				var testType         = CreateUUId();
+				var dummySubquerySql = CreateUUId();
+				var expected         = [{}];
+
+				expected[ 1 ].filter       = "( actionCount#testFilterSuffix#.action_count is null or actionCount#testFilterSuffix#.action_count = 0 )";
+				expected[ 1 ].filterParams = {
+					  "action#testFilterSuffix#" = { type="cf_sql_varchar", value=testAction }
+					, "type#testFilterSuffix#"   = { type="cf_sql_varchar", value=testType   }
+				};
+				expected[ 1 ].extraJoins   = [ {
+					  type           = "left"
+					, subQuery       = dummySubquerySql
+					, subQueryAlias  = "actionCount" & testFilterSuffix
+					, subQueryColumn = "id"
+					, joinToTable    = "website_user"
+					, joinToColumn   = "id"
+				} ];
+
+				mockUserDao.$( "selectData" ).$args(
+					  selectFields        = [ "Count( actions.id ) as action_count", "website_user.id" ]
+					, filter              = "actions.action = :action#testFilterSuffix# and actions.type = :type#testFilterSuffix#"
+					, groupby             = "website_user.id"
+					, getSqlAndParamsOnly = true
+					, forceJoins          = "inner"
+				).$results( { sql=dummySubquerySql, params={} } );
+
+
+				var filter = service.getUserPerformedActionFilter(
+					  action = testAction
+					, type   = testType
+					, has    = false
+				);
+
+				expect( filter ).toBe( expected );
+			} );
+
+			it( "should add date and identifier filters when passed", function(){
+				var service          = _getService();
+				var testAction       = CreateUUId();
+				var testType         = CreateUUId();
+				var identifier       = CreateUUId();
+				var dummySubquerySql = CreateUUId();
+				var from             = DateAdd( "d", -8, Now() );
+				var to               = Now();
+				var expected         = [{}];
+
+				expected[ 1 ].filter       = "actionCount#testFilterSuffix#.action_count > 0";
+				expected[ 1 ].filterParams = {
+					  "action#testFilterSuffix#"      = { type="cf_sql_varchar"  , value=testAction            }
+					, "type#testFilterSuffix#"        = { type="cf_sql_varchar"  , value=testType              }
+					, "identifiers#testFilterSuffix#" = { type="cf_sql_varchar"  , value=identifier, list=true }
+					, "datefrom#testFilterSuffix#"    = { type="cf_sql_timestamp", value=from                  }
+					, "dateto#testFilterSuffix#"      = { type="cf_sql_timestamp", value=to                    }
+				};
+				expected[ 1 ].extraJoins   = [ {
+					  type           = "left"
+					, subQuery       = dummySubquerySql
+					, subQueryAlias  = "actionCount" & testFilterSuffix
+					, subQueryColumn = "id"
+					, joinToTable    = "website_user"
+					, joinToColumn   = "id"
+				} ];
+
+				mockUserDao.$( "selectData" ).$args(
+					  selectFields        = [ "Count( actions.id ) as action_count", "website_user.id" ]
+					, filter              = "actions.action = :action#testFilterSuffix# and actions.type = :type#testFilterSuffix# and actions.datecreated >= :datefrom#testFilterSuffix# and actions.datecreated <= :dateto#testFilterSuffix# and actions.identifier in ( :identifiers#testFilterSuffix# )"
+					, groupby             = "website_user.id"
+					, getSqlAndParamsOnly = true
+					, forceJoins          = "inner"
+				).$results( { sql=dummySubquerySql, params={} } );
+
+
+				var filter = service.getUserPerformedActionFilter(
+					  action      = testAction
+					, type        = testType
+					, dateFrom    = from
+					, dateTo      = to
+					, identifiers = [ identifier ]
+				);
+
+				expect( filter ).toBe( expected );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -415,10 +541,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			, sessionStorage        = mockSessionStorage
 		) );
 
-		mockActionDao = CreateStub();
+		mockActionDao    = CreateStub();
+		mockUserDao      = CreateStub();
+		testFilterSuffix = "_testsuffix";
+
 
 		service.$( "$getPresideObject" ).$args( "website_user_action" ).$results( mockActionDao );
+		service.$( "$getPresideObject" ).$args( "website_user" ).$results( mockUserDao );
 		service.$( "$getPresideSetting" ).$args( "tracking", "allow_anonymous_tracking" ).$results( true );
+		service.$( "_getRandomFilterParamSuffix", testFilterSuffix );
 
 		return service;
 	}
