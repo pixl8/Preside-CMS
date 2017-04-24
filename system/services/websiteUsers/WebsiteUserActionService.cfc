@@ -234,6 +234,8 @@ component displayName="Website user action service" {
 		,          string  dateto             = ""
 		,          array   identifiers        = []
 		,          boolean allIdentifiers     = false
+		,          numeric qty
+		,          string  qtyOperator        = "gt"
 		,          string  filterPrefix       = ""
 		,          string  parentPropertyName = ""
 	) {
@@ -278,7 +280,36 @@ component displayName="Website user action service" {
 		);
 
 		if ( arguments.has ) {
-			overallFilter = "#subqueryAlias#.action_count > 0";
+			if ( arguments.keyExists( "qty" ) ) {
+				overallFilter = "#subqueryAlias#.action_count ${operator} :qty#paramSuffix#";
+				params[ "qty#paramSuffix#" ] = { type="cf_sql_integer", value=arguments.qty };
+
+				switch ( arguments.qtyOperator ) {
+					case "eq":
+						overallFilter = overallFilter.replace( "${operator}", "=" );
+					break;
+					case "neq":
+						overallFilter = overallFilter.replace( "${operator}", "!=" );
+					break;
+					case "gt":
+						overallFilter = overallFilter.replace( "${operator}", ">" );
+					break;
+					case "gte":
+						overallFilter = overallFilter.replace( "${operator}", ">=" );
+					break;
+					case "lt":
+						overallFilter = overallFilter.replace( "${operator}", "<" );
+					break;
+					case "lte":
+						overallFilter = overallFilter.replace( "${operator}", "<=" );
+					break;
+					default:
+						overallFilter = overallFilter.replace( "${operator}", ">" );
+				}
+
+			} else {
+				overallFilter = "#subqueryAlias#.action_count > 0";
+			}
 		} else {
 			overallFilter = "( #subqueryAlias#.action_count is null or #subqueryAlias#.action_count = 0 )";
 		}

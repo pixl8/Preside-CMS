@@ -574,6 +574,58 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( filter ).toBe( expected );
 			} );
+
+			it( "should use operator and qty arguments to prepare a filter for comparing number of times action has been performed", function(){
+				var service          = _getService();
+				var testAction       = CreateUUId();
+				var testType         = CreateUUId();
+				var identifier       = CreateUUId();
+				var qty              = 345;
+				var operator         = "gte";
+				var dummySubquerySql = CreateUUId();
+				var from             = DateAdd( "d", -8, Now() );
+				var to               = Now();
+				var expected         = [{}];
+
+				expected[ 1 ].filter       = "actionCount#testFilterSuffix#.action_count >= :qty#testFilterSuffix#";
+				expected[ 1 ].filterParams = {
+					  "action#testFilterSuffix#"      = { type="cf_sql_varchar"  , value=testAction            }
+					, "type#testFilterSuffix#"        = { type="cf_sql_varchar"  , value=testType              }
+					, "identifiers#testFilterSuffix#" = { type="cf_sql_varchar"  , value=identifier, list=true }
+					, "datefrom#testFilterSuffix#"    = { type="cf_sql_timestamp", value=from                  }
+					, "dateto#testFilterSuffix#"      = { type="cf_sql_timestamp", value=to                    }
+					, "qty#testFilterSuffix#"         = { type="cf_sql_integer"  , value=qty                   }
+				};
+				expected[ 1 ].extraJoins   = [ {
+					  type           = "left"
+					, subQuery       = dummySubquerySql
+					, subQueryAlias  = "actionCount" & testFilterSuffix
+					, subQueryColumn = "id"
+					, joinToTable    = "website_user"
+					, joinToColumn   = "id"
+				} ];
+
+				mockUserDao.$( "selectData" ).$args(
+					  selectFields        = [ "Count( actions.id ) as action_count", "website_user.id" ]
+					, filter              = "actions.action = :action#testFilterSuffix# and actions.type = :type#testFilterSuffix# and actions.datecreated >= :datefrom#testFilterSuffix# and actions.datecreated <= :dateto#testFilterSuffix# and actions.identifier in ( :identifiers#testFilterSuffix# )"
+					, groupby             = "website_user.id"
+					, getSqlAndParamsOnly = true
+					, forceJoins          = "inner"
+				).$results( { sql=dummySubquerySql, params={} } );
+
+
+				var filter = service.getUserPerformedActionFilter(
+					  action      = testAction
+					, type        = testType
+					, dateFrom    = from
+					, dateTo      = to
+					, identifiers = [ identifier ]
+					, qty         = qty
+					, qtyOperator = operator
+				);
+
+				expect( filter ).toBe( expected );
+			} );
 		} );
 	}
 
