@@ -113,7 +113,13 @@ component {
 			, getSqlAndParamsOnly = true
 		);
 		var subQueryAlias = "emailLogCount" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql     = "#subQueryAlias#.log_count #( arguments._has ? '>= 1' : ' is null or #subQueryAlias#.log_count = 0' )#";
+		var filterSql     = "";
+
+		if ( arguments._has ) {
+			filterSql = "#subQueryAlias#.log_count > 0";
+		} else {
+			filterSql = "( #subQueryAlias#.log_count is null or #subQueryAlias#.log_count = 0 )";
+		}
 
 		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
 			  type           = arguments._has ? "inner" : "left"

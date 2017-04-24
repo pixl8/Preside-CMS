@@ -18,4 +18,5 @@ component extends="preside.system.base.SystemPresideObject" labelfield="display_
 	property name="benefits" relationship="many-to-many" relatedTo="website_benefit";
 
 	property name="email_logs" relationship="one-to-many" relatedTo="email_template_send_log" relationshipkey="website_user_recipient" autofilter=false;
+	property name="actions"    relationship="one-to-many" relatedTo="website_user_action"     relationshipkey="user"                   autofilter=false;
 }

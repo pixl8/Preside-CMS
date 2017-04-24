@@ -42,4 +42,25 @@ component {
 		return true;
 	}
 
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  page
+		,          struct  _pastTime
+		,          string  filterPrefix
+		,          string  parentPropertyName
+	) {
+		return websiteUserActionService.getUserLastPerformedActionFilter(
+			  action             = "pagevisit"
+			, type               = "request"
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, identifier         = arguments.page
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
+	}
+
 }

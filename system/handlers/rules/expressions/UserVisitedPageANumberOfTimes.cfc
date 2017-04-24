@@ -36,4 +36,31 @@ component {
 		return _has ? result : !result;
 	}
 
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  page
+		, required numeric times
+		,          string  _numericOperator   = "eq"
+		,          boolean _has               = true
+		,          struct  _pastTime          = {}
+		,          string  filterPrefix       = ""
+		,          string  parentPropertyName = ""
+	) {
+		return websiteUserActionService.getUserPerformedActionFilter(
+			  action             = "pagevisit"
+			, type               = "request"
+			, has                = arguments._has
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, identifiers        = [ arguments.page ]
+			, qty                = arguments.times
+			, qtyOperator        = arguments._numericOperator
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
+	}
+
 }
