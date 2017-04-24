@@ -42,4 +42,25 @@ component {
 		return true;
 	}
 
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  asset
+		,          struct  _pastTime
+		,          string  filterPrefix
+		,          string  parentPropertyName
+	) {
+		return websiteUserActionService.getUserLastPerformedActionFilter(
+			  action             = "download"
+			, type               = "asset"
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, identifier         = arguments.asset
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
+	}
+
 }

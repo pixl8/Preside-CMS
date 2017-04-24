@@ -51,7 +51,7 @@ component {
 		,          string  filterPrefix
 		,          string  parentPropertyName
 	) {
-		return websiteUserActionService.getUserPerformedActionFilter(
+		return websiteUserActionService.getUserLastPerformedActionFilter(
 			  action             = ListRest( arguments.action, "." )
 			, type               = ListFirst( arguments.action, "." )
 			, datefrom           = arguments._pastTime.from ?: ""
