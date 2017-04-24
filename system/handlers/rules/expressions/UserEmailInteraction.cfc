@@ -12,7 +12,10 @@ component {
 	/**
 	 * @templates.fieldtype     object
 	 * @templates.object        email_template
+<<<<<<< HEAD
 	 * @templates.objectFilters webUserEmailTemplates
+=======
+>>>>>>> feature-PRESIDECMS-627_email-templating
 	 * @templates.multiple      true
 	 * @action.fieldtype        enum
 	 * @action.enum             emailAction

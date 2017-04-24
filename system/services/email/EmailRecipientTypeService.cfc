@@ -213,6 +213,19 @@ component displayName="Email Recipient Type Service" {
 		return types[ arguments.recipientType ].recipientIdLogProperty ?: "";
 	}
 
+	/**
+	 * Returns the configured additional data keys / selectors on the email log table that
+	 * corresponds to this recipient type
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type whose log property name we are to get
+	 */
+	public struct function getRecipientAdditionalLogProperties( required string recipientType ) {
+		var types = _getConfiguredRecipientTypes();
+
+		return types[ arguments.recipientType ].additionalLogProperties ?: {};
+	}
+
 
 	/**
 	 * Returns the configured grid fields for showing recipients of this type

@@ -363,17 +363,33 @@ component {
 
 // PRIVATE HELPERS
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
-		if ( !recipientType.len() ) {
-			return {};
+		var additional           = {};
+		var recipientTypeService = _getRecipientTypeService();
+
+		if ( recipientType.len() ) {
+			var fkColumn            = recipientTypeService.getRecipientIdLogPropertyForRecipientType( recipientType );
+			var additionalSelectors = recipientTypeService.getRecipientAdditionalLogProperties( recipientType );
+
+			if ( fkColumn.len() ) {
+				additional[ fkColumn ] = arguments.recipientId
+			}
+			if ( additionalSelectors.count() ) {
+				var fields = [];
+				for( var additionalSelector in additionalSelectors ) {
+					fields.append( "#additionalSelectors[ additionalSelector ]# as #additionalSelector#" );
+				}
+				var record = $getPresideObject( recipientTypeService.getFilterObjectForRecipientType( arguments.recipientType ) ).selectData(
+					  id           = arguments.recipientId
+					, selectFields = fields
+					, autoGroupBy  = true
+				);
+				for( var r in record ) {
+					additional.append( r );
+				}
+			}
 		}
 
-		var fkColumn = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( recipientType );
-
-		if ( !fkColumn.len() ){
-			return {};
-		}
-
-		return { "#fkColumn#" = arguments.recipientId };
+		return additional;
 	}
 
 	private date function _getNow() {
