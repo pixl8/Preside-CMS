@@ -52,4 +52,29 @@ component {
 		return _has ? result : !result;
 	}
 
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  forms
+		,          boolean _has               = true
+		,          boolean _all               = false
+		,          struct  _pastTime          = {}
+		,          string  filterPrefix       = ""
+		,          string  parentPropertyName = ""
+	) {
+		return websiteUserActionService.getUserPerformedActionFilter(
+			  action             = "submitform"
+			, type               = "formbuilder"
+			, has                = arguments._has
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, identifiers        = arguments.forms.listToArray()
+			, allIdentifiers     = arguments._all
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
+	}
+
 }
