@@ -12,6 +12,7 @@ component {
 	/**
 	 * @templates.fieldtype     object
 	 * @templates.object        email_template
+	 * @templates.objectFilters webUserEmailTemplates
 	 * @templates.multiple      true
 	 * @action.fieldtype        enum
 	 * @action.enum             emailAction
