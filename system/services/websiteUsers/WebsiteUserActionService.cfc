@@ -233,9 +233,20 @@ component displayName="Website user action service" {
 		,          string  datefrom           = ""
 		,          string  dateto             = ""
 		,          array   identifiers        = []
+		,          boolean allIdentifiers     = false
 		,          string  filterPrefix       = ""
 		,          string  parentPropertyName = ""
 	) {
+		if ( arguments.identifiers.len() > 1 && arguments.allIdentifiers ) {
+			var filters = [];
+
+			for( var identifier in arguments.identifiers ) {
+				filters.append( getUserPerformedActionFilter( argumentCollection=arguments, identifiers=[ identifier ] ), true );
+			}
+
+			return filters;
+		}
+
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var subqueryFilter = "actions.action = :action#paramSuffix# and actions.type = :type#paramSuffix#";
 		var subqueryAlias  = "actioncount" & paramSuffix;

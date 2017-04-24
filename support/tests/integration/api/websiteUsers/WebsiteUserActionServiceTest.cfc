@@ -523,6 +523,57 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( filter ).toBe( expected );
 			} );
+
+			it( "should return multiple individual identifier filters when more than one identifier and 'allIdentifiers' is true", function(){
+				var service          = _getService();
+				var testAction       = CreateUUId();
+				var testType         = CreateUUId();
+				var identifiers      = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+				var dummySubquerySql = CreateUUId();
+				var from             = DateAdd( "d", -8, Now() );
+				var to               = Now();
+				var expected         = [{}];
+
+				for( var i=1; i<=identifiers.len(); i++ ) {
+					expected[ i ].filter       = "actionCount#testFilterSuffix#.action_count > 0";
+					expected[ i ].filterParams = {
+						  "action#testFilterSuffix#"      = { type="cf_sql_varchar"  , value=testAction                }
+						, "type#testFilterSuffix#"        = { type="cf_sql_varchar"  , value=testType                  }
+						, "identifiers#testFilterSuffix#" = { type="cf_sql_varchar"  , value=identifiers[i], list=true }
+						, "datefrom#testFilterSuffix#"    = { type="cf_sql_timestamp", value=from                      }
+						, "dateto#testFilterSuffix#"      = { type="cf_sql_timestamp", value=to                        }
+					};
+					expected[ i ].extraJoins   = [ {
+						  type           = "left"
+						, subQuery       = dummySubquerySql
+						, subQueryAlias  = "actionCount" & testFilterSuffix
+						, subQueryColumn = "id"
+						, joinToTable    = "website_user"
+						, joinToColumn   = "id"
+					} ];
+
+				}
+
+				mockUserDao.$( "selectData" ).$args(
+					  selectFields        = [ "Count( actions.id ) as action_count", "website_user.id" ]
+					, filter              = "actions.action = :action#testFilterSuffix# and actions.type = :type#testFilterSuffix# and actions.datecreated >= :datefrom#testFilterSuffix# and actions.datecreated <= :dateto#testFilterSuffix# and actions.identifier in ( :identifiers#testFilterSuffix# )"
+					, groupby             = "website_user.id"
+					, getSqlAndParamsOnly = true
+					, forceJoins          = "inner"
+				).$results( { sql=dummySubquerySql, params={} } );
+
+
+				var filter = service.getUserPerformedActionFilter(
+					  action         = testAction
+					, type           = testType
+					, dateFrom       = from
+					, dateTo         = to
+					, identifiers    = identifiers
+					, allIdentifiers = true
+				);
+
+				expect( filter ).toBe( expected );
+			} );
 		} );
 	}
 
