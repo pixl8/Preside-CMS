@@ -61,6 +61,7 @@ component displayName="Rules Engine Filter Service" {
 				}
 
 				params.append( subFilter.filterParams );
+				extraJoins.append( subFilter.extraJoins, true );
 			} else {
 				var rawFilters = _getExpressionService().prepareExpressionFilters(
 					  expressionId     = expressionArray[i].expression ?: ""
@@ -111,6 +112,7 @@ component displayName="Rules Engine Filter Service" {
 		}
 
 		var returnValue = { filterParams=params, extraJoins=extraJoins };
+
 		if ( isHaving ) {
 			returnValue.having = Trim( sql );
 		} else {
