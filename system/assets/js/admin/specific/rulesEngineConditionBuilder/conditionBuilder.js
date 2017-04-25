@@ -1,10 +1,11 @@
 ( function( $ ){
 
-	var expressionLib        = cfrequest.rulesEngineExpressions         || {}
-	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || ""
-	  , editFieldEndpoint    = cfrequest.rulesEngineEditFieldEndpoint   || ""
-	  , filterCountEndpoint  = cfrequest.rulesEngineFilterCountEndpoint || ""
-	  , context              = cfrequest.rulesEngineContext             || "global";
+	var expressionLib       = cfrequest.rulesEngineExpressions         || {}
+	  , renderFieldEndpoint = cfrequest.rulesEngineRenderFieldEndpoint || ""
+	  , editFieldEndpoint   = cfrequest.rulesEngineEditFieldEndpoint   || ""
+	  , filterCountEndpoint = cfrequest.rulesEngineFilterCountEndpoint || ""
+	  , contextData         = cfrequest.rulesEngineContextData         || {}
+	  , context             = cfrequest.rulesEngineContext             || "global";
 
 	var RulesEngineCondition = (function() {
 		function RulesEngineCondition( $formControl, expressions, $ruleList, isFilter, $filterCount, objectName ) {
@@ -296,7 +297,7 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
+			iframeUrl += qsDelim + $.param( $.extend( {}, contextData, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};

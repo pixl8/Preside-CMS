@@ -24,6 +24,7 @@ component {
 		     	, rulesEngineRenderFieldEndpoint = event.buildAdminLink( linkTo="rulesengine.ajaxRenderField" )
 		     	, rulesEngineEditFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
 		     	, rulesEngineContext             = args.ruleContext
+		     	, rulesEngineContextData         = args.contextData ?: {}
 		      }  );
 
 		return renderView( view="/formControls/rulesEngineConditionBuilder/index", args=args );
