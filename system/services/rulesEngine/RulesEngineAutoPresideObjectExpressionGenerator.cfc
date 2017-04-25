@@ -260,6 +260,9 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
 		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
@@ -279,6 +282,9 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
 		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
@@ -298,6 +304,8 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
 
 		expression.expressionHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo                = propertyDefinition.relatedTo;
@@ -327,6 +335,10 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.OneToManyMatch.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.OneToManyMatch.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
 		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
@@ -350,6 +362,9 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyCount.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToManyCount.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
 		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
@@ -369,6 +384,9 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyHas.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToManyHas.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
 		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
@@ -388,6 +406,9 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.OneToManyCount.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.OneToManyCount.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
 		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
@@ -411,6 +432,9 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.OneToManyHas.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.OneToManyHas.getText"
 		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
 		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
