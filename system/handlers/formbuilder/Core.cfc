@@ -14,11 +14,19 @@ component {
 		}
 
 		var submission       = event.getCollectionWithoutSystemVars();
+
+		// for use in formbuilder context
+		prc.formbuilderSubmission = {
+			  id   = formId
+			, data = submission
+		};
+
 		var validationResult = formBuilderService.saveFormSubmission(
 			  formId      = formId
 			, requestData = submission
 			, instanceId  = ( rc.instanceId ?: "" )
 		);
+
 
 		if ( event.isAjax() ) {
 			if ( validationResult.validated() ) {

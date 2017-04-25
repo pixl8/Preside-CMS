@@ -3,7 +3,7 @@ component {
 	property name="formBuilderService" inject="formBuilderService";
 
 	public string function index( event, rc, prc, args={} ) {
-		var formId    = rc[ args.formIdField ?: "" ] ?: ( rc.formId ?: ( rc.id ?: "" ) );
+		var formId    = args.formId ?: ( rc[ args.formIdField ?: "" ] ?: ( rc.formId ?: ( rc.id ?: "" ) ) );
 		var itemTypes = ( args.itemTypes ?: "" ).listToArray();
 		var items     = formBuilderService.getFormItems(
 			  id        = formId
