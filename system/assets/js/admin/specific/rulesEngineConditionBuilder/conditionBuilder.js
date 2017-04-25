@@ -183,7 +183,9 @@
 			};
 
 			for( fieldName in expression.fields ){
-				if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
+				if ( typeof contextData[ fieldName ] !== "undefined" ) {
+					newExpression.fields[ fieldName ] = contextData[ fieldName ];
+				} else if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
 					newExpression.fields[ fieldName ] = null;
 				} else {
 					newExpression.fields[ fieldName ] = expression.fields[ fieldName ].default;
