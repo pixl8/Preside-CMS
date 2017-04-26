@@ -1,5 +1,5 @@
 <cfscript>
-	msgBox = getPlugin("MessageBox");
+	msgBox = getModel( "messagebox@cbmessagebox" );
 	msg = Duplicate( msgBox.getMessage() );
 	msgBox.clearMessage();
 

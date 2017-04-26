@@ -26,10 +26,13 @@
         }
     ],
     "dependencies":{
-        "sticker":"github:pixl8/sticker#v1.1.0",
+        "sticker":"1.1.0",
         "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v0.8.3",
-        "coldbox-standalone-3.8.2":"http://integration.stg.ortussolutions.com/artifacts/ortussolutions/coldbox/3.8.2/coldbox-standalone-3.8.2.zip",
-        "presidecmseditor":"github:pixl8/Preside-Editor#4.5.8"
+        "coldbox":"4.3.0+188",
+        "presidecmseditor":"github:pixl8/Preside-Editor#4.5.8",
+        "cbi18n":"1.3.1+56",
+        "cbmessagebox":"2.2.0+10",
+        "cbstorages":"1.3.0+14"
     },
     "devDependencies":{
         "testbox":"2.3.0+00044"
@@ -37,9 +40,12 @@
     "installPaths":{
         "sticker":"system/externals/sticker",
         "lucee-spreadsheet":"system/externals/lucee-spreadsheet",
-        "coldbox-standalone-3.8.2":"system/externals/coldbox-standalone-3.8.2",
+        "coldbox":"system/externals/coldbox",
         "testbox":"support/tests/testbox",
-        "presidecmseditor":"system/assets/ckeditor"
+        "presidecmseditor":"system/assets/ckeditor",
+        "cbi18n":"system/modules/cbi18n",
+        "cbmessagebox":"system/modules/cbmessagebox",
+        "cbstorages":"system/modules/cbstorages"
     },
     "ignore":[
         ".git/*",

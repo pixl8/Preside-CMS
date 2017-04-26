@@ -24,7 +24,7 @@ component {
 			, handlerCaching            = true
 			, eventCaching              = true
 			, requestContextDecorator   = "preside.system.coldboxModifications.RequestContextDecorator"
-			, UDFLibraryFile            = _getUdfFiles()
+			, applicationHelper         = _getUdfFiles()
 			, pluginsExternalLocation   = "preside.system.plugins"
 			, viewsExternalLocation     = "/preside/system/views"
 			, layoutsExternalLocation   = "/preside/system/layouts"
@@ -129,8 +129,8 @@ component {
 		logbox = {
 			appenders = {
 				defaultLogAppender = {
-					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
-					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
+					  class      = 'coldbox.system.logging.appenders.RollingFileAppender'
+					, properties = { filePath=settings.logsMapping, filename="coldbox.log", async=true }
 				},
 				taskmanagerRequestAppender = {
 					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'

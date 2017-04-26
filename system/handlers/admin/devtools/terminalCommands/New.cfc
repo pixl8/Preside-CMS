@@ -1,6 +1,6 @@
 component hint="Create various preside system entities such as widgets and page types" {
 
-	property name="jsonRpc2Plugin"     inject="coldbox:myPlugin:JsonRpc2";
+	property name="jsonRpc2Plugin"     inject="JsonRpc2";
 	property name="scaffoldingService" inject="scaffoldingService";
 
 	private function index( event, rc, prc ) {

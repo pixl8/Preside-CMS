@@ -2,7 +2,7 @@ component output=false singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject sessionStorage
 	 */
 	public any function init( required any sessionStorage, numeric tokenExpiryInSeconds=1200 ) output=false {
 		_setSessionStorage( arguments.sessionStorage );

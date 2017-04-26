@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="notificationService" inject="notificationService";
-	property name="messageBox"          inject="coldbox:plugin:messageBox";
+	property name="messageBox"          inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
@@ -26,7 +26,7 @@ component extends="preside.system.base.AdminHandler" {
 		var checkboxCol         = [];
 		var optionsCol          = [];
 		var gridFields          = [ "topic", "data", "datecreated" ];
-		var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
+		var dtHelper            = getModel( "JQueryDatatablesHelpers" );
 		var totalNotifications  = notificationService.getNotificationsCount(
 			  userId = event.getAdminUserId()
 			, topic  = topic
