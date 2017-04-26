@@ -25,6 +25,7 @@ component {
 		var formItem        = formBuilderService.getFormItem( arguments.fbFormField );
 		var fieldName       = formItem.configuration.name ?: "";
 		var submittedValues = ( submissionData[ fieldName ] ?: "" ).listToArray();
+		var valuesToMatch   = arguments.value.listToArray();
 
 		for( var valueToMatch in valuesToMatch ) {
 			var found = submittedValues.findNoCase( valueToMatch );
