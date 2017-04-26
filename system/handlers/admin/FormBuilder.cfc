@@ -178,7 +178,7 @@ component extends="preside.system.base.AdminHandler" {
 			if ( action.count() ) {
 				prc.savedData = action.configuration;
 				prc.savedData.condition = action.condition;
-				prc.formId = action.formId;
+				rc.formId = action.formId;
 			}
 		}
 

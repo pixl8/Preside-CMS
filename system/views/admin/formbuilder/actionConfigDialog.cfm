@@ -1,8 +1,8 @@
 <cfscript>
 	configFormName = prc.actionConfig.configFormName ?: "";
 	savedData      = prc.savedData ?: {};
-	action         = rc.action   ?: "";
-	fbFormId       = prc.formId  ?: "";
+	action         = rc.action     ?: "";
+	fbFormId       = rc.formId     ?: "";
 	formId         = "configform-" & CreateUUId();
 </cfscript>
 
