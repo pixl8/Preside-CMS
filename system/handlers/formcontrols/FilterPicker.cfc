@@ -24,7 +24,7 @@ component  {
 		if ( IsTrue( args.quickAdd ?: "" ) ) {
 			args.quickAddUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickAddFilterForm"
-				, querystring = "filter_object=#filterObject#&multiple=#multiple#"
+				, querystring = "filter_object=#filterObject#&multiple=#multiple#&contextData=" & UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) )
 			);
 		}
 		if ( IsTrue( args.quickEdit ?: "" ) ) {

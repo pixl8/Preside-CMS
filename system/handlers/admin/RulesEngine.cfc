@@ -371,6 +371,14 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickAddConditionForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
+		prc.contextData  = {};
+
+		try {
+			prc.contextData = DeSerializeJson( rc.contextData ?: "" );
+			if ( !IsStruct( prc.contextData ) ) {
+				prc.contextData = {};
+			}
+		} catch( any e ) {}
 
 		event.setView( view="/admin/rulesEngine/quickAddConditionForm", layout="adminModalDialog" );
 	}
@@ -459,6 +467,15 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickAddFilterForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
+		prc.contextData  = {};
+
+		try {
+			prc.contextData = DeSerializeJson( rc.contextData ?: "" );
+			if ( !IsStruct( prc.contextData ) ) {
+				prc.contextData = {};
+			}
+		} catch( any e ) {}
+
 		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
 		event.setView( view="/admin/rulesEngine/quickAddFilterForm", layout="adminModalDialog" );
 	}

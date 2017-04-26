@@ -76,13 +76,17 @@ component {
 				  "id"
 				, "action_type"
 				, "configuration"
+				, "condition"
+				, "form"
 			  ]
 		);
 
 		for( var item in items ) {
 			return {
 				  id            = item.id
+				, formId        = item.form
 				, action        = getActionConfig( item.action_type )
+				, condition     = item.condition
 				, configuration = DeSerializeJson( item.configuration )
 			};
 		}
