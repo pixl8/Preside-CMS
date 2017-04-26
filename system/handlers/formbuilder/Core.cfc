@@ -20,6 +20,7 @@ component {
 			, instanceId  = ( rc.instanceId ?: "" )
 		);
 
+
 		if ( event.isAjax() ) {
 			if ( validationResult.validated() ) {
 				var successMessage = renderViewlet( event="formbuilder.core.successMessage", args={ formId=formId } );

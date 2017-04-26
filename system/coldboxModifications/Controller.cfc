@@ -24,10 +24,18 @@ component extends="coldbox.system.web.Controller" output=false {
 		try {
 			handlerSvc = getHandlerService();
 			handler = handlerSvc.getRegisteredHandler( event=arguments.event );
+
 			if ( handler.getViewDispatch() ) {
 				cache.set( cacheKey, false );
 				return false;
 			}
+
+			var fullEvent = handler.getFullEvent();
+			if ( fullEvent != arguments.event && fullEvent != ( arguments.event & ".index" ) ) {
+				cache.set( cacheKey, false );
+				return false;
+			}
+
 			handler = handlerSvc.getHandler( handler, getRequestContext() );
 			handler = GetMetaData( handler );
 			if ( Right( handler.fullname ?: "", Len( arguments.event ) ) eq arguments.event ) {
@@ -73,7 +81,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var defaultAction = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
 
 		if ( not handlerExists( handler ) ) {
-			handler = ListAppend( handler, defaultAction, "." )
+			handler = ListAppend( handler, defaultAction, "." );
 		}
 
 		if ( handlerExists( handler ) ) {

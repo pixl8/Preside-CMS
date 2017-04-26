@@ -20,11 +20,13 @@
 	formAction          = prc.formAction       ?: event.buildAdminLink( linkTo='datamanager.translateRecordAction');
 	formId              = "translate-record-form";
 
-	draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
-	canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
-	canPublish    = IsTrue( prc.canPublish    ?: "" )
+	draftsEnabled = IsTrue( prc.draftsEnabled ?: "" );
+	canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
+	canPublish    = IsTrue( prc.canPublish    ?: "" );
 
-
+	stripPermissionedFields = IsTrue( prc.stripPermissionedFields ?: true );
+	permissionContext       = prc.permissionContext       ?: object;
+	permissionContextKeys   = prc.permissionContextKeys   ?: [];
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -69,11 +71,14 @@
 		</cfif>
 
 		#renderForm(
-			  formName           = formName
-			, context            = "admin"
-			, formId             = formId
-			, savedData          = prc.record ?: {}
-			, validationResult   = rc.validationResult ?: ""
+			  formName                = formName
+			, context                 = "admin"
+			, formId                  = formId
+			, savedData               = prc.record ?: {}
+			, validationResult        = rc.validationResult ?: ""
+			, stripPermissionedFields = stripPermissionedFields
+			, permissionContext       = permissionContext
+			, permissionContextKeys   = permissionContextKeys
 		)#
 
 		<div class="col-md-offset-2">
@@ -85,17 +90,17 @@
 			<cfif draftsEnabled>
 				<cfif canSaveDraft>
 					<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.draft.btn", data=[ LCase( objectTitleSingular ) ] )#
+						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.draft.btn", data=[  objectTitleSingular  ] )#
 					</button>
 				</cfif>
 				<cfif canPublish>
 					<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-						<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.publish.btn", data=[ LCase( objectTitleSingular ) ] )#
+						<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.publish.btn", data=[  objectTitleSingular  ] )#
 					</button>
 				</cfif>
 			<cfelse>
 				<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.btn", data=[ LCase( objectTitleSingular ) ] )#
+					<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.btn", data=[  objectTitleSingular  ] )#
 				</button>
 			</cfif>
 		</div>

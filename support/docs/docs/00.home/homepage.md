@@ -12,7 +12,8 @@ Welcome to the official [PresideCMS](http://www.presidecms.com) documentation fo
 * [[devguides]] for detailed guides
 * [[reference]] for looking up specific functions, forms, etc.
 * [[contribguides]] for help with getting involved
-* [[about]] for help with edting the docs
+* [[upgradenotes]] for detailed notes on major upgrades
+* [[about]] for help with editing the docs
 
 
 ## Getting help

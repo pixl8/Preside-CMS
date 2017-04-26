@@ -7,7 +7,7 @@
 	gridFieldTitles = prc.gridFieldTitles ?: [];
 
 	objectTitle    = translateResource( uri="page-types.#pageType#:name", defaultValue=pageType );
-	addRecordTitle = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitle ) ] );
+	addRecordTitle = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitle ] );
 
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");

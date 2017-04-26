@@ -2,7 +2,7 @@
 	param name="args.objectName"    type="string";
 	param name="args.datasourceUrl" type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="action=dataManager.getRecordHistoryForAjaxDataTables&object=#args.objectName#&id=#id#" );
 
-	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
+	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	gridFields           = [ /* TODO */ ];
 
 	event.include( "/js/admin/specific/datamanager/object/");

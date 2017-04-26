@@ -3,6 +3,7 @@
 	var $searchBox = $( "#presidecms-docs-search-input" )
 	  , $searchLink = $( ".search-link" )
 	  , $searchContainer = $( ".search-container" )
+	  , duckduckgoUrl = "https://duckduckgo.com/?q=site:docs.presidecms.com "
 	  , setupTypeahead, setupBloodhound, renderSuggestion
 	  , itemSelectedHandler, tokenizer, generateRegexForInput, search, searchIndex;
 
@@ -42,7 +43,8 @@
 
 	search = function( input ){
 		var reg     = generateRegexForInput( input )
-		  , matches;
+		  , fulltextitem, matches;
+
 
 		matches = searchIndex.filter( function( item ) {
 			var titleLen = item.text.length
@@ -67,9 +69,24 @@
 			}
 		} );
 
-		return matches.sort( function( a, b ){
+		matches = matches.sort( function( a, b ){
 			return ( a.score - b.score ) || a.text.length - b.text.length;
 		} );
+
+		fulltextitem = {
+			  value     : duckduckgoUrl + encodeURIComponent( input )
+			, text      : 'Search all docs for "' + input + '"'
+			, highlight : '<em>Search all docs for <strong>"' + input + '</strong>"</em>'
+			, score     : 1000000
+			, icon      : "search"
+			, type      : ""
+		};
+		fulltextitem.display = fulltextitem.text;
+		matches.unshift( fulltextitem );
+
+		console.log( matches );
+
+		return matches;
 	}
 
 	generateRegexForInput = function( input ){

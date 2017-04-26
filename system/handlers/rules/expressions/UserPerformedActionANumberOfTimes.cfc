@@ -3,6 +3,7 @@
  *
  * @feature websiteUsers
  * @expressionContexts user
+ * @expressionCategory website_user
  */
 component {
 
@@ -34,6 +35,32 @@ component {
 		var result = rulesEngineOperatorService.compareNumbers( actionCount, arguments._numericOperator, arguments.times );
 
 		return _has ? result : !result;
+	}
+
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  action
+		, required numeric times
+		,          boolean _has               = true
+		,          string  _numericOperator   = "eq"
+		,          struct  _pastTime          = {}
+		,          string  filterPrefix       = ""
+		,          string  parentPropertyName = ""
+	) {
+		return websiteUserActionService.getUserPerformedActionFilter(
+			  action             = ListRest( arguments.action, "." )
+			, type               = ListFirst( arguments.action, "." )
+			, has                = arguments._has
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, qty                = arguments.times
+			, qtyOperator        = arguments._numericOperator
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
 	}
 
 }

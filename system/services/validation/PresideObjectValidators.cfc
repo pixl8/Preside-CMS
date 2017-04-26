@@ -27,11 +27,7 @@ component output=false validationProvider=true singleton=true {
 		}
 
 		for( field in ListToArray( arguments.fields ) ){
-			if ( not StructKeyExists( arguments.data, field ) ) {
-				return false;
-			}
-
-			if ( !Len( Trim( arguments.data[ field ] ) ) ) {
+			if ( !StructKeyExists( arguments.data, field ) || !Len( Trim( arguments.data[ field ] ) ) ) {
 				return true; // yes! a unique index should be by-passed when any field is null
 			}
 

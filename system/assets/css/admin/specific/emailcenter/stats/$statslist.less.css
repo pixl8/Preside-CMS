@@ -1,0 +1,20 @@
+.presidecms .email-stats-list {
+  display: table-row;
+  float: right;
+  margin: 0 0 10px;
+}
+.presidecms .email-stats-list dt,
+.presidecms .email-stats-list dd {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 0px 1em;
+}
+.presidecms .email-stats-list dt {
+  font-weight: normal;
+}
+.presidecms .email-stats-list dd {
+  border-right: 1px dotted #dddddd;
+}
+.presidecms .email-stats-list dd:last-child {
+  border-right: none;
+}

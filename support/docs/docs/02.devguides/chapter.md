@@ -16,7 +16,7 @@ In this chapter, you should find detailed guides on developing with the PresideC
 * [[cmspermissioning]]
 * [[websiteusersandpermissioning]]
 * [[editablesystemsettings]]
-* [[emailtemplating]]
+* [[emailtemplatingv2]]
 * [[notifications]]
 * [[customerrorpages]]
 * [[sitetreenavigationmenus]]
@@ -34,3 +34,4 @@ In this chapter, you should find detailed guides on developing with the PresideC
 * [[auditing]]
 * [[rulesengine]]
 * [[drafts]]
+* [[labelrenderers]]

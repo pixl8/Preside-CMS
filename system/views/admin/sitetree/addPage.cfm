@@ -2,7 +2,7 @@
 	parentPage       = prc.parentPage      ?: QueryNew('');
 	mainFormName     = prc.mainFormName    ?: "";
 	mergeFormName    = prc.mergeFormName   ?: "";
-	validationResult = rc.validationResult ?: ""
+	validationResult = rc.validationResult ?: "";
 	formId           = "addForm-" & CreateUUId();
 	addPagePrompt    = translateResource( uri="preside-objects.page:addRecord.prompt", defaultValue="" );
 
@@ -28,11 +28,14 @@
 		<input type="hidden" name="page_type"   value="#( rc.page_type   ?: '')#" />
 
 		#renderForm(
-			  formName          = mainFormName
-			, mergeWithFormName = mergeFormName
-			, context           = "admin"
-			, formId            = formId
-			, validationResult  = validationResult
+			  formName                = mainFormName
+			, mergeWithFormName       = mergeFormName
+			, context                 = "admin"
+			, formId                  = formId
+			, validationResult        = validationResult
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
 
 		<div class="form-actions row">

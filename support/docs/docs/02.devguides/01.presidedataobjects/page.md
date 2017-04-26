@@ -14,7 +14,7 @@ The Preside Data Objects system is deeply integrated into the CMS:
 *  The Data Manager provides a GUI for managing your client specific data and is based on entirely on Preside Data Objects
 * Your preside objects can have their data tied to individual [[workingwithmultiplesites]], without the need for any extra programming of site filters.
 
-The following guide is intended as a thorough overview of Preside Data Objects. For API reference documentation.
+The following guide is intended as a thorough overview of Preside Data Objects. For API reference documentation, see [[api-presideobjectservice]].
 
 ## Object CFC Files
 
@@ -117,13 +117,16 @@ While you can add any arbitrary attributes to properties (and use them for your 
             <tr><td>maxValue</td>             <td>No</td>  <td>*N/A*</td>     <td>The maximum numeric value of data that can be saved to this field. *For numeric types only*.</td>                                                                                                                                                                    </tr>
             <tr><td>format</td>               <td>No</td>  <td>*N/A*</td>     <td>Either a regular expression or named validation filter (reference needed) to validate the incoming data for this field</td>                                                                                                                                          </tr>
             <tr><td>pk</td>                   <td>No</td>  <td>**false**</td> <td>Whether or not this field is the primary key for the object, *one field per object*. By default, your object will have an *id* field that is defined as the primary key. See :ref:`preside-objects-default-properties` below.</td>                                   </tr>
-            <tr><td>generator</td>            <td>No</td>  <td>"none"</td>    <td>Named generator for generating a value for this field when inserting a new record with the value of this field ommitted. Valid values are *increment* and *UUID*. Useful for primary key generation.</td>                                                            </tr>
+            <tr><td>generator</td>            <td>No</td>  <td>"none"</td>    <td>Named generator for generating a value for this field when inserting/updating a record with the value of this field ommitted. See "Generated fields", below.</td>
+            <tr><td>generate</td>             <td>No</td>  <td>"never"</td>   <td>If using a generator, indicates when to generate the value. Valid values are "never", "insert" and "always".</td>
+            <tr><td>formula</td>              <td>No</td>  <td>""</td>        <td>Allows you to define a field that does not exist in the database, but can be selected and used in the application. This attribute should consist of arbitrary SQL to produce a value. See "Formula fields", below.</td>
             <tr><td>relationship</td>         <td>No</td>  <td>"none"</td>    <td>Either *none*, *many-to-one* or *many-to-many*. See :ref:`preside-objects-relationships`, below.</td>                                                                                                                                                                </tr>
             <tr><td>relatedTo</td>            <td>No</td>  <td>"none"</td>    <td>Name of the Preside Object that the property is defining a relationship with. See :ref:`preside-objects-relationships`, below.</td>                                                                                                                                  </tr>
             <tr><td>relatedVia</td>           <td>No</td>  <td>""</td>        <td>Name of the object through which a many-to-many relationship will pass. If it does not exist, the system will created it for you.  See :ref:`preside-objects-relationships`, below.</td>                                                                             </tr>
             <tr><td>relationshipIsSource</td> <td>No</td>  <td>**true**</td>  <td>In a many-to-many relationship, whether or not this object is regarded as the "source" of the relationship. If not, then it is regarded as the "target". See :ref:`preside-objects-relationships`, below.</td>                                                       </tr>
             <tr><td>relatedViaSourceFk</td>   <td>No</td>  <td>""</td>        <td>The name of the source object's foreign key field in a many-to-many relationship's pivot table. See :ref:`preside-objects-relationships`, below.</td>                                                                                                                </tr>
             <tr><td>relatedViaTargetFk</td>   <td>No</td>  <td>""</td>        <td>The name of the target object's foreign key field in a many-to-many relationship's pivot table. See :ref:`preside-objects-relationships`, below.</td>                                                                                                                </tr>
+            <tr><td>enum</td>                 <td>No</td>  <td>""</td>        <td>The name of the configured enum to use with this field. See "ENUM properties", below.</tr>
         </tbody>
     </table>
 </div>
@@ -234,6 +237,127 @@ component  {
         return LCase( ReReplace( data.label ?: "", "\W", "_", "all" ) );
     }
 }
+```
+
+>>> As of Preside 10.8.0, this approach is deprecated and you should use generated fields instead (see below)
+
+### Generated fields
+
+As of **10.8.0**, generators allow you to dynamically generate the value of a property when a record is first being inserted and, optionally, when a record is updated. The `generate` attribute of a property dictates _when_ to use a generator. Valid values are:
+
+* `never` (default), never generate the value
+* `insert`, only generate a value when a record is first inserted
+* `always`, generate a value on both insert and update of records
+
+The `generator` attribute itself then allows you to use a system pre-defined generator or use your own by prefixing the generator with `method:` (the method name that follows should be defined on your object). For example:
+
+```luceescript
+component {
+    // ...
+
+    property name="alternative_pk"   type="string" dbtype="varchar" maxlength=35 generate="insert" generator="UUID";
+    property name="description"      type="string" dbtype="text";
+    property name="description_hash" type="string" dbtype="varchar" maxlength=32 generate="always" generator="method:hashDescription";
+
+    // ...
+
+    // The method will receive a single argument that is the struct 
+    // of data passed to the insertData() or updateData() methods
+    public any function hashDescription( required struct changedData ) {
+        if ( changedData.keyExists( "description" ) ) {
+            if ( changedData.description.len() ) {
+                return Hash( changedData.description );
+            }
+
+            return "";
+        }
+        return; // return NULL to not alter the value when no description is being updated
+    }
+}
+```
+
+The core system provides you with three named generators:
+
+* `UUID` - uses `CreateUUId()` to generate a UUID for your field. This is used by default for the primary key in preside objects.
+* `timestamp` - uses `Now()` to auto generate a timestamp for your field
+* `hash` - used in conjunction with a `generateFrom` attribute that should be a list of other properties which to concatenate and generate an MD5 hash from
+
+### Formula fields
+
+Properties that define a formula are not generated as fields in your database tables. Instead, they are made available to your application to be selected in `selectData` queries. The value of the `formula` attribute should be a valid SQL statement that can be used in a SQL `select` statement and include `${prefix}` tokens before any field definitions (see below for an explanation). For example:
+
+```luceescript
+/**
+ * @datamanagerGridFields title,comment_count,datemodified
+ *
+ */
+component {
+    // ...
+
+    property name="comments" relationship="one-to-many" relatedto="article_comment";
+    property name="comment_count" formula="Count( distinct ${prefix}comments.id )" type="numeric";
+
+    // ...
+}
+```
+
+```luceescript
+articles = articleDao.selectData(
+    selectFields = [ "id", "title", "comment_count" ]
+);
+```
+
+Formula fields can also be used in your DataManager data grids and be assigned labels in your object's i18n `.properties` file.
+
+>>> Note that formula fields are only selected when _explicitly defined_ in your `selectFields`. If you leave `selectData` to return "all" fields, only the properties that are stored in the database will be returned.
+
+#### Formula ${prefix} token
+
+The `${prefix}` token in formula fields allows your formula field to be used in more complex select queries that traverse your data model's relationships. Another example, this time a `person` cfc:
+
+```luceescript
+component {
+    // ...
+    property name="first_name" ...;
+    property name="last_name"  ...;
+
+    property name="full_name" formula="Concat( ${prefix}first_name, ' ', ${prefix}last_name )";
+    // ... 
+}
+```
+Now, let us imagine we have a company object, with an "employees" `one-to-many` property that relates to our `person` object above. We may want to select employees from a company:
+
+```luceescript
+var employees = companyDao.selectData(
+      id           = arguments.companyId
+    , selectFields = [ "employees.id", "employees.full_name" ]
+);
+```
+
+The `${prefix}` token allows us to take the `employees.` prefix of the `full_name` field and replace it so that the final select SQL becomes: `Concat( employees.first_name, ' ', employees.last_name )`. Without a `${prefix}` token, your formula field will only work when selecting directly from the object in which the property is defined, it will not work when traversing relationships as with the example above.
+
+
+### ENUM properties
+
+Properties defined with an `enum` attribute implement an application enforced ENUM system. Named ENUM types are defined in your application's `Config.cfc` and can then be attributed to a property which then automatically limits and validates the options that are available to the field. ENUM options are saved to the database as a plain string; we avoid any mapping with integer values to keep the implementation portable and simple. Example ENUM definitions in `Config.cfc`:
+
+```luceescript
+settings.enum = {};
+settings.enum.redirectType                = [ "301", "302" ];
+settings.enum.pageAccessRestriction       = [ "inherit", "none", "full", "partial" ];
+settings.enum.pageIframeAccessRestriction = [ "inherit", "block", "sameorigin", "allow" ];
+```
+
+In addition to the `Config.cfc` definition, each ENUM type should have a corresponding `.properties` file to define the labels and optional description of each item. The file must live at `/i18n/enum/{enumTypeId}.properties`. For example:
+
+
+```properties
+# /i18n/enum/redirectType.properties
+301.label=301 Moved Permanently
+301.description=A 301 redirect indicates that the resource has been *permanently* moved to the new locations. This is particularly important to use for moved content as it instructs search engines to index the new location, potentially without losing any SEO rankings. Browsers will aggressively cache these redirects to avoid wasted calls to a URL that it has been told is moved.
+
+302.label=302 Found (Temporary redirect)
+302.description=A 302 redirect indicates that the resource has been *temporarily* moved to the new location. Use this only when you know that you will/might reinstate the original source URL at some point in time.
 ```
 
 ### Defining relationships with properties
@@ -510,6 +634,7 @@ In addition to the four core methods above, there are also further utility metho
 * [[presideobjectservice-syncmanytomanydata]]
 * [[presideobjectservice-getdenormalizedmanytomanydata]]
 * [[presideobjectservice-getrecordversions]]
+* [[presideobjectservice-insertdatafromselect]]
 
 
 #### Specifying fields for selection
@@ -551,7 +676,7 @@ records = newsObject.selectData( filter={
 } );
 ```
 
->>> The funky looking `category$tag.label` is expressing a filter across related objects - in this case **news** -> **category** -> **tag**. We are filtering news items whos category is tagged with a tag who's label field = "red".
+>>> The funky looking `category$tag.label` is expressing a filter across related objects - in this case **news** -> **category** -> **tag**. We are filtering news items whos category is tagged with a tag whose label field = "red".
 
 ##### Complex filters
 
@@ -608,7 +733,7 @@ component {
 ##### Auto join example
 
 ```luceescript
-// update news items who's category tag = "red"
+// update news items whose category tag = "red"
 presideObjectService.updateData(
       objectName = "news"
     , data       = { archived = true }
@@ -619,7 +744,7 @@ presideObjectService.updateData(
 ##### Property name examples
 
 ```luceescript
-// delete news items who's category label = "red"
+// delete news items whose category label = "red"
 presideObjectService.deleteData(
       objectName = "news"
     , data       = { archived = true }
@@ -735,7 +860,7 @@ property name="categories" relationship="many-to-many" relatedTo="category" rela
 
 By default, when the data actually changes in your object, a new version will be created. If you wish certain fields to be ignored when it comes to determining whether or not a new version should be created, you can add a `ignoreChangesForVersioning` attribute to the property in the preside object.
 
-An example scenario for this might be an object who's data is synced with an external source on a schedule. You may add a helper property to record the last sync check date, if no other fields have changed, you probably don't want a new version record being created just for that sync check date. In this case, you could do:
+An example scenario for this might be an object whose data is synced with an external source on a schedule. You may add a helper property to record the last sync check date, if no other fields have changed, you probably don't want a new version record being created just for that sync check date. In this case, you could do:
 
 ```luceescript
 property name="_last_sync_check" type="date" dbtype="datetime" ignoreChangesForVersioning=true; 
@@ -756,3 +881,5 @@ component {
     // ...
 }
 ```
+
+>>>> As of Preside 10.8.0, this method is deprecated and you should instead use `@tenant site`. See [[data-tenancy]].

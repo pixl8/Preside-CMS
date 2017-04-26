@@ -12,10 +12,13 @@
 	prefetchUrl             = args.prefetchUrl      ?: "";
 	records                 = args.records          ?: QueryNew('');
 	searchable              = args.searchable       ?: true;
+	deselectable            = args.deselectable     ?: true;
 	multiple                = args.multiple         ?: false;
 	extraClasses            = args.extraClasses     ?: "";
-	resultTemplate          = args.resultTemplate   ?: "{{text}}";
-	selectedTemplate        = args.selectedTemplate ?: "{{text}}";
+	labelRenderer           = args.labelRenderer    ?: "";
+	defaultTemplate         = len( labelRenderer ) ? "{{{text}}}" : "{{text}}";
+	resultTemplate          = args.resultTemplate   ?: defaultTemplate;
+	selectedTemplate        = args.selectedTemplate ?: defaultTemplate;
 	disabled                = isBoolean( args.disabled ?: "" ) && args.disabled;
 	disabledValues          = args.disabledValues   ?: "";
 	quickAdd                = args.quickAdd         ?: false;
@@ -55,9 +58,13 @@
 	if ( !searchable ) {
 		extraClasses = ListAppend( extraClasses, "non-searchable", " " );
 	}
+	if ( !deselectable ) {
+		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
+	}
 
-	filterBy      = args.filterBy      ?: "";
-	filterByField = args.filterByField ?: filterBy;
+	filterBy             = args.filterBy             ?: "";
+	filterByField        = args.filterByField        ?: filterBy;
+	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
 </cfscript>
 
 <cfoutput>
@@ -72,11 +79,16 @@
 	<select class = "#inputClass# #objectPickerClass# #extraClasses#"
 			name  = "#inputName#"
 			id    = "#inputId#"
-			<cfif !isEmpty( filterBy )>
-				data-filter-by='#filterBy#'
-			</cfif>
-			<cfif !isEmpty( filterByField )>
-				data-filter-by-field='#filterByField#'
+			<cfif isBoolean( ajax ) && ajax>
+				<cfif !isEmpty( filterBy )>
+					data-filter-by='#filterBy#'
+				</cfif>
+				<cfif !isEmpty( filterByField )>
+					data-filter-by-field='#filterByField#'
+				</cfif>
+				<cfif !isEmpty( disabledIfUnfiltered )>
+					data-disabled-if-unfiltered='#disabledIfUnfiltered#'
+				</cfif>
 			</cfif>
 			<cfif disabled>disabled</cfif>
 			tabindex         = "#getNextTabIndex()#"
@@ -110,7 +122,9 @@
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<option>#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
 			<cfloop query="records">
-				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#HtmlEditFormat( records.label )#</option>
+				<cfset labelArgs=queryRowToStruct( records, records.currentRow ) />
+				<cfset labelArgs.labelRenderer = labelRenderer />
+				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#renderViewlet( event="admin.Labels.render", args=labelArgs )#</option>
 			</cfloop>
 		</cfif>
 	</select>

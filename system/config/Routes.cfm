@@ -46,6 +46,7 @@
 	addRouteHandler( getModel( dsl="delayedInjector:assetRouteHandler" ) );
 	addRouteHandler( getModel( dsl="delayedInjector:plainStoredFileRouteHandler" ) );
 	addRouteHandler( getModel( dsl="delayedInjector:staticAssetRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:emailRouteHandler" ) );
 	addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
 	addRouteHandler( getModel( dsl="delayedInjector:restRouteHandler" ) );
 	addRouteHandler( getModel( dsl="delayedInjector:standardRouteHandler" ) );

@@ -10,7 +10,7 @@
 		case "edit_folder":
 		case "trash_folder":
 		case "edit_asset_folder_admin_permissions":
-			echo( renderView( view="/renderers/content/auditLogEntry/assetFolder", args=args ) );
+			writeOutput( renderView( view="/renderers/content/auditLogEntry/assetFolder", args=args ) );
 		break;
 
 		case "add_asset":
@@ -22,7 +22,7 @@
 		case "permanently_delete_asset":
 		case "change_asset_version":
 		case "delete_asset_version":
-			echo( renderView( view="/renderers/content/auditLogEntry/asset", args=args ) );
+			writeOutput( renderView( view="/renderers/content/auditLogEntry/asset", args=args ) );
 		break;
 	}
 </cfscript>

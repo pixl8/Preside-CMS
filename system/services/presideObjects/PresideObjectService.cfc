@@ -127,46 +127,58 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint         Name of the object from which to select data
-	 * @id.hint                 ID of a record to select
-	 * @selectFields.hint       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
-	 * @filter.hint             Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @extraFilters.hint       An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
-	 * @orderBy.hint            Plain SQL order by string
-	 * @groupBy.hint            Plain SQL group by string
-	 * @maxRows.hint            Maximum number of rows to select
-	 * @startRow.hint           Offset the recordset when using maxRows
-	 * @useCache.hint           Whether or not to automatically cache the result internally
-	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
-	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
-	 * @allowDraftVersions.hint Choose whether or not to allow selecting from draft records and/or versions
-	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
-	 * @selectFields.docdefault []
-	 * @filter.docdefault       {}
-	 * @filterParams.docdefault {}
-	 * @extraFilters.docdefault []
+	 * @objectName.hint          Name of the object from which to select data
+	 * @id.hint                  ID of a record to select
+	 * @selectFields.hint        Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
+	 * @filter.hint              Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint        An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
+	 * @orderBy.hint             Plain SQL order by string
+	 * @groupBy.hint             Plain SQL group by string
+	 * @autoGroupBy.hint         Whether or not to try to automatically calculate group by fields for the query
+	 * @having.hint              Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
+	 * @maxRows.hint             Maximum number of rows to select
+	 * @startRow.hint            Offset the recordset when using maxRows
+	 * @useCache.hint            Whether or not to automatically cache the result internally
+	 * @fromVersionTable.hint    Whether or not to select the data from the version history table for the object
+	 * @specificVersion.hint     Can be used to select a specific version when selecting from the version table
+	 * @allowDraftVersions.hint  Choose whether or not to allow selecting from draft records and/or versions
+	 * @forceJoins.hint          Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @extraJoins.hint          An array of explicit joins to add to the query (can define subquery joins this way)
+	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
+	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @distinct.hint           Whether or not the record set should be a 'distinct' select
+	 * @selectFields.docdefault  []
+	 * @filter.docdefault        {}
+	 * @filterParams.docdefault  {}
+	 * @extraFilters.docdefault  []
+	 * @extraJoins.docdefault    []
 	 */
-	public query function selectData(
+	public any function selectData(
 		  required string  objectName
 		,          string  id
-		,          array   selectFields       = []
-		,          any     filter             = {}
-		,          struct  filterParams       = {}
-		,          array   extraFilters       = []
-		,          array   savedFilters       = []
-		,          string  orderBy            = ""
-		,          string  groupBy            = ""
-		,          numeric maxRows            = 0
-		,          numeric startRow           = 1
-		,          boolean useCache           = true
-		,          boolean fromVersionTable   = false
-		,          numeric specificVersion    = 0
-		,          boolean allowDraftVersions = $getRequestContext().showNonLiveContent()
-		,          string  forceJoins         = ""
-
+		,          array   selectFields        = []
+		,          any     filter              = {}
+		,          struct  filterParams        = {}
+		,          array   extraFilters        = []
+		,          array   savedFilters        = []
+		,          string  orderBy             = ""
+		,          string  groupBy             = ""
+		,          boolean autoGroupBy         = false
+		,          string  having              = ""
+		,          numeric maxRows             = 0
+		,          numeric startRow            = 1
+		,          boolean useCache            = true
+		,          boolean fromVersionTable    = false
+		,          numeric specificVersion     = 0
+		,          boolean allowDraftVersions  = $getRequestContext().showNonLiveContent()
+		,          string  forceJoins          = ""
+		,          array   extraJoins          = []
+		,          boolean recordCountOnly     = false
+		,          boolean getSqlAndParamsOnly = false
+		,          boolean distinct            = false
 	) autodoc=true {
-		var args = Duplicate( arguments );
+		var args = _cleanupPropertyAliases( argumentCollection=arguments );
 
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
@@ -199,11 +211,14 @@ component displayName="Preside Object Service" {
 		}
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
-		args.orderBy     = _parseOrderBy( args.orderBy, args.objectName, args.adapter );
+		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
 		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
+		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
+			args.groupBy = _autoCalculateGroupBy( args.selectFields );
+		}
+
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
-
 
 		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.result = _selectFromVersionTables(
@@ -211,6 +226,7 @@ component displayName="Preside Object Service" {
 				, filter             = args.preparedFilter.filter
 				, params             = args.preparedFilter.params
 				, originalTableName  = args.objMeta.tableName
+				, distinct           = args.distinct
 			);
 		} else {
 			var sql = args.adapter.getSelectSql(
@@ -219,14 +235,25 @@ component displayName="Preside Object Service" {
 				, tableAlias         = args.objectName
 				, selectColumns      = args.selectFields
 				, filter             = args.preparedFilter.filter
+				, having             = args.preparedFilter.having
 				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
+				, distinct           = args.distinct
 			);
 
-
-
+			if ( arguments.recordCountOnly ) {
+				sql = args.adapter.getCountSql( sql );
+			}
+			if ( arguments.getSqlAndParamsOnly ) {
+				return {
+					  sql    = sql
+					, params = args.preparedFilter.params
+				};
+			}
 			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
+			if ( arguments.recordCountOnly ) {
+				args.result = Val( args.result.record_count ?: "" );
+			}
 		}
-
 
 		if ( args.useCache ) {
 			_getDefaultQueryCache().set( args.cacheKey, args.result );
@@ -258,8 +285,9 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
+	 * @autodoc                      true
 	 * @objectName.hint              Name of the object in which to to insert a record
-	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
+	 * @data.hint                    Structure of data whose keys map to the properties that are defined on the object
 	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
 	 * @isDraft.hint                 Whether or not to save the record as a draft record
 	 * @useVersioning.hint           Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
@@ -281,20 +309,30 @@ component displayName="Preside Object Service" {
 			return interceptorResult.returnValue ?: "";
 		}
 
-		var obj                = _getObject( arguments.objectName ).meta;
+		var args               = _cleanupPropertyAliases( argumentCollection=arguments );
+		var obj                = _getObject( args.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
+		var dateCreatedField   = getDateCreatedField( args.objectName );
+		var dateModifiedField  = getDateModifiedField( args.objectName );
+		var idField            = getIdField( args.objectName );
 		var sql                = "";
 		var key                = "";
 		var params             = "";
 		var result             = "";
 		var newId              = "";
 		var rightNow           = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
-		var cleanedData        = _addDefaultValuesToDataSet( arguments.objectName, arguments.data );
+		var cleanedData        = _addDefaultValuesToDataSet( args.objectName, args.data );
 		var manyToManyData     = {};
-		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
+		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName );
+		var versionNumber      = 0;
 
+		cleanedData.append( _addGeneratedValues(
+			  operation  = "insert"
+			, objectName = arguments.objectName
+			, data       = cleanedData
+		) );
 		for( key in cleanedData ){
-			if ( arguments.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(many|one)\-to\-many" ) ) {
+			if ( args.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(many|one)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 			}
 			if ( not ListFindNoCase( obj.dbFieldList, key ) ) {
@@ -302,40 +340,40 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( StructKeyExists( obj.properties, "datecreated" ) and not StructKeyExists( cleanedData, "datecreated" ) ) {
-			cleanedData.datecreated = rightNow;
+		if ( StructKeyExists( obj.properties, dateCreatedField ) and not StructKeyExists( cleanedData, dateCreatedField ) ) {
+			cleanedData[ dateCreatedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, "datemodified" ) and not StructKeyExists( cleanedData, "datemodified" ) ) {
-			cleanedData.datemodified = rightNow;
+		if ( StructKeyExists( obj.properties, dateModifiedField ) and not StructKeyExists( cleanedData, dateModifiedField ) ) {
+			cleanedData[ dateModifiedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, "id" ) ) {
-			if ( not StructKeyExists( cleanedData, "id" ) or not Len( Trim( cleanedData.id ) ) ) {
-				newId = _generateNewIdWhenNecessary( generator=( obj.properties.id.generator ?: "UUID" ) );
+		if ( StructKeyExists( obj.properties, idField ) ) {
+			if ( not StructKeyExists( cleanedData, idField ) or not Len( Trim( cleanedData[idField] ) ) ) {
+				newId = _generateNewIdWhenNecessary( generator=( obj.properties[idField].generator ?: "UUID" ) );
 				if ( Len( Trim( newId ) ) ) {
-					cleanedData.id = newId;
+					cleanedData[idField]= newId;
 				}
-			} else {
-				newId = cleanedData.id;
+			}else{
+				newId = cleanedData[idField];
 			}
 		}
-		if ( objectIsVersioned( arguments.objectName ) ) {
-			cleanedData._version_is_draft = cleanedData._version_has_drafts = arguments.isDraft;
+		if ( objectIsVersioned( args.objectName ) ) {
+			cleanedData._version_is_draft = cleanedData._version_has_drafts = args.isDraft;
 		}
 
 		transaction {
 			if ( requiresVersioning ) {
-				_getVersioningService().saveVersionForInsert(
-					  objectName     = arguments.objectName
+				versionNumber = _getVersioningService().saveVersionForInsert(
+					  objectName     = args.objectName
 					, data           = cleanedData
 					, manyToManyData = manyToManyData
-					, versionNumber  = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
-					, isDraft        = arguments.isDraft
+					, versionNumber  = args.versionNumber ? args.versionNumber : getNextVersionNumber()
+					, isDraft        = args.isDraft
 				);
 			}
 
 			sql    = adapter.getInsertSql( tableName = obj.tableName, insertColumns = StructKeyArray( cleanedData ) );
 			params = _convertDataToQueryParams(
-				  objectName        = arguments.objectName
+				  objectName        = args.objectName
 				, columnDefinitions = obj.properties
 				, data              = cleanedData
 				, dbAdapter         = adapter
@@ -354,22 +392,82 @@ component displayName="Preside Object Service" {
 
 					if ( relationship == "many-to-many" ) {
 						syncManyToManyData(
-							  sourceObject   = arguments.objectName
+							  sourceObject   = args.objectName
 							, sourceProperty = key
 							, sourceId       = newId
 							, targetIdList   = manyToManyData[ key ]
 						);
 					} else if ( relationship == "one-to-many" ) {
-						syncOneToManyData(
-							  sourceObject   = arguments.objectName
-							, sourceProperty = key
-							, sourceId       = newId
-							, targetIdList   = manyToManyData[ key ]
-						);
+						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
+
+						if ( isOneToManyConfigurator ) {
+							syncOneToManyConfiguratorData(
+								  sourceObject     = args.objectName
+								, sourceProperty   = key
+								, sourceId         = newId
+								, configuratorData = manyToManyData[ key ]
+								, versionNumber    = versionNumber
+							);
+						} else {
+							syncOneToManyData(
+								  sourceObject   = args.objectName
+								, sourceProperty = key
+								, sourceId       = newId
+								, targetIdList   = manyToManyData[ key ]
+							);
+
+						}
 					}
 				}
 			}
 		}
+
+		clearRelatedCaches(
+			  objectName              = args.objectName
+			, filter                  = ""
+			, filterParams            = {}
+			, clearSingleRecordCaches = false
+		);
+
+		var interceptionArgs       = args;
+		    interceptionArgs.newId = newId;
+		    interceptionArgs.result = result;
+
+		_announceInterception( "postInsertObjectData", interceptionArgs );
+
+		return newId;
+	}
+
+
+	/**
+	 * Inserts records into a database based on a selectData() set of arguments and provided
+	 * fieldlist.
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object in which to to insert records
+	 * @selectDataArgs.hint Struct of arguments that are valid to pass to the [[presideobjectservice-selectdata]] method
+	 * @fieldList.hint      Array of table field names that the select fields in the select statement should map to for the insert
+	 */
+	public numeric function insertDataFromSelect(
+		  required string objectName
+		, required struct selectDataArgs
+		, required array  fieldList
+	) {
+		var obj       = _getObject( arguments.objectName ).meta;
+		var adapter   = _getAdapter( obj.dsn );
+		var selectSql = selectData( argumentCollection=arguments.selectDataArgs, getSqlAndParamsOnly=true );
+		var insertSql = adapter.getInsertSql(
+			  tableName     = obj.tableName
+			, insertColumns = arguments.fieldList
+			, selectStatement = selectSql.sql
+		);
+
+		var result = _runSql(
+			  sql        = insertSql[ 1 ]
+			, dsn        = obj.dsn
+			, params     = selectSql.params
+			, returnType = "info"
+		);
 
 		clearRelatedCaches(
 			  objectName              = arguments.objectName
@@ -378,13 +476,7 @@ component displayName="Preside Object Service" {
 			, clearSingleRecordCaches = false
 		);
 
-		var interceptionArgs       = arguments;
-		    interceptionArgs.newId = newId;
-		    interceptionArgs.result = result;
-
-		_announceInterception( "postInsertObjectData", interceptionArgs );
-
-		return newId;
+		return Val( result.recordCount );
 	}
 
 	/**
@@ -417,7 +509,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint              Name of the object who's records you want to update
+	 * @objectName.hint              Name of the object whose records you want to update
 	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
 	 * @id.hint                      ID of a single record to update
 	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
@@ -463,16 +555,24 @@ component displayName="Preside Object Service" {
 		var manyToManyData     = {}
 		var key                = "";
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
+		var versionNumber      = 0;
 		var preparedFilter     = "";
+		var idField            = getIdField( arguments.objectName );
+		var dateModifiedField  = getDateModifiedField( arguments.objectName );
 
 		for( key in cleanedData ){
 			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(one|many)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 				cleanedData.delete( key );
-			} elseif ( !ListFindNoCase( obj.dbFieldList, key ) ) {
+			} else if ( !ListFindNoCase( obj.dbFieldList, key ) ) {
 				cleanedData.delete( key );
 			}
 		}
+		cleanedData.append( _addGeneratedValues(
+			  operation  = "update"
+			, objectName = arguments.objectName
+			, data       = cleanedData
+		) );
 
 		if ( !Len( Trim( arguments.id ?: "" ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceUpdateAll ) {
 			throw(
@@ -482,8 +582,8 @@ component displayName="Preside Object Service" {
 			);
 		}
 
-		if ( arguments.setDateModified && StructKeyExists( obj.properties, "datemodified" ) and not StructKeyExists( cleanedData, "datemodified" ) ) {
-			cleanedData.datemodified = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
+		if ( arguments.setDateModified && StructKeyExists( obj.properties, dateModifiedField ) and not StructKeyExists( cleanedData, dateModifiedField ) ) {
+			cleanedData[ dateModifiedField ] = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
 		}
 
 		preparedFilter = _prepareFilter(
@@ -500,7 +600,7 @@ component displayName="Preside Object Service" {
 
 		transaction {
 			if ( requiresVersioning ) {
-				_getVersioningService().saveVersionForUpdate(
+				versionNumber = _getVersioningService().saveVersionForUpdate(
 					  objectName           = arguments.objectName
 					, id                   = arguments.id ?: NullValue()
 					, filter               = preparedFilter.filter
@@ -539,7 +639,6 @@ component displayName="Preside Object Service" {
 				, filter        = preparedFilter.filter
 				, joins         = joins
 			);
-
 			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
 			if ( StructCount( manyToManyData ) ) {
@@ -550,7 +649,7 @@ component displayName="Preside Object Service" {
 				} else {
 					updatedRecords = selectData(
 						  objectName   = arguments.objectName
-						, selectFields = [ "id" ]
+						, selectFields = [ "#adapter.escapeEntity( idField )# as id" ]
 						, filter       = preparedFilter.filter
 						, filterParams = preparedFilter.filterParams
 					);
@@ -570,13 +669,26 @@ component displayName="Preside Object Service" {
 							);
 						}
 					} else if ( relationship == "one-to-many" ) {
+						var isOneToManyConfigurator = isOneToManyConfiguratorObject( arguments.objectName, key );
+
 						for( var updatedId in updatedRecords ) {
-							syncOneToManyData(
-								  sourceObject   = arguments.objectName
-								, sourceProperty = key
-								, sourceId       = updatedId
-								, targetIdList   = manyToManyData[ key ]
-							);
+							if ( isOneToManyConfigurator ) {
+								syncOneToManyConfiguratorData(
+									  sourceObject     = arguments.objectName
+									, sourceProperty   = key
+									, sourceId         = updatedId
+									, configuratorData = manyToManyData[ key ]
+									, versionNumber    = versionNumber
+								);
+							} else {
+								syncOneToManyData(
+									  sourceObject   = arguments.objectName
+									, sourceProperty = key
+									, sourceId       = updatedId
+									, targetIdList   = manyToManyData[ key ]
+								);
+
+							}
 						}
 					}
 				}
@@ -626,7 +738,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint     Name of the object from who's database table records are to be deleted
+	 * @objectName.hint     Name of the object from whose database table records are to be deleted
 	 * @id.hint             ID of a record to delete
 	 * @filter.hint         Filter for records to delete, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @filterParams.hint   Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
@@ -648,16 +760,17 @@ component displayName="Preside Object Service" {
 			return Val( interceptorResult.returnValue ?: 0 );
 		}
 
-		var obj            = _getObject( arguments.objectName ).meta;
+		var args           = _cleanupPropertyAliases( argumentCollection=arguments );
+		var obj            = _getObject( args.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
 		var sql            = "";
 		var result         = "";
 		var preparedFilter = "";
 
-		if ( !Len( Trim( arguments.id ?: "" ) ) && _isEmptyFilter( arguments.filter ) && !arguments.forceDeleteAll ) {
+		if ( !Len( Trim( args.id ?: "" ) ) && _isEmptyFilter( args.filter ) && !args.forceDeleteAll ) {
 			throw(
 				  type    = "PresideObjects.deleteAllProtection"
-				, message = "A call to delete records in [#arguments.objectName#] was made without any filter which would lead to all records being deleted"
+				, message = "A call to delete records in [#args.objectName#] was made without any filter which would lead to all records being deleted"
 				, detail  = "If you wish to delete all records, you must set the [forceDeleteAll] argument of the [deleteData] method to true"
 			);
 		}
@@ -665,24 +778,24 @@ component displayName="Preside Object Service" {
 		preparedFilter = _prepareFilter(
 			  adapter           = adapter
 			, columnDefinitions = obj.properties
-			, argumentCollection = arguments
+			, argumentCollection = args
 		);
 
 		sql = adapter.getDeleteSql(
 			  tableName  = obj.tableName
-			, tableAlias = arguments.objectName
+			, tableAlias = args.objectName
 			, filter     = preparedFilter.filter
 		);
 
 		result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
 		clearRelatedCaches(
-			  objectName   = arguments.objectName
+			  objectName   = args.objectName
 			, filter       = preparedFilter.filter
 			, filterParams = preparedFilter.filterParams
 		);
 
-		var interceptionArgs        = arguments;
+		var interceptionArgs        = args;
 		    interceptionArgs.result = result;
 		_announceInterception( "postDeleteObjectData", interceptionArgs );
 
@@ -795,7 +908,7 @@ component displayName="Preside Object Service" {
 	 *
 	 * @sourceObject.hint   The object that contains the many-to-many property
 	 * @sourceProperty.hint The name of the property that is defined as a many-to-many relationship
-	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @sourceId.hint       ID of the record whose related data we are to synchronize
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 */
 	public boolean function syncManyToManyData(
@@ -878,7 +991,7 @@ component displayName="Preside Object Service" {
 	 * @autodoc
 	 * @sourceObject.hint   The object that contains the one-to-many property
 	 * @sourceProperty.hint The name of the property that is defined as a one-to-many relationship
-	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @sourceId.hint       ID of the record whose related data we are to synchronize
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 *
 	 */
@@ -920,6 +1033,86 @@ component displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Synchronizes a record's related one-to-many configurator object data for a given property. Returns true on success, false otherwise.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * presideObjectService.syncOneToManyConfiguratorData(
+	 * \t      sourceObject     = "event"
+	 * \t    , sourceProperty   = "sessions"
+	 * \t    , sourceId         = rc.eventId
+	 * \t    , configuratorData = rc.configuratorData // serialized array of JSON objects, without surrounding []
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 * @sourceObject.hint     The object that contains the one-to-many property
+	 * @sourceProperty.hint   The name of the property that is defined as a one-to-many relationship
+	 * @sourceId.hint         ID of the record whose related data we are to synchronize
+	 * @configuratorData.hint Comma separated JSON object strings representing records in the related object
+	 *
+	 */
+	public boolean function syncOneToManyConfiguratorData(
+		  required string  sourceObject
+		, required string  sourceProperty
+		, required string  sourceId
+		, required string  configuratorData
+		, required numeric versionNumber
+	) {
+		var prop             = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var targetObjectName = prop.relatedTo ?: "";
+		var targetObject     = getObject( targetObjectName );
+		var targetIdField    = targetObject.getIdField();
+		var targetFk         = prop.relationshipKey ?: arguments.sourceObject;
+		var records          = deserializeJSON( "[#configuratorData#]" );
+		var existingIds      = [];
+		var sort_order       = 0;
+		var filter           = { "#targetObjectName#.#targetFk#"=sourceId };
+		var extraFilters     = [];
+
+		for( var record in records ) {
+			record[ "sort_order" ] = ++sort_order;
+			record[ targetFk ]     = sourceId;
+
+			if ( len( record.id ?: "" ) ) {
+				existingIds.append( record.id );
+			}
+		}
+
+		if ( existingIds.len() ) {
+			extraFilters.append({
+				  filter       = "#targetObjectName#.#targetIdField# not in ( :#targetObjectName#.#targetIdField# )"
+				, filterParams = { "#targetObjectName#.#targetIdField#"=existingIds }
+			});
+		}
+
+		targetObject.deleteData(
+			  filter       = filter
+			, extraFilters = extraFilters
+		);
+
+		for (var record in records ) {
+			if ( len( record.id ?: "" ) ) {
+				targetObject.updateData(
+					  id            = record.id
+					, data          = record
+					, versionNumber = versionNumber
+				);
+			} else {
+				targetObject.insertData(
+					  data          = record
+					, versionNumber = versionNumber
+				);
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Returns a structure of many to many data for a given record. Each structure key represents a many-to-many type property on the object. The value for each key will be a comma separated list of IDs of the related data.
 	 * \n
 	 * ${arguments}
@@ -935,8 +1128,8 @@ component displayName="Preside Object Service" {
 	 * // the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
 	 * ```
 	 *
-	 * @objectName.hint       Name of the object who's related data we wish to retrieve
-	 * @id.hint               ID of the record who's related data we wish to retrieve
+	 * @objectName.hint       Name of the object whose related data we wish to retrieve
+	 * @id.hint               ID of the record whose related data we wish to retrieve
 	 * @fromVersionTable.hint Whether or not to retrieve the data from the version history table for the object
 	 * @specificVersion.hint  If retrieving from the version history, set a specific version number to retrieve
 	 */
@@ -971,13 +1164,14 @@ component displayName="Preside Object Service" {
 	/**
 	 * Returns a summary query of all the versions of a given record (by ID),  optionally filtered by field name
 	 *
-	 * @objectName.hint Name of the object who's record we wish to retrieve the version history for
-	 * @id.hint         ID of the record who's history we wish to view
+	 * @objectName.hint Name of the object whose record we wish to retrieve the version history for
+	 * @id.hint         ID of the record whose history we wish to view
 	 * @fieldName.hint  Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
 	 *
 	 */
 	public query function getRecordVersions( required string objectName, required string id, string fieldName ) autodoc=true {
 		var args = {};
+		var idField = getIdField( arguments.objectName );
 
 		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
 			args[ key ] = arguments[ key ];
@@ -991,8 +1185,8 @@ component displayName="Preside Object Service" {
 		} );
 
 		if ( args.keyExists( "fieldName" ) ) {
-			args.filter       = "id = :id and _version_changed_fields like :_version_changed_fields";
-			args.filterParams = { id = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
+			args.filter       = "#idField# = :#idField# and _version_changed_fields like :_version_changed_fields";
+			args.filterParams = { "#idField#" = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
 			args.delete( "fieldName" );
 			args.delete( "id" );
 		}
@@ -1072,13 +1266,59 @@ component displayName="Preside Object Service" {
 	/**
 	 * Returns whether or not the passed field exists on the passed object
 	 *
-	 * @objectName.hint Name of the object who's field you wish to check
+	 * @objectName.hint Name of the object whose field you wish to check
 	 * @fieldName.hint  Name of the field you wish to check the existance of
 	 */
 	public boolean function fieldExists( required string objectName, required string fieldName ) autodoc=true {
 		var obj = _getObject( arguments.objectName );
 
 		return StructKeyExists( obj.meta.properties, arguments.fieldName );
+	}
+
+	/**
+	 * Returns the ID field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose ID field you wish to get
+	 */
+	public string function getIdField( required string objectName ) {
+		return getObjectAttribute( arguments.objectName, "idField", "id" );
+	}
+
+	/**
+	 * Returns the label field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose label field you wish to get
+	 */
+	public string function getLabelField( required string objectName ) {
+		var noLabel = getObjectAttribute( arguments.objectName, "noLabel", "" );
+
+		if ( IsBoolean( noLabel ) && noLabel ) {
+			return "";
+		}
+
+		return getObjectAttribute( arguments.objectName, "labelField", "label" );
+	}
+
+	/**
+	 * Returns the dateCreated field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose dateCreated field you wish to get
+	 */
+	public string function getDateCreatedField( required string objectName ) {
+		return getObjectAttribute( arguments.objectName, "dateCreatedField", "dateCreated" );
+	}
+
+	/**
+	 * Returns the dateModified field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose dateModified field you wish to get
+	 */
+	public string function getDateModifiedField( required string objectName ) {
+		return getObjectAttribute( arguments.objectName, "dateModifiedField", "dateModified" );
 	}
 
 	/**
@@ -1096,8 +1336,8 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint    Name of the object who's attribute we wish to get
-	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @objectName.hint    Name of the object whose attribute we wish to get
+	 * @attributeName.hint Name of the attribute whose value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
@@ -1123,9 +1363,9 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint    Name of the object who's property attribute we wish to get
-	 * @propertyName.hint  Name of the property who's attribute we wish to get
-	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @objectName.hint    Name of the object whose property attribute we wish to get
+	 * @propertyName.hint  Name of the property whose attribute we wish to get
+	 * @attributeName.hint Name of the attribute whose value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
@@ -1140,7 +1380,7 @@ component displayName="Preside Object Service" {
 	 * This method, returns the object name that can be used to reference the version history object
 	 * for a given object.
 	 *
-	 * @sourceObjectName.hint Name of the object who's version object name we wish to retrieve
+	 * @sourceObjectName.hint Name of the object whose version object name we wish to retrieve
 	 */
 	public string function getVersionObjectName( required string sourceObjectName ) autodoc=true {
 		var obj = _getObject( arguments.sourceObjectName );
@@ -1175,9 +1415,24 @@ component displayName="Preside Object Service" {
 	}
 
 	public any function getObjectProperty( required string objectName, required string propertyName ) {
-		return _getObject( arguments.objectName ).meta.properties[ arguments.propertyName ];
-	}
+		var props = _getObject( arguments.objectName ).meta.properties;
 
+		if ( props.keyExists( arguments.propertyName ) ) {
+			return props[ arguments.propertyName ];
+		}
+
+		for( var propName in props ) {
+			var prop = props[ propName ];
+			if ( ListFindNoCase( prop.aliases ?: "", arguments.propertyName ) ) {
+				return prop;
+			}
+		}
+
+		throw(
+			  type    = "preside.object.property.not.found"
+			, message = "The property, [#arguments.propertyName#], is not defined on the [#arguments.objectName#] object"
+		);
+	}
 
 	public boolean function isPageType( required string objectName ) {
 		var objMeta = _getObject( arguments.objectName ).meta;
@@ -1253,7 +1508,19 @@ component displayName="Preside Object Service" {
 		return totalDeleted;
 	}
 
-	public string function getDefaultFormControlForPropertyAttributes( string type="string", string dbType="varchar", string relationship="none", string relatedTo="", numeric maxLength=0 ) {
+	public string function getDefaultFormControlForPropertyAttributes(
+		  string  type         = "string"
+		, string  dbType       = "varchar"
+		, string  relationship = "none"
+		, string  relatedTo    = ""
+		, string  enum         = ""
+		, numeric maxLength    = 0
+		, string  formula      = ""
+	) {
+		if ( Len( Trim( formula ) ) ) {
+			return "none";
+		}
+
 		switch( arguments.relationship ){
 			case "many-to-one" :
 				switch( arguments.relatedTo ) {
@@ -1270,6 +1537,9 @@ component displayName="Preside Object Service" {
 					default      : return "manyToManySelect";
 				}
 			case "one-to-many":
+				if ( isOneToManyConfiguratorObject( arguments.relatedTo ) ) {
+					return "oneToManyConfigurator";
+				}
 				return "oneToManyManager";
 		}
 
@@ -1278,6 +1548,10 @@ component displayName="Preside Object Service" {
 				return "spinner";
 			case "boolean":
 				return "yesNoSwitch";
+		}
+
+		if ( arguments.enum.len() ) {
+			return "enumSelect";
 		}
 
 		switch( arguments.dbType ){
@@ -1327,6 +1601,7 @@ component displayName="Preside Object Service" {
 		var cacheMaps   = _getCacheMaps();
 		var cache       = _getDefaultQueryCache();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
+		var idField     = getIdField( objectName );
 		var keysToClear = [];
 		var objIds      = "";
 		var objId       = "";
@@ -1339,8 +1614,12 @@ component displayName="Preside Object Service" {
 
 					if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
 						objIds = arguments.filter.id;
-					} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
+					} else if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, idField ) ) {
+						objIds = arguments.filter[ idField ];
+					} else if ( StructKeyExists( arguments.filterParams, "id" ) ) {
 						objIds = arguments.filterParams.id;
+					} else if ( StructKeyExists( arguments.filterParams, idField ) ) {
+						objIds = arguments.filterParams[ idField ];
 					}
 
 					if ( IsSimpleValue( objIds ) ) {
@@ -1354,7 +1633,7 @@ component displayName="Preside Object Service" {
 								StructDelete( cacheMaps[ arguments.objectName ], objId );
 							}
 						}
-					} elseif ( arguments.clearSingleRecordCaches ) {
+					} else if ( arguments.clearSingleRecordCaches ) {
 						for( objId in cacheMaps[ arguments.objectName ] ) {
 							if ( objId neq "__complexFilter" ) {
 								ArrayAppend( keysToClear, StructKeyArray( cacheMaps[ arguments.objectName ][ objId ] ), true );
@@ -1374,6 +1653,22 @@ component displayName="Preside Object Service" {
 		if ( Len( Trim( derivedFrom ) ) ) {
 			clearRelatedCaches( argumentCollection=arguments, objectName=derivedFrom );
 		}
+	}
+
+
+	public boolean function isOneToManyConfiguratorObject( required string objectName, string propertyName ) {
+		var prop             = len( arguments.propertyName ?: "" ) ? getObjectProperty( arguments.objectName, arguments.propertyName ) : "";
+		var relationship     = prop.relationship ?: "";
+		var targetObjectName = prop.relatedTo    ?: "";
+		var configurator     = false;
+
+		if ( !len( arguments.propertyName ?: "" ) ) {
+			configurator = getObjectAttribute( arguments.objectName, "oneToManyConfigurator", false );
+		} else if ( relationship == "one-to-many" ) {
+			configurator = getObjectAttribute( targetObjectName, "oneToManyConfigurator", false );
+		}
+
+		return IsBoolean( configurator ) && configurator;
 	}
 
 // PRIVATE HELPERS
@@ -1396,8 +1691,29 @@ component displayName="Preside Object Service" {
 
 		_setObjects( objects );
 		_setDsns( StructKeyArray( dsns ) );
+		_setupAliasCache();
 
 		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
+	}
+
+	private void function _setupAliasCache() {
+		var objects    = _getObjects();
+		var aliasCache = {};
+
+		for( var objName in objects ) {
+			var obj   = objects[ objName ];
+			var props = obj.meta.properties;
+			for( var propName in props ) {
+				var aliases = Trim( props[ propName ].aliases ?: "" ).listToArray();
+
+				for( var alias in aliases ) {
+					aliasCache[ objName ] = aliasCache[ objName ] ?: {};
+					aliasCache[ objName ][ alias ] = propName;
+				}
+			}
+		}
+
+		_setAliasCache( aliasCache );
 	}
 
 	private struct function _getObject( required string objectName ) {
@@ -1470,10 +1786,11 @@ component displayName="Preside Object Service" {
 				ArrayAppend( params, param );
 			} else if ( IsArray( arguments.data[ key ] ) ) {
 				param = {
-					  name  = paramName
-					, value = ArrayToList( arguments.data[ key ] )
-					, type  = dataType
-					, list  = true
+					  name      = paramName
+					, value     = ArrayToList( arguments.data[ key ], chr( 31 ) )
+					, type      = dataType
+					, list      = true
+					, separator = chr( 31 )
 				};
 
 				ArrayAppend( params, param );
@@ -1513,11 +1830,12 @@ component displayName="Preside Object Service" {
 					  name  = paramName
 					, value = param
 				};
+			}
 
-				if ( IsArray( param.value ) ) {
-					param.value = ArrayToList( param.value );
-					param.list  = true;
-				}
+			if ( !IsNull( param.value ) && IsArray( param.value ) ) {
+				param.value     = ArrayToList( param.value, chr( 31 ) );
+				param.list      = true;
+				param.separator = chr( 31 );
 			}
 
 			if ( not StructKeyExists( param, "type" ) ) {
@@ -1544,12 +1862,15 @@ component displayName="Preside Object Service" {
 		,          struct data           = {}
 		,          array  selectFields   = []
 		,          string orderBy        = ""
+		,          array  extraJoins     = []
+		,          array  extraFilters   = []
 
 	) {
 		var filter     = arguments.preparedFilter.filter ?: "";
+		var having     = arguments.preparedFilter.having ?: "";
 		var key        = "";
 		var cache      = _getCache();
-		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#"
+		var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
 		var objects    = cache.get( cacheKey );
 
 		if ( not IsNull( objects ) ) {
@@ -1558,9 +1879,28 @@ component displayName="Preside Object Service" {
 
 		var all        = Duplicate( arguments.data );
 		var fieldRegex = _getAlaisedFieldRegex();
+		var entities   = _getEntityNames();
 		var field      = "";
-		var matches    = "";
-		var match      = "";
+		var addMatches = function( required string input ){
+			var matches = _reSearch( fieldRegex, arguments.input );
+			if ( StructKeyExists( matches, "$2" ) ) {
+				for( var match in matches.$2 ){
+					var matchEntities = match.listToArray( "$" );
+					var matched       = true;
+
+					for( var entity in matchEntities ) {
+						if ( !entities.keyExists( entity ) ) {
+							matched = false;
+							break;
+						}
+					}
+
+					if ( matched ) {
+						objects[ match ] = 1;
+					}
+				}
+			}
+		};
 
 		objects = {}
 
@@ -1575,30 +1915,28 @@ component displayName="Preside Object Service" {
 		}
 
 		for( field in arguments.selectFields ){
-			matches = _reSearch( fieldRegex, field );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( field );
 		}
 		for( field in ListToArray( arguments.orderBy ) ){
-			matches = _reSearch( fieldRegex, ListFirst( field, " " ) );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
-				}
-			}
+			addMatches( ListFirst( field, " " ) );
 		}
 		if ( isSimpleValue( filter ) ) {
-			matches = _reSearch( fieldRegex, filter );
-			if ( StructKeyExists( matches, "$2" ) ) {
-				for( match in matches.$2 ){
-					objects[ match ] = 1;
+			addMatches( filter );
+		}
+		if ( Len( Trim( having ) ) ) {
+			addMatches( having );
+		}
+
+		for( var join in extraJoins ) {
+			addMatches( "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
+		}
+		for( var extraFilter in extraFilters ) {
+			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
+				for( var join in extraFilter.extraJoins ) {
+					addMatches( "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
 				}
 			}
 		}
-
 
 		StructDelete( objects, arguments.objectName );
 		objects = StructKeyArray( objects );
@@ -1606,6 +1944,119 @@ component displayName="Preside Object Service" {
 		cache.set( cacheKey, objects );
 
 		return objects;
+	}
+
+	private string function _removeDynamicElementsFromForeignObjectsCacheKey( required string cacheKey ) {
+		var staticCacheKey = arguments.cacheKey;
+
+		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{32}", "", "all" );
+		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}", "", "all" );
+		staticCacheKey = staticCacheKey.reReplaceNoCase( "field\s?\(.*?\)", "", "all" );
+
+		return staticCacheKey;
+	}
+
+	private struct function _cleanupPropertyAliases() {
+		var aliasCache = _getAliasCache();
+		if ( aliasCache.isEmpty() ) {
+			return Duplicate( arguments );
+		}
+
+		var args        = Duplicate( arguments );
+		var aliasRegex  = _getAlaisedAliasRegex();
+
+		var findAndReplace = function( plainString ) {
+			if ( Len( aliasCache[ args.objectName ][ plainString ] ?: "" ) ) {
+				return [ {
+					  fullMatch     = plainString
+					, replaceWith   = aliasCache[ args.objectName ][ plainString ]
+					, aliasProperty = plainString
+					, realProperty  = aliasCache[ args.objectName ][ plainString ]
+				} ];
+			}
+
+			var matches = _reSearch( aliasRegex, plainString );
+			var results = [];
+
+			if ( matches.keyExists( "$1" ) ) {
+				for( var i=1; i<=matches.$1.len(); i++ ) {
+					var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
+					var objPath     = matches.$2[i];
+					var propName    = matches.$8[i];
+					var objFromPath = _resolveObjectNameFromColumnJoinSyntax( args.objectName, objPath );
+
+					if ( Len( aliasCache[ objFromPath ][ propName ] ?: "" ) ) {
+						results.append( {
+							  fullMatch     = fullMatch
+							, replaceWith   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & aliasCache[ objFromPath ][ propName ] & matches.$9[i]
+							, aliasProperty = aliasCache[ objFromPath ][ propName ]
+							, realProperty  = propName
+						} );
+					}
+				}
+			}
+
+			return results;
+		};
+		var structKeyReplacer = function( theStruct ){
+			for( var key in theStruct ) {
+				var fAndRResult = findAndReplace( key );
+				for( var r in fAndRResult ){
+					var newKey = key.replace( r.fullMatch, r.replaceWith, "all" );
+					theStruct[ newKey ] = theStruct[ key ];
+					theStruct.delete( key );
+				}
+			}
+		}
+		var simpleReplacer = function( plainString, addAsAlias=false ) {
+			var replaced    = plainString;
+			var fAndRResult = findAndReplace( plainString );
+
+			for( var r in fAndRResult ){
+				replaced = replaced.replace( r.fullMatch, r.replaceWith, "all" );
+			}
+			if ( addAsAlias && fAndRResult.len() && !plainString.findNoCase( " as " ) ) {
+				replaced &= " as " & fAndRResult[1].aliasProperty;
+			}
+
+			return replaced;
+		}
+
+		if ( args.keyExists( "selectFields" ) ) {
+			for( var i=1; i<=args.selectFields.len(); i++ ) {
+				args.selectFields[ i ] = simpleReplacer( args.selectFields[ i ], true );
+			}
+		}
+
+		if ( args.keyExists( "filter" ) ) {
+			if ( IsSimpleValue( args.filter ) ) {
+				args.filter = simpleReplacer( args.filter );
+			} else {
+				structKeyReplacer( args.filter );
+			}
+		}
+
+		if ( args.keyExists( "filterParams" ) ) {
+			structKeyReplacer( args.filterParams );
+		}
+
+		if ( args.keyExists( "data" ) ) {
+			structKeyReplacer( args.data );
+		}
+
+		if ( args.keyExists( "having" ) ) {
+			args.having = simpleReplacer( args.having );
+		}
+
+		if ( args.keyExists( "orderBy" ) ) {
+			args.orderBy = simpleReplacer( args.orderBy );
+		}
+
+		if ( args.keyExists( "groupBy" ) ) {
+			args.groupBy = simpleReplacer( args.groupBy );
+		}
+
+		return args;
 	}
 
 	private array function _getJoinsFromJoinTargets(
@@ -1632,7 +2083,7 @@ component displayName="Preside Object Service" {
 		return joins;
 	}
 
-	private array function _convertObjectJoinsToTableJoins( required array joins ) {
+	private array function _convertObjectJoinsToTableJoins( required array joins, array extraJoins=[], array extraFilters=[], array savedFilters=[] ) {
 		var tableJoins = [];
 		var objJoin    = "";
 		var objects    = _getObjects();
@@ -1655,6 +2106,22 @@ component displayName="Preside Object Service" {
 			tableJoins.append( join );
 		}
 
+		tableJoins.append( arguments.extraJoins, true );
+
+		for( var savedFilter in arguments.savedFilters ){
+			savedFilter = _getFilterService().getFilter( savedFilter );
+
+			if ( IsArray( savedFilter.extraJoins ?: "" ) ) {
+				tableJoins.append( savedFilter.extraJoins, true );
+			}
+		}
+
+		for( var extraFilter in arguments.extraFilters ){
+			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
+				tableJoins.append( extraFilter.extraJoins, true );
+			}
+		}
+
 		var interceptArguments = arguments;
 		interceptArguments.tableJoins = tableJoins;
 		_announceInterception( "postPrepareTableJoins", interceptArguments );
@@ -1675,6 +2142,7 @@ component displayName="Preside Object Service" {
 		, required string  groupBy
 		, required numeric maxRows
 		, required numeric startRow
+		,          boolean distinct = false
 	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
@@ -1722,6 +2190,7 @@ component displayName="Preside Object Service" {
 			, groupBy       = arguments.groupBy
 			, maxRows       = arguments.maxRows
 			, startRow      = arguments.startRow
+			, distinct      = arguments.distinct
 		} );
 		_announceInterception( "postPrepareVersionSelect", args );
 
@@ -1777,13 +2246,18 @@ component displayName="Preside Object Service" {
 
 	private array function _dbFieldListToSelectFieldsArray( required string fieldList, required string tableAlias, required any dbAdapter ) {
 		var fieldArray   = ListToArray( arguments.fieldList );
+		var convertedArray = [];
 		var escapedAlias = dbAdapter.escapeEntity( arguments.tableAlias );
 
 		for( var i=1; i <= fieldArray.len(); i++ ){
-			fieldArray[i] = escapedAlias & "." & dbAdapter.escapeEntity( fieldArray[i] );
+			convertedArray.append( escapedAlias & "." & dbAdapter.escapeEntity( fieldArray[i] ) );
+			var prop = getObjectProperty( tableAlias, fieldArray[i] );
+			for( var alias in ( prop.aliases ?: "" ).listToArray() ) {
+				convertedArray.append( escapedAlias & "." & dbAdapter.escapeEntity( fieldArray[i] ) & " as " & dbAdapter.escapeEntity( alias ) );
+			}
 		}
 
-		return fieldArray;
+		return convertedArray;
 	}
 
 	private string function _generateNewIdWhenNecessary( required string generator ) {
@@ -1806,22 +2280,52 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _getAlaisedFieldRegex() {
-		if ( not StructKeyExists( this, "_aliasedFieldRegex" ) ) {
-			var entities = {};
+		var entityPattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+
+		return "(^|\s|,|\(|\)|`|\[)((#entityPattern#)(\$(#entityPattern#))*)[`\]]?\.[`\[]?(#entityPattern#)(\s|$|\)|,|`|\])";
+	}
+
+	private struct function _getEntityNames() {
+		if ( !StructKeyExists( this, "_entityNames" ) ) {
+			this._entityNames = {};
 
 			for( var objName in _getObjects() ){
-				entities[ objName ] = 1;
+				this._entityNames[ objName ] = 1;
 
 				for( var propertyName in getObjectProperties( objName ) ) {
-					entities[ propertyName ] = 1;
+					this._entityNames[ propertyName ] = 1;
+				}
+			}
+		}
+
+		return this._entityNames;
+	}
+
+	private string function _getAlaisedAliasRegex() {
+		if ( !StructKeyExists( this, "_aliasedAliasRegex" ) ) {
+			var objects  = _getObjects();
+			var entities = {};
+			var aliasEntitiesOnly = {};
+
+			for( var objName in objects ){
+				entities[ objName ] = 1;
+
+				for( var propertyName in objects[ objName ].meta.properties ) {
+					var prop = objects[ objName ].meta.properties[ propertyName ];
+
+					for( var alias in ( prop.aliases ?: "" ).listToArray() ) {
+						entities[ alias ] = 1;
+						aliasEntitiesOnly[ alias ] = 1;
+					}
 				}
 			}
 			entities = StructKeyList( entities, "|" );
+			aliasEntitiesOnly = StructKeyList( aliasEntitiesOnly, "|" );
 
-			_aliasedFieldRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)[`\]]?\.[`\[]?([a-zA-Z_][a-zA-Z0-9_]*)(\s|$|\)|,|`|\])";
+			_aliasedAliasRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)([`\]])?\.([`\[])?(#aliasEntitiesOnly#)(\s|$|\)|,|`|\])";
 		}
 
-		return _aliasedFieldRegex;
+		return _aliasedAliasRegex;
 	}
 
 	private struct function _reSearch( required string regex, required string text ) {
@@ -1870,7 +2374,8 @@ component displayName="Preside Object Service" {
 	) {
 		var cacheMaps   = _getCacheMaps();
 		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
-		var fullIdField = "#arguments.objectName#.id";
+		var idField     = getIdField( arguments.objectName );
+		var fullIdField = "#arguments.objectName#.#idField#";
 		var objId       = "";
 
 		lock name=lockName type="exclusive" timeout=10 {
@@ -1879,14 +2384,22 @@ component displayName="Preside Object Service" {
 			if ( IsStruct( arguments.filter ) ) {
 				if ( arguments.filter.keyExists( "id" ) ) {
 					objId = arguments.filter.id;
+				} else if ( arguments.filter.keyExists( idField ) ) {
+					objId = arguments.filter[ idField ];
 				} else if ( arguments.filter.keyExists( fullIdField ) ) {
 					objId = arguments.filter[ fullIdField ];
+				} else if ( arguments.filter.keyExists( "#arguments.objectName#.id" ) ) {
+					objId = arguments.filter[ "#arguments.objectName#.id" ];
 				}
 			} else {
 				if ( arguments.filterParams.keyExists( "id" ) ) {
 					objId = arguments.filterParams.id;
+				} else if ( arguments.filterParams.keyExists( idField ) ) {
+					objId = arguments.filterParams[ idField ];
 				} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
 					objId = arguments.filterParams[ fullIdField ];
+				} else if ( arguments.filterParams.keyExists( "#arguments.objectName#.id" ) ) {
+					objId = arguments.filterParams[ "#arguments.objectName#.id" ];
 				}
 			}
 
@@ -1900,7 +2413,7 @@ component displayName="Preside Object Service" {
 				for( var id in objId ){
 					cacheMaps[ arguments.objectName ][ id ][ arguments.cacheKey ] = 1;
 				}
-			} elseif ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
+			} else if ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
 				cacheMaps[ arguments.objectName ][ objId ][ arguments.cacheKey ] = 1;
 			} else {
 				cacheMaps[ arguments.objectName ].__complexFilter[ arguments.cacheKey ] = 1;
@@ -1951,6 +2464,12 @@ component displayName="Preside Object Service" {
 				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
 			}
 
+			fields[i] = _expandFormulaFields(
+				  objectName = arguments.objectName
+				, expression = fields[i]
+				, dbAdapter  = adapter
+			);
+
 			fields[i] = _autoAliasBareProperty(
 				  objectName   = arguments.objectName
 				, propertyName = fields[i]
@@ -1969,12 +2488,14 @@ component displayName="Preside Object Service" {
 		var rebuilt = [];
 
 		for( var item in items ) {
-			var propertyName = Trim( ListFirst( item, " " ) );
+			var propertyName = _expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
 			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
 			var aliased      = _autoAliasBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
 
 			if ( propertyName != aliased ) {
 				item = aliased & direction;
+			} else {
+				item = propertyName & direction;
 			}
 
 			rebuilt.append( Trim( item ) );
@@ -1998,17 +2519,19 @@ component displayName="Preside Object Service" {
 		, required array  savedFilters
 		, required any    adapter
 		, required struct columnDefinitions
+		,          string having = ""
 		,          string id
 	) {
 		_announceInterception( "prePrepareObjectFilter", arguments );
 
+		var idField = getIdField( arguments.objectName );
 		var result = {
-			  filter       = arguments.keyExists( "id" ) ? { id = arguments.id } : arguments.filter
+			  filter       = arguments.keyExists( "id" ) ? { "#idField#" = arguments.id } : arguments.filter
 			, filterParams = arguments.filterParams
+			, having       = arguments.having
 		};
-
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
-			result.filterParams = Duplicate( result.filter );
+			result.filterParams.append( Duplicate( result.filter ) );
 		}
 
 		for( var savedFilter in arguments.savedFilters ){
@@ -2016,27 +2539,59 @@ component displayName="Preside Object Service" {
 
 			savedFilter.filter       = savedFilter.filter       ?: {};
 			savedFilter.filterParams = savedFilter.filterParams ?: {};
+			savedFilter.having       = savedFilter.having       ?: "";
 
-			result.filterParams.append( IsStruct( savedFilter.filter ) ? savedFilter.filter : savedFilter.filterParams );
+			savedFilter = _cleanupPropertyAliases( argumentCollection=savedFilter, objectName=arguments.objectName );
+			savedFilter.delete( "objectName" );
+
+			result.filterParams.append( savedFilter.filterParams ?: {} );
+			if ( IsStruct( savedFilter.filter ) ) {
+				result.filterParams.append( savedFilter.filter );
+			}
+
 			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = savedFilter.filter
 				, dbAdapter  = arguments.adapter
 				, tableAlias = arguments.objectName
 			);
+			if ( Len( Trim( savedFilter.having ) ) ) {
+				result.having = mergeFilters(
+					  filter1    = result.having
+					, filter2    = savedFilter.having
+					, dbAdapter  = arguments.adapter
+					, tableAlias = arguments.objectName
+				);
+			}
 		}
 
 		for( var extraFilter in arguments.extraFilters ){
 			extraFilter.filter       = extraFilter.filter       ?: {};
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
+			extraFilter.having       = extraFilter.having       ?: "";
 
-			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
+			extraFilter = _cleanupPropertyAliases( argumentCollection=extraFilter, objectName=arguments.objectName );
+			extraFilter.delete( "objectName" );
+
+			result.filterParams.append( extraFilter.filterParams ?: {} );
+			if ( IsStruct( extraFilter.filter ) ) {
+				result.filterParams.append( extraFilter.filter );
+			}
+
 			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = extraFilter.filter
 				, dbAdapter  = arguments.adapter
 				, tableAlias = arguments.objectName
 			);
+			if ( Len( Trim( extraFilter.having ) ) ) {
+				result.having = mergeFilters(
+					  filter1    = result.having
+					, filter2    = extraFilter.having
+					, dbAdapter  = arguments.adapter
+					, tableAlias = arguments.objectName
+				);
+			}
 		}
 
 		if ( IsStruct( result.filter ) ) {
@@ -2054,31 +2609,41 @@ component displayName="Preside Object Service" {
 				, data              = result.filter
 				, dbAdapter         = adapter
 			);
-		} else {
+		}
+
+		if ( !IsStruct( result.filter ) || result.having.len() ) {
 			for( var key in result.filterParams ) {
 				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
 				if ( aliasedKey != key ) {
 					result.filterParams[ aliasedKey ] = result.filterParams[ key ];
 					result.filterParams.delete( key );
-					result.filter = result.filter.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
+					if ( IsSimpleValue( result.filter ) ) {
+						result.filter = result.filter.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
+					}
+					result.having = result.having.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
 				}
 			}
 
 			var objOrPropRegex = "[a-z_\-][a-z0-9_\-]*";
-			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
-			result.params = _convertUserFilterParamsToQueryParams(
+			if ( IsSimpleValue( result.filter ) ) {
+				result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
+			}
+			result.having = ReReplaceNoCase( result.having, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
+		}
+		result.params = result.params ?: [];
+		if ( result.filterParams.count() ) {
+			result.params.append( _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
 				, dbAdapter         = adapter
 				, objectName        = arguments.objectName
-			);
+			), true );
 		}
 
 		var interceptData = arguments;
 		    interceptData.result = result;
 
 		_announceInterception( "postPrepareObjectFilter", interceptData );
-
 		return result;
 	}
 
@@ -2111,11 +2676,123 @@ component displayName="Preside Object Service" {
 		return newData;
 	}
 
+	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data ) {
+		var obj       = getObject( arguments.objectName );
+		var props     = getObjectProperties( arguments.objectName );
+		var newData   = Duplicate( arguments.data );
+		var generated = {};
+		var genOps    = arguments.operation == "insert" ? [ "insert", "always" ] : [ "always" ];
+
+		if ( isSimpleValue( obj ) ) {
+			return generated;
+		}
+
+		for( var propName in props ){
+			var prop = props[ propName ];
+
+			if ( genOps.findNoCase( prop.generate ?: "" ) ) {
+				if ( arguments.operation == "insert" && Len( Trim( arguments.data[ propName ] ?: "" ) ) ) {
+					continue;
+				}
+
+				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop );
+				if ( !IsNull( generatedValue ) ) {
+					generated[ propName ] = newData[ propName ] = generatedValue;
+				}
+			}
+		}
+
+		return generated;
+	}
+
+	private any function _generateValue( required string objectName, required string generator, required struct data, required struct prop ) {
+		switch( ListFirst( arguments.generator, ":" ) ) {
+			case "UUID":
+				return CreateUUId();
+			break;
+			case "timestamp":
+				return DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
+			break;
+			case "method":
+				var obj = getObject( arguments.objectName );
+
+				return obj[ ListRest( arguments.generator, ":" ) ]( arguments.data );
+			break;
+			case "hash":
+				if ( Len( Trim( prop.generateFrom ?: "" ) ) ) {
+					var valueToHash = "";
+					for( var field in ListToArray( prop.generateFrom ) ) {
+						if ( arguments.data.keyExists( field ) ) {
+							valueToHash &= arguments.data[ field ];
+						} else {
+							return;
+						}
+					}
+
+					return Hash( valueToHash );
+				}
+			break;
+		}
+
+		return;
+	}
+
 	private struct function _getDraftExclusionFilter( required string objectName ) {
 		return {
 			  filter       = "#arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft"
 			, filterparams = { "#arguments.objectName#._version_is_draft" = false }
 		};
+	}
+
+	private string function _expandFormulaFields(
+		  required string  objectName
+		, required string  expression
+		, required any     dbAdapter
+		,          boolean includeAlias = true
+	) {
+		var props             = getObjectProperties( arguments.objectName );
+		var expanded          = arguments.expression;
+		var propertyName      = expanded;
+		var prefix            = "";
+		var relatedObjectName = "";
+
+		if ( ListLen( expression, "." ) == 2 ) {
+			propertyName = ListLast( arguments.expression, "." );
+			if ( ListFirst( expression, "." ) != arguments.objectName ) {
+				prefix            = ListFirst( arguments.expression, "." );
+				relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
+
+				if ( objectExists( relatedObjectName ) ) {
+					props = getObjectProperties( relatedObjectName );
+				}
+			} else {
+				prefix = "";
+			}
+		}
+
+		var formula = props[ propertyName ].formula ?: "";
+
+		if ( Len( Trim( formula ) ) ) {
+			if ( formula.findNoCase( "${prefix}" ) ) {
+				if ( prefix.len() ) {
+					prefix &= formula.reFindNoCase( "\$\{prefix\}(\S+)?\." ) ? "$" : ".";
+				}
+				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
+			}
+
+			if ( arguments.includeAlias ) {
+				if ( expanded.findNoCase( " as " ) ) {
+					expanded = expanded.reReplace( "^(.*?)( as .*$)", "#formula#\2" );
+				} else {
+					expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
+				}
+			} else {
+				expanded = formula;
+			}
+		}
+
+
+		return expanded;
 	}
 
 	private string function _autoAliasBareProperty(
@@ -2144,6 +2821,24 @@ component displayName="Preside Object Service" {
 		draftCheckFilters.append( { filter={ _version_is_draft=true } } );
 
 		return dataExists( argumentCollection=arguments, extraFilters=draftCheckFilters );
+	}
+
+	private string function _autoCalculateGroupBy( required array selectFields ) {
+		var groupBy            = "";
+		var hasAggregateFields = false;
+		var aggregateRegex     = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
+
+
+		for( var field in selectFields ) {
+			var isAggregate = field.reFindNoCase( aggregateRegex );
+			hasAggregateFields = hasAggregateFields || isAggregate;
+
+			if ( !isAggregate ) {
+				groupBy = groupBy.listAppend( field.reReplace( "^(.*?) as .*$", "\1" ) );
+			}
+		}
+
+		return hasAggregateFields ? groupBy : "";
 	}
 
 // SIMPLE PRIVATE PROXIES
@@ -2272,5 +2967,12 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setInstanceId( required string instanceId ) {
 		_instanceId = arguments.instanceId;
+	}
+
+	private struct function _getAliasCache() {
+		return _aliasCache;
+	}
+	private void function _setAliasCache( required struct aliasCache ) {
+		_aliasCache = arguments.aliasCache;
 	}
 }

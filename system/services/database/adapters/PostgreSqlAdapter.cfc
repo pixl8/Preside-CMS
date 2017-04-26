@@ -21,7 +21,7 @@ component extends="BaseAdapter" {
 
 	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) {
 		var sql = super.getInsertSql( argumentCollection=arguments );
-		sql[1] &= " RETURNING *"
+		sql[1] &= " RETURNING *";
 		return sql;
 	}
 
@@ -238,10 +238,11 @@ component extends="BaseAdapter" {
 		,          array   joins         = []
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
+		,          boolean distinct      = false
 
 	) {
 		var newGroupBy  = "";
-		var sql         = "select";
+		var sql         = arguments.distinct ? "select distinct" : "select";
 		var delim       = " ";
 		var col         = "";
 
@@ -283,6 +284,9 @@ component extends="BaseAdapter" {
 			}
 		}
 
+		if ( Len( Trim ( arguments.having ) ) ) {
+			sql &= " having " & arguments.having;
+		}
 
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;

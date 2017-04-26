@@ -18,6 +18,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 // URL related
 	public void function setSite( required struct site ) output=false {
+		getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
 		getRequestContext().setValue(
 			  name    = "_site"
 			, value   =  arguments.site
@@ -143,14 +144,19 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return collection;
 	}
 
-	public struct function getCollectionForForm( string formName="" ) output=false {
+	public struct function getCollectionForForm(
+		  string  formName                = ""
+		, boolean stripPermissionedFields = true
+		, string  permissionContext       = ""
+		, array   permissionContextKeys   = []
+	) output=false {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
 		var rc           = getRequestContext().getCollection();
 		var collection   = {};
 
 		for( var name in formNames ) {
-			var formFields = formsService.listFields( name );
+			var formFields = formsService.listFields( argumentCollection=arguments, formName=name );
 			for( var field in formFields ){
 				collection[ field ] = ( rc[ field ] ?: "" );
 			}
@@ -300,7 +306,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
@@ -383,7 +389,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		} else {
 			if ( Len( Trim( arguments.pageId ?: "" ) ) ) {
 				getPageArgs.id = arguments.pageId;
-			} elseif ( Len( Trim( arguments.systemPage ?: "" ) ) ) {
+			} else if ( Len( Trim( arguments.systemPage ?: "" ) ) ) {
 				getPageArgs.systemPage = arguments.systemPage;
 			} else {
 				getPageArgs.slug = arguments.slug;

@@ -6,9 +6,9 @@
 	latestVersionDownloaded = prc.latestVersionDownloaded ?: false;
 	downloadedVersions      = prc.downloadedVersions      ?: [];
 	availableVersions       = prc.availableVersions       ?: [];
-	downloadingVersions     = prc.downloadingVersions     ?: {}
-	completeDownloads       = prc.completeDownloads       ?: []
-	erroredDownloads        = prc.erroredDownloads        ?: []
+	downloadingVersions     = prc.downloadingVersions     ?: {};
+	completeDownloads       = prc.completeDownloads       ?: [];
+	erroredDownloads        = prc.erroredDownloads        ?: [];
 </cfscript>
 
 <cfoutput>

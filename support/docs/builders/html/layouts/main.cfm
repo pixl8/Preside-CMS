@@ -138,6 +138,6 @@
 			</div>
 		</footer>
 
-		<script src="assets/js/base.min.js" type="text/javascript"></script>
+		<script src="assets/js/base.2.min.js" type="text/javascript"></script>
 	</body>
 </html></cfoutput>

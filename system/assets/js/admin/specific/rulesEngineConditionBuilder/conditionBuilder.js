@@ -1,18 +1,25 @@
 ( function( $ ){
 
-	var expressionLib        = cfrequest.rulesEngineExpressions         || {}
-	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || ""
-	  , editFieldEndpoint    = cfrequest.rulesEngineEditFieldEndpoint   || ""
-	  , context              = cfrequest.rulesEngineContext             || "global";
+	var expressionLib       = cfrequest.rulesEngineExpressions         || {}
+	  , renderFieldEndpoint = cfrequest.rulesEngineRenderFieldEndpoint || ""
+	  , editFieldEndpoint   = cfrequest.rulesEngineEditFieldEndpoint   || ""
+	  , filterCountEndpoint = cfrequest.rulesEngineFilterCountEndpoint || ""
+	  , contextData         = cfrequest.rulesEngineContextData         || {}
+	  , context             = cfrequest.rulesEngineContext             || "global";
 
 	var RulesEngineCondition = (function() {
-		function RulesEngineCondition( $formControl, expressions, $ruleList ) {
+		function RulesEngineCondition( $formControl, expressions, $ruleList, isFilter, $filterCount, objectName ) {
 			this.$formControl     = $formControl;
 			this.$ruleList        = $ruleList;
 			this.model            = this.deserialize( this.$formControl.val() );
 			this.expressions      = expressions;
 			this.fieldRenderCache = {};
 			this.selectedIndex    = null;
+			this.isFilter         = isFilter;
+			if ( this.isFilter ) {
+				this.$filterCount = $filterCount;
+				this.objectName   = objectName;
+			}
 
 			this.setupBehaviors();
 			this.render();
@@ -20,6 +27,7 @@
 
 		RulesEngineCondition.prototype.persistToHiddenField = function() {
 			this.$formControl.val( this.serialize() );
+			this.notifyChange();
 		};
 
 		RulesEngineCondition.prototype.serialize = function() {
@@ -40,6 +48,12 @@
 			return [];
 		};
 
+		RulesEngineCondition.prototype.loadFromStringValue = function( initialConditionValue ) {
+			this.model = this.deserialize( initialConditionValue );
+			this.persistToHiddenField();
+			this.render();
+		};
+
 		RulesEngineCondition.prototype.isValidSerializedCondition = function( serializedCondition ) {
 			if ( typeof serializedCondition !== "string" ) {
 				return false;
@@ -55,6 +69,8 @@
 
 		RulesEngineCondition.prototype.render = function() {
 			var lis, $selectedLi, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
+
+			this.updateFilterCount();
 
 			transformExpressionsToHtmlLis = function( expressions, depth, index ) {
 				var lis             = []
@@ -123,6 +139,23 @@
 			}
 		};
 
+		RulesEngineCondition.prototype.notifyChange = function(){
+			this.$formControl.trigger( "change" );
+		};
+
+		RulesEngineCondition.prototype.updateFilterCount = function() {
+			if ( !this.isFilter || !this.$filterCount.length ) { return; }
+
+			var conditionBuilder = this;
+
+			conditionBuilder.$filterCount.html( '' ).addClass( "loading" );
+			$.post(
+				  filterCountEndpoint
+				, { condition:this.serialize(), objectName:this.objectName }
+				, function( data ){ conditionBuilder.$filterCount.html( data ).removeClass( "loading" ); }
+			);
+		};
+
 		RulesEngineCondition.prototype.addExpression = function( expressionId ) {
 			var newExpression = this.newExpression( expressionId );
 
@@ -150,7 +183,9 @@
 			};
 
 			for( fieldName in expression.fields ){
-				if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
+				if ( typeof contextData[ fieldName ] !== "undefined" ) {
+					newExpression.fields[ fieldName ] = contextData[ fieldName ];
+				} else if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
 					newExpression.fields[ fieldName ] = null;
 				} else {
 					newExpression.fields[ fieldName ] = expression.fields[ fieldName ].default;
@@ -212,7 +247,7 @@
 				$field.addClass( "rules-engine-condition-builder-field-loading" ).html( "&hellip;" );
 
 				if ( !this.fieldRenderCache[ cacheKey ] ) {
-					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, { fieldValue:fieldValue }, fieldDefinition ) );
+					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, contextData, fields, { fieldValue:fieldValue }, fieldDefinition ) );
 				}
 
 				this.fieldRenderCache[ cacheKey ].done( function( response ){
@@ -264,7 +299,7 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
+			iframeUrl += qsDelim + $.param( $.extend( {}, contextData, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};
@@ -557,7 +592,6 @@
 			insertAtPosition   = listPosition ? ( parentPosition + 1 ) : parentPosition;
 
 			for( i=removeFromPosition; i<parentLength; i++ ) {
-				console.log( parentList[i] );
 				grandParentList.splice( insertAtPosition, 0, parentList[i] );
 				insertAtPosition++;
 				if ( !listPosition ) {
@@ -576,6 +610,12 @@
 			this.render();
 		};
 
+		RulesEngineCondition.prototype.clear = function(){
+			this.model = [];
+			this.persistToHiddenField();
+			this.render();
+		};
+
 		return RulesEngineCondition;
 	})();
 
@@ -587,16 +627,21 @@
 			  , $expressionList   = $builderContainer.find( ".rules-engine-condition-builder-expressions-list" )
 			  , $conditionPanel   = $builderContainer.find( ".rules-engine-condition-builder-condition-pane" )
 			  , $ruleList         = $builderContainer.find( ".rules-engine-condition-builder-rule-list" )
-			  , $expressions      = $expressionList.find( "> li" )
+			  , $filterCount      = $builderContainer.find( ".rules-engine-condition-builder-filter-count-count" )
+			  , $expressions      = $expressionList.find( "> li > ul > li.expression" )
+			  , $categoryLists    = $expressionList.find( ".category-expressions" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
 			  , expressions       = expressionLib[ $formControl.attr( "id" ) ] || []
+			  , isFilter          = $formControl.data( "isFilter" ) || false
+			  , objectName        = $formControl.data( "objectName" )
 			  , $hiddenControl
 			  , condition
 			  , performSearch
 			  , initializeBuilder
 			  , prepareSearchEngine
 			  , prepareDragAndDrop
+			  , prepareCategoryAccordion
 			  , addExpression
 			  , sortableStop;
 
@@ -617,10 +662,22 @@
 				$formControl.remove();
 				$hiddenControl.attr( "id", id );
 
-				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList );
+				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList, isFilter, $filterCount, objectName );
+
+				$hiddenControl.data( "conditionBuilder", {
+					clear : function(){
+						$searchInput.val( "" );
+						performSearch();
+						condition.clear();
+					},
+					load : function( value ){
+						condition.loadFromStringValue( value );
+					}
+				} );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
+				prepareCategoryAccordion();
 			};
 
 			prepareSearchEngine = function(){
@@ -653,6 +710,29 @@
 					}
 				} );
 
+				$categoryLists.each( function(){
+					var $categoryUl = $( this )
+					  , $parentLi   = $categoryUl.parents( "li:first" );
+
+					if ( !query.length ) {
+						$parentLi.show();
+						if ( $categoryLists.length == 1 ) {
+							$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+							$categoryUl.collapse( "show" );
+						} else {
+							$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
+							$categoryUl.collapse( "hide" );
+						}
+					} else if ( $categoryUl.find( "> li:not(.hide)" ).length ) {
+						$parentLi.show();
+						$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "show" );
+					} else {
+						$parentLi.hide();
+						$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "hide" );
+					}
+				} );
 			};
 
 			prepareDragAndDrop = function() {
@@ -662,6 +742,24 @@
 		        	, drop       : addExpression
 		        	, hoverClass : "ui-droppable-hover"
 				});
+			};
+
+			prepareCategoryAccordion = function(){
+				$expressionList.on( "click", ".category-link", function( e ){
+					e.preventDefault();
+					$( this ).find( ".fa:first" ).toggleClass( "fa-plus-square-o fa-minus-square-o" );
+				} );
+
+				if ( $categoryLists.length == 1 ) {
+					$categoryLists.each( function(){
+						var $categoryUl = $( this )
+						  , $parentLi   = $categoryUl.parents( "li:first" );
+
+						$parentLi.show();
+						$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "show" );
+					} );
+				}
 			};
 
 			addExpression = function( event, ui ){

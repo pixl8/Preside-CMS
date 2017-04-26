@@ -212,11 +212,11 @@ component extends="preside.system.base.AdminHandler" {
 			formName = formsService.getMergedFormName( formName, mergeFormName );
 		}
 
-		formData             = event.getCollectionForForm( formName );
+		formData             = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 		formData.parent_page = parent;
 		formData.page_type   = rc.page_type;
 
-		validationResult = validateForm( formName=formName, formData=formData );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
 			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
@@ -349,9 +349,9 @@ component extends="preside.system.base.AdminHandler" {
 			formName = formsService.getMergedFormName( formName, mergeFormName );
 		}
 
-		formData         = event.getCollectionForForm( formName );
+		formData         = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 		formData.id      = pageId;
-		validationResult = validateForm( formName=formName, formData=formData );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
 			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
@@ -590,7 +590,7 @@ component extends="preside.system.base.AdminHandler" {
 			formName = formsService.getMergedFormName( formName, mergeFormName );
 		}
 
-		formData = event.getCollectionForForm( formName );
+		formData = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 		formData._translation_language = languageId
 		formData.id = multilingualPresideObjectService.getExistingTranslationId(
 			  objectName = pageIsMultilingual ? "page" : page.page_type
@@ -598,7 +598,7 @@ component extends="preside.system.base.AdminHandler" {
 			, languageId = languageId
 		);
 
-		validationResult = validateForm( formName=formName, formData=formData );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
 			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
@@ -746,12 +746,12 @@ component extends="preside.system.base.AdminHandler" {
 		_getPageAndThrowOnMissing( argumentCollection=arguments, includeTrash=true );
 
 		var formName          = "preside-objects.page.restore";
-		var formData          = event.getCollectionForForm( formName );
+		var formData          = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 		var validationResult  = "";
 		var newId             = "";
 		var persist           = "";
 
-		validationResult = validateForm( formName = formName, formData = formData );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
 			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );

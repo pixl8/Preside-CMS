@@ -17,14 +17,14 @@ component {
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
 		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
 		this.COLDBOX_RELOAD_PASSWORD                 = arguments.reloadPassword;
-		this.name                                    = arguments.name
+		this.name                                    = arguments.name;
 		this.scriptProtect                           = arguments.scriptProtect;
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
 		this.statelessRequest                        = isStatelessRequest( _getUrl() );
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
-		this.showDbSyncScripts                       = arguments.showDbSyncScripts
+		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -155,7 +155,6 @@ component {
 				if ( _reloadRequired() ) {
 					_announceInterception( "prePresideReload" );
 
-
 					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
 
 					_clearExistingApplication();
@@ -181,6 +180,7 @@ component {
 	private void function _clearExistingApplication() {
 		onApplicationEnd( application );
 		application.clear();
+		request.delete( "cb_requestcontext" );
 		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {

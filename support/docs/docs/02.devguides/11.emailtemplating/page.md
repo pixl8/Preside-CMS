@@ -1,81 +1,89 @@
 ---
-id: emailtemplating
-title: Email templating
+id: emailtemplatingv2
+title: Email Centre
 ---
 
 ## Overview
 
-PresideCMS comes with a very simple email templating system that allows you to define email templates by creating ColdBox handlers.
+As of 10.8.0, Preside comes with a sophisticated but simple system for email templating that allows developers and content editors to work together to create a highly tailored system for delivering both marketing and transactional email.
 
-Emails are sent through the core email service which in turn invokes template handlers to render the emails and return any other necessary mail parameters.
+>>> See [[emailtemplating]] for documentation on the basic email templating system prior to 10.8.0
 
-## Creating an email template handler
+## Concepts
 
-To create an email template handler, you must create a regular Coldbox handler under the `/handlers/emailTemplates` directory. The handler needs to implement a single *private* action, `prepareMessage()` that returns a structure containing any message parameters that it needs to set. For example:
+### Email layouts
+
+Email "layouts" are provided by developers and designers to provide content administrators with a basic set of styles and layout for their emails. Each template can be given configuration options that allow content administrators to tweak the behaviour of the template globally and per email.
+
+An example layout might include a basic header and footer with configurable social media links and company contact details.
+
+See [[creatingAnEmailLayout]].
+
+### Email templates
+
+An email _template_ is the main body of any email and is editorially driven, though developers may provide default content. When creating or configuring an email template, users may choose a layout from the application's provided set of layouts. If only one layout is available, no choice will be given.
+
+Email templates are split into two categories:
+
+1. System email templates (see [[systemEmailTemplates]])
+2. Editorial email templates (e.g. for newsletters, etc.)
+
+Editorial email templates will work out-of-the-box and require no custom development.
+
+### Recipient types
+
+Recipient types are configured to allow the email centre to send intelligently to different types of recipient. Each email template is configured to send to a specific recipient type. The core system provides three types:
+
+1. Website user
+2. Admin user
+3. Anonymous
+
+You may also have further custom recipient types and you may wish to modify the configuration of these three core types. See [[emailRecipientTypes]] for a full guide.
+
+### Service providers
+
+Email service providers are mechanims for performing an email send. You may have a 'Mailgun API' service provider, for example (see our [Mailgun Extension](https://github.com/pixl8/preside-ext-mailgun)). 
+
+The core provides a default SMTP provider and you are free to create multiple different providers for different purposes. See [[emailServiceProviders]] for a full guide.
+
+### General settings
+
+Navigating to **Email centre -> Settings** reveals a settings form for general email sending configuration. You may wish to add to this default configuration form, or retrieve settings programmatically. See [[emailSettings]] for a full guide.
+
+## Feature switches and permissions
+
+### Features
+
+The email centre admin UI can be switched off using the `emailCentre` feature switch. In your application's `Config.cfc` file:
 
 ```luceescript
-// /mysite/application/handlers/emailTemplates/adminNotification.cfc
-component {
-
-    private struct function prepareMessage( event, rc, prc, args={} ) {
-        return {
-              to      = [ getSystemSetting( "email", "admin_notification_address", "" ) ]
-            , from    = getSystemSetting( "email", "default_from_address", "" )
-            , subject = "Admin notification: #( args.notificationTitle ?: '' )#"
-            , htmlBody = renderView( view="/emailTemplates/adminNotification/html", layout="email", args=args )
-            , textBody = renderView( view="/emailTemplates/adminNotification/text", args=args )
-        };
-    }
-
-}
+settings.features.emailCenter.enabled = false;
 ```
 
-An example send() call for this template might look like this:
+Furthermore, there is a separate feature switch to enable/disable _custom_ email template admin UIs, `customEmailTemplates`:
+
 
 ```luceescript
- emailService.send( template="adminNotification", args={
-      notificationTitle   = "Something just happened"
-    , notificationMessage = "Some message" 
-} );
+settings.features.customEmailTemplates.enabled = false;
 ```
 
-## Supplying message arguments to the send() method
+Both features are enabled by default. The `customEmailTemplates` feature is only available when the the `emailCenter` feature is also enabled; disabling just the `emailCenter` feature has the effect of disabling both features.
 
-Your email template handlers are not required to supply all the details of the message; these can be left to the calling code to supply. For example, we could refactor the above example so that the `to` and `subject` parameters need to be supplied by the calling code:
+### Permissions
+
+The email centre comes with a set of permission keys that can be used to fine tune your administrator roles. The permissions are defined as:
 
 ```luceescript
-// /mysite/application/handlers/emailTemplates/adminNotification.cfc
-component {
-
-    private struct function prepareMessage( event, rc, prc, args={} ) {
-        return {
-              htmlBody = renderView( view="/emailTemplates/adminNotification/html", layout="email", args=args )
-            , textBody = renderView( view="/emailTemplates/adminNotification/text", args=args )
-        };
-    }
-
-}
+settings.adminPermissions.emailCenter = {
+	  layouts          = [ "navigate", "configure" ]
+	, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send" ]
+	, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
+	, serviceProviders = [ "manage" ]
+	, settings         = [ "navigate", "manage" ]
+	, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
+	, logs             = [ "view" ]
+	, queue            = [ "view", "clear" ]
+  }
 ```
 
-```luceescript
-emailService.send( 
-      template = "adminNotification"
-    , args     = { notificationMessage = "Some message" }
-    , to       = user.email_address
-    , subject  = "Alert: something just happend"
-);
-```
-
->>> Note the missing "from" parameter. The core send() implementation will attempt to use the system configuration setting `email.default_from_address` when encountering messages with a missing **from** address. This default address can be configured by users through the PresideCMS administrator (see [[editablesystemsettings]]).
-
-## Mail server and other configuration settings
-
-The core system comes with a system configuration form for mail server settings. See [[editablesystemsettings]] for more details on how this is implemented.
-
-The system uses these configuration values to set the server and port when sending emails. The "default from address" setting is used when sending mail without a specified from address.
-
-This form may be useful to extend in your site should you want to configure other mail related settings. i.e. you might have default "to" addresses for particular admin notification emails, etc.
-
-
-
-
+The default `sysadmin` and `contentadmin` user roles have access to all of these permissions _except_ for the `emailCenter.queue.view` and `emailCenter.queue.clear` permissions. For a full guide to customizing admin permissions and roles, see [[cmspermissioning]].

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="filter">
+		<fieldset id="filter" sortorder="10">
+			<field binding="email_template.recipient_filter" control="filterPicker" sortorder="10" quickadd="true" quickedit="true" />
+		</fieldset>
+	</tab>
+</form>

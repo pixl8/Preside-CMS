@@ -5,7 +5,8 @@
  * @nolabel
  */
 component displayname="Form builder: Action" extends="preside.system.base.SystemPresideObject" {
-	property name="form" relationship="many-to-one" relatedto="formbuilder_form" required=true indexes="form,sortorder|1";
+	property name="form"      relationship="many-to-one" relatedto="formbuilder_form"       required=true indexes="form,sortorder|1";
+	property name="condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false ruleContext="formbuilderSubmission";
 
 	property name="sort_order"    type="numeric" dbtype="int"     required=true indexes="sortorder|2";
 	property name="action_type"   type="string"  dbtype="varchar" required=true maxlength=100;
