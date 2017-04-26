@@ -169,6 +169,7 @@ component {
 			  form          = arguments.formId
 			, action_type   = arguments.action
 			, configuration = SerializeJson( arguments.configuration )
+			, condition     = ( arguments.configuration.condition ?: "" )
 			, sort_order    = Val( existingActions.max_sort_order ?: "" ) + 1
 		} );
 	}
@@ -187,7 +188,8 @@ component {
 		}
 
 		return $getPresideObject( "formbuilder_formaction" ).updateData( id=arguments.id, data={
-			configuration = SerializeJson( arguments.configuration )
+			  configuration = SerializeJson( arguments.configuration )
+			, condition     = ( arguments.configuration.condition ?: "" )
 		} );
 	}
 
