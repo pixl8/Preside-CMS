@@ -4,6 +4,8 @@
  */
 component {
 
+	property name="formBuilderService" inject="formBuilderService";
+
 	/**
 	 * @fbform.fieldtype      object
 	 * @fbform.object         formbuilder_form
@@ -18,7 +20,10 @@ component {
 	) {
 		var submissionData = payload.formbuilderSubmission.data ?: {};
 		var formId         = payload.formbuilderSubmission.id   ?: "";
-		var submittedValue = submissionData[ arguments.fbformfield ] ?: "";
+		var formItem       = formBuilderService.getFormItem( arguments.fbFormField );
+		var fieldName      = formItem.configuration.name ?: "";
+		var submittedValue = submissionData[ fieldName ] ?: "";
+
 
 		if ( !IsDate( submittedValue ) ) {
 			return false;

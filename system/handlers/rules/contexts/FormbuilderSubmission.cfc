@@ -4,8 +4,10 @@
  */
 component {
 
+	property name="formBuilderService" inject="formBuilderService";
+
 	private struct function getPayload() {
-		return { formbuilderSubmission = ( prc.formbuilderSubmission ?: {} ) };
+		return { formbuilderSubmission=formBuilderService.getFormBuilderSubmissionContextData() };
 	}
 
 }

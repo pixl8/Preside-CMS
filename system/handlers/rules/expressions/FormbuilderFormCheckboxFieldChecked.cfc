@@ -4,7 +4,7 @@
  */
 component {
 
-	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
+	property name="formBuilderService" inject="formBuilderService";
 
 	/**
 	 * @fbform.fieldtype      object
@@ -20,9 +20,10 @@ component {
 	) {
 		var submissionData = payload.formbuilderSubmission.data ?: {};
 		var formId         = payload.formbuilderSubmission.id   ?: "";
-		var submittedValue = submissionData[ arguments.fbformfield ] ?: "";
-
-		var isChecked = ( submittedValue.len() && submittedValue != 0 );
+		var formItem       = formBuilderService.getFormItem( arguments.fbFormField );
+		var fieldName      = formItem.configuration.name ?: "";
+		var submittedValue = submissionData[ fieldName ] ?: "";
+		var isChecked      = ( submittedValue.len() && submittedValue != 0 );
 
 		return formId == fbForm && arguments._is == isChecked;
 	}

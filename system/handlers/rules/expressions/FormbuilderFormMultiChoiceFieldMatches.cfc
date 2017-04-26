@@ -4,7 +4,7 @@
  */
 component {
 
-	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
+	property name="formBuilderService" inject="formBuilderService";
 
 	/**
 	 * @fbform.fieldtype      object
@@ -22,8 +22,9 @@ component {
 	) {
 		var submissionData  = payload.formbuilderSubmission.data ?: {};
 		var formId          = payload.formbuilderSubmission.id   ?: "";
-		var submittedValues = ( submissionData[ arguments.fbformfield ] ?: "" ).listToArray();
-		var valuesToMatch   = arguments.value.listToArray();
+		var formItem        = formBuilderService.getFormItem( arguments.fbFormField );
+		var fieldName       = formItem.configuration.name ?: "";
+		var submittedValues = ( submissionData[ fieldName ] ?: "" ).listToArray();
 
 		for( var valueToMatch in valuesToMatch ) {
 			var found = submittedValues.findNoCase( valueToMatch );
