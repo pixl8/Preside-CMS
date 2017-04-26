@@ -20,6 +20,34 @@ Preside form definitions are generally rendered using `renderForm()`, a global h
 </form>
 ```
 
+## Dynamic data
+
+A common requirement is for dynamic arguments to be passed to the rendering of forms. For example, you may wish to supply editorially driven form field labels to a statically defined form. **As of 10.8.0**, this can be achieved by passing the `additionalArgs` argument to the `renderForm()` method:
+
+```lucee
+<cfscript>
+    additionalArgs = {
+    	  fields    = { firstname={ label=dynamicFirstnameLabel } }
+    	, fieldsets = { personal={ description=dynamicPersonalFieldsetDescription } }
+    	, tabs      = { basic={ title=dynamicBasicTabTitle } }
+    };
+</cfscript>
+
+<form id="signup-form" action="#postAction#" class="form form-horizontal">
+	#renderForm(
+		  formName         = "events-management.signup"
+		, context          = "admin"
+		, formId           = "signup-form"
+		, validationResult = rc.validationResult ?: ""
+		, additionalArgs   = additionalArgs
+	)#
+
+	<input type="submit" value="Go!" />
+</form>
+```
+
+The `additionalArgs` structure expects `fields`, `fieldsets` and `tabs` keys (all optional). To add args for a specific field, add a key under the `fields` struct that matches the field _name_. For fieldsets and tabs, use the _id_ of the entity to match.
+
 ## Rendering process and custom layouts
 
 When a form is rendered using the [[formsservice-renderform]] method, its output string is built from the bottom up. At the bottom level you have field controls, followed by field layout, fieldset layouts, tab layouts and finally a form layout.

@@ -284,6 +284,7 @@ component displayName="Forms service" {
 	 * @validationResult.hint    An existing validation result object with which to display errors in the form (see [[validation-framework]] and [[presideforms-validation]] for more details)
 	 * @includeValidationJs.hint Whether or not to generate and include validation javascript with the form
 	 * @savedData.hint           Structure of pre-existing data with which to pre-populate values in the form
+	 * @additionalArgs.hint      Structure of additional dynamic args to be passed to the renders of fields, fieldsets and tabs. See [[presideforms-rendering]] for more details.
 	 * @fieldNamePrefix.hint     A prefix to add to each field name
 	 * @fieldNameSuffix.hint     A suffix to add to each field name
 	 * @suppressFields.hint      An array of field names to hide from the rendering
