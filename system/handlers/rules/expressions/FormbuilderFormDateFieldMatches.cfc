@@ -4,8 +4,6 @@
  */
 component {
 
-	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
-
 	/**
 	 * @fbform.fieldtype      object
 	 * @fbform.object         formbuilder_form
