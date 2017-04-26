@@ -9,14 +9,21 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @configuredActions.inject coldbox:setting:formbuilder.actions
-	 * @validationEngine.inject  validationEngine
-	 * @formsService.inject      formsService
+	 * @configuredActions.inject    coldbox:setting:formbuilder.actions
+	 * @validationEngine.inject     validationEngine
+	 * @formsService.inject         formsService
+	 * @rulesEngineConditionService rulesEngineConditionService
 	 */
-	public any function init( required array configuredActions, required any validationEngine, required any formsService ) {
+	public any function init(
+		  required array configuredActions
+		, required any   validationEngine
+		, required any   formsService
+		, required any   rulesEngineConditionService
+	) {
 		_setValidationEngine( validationEngine );
 		_setFormsService( formsService );
 		_setConfiguredActions( arguments.configuredActions );
+		_setRulesEngineConditionService( arguments.rulesEngineConditionService );
 
 		return this;
 	}
@@ -109,6 +116,7 @@ component {
 				  "id"
 				, "action_type"
 				, "configuration"
+				, "condition"
 			  ]
 		);
 
@@ -117,6 +125,7 @@ component {
 				  id            = action.id
 				, action        = getActionConfig( action.action_type )
 				, configuration = DeSerializeJson( action.configuration )
+				, condition     = action.condition
 			} );
 		}
 
@@ -261,14 +270,22 @@ component {
 	public void function triggerSubmissionActions( required string formId, required struct submissionData ) {
 		var configuredActions = getFormActions( arguments.formId );
 		var coldbox           = $getColdbox();
+		var conditionService  = _getRulesEngineConditionService();
 
 		for( var savedAction in configuredActions ) {
-			coldbox.runEvent(
-				  event          = savedAction.action.submissionHandler
-				, eventArguments = { args={ configuration = savedAction.configuration, submissionData=arguments.submissionData } }
-				, private        = true
-				, prePostExempt  = true
+			var allowedToFire = !Len( Trim( savedAction.condition ?: "" ) ) || conditionService.evaluateCondition(
+				  conditionId = savedAction.condition
+				, context     = "formbuilderSubmission"
 			);
+
+			if ( allowedToFire ) {
+				coldbox.runEvent(
+					  event          = savedAction.action.submissionHandler
+					, eventArguments = { args={ configuration = savedAction.configuration, submissionData=arguments.submissionData } }
+					, private        = true
+					, prePostExempt  = true
+				);
+			}
 		}
 	}
 
@@ -315,5 +332,12 @@ component {
 	}
 	private void function _setFormsService( required any formsService ) {
 		_formsService = arguments.formsService;
+	}
+
+	private any function _getRulesEngineConditionService() {
+		return _rulesEngineConditionService;
+	}
+	private void function _setRulesEngineConditionService( required any rulesEngineConditionService ) {
+		_rulesEngineConditionService = arguments.rulesEngineConditionService;
 	}
 }

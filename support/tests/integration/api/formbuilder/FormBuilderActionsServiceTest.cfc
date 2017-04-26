@@ -44,9 +44,10 @@ component extends="testbox.system.BaseSpec"{
 				}
 
 				service = service.init(
-					  configuredActions = actions
-					, validationEngine  = mockValidationEngine
-					, formsService      = mockFormsService
+					  configuredActions           = actions
+					, validationEngine            = mockValidationEngine
+					, formsService                = mockFormsService
+					, rulesEngineConditionService = mockConditionService
 				);
 
 				expect( service.listActions() ).toBe( [
@@ -95,14 +96,17 @@ component extends="testbox.system.BaseSpec"{
 					  id            = CreateUUId()
 					, action        = { id="slack", submissionHandler="formbuilder.actions.slack.onSubmit" }
 					, configuration = { test=CreateUUId() }
+					, condition     = ""
 				},{
 					  id            = CreateUUId()
 					, action        = { id="email", submissionHandler="formbuilder.actions.email.onSubmit" }
 					, configuration = { sender="bob@email.com", recipients="dianne@test.com" }
+					, condition     = ""
 				},{
 					  id            = CreateUUId()
 					, action        = { id="webhook", submissionHandler="formbuilder.actions.webhook.onSubmit" }
 					, configuration = { endpoint="http://myhook.com/receiver/" }
+					, condition     = ""
 				}]
 
 				service.$( "getFormActions" ).$args( formId ).$results( savedActions );
@@ -122,12 +126,57 @@ component extends="testbox.system.BaseSpec"{
 					} );
 				}
 			} );
+
+			it( "should skip triggering actions with a condition that evaluates to false", function(){
+				var actions        = [ "email", "slack", "webhook" ];
+				var service        = getService( actions );
+				var formId         = CreateUUId();
+				var submissionData = { fubar="test", blah=true };
+				var savedActions   = [{
+					  id            = CreateUUId()
+					, action        = { id="slack", submissionHandler="formbuilder.actions.slack.onSubmit" }
+					, configuration = { test=CreateUUId() }
+					, condition     = CreateUUId()
+				},{
+					  id            = CreateUUId()
+					, action        = { id="email", submissionHandler="formbuilder.actions.email.onSubmit" }
+					, configuration = { sender="bob@email.com", recipients="dianne@test.com" }
+					, condition     = CreateUUId()
+				},{
+					  id            = CreateUUId()
+					, action        = { id="webhook", submissionHandler="formbuilder.actions.webhook.onSubmit" }
+					, configuration = { endpoint="http://myhook.com/receiver/" }
+					, condition     = CreateUUId()
+				}]
+
+				service.$( "getFormActions" ).$args( formId ).$results( savedActions );
+				mockColdbox.$( "runEvent" );
+
+				for( var i=1; i<=savedActions.len(); i++ ) {
+					mockConditionService.$( "evaluateCondition" ).$args( conditionId=savedActions[i].condition, context="formbuilderSubmission" ).$results( !i==savedActions.len() );
+				}
+
+				service.triggerSubmissionActions( formId, submissionData );
+
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( savedActions.len()-1 );
+				for( var i=1; i <= savedActions.len()-1; i++ ){
+					var log = mockColdbox.$callLog().runEvent[ i ];
+
+					expect( log ).toBe( {
+						  event          = savedActions[ i ].action.submissionHandler
+						, private        = true
+						, prePostExempt  = true
+						, eventArguments = { args={ configuration=savedActions[ i ].configuration, submissionData=submissionData } }
+					} );
+				}
+			} );
 		} );
 	}
 
 	private function getService( array configuredActions=[], boolean init=true ) {
 		variables.mockValidationEngine = createEmptyMock( "preside.system.services.validation.ValidationEngine" );
 		variables.mockFormsService     = createEmptyMock( "preside.system.services.forms.FormsService" );
+		variables.mockConditionService = createEmptyMock( "preside.system.services.rulesEngine.RulesEngineConditionService" );
 		variables.mockActionDao        = createStub();
 		variables.mockColdbox          = createStub();
 
@@ -135,9 +184,10 @@ component extends="testbox.system.BaseSpec"{
 
 		if ( arguments.init ) {
 			service = service.init(
-				  configuredActions = arguments.configuredActions
-				, validationEngine  = mockValidationEngine
-				, formsService      = mockFormsService
+				  configuredActions           = arguments.configuredActions
+				, validationEngine            = mockValidationEngine
+				, formsService                = mockFormsService
+				, rulesEngineConditionService = mockConditionService
 			);
 		}
 
