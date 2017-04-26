@@ -16,7 +16,7 @@
 			, context           = "admin"
 			, formId            = formId
 			, savedData         = savedData
-			, additionalArgs    = { rulesEngineContextData={ fbform=fbFormId } }
+			, additionalArgs    = { fields={ condition={ rulesEngineContextData={ fbform=fbFormId } } } }
 		)#
 	</form>
 </cfoutput>

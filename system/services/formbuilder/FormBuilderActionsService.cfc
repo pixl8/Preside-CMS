@@ -9,10 +9,10 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @configuredActions.inject    coldbox:setting:formbuilder.actions
-	 * @validationEngine.inject     validationEngine
-	 * @formsService.inject         formsService
-	 * @rulesEngineConditionService rulesEngineConditionService
+	 * @configuredActions.inject           coldbox:setting:formbuilder.actions
+	 * @validationEngine.inject            validationEngine
+	 * @formsService.inject                formsService
+	 * @rulesEngineConditionService.inject rulesEngineConditionService
 	 */
 	public any function init(
 		  required array configuredActions

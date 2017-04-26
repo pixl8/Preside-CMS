@@ -371,7 +371,7 @@ component displayName="Forms service" {
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
 						renderArgs.append( field, false );
-						renderArgs.append( arguments.additionalArgs, false );
+						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
 						renderArgs.append( _getI18nFieldAttributes( field=field ) );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
@@ -381,7 +381,7 @@ component displayName="Forms service" {
 				renderArgs = Duplicate( fieldset );
 				renderArgs.content = renderedFields.toString();
 				renderArgs.append( _getI18nTabOrFieldsetAttributes( fieldset ) );
-				renderArgs.append( arguments.additionalArgs, false );
+				renderArgs.append( arguments.additionalArgs.fieldsets[ fieldset.id ?: "" ] ?: {} );
 
 				renderedFieldSets.append( coldbox.renderViewlet(
 					  event = ( fieldset.layout ?: arguments.fieldsetLayout )
@@ -393,7 +393,7 @@ component displayName="Forms service" {
 			renderArgs.content = renderedFieldSets.toString();
 			renderArgs.active  = activeTab;
 			renderArgs.append( _getI18nTabOrFieldsetAttributes( tab ) );
-			renderArgs.append( arguments.additionalArgs, false );
+			renderArgs.append( arguments.additionalArgs.tabs[ tab.id ?: "" ] ?: {} );
 
 			tabs.append( renderArgs );
 
