@@ -183,7 +183,9 @@
 			};
 
 			for( fieldName in expression.fields ){
-				if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
+				if ( typeof contextData[ fieldName ] !== "undefined" ) {
+					newExpression.fields[ fieldName ] = contextData[ fieldName ];
+				} else if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
 					newExpression.fields[ fieldName ] = null;
 				} else {
 					newExpression.fields[ fieldName ] = expression.fields[ fieldName ].default;
@@ -245,7 +247,7 @@
 				$field.addClass( "rules-engine-condition-builder-field-loading" ).html( "&hellip;" );
 
 				if ( !this.fieldRenderCache[ cacheKey ] ) {
-					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, { fieldValue:fieldValue }, fieldDefinition ) );
+					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, contextData, fields, { fieldValue:fieldValue }, fieldDefinition ) );
 				}
 
 				this.fieldRenderCache[ cacheKey ].done( function( response ){

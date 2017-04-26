@@ -18,7 +18,7 @@ component  {
 		if ( IsTrue( args.quickAdd ?: "" ) ) {
 			args.quickAddUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickAddConditionForm"
-				, querystring = "context=#context#&multiple=#multiple#"
+				, querystring = "context=#context#&multiple=#multiple#&contextData=" & UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) )
 			);
 		}
 		if ( IsTrue( args.quickEdit ?: "" ) ) {
