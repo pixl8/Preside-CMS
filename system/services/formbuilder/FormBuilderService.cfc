@@ -881,7 +881,7 @@ component {
 
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
 						if ( itemColumns.len() >= i ) {
-							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column );
+							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column, "string" );
 						} else {
 							spreadsheetLib.setCellValue( workbook, "", row, ++column );
 						}
