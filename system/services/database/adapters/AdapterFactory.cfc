@@ -51,7 +51,7 @@ component {
 				
 
 				default:
-					throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbType#], is not supported by the PresideObjects engine at this time" );
+					throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbInfo.database_productname#], is not supported by the PresideObjects engine at this time" );
 			}
 		}
 
