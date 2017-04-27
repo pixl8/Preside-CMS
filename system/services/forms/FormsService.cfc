@@ -284,6 +284,7 @@ component displayName="Forms service" {
 	 * @validationResult.hint    An existing validation result object with which to display errors in the form (see [[validation-framework]] and [[presideforms-validation]] for more details)
 	 * @includeValidationJs.hint Whether or not to generate and include validation javascript with the form
 	 * @savedData.hint           Structure of pre-existing data with which to pre-populate values in the form
+	 * @additionalArgs.hint      Structure of additional dynamic args to be passed to the renders of fields, fieldsets and tabs. See [[presideforms-rendering]] for more details.
 	 * @fieldNamePrefix.hint     A prefix to add to each field name
 	 * @fieldNameSuffix.hint     A suffix to add to each field name
 	 * @suppressFields.hint      An array of field names to hide from the rendering
@@ -302,6 +303,7 @@ component displayName="Forms service" {
 		,          any     validationResult        = ""
 		,          boolean includeValidationJs     = true
 		,          struct  savedData               = {}
+		,          struct  additionalArgs          = {}
 		,          string  fieldNamePrefix         = ""
 		,          string  fieldNameSuffix         = ""
 		,          array   suppressFields          = []
@@ -369,8 +371,9 @@ component displayName="Forms service" {
 
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
-						StructAppend( renderArgs, field, false );
-						StructAppend( renderArgs, _getI18nFieldAttributes( field=field ) );
+						renderArgs.append( field, false );
+						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
+						renderArgs.append( _getI18nFieldAttributes( field=field ) );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
@@ -379,6 +382,7 @@ component displayName="Forms service" {
 				renderArgs = Duplicate( fieldset );
 				renderArgs.content = renderedFields.toString();
 				renderArgs.append( _getI18nTabOrFieldsetAttributes( fieldset ) );
+				renderArgs.append( arguments.additionalArgs.fieldsets[ fieldset.id ?: "" ] ?: {} );
 
 				renderedFieldSets.append( coldbox.renderViewlet(
 					  event = ( fieldset.layout ?: arguments.fieldsetLayout )
@@ -390,6 +394,7 @@ component displayName="Forms service" {
 			renderArgs.content = renderedFieldSets.toString();
 			renderArgs.active  = activeTab;
 			renderArgs.append( _getI18nTabOrFieldsetAttributes( tab ) );
+			renderArgs.append( arguments.additionalArgs.tabs[ tab.id ?: "" ] ?: {} );
 
 			tabs.append( renderArgs );
 

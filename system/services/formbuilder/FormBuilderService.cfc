@@ -626,6 +626,8 @@ component {
 		,          string ipAddress   = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string userAgent   = ( cgi.http_user_agent ?: "" )
 	) {
+		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
+
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
@@ -927,6 +929,17 @@ component {
 		}
 
 		return arguments.formData;
+	}
+
+	public struct function getFormBuilderSubmissionContextData() {
+		return $getRequestContext().getValue( name="_formBuilderContext", private=true, defaultValue={} );
+	}
+	public void function setFormBuilderSubmissionContextData( required string formId, required struct data ) {
+		$getRequestContext().setValue(
+			  name    = "_formBuilderContext"
+			, value   = { id=arguments.formId, data=arguments.data }
+			, private = true
+		);
 	}
 
 // PRIVATE HELPERS

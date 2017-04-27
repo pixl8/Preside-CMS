@@ -1,10 +1,11 @@
 ( function( $ ){
 
-	var expressionLib        = cfrequest.rulesEngineExpressions         || {}
-	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || ""
-	  , editFieldEndpoint    = cfrequest.rulesEngineEditFieldEndpoint   || ""
-	  , filterCountEndpoint  = cfrequest.rulesEngineFilterCountEndpoint || ""
-	  , context              = cfrequest.rulesEngineContext             || "global";
+	var expressionLib       = cfrequest.rulesEngineExpressions         || {}
+	  , renderFieldEndpoint = cfrequest.rulesEngineRenderFieldEndpoint || ""
+	  , editFieldEndpoint   = cfrequest.rulesEngineEditFieldEndpoint   || ""
+	  , filterCountEndpoint = cfrequest.rulesEngineFilterCountEndpoint || ""
+	  , contextData         = cfrequest.rulesEngineContextData         || {}
+	  , context             = cfrequest.rulesEngineContext             || "global";
 
 	var RulesEngineCondition = (function() {
 		function RulesEngineCondition( $formControl, expressions, $ruleList, isFilter, $filterCount, objectName ) {
@@ -182,7 +183,9 @@
 			};
 
 			for( fieldName in expression.fields ){
-				if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
+				if ( typeof contextData[ fieldName ] !== "undefined" ) {
+					newExpression.fields[ fieldName ] = contextData[ fieldName ];
+				} else if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
 					newExpression.fields[ fieldName ] = null;
 				} else {
 					newExpression.fields[ fieldName ] = expression.fields[ fieldName ].default;
@@ -244,7 +247,7 @@
 				$field.addClass( "rules-engine-condition-builder-field-loading" ).html( "&hellip;" );
 
 				if ( !this.fieldRenderCache[ cacheKey ] ) {
-					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, { fieldValue:fieldValue }, fieldDefinition ) );
+					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, contextData, fields, { fieldValue:fieldValue }, fieldDefinition ) );
 				}
 
 				this.fieldRenderCache[ cacheKey ].done( function( response ){
@@ -296,7 +299,7 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
+			iframeUrl += qsDelim + $.param( $.extend( {}, contextData, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};

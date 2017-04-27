@@ -5,6 +5,7 @@
 	param name="args.draftsEnabled"       type="boolean" default=false;
 	param name="args.multiActionUrl"      type="string"  default="";
 	param name="args.gridFields"          type="array";
+	param name="args.filterContextData"   type="struct"  default={};
 	param name="args.allowSearch"         type="boolean" default=true;
 	param name="args.allowFilter"         type="boolean" default=true;
 	param name="args.clickableRows"       type="boolean" default=true;
@@ -72,15 +73,16 @@
 
 				<div id="quick-filter-form" class="in clearfix">
 					#renderFormControl(
-						  name      = "filter"
-						, id        = "filter"
-						, type      = "rulesEngineFilterBuilder"
-						, context   = "admin"
-						, object    = args.objectName
-						, label     = ""
-						, layout    = ""
-						, compact   = true
-						, showCount = false
+						  name        = "filter"
+						, id          = "filter"
+						, type        = "rulesEngineFilterBuilder"
+						, context     = "admin"
+						, contextData = args.filterContextData
+						, object      = args.objectName
+						, label       = ""
+						, layout      = ""
+						, compact     = true
+						, showCount   = false
 					)#
 
 					<div class="form-actions">

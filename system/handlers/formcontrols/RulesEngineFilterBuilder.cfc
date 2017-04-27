@@ -6,7 +6,6 @@ component {
 		args.expressions = Len( Trim( args.object ) ) ? expressionService.listExpressions( filterObject=args.object ) : [];
 		args.isFilter    = true;
 
-
 		event.include( "/js/admin/specific/rulesEngineConditionBuilder/"  )
 		     .include( "/css/admin/specific/rulesEngineConditionBuilder/" )
 		     .includeData( {
@@ -15,6 +14,7 @@ component {
 		     	, rulesEngineEditFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
 		     	, rulesEngineFilterCountEndpoint = event.buildAdminLink( linkTo="rulesengine.getFilterCount" )
 		     	, rulesEngineContext             = "global"
+		     	, rulesEngineContextData         = args.contextData ?: {}
 		      }  );
 
 		return renderView( view="/formControls/rulesEngineConditionBuilder/index", args=args );

@@ -1160,6 +1160,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockFormSubmissionDao            = CreateStub();
 		variables.mockColdbox                      = CreateStub();
 		variables.mockSpreadsheetLib               = CreateStub();
+		variables.justAStub                        = CreateStub();
 		variables.mockActionsService               = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderActionsService" );
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
@@ -1185,6 +1186,9 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$recordWebsiteUserAction", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
+		service.$( "$getRequestContext", justAStub );
+		justAStub.$( "getValue", {} );
+		justAStub.$( "setValue" );
 
 		mockRecaptchaService.$( "validate", true );
 

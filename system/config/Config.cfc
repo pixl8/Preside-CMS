@@ -331,6 +331,10 @@ component {
 				return { filter=sql, filterParams=params };
 			}
 			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
+			, webUserEmailTemplates = {
+				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
+				, filterParams = { "email_template.recipient_type" = "websiteUser" }
+			  }
 		};
 
 		settings.enum = {};
@@ -349,6 +353,8 @@ component {
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
 		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
+		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
+		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
@@ -381,9 +387,10 @@ component {
 		};
 
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest = { subcontexts=[ "user", "page" ] };
-		settings.rulesEngine.contexts.page       = { object="page" };
-		settings.rulesEngine.contexts.user       = { object="website_user" };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page" ] };
+		settings.rulesEngine.contexts.page                  = { object="page" };
+		settings.rulesEngine.contexts.user                  = { object="website_user" };
+		settings.rulesEngine.contexts.formBuilderSubmission = { subcontexts=[ "webrequest" ] };
 
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };

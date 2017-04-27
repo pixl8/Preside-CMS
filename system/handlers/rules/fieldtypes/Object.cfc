@@ -35,15 +35,16 @@ component {
 		rc.delete( "value" );
 
 		return renderFormControl(
-			  name         = "value"
-			, type         = "objectPicker"
-			, object       = object
-			, multiple     = multiple
-			, sortable     = sortable
-			, label        = translateResource( objectUriRoot & "title" )
-			, savedValue   = arguments.value
-			, defaultValue = arguments.value
-			, required     = true
+			  argumentCollection = arguments.config
+			, name               = "value"
+			, type               = "objectPicker"
+			, object             = object
+			, multiple           = multiple
+			, sortable           = sortable
+			, label              = translateResource( objectUriRoot & "title" )
+			, savedValue         = arguments.value
+			, defaultValue       = arguments.value
+			, required           = true
 		);
 	}
 

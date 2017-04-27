@@ -12,6 +12,7 @@
 			, context          = "admin"
 			, formId           = formId
 			, validationResult = args.validationResult
+			, additionalArgs   = { fields={ expressions={ contextData=prc.contextData ?: {} } } }
 		)#
 	</form>
 </cfoutput>
