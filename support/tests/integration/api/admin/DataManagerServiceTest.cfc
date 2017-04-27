@@ -185,7 +185,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		contentRenderer       = createEmptyMock( "preside.system.services.rendering.ContentRenderer" );
 		labelRendererService  = createEmptyMock( "preside.system.services.rendering.LabelRendererService" );
 		mockPermissionService = createEmptyMock( "preside.system.services.security.PermissionService" );
-		mockI18nPlugin        = createEmptyMock( "preside.system.coldboxModifications.plugins.i18n" );
+		mockI18nPlugin        = createEmptyMock( "preside.system.services.i18n.i18n" );
 		mockSiteService       = createEmptyMock( "preside.system.services.siteTree.SiteService" );
 
 		_setupMockObjectMeta();
