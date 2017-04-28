@@ -19,7 +19,6 @@ component {
 			, handlersIndexAutoReload   = false
 			, debugMode                 = false
 			, defaultEvent              = "general.index"
-			, customErrorTemplate       = ""
 			, reinitPassword            = ( applicationSettings.COLDBOX_RELOAD_PASSWORD ?: "true" )
 			, handlerCaching            = true
 			, eventCaching              = true
@@ -36,7 +35,7 @@ component {
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
-			, customErrorTemplate       = "/coldbox/system/includes/BugReport.cfm"
+			, customErrorTemplate       = "/preside/system/coldboxModifications/includes/errorReport.cfm"
 		};
 
 		i18n = {
