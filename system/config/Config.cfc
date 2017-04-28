@@ -36,6 +36,7 @@ component {
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
+			, customErrorTemplate       = "/coldbox/system/includes/BugReport.cfm"
 		};
 
 		i18n = {
