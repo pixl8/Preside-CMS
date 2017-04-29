@@ -168,6 +168,7 @@ component {
 		settings.devConsoleToggleKeyCode     = 96;
 		settings.adminLanguages              = [];
 		settings.showNonLiveContentByDefault = true;
+		settings.coldboxVersion              = _calculateColdboxVersion();
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -701,5 +702,21 @@ component {
 			, recipientTypes   = recipientTypes
 			, serviceProviders = serviceProviders
 		};
+	}
+
+	private string function _calculateColdboxVersion() {
+		var boxJsonPath = "/coldbox/box.json";
+
+		if ( FileExists( boxJsonPath ) ) {
+			try {
+				var boxInfo = DeserializeJson( FileRead( boxJsonPath ) );
+
+				return boxInfo.version ?: "unknown";
+			} catch( any e ) {
+				return "unknown";
+			}
+		}
+
+		return "3.8.2";
 	}
 }
