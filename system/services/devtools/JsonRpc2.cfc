@@ -1,14 +1,11 @@
-component extends="coldbox.system.Plugin" output="false" singleton="true" {
+/**
+ * @singleton      true
+ * @presideservice true
+ *
+ */
+component {
 
-	public any function init( controller ) output=false {
-		super.init( arguments.controller );
-
-		setpluginName("JSON-RPC 2.0 helpers for Coldbox");
-		setpluginVersion("1.0");
-		setpluginDescription("Provides helper methods for JSON-RPC 2.0 specifications.");
-		setPluginAuthor("Pixl8 Interactive");
-		setPluginAuthorURL("www.pixl8.co.uk");
-
+	public any function init() {
 		this.ERROR_CODES = {
 			  PARSE_ERROR      = -32700
 			, INVALID_REQUEST  = -32600
@@ -20,8 +17,8 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		return this;
 	}
 
-	public boolean function readRequest() output=false {
-		var event       = getRequestContext();
+	public boolean function readRequest() {
+		var event       = $getRequestContext();
 		var prc         = event.getCollection( private = true );
 		var rawInput    = event.getHTTPContent();
 		var parsedInput = {};
@@ -59,8 +56,8 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		return true;
 	}
 
-	public struct function getJsonRpcRequest() output=false {
-		var prc = getRequestContext().getCollection( private = true );
+	public struct function getJsonRpcRequest() {
+		var prc = $getRequestContext().getCollection( private = true );
 
 		if ( not StructKeyExists( prc, "_jsonRpc2Request" ) ) {
 			if ( !readRequest() ) {
@@ -71,24 +68,24 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		return prc._jsonRpc2Request;
 	}
 
-	public string function getRequestId() output=false {
+	public string function getRequestId() {
 		var rq = getJsonRpcRequest();
 		return rq.id ?: NullValue();
 	}
 
-	public any function getRequestParams() output=false {
+	public any function getRequestParams() {
 		var rq = getJsonRpcRequest();
 
 		return rq.params ?: [];
 	}
 
-	public any function getRequestMethod() output=false {
+	public any function getRequestMethod() {
 		var rq = getJsonRpcRequest();
 		return rq.method ?: "";
 	}
 
-	public void function success( required any result ) output=false {
-		var event    = getRequestContext();
+	public void function success( required any result ) {
+		var event    = $getRequestContext();
 		var response = {
 			  jsonrpc = "2.0"
 			, id      = getRequestId()
@@ -98,8 +95,8 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		event.renderData( data=response, type="JSON" );
 	}
 
-	public void function error( required numeric code, required string message, any data ) output=false {
-		var event = getRequestContext();
+	public void function error( required numeric code, required string message, any data ) {
+		var event = $getRequestContext();
 		var prc   = event.getCollection( private = true );
 		var response = {
 			  jsonrpc = "2.0"

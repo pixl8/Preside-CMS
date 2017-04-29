@@ -1,6 +1,6 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
-	property name="messagebox"      inject="coldbox:plugin:messagebox";
+	property name="messagebox"      inject="messagebox@cbmessagebox";
 	property name="errorLogService" inject="errorLogService";
 
 	public void function preHandler( event ) output=false {

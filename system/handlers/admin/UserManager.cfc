@@ -2,7 +2,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="presideObjectService" inject="presideObjectService";
 	property name="loginService"         inject="loginService";
-	property name="messageBox"           inject="coldbox:plugin:messageBox";
+	property name="messageBox"           inject="messagebox@cbmessagebox";
 	property name="bCryptService"        inject="bCryptService";
 
 	function prehandler( event, rc, prc ) output=false {

@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="dao"        inject="presidecms:object:${objectId}";
-	property name="messageBox" inject="coldbox:plugin:messageBox";
+	property name="messageBox" inject="messagebox@cbmessagebox";
 // BEGIN BATCHEDIT
 	property name="dataManagerService" inject="dataManagerService";
 // END BATCHEDIT
