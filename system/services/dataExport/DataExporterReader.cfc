@@ -8,11 +8,53 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @exporterDirectories.inject presidecms:directories:handlers/dataExporters
+	 *
+	 */
+	public any function init( required array exporterDirectories ) {
+		_setExporterDirectories( arguments.exporterDirectories );
+
 		return this;
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Reads exporters from all the preside handlers/dataexporters
+	 * directories in an application. Returns an array of exporter
+	 * definitions, ordered by title.
+	 *
+	 * @autodoc true
+	 */
+	public array function readExportersFromDirectories() {
+		var rawExporters   = {};
+		var finalExporters = [];
+
+		for( var dir in _getExporterDirectories() ) {
+			var mappingBase  = dir.reReplace( "^/", "" ).reReplace( "/$", "" ).replace( "/", ".", "all" );
+			var handlerFiles = DirectoryList( dir, false, "name", "*.cfc" );
+
+			for( var handlerFile in handlerFiles ) {
+				var handlerMapping = mappingBase & "." & handlerFile.reReplace( "\.cfc$", "" );
+				var metaData       = getComponentMetadata( handlerMapping );
+				var exporter       = readExporterFromCfcMetadata( metaData );
+
+				rawExporters[ exporter.id ] = rawExporters[ exporter.id ] ?: {};
+				rawExporters[ exporter.id ].append( exporter );
+			}
+		}
+
+		for( var exporterId in rawExporters ) {
+			finalExporters.append( rawExporters[ exporterId ] );
+		}
+
+		finalExporters.sort( function( a, b ){
+			return a.title > b.title ? 1 : -1;
+		} );
+
+		return finalExporters;
+	}
+
 	/**
 	 * Reads exporter information from the metadata
 	 * of an exporter handler CFC
@@ -35,9 +77,9 @@ component {
 		exporter.fileExtension = arguments.metaData.exportFileExtension;
 		exporter.mimeType      = arguments.metaData.exportMimeType;
 
-		exporter.title       = $translateResource( uri="dataexporter.#exporter.id#:title"      , defaultValue=exporter.id   );
-		exporter.description = $translateResource( uri="dataexporter.#exporter.id#:description", defaultValue=""            );
-		exporter.iconClass   = $translateResource( uri="dataexporter.#exporter.id#:iconClass"  , defaultValue="fa-download" );
+		exporter.title       = $translateResource( uri="dataexporters.#exporter.id#:title"      , defaultValue=exporter.id   );
+		exporter.description = $translateResource( uri="dataexporters.#exporter.id#:description", defaultValue=""            );
+		exporter.iconClass   = $translateResource( uri="dataexporters.#exporter.id#:iconClass"  , defaultValue="fa-download" );
 
 		return exporter;
 	}
@@ -45,5 +87,11 @@ component {
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS
+	private array function _getExporterDirectories() {
+		return _exporterDirectories;
+	}
+	private void function _setExporterDirectories( required array exporterDirectories ) {
+		_exporterDirectories = arguments.exporterDirectories;
+	}
 
 }

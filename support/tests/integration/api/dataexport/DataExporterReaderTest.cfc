@@ -10,9 +10,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, name                = "app.handlers.dataexporter.Excel"
 				};
 
-				service.$( "$translateResource" ).$args( uri="dataexporter.Excel:title"      , defaultValue="Excel"       ).$results( "Microsoft Excel" );
-				service.$( "$translateResource" ).$args( uri="dataexporter.Excel:description", defaultValue=""            ).$results( "This is an excel exporter..." );
-				service.$( "$translateResource" ).$args( uri="dataexporter.Excel:iconClass"  , defaultValue="fa-download" ).$results( "fa-file-excel" );
+				service.$( "$translateResource" ).$args( uri="dataexporters.Excel:title"      , defaultValue="Excel"       ).$results( "Microsoft Excel" );
+				service.$( "$translateResource" ).$args( uri="dataexporters.Excel:description", defaultValue=""            ).$results( "This is an excel exporter..." );
+				service.$( "$translateResource" ).$args( uri="dataexporters.Excel:iconClass"  , defaultValue="fa-download" ).$results( "fa-file-excel" );
 
 				var exporter = service.readExporterFromCfcMetadata( meta );
 
@@ -66,7 +66,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 // private helpers
 	private any function _getService() {
-		var service = createMock( object=new preside.system.services.dataExport.DataExporterReader() );
+		var service = createMock( object=new preside.system.services.dataExport.DataExporterReader( [] ) );
 
 		return service;
 	}
