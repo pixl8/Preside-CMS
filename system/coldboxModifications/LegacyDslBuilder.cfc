@@ -27,6 +27,8 @@ component {
 					return injector.getInstance( plugin );
 				case "renderer":
 					return injector.getInstance( "presideRenderer" );
+				case "messagebox":
+					return injector.getInstance( "messagebox@cbmessagebox" );
 			}
 		}
 		return coldboxDSL.process(argumentCollection=arguments);
