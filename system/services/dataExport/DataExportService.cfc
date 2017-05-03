@@ -38,6 +38,10 @@ component {
 		var coldboxController    = $getColdbox();
 		var pageNumber           = 1;
 
+		if ( !coldboxController.handlerExists( exporterHandler ) ) {
+			throw( type="preside.dataExporter.missing.action", message="No 'export' action could be found for the [#arguments.exporter#] exporter. The exporter should provide an 'export' handler action at /handlers/dataExporters/#arguments.exporter#.cfc to process the export. See documentation for further details." );
+		}
+
 		if ( !arguments.selectFields.len() ) {
 			arguments.append( getDefaultExportFieldsForObject( arguments.objectName ) );
 		}
@@ -49,8 +53,10 @@ component {
 		selectDataArgs.delete( "meta" );
 		selectDataArgs.delete( "fieldTitles" );
 		selectDataArgs.delete( "exportPagingSize" );
-		selectDataArgs.maxRows  = arguments.exportPagingSize;
-		selectDataArgs.startRow = 1;
+		selectDataArgs.maxRows   = arguments.exportPagingSize;
+		selectDataArgs.startRow  = 1;
+		selectDataArgs.autoGroup = true;
+		selectDataArgs.useCache  = false;
 
 		var batchedRecordIterator = function(){
 			var results = presideObjectService.selectData(
@@ -62,29 +68,30 @@ component {
 			return results;
 		};
 
-		if ( coldboxController.handlerExists( exporterHandler ) ) {
-			return coldboxController.runEvent(
-				  private        = true
-				, prepostExempt  = true
-				, event          = exporterHandler
-				, eventArguments = {
-					  selectFields          = arguments.selectFields
-					, fieldTitles           = arguments.fieldTitles
-					, meta                  = arguments.meta
-					, batchedRecordIterator = batchedRecordIterator
-				  }
-			);
+		var cleanedSelectFields  = [];
+		for( var field in arguments.selectFields ) {
+			cleanedSelectFields.append( field.listLast( " " ) );
 		}
 
-		return "";
+		return coldboxController.runEvent(
+			  private        = true
+			, prepostExempt  = true
+			, event          = exporterHandler
+			, eventArguments = {
+				  selectFields          = cleanedSelectFields
+				, fieldTitles           = arguments.fieldTitles
+				, meta                  = arguments.meta
+				, batchedRecordIterator = batchedRecordIterator
+			  }
+		);
 	}
 
 	public struct function getDefaultExportFieldsForObject( required string objectName ) {
 		var titles       = {};
 		var uriRoot      = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
 		var exportFields = $getPresideObjectService().getObjectAttribute(
-			  objectName = arguments.objectName
-			, attribute  = "dataExportFieldList"
+			  objectName    = arguments.objectName
+			, attributeName = "dataExportFieldList"
 		).listToArray();
 
 		if ( !exportFields.len() ) {

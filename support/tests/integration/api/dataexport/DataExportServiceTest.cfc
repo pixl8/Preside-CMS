@@ -78,6 +78,31 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					resultNumber++;
 				} while( result.recordCount );
 			} );
+
+			it( "should throw an informative error when the given exporter does not have a corresponding handler action", function(){
+				var service         = _getService();
+				var exporter        = "excel";
+				var exporterHandler = "dataExporters.excel.export";
+				var errorThrown     = false;
+				var args            = {
+					  exporter     = "excel"
+					, meta         = { title="My title", author="John McFee", published=Now() }
+					, objectName   = "my_object"
+				};
+
+				mockColdbox.$( "handlerExists" ).$args( exporterHandler ).$results( false );
+
+				service.$( "getDefaultExportFieldsForObject" ).$args( args.objectName ).$results( {} );
+
+				try {
+					service.exportData( argumentCollection=args );
+				} catch ( "preside.dataExporter.missing.action" e ) {
+					expect( e.message ).toBe( "No 'export' action could be found for the [excel] exporter. The exporter should provide an 'export' handler action at /handlers/dataExporters/excel.cfc to process the export. See documentation for further details." );
+					errorThrown = true;
+				}
+
+				expect( errorThrown ).toBeTrue( "An informative error was not thrown" );
+			} );
 		} );
 
 		describe( "getDefaultExportFieldsForObject()", function(){
