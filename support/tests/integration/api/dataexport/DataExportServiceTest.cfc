@@ -149,6 +149,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, oneToManyField  = { relationship="one-to-many" }
 					, manyToManyField = { relationship="many-to-many" }
 				};
+				var propNames = [
+					  "id"
+					, "datecreated"
+					, "longtext"
+					, "anotherlongtext"
+					, "numberField"
+					, "manyToOneField"
+					, "oneToManyField"
+					, "manyToManyField"
+				];
 				var titles     = {
 					  id             = "ID" & CreateUUId()
 					, datecreated    = "Date created" & CreateUUId()
@@ -160,6 +170,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  objectName    = objectName
 					, attributeName = "dataExportFieldList"
 				).$results( "" );
+				mockPresideObjectService.$( "getObjectAttribute" ).$args(
+					  objectName    = objectName
+					, attributeName = "propertyNames"
+				).$results( propNames );
 				mockPresideObjectService.$( "getObjectProperties" ).$args( objectName ).$results( props );
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( uriRoot )
 
@@ -170,10 +184,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				var result = service.getDefaultExportFieldsForObject( objectName );
 
-				result.selectFields.sort( "textnocase" );
-
 				expect( result ).toBe( {
-					  selectFields = [ "datecreated", "id", "manyToOneField", "numberField" ]
+					  selectFields = [ "id", "datecreated", "numberField", "manyToOneField" ]
 					, fieldTitles  = titles
 				} );
 			} );

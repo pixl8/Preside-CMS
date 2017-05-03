@@ -96,8 +96,12 @@ component {
 
 		if ( !exportFields.len() ) {
 			var objectProperties = $getPresideObjectService().getObjectProperties( arguments.objectName );
+			var propertyNames    = $getPresideObjectService().getObjectAttribute(
+				  objectName    = arguments.objectName
+				, attributeName = "propertyNames"
+			);
 
-			for( var propId in objectProperties ) {
+			for( var propId in propertyNames ) {
 				var prop = objectProperties[ propId ];
 
 				switch( prop.relationship ?: "" ) {
