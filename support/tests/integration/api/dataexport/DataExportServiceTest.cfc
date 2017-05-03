@@ -46,6 +46,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockColdbox.$( "runEvent", mockResult );
 
 				service.$( "getDefaultExportFieldsForObject" ).$args( args.objectName ).$results( defaultFields );
+				service.$( "_expandRelationshipFields", defaultFields.selectFields );
 
 				expect( service.exportData( argumentCollection=args ) ).toBe( mockResult );
 

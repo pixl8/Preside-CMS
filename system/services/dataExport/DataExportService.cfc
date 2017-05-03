@@ -57,6 +57,7 @@ component {
 		selectDataArgs.startRow  = 1;
 		selectDataArgs.autoGroup = true;
 		selectDataArgs.useCache  = false;
+		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
 
 		var batchedRecordIterator = function(){
 			var results = presideObjectService.selectData(
@@ -163,6 +164,23 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private array function _expandRelationshipFields(
+		  required string objectName
+		, required array  selectFields
+	) {
+		var props = $getPresideObjectService().getObjectProperties( arguments.objectName );
+		var i     = 0;
+
+		for( var field in arguments.selectFields ) {
+			i++;
+
+			if ( ( props[ field ].relationship ?: "" ) == "many-to-one" ) {
+				arguments.selectFields[ i ] = "#field#.${labelfield} as #field#";
+			}
+		}
+
+		return arguments.selectFields;
+	}
 
 // GETTERS AND SETTERS
 	private array function _getExporters() {
