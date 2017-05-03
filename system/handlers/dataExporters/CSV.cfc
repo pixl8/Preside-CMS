@@ -32,7 +32,7 @@ component {
 					}
 					writer.writeNext( row );
 				}
-				writer.flush;
+				writer.flush();
 			} while( data.recordCount );
 
 		} catch ( any e ) {
