@@ -116,6 +116,11 @@ component {
 					case "string":
 						switch( prop.dbType ?: "varchar" ) {
 							case "text":
+							case "longtext":
+							case "mediumtext":
+							case "mediumblob":
+							case "longblob":
+							case "tinyblob":
 								continue;
 							break;
 							case "varchar":
