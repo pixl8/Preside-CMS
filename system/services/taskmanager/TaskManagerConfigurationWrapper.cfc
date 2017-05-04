@@ -42,14 +42,15 @@ component displayName="TaskManager Configuration Wrapper" {
 						var isScheduledTaskMethod = Len( Trim( f.schedule ?: "" ) );
 						if ( isScheduledTaskMethod ) {
 							tasks[ f.name ] = {
-								  event        = "#handler#.#f.name#"
-								, schedule     = _parseCronTabSchedule( f.schedule )
-								, name         = f.displayName ?: f.name
-								, description  = f.hint        ?: ""
-								, timeout      = Val( f.timeout ?: 600 )
-								, priority     = Val( f.priority ?: 0 )
-								, isScheduled  = f.schedule != "disabled"
-								, displayGroup = f.displayGroup ?: "default"
+								  event            = "#handler#.#f.name#"
+								, schedule         = _parseCronTabSchedule( f.schedule )
+								, name             = f.displayName ?: f.name
+								, description      = f.hint        ?: ""
+								, timeout          = Val( f.timeout ?: 600 )
+								, priority         = Val( f.priority ?: 0 )
+								, isScheduled      = f.schedule != "disabled"
+								, displayGroup     = f.displayGroup ?: "default"
+								, exclusivityGroup = f.exclusivityGroup ?: ( f.displayGroup ?: "default" )
 							};
 						}
 					}

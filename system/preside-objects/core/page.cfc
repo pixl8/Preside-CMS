@@ -101,8 +101,9 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 			}
 		}
 
-		sql &= " where  _hierarchy_lineage like ?";
+		sql &= " where  _hierarchy_lineage like ? and site = ?";
 		q.addParam( value=arguments.oldData._hierarchy_child_selector, cfsqltype="varchar" );
+		q.addParam( value=arguments.oldData.site, cfsqltype="varchar" );
 
 		q.setSQL( sql );
 		q.execute();

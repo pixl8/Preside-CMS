@@ -12,65 +12,67 @@ component output=false {
 		var assetId         = rc.assetId      ?: "";
 		var versionId       = rc.versionId    ?: "";
 		var derivativeName  = rc.derivativeId ?: "";
-		var isTrashed       = IsTrue( rc.isTrashed ) ?: "";
+		var isTrashed       = IsTrue( rc.isTrashed ?: "" );
 		var asset           = "";
-		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
+		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ), "asset.is_trashed" ];
 
-		if ( Len( Trim( derivativeName ) ) ) {
-			try {
-				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
-			} catch ( "AssetManager.assetNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "AssetManager.versionNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "storageProvider.objectNotFound" e ) {
-				asset = QueryNew('');
-			}
-		} elseif( Len( Trim( versionId ) ) ) {
-			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
-		} else {
-			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
-		}
-
-		if ( asset.recordCount ) {
-			var assetBinary = "";
-			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
-			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
-			_doBrowserEtagLookup( etag );
-
+		try {
 			if ( Len( Trim( derivativeName ) ) ) {
-				assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
+				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
+			} elseif( Len( Trim( versionId ) ) ) {
+				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
 			} else {
-				assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
+				asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
 			}
-
-			announceInterception( "onDownloadAsset", {
-				  assetId        = assetId
-				, derivativeName = derivativeName
-				, asset          = asset
-			} );
-
-			var filename = _getFilenameForAsset( asset.title, type.extension );
-			if ( type.serveAsAttachment ) {
-				websiteUserActionService.recordAction(
-					  action     = "download"
-					, type       = "asset"
-					, userId     = getLoggedInUserId()
-					, identifier = assetId
-				);
-				header name="Content-Disposition" value="attachment; filename=""#filename#""";
-			} else {
-				header name="Content-Disposition" value="inline; filename=""#filename#""";
-			}
-
-			header name="etag" value=etag;
-			header name="cache-control" value="max-age=31536000";
-			content
-				reset    = true
-				variable = assetBinary
-				type     = type.mimeType;
-			abort;
+		} catch ( "AssetManager.assetNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "AssetManager.versionNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "storageProvider.objectNotFound" e ) {
+			asset = QueryNew('');
 		}
+
+		try {
+			if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
+				var assetBinary = "";
+				var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
+				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
+				_doBrowserEtagLookup( etag );
+
+				if ( Len( Trim( derivativeName ) ) ) {
+					assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
+				} else {
+					assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
+				}
+
+				announceInterception( "onDownloadAsset", {
+					  assetId        = assetId
+					, derivativeName = derivativeName
+					, asset          = asset
+				} );
+
+				var filename = _getFilenameForAsset( asset.title, type.extension );
+				if ( type.serveAsAttachment ) {
+					websiteUserActionService.recordAction(
+						  action     = "download"
+						, type       = "asset"
+						, userId     = getLoggedInUserId()
+						, identifier = assetId
+					);
+					header name="Content-Disposition" value="attachment; filename=""#filename#""";
+				} else {
+					header name="Content-Disposition" value="inline; filename=""#filename#""";
+				}
+
+				header name="etag" value=etag;
+				header name="cache-control" value="max-age=31536000";
+				content
+					reset    = true
+					variable = assetBinary
+					type     = type.mimeType;
+				abort;
+			}
+		} catch ( "storageProvider.objectNotFound" e ) {}
 
 		event.renderData( data="404 not found", type="text", statusCode=404 );
 
