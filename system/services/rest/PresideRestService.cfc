@@ -277,8 +277,8 @@ component {
 
 	public any function getVerb( required any requestContext ) {
 		return arguments.requestContext.getHttpHeader(
-			  header  = "X-HTTP-Method-Override"
-			, default = arguments.requestContext.getHttpMethod()
+			  header       = "X-HTTP-Method-Override"
+			, defaultValue = arguments.requestContext.getHttpMethod()
 		);
 	}
 
