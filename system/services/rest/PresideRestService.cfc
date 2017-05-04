@@ -153,9 +153,9 @@ component {
 		, required any restResponse
 		, required any requestContext
 	) {
-		var originHeader         = requestContext.getHttpHeader( header="Origin", default="" );
-		var requestMethodHeader  = requestContext.getHttpHeader( header="Access-Control-Request-Method", default="" );
-		var requestHeadersHeader = requestContext.getHttpHeader( header="Access-Control-Request-Headers", default="" );
+		var originHeader         = requestContext.getHttpHeader( header="Origin", defaultValue="" );
+		var requestMethodHeader  = requestContext.getHttpHeader( header="Access-Control-Request-Method", defaultValue="" );
+		var requestHeadersHeader = requestContext.getHttpHeader( header="Access-Control-Request-Headers", defaultValue="" );
 
 		if ( !Len( Trim( originHeader ) ) || !Len( Trim( requestMethodHeader ) ) ) {
 			restResponse.setError(
@@ -348,7 +348,7 @@ component {
 			var etag = setEtag( restResponse );
 
 			if ( Len( Trim( etag ) ) ) {
-				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match", default="" );
+				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match", defaultValue="" );
 				if ( ifNoneMatchHeader == etag  ) {
 					restResponse.noData();
 					restResponse.setStatus( 304, "Not modified" );
