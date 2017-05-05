@@ -59,6 +59,7 @@ component {
 		selectDataArgs.useCache  = false;
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
 
+
 		var batchedRecordIterator = function(){
 			var results = presideObjectService.selectData(
 				argumentCollection=selectDataArgs
@@ -73,6 +74,7 @@ component {
 		for( var field in arguments.selectFields ) {
 			cleanedSelectFields.append( field.listLast( " " ) );
 		}
+		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
 
 		return coldboxController.runEvent(
 			  private        = true
@@ -92,7 +94,7 @@ component {
 		var uriRoot      = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
 		var exportFields = $getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
-			, attributeName = "dataExportFieldList"
+			, attributeName = "dataExportFields"
 		).listToArray();
 
 		if ( !exportFields.len() ) {
@@ -185,6 +187,22 @@ component {
 		}
 
 		return arguments.selectFields;
+	}
+
+	private struct function _setDefaultFieldTitles(
+		  required string objectName
+		, required array  fieldNames
+		, required struct existingTitles
+	) {
+		var baseUri = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
+		for( var field in arguments.fieldNames ) {
+			arguments.existingTitles[ field ] = arguments.existingTitles[ field ] ?: $translateResource(
+				  uri          = baseUri & "field.#field#.title"
+				, defaultValue = field
+			);
+		}
+
+		return arguments.existingTitles;
 	}
 
 // GETTERS AND SETTERS

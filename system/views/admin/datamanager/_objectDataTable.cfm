@@ -8,15 +8,17 @@
 	param name="args.filterContextData"   type="struct"  default={};
 	param name="args.allowSearch"         type="boolean" default=true;
 	param name="args.allowFilter"         type="boolean" default=true;
+	param name="args.allowDataExport"     type="boolean" default=false;
 	param name="args.clickableRows"       type="boolean" default=true;
 	param name="args.batchEditableFields" type="array"   default=[];
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#&draftsEnabled=#args.draftsEnabled#" );
+	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( linkTo="dataManager.exportDataAction" );
+	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( linkTo="dataManager.dataExportConfigModal", queryString="id=#args.objectName#" );
 
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ objectTitle ] );
 	batchEditTitle       = translateResource( uri="cms:datamanager.batchEditSelected.title" );
-
 
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
@@ -101,11 +103,26 @@
 			</div>
 		</cfif>
 
+		<cfif args.allowDataExport>
+			<div class="object-listing-table-export hide">
+				<div class="pull-left">
+					<a class="btn btn-info btn-sm object-listing-data-export-button" href="#args.dataExportConfigUrl#">
+						<i class="fa fa-fw fa-download"></i>
+						#translateResource( "cms:datatable.export.btn" )#
+					</a>
+				</div>
+			</div>
+			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form" target="_blank">
+				<input name="object" value="#args.objectName#" type="hidden">
+			</form>
+		</cfif>
+
 		<table id="#tableId#" class="table table-hover object-listing-table"
 			data-object-name="#args.objectName#"
 		    data-datasource-url="#args.datasourceUrl#"
 		    data-use-multi-actions="#args.useMultiActions#"
 		    data-allow-search="#args.allowSearch#"
+		    data-allow-data-export="#args.allowDataExport#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"

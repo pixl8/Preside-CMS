@@ -53,5 +53,6 @@
 		, gridFields          = gridFields
 		, isMultilingual      = isMultilingual
 		, draftsEnabled       = draftsEnabled
+		, allowDataExport     = true
 	} )#
 </cfoutput>
