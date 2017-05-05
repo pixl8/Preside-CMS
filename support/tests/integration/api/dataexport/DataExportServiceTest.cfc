@@ -47,6 +47,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "getDefaultExportFieldsForObject" ).$args( args.objectName ).$results( defaultFields );
 				service.$( "_expandRelationshipFields", defaultFields.selectFields );
+				service.$( "_setDefaultFieldTitles", defaultFields.fieldTitles );
 
 				expect( service.exportData( argumentCollection=args ) ).toBe( mockResult );
 
@@ -107,7 +108,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "getDefaultExportFieldsForObject()", function(){
-			it( "should return the configured field list and translated field mappings when @dataExportFieldList is defined on the object", function(){
+			it( "should return the configured field list and translated field mappings when @dataExportFields is defined on the object", function(){
 				var service    = _getService();
 				var objectName = "my_object";
 				var fieldList  = "field1,field2,field3";
@@ -120,7 +121,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockPresideObjectService.$( "getObjectAttribute" ).$args(
 					  objectName    = objectName
-					, attributeName = "dataExportFieldList"
+					, attributeName = "dataExportFields"
 				).$results( fieldList );
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( uriRoot )
 
@@ -169,7 +170,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockPresideObjectService.$( "getObjectAttribute" ).$args(
 					  objectName    = objectName
-					, attributeName = "dataExportFieldList"
+					, attributeName = "dataExportFields"
 				).$results( "" );
 				mockPresideObjectService.$( "getObjectAttribute" ).$args(
 					  objectName    = objectName
