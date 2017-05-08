@@ -135,7 +135,7 @@ component extends="preside.system.base.AdminHandler" {
 		sleep( 200 );
 		var historyId = taskManagerService.getActiveHistoryIdForTask( task );
 
-		setNextEvent( url=event.buildAdminLink( linkTo="taskManager.log", querystring="id=" & historyId ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="taskManager.viewLog", querystring="id=" & historyId ) );
 	}
 
 	public void function killRunningTaskAction( event, rc, prc ) {
@@ -196,7 +196,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function log( event, rc, prc ) {
+	public void function viewLog( event, rc, prc ) {
 		_checkPermission( "viewlogs", event );
 
 		var log = taskHistoryDao.selectData(
@@ -224,7 +224,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:taskmanager.log.breadcrumb" )
-			, link  = event.buildAdminLink( linkTo="taskmanager.log", queryString="id=#rc.id#" )
+			, link  = event.buildAdminLink( linkTo="taskManager.viewLog", queryString="id=#rc.id#" )
 		);
 
 		if ( !prc.log.complete ) {
