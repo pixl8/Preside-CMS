@@ -856,17 +856,17 @@ component {
 
 		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ formDefinition.name ] ), 1 );
 		for( var i=1; i <= headers.len(); i++ ){
-			spreadsheetLib.setCellValue( workbook, headers[i], 1, i );
+			spreadsheetLib.setCellValue( workbook, headers[i], 1, i, "string" );
 		}
 
 		var row = 1;
 		for( var submission in submissions ) {
 			var column = 4;
 			row++;
-			spreadsheetLib.setCellValue( workbook, submission.id, row, 1 );
-			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2 );
-			spreadsheetLib.setCellValue( workbook, submission.submitted_by, row, 3 );
-			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4 );
+			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
+			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.submitted_by, row, 3, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4, "string" );
 
 			if ( itemsToRender.len() ) {
 				var data   = DeSerializeJson( submission.submitted_data );
@@ -883,7 +883,7 @@ component {
 
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
 						if ( itemColumns.len() >= i ) {
-							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column );
+							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column, "string" );
 						} else {
 							spreadsheetLib.setCellValue( workbook, "", row, ++column );
 						}
@@ -891,8 +891,8 @@ component {
 				}
 			}
 
-			spreadsheetLib.setCellValue( workbook, submission.ip_address, row, ++column );
-			spreadsheetLib.setCellValue( workbook, submission.user_agent, row, ++column );
+			spreadsheetLib.setCellValue( workbook, submission.ip_address, row, ++column, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.user_agent, row, ++column, "string" );
 		}
 
 		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
