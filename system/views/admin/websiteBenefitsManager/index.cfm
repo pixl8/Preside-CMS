@@ -36,5 +36,6 @@
 		, multiActionUrl  = event.buildAdminLink( linkTo='websiteBenefitsManager.deleteBenefitAction' )
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteBenefitsManager.getBenefitsForAjaxDataTables" )
 		, gridFields      = [ "label", "priority", "description" ]
+		, allowDataExport = true
 	} )#
 </cfoutput>
