@@ -112,7 +112,7 @@
 					</a>
 				</div>
 			</div>
-			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form" target="_blank">
+			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
 			</form>
 		</cfif>
