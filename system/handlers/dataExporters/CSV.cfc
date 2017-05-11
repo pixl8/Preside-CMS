@@ -12,7 +12,7 @@ component {
 		, required struct fieldTitles
 		, required any    batchedRecordIterator
 	) {
-		var tmpFile = getTempFile( getTempDirectory(), "CSVEXport" );
+		var tmpFile = getTempFile( getTempDirectory(), "CSVExport" );
 		var writer  = csvWriter.newWriter( tmpFile, Chr( 9 ) );
 		var row     = [];
 		var data    = "";
