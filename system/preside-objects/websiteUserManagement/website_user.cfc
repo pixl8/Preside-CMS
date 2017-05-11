@@ -1,6 +1,7 @@
 /**
  * The website user object represents the login details of someone / something that can log into the front end website (as opposed to the admin)
  *
+ *  @dataExportFields login_id,email_address,display_name,active,last_logged_in,last_logged_out,last_request_made
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="display_name" output=false displayname="Website user" {
 	property name="login_id"                    type="string"   dbtype="varchar" maxLength="255" required=true uniqueindexes="login_id";
