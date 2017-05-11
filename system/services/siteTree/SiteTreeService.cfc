@@ -15,6 +15,7 @@ component {
 	 * @presideObjectService.inject     presideObjectService
 	 * @versioningService.inject        versioningService
 	 * @websitePermissionService.inject websitePermissionService
+	 * @rulesEngineConditionService.inject rulesEngineConditionService
 	 */
 	public any function init(
 		  required any loginService
@@ -25,6 +26,7 @@ component {
 		, required any i18nService
 		, required any versioningService
 		, required any websitePermissionService
+		, required any rulesEngineConditionService
 	) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
@@ -34,6 +36,7 @@ component {
 		_setI18nService( arguments.i18nService );
 		_setVersioningService( arguments.versioningService );
 		_setWebsitePermissionService( arguments.websitePermissionService );
+		_setRulesEngineConditionService( arguments.rulesEngineConditionService );
 		_setPageSlugsAreMultilingual();
 
 		_ensureSystemPagesExistInTree();
@@ -1039,12 +1042,19 @@ component {
 			return true;
 		}
 
-		return _getWebsitePermissionService().hasPermission(
-			  permissionKey = "pages.access"
-			, context       = "page"
-			, contextKeys   = [ restrictionRules.access_defining_page ]
-			, forceGrantByDefault = IsBoolean( restrictionRules.grantaccess_to_all_logged_in_users ) && restrictionRules.grantaccess_to_all_logged_in_users
-		);
+		if ( Len( Trim( restrictionRules.access_condition ) ) ) {
+			return _getRulesEngineConditionService().evaluateCondition(
+				  conditionId = restrictionRules.access_condition
+				, context     = "webrequest"
+			);
+		} else {
+			return _getWebsitePermissionService().hasPermission(
+				  permissionKey = "pages.access"
+				, context       = "page"
+				, contextKeys   = [ restrictionRules.access_defining_page ]
+				, forceGrantByDefault = IsBoolean( restrictionRules.grantaccess_to_all_logged_in_users ) && restrictionRules.grantaccess_to_all_logged_in_users
+			);
+		}
 	}
 
 	public numeric function getTrashCount() {
@@ -1526,6 +1536,13 @@ component {
 	}
 	private void function _setWebsitePermissionService( required any websitePermissionService ) {
 		_websitePermissionService = arguments.websitePermissionService;
+	}
+
+	private any function _getRulesEngineConditionService() {
+		return _rulesEngineConditionService;
+	}
+	private void function _setRulesEngineConditionService( required any rulesEngineConditionService ) {
+		_rulesEngineConditionService = arguments.rulesEngineConditionService;
 	}
 
 	private void function _setPageSlugsAreMultilingual() {
