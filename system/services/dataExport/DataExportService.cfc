@@ -47,7 +47,9 @@ component {
 		}
 
 		var selectDataArgs       = Duplicate( arguments );
+		var cleanedSelectFields  = [];
 		var presideObjectService = $getPresideObjectService();
+		var propertyDefinitions  = presideObjectService.getObjectProperties( arguments.objectName );
 
 		selectDataArgs.delete( "exporter" );
 		selectDataArgs.delete( "meta" );
@@ -59,6 +61,26 @@ component {
 		selectDataArgs.useCache  = false;
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
 
+		var simpleFormatField = function( required string fieldName, required any value ){
+			switch( propertyDefinitions[ arguments.fieldName ].type ?: "" ) {
+				case "boolean":
+					return IsBoolean( arguments.value ) ? ( arguments.value ? "true" : "false" ) : "";
+				case "date":
+					if ( !IsDate( arguments.value ) ) {
+						return "";
+					}
+
+					switch( propertyDefinitions[ arguments.fieldName ].dbtype ?: "" ) {
+						case "datetime":
+							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn" );
+						case "time":
+							return TimeFormat( arguments.value, "HH:mm" );
+						default:
+							return DateTime( arguments.value, "yyyy-mm-dd" );
+					}
+			}
+			return value;
+		};
 
 		var batchedRecordIterator = function(){
 			var results = presideObjectService.selectData(
@@ -67,10 +89,18 @@ component {
 
 			selectDataArgs.startRow += selectDataArgs.maxRows;
 
+			for( var i=1; i<=results.recordCount; i++ ) {
+				for( var field in cleanedSelectFields ) {
+					if ( ListFindNoCase( results.columnList, field ) ) {
+						results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
+					}
+				}
+			}
+
 			return results;
 		};
 
-		var cleanedSelectFields  = [];
+
 		for( var field in arguments.selectFields ) {
 			cleanedSelectFields.append( field.listLast( " " ) );
 		}
@@ -85,6 +115,7 @@ component {
 				, fieldTitles           = arguments.fieldTitles
 				, meta                  = arguments.meta
 				, batchedRecordIterator = batchedRecordIterator
+				, objectName            = arguments.objectName
 			  }
 		);
 	}

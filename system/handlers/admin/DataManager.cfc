@@ -2182,6 +2182,8 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
+			setting requesttimeout=6000;
+
 			var objectName        = rc.object   ?: "";
 			var exporter          = rc.exporter ?: "CSV";
 			var exporterDetail    = dataExportService.getExporterDetails( exporter );
