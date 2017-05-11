@@ -3,6 +3,7 @@
 	inputId      = args.id           ?: "";
 	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
+	maxlength    = args.maxlength    ?: "";
 	placeholder  = args.placeholder  ?: "";
 	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 
@@ -15,5 +16,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" tabindex="#getNextTabIndex()#">
+	<input type="text" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" tabindex="#getNextTabIndex()#"<cfif Len( maxlength )> maxlength="#maxlength#"</cfif>>
 </cfoutput>
