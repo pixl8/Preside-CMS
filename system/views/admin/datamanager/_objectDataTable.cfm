@@ -38,6 +38,11 @@
 </cfscript>
 <cfoutput>
 	<div class="table-responsive">
+		<cfif args.allowDataExport>
+			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
+				<input name="object" value="#args.objectName#" type="hidden">
+			</form>
+		</cfif>
 		<cfif args.useMultiActions>
 			<form id="multi-action-form" class="form-horizontal" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
@@ -112,9 +117,6 @@
 					</a>
 				</div>
 			</div>
-			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
-				<input name="object" value="#args.objectName#" type="hidden">
-			</form>
 		</cfif>
 
 		<table id="#tableId#" class="table table-hover object-listing-table"
