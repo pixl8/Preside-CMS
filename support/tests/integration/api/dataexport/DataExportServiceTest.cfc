@@ -42,6 +42,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				};
 				var mockResult = CreateUUId();
 
+				mockPresideObjectService.$( "getObjectProperties", {} );
 				mockColdbox.$( "handlerExists" ).$args( exporterHandler ).$results( true );
 				mockColdbox.$( "runEvent", mockResult );
 
