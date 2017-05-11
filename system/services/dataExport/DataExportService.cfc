@@ -21,7 +21,7 @@ component {
 
 // PUBLIC API METHODS
 	/**
-	 * Returns export file content for the given exporter
+	 * Returns export filepath for the given exporter
 	 * and arguments.
 	 *
 	 * @autodoc

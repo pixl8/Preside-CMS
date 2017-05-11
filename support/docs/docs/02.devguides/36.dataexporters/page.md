@@ -1,15 +1,70 @@
 ---
 id: dataexporters
-title: Creating custom data exporters
+title: Data exports
 ---
 
 ## Overview
 
-As of **10.8.1**, PresideCMS comes with a data export system and a concept of custom data exporters. A data exporter consists of a single handler action and an i18n `.properties` file to describe it.
+As of **10.8.4**, PresideCMS comes with a data export API with a simple UI built in to admin data tables. This export UI has been implented for all data manager grids, website users and redirect rules grids.
+
+The platform also offers a concept of custom data exporters. A data exporter consists of a single handler action and an i18n `.properties` file to describe it.
+
+### Customizing default export fields per object
+
+Add the `@dataExportFields` annotation to your preside objects to supply an ordered list of fields that will be used as the _default_ list of fields for exports:
+
+```luceescript
+/**
+ * @dataExportFields id,title,comment_count,datecreated,datemodifed
+ *
+ */
+component {
+	// ...
+}
+```
+
+### Adding the export feature to your custom admin grids
+
+If you are making use of the core object based data grids (i.e. `renderView( view="/admin/datamanager/_objectDataTable",...`), you can add the `allowDataExport` flag to the passed args to allow default export behaviour:
+
+```lucee
+#renderView( view="/admin/datamanager/_objectDataTable", args={
+	  objectName      = "website_user"
+	, useMultiActions = false
+	, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteUserManager.getUsersForAjaxDataTables" )
+	, gridFields      = [ "active", "login_id", "display_name", "email_address", "last_request_made" ]
+	, allowDataExport = true
+} )#
+```
+
+### Using the export APIs directly
+
+The [[api-dataexportservice]] provides an API to generate a data export file. See the [[dataexportservice-exportData]] method for details. In addition to the documented arguments, the method will also accept any arguments that are acceptable by the [[presideobjectservice-selectdata|PresideObjectService.selectData()]] method. For example:
+
+```luceescript
+var exporterDetail = dataExportService.getExporterDetails( "excel" );
+var filename       = "Myexport." & exporterDetail.fileExtension;
+var filePath       = dataExportService.exportData(
+	  exporter     = "excel" // or "csv", or your customer exporter
+	, objectName   = "event_booking"
+	, selectFields = selectFieldsArray
+	, fieldTitles  = { eventName="Event name", ... }
+	, filter       = { booked_event=eventId }
+	, autogroupby  = true
+);
+
+header name="Content-Disposition" value="attachment; filename=""#filename#""";
+content reset=true file=filePath deletefile=true type=exporterDetail.mimeType;
+abort;
+```
+
+The idea here is that you export a preside data object [[presideobjectservice-selectdata]] call directly to a file, using any fields and filters that you desire.
+
+### Creating custom data exporters
 
 The core system comes with a CSV exporter and an Excel exporter. The exporter logic is responsible for accepting data and some metadata about the export and for then producing a file.
 
-### Step 1: Create exporter handler
+#### Step 1: Create exporter handler
 
 All exporter handlers must live under `/handlers/dataExporters/` folder. The name of the handler is considered the ID of the exporter. The CSV exporter, for example, lives at `/handlers/dataExporters/CSV.cfc`.
 
@@ -70,7 +125,7 @@ component {
 }
 ```
 
-#### Arguments to the EXPORT method
+##### Arguments to the EXPORT method
 
 **batchedRecordIterator**
 
@@ -105,7 +160,7 @@ fieldTitles  = {
 
 A struct of arbitrary metadata to do with the export. This may be used to embed in a document for example. Keys may include `title`, `author`, `datecreated` and so on. Individual exporters may wish to use this metadata in their exported documents.
 
-### Step 2: Create exporter .properties file
+#### Step 2: Create exporter .properties file
 
 A corresponding `.properties` file should live at `/i18n/dataExporters/{exporterId}.properties`. Three keys are required, `title`, `description` and `iconClass`. e.g.
 
