@@ -21,22 +21,37 @@ component {
 		var adapters = _getAdapters();
 
 		if ( !adapters.keyExists( arguments.dsn ) ) {
-			dbType = _getDbType( dsn = arguments.dsn );
+			var dbInfo = _getDbInfo( dsn = arguments.dsn );
 
-			switch( dbType ) {
+			switch( dbInfo.database_productname ) {
 				case "MySql":
 					adapters[ arguments.dsn ] = new MySqlAdapter();
 				break;
-				case "Microsoft SQL Server":
-					adapters[ arguments.dsn ] = new MsSqlAdapter();
-				break;
+				case "Microsoft SQL Server": {
+
+					var majorVersion = listFirst( dbInfo.database_version, "." );
+					
+					// SQL Server Versions
+					// 2008 = 10
+					// 2012 = 11
+
+					// a lot easier offset/limit pagination since version 2012, therefore we use a custom adapter
+					if ( isNumeric( majorVersion ) && majorVersion >= 11 ) {
+						adapters[ arguments.dsn ] = new MsSql2012Adapter();
+					}
+					else {
+						adapters[ arguments.dsn ] = new MsSqlAdapter();
+					}
+
+					break;
+				}
 				case "PostgreSQL":
 					adapters[ arguments.dsn ] = new PostgreSqlAdapter();
 				break;
 				
 
 				default:
-					throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbType#], is not supported by the PresideObjects engine at this time" );
+					throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbInfo.database_productname#], is not supported by the PresideObjects engine at this time" );
 			}
 		}
 
@@ -44,7 +59,7 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private string function _getDbType( required string dsn ) {
+	private query function _getDbInfo( required string dsn ) {
 		var db = QueryNew('');
 
 		try {
@@ -56,7 +71,7 @@ component {
 			throw( type="PresideObjects.datasourceNotFound", message="Datasource, [#arguments.dsn#], not found." );
 		}
 
-		return db.database_productname;
+		return db;
 	}
 
 // GETTERS AND SETTERS
