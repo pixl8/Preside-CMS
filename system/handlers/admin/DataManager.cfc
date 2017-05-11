@@ -3,6 +3,7 @@
 	<cfproperty name="presideObjectService"             inject="presideObjectService"             />
 	<cfproperty name="multilingualPresideObjectService" inject="multilingualPresideObjectService" />
 	<cfproperty name="dataManagerService"               inject="dataManagerService"               />
+	<cfproperty name="dataExportService"                inject="dataExportService"                />
 	<cfproperty name="formsService"                     inject="formsService"                     />
 	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
 	<cfproperty name="siteService"                      inject="siteService"                      />
@@ -2151,6 +2152,71 @@
 			}
 
 			return renderView( view="/admin/datamanager/_batchEditForm", args=args );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="dataExportConfigModal" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var args   = {};
+
+			args.objectName = rc.id ?: "";
+			args.objectTitle = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
+			args.defaultExportFilename = translateresource(
+				  uri  = "cms:dataexport.config.form.field.title.default"
+				, data = [ args.objectTitle, DateFormat( Now(), 'yyyy-mm-dd' ) ]
+			);
+
+			event.setView( view="/admin/datamanager/dataExportConfigModal", layout="adminModalDialog", args=args );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="exportDataAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			setting requesttimeout=6000;
+
+			var objectName        = rc.object   ?: "";
+			var exporter          = rc.exporter ?: "CSV";
+			var exporterDetail    = dataExportService.getExporterDetails( exporter );
+			var selectFields      = ( rc.exportFields ?: "" ).listToArray();
+			var filename          = ( rc.fileName ?: "" ) & ".#exporterDetail.fileExtension#";
+			var filterExpressions = rc.filterExpressions ?: "";
+			var savedFilters      = ( rc.savedFilters ?: "" ).listToArray();
+			var args              = {
+				  exporter     = exporter
+				, objectName   = objectName
+				, selectFields = selectFields
+				, extraFilters = []
+			};
+
+			try {
+				args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+					  objectName      = objectName
+					, expressionArray = DeSerializeJson( filterExpressions )
+				) );
+			} catch( any e ){}
+
+			for( var filter in savedFilters ) {
+				try {
+					args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName = objectName
+						, filterId   = filter
+					) );
+				} catch( any e ){}
+			}
+
+			var exportedFile = dataExportService.exportData( argumentCollection=args );
+
+			header name="Content-Disposition" value="attachment; filename=""#filename#""";
+			content reset=true file=exportedFile deletefile=true type=exporterDetail.mimeType;
+			abort;
 		</cfscript>
 	</cffunction>
 
