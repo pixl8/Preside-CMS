@@ -72,6 +72,7 @@ component {
 
 					switch( propertyDefinitions[ arguments.fieldName ].dbtype ?: "" ) {
 						case "datetime":
+						case "timestamp":
 							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn" );
 						case "time":
 							return TimeFormat( arguments.value, "HH:mm" );
