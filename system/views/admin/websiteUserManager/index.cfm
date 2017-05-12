@@ -26,6 +26,7 @@
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteUserManager.getUsersForAjaxDataTables" )
 		, gridFields      = [ "active", "login_id", "display_name", "email_address", "last_request_made" ]
 		, allowDataExport = true
+		, dataExportUrl   = event.buildAdminLink( linkTo="websiteUserManager.exportAction" )
 	} )#
 
 </cfoutput>

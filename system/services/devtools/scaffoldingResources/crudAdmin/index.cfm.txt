@@ -35,5 +35,9 @@
 // BEGIN BATCHEDIT
 		, batchEditableFields = batchEditableFields
 // END BATCHEDIT
+// BEGIN DATAEXPORT
+		, allowDataExport     = true
+		, dataExportUrl       = event.buildAdminLink( linkTo='${handlerRoot}.exportDataAction' )
+// END DATAEXPORT
 	} )#
 </cfoutput>

@@ -2180,43 +2180,16 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			setting requesttimeout=6000;
+			var objectName = rc.object ?: "";
 
-			var objectName        = rc.object   ?: "";
-			var exporter          = rc.exporter ?: "CSV";
-			var exporterDetail    = dataExportService.getExporterDetails( exporter );
-			var selectFields      = ( rc.exportFields ?: "" ).listToArray();
-			var filename          = ( rc.fileName ?: "" ) & ".#exporterDetail.fileExtension#";
-			var filterExpressions = rc.filterExpressions ?: "";
-			var savedFilters      = ( rc.savedFilters ?: "" ).listToArray();
-			var args              = {
-				  exporter     = exporter
-				, objectName   = objectName
-				, selectFields = selectFields
-				, extraFilters = []
-			};
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
-			try {
-				args.extraFilters.append( rulesEngineFilterService.prepareFilter(
-					  objectName      = objectName
-					, expressionArray = DeSerializeJson( filterExpressions )
-				) );
-			} catch( any e ){}
-
-			for( var filter in savedFilters ) {
-				try {
-					args.extraFilters.append( rulesEngineFilterService.prepareFilter(
-						  objectName = objectName
-						, filterId   = filter
-					) );
-				} catch( any e ){}
-			}
-
-			var exportedFile = dataExportService.exportData( argumentCollection=args );
-
-			header name="Content-Disposition" value="attachment; filename=""#filename#""";
-			content reset=true file=exportedFile deletefile=true type=exporterDetail.mimeType;
-			abort;
+			runEvent(
+				  event          = "admin.DataManager._exportDataAction"
+				, prePostExempt  = true
+				, private        = true
+			);
 		</cfscript>
 	</cffunction>
 
@@ -2287,6 +2260,55 @@
 				, parentRecordLabel = parentRecord.label ?: ""
 				, parentObjectTitle = parentObjectTitle
 			};
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_exportDataAction" access="private" returntype="any" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+		<cfargument name="exporter"   type="string" required="false" default="#( rc.exporter ?: 'CSV' )#" />
+		<cfargument name="objectName"   type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="exportFields" type="string" required="false" default="#( rc.exportFields ?: '' )#" />
+		<cfargument name="filename" type="string" required="false" default="#( rc.fileName ?: '' )#" />
+		<cfargument name="filterExpressions" type="string" required="false" default="#( rc.filterExpressions ?: '' )#" />
+		<cfargument name="savedFilters" type="string" required="false" default="#( rc.savedFilters ?: '' )#" />
+		<cfargument name="extraFilters" type="array" required="false" default="#ArrayNew( 1 )#" />
+
+		<cfsetting requesttimeout="6000" />
+
+		<cfscript>
+			var exporterDetail = dataExportService.getExporterDetails( arguments.exporter );
+			var selectFields   = arguments.exportFields.listToArray();
+			var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
+			var args           = {
+				  exporter     = exporter
+				, objectName   = objectName
+				, selectFields = selectFields
+				, extraFilters = arguments.extraFilters
+			};
+
+			try {
+				args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+					  objectName      = objectName
+					, expressionArray = DeSerializeJson( arguments.filterExpressions )
+				) );
+			} catch( any e ){}
+
+			for( var filter in arguments.savedFilters.listToArray() ) {
+				try {
+					args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName = objectName
+						, filterId   = filter
+					) );
+				} catch( any e ){}
+			}
+
+			var exportedFile = dataExportService.exportData( argumentCollection=args );
+
+			header name="Content-Disposition" value="attachment; filename=""#fullFileName#""";
+			content reset=true file=exportedFile deletefile=true type=exporterDetail.mimeType;
+			abort;
 		</cfscript>
 	</cffunction>
 

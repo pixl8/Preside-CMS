@@ -235,7 +235,7 @@ component {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, systemInformation      = [ "navigate" ]
-			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
+			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, auditTrail             = [ "navigate" ]
