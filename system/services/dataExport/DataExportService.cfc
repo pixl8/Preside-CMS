@@ -66,6 +66,7 @@ component {
 				case "boolean":
 					return IsBoolean( arguments.value ) ? ( arguments.value ? "true" : "false" ) : "";
 				case "date":
+				case "time":
 					if ( !IsDate( arguments.value ) ) {
 						return "";
 					}
