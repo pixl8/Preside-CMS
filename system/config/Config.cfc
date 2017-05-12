@@ -395,6 +395,10 @@ component {
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
 
+		settings.dataExport = {};
+		settings.dataExport.csv = { delimiter="," };
+
+
 		settings.email = _getEmailSettings();
 
 		_loadConfigurationFromExtensions();

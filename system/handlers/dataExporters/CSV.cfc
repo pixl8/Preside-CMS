@@ -6,6 +6,7 @@
 component {
 
 	property name="csvWriter" inject="csvWriter";
+	property name="csvExportDelimiter" inject="coldbox:setting:dataExport.csv.delimiter";
 
 	private any function export(
 		  required array  selectFields
@@ -13,7 +14,7 @@ component {
 		, required any    batchedRecordIterator
 	) {
 		var tmpFile = getTempFile( getTempDirectory(), "CSVExport" );
-		var writer  = csvWriter.newWriter( tmpFile, Chr( 9 ) );
+		var writer  = csvWriter.newWriter( tmpFile, csvExportDelimiter );
 		var row     = [];
 		var data    = "";
 

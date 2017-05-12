@@ -192,3 +192,14 @@ title=CSV File
 description=Download data in plain text CSV (Character Separated Values)
 iconClass=fa-table
 ```
+
+## Configuring CSV Export delimiter
+
+The default delimiter used for CSV export is a comma. You can change this in `Config.cfc` by setting `settings.dataExports.csv.delimiter`:
+
+```luceescript
+// /application/config/Config.cfc
+...
+settings.dataExports.csv.delimiter = Chr( 9 ); // tab
+...
+```
