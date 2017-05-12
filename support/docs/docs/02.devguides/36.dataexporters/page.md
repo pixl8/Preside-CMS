@@ -27,14 +27,37 @@ component {
 
 If you are making use of the core object based data grids (i.e. `renderView( view="/admin/datamanager/_objectDataTable",...`), you can add the `allowDataExport` flag to the passed args to allow default export behaviour:
 
-```lucee
+```luceescript
 #renderView( view="/admin/datamanager/_objectDataTable", args={
-	  objectName      = "website_user"
+	  objectName      = "event_delegate"
 	, useMultiActions = false
-	, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteUserManager.getUsersForAjaxDataTables" )
+	, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=delegates.getDelegatesForAjaxDataTables", queryString="eventId=" & eventId )
 	, gridFields      = [ "active", "login_id", "display_name", "email_address", "last_request_made" ]
 	, allowDataExport = true
+	, dataExportUrl   = event.buildAdminLink( linkTo="delegates.exportAction", queryString="eventId=" & eventId )
 } )#
+```
+
+Notice also the `dataExportUrl` argument. Use this to set custom permissions checks and additional filters before proxying to the core `admin.datamanager._exportDataAction` method:
+
+```luceescript
+// in /handlers/admin/Delegates.cfc ...
+
+function exportAction( event, rc, prc ) {
+	var eventId = rc.eventId ?: "";
+
+	_checkPermissions( event=event, key="export" );
+
+	runEvent(
+		  event          = "admin.DataManager._exportDataAction"
+		, prePostExempt  = true
+		, private        = true
+		, eventArguments = { 
+			  objectName   = "event_delegate" 
+			, extraFilters = [ { filter={ event=eventId } } ]
+		  }
+	);
+}
 ```
 
 ### Using the export APIs directly
