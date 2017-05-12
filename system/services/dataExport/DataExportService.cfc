@@ -76,7 +76,7 @@ component {
 						case "time":
 							return TimeFormat( arguments.value, "HH:mm" );
 						default:
-							return DateTime( arguments.value, "yyyy-mm-dd" );
+							return DateFormat( arguments.value, "yyyy-mm-dd" );
 					}
 			}
 			return value;
