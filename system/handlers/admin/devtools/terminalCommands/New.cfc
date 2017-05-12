@@ -517,6 +517,9 @@ component hint="Create various preside system entities such as widgets and page 
 		if ( !StructKeyExists( params, "allowBatchEdit" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Allow batch edit: ", required=false, paramName="allowBatchEdit", default="Y", validityRegex="^[YyNn]$" } );
 		}
+		if ( !StructKeyExists( params, "allowDataExport" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Allow data export: ", required=false, paramName="allowDataExport", default="Y", validityRegex="^[YyNn]$" } );
+		}
 		if ( !StructKeyExists( params, "extension" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
 		}
@@ -545,6 +548,7 @@ component hint="Create various preside system entities such as widgets and page 
 				, gridFields       = params.gridFields
 				, useDrafts        = ( params.useDrafts      == "Y" )
 				, allowBatchEdit   = ( params.allowBatchEdit == "Y" )
+				, allowDataExport  = ( params.allowDataExport == "Y" )
 				, extension        = params.extension
 			);
 		} catch ( any e ) {
