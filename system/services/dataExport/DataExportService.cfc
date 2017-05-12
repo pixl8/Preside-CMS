@@ -66,12 +66,14 @@ component {
 				case "boolean":
 					return IsBoolean( arguments.value ) ? ( arguments.value ? "true" : "false" ) : "";
 				case "date":
+				case "time":
 					if ( !IsDate( arguments.value ) ) {
 						return "";
 					}
 
 					switch( propertyDefinitions[ arguments.fieldName ].dbtype ?: "" ) {
 						case "datetime":
+						case "timestamp":
 							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn" );
 						case "time":
 							return TimeFormat( arguments.value, "HH:mm" );
