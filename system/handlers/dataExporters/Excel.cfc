@@ -16,7 +16,7 @@ component {
 		, required string objectName
 	) {
 		var tmpFile       = getTempFile( getTempDirectory(), "ExcelExport" );
-		var workbook      = spreadsheetLib.new();
+		var workbook      = spreadsheetLib.new( xmlformat=true );
 		var headers       = [];
 		var row           = 1;
 		var col           = 0;

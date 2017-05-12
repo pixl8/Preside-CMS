@@ -2167,7 +2167,7 @@
 			args.objectTitle = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 			args.defaultExportFilename = translateresource(
 				  uri  = "cms:dataexport.config.form.field.title.default"
-				, data = [ args.objectTitle, DateFormat( Now(), 'yyyy-mm-dd' ) ]
+				, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
 			);
 
 			event.setView( view="/admin/datamanager/dataExportConfigModal", layout="adminModalDialog", args=args );
@@ -2286,6 +2286,7 @@
 				, objectName   = objectName
 				, selectFields = selectFields
 				, extraFilters = arguments.extraFilters
+				, autoGroupBy  = true
 			};
 
 			try {
