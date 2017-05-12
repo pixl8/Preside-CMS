@@ -1,6 +1,6 @@
 /**
- * @exportFileExtension xlsx
- * @exportMimeType      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+ * @exportFileExtension xls
+ * @exportMimeType      application/vnd.ms-excel
  *
  */
 component {
