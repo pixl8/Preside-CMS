@@ -216,7 +216,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   }
 
   Button.prototype.toggle = function () {
-    var $parent = this.$element.closest('[data-toggle$="buttons"]')
+    var $parent = this.$element.closest('.presidecms [data-toggle$="buttons"]')
 
     if ($parent.length) {
       var $input = this.$element.find('input')
@@ -262,7 +262,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // BUTTON DATA-API
   // ===============
 
-  $(document).on('click.bs.button.data-api', '[data-toggle^=button]', function (e) {
+  $(document).on('click.bs.button.data-api', '.presidecms [data-toggle^=button]', function (e) {
     var $btn = $(e.target)
     if (!$btn.hasClass('btn')) $btn = $btn.closest('.btn')
     $btn.button('toggle')
@@ -648,7 +648,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // COLLAPSE DATA-API
   // =================
 
-  $(document).on('click.bs.collapse.data-api', '[data-toggle$=collapse]', function (e) {
+  $(document).on('click.bs.collapse.data-api', '.presidecms [data-toggle$=collapse]', function (e) {
     var $this   = $(this), href
     var target  = $this.attr('data-target')
         || e.preventDefault()
@@ -660,7 +660,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
     var $parent = parent && $(parent)
 
     if (!data || !data.transitioning) {
-      if ($parent) $parent.find('[data-toggle$=collapse][data-parent="' + parent + '"]').not($this).addClass('collapsed')
+      if ($parent) $parent.find('.presidecms [data-toggle$=collapse][data-parent="' + parent + '"]').not($this).addClass('collapsed')
       $this[$target.hasClass('in') ? 'addClass' : 'removeClass']('collapsed')
     }
 
@@ -695,7 +695,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // =========================
 
   var backdrop = '.dropdown-backdrop'
-  var toggle   = '[data-toggle$=dropdown]'
+  var toggle   = '.presidecms [data-toggle$=dropdown]'
   var Dropdown = function (element) {
     var $el = $(element).on('click.bs.dropdown', this.toggle)
   }
@@ -1050,7 +1050,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // MODAL DATA-API
   // ==============
 
-  $(document).on('click.bs.modal.data-api', '[data-toggle$="modal"]', function (e) {
+  $(document).on('click.bs.modal.data-api', '.presidecms [data-toggle$="modal"]', function (e) {
     var $this   = $(this)
     var href    = $this.attr('href')
     var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) //strip for ie7
@@ -1864,7 +1864,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // TAB DATA-API
   // ============
 
-  $(document).on('click.bs.tab.data-api', '[data-toggle$="tab"], [data-toggle$="pill"]', function (e) {
+  $(document).on('click.bs.tab.data-api', '.presidecms [data-toggle$="tab"], .presidecms [data-toggle$="pill"]', function (e) {
     e.preventDefault()
     $(this).tab('show')
   })
