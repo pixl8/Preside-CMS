@@ -2750,16 +2750,18 @@ component displayName="Preside Object Service" {
 		, required any     dbAdapter
 		,          boolean includeAlias = true
 	) {
-		var props             = getObjectProperties( arguments.objectName );
-		var expanded          = arguments.expression;
-		var propertyName      = expanded;
-		var prefix            = "";
-		var relatedObjectName = "";
+		var props                = getObjectProperties( arguments.objectName );
+		var expanded             = arguments.expression;
+		var expressionMinusAlias = ListFirst( arguments.expression, " " );
+		var alias                = ListRest( arguments.expression, " " );
+		var propertyName         = expanded;
+		var prefix               = "";
+		var relatedObjectName    = "";
 
-		if ( ListLen( expression, "." ) == 2 ) {
-			propertyName = ListLast( arguments.expression, "." );
-			if ( ListFirst( expression, "." ) != arguments.objectName ) {
-				prefix            = ListFirst( arguments.expression, "." );
+		if ( ListLen( expressionMinusAlias, "." ) == 2 ) {
+			propertyName = ListLast( expressionMinusAlias, "." );
+			if ( ListFirst( expressionMinusAlias, "." ) != arguments.objectName ) {
+				prefix            = ListFirst( expressionMinusAlias, "." );
 				relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
 
 				if ( objectExists( relatedObjectName ) ) {
@@ -2780,14 +2782,14 @@ component displayName="Preside Object Service" {
 				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
 			}
 
-			if ( arguments.includeAlias ) {
-				if ( expanded.findNoCase( " as " ) ) {
-					expanded = expanded.reReplace( "^(.*?)( as .*$)", "#formula#\2" );
-				} else {
-					expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
-				}
+			if ( arguments.includeAlias && !alias.len() ) {
+				expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
 			} else {
 				expanded = formula;
+			}
+
+			if ( alias.len() ) {
+				expanded &= " #alias#";
 			}
 		}
 

@@ -11,6 +11,7 @@
 	remoteUrl               = args.remoteUrl        ?: "";
 	prefetchUrl             = args.prefetchUrl      ?: "";
 	records                 = args.records          ?: QueryNew('');
+	displayLimit            = args.displayLimit     ?: 200;
 	searchable              = args.searchable       ?: true;
 	deselectable            = args.deselectable     ?: true;
 	multiple                = args.multiple         ?: false;
@@ -34,6 +35,10 @@
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
+	}
+
+	if ( !IsBoolean( ajax ) || !ajax ) {
+		displayLimit = 0;
 	}
 
 	if ( quickAdd ) {
@@ -91,10 +96,11 @@
 				</cfif>
 			</cfif>
 			<cfif disabled>disabled</cfif>
-			tabindex         = "#getNextTabIndex()#"
-			data-placeholder = "#placeholder#"
-			data-sortable    = "#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-			data-value       = "#HtmlEditFormat( value )#"
+			tabindex           = "#getNextTabIndex()#"
+			data-placeholder   = "#placeholder#"
+			data-sortable      = "#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
+			data-value         = "#HtmlEditFormat( value )#"
+			data-display-limit = "#displayLimit#"
 			<cfif IsBoolean( multiple ) && multiple>
 				multiple="multiple"
 			</cfif>

@@ -23,7 +23,13 @@ component output=false {
 			event.notFound();
 		}
 
-		var type = assetManagerService.getAssetType( name=ListLast( filename, "." ), throwOnMissing=true );
+		var type = assetManagerService.getAssetType( name=ListLast( filename, "." ) );
+		if( structIsEmpty( type ) ){
+			type = {
+				  serveAsAttachment = true
+				, mimeType          = "application/octet-stream"
+			}
+		}
 		var etag = LCase( Hash( SerializeJson( storageProvider.getObjectInfo( storagePath ) ) ) );
 
 		_doBrowserEtagLookup( etag );
