@@ -15,7 +15,7 @@ component {
 
 		for( var timeZone in timeZones ) {
 			args.values.append( timeZone.id );
-			args.labels.append( "(" & translateResource( uri="formcontrols.timeZoneSelect:utc.label" ) & timeZone.offset & ") " & timeZone.id & " - " & timeZone.name );
+			args.labels.append( "(" & translateResource( uri="formcontrols.timeZoneSelect:utc.label" ) & timeZone.formattedOffset & ") " & timeZone.id & " - " & timeZone.name );
 		}
 
 		return renderView( view="/formcontrols/select/index", args=args );

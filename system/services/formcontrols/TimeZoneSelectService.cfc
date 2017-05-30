@@ -48,7 +48,7 @@ component {
 		timezoneQuery.addColumn( "name"           , "varchar", names            );
 
 		variables.timezoneQuery = queryExecute(
-			  sql     = "select id, formattedOffset as offset, name from timezoneQuery order by offset, id"
+			  sql     = "select id, offset, formattedOffset, name from timezoneQuery order by offset, id"
 			, options = { dbtype="query" }
 		);
 
