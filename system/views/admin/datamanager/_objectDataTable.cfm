@@ -35,10 +35,12 @@
 
 		favourites = renderViewlet( event="admin.rulesEngine.dataGridFavourites", args={ objectName=args.objectName } );
 	}
+
+	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
 </cfscript>
 <cfoutput>
 	<div class="table-responsive">
-		<cfif args.allowDataExport>
+		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
 			</form>
@@ -108,7 +110,7 @@
 			</div>
 		</cfif>
 
-		<cfif args.allowDataExport>
+		<cfif allowDataExport>
 			<div class="object-listing-table-export hide">
 				<div class="pull-left">
 					<a class="btn btn-info btn-sm object-listing-data-export-button" href="#args.dataExportConfigUrl#">
@@ -124,7 +126,7 @@
 		    data-datasource-url="#args.datasourceUrl#"
 		    data-use-multi-actions="#args.useMultiActions#"
 		    data-allow-search="#args.allowSearch#"
-		    data-allow-data-export="#args.allowDataExport#"
+		    data-allow-data-export="#allowDataExport#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
