@@ -234,7 +234,7 @@ component {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, systemInformation      = [ "navigate" ]
-			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
+			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, auditTrail             = [ "navigate" ]
@@ -312,6 +312,7 @@ component {
 			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, dataexport              = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
@@ -394,6 +395,10 @@ component {
 
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
+
+		settings.dataExport = {};
+		settings.dataExport.csv = { delimiter="," };
+
 
 		settings.email = _getEmailSettings();
 

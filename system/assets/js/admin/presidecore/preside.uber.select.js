@@ -365,7 +365,7 @@
 				this.prefetch_ttl = 0;
 			}
 
-			if ( isNaN( display_limit ) ) {
+			if ( display_limit === null || isNaN( display_limit ) ) {
 				this.display_limit = 200;
 			} else {
 				this.display_limit = parseInt( display_limit );
