@@ -2163,6 +2163,9 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
+			if ( !isFeatureEnabled( "dataexport" ) ) {
+				event.notFound();
+			}
 			var args   = {};
 
 			args.objectName = rc.id ?: "";
@@ -2182,6 +2185,10 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
+			if ( !isFeatureEnabled( "dataexport" ) ) {
+				event.notFound();
+			}
+
 			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
