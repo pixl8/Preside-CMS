@@ -168,7 +168,7 @@ component {
 	private void function _mergeProperties( required struct meta, required array properties, required string pathToCfc ) {
 		var prop         = "";
 		var propName     = "";
-		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
+		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
 		param name="arguments.meta.properties"    default=StructNew( "linked" );
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
@@ -394,7 +394,7 @@ component {
 		arguments.meta.properties = orderedProps;
 	}
 
-	private array function _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( required string pathToCfc ) {
+	private array function _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( required string pathToCfc ) {
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 
