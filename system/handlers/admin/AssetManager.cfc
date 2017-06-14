@@ -506,8 +506,11 @@ component extends="preside.system.base.AdminHandler" {
 
 				result.id      = assetId;
 				result.message = editLink;
-			} catch ( any e ) {
+			} catch ( "assetManager.fileTypeNotFound" e ) {
 				result.success = false;
+				result.message = translateResource( uri="cms:assetmanager.uploader.messages.invalidFileType", data=[ fileExtension ] );
+
+			} catch ( any e ) {
 
 				if ( ReFindNoCase( "^PresideCMS\.AssetManager", e.type ?: "" ) ) {
 					result.message = translateResource( ReReplace( e.type, "^PresideCMS\.", "cms:" ) );
