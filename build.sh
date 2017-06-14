@@ -19,10 +19,10 @@ echo "";
 echo "The script has dependencies on CommandBox, ant + an accessible database for running the test suite.";
 echo "";
 echo "-------------------------------------------------------";
+
 echo "";
 echo "Installing dependencies via box.json...";
 echo "";
-
 box install --force save=false
 rm -rf ./system/externals/lucee-spreadsheet/javaLoader
 rm -rf ./system/externals/lucee-spreadsheet/test
@@ -53,11 +53,19 @@ else
 	echo "Skipping docs build, not on a release tag in a travis build. To build the docs yourself, run ./support/docs/build.sh"
 fi
 if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
-	echo "Packaging application...";
+	if [[ $TRAVIS_TAG == v* ]] ; then
+		VERSION_NUMBER="${TRAVIS_TAG//v}"
+	else if [[ $TRAVIS_BRANCH == release* ]]
+		VERSION_NUMBER="${TRAVIS_BRANCH//release-}"
+	else
+		VERSION_NUMBER="unknown"
+	fi
+
+	echo "Packaging application ${VERSION_NUMBER}...";
 	echo "";
 	echo "";
 
-	ant -f support/build/build.xml -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG
+	ant -f support/build/build.xml -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG -Dversionnumber=$VERSION_NUMBER
 
 	echo "";
 	echo "";

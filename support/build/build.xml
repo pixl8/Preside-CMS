@@ -3,7 +3,7 @@
 	<tstamp prefix="start"/>
 
 	<property file="build.properties" />
-
+	<property name="versionnumber" value="unknown" />
 	<property name="artifacts.dir" value="./artifacts" />
 	<property name="build.number.file" value="${artifacts.dir}/build.number" />
 
@@ -16,13 +16,16 @@
 
 	<target name="build" depends="setupartifactsdir,setupreleaselabel">
 		<concat destfile="../../${build.label}">Built on ${start.TODAY}</concat>
-		<echo file="../../version.json">{ "version":"${preside.version}.${build.number}" }</echo>
+		<echo file="../../version.json">{ "version":"${versionnumber}.${build.number}" }</echo>
 
 		<move file="../../box.json" tofile="../../box.json.orig" />
 		<move file="../../box.json.no.deps" tofile="../../box.json" />
 
-		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.zip">
-			<zipfileset dir="../../" prefix="presidecms-${preside.version}.${build.number}">
+		<replace file="../../box.json.orig" token="VERSION_NUMBER" value="${versionnumber}" />
+		<replace file="../../box.json"      token="VERSION_NUMBER" value="${versionnumber}" />
+
+		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.zip">
+			<zipfileset dir="../../" prefix="presidecms-${versionnumber}.${build.number}">
 				<exclude name="support/**"                    />
 				<exclude name="system/assets/node_modules/**" />
 				<exclude name=".travis.yml"                   />
@@ -50,9 +53,9 @@
 
 		<move file="../../box.json" tofile="../../box.json.no.deps" />
 		<move file="../../box.json.orig" tofile="../../box.json" />
-		<copy file="../../version.json" tofile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.json" />
+		<copy file="../../version.json" tofile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.json" />
 		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/build.zip" />
-		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/PresideCMS-${preside.version}.zip" />
+		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/PresideCMS-${versionnumber}.zip" />
 
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
@@ -73,26 +76,26 @@
 				<switch value="${branchtype}">
 					<case value="stable">
 						<property name="release.name" value="stable" />
-						<property name="build.label" value="PresideCMS-${preside.version}-stable.${build.number}" />
+						<property name="build.label" value="PresideCMS-${versionnumber}-stable.${build.number}" />
 					</case>
 					<case value="release">
 						<property name="release.name" value="bleeding-edge" />
-						<property name="build.label" value="PresideCMS-${preside.version}-release.${build.number}" />
+						<property name="build.label" value="PresideCMS-${versionnumber}-release.${build.number}" />
 					</case>
 					<case value="feature">
 						<propertyregex property="featurename" input="${branch}" regexp="^feature-(.*)$" select="\1" />
 						<property name="release.name" value="feature/${featurename}" />
-						<property name="build.label" value="PresideCMS-${preside.version}-feature-${featurename}.${build.number}" />
+						<property name="build.label" value="PresideCMS-${versionnumber}-feature-${featurename}.${build.number}" />
 					</case>
 					<default>
 						<property name="release.name" value="${branch}" />
-						<property name="build.label" value="PresideCMS-${preside.version}-${branch}.${build.number}" />
+						<property name="build.label" value="PresideCMS-${versionnumber}-${branch}.${build.number}" />
 					</default>
 				</switch>
 			</then>
 			<else>
 				<property name="release.name" value="release" />
-				<property name="build.label" value="PresideCMS-${preside.version}.${build.number}"/>
+				<property name="build.label" value="PresideCMS-${versionnumber}.${build.number}"/>
 			</else>
 		</if>
 	</target>
