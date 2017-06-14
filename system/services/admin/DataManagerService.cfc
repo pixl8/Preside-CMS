@@ -480,12 +480,12 @@ component {
 		}
 
 		if ( dateCreatedField != "datecreated" && sqlFields.findNoCase( "dateCreated" ) ) {
-			sqlFields.deleteNoCase( "datecreated" );
+			sqlFields.deleteAt( sqlFields.findNoCase( "datecreated" ) );
 			sqlFields.append( "#objName#.#dateCreatedField# as datecreated" );
 		}
 
 		if ( dateModifiedField != "dateModified" && sqlFields.findNoCase( "dateModified" ) ) {
-			sqlFields.deleteNoCase( "datemodified" );
+			sqlFields.deleteAt( sqlFields.findNoCase( "datemodified" ) );
 			sqlFields.append( "#objName#.#dateModifiedField# as datemodified" );
 		}
 
