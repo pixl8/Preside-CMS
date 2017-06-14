@@ -55,7 +55,7 @@ fi
 if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	if [[ $TRAVIS_TAG == v* ]] ; then
 		VERSION_NUMBER="${TRAVIS_TAG//v}"
-	elif [[ $TRAVIS_BRANCH == release* ]]
+	elif [[ $TRAVIS_BRANCH == release* ]] ; then
 		VERSION_NUMBER="${TRAVIS_BRANCH//release-}"
 	else
 		VERSION_NUMBER="unknown"
