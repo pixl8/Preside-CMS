@@ -435,7 +435,7 @@ component {
 
 			pagePoolClear();
 		} catch( "security" e ) {
-			throw( type="UpdateManagerService.railo.admin.secured", message=e.message );
+			throw( type="UpdateManagerService.lucee.admin.secured", message=e.message );
 		}
 	}
 

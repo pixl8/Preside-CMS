@@ -724,13 +724,15 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editAsset( required string id, required struct data ) {
-		var asset  = getAsset( id=arguments.id );
+		var asset       = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
 
 		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
 			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
 		}
+
+		flushAssetUrlCache( arguments.id );
 
 		auditDetail.id = arguments.id;
 		$audit(
@@ -741,6 +743,12 @@ component displayName="AssetManager Service" {
 		);
 
 		return result;
+	}
+
+	public void function flushAssetUrlCache( required string assetId ) {
+		_getAssetDao().updateData( id=arguments.assetId, data={ asset_url="" } );
+		_getAssetVersionDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="" } );
+		_getDerivativeDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="" } );
 	}
 
 	public boolean function moveAssets( required array assetIds, required string folderId ) {

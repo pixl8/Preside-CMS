@@ -480,13 +480,13 @@ component {
 		}
 
 		if ( dateCreatedField != "datecreated" && sqlFields.findNoCase( "dateCreated" ) ) {
-			sqlFields.delete( "datecreated" );
+			sqlFields.deleteAt( sqlFields.findNoCase( "datecreated" ) );
 			sqlFields.append( "#objName#.#dateCreatedField# as datecreated" );
 		}
 
-		if ( dateCreatedField != "dateModified" && sqlFields.findNoCase( "dateModified" ) ) {
-			sqlFields.delete( "dateModified" );
-			sqlFields.append( "#objName#.#dateModifiedField# as dateModified" );
+		if ( dateModifiedField != "dateModified" && sqlFields.findNoCase( "dateModified" ) ) {
+			sqlFields.deleteAt( sqlFields.findNoCase( "datemodified" ) );
+			sqlFields.append( "#objName#.#dateModifiedField# as datemodified" );
 		}
 
 		if ( arguments.draftsEnabled ) {
@@ -498,7 +498,7 @@ component {
 		var ignore = [
 			  "#objName#.#idField# as id"
 			, "#objName#.#dateCreatedField# as datecreated"
-			, "#objName#.#dateModifiedField# as dateModified"
+			, "#objName#.#dateModifiedField# as datemodified"
 			, replacedLabelField
 		];
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){

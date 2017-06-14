@@ -74,7 +74,7 @@ component accessors=true displayName="Preside REST Response" {
 		variables.headers = variables.headers ?: {};
 		variables.headers[ arguments.name ] = arguments.value;
 
-		return;
+		return this;
 	}
 
 	/**
