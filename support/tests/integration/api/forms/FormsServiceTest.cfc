@@ -847,7 +847,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		  required string formDirectories
 		,          string activeSiteTemplate = ""
 	) {
-		mockI18nPlugin              = createMock( "preside.system.coldboxModifications.plugins.i18n" );
+		mockI18nPlugin              = createMock( "preside.system.services.i18n.i18n" );
 		mockColdBox                 = createMock( "preside.system.coldboxModifications.Controller" );
 		mockSiteService             = createMock( "preside.system.services.siteTree.SiteService" );
 		mockValidationRuleGenerator = createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );

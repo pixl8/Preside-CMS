@@ -14,6 +14,7 @@
 	private void function _setupCustomDslProviders() {
 		mapDSL( "presidecms", "preside.system.coldboxModifications.PresideWireboxDsl" );
 		mapDSL( "delayedInjector", "preside.system.coldboxModifications.DelayedInjectorDsl" );
+		mapDSL( "coldbox", "preside.system.coldboxModifications.LegacyDslBuilder" );
 	}
 
 	private void function _mapCommonSystemServices() {
@@ -67,6 +68,7 @@
 			.initArg( name="rootUrl"         , value="" );
 
 		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
+		map( "presideRenderer" ).asSingleton().to( "preside.system.coldboxModifications.services.Renderer" );
 	}
 
 	private void function _loadExtensionConfigurations() {

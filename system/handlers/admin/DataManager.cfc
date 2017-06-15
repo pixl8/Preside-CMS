@@ -9,7 +9,8 @@
 	<cfproperty name="siteService"                      inject="siteService"                      />
 	<cfproperty name="versioningService"                inject="versioningService"                />
 	<cfproperty name="rulesEngineFilterService"         inject="rulesEngineFilterService"         />
-	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
+	<cfproperty name="dtHelper"                         inject="jqueryDatatablesHelpers"          />
+	<cfproperty name="messageBox"                       inject="messagebox@cbmessagebox"          />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -1373,7 +1374,6 @@
 			var translateStatusCol  = [];
 			var translations        = [];
 			var translateUrlBase    = "";
-			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var sortOrder           = dtHelper.getSortOrder();
 			var expressionFilter    = rc.sFilterExpression ?: "";
 			var savedFilters        = ListToArray( rc.sSavedFilterExpressions ?: "" );
@@ -1494,7 +1494,6 @@
 			var versionObject       = presideObjectService.getVersionObjectName( object );
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var optionsCol          = [];
-			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var results             = dataManagerService.getRecordHistoryForGridListing(
 				  objectName  = object
 				, recordId    = recordId
@@ -1569,7 +1568,6 @@
 			var versionObject       = presideObjectService.getVersionObjectName( translationObject );
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var optionsCol          = [];
-			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var results             = dataManagerService.getRecordHistoryForGridListing(
 				  objectName  = translationObject
 				, recordId    = translationRecord.id ?: ""

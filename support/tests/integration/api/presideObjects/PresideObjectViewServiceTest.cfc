@@ -122,7 +122,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 	private any function _getPresideObjectViewService( folders ) {
 		mockPresideObjectService = createMock( "preside.system.services.presideObjects.presideObjectViewService" );
 		mockRendererService      = createMock( "preside.system.services.rendering.ContentRendererService" );
-		mockRendererPlugin       = createMock( "preside.system.coldboxModifications.plugins.Renderer" );
+		mockRendererPlugin       = createMock( "preside.system.coldboxModifications.services.Renderer" );
 		mockColdbox              = createEmptyMock( "preside.system.coldboxModifications.Controller" );
 		mockRequestContext       = createStub();
 

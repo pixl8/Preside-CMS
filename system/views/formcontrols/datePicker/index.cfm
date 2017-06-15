@@ -9,7 +9,7 @@
 	relativeToField  = args.relativeToField  ?: "";
 	relativeOperator = args.relativeOperator ?: "";
 	datePickerClass  = args.datePickerClass  ?: "date-picker";
-	language         = event.isAdminRequest() ? getPlugin( "i18n" ).getFWLanguageCode() : ListFirst( event.getLanguageCode(), "-" );
+	language         = event.isAdminRequest() ? getModel( "i18n" ).getFWLanguageCode() : ListFirst( event.getLanguageCode(), "-" );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {

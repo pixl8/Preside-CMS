@@ -93,7 +93,7 @@
 								&nbsp;
 								<em>#translateResource( "cms:taskmanager.table.task.running" )#</em>
 								&ndash;
-								<a href="#event.buildAdminLink( linkTo='taskManager.log', queryString='id=#task.taskHistoryId#')#">
+								<a href="#event.buildAdminLink( linkTo="taskManager.viewLog", queryString='id=#task.taskHistoryId#')#">
 									#translateResource( "cms:taskmanager.table.task.viewlog" )#
 								</a>
 

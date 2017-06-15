@@ -19,12 +19,11 @@ component {
 			, handlersIndexAutoReload   = false
 			, debugMode                 = false
 			, defaultEvent              = "general.index"
-			, customErrorTemplate       = ""
 			, reinitPassword            = ( applicationSettings.COLDBOX_RELOAD_PASSWORD ?: "true" )
 			, handlerCaching            = true
 			, eventCaching              = true
 			, requestContextDecorator   = "preside.system.coldboxModifications.RequestContextDecorator"
-			, UDFLibraryFile            = _getUdfFiles()
+			, applicationHelper         = _getUdfFiles()
 			, pluginsExternalLocation   = "preside.system.plugins"
 			, viewsExternalLocation     = "/preside/system/views"
 			, layoutsExternalLocation   = "/preside/system/layouts"
@@ -36,6 +35,7 @@ component {
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
+			, customErrorTemplate       = "/preside/system/coldboxModifications/includes/errorReport.cfm"
 		};
 
 		i18n = {
@@ -129,8 +129,8 @@ component {
 		logbox = {
 			appenders = {
 				defaultLogAppender = {
-					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
-					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
+					  class      = 'coldbox.system.logging.appenders.RollingFileAppender'
+					, properties = { filePath=settings.logsMapping, filename="coldbox.log", async=true }
 				},
 				taskmanagerRequestAppender = {
 					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
@@ -168,6 +168,7 @@ component {
 		settings.devConsoleToggleKeyCode     = 96;
 		settings.adminLanguages              = [];
 		settings.showNonLiveContentByDefault = true;
+		settings.coldboxVersion              = _calculateColdboxVersion();
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -706,5 +707,21 @@ component {
 			, recipientTypes   = recipientTypes
 			, serviceProviders = serviceProviders
 		};
+	}
+
+	private string function _calculateColdboxVersion() {
+		var boxJsonPath = "/coldbox/box.json";
+
+		if ( FileExists( boxJsonPath ) ) {
+			try {
+				var boxInfo = DeserializeJson( FileRead( boxJsonPath ) );
+
+				return boxInfo.version ?: "unknown";
+			} catch( any e ) {
+				return "unknown";
+			}
+		}
+
+		return "3.8.2";
 	}
 }

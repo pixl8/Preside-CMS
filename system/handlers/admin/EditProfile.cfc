@@ -1,10 +1,10 @@
 component output="false" extends="preside.system.base.AdminHandler" {
 
 	property name="userDao"               inject="presidecms:object:security_user";
-	property name="messageBox"            inject="coldbox:plugin:messageBox";
+	property name="messageBox"            inject="messagebox@cbmessagebox";
 	property name="bCryptService"         inject="bCryptService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
-	property name="i18n"                  inject="coldbox:plugin:i18n";
+	property name="i18n"                  inject="i18n";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );

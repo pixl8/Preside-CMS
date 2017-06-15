@@ -11,7 +11,7 @@ component {
 	this.mappings['/mxunit' ]     = currentDir & "testbox/system/compat";
 	this.mappings['/app']         = currentDir & "resources/testSite";
 	this.mappings['/preside']     = currentDir & "../../";
-	this.mappings['/coldbox']     = currentDir & "../../system/externals/coldbox-standalone-3.8.2/coldbox";
+	this.mappings['/coldbox']     = currentDir & "../../system/externals/coldbox";
 
 	setting requesttimeout="6000";
 	_loadDsn();

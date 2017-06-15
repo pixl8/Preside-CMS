@@ -24,6 +24,7 @@ component displayName="Preside Super Class" {
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
 	 * @validationEngine.inject           delayedInjector:validationEngine
 	 * @coldbox.inject                    delayedInjector:coldbox
+	 * @i18n.inject                       delayedInjector:i18n
 	 *
 	 */
 	public any function init(
@@ -43,6 +44,7 @@ component displayName="Preside Super Class" {
 		, required any taskmanagerService
 		, required any validationEngine
 		, required any coldbox
+		, required any i18n
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -60,6 +62,7 @@ component displayName="Preside Super Class" {
 		$taskmanagerService         = arguments.taskmanagerService;
 		$validationEngine           = arguments.validationEngine;
 		$coldbox                    = arguments.coldbox;
+		$i18n                       = arguments.i18n;
 
 		return this;
 	}
@@ -689,7 +692,7 @@ component displayName="Preside Super Class" {
 	 * @autodoc
 	 */
 	public any function $translateResource() {
-		return $getColdbox().getPlugin( "i18n" ).translateResource( argumentCollection=arguments );
+		return $i18n.translateResource( argumentCollection=arguments );
 	}
 
 	/**
