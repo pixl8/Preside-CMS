@@ -454,6 +454,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var viewLocations			= "";
 		var event                   = getRequestContext();
 		var site                    = event.getSite()
+		var layoutsRefMap           = "";
 
 		// Are we doing a nested view/layout explicit combo or already in its rendering algorithm?
 		if( len( trim( arguments.view ) )  ){
@@ -505,17 +506,13 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		else{
 			// Layout location key
 			cbox_layoutLocationKey = ( site.template ?: "" ) & cbox_currentLayout & arguments.module & cbox_explicitModule;
-
+			layoutsRefMap          = controller.getSetting( "layoutsRefMap" );
 			// Check cached paths first
-			if( structkeyExists( controller.getSetting( "layoutsRefMap" ), cbox_layoutLocationKey ) AND variables.isDiscoveryCaching ){
-				lock name="#cbox_layoutLocationKey#.#lockName#" type="readonly" timeout="15" throwontimeout="true"{
-					cbox_layoutLocation = structFind( controller.getSetting( "layoutsRefMap" ), cbox_layoutLocationKey );
-				}
+			if( structkeyExists( layoutsRefMap, cbox_layoutLocationKey ) AND variables.isDiscoveryCaching ){
+				cbox_layoutLocation = layoutsRefMap[ cbox_layoutLocationKey ];
 			} else {
-				lock name="#cbox_layoutLocationKey#.#lockname#" type="exclusive" timeout="15" throwontimeout="true"{
-					cbox_layoutLocation = cbox_locateUDF( layout=cbox_currentLayout, module=arguments.module, explicitModule=cbox_explicitModule );
-					structInsert( controller.getSetting( "layoutsRefMap" ), cbox_layoutLocationKey, cbox_layoutLocation, true);
-				}
+				cbox_layoutLocation = cbox_locateUDF( layout=cbox_currentLayout, module=arguments.module, explicitModule=cbox_explicitModule );
+				layoutsRefMap[ cbox_layoutLocationKey ] = cbox_layoutLocation;
 			}
 			// Get the view locations
 			var viewLocations = discoverViewPaths( view=reverse ( listRest( reverse( cbox_layoutLocation ), "." ) ),
@@ -711,12 +708,11 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var locationUDF 	= variables.locateView;
 		var dPath			= "";
 		var refMap			= "";
+		var viewsRefMap     = controller.getSetting("viewsRefMap");
 
 		// Check cached paths first --->
-		lock name="#locationKey#.#lockName#" type="readonly" timeout="15" throwontimeout="true"{
-			if( structkeyExists( controller.getSetting("viewsRefMap") ,locationKey ) AND variables.isDiscoveryCaching ){
-				return structFind( controller.getSetting("viewsRefMap"), locationKey);
-			}
+		if( structkeyExists( viewsRefMap ,locationKey ) AND variables.isDiscoveryCaching ){
+			return viewsRefMap[ locationKey ];
 		}
 
 		if( left( arguments.view, 1 ) EQ "/" ){
@@ -750,10 +746,8 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		}
 
 		// Lock and create view entry
-		if( NOT structkeyExists( controller.getSetting("viewsRefMap") ,locationKey) ){
-			lock name="#locationKey#.#lockName#" type="exclusive" timeout="15" throwontimeout="true"{
-				structInsert( controller.getSetting("viewsRefMap"), locationKey, refMap, true);
-			}
+		if( NOT structkeyExists( viewsRefMap, locationKey ) ) {
+			viewsRefMap[ locationKey ] = refMap;
 		}
 
 		return refMap;

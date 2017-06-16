@@ -50,8 +50,8 @@ component singleton=true {
 			for( var extension in presentExtensions ) {
 				if ( !ArrayFind( listed, extension ) ) {
 
-				   var extensionDir     = _getExtensionsDirectory() & "/" & extension;
-				   var manifestFilePath = extensionDir & "/manifest.json";
+					var extensionDir     = _getExtensionsDirectory() & "/" & extension;
+					var manifestFilePath = extensionDir & "/manifest.json";
 
 					if ( Len( Trim( extensionDir ) ) && DirectoryExists( extensionDir ) && !FileExists( manifestFilePath ) ) {
 						throw( type="ExtensionManager.missingManifest", message="The extension, [#extensionDir#], does not have a manifest file" );
@@ -160,9 +160,7 @@ component singleton=true {
 			throw( type="ExtensionManager.missingManifest", message="The extension, [#arguments.extensionNameOrDirectory#], does not have a manifest file" );
 		}
 
-		lock name="manifestfileop-#manifestFilePath#" type="exclusive" timeout="10" {
-			fileContent = FileRead( manifestFilePath );
-		}
+		fileContent = FileRead( manifestFilePath );
 
 		try {
 			parsed = DeSerializeJson( fileContent );
@@ -205,13 +203,8 @@ component singleton=true {
 // PRIVATE HELPERS
 	private array function _readExtensionsFromFile() {
 		var extensionsFile = _getExtensionsListFilePath();
-		var extensions     = "";
 
-		lock name="extfileop-#extensionsFile#" type="exclusive" timeout="10" {
-			extensions = DeSerializeJson( FileRead( extensionsFile ) );
-		}
-
-		return extensions;
+		return DeSerializeJson( FileRead( extensionsFile ) );
 	}
 
 	private array function _listPresentExtensions() {
@@ -230,9 +223,7 @@ component singleton=true {
 	private void function _writeExtensionsToFile( required array extensions ) {
 		var extensionsFile = _getExtensionsListFilePath();
 
-		lock name="extfileop-#extensionsFile#" type="exclusive" timeout="10" {
-			FileWrite( extensionsFile, SerializeJson( arguments.extensions ) );
-		}
+		FileWrite( extensionsFile, SerializeJson( arguments.extensions ) );
 	}
 
 	private string function _getExtensionsListFilePath() {
@@ -243,15 +234,12 @@ component singleton=true {
 		var extensionsDir = _getExtensionsDirectory();
 		var extensionsFile = _getExtensionsListFilePath();
 
-		lock name="extfileop-#extensionsFile#" type="exclusive" timeout="10" {
+		if (!directoryExists(extensionsDir)){
+			directorycreate(extensionsDir);
+		}
 
-			if (!directoryExists(extensionsDir)){
-				directorycreate(extensionsDir);
-			}
-
-			if ( not FileExists( extensionsFile ) ) {
-				FileWrite( extensionsFile, "[]" );
-			}
+		if ( not FileExists( extensionsFile ) ) {
+			FileWrite( extensionsFile, "[]" );
 		}
 	}
 
