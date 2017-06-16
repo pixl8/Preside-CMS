@@ -23,6 +23,11 @@ component {
 
 		if ( _booleanVarietyMappings.keyExists( config.variety ?: "" ) ) {
 			variety = config.variety;
+		} else if ( Len( Trim( config.variety ?: "" ) ) ) {
+			var translated = translateResource( uri=config.variety & "." & varietyKey, defaultValue="" );
+			if ( translated.len() ) {
+				return translated;
+			}
 		}
 
 		return translateResource( uri=_booleanVarietyMappings[ variety ][ varietyKey ] );
