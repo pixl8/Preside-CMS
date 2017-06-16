@@ -378,11 +378,12 @@ component {
 	}
 
 	private struct function _createManyToManyHasExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
-		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
+		var expression       = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
+		var possessesVariety = _getBooleanVariety( arguments.objectName, arguments.propertyDefinition.name, "possesses" );
 
 		expression.append( {
 			  id                = "presideobject_manytomanyhas_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
-			, fields            = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", required=false, default=true }, value={ fieldType="number", required=false, default=0 }, savedFilter={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyCount.savedFilter.default.label" } }
+			, fields            = { _possesses={ fieldType="boolean", variety=possessesVariety, required=false, default=true }, value={ fieldType="number", required=false, default=0 }, savedFilter={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyCount.savedFilter.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyHas.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyHas.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyHas.getLabel"
