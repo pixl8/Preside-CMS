@@ -160,9 +160,7 @@ component singleton=true {
 			throw( type="ExtensionManager.missingManifest", message="The extension, [#arguments.extensionNameOrDirectory#], does not have a manifest file" );
 		}
 
-		lock name="manifestfileop-#manifestFilePath#" type="exclusive" timeout="10" {
-			fileContent = FileRead( manifestFilePath );
-		}
+		fileContent = FileRead( manifestFilePath );
 
 		try {
 			parsed = DeSerializeJson( fileContent );
