@@ -185,14 +185,13 @@
 			var locationUDF 	= variables.locateView;
 			var dPath			= "";
 			var refMap			= "";
+			var viewsRefMap     = controller.getSetting("viewsRefMap");
 		</cfscript>
 
 		<!--- Check cached paths first --->
-		<cflock name="#locationKey#.#instance.lockName#" type="readonly" timeout="15" throwontimeout="true">
-			<cfif structkeyExists( controller.getSetting("viewsRefMap") ,locationKey) AND instance.isDiscoveryCaching>
-				<cfreturn structFind( controller.getSetting("viewsRefMap"), locationKey)>
-			</cfif>
-		</cflock>
+		<cfif structkeyExists( viewsRefMap, locationKey ) AND instance.isDiscoveryCaching>
+			<cfreturn viewsRefMap[ locationKey ]>
+		</cfif>
 
 		<cfscript>
 			if (left(arguments.view, 1) EQ "/") {
@@ -227,10 +226,8 @@
 		</cfscript>
 
 		<!--- Lock and create view entry --->
-		<cfif NOT structkeyExists( controller.getSetting("viewsRefMap") ,locationKey) >
-			<cflock name="#locationKey#.#instance.lockName#" type="exclusive" timeout="15" throwontimeout="true">
-				<cfset structInsert( controller.getSetting("viewsRefMap"), locationKey, refMap, true)>
-			</cflock>
+		<cfif NOT structkeyExists( viewsRefMap, locationKey )>
+			<cfset viewsRefMap[ locationKey ] = refMap>
 		</cfif>
 
 		<cfreturn refMap>
@@ -402,6 +399,7 @@
 		<cfset var viewLocations            = "" />
 		<cfset var event                    = getRequestContext()>
 		<cfset var site                     = event.getSite()>
+		<cfset var layoutsRefMap            = "">
 
 		<!--- Are we doing a nested view/layout explicit combo or already in its rendering algorithm? --->
 		<cfif len(trim(arguments.view))>
@@ -455,18 +453,15 @@
 		<cfelse>
 			<!--- Layout location key --->
 			<cfset cbox_layoutLocationKey = ( site.template ?: "" ) & cbox_currentLayout & arguments.module & cbox_explicitModule>
+			<cfset layoutsRefMap = controller.getSetting("layoutsRefMap")>
 
 			<!--- Check cached paths first --->
-			<cfif structkeyExists( controller.getSetting("layoutsRefMap") ,cbox_layoutLocationKey) AND instance.isDiscoveryCaching>
-				<cflock name="#cbox_layoutLocationKey#.#instance.lockName#" type="readonly" timeout="15" throwontimeout="true">
-					<cfset cbox_layoutLocation = structFind( controller.getSetting("layoutsRefMap"), cbox_layoutLocationKey)>
-				</cflock>
+			<cfif structkeyExists( layoutsRefMap, cbox_layoutLocationKey ) AND instance.isDiscoveryCaching>
+				<cfset cbox_layoutLocation = layoutsRefMap[ cbox_layoutLocationKey ]>
 			<cfelse>
 				<!--- Not found, cache it --->
-				<cflock name="#cbox_layoutLocationKey#.#instance.lockname#" type="exclusive" timeout="15" throwontimeout="true">
-					<cfset cbox_layoutLocation = cbox_locateUDF(cbox_currentLayout,arguments.module,cbox_explicitModule)>
-					<cfset structInsert( controller.getSetting("layoutsRefMap"), cbox_layoutLocationKey, cbox_layoutLocation, true)>
-				</cflock>
+				<cfset cbox_layoutLocation = cbox_locateUDF(cbox_currentLayout,arguments.module,cbox_explicitModule)>
+				<cfset layoutsRefMap[ cbox_layoutLocationKey ] = cbox_layoutLocation>
 			</cfif>
 
 			<cfset viewLocations = discoverViewPaths( reverse ( listRest( reverse( cbox_layoutLocation ), ".")),arguments.module,cbox_explicitModule) />

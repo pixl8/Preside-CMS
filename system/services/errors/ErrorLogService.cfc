@@ -16,6 +16,7 @@ component displayName="Error Log Service" {
 		_setLogDirectory( arguments.logDirectory );
 		_setAppMapping( arguments.appMapping );
 		_setAppMappingPath( arguments.appMappingPath );
+		_setupListeners();
 
 		return this;
 	}
@@ -110,23 +111,11 @@ component displayName="Error Log Service" {
 
 // PRIVATE HELPERS
 	private void function _callErrorListeners( required struct error ) {
-		_callListener( "#_getAppMappingPath()#.services.errors.ErrorHandler", arguments.error );
+		var listeners = _getListeners();
 
-		var extensions = new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping          = _getAppMapping()
-			, extensionsDirectory = "#_getAppMapping()#/extensions"
-		).listExtensions( activeOnly=true );
-
-		for( var extension in extensions ) {
-			_callListener( "#_getAppMappingPath()#.extensions.#extension.name#.services.errors.ErrorHandler", arguments.error );
-		}
-	}
-
-	private void function _callListener( required string listenerPath, required struct error ) {
-		var filePath = ExpandPath( "/" & Replace( arguments.listenerPath, ".", "/", "all" ) & ".cfc" );
-		if ( FileExists( filePath ) ) {
+		for( var listenerPath in listeners ) {
 			try {
-				CreateObject( arguments.listenerPath ).raiseError( arguments.error );
+				CreateObject( listenerPath ).raiseError( arguments.error );
 			} catch ( any e ){}
 		}
 	}
@@ -149,6 +138,32 @@ component displayName="Error Log Service" {
 				break;
 			}
 		}
+	}
+
+	private void function _setupListeners() {
+		var listeners = [];
+		var appListenerPath = "#_getAppMappingPath()#.services.errors.ErrorHandler";
+		var appFilePath     = ExpandPath( "/" & Replace( appListenerPath, ".", "/", "all" ) & ".cfc" );
+
+		if ( FileExists( appFilePath ) ) {
+			listeners.append( appListenerPath );
+		}
+
+		var extensions = new preside.system.services.devtools.ExtensionManagerService(
+			  appMapping          = _getAppMapping()
+			, extensionsDirectory = "#_getAppMapping()#/extensions"
+		).listExtensions( activeOnly=true );
+
+		for( var extension in extensions ) {
+			var listenerPath = "#_getAppMappingPath()#.extensions.#extension.name#.services.errors.ErrorHandler";
+			var filePath     = ExpandPath( "/" & Replace( listenerPath, ".", "/", "all" ) & ".cfc" );
+
+			if ( FileExists( filePath ) ) {
+				listeners.append( listenerPath );
+			}
+		}
+
+		_setListeners( listeners );
 	}
 
 // GETTERS AND SETTERS
@@ -176,6 +191,13 @@ component displayName="Error Log Service" {
 	}
 	private void function _setAppMappingPath( required string appMappingPath ) {
 		_appMappingPath = arguments.appMappingPath;
+	}
+
+	private array function _getListeners() {
+		return _listeners;
+	}
+	private void function _setListeners( required array listeners ) {
+		_listeners = arguments.listeners;
 	}
 
 }
