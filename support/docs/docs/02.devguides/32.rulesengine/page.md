@@ -68,4 +68,5 @@ See [[rulesenginefieldtypes]] for a full guide.
 * [[rulesenginefieldtypes]]
 * [[rulesenginecontexts]]
 * [[rulesengineapis]]
+* [[rulesengineautogeneration]]
 

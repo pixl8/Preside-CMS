@@ -85,10 +85,10 @@ component {
         var extraFilters = [];
 
         if ( arguments.filter.len() ) {
-            extraFilters = rulesEngineFilterService.prepareFilter(
+            extraFilters.append( rulesEngineFilterService.prepareFilter(
                   objectName = "news"
                 , filterId   = arguments.filter
-            );
+            ) );
         }
 
         return newsDao.selectData(
