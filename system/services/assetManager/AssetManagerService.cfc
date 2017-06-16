@@ -948,6 +948,7 @@ component displayName="AssetManager Service" {
 		var derivativeDao      = _getDerivativeDao();
 		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
 		var derivative         = "";
+		var derivativeId       = "";
 		var lockName           = "getAssetDerivative( #arguments.assetId#, #arguments.derivativeName#, #arguments.versionId# )";
 		var selectFilter       = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
 		var selectFilterParams = {
@@ -962,18 +963,31 @@ component displayName="AssetManager Service" {
 			selectFilter &= " and asset_derivative.asset_version is null";
 		}
 
-		lock type="readonly" name=lockName timeout=5 {
+		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+		if ( derivative.recordCount ) {
+			if ( ( derivative.asset_type ?: "" ) == "PENDING"  ) {
+				return QueryNew( '' );
+			}
+
+			return derivative;
+		}
+
+		lock type="exclusive" name=lockName timeout=1 {
 			derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 			if ( derivative.recordCount ) {
+				if ( ( derivative.asset_type ?: "" ) == "PENDING"  ) {
+					return QueryNew( '' );
+				}
+
 				return derivative;
 			}
+
+			derivativeId = createAssetDerivativeRecord(  assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName  );
 		}
 
-		lock type="exclusive" name=lockName timeout=120 {
-			createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+		createAssetDerivative( derivativeId=derivativeId, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 
-			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
-		}
+		return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 	}
 
 	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="" ) {
@@ -1012,11 +1026,28 @@ component displayName="AssetManager Service" {
 		}
 	}
 
+	public string function createAssetDerivativeRecord(
+		  required string assetId
+		, required string derivativeName
+		,          string versionId       = ""
+	) {
+		var signature = getDerivativeConfigSignature( arguments.derivativeName );
+
+		return _getDerivativeDao().insertData( {
+			  asset         = arguments.assetId
+			, asset_version = arguments.versionId
+			, label         = arguments.derivativeName & signature
+			, asset_type    = "PENDING"
+			, storage_path  = "PENDING"
+		} );
+	}
+
 	public string function createAssetDerivative(
 		  required string assetId
 		, required string derivativeName
-		,          string versionId = ""
+		,          string versionId       = ""
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
+		,          string derivativeId    = ""
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
@@ -1048,13 +1079,22 @@ component displayName="AssetManager Service" {
 
 		_getStorageProviderForFolder( asset.asset_folder ).putObject( assetBinary, storagePath );
 
-		return _getDerivativeDao().insertData( {
-			  asset_type    = assetType.typeName
-			, asset         = arguments.assetId
-			, asset_version = arguments.versionId
-			, label         = arguments.derivativeName & signature
-			, storage_path  = storagePath
-		} );
+		if ( Len( Trim( arguments.derivativeId ) ) ) {
+			_getDerivativeDao().updateData( id=arguments.derivativeId, data={
+				  asset_type    = assetType.typeName
+				, storage_path  = storagePath
+			} );
+
+			return arguments.derivativeId;
+		} else {
+			return _getDerivativeDao().insertData( {
+				  asset_type    = assetType.typeName
+				, asset         = arguments.assetId
+				, asset_version = arguments.versionId
+				, label         = arguments.derivativeName & signature
+				, storage_path  = storagePath
+			} );
+		}
 	}
 
 	public struct function getAssetPermissioningSettings( required string assetId ) {
