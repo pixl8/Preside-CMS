@@ -24,18 +24,15 @@ component output=false singleton=true {
 	}
 
 	public boolean function validateToken( required string token ) output=false {
-		lock name="csrfProtectionService" timeout="10" {
-			var t = _getToken();
+		var t = _getToken();
 
-			if ( ( t.value ?: "" ) eq arguments.token ) {
-				var expired = DateDiff( "s", t.lastActive, Now() ) gte _getTokenExpiryInSeconds();
+		if ( ( t.value ?: "" ) eq arguments.token ) {
+			var expired = DateDiff( "s", t.lastActive, Now() ) gte _getTokenExpiryInSeconds();
 
-				t.lastActive = Now();
+			t.lastActive = Now();
 
-				return not expired;
-			}
+			return not expired;
 		}
-
 		return false;
 	}
 
