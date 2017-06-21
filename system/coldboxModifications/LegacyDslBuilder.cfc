@@ -14,7 +14,7 @@ component {
 		if( reFindNoCase( '^coldbox:myplugin:.*', dsl ) ) {
 			var plugin = ListLast( dsl, ":" );
 			switch( plugin ) {
-				case "jQueryDatatablesHelper":
+				case "JQueryDatatablesHelpers":
 				case "jsonRpc2":
 					return injector.getInstance( plugin );
 			}
