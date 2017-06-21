@@ -44,6 +44,19 @@ component {
 
 The syntax is a comma separated list of relationship chains that use the `many-to-one` property name at each stage of the relationship to define the path to the related object.
 
+#### Customize the labeling used for multi-level filters
+
+By default, auto generated filter expressions for related objects will be prefixed by the object name, e.g. `Organisation: city contains text`. 
+
+However, you may find that you have multiple relationships to the same object and want to customize the prefix that appears to indicate which relationship is being filtered on. To do so, use the relationship path specified in your `@autoGenerateFilterExpressionsFor` attribute inside your object's i18n `.properties` file to provide an alternative:
+
+```properties
+filter.prefix.website_user.contact.organisation=User organisation
+filter.prefix.sponsor.organisation=Sponsor organisation
+```
+
+>>> Each relationship path is prefixed with `filter.prefix.`.
+
 
 ## Customizing language for many-to-many and one-to-many filters
 
