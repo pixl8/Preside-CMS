@@ -125,7 +125,7 @@ component {
 
 		} while( swapped );
 
-		return DeSerializeJson( FileRead( extensionsFile ) );
+		return extensions;
 	}
 
 // GETTERS AND SETTERS
