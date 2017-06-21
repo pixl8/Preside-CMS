@@ -1,5 +1,6 @@
 component extends="coldbox.system.Interceptor" output=false {
-	property name="applicationsService"   inject="delayedInjector:applicationsService";
+	property name="applicationsService" inject="delayedInjector:applicationsService";
+	property name="messageBox"          inject="delayedInjector:messagebox@cbmessagebox";
 
 // PUBLIC
 	public void function configure() output=false {}
@@ -11,7 +12,7 @@ component extends="coldbox.system.Interceptor" output=false {
 		if ( event.isAdminUser() && _isProtectedAction( event ) && !_isValid( event ) ) {
 			persist = event.getCollectionWithoutSystemVars();
 
-			getPlugin( "MessageBox" ).error(
+			messageBox.error(
 				getPlugin( "i18n" ).translateResource( uri="cms:invalidCsrfToken.error" )
 			);
 
