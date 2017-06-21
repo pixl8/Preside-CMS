@@ -320,8 +320,8 @@ component {
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.extension"    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {
@@ -477,9 +477,8 @@ component {
 
 	private array function _loadExtensions() {
 		return new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping          = settings.appMapping
-			, extensionsDirectory = "#settings.appMapping#/extensions"
-		).listExtensions( activeOnly=true );
+			  appMapping = settings.appMapping
+		).listExtensions();
 	}
 
 	private struct function _getConfiguredFileTypes() output=false{
