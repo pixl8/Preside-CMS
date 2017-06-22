@@ -1147,7 +1147,7 @@ component displayName="AssetManager Service" {
 
 		if ( arguments.createIfNotExists ) {
 			lock type="exclusive" name=lockName timeout=1 {
-				derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+				derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
 				if ( derivative.recordCount ) {
 					if ( ( derivative.asset_type ?: "" ) == "PENDING"  ) {
 						return QueryNew( '' );
@@ -1161,7 +1161,7 @@ component displayName="AssetManager Service" {
 
 			createAssetDerivative( derivativeId=derivativeId, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 
-			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
 		}
 
 		return QueryNew( '' );
