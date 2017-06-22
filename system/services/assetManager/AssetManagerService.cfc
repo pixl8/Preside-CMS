@@ -1241,7 +1241,7 @@ component displayName="AssetManager Service" {
 			, asset_version = arguments.versionId
 			, label         = arguments.derivativeName & signature
 			, asset_type    = "PENDING"
-			, storage_path  = "PENDING"
+			, storage_path  = "PENDING-" & CreateUUId()
 		} );
 	}
 
