@@ -22,6 +22,8 @@ component {
 
 // PRIVATE HELPERS
 	private void function _readExtensions( required string appMapping ) {
+		appMapping = "/" & appMapping.reReplace( "^/", "" );
+
 		var appDir              = ExpandPath( appMapping );
 		var legacyExtensionsDir = appDir & "/extensions";
 		var cbModulesDir        = appDir & "/modules";
