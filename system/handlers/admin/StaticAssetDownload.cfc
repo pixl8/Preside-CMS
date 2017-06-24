@@ -26,7 +26,7 @@ component {
 // PRIVATE HELPERS
 	private boolean function _fileExists( required string fullPath ) {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
-		var extensionsDirectory  = ExpandPath( "#appMapping#/extensions/" );
+		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
 
 		if ( ( !fullPath.startsWith( rootAllowedDirectory ) && !fullPath.startsWith( extensionsDirectory ) ) || fullPath contains ".." ) {
 			return false;
@@ -77,6 +77,6 @@ component {
 	}
 
 	private string function _translatePath( required string path ) {
-		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "#appMapping#/extensions/" );
+		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "/#appMapping#/extensions/" );
 	}
 }

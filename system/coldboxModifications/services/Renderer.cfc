@@ -874,6 +874,6 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	}
 
 	private string function _getAppMapping() {
-		return controller.getSetting( name="appMapping", defaultValue="/app" );
+		return "/" & controller.getSetting( name="appMapping", defaultValue="/app" ).reReplace( "^/", "" );
 	}
 }

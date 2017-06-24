@@ -4,11 +4,11 @@ component {
 
 		settings = {};
 
-		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
+		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
 		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
 		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
 
-		settings.appMappingPath    = Replace( ReReplace( settings.appMapping   , "^/", "" ), "/", ".", "all" );
+		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
 
@@ -403,7 +403,6 @@ component {
 		environments = {
 			local = "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
 		};
-
 	}
 
 // ENVIRONMENT SPECIFIC
@@ -426,11 +425,11 @@ component {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "#settings.appMapping#/helpers" ) ) {
-			siteUdfs = DirectoryList( "#settings.appMapping#/helpers", true, false, "*.cfm" );
+		if ( DirectoryExists( "/#settings.appMapping#/helpers" ) ) {
+			siteUdfs = DirectoryList( "/#settings.appMapping#/helpers", true, false, "*.cfm" );
 
 			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "#settings.appMapping#/helpers" ) );
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/#settings.appMapping#/helpers" ) );
 			}
 		}
 
@@ -455,7 +454,7 @@ component {
 	}
 
 	private string function _discoverWireboxBinder() {
-		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/WireBox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.WireBox";
 		}
 
@@ -463,7 +462,7 @@ component {
 	}
 
 	private string function _discoverCacheboxConfigurator() {
-		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/Cachebox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.Cachebox";
 		}
 
