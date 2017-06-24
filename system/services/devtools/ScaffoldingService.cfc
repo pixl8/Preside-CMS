@@ -730,7 +730,7 @@ component singleton=true {
 		return _appMapping;
 	}
 	private void function _setAppMapping( required string appMapping ) {
-		_appMapping = arguments.appMapping;
+		_appMapping = "/" & arguments.appMapping.reReplace( "^/", "" );
 	}
 
 	private any function _getNotificationDao() {

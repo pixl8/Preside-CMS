@@ -1,7 +1,7 @@
 component extends="coldbox.system.web.services.HandlerService" output=false {
 
 	public void function registerHandlers() output=false {
-		var appMapping                   = controller.getSetting( "appMapping" );
+		var appMapping                   = "/" & controller.getSetting( "appMapping" ).reReplace( "^/", "" );
 		var appMappingPath               = controller.getSetting( "appMappingPath" );
 		var handlersPath                 = controller.getSetting( "HandlersPath" );
 		var handlersExternalLocationPath = controller.getSetting( "HandlersExternalLocationPath" );
