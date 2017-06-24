@@ -57,8 +57,9 @@ component extends="coldbox.system.web.services.ModuleService" output=false {
 			interceptorService.processState( "preModuleLoad", iData );
 
 			// Register handlers
-			mConfig.registeredHandlers = controller.getHandlerService().getHandlerListing( mconfig.handlerPhysicalPath, mConfig.handlerInvocationPath );
-			mConfig.registeredHandlers = arrayToList( mConfig.registeredHandlers );
+			mConfig.registeredHandlers = controller.getHandlerService().getHandlerListing( mconfig.handlerPhysicalPath, mConfig.handlerInvocationPath ).reduce( function( value, handler ){
+				return value.listAppend( handler.name );
+			}, "" );
 
 			// Register the Config as an observable also.
 			interceptorService.registerInterceptor(
