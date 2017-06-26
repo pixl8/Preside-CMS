@@ -4,12 +4,16 @@ component output=false hint="Manage preside extensions" {
 	property name="extensionManagerService" inject="extensionManagerService";
 
 	private function index( event, rc, prc ) {
-		var params      = jsonRpc2Plugin.getRequestParams();
-		var subCommands = [ "list", "install", "uninstall", "enable", "disable" ];
+		var params             = jsonRpc2Plugin.getRequestParams();
+		var subCommands        = [ "list" ];
+		var deprecatedCommands = [ "enable", "disable" ]
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
 		if ( !params.len() || !ArrayFindNoCase( subCommands, params[1] ) ) {
+			if ( deprecatedCommands.findNoCase( params[ 1 ] ) ) {
+				return Chr(10) & "[[b;red;]The '#params[ 1 ]#' sub-command is no longer in use (as of Preside 10.9.0). Extensions are enabled automatically by the system. To disable an extenion, simply remove it from your application." & Chr(10) & Chr(10)
+			}
 			return Chr(10) & "[[b;white;]Usage:] extension sub_command" & Chr(10) & Chr(10)
 			               & "Valid sub commands:" & Chr(10) & Chr(10)
 			               & "    [[b;white;]list] : Lists all installed extensions" & Chr(10);
@@ -52,7 +56,7 @@ component output=false hint="Manage preside extensions" {
 			for( var ext in extensions ){
 				msg &= "  [[b;white;]#ext.name#] #RepeatString( ' ', idWidth-Len( ext.name ) )#"
 				     & "  #ext.title# #RepeatString( ' ', titleWidth-Len( ext.title ) )#"
-				     & "  #ext.version# #RepeatString( ' ', versionWidth-Len( ext.version ) )#";
+				     & "  #ext.version# #RepeatString( ' ', versionWidth-Len( ext.version ) )#" & Chr( 10 );
 			}
 
 			msg &= Chr(10) & RepeatString( "-", Len( titleBar ) ) & Chr(10);

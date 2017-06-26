@@ -19,14 +19,6 @@ component extends="testbox.system.BaseSpec"{
                     , directory = "#basePath#/extensions/anotherExtension"
 					, dependsOn	= []
 				}, {
-					  id        = "moduleExtension"
-					, name      = "moduleExtension"
-					, title     = "Module extension"
-					, author    = "Me"
-					, version   = "1.3.25.565084"
-					, directory = "#basePath#/modules/moduleextension/preside-extension"
-					, dependsOn = []
-				}, {
 					  id        = "someExtension"
 					, name      = "someExtension"
 					, title     = "Some extension"
@@ -88,8 +80,6 @@ component extends="testbox.system.BaseSpec"{
 				} ).toThrow( "method.no.longer.supported" );
 			} );
 		} );
-
-
 
 	}
 
