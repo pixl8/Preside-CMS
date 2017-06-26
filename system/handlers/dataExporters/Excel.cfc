@@ -23,6 +23,7 @@ component {
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
 		var objectTitle   = translateResource( uri=objectUriRoot & "title", defaultValue=arguments.objectname );
 
+		objectTitle = Left( objectTitle, 31 );
 		spreadsheetLib.renameSheet( workbook, objectTitle, 1 );
 
 		for( var i=1; i <= arguments.selectFields.len(); i++ ){
