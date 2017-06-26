@@ -166,7 +166,10 @@
 			);
 		}
 
-		return [ ( arguments.configuration.label ?: "" ) ];
+		var formBuilderSettings = cbController.getSetting( name="formbuilder", defaultValue={} );
+		var useFieldNames       = IsBoolean( formBuilderSettings.export.fieldNamesForHeaders ?: "" ) && formBuilderSettings.export.fieldNamesForHeaders;
+
+		return [ ( arguments.configuration[ useFieldNames ? "name" : "label" ] ?: "" ) ];
 	}
 
 
