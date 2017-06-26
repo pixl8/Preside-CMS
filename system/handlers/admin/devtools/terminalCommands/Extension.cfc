@@ -52,7 +52,7 @@ component output=false hint="Manage preside extensions" {
 			for( var ext in extensions ){
 				msg &= "  [[b;white;]#ext.name#] #RepeatString( ' ', idWidth-Len( ext.name ) )#"
 				     & "  #ext.title# #RepeatString( ' ', titleWidth-Len( ext.title ) )#"
-				     & "  #ext.version# #RepeatString( ' ', versionWidth-Len( ext.version ) )#";
+				     & "  #ext.version# #RepeatString( ' ', versionWidth-Len( ext.version ) )#" & Chr( 10 );
 			}
 
 			msg &= Chr(10) & RepeatString( "-", Len( titleBar ) ) & Chr(10);
