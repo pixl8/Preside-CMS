@@ -26,17 +26,8 @@ component {
 
 		var appDir              = ExpandPath( appMapping );
 		var legacyExtensionsDir = appDir & "/extensions";
-		var cbModulesDir        = appDir & "/modules";
-		var manifestFiles       = [];
+		var manifestFiles       = DirectoryList( legacyExtensionsDir, true, "path", "manifest.json" );
 		var extensions          = [];
-
-		manifestFiles.append( DirectoryList( legacyExtensionsDir, true, "path", "manifest.json" ), true );
-		manifestFiles.append( DirectoryList( cbModulesDir       , true, "path", "manifest.json" ), true );
-
-		manifestFiles = manifestFiles.filter( function( filepath ){
-			return filepath.reFindNoCase( legacyExtensionsDir & "/[^/]+/manifest\.json$" )
-				|| filepath.reFindNoCase( cbModulesDir & "/[^/]+/preside-extension/manifest\.json$" );
-		} );
 
 		for( var manifestFile in manifestFiles ) {
 			var extension = _parseManifest( manifestFile, appMapping );
