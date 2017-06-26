@@ -646,6 +646,8 @@ component {
 			, { id="loggedInUserEmail", feature="websiteUsers" }
 		];
 
+		fbSettings.export = { fieldNamesForHeaders=false };
+
 		return fbSettings;
 	}
 
