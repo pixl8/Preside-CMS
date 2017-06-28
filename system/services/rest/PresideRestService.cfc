@@ -31,6 +31,24 @@ component {
 		return this;
 	}
 
+	public array function listApis() {
+		var apis          = Duplicate( _getApiList() );
+		var configWrapper = _getConfigurationWrapper();
+
+		for( var i=1; i<=apis.len(); i++ ) {
+			var apiId = apis[ i ];
+			var api = {
+				  id           = apiId
+				, description  = configWrapper.getSetting( "description", "", apiId )
+				, authProvider = configWrapper.getSetting( "authProvider", "", apiId )
+			};
+
+			apis[ i ] = api;
+		}
+
+		return apis;
+	}
+
 	public void function onRestRequest( required string uri, required any requestContext ) {
 		var restResponse = createRestResponse();
 		var restRequest  = createRestRequest( arguments.uri, arguments.requestContext );
