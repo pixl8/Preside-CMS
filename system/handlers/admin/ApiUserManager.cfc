@@ -36,7 +36,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageTitle    = translateResource( "apiManager:add.page.title" );
 		prc.pageSubtitle = translateResource( "apiManager:add.page.subtitle" );
-
+		prc.pageIcon     = "user";
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "apiManager:add.page.breadcrumb" )
@@ -77,10 +77,35 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	function view( event, rc, prc ) {
+		_checkPermissions( event=event, key="edit" );
+
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData( id=id );
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="apiManager:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="apiUserManager" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+		prc.apis   = restUserService.getApiAccessForUser( id );
+		prc.canEdit = _checkPermissions( event=event, key="edit", throwOnError=false );
+
+		prc.pageTitle    = translateResource( uri="apiManager:view.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle = translateResource( uri="apiManager:view.page.subtitle", data=[ prc.record.name ] );
+		prc.pageIcon     = "user";
+
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="apiManager:view.page.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="apiUserManager.view", queryString="id=#id#" )
+		);
+	}
+
 	function edit( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
 
-		var id     = rc.id ?: "";
+		var id = rc.id ?: "";
 
 		prc.record = dao.selectData( id=id );
 		if ( !prc.record.recordCount ) {
@@ -93,6 +118,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageTitle    = translateResource( uri="apiManager:edit.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="apiManager:edit.page.subtitle", data=[ prc.record.name ] );
+		prc.pageIcon     = "user";
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="apiManager:edit.page.breadcrumb", data=[ prc.record.name ] )
@@ -183,6 +209,7 @@ component extends="preside.system.base.AdminHandler" {
 	private string function _gridActions( event, rc, prc, args={} ) {
 		args.id                = args.id ?: "";
 		args.deleteRecordLink  = event.buildAdminLink( linkTo="apiUserManager.deleteAction"  , queryString="id=" & args.id );
+		args.viewRecordLink    = event.buildAdminLink( linkTo="apiUserManager.view"          , queryString="id=" & args.id );
 		args.editRecordLink    = event.buildAdminLink( linkTo="apiUserManager.edit"          , queryString="id=" & args.id );
 		args.deleteRecordTitle = translateResource( "apiManager:delete.record.link.title" );
 		args.objectName        = "rest_user";
@@ -193,10 +220,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // private utility
-	private void function _checkPermissions( required any event, required string key ) {
-		if ( !hasCmsPermission( "apiManager." & arguments.key ) ) {
+	private boolean function _checkPermissions( required any event, required string key, boolean throwOnError=true ) {
+		var hasPermission = hasCmsPermission( "apiManager." & arguments.key );
+		if ( !hasPermission && arguments.throwOnError ) {
 			event.adminAccessDenied();
 		}
+
+		return hasPermission;
 	}
 
 }
