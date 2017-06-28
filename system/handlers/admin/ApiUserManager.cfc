@@ -46,7 +46,6 @@ component extends="preside.system.base.AdminHandler" {
 	function addAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="add" );
 
-
 		var userId = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
@@ -73,7 +72,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
 			setNextEvent( url=event.buildAdminLink( linkto="apiUserManager.add" ), persist="_addAnother" );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkto="apiUserManager" ) );
+			setNextEvent( url=event.buildAdminLink( linkto="apiUserManager.view", queryString="id=#userId#" ) );
 		}
 	}
 
@@ -156,7 +155,7 @@ component extends="preside.system.base.AdminHandler" {
 		restUserService.syncApiAccessForUser( id, apis );
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ translateResource( uri="preside-objects.rest_user:title.singular", defaultValue="rest_user" ) ] ) );
-		setNextEvent( url=event.buildAdminLink( linkto="apiUserManager" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="apiUserManager.view", queryString="id=#id#" ) );
 	}
 
 	function regenerateTokenAction( event, rc, prc ) {
