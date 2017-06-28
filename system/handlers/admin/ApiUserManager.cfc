@@ -159,6 +159,31 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkto="apiUserManager" ) );
 	}
 
+	function regenerateTokenAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="edit" );
+
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData( filter={ id=id } );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="apiManager:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="apiUserManager" ) );
+		}
+
+		restUserService.regenerateToken( id );
+
+		event.audit(
+			  action   = "userTokenRegenerated"
+			, type     = "apiManager"
+			, recordId = id
+			, detail   = {}
+		);
+
+		messageBox.info( translateResource( uri="apiManager:user.token.regenerated" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="apiUserManager.view", queryString="id=#id#" ) );
+	}
+
 	function deleteAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="delete" );
 

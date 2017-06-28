@@ -14,12 +14,12 @@ component {
 
 // PUBLIC API METHODS
 	public void function syncApiAccessForUser( required string userId, required array apis ) {
-		var po = $getPresideObject( "rest_user_api_access" );
+		var dao = $getPresideObject( "rest_user_api_access" );
 
 		transaction {
-			po.deleteData( filter={ rest_user=arguments.userId } );
+			dao.deleteData( filter={ rest_user=arguments.userId } );
 			for( var api in arguments.apis ) {
-				po.insertData( {
+				dao.insertData( {
 					  rest_user = arguments.userId
 					, api       = api
 				} );
@@ -34,6 +34,13 @@ component {
 		);
 
 		return records.recordCount ? ValueArray( records.api ) : [];
+	}
+
+	public numeric function regenerateToken( required string userId ) {
+		var dao      = $getPresideObject( "rest_user" );
+		var newToken = dao.generateToken();
+
+		return dao.updateData( id=arguments.userId, data={ access_token=newToken } );
 	}
 
 }

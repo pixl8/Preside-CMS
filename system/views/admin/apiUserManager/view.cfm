@@ -43,7 +43,7 @@
 				<h4 class="blue">#translateResource( "apiManager:user.apis.access.title" )#</h4>
 				<cfif apis.len()>
 					<p><em>#translateResource( "apiManager:user.apis.access.intro" )#</em></p>
-					<ul>
+					<ul class="list-unstyled">
 						<cfloop array="#apis#" item="api" index="i">
 							<li><code>#api#</code></li>
 						</cfloop>
