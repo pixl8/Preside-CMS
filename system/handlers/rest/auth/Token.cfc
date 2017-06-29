@@ -19,7 +19,7 @@ component {
 				throw( type="missing.token" );
 			}
 		} catch( any e ) {
-			return ""
+			return "";
 		}
 
 		return authService.getUserIdByToken( token );
