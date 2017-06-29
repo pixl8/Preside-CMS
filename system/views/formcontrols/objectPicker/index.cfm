@@ -73,13 +73,11 @@
 </cfscript>
 
 <cfoutput>
-	<cfif !disabled>
-		<cfif Len( Trim( resultTemplate ) ) >
-			<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
-		</cfif>
-		<cfif Len( Trim( selectedTemplate ) ) >
-			<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-		</cfif>
+	<cfif Len( Trim( resultTemplate ) ) >
+		<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
+	</cfif>
+	<cfif Len( Trim( selectedTemplate ) ) >
+		<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
 	</cfif>
 	<select class = "#inputClass# #objectPickerClass# #extraClasses#"
 			name  = "#inputName#"
