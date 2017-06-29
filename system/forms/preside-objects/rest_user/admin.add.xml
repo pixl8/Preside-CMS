@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.rest_user:" feature="apiManager">
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field binding="rest_user.name"        sortorder="10" control="textinput" />
+			<field binding="rest_user.description" sortorder="20" control="textarea" maxlength="200" />
+		</fieldset>
+
+		<fieldset id="access" sortorder="20">
+			<field name="apis" sortorder="10" control="restApiPicker" />
+		</fieldset>
+	</tab>
+</form>

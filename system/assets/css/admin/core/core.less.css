@@ -31348,6 +31348,10 @@ fieldset[disabled] .presidecms .btn {
   position: relative;
   top: -3px;
 }
+.presidecms .role-picker-checkbox .lbl,
+.presidecms .role-picker-radio .lbl {
+  margin-left: 0!important;
+}
 .presidecms .role-picker-radio .role-title {
   padding-left: 8px;
 }
