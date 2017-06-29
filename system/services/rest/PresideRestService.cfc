@@ -13,17 +13,20 @@ component {
 	 * @resourceDirectories.inject  presidecms:directories:handlers/rest-apis
 	 * @controller.inject           coldbox
 	 * @configurationWrapper.inject presideRestConfigurationWrapper
+	 * @authService.inject          presideRestAuthService
 	 * @validationEngine.inject     validationEngine
 	 */
 	public any function init(
 		required array resourceDirectories,
 		required any   controller,
 		required any   configurationWrapper,
-		required any   validationEngine,
+		required any   authService,
+		required any   validationEngine
 	) {
 		_readResourceDirectories( arguments.resourceDirectories );
 		_setController( arguments.controller );
 		_setConfigurationWrapper( arguments.configurationWrapper );
+		_setAuthService( arguments.authService );
 		_setValidationEngine( arguments.validationEngine );
 
 		_createParameterValidationRuleSets();
@@ -56,11 +59,20 @@ component {
 		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse } );
 
 		if ( !restRequest.getFinished() ) {
-			processRequest(
+			authenticateRequest(
 				  restRequest    = restRequest
 				, restResponse   = restResponse
 				, requestContext = arguments.requestContext
 			);
+
+			if ( !restRequest.getFinished() ) {
+
+				processRequest(
+					  restRequest    = restRequest
+					, restResponse   = restResponse
+					, requestContext = arguments.requestContext
+				);
+			}
 		}
 
 		processResponse(
@@ -68,6 +80,19 @@ component {
 			, restResponse   = restResponse
 			, requestContext = arguments.requestContext
 		);
+	}
+
+	public void function authenticateRequest( required any restRequest, required any restResponse ) {
+		var api          = restRequest.getApi();
+		var authProvider = _getConfigurationWrapper().getSetting( "authProvider", "", api );
+
+		if ( authProvider.len() ) {
+			_getAuthService().authenticate(
+				  provider     = authProvider
+				, restRequest  = restRequest
+				, restResponse = restResponse
+			);
+		}
 	}
 
 	public void function processRequest( required any restRequest, required any restResponse, required any requestContext ) {
@@ -510,7 +535,6 @@ component {
 		_apis = arguments.apis;
 	}
 
-
 	private any function _getController() {
 		return _controller;
 	}
@@ -523,6 +547,13 @@ component {
 	}
 	private void function _setConfigurationWrapper( required any configurationWrapper ) {
 		_configurationWrapper = arguments.configurationWrapper;
+	}
+
+	private any function _getAuthService() {
+		return _authService;
+	}
+	private void function _setAuthService( required any authService ) {
+		_authService = arguments.authService;
 	}
 
 	private any function _getValidationEngine() {
