@@ -199,6 +199,7 @@ component {
 			, "auditTrail"
 			, "maintenanceMode"
 			, "taskmanager"
+			, "apiManager"
 			, "systemInformation"
 		];
 
@@ -240,9 +241,10 @@ component {
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
+			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
 			, emailCenter            = {
 				  layouts          = [ "navigate", "configure" ]
-				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send" ]
+				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read" ]
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 				, serviceProviders = [ "manage" ]
 				, settings         = [ "navigate", "manage" ]
@@ -318,6 +320,8 @@ component {
 			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
+			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
+			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -367,10 +371,13 @@ component {
 		};
 
 		settings.rest = {
-			  path        = "/api"
-			, corsEnabled = false
-			, apis        = {}
+			  path          = "/api"
+			, corsEnabled   = false
+			, apis          = {}
+			, authProviders = {}
 		};
+
+		settings.rest.authProviders.token = { feature = "restTokenAuth" };
 
 		settings.multilingual = {
 			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
@@ -644,6 +651,8 @@ component {
 			, { id="anonymousCustomerEmail" }
 			, { id="loggedInUserEmail", feature="websiteUsers" }
 		];
+
+		fbSettings.export = { fieldNamesForHeaders=false };
 
 		return fbSettings;
 	}
