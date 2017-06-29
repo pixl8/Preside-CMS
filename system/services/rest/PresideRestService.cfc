@@ -66,7 +66,6 @@ component {
 			);
 
 			if ( !restRequest.getFinished() ) {
-
 				processRequest(
 					  restRequest    = restRequest
 					, restResponse   = restResponse
