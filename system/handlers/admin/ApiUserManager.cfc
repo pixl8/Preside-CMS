@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="dao"             inject="presidecms:object:rest_user";
-	property name="restUserService" inject="restUserService";
+	property name="restUserService" inject="presideRestUserService";
 	property name="messageBox"      inject="coldbox:plugin:messageBox";
 
 
