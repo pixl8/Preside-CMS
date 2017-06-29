@@ -307,7 +307,7 @@ component extends="testbox.system.BaseSpec"{
 
 				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
 				mockController.$( "runEvent" );
-				mockRequestContext.$( "getCollection", rc );
+				mockRequestContext.$( "getCollectionWithoutSystemVars", rc );
 
 				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
 
@@ -340,7 +340,7 @@ component extends="testbox.system.BaseSpec"{
 
 				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
 				mockController.$( "runEvent" );
-				mockRequestContext.$( "getCollection", rc );
+				mockRequestContext.$( "getCollectionWithoutSystemVars", rc );
 
 				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
 

@@ -141,7 +141,7 @@ component {
 	) {
 		try {
 			var coldboxEvent = "rest-apis.#restRequest.getResource().handler#.";
-			var args         = Duplicate( requestContext.getCollection() );
+			var args         = requestContext.getCollectionWithoutSystemVars();
 			var verb         = restRequest.getVerb();
 			var resource     = restRequest.getResource();
 
