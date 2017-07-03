@@ -372,8 +372,8 @@ component displayName="Forms service" {
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
 						renderArgs.append( field, false );
-						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
 						renderArgs.append( _getI18nFieldAttributes( field=field ) );
+						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
