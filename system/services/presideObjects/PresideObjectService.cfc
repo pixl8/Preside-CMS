@@ -2753,8 +2753,8 @@ component displayName="Preside Object Service" {
 		var props                = getObjectProperties( arguments.objectName );
 		var expanded             = arguments.expression;
 		var expressionMinusAlias = ListFirst( arguments.expression, " " );
+		var propertyName         = expressionMinusAlias;
 		var alias                = ListRest( arguments.expression, " " );
-		var propertyName         = expanded;
 		var prefix               = "";
 		var relatedObjectName    = "";
 
