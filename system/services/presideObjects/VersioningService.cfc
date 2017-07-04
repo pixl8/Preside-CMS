@@ -251,16 +251,27 @@ component {
 					changedFields.append( field );
 				}
 			} else {
-				var propDbType = ( properties[ field ].dbtype ?: "" );
-				if ( IsEmpty( arguments.newData[ field ] ?: "" ) ) {
-					if ( propDbType == "boolean" ) {
-						arguments.newData[ field ] = 0;
-					}
+
+				if ( !StructKeyExists( oldData, field ) ) {
+					continue;
 				}
-				if ( StructKeyExists( oldData, field ) && Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
+
+				var propDbType = ( properties[ field ].dbtype ?: "" );
+
+				if ( propDbType == "boolean" && IsEmpty( arguments.newData[ field ] ?: "" ) ) {
+					arguments.newData[ field ] = 0;
+				}
+
+				if ( ( propDbType == "datetime" || propDbType == "date" ) && isDate( arguments.newData[ field ] ?: "" ) ) {
+					if ( dateCompare( oldData[ field ], arguments.newData[ field ] ) ) {
+						changedFields.append( field );
+					}
+
+				} else if ( Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
 					changedFields.append( field );
 				}
 			}
+
 		}
 
 		return changedFields;
