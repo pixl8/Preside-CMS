@@ -302,6 +302,7 @@ component displayName="Forms service" {
 		,          string  component               = ""
 		,          any     validationResult        = ""
 		,          boolean includeValidationJs     = true
+		,          string  validationJsJqueryRef   = "presideJQuery"
 		,          struct  savedData               = {}
 		,          struct  additionalArgs          = {}
 		,          string  fieldNamePrefix         = ""
@@ -406,12 +407,13 @@ component displayName="Forms service" {
 		}
 
 		var formArgs = {
-			  formId             = arguments.formId
-			, formName           = mergedFormName
-			, content            = renderedTabs.toString()
-			, tabs               = tabs
-			, validationResult   = arguments.validationResult
-			, validationJs       = arguments.includeValidationJs ? getValidationJs( arguments.formName, arguments.mergeWithFormName ) : ""
+			  formId                = arguments.formId
+			, formName              = mergedFormName
+			, content               = renderedTabs.toString()
+			, tabs                  = tabs
+			, validationResult      = arguments.validationResult
+			, validationJs          = arguments.includeValidationJs ? getValidationJs( argumentCollection=arguments ) : ""
+			, validationJsJqueryRef = arguments.validationJsJqueryRef
 		};
 
 		formArgs.append( frm, false );
@@ -568,7 +570,10 @@ component displayName="Forms service" {
 	 */
 	public any function getValidationJs(
 		  required string  formName
-		,          string  mergeWithFormName=""
+		,          string  mergeWithFormName     = ""
+		,          string  validationJsJqueryRef = "presideJQuery"
+		,          string  fieldNamePrefix       = ""
+		,          string  fieldNameSuffix       = ""
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = ""
 		,          array   permissionContextKeys   = []
@@ -576,7 +581,10 @@ component displayName="Forms service" {
 		var validationFormName = Len( Trim( mergeWithFormName ) ) ? getMergedFormName( formName, mergeWithFormName ) : formName;
 
 		return _getValidationEngine().getJqueryValidateJs(
-			ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments, formName=validationFormName )
+			  ruleset         = _getValidationRulesetFromFormName( argumentCollection=arguments, formName=validationFormName )
+			, jqueryReference = arguments.validationJsJqueryRef
+			, fieldNamePrefix = arguments.fieldNamePrefix
+			, fieldNameSuffix = arguments.fieldNameSuffix
 		);
 	}
 

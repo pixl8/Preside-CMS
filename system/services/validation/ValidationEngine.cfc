@@ -76,16 +76,23 @@ component displayName="Validation Engine" {
 	 * @autodoc
 	 * @ruleset.hint         The name of the registered ruleset
 	 * @jQueryReference.hint Name of the global jQuery reference variable (for PresideCMS admin, this is "presideJQuery")
+	 * @fieldNamePrefix.hint Prefix string to place before all field names (useful when outputting multiple instances of the same form in a single page)
+	 * @fieldNameSuffix.hint Suffix string to place after all field names (useful when outputting multiple instances of the same form in a single page)
 	 *
 	 */
-	public string function getJqueryValidateJs( required string ruleset, string jqueryReference="presideJQuery" ) {
+	public string function getJqueryValidateJs(
+		  required string ruleset
+		,          string jqueryReference = "presideJQuery"
+		,          string fieldNamePrefix = ""
+		,          string fieldNameSuffix = ""
+	) {
 		var js    = "";
 		var rules = "";
 		var rulesAndMessagesJs = "";
 
 		if ( rulesetExists( arguments.ruleset ) ) {
 			rules = _getRuleset( arguments.ruleset );
-			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules );
+			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules, arguments.fieldNamePrefix, arguments.fieldNameSuffix );
 
 			js = "( function( $ ){ ";
 				js &= _generateCustomValidatorsJs( rules ) & " ";
@@ -226,7 +233,11 @@ component displayName="Validation Engine" {
 		return Trim( js );
 	}
 
-	private struct function _generateRulesAndMessagesJs( required array rules ) {
+	private struct function _generateRulesAndMessagesJs(
+		  required array  rules
+		,          string fieldNamePrefix = ""
+		,          string fieldNameSuffix = ""
+	) {
 		var validators = _getValidators();
 		var jsRules    = {};
 		var jsMessages = {};
@@ -237,27 +248,30 @@ component displayName="Validation Engine" {
 		var message    = "";
 
 		for( rule in arguments.rules ){
-			if ( not StructKeyExists( jsRules, rule.fieldName ) ) {
-				jsRules[ rule.fieldName ] = "";
-				jsMessages[ rule.fieldName ] = "";
+			var fieldName = arguments.fieldNamePrefix & rule.fieldName & arguments.fieldNameSuffix;
+
+			if ( not StructKeyExists( jsRules, fieldName ) ) {
+				jsRules[ fieldName ] = "";
+				jsMessages[ fieldName ] = "";
 			}
 			params  = validators[ rule.validator ].getValidatorParamValues( name=rule.validator, params=rule.params );
 			message = Len( Trim( rule.message ) ) ? rule.message : validators[ rule.validator ].getDefaultMessage( name=rule.validator );
 
-			jsRules[ rule.fieldName ] = ListAppend( jsRules[ rule.fieldName ], ' "#LCase( rule.validator )#" : { param : #_parseParamsForJQueryValidate( params, rule.validator )#' );
+			jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], ' "#LCase( rule.validator )#" : { param : #_parseParamsForJQueryValidate( params, rule.validator )#' );
 			if ( Len( Trim( rule.clientCondition ) ) ) {
-				jsRules[ rule.fieldName ] &= ", depends : " & _generateClientCondition( rule.clientCondition );
+				jsRules[ fieldName ] &= ", depends : " & _generateClientCondition( rule.clientCondition );
 			}
-			jsRules[ rule.fieldName ] &= ' }';
+			jsRules[ fieldName ] &= ' }';
 
-			jsMessages[ rule.fieldName ] = ListAppend( jsMessages[ rule.fieldName ], ' "#LCase( rule.validator )#" : #SerializeJson( $translateResource( uri=message, data=params ) )#' );
+			jsMessages[ fieldName ] = ListAppend( jsMessages[ fieldName ], ' "#LCase( rule.validator )#" : #SerializeJson( $translateResource( uri=message, data=params ) )#' );
 		}
 
 		for( rule in arguments.rules ){
-			if ( not ListFind( processed, rule.fieldName ) ) {
-				js.rules    = ListAppend( js.rules   , ' "#rule.fieldName#" : {#jsRules[ rule.fieldName ]# }' );
-				js.messages = ListAppend( js.messages, ' "#rule.fieldName#" : {#jsMessages[ rule.fieldName ]# }' );
-				processed   = ListAppend( processed, rule.fieldName );
+			var fieldName = arguments.fieldNamePrefix & rule.fieldName & arguments.fieldNameSuffix;
+			if ( not ListFind( processed, fieldName ) ) {
+				js.rules    = ListAppend( js.rules   , ' "#fieldName#" : {#jsRules[ fieldName ]# }' );
+				js.messages = ListAppend( js.messages, ' "#fieldName#" : {#jsMessages[ fieldName ]# }' );
+				processed   = ListAppend( processed, fieldName );
 			}
 		}
 
