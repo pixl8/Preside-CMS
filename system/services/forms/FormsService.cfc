@@ -352,11 +352,11 @@ component displayName="Forms service" {
 							, savedData          = arguments.savedData
 						};
 
-						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( field.name ) ) {
+						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( renderArgs.name ) ) {
 							renderArgs.error = i18n.translateResource(
-								  uri          = validationResult.getError( field.name )
-								, defaultValue = validationResult.getError( field.name )
-								, data         = validationResult.listErrorParameterValues( field.name )
+								  uri          = validationResult.getError( renderArgs.name )
+								, defaultValue = validationResult.getError( renderArgs.name )
+								, data         = validationResult.listErrorParameterValues( renderArgs.name )
 							);
 						}
 
@@ -366,6 +366,8 @@ component displayName="Forms service" {
 
 						if ( StructKeyExists( arguments.savedData, field.name ) ) {
 							renderArgs.defaultValue = arguments.savedData[ field.name ];
+						} else if ( StructKeyExists( arguments.savedData, renderArgs.name ) ) {
+							renderArgs.defaultValue = arguments.savedData[ renderArgs.name ];
 						} else if ( StructKeyExists( field, "default" ) ) {
 							renderArgs.defaultValue = field.default;
 						}
@@ -527,6 +529,8 @@ component displayName="Forms service" {
 	 * @preProcessData.hint   Whether or not to _preprocess_ form submissions (see [[validation-engine]])
 	 * @ignoreMissing.hint    Whether or not to ignore entirely missing fields in the supplied data
 	 * @validationResult.hint A pre-existing validation result to which to add any errors found during validation
+	 * @fieldNamePrefix.hint  Prefix to add to fieldnames in error messages
+	 * @fieldNameSuffix.hint  Suffix to add to fieldnames in error messages
 	 */
 	public any function validateForm(
 		  required string  formName
@@ -537,6 +541,8 @@ component displayName="Forms service" {
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = ""
 		,          array   permissionContextKeys   = []
+		,          string  fieldNamePrefix         = ""
+		,          string  fieldNameSuffix         = ""
 	) {
 		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
 		var data    = Duplicate( arguments.formData );
@@ -546,17 +552,21 @@ component displayName="Forms service" {
 
 		if ( arguments.preProcessData ) {
 			return _getValidationEngine().validate(
-				  ruleset       = ruleset
-				, data          = data
-				, result        = preProcessForm( argumentCollection = arguments )
-				, ignoreMissing = arguments.ignoreMissing
+				  ruleset         = ruleset
+				, data            = data
+				, result          = preProcessForm( argumentCollection = arguments )
+				, ignoreMissing   = arguments.ignoreMissing
+				, fieldNamePrefix = arguments.fieldNamePrefix
+				, fieldNameSuffix = arguments.fieldNameSuffix
 			);
 		}
 
 		return _getValidationEngine().validate(
-			  ruleset = ruleset
-			, data    = data
-			, result  = arguments.validationResult
+			  ruleset         = ruleset
+			, data            = data
+			, result          = arguments.validationResult
+			, fieldNamePrefix = arguments.fieldNamePrefix
+			, fieldNameSuffix = arguments.fieldNameSuffix
 		);
 	}
 

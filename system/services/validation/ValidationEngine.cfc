@@ -25,13 +25,21 @@ component displayName="Validation Engine" {
 	 * See [[validation-framework]] for full usage documentation.
 	 *
 	 * @autodoc
-	 * @ruleset.hint       Name of the ruleset to validate against
-	 * @data.hint          The data set to validate
-	 * @result.hint        Optional existing validation result to which to append validation errors
-	 * @ignoreMissing.hint Whether or not to ignore fields that are entirely missing from the passed data
-	 *
+	 * @ruleset.hint         Name of the ruleset to validate against
+	 * @data.hint            The data set to validate
+	 * @result.hint          Optional existing validation result to which to append validation errors
+	 * @ignoreMissing.hint   Whether or not to ignore fields that are entirely missing from the passed data
+	 * @fieldNamePrefix.hint Prefix to add to fieldnames in error messages
+	 * @fieldNameSuffix.hint Suffix to add to fieldnames in error messages
 	 */
-	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) {
+	public ValidationResult function validate(
+		  required string  ruleset
+		, required struct  data
+		,          any     result          = newValidationResult()
+		,          boolean ignoreMissing   = false
+		,          string  fieldNamePrefix = ""
+		,          string  fieldNameSuffix = ""
+	) {
 		var rules       = _getRuleset( arguments.ruleset );
 		var validators  = _getValidators();
 		var validator   = _getValidators();
@@ -41,23 +49,26 @@ component displayName="Validation Engine" {
 		var fieldResult = "";
 
 		for( rule in rules ){
+			var expandedFieldName = arguments.fieldNamePrefix & rule.fieldName & arguments.fieldNameSuffix;
+
+
 			if ( arguments.ignoreMissing && !arguments.data.keyExists( rule.fieldName ) ) {
 				continue;
 			}
-			if ( not result.fieldHasError( rule.fieldName ) and _evaluateConditionalRule( rule, data ) ) {
+			if ( !result.fieldHasError( rule.fieldName ) && _evaluateConditionalRule( rule, data ) ) {
 				provider = validators[ rule.validator ];
 
 				fieldResult = provider.runValidator(
 					  name      = rule.validator
 					, fieldName = rule.fieldName
-					, value     = StructKeyExists( arguments.data, rule.fieldName ) ? arguments.data[ rule.fieldName ] : ""
+					, value     = arguments.data[ expandedFieldName ] ?: ( arguments.data[ rule.fieldName ] ?: "" )
 					, params    = rule.params
 					, data      = arguments.data
 				);
 
-				if ( not IsBoolean( fieldResult ) or not fieldResult ) {
+				if ( !IsBoolean( fieldResult ) || !fieldResult ) {
 					result.addError(
-						  fieldName = rule.fieldName
+						  fieldName = expandedFieldName
 						, message   = ( Len( Trim( rule.message ) ) ? rule.message : provider.getDefaultMessage( name=rule.validator ) )
 						, params    = provider.getValidatorParamValues( name=rule.validator, params=rule.params )
 					);
