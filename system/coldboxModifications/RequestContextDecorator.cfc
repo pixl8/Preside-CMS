@@ -149,6 +149,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		, boolean stripPermissionedFields = true
 		, string  permissionContext       = ""
 		, array   permissionContextKeys   = []
+		, string  fieldNamePrefix         = ""
+		, string  fieldNameSuffix         = ""
 	) output=false {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
@@ -158,7 +160,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		for( var name in formNames ) {
 			var formFields = formsService.listFields( argumentCollection=arguments, formName=name );
 			for( var field in formFields ){
-				collection[ field ] = ( rc[ field ] ?: "" );
+				var fieldName = arguments.fieldNamePrefix & field & arguments.fieldNameSuffix;
+				collection[ field ] = ( rc[ fieldName ] ?: "" );
 			}
 		}
 
