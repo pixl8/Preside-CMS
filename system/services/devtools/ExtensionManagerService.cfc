@@ -118,6 +118,8 @@ component {
 			}
 		} while( swapped );
 
+		extensions.reverse();
+
 		return extensions;
 	}
 
