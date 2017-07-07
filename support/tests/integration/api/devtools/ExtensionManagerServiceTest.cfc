@@ -10,15 +10,6 @@ component extends="testbox.system.BaseSpec"{
 				var basePath   = "/tests/resources/extensionManager/application";
 
 				expect( extensions ).toBe( [ {
-					  id        = "anotherExtension"
-					, name      = "anotherExtension"
-                    , title     = "Another extension"
-                    , author    = "Test author"
-                    , version   = "2.5.5524"
-                    , changelog = "Things change man"
-                    , directory = "#basePath#/extensions/anotherExtension"
-					, dependsOn	= []
-				}, {
 					  id        = "someExtension"
 					, name      = "someExtension"
 					, title     = "Some extension"
@@ -27,6 +18,15 @@ component extends="testbox.system.BaseSpec"{
 					, changelog = "Things change man"
 					, dependson = [ "anotherExtension", "moduleExtension" ]
 					, directory = "#basePath#/extensions/someExtension"
+				}, {
+					  id        = "anotherExtension"
+					, name      = "anotherExtension"
+					, title     = "Another extension"
+					, author    = "Test author"
+					, version   = "2.5.5524"
+					, changelog = "Things change man"
+					, directory = "#basePath#/extensions/anotherExtension"
+					, dependsOn	= []
 				} ] );
 			} );
 		} );
