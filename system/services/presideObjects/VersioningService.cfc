@@ -209,7 +209,7 @@ component {
 					, values           = manyToManyData[ propertyName ]
 					, versionNumber    = arguments.versionNumber
 					, versionAuthor    = arguments.versionAuthor
-				);				
+				);
 			}
 		}
 
@@ -262,11 +262,10 @@ component {
 					arguments.newData[ field ] = 0;
 				}
 
-				if ( ( propDbType == "datetime" || propDbType == "date" ) && isDate( arguments.newData[ field ] ?: "" ) ) {
+				if ( ( propDbType == "datetime" || propDbType == "date" ) && isDate( arguments.newData[ field ] ?: "" ) && isDate( oldData[ field ] ) ) {
 					if ( dateCompare( oldData[ field ], arguments.newData[ field ] ) ) {
 						changedFields.append( field );
 					}
-
 				} else if ( Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
 					changedFields.append( field );
 				}
@@ -688,7 +687,7 @@ component {
 		var targetObject  = prop.relatedTo       ?: "";
 		var targetIdField = poService.getIdField( targetObject );
 		var newDataItems  = len( newData ) ? deserializeJSON( "[ #newData# ]" ) : [];
-		
+
 		var existingRecords  = poService.selectData(
 			  objectName       = targetObject
 			, filter           = { "#targetFk#"=arguments.sourceId }
