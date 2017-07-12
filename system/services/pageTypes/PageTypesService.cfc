@@ -96,8 +96,13 @@ component output=false singleton=true {
 
 	public boolean function isPageTypeAvailableToSiteTemplate( required string pageTypeId, string siteTemplate=_getSiteService().getActiveSiteTemplate() ) {
 		var pageType = getPageType( arguments.pageTypeId );
+		var siteTemplates = pageType.getSiteTemplates();
 
-		return pageType.getSiteTemplates() == "*" || ListFindNoCase( pageType.getSiteTemplates(), arguments.siteTemplate );
+		if ( arguments.siteTemplate == "" ) {
+			arguments.siteTemplate = "default";
+		}
+
+		return siteTemplates == "*" || ListFindNoCase( siteTemplates, arguments.siteTemplate );
 	}
 
 // PRIVATE HELPERS
