@@ -16,6 +16,7 @@
 			, formId           = formId
 			, savedData        = prc.record ?: {}
 			, validationResult = args.validationResult
+			, additionalArgs   = { fields={ expressions={ contextData=prc.contextData ?: {} } } }
 		)#
 	</form>
 </cfoutput>

@@ -28,9 +28,11 @@ component  {
 			);
 		}
 		if ( IsTrue( args.quickEdit ?: "" ) ) {
+			var contextData = UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) );
+
 			args.quickEditUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickEditFilterForm"
-				, querystring = "filter_object=#filterObject#&multiple=#multiple#&id="
+				, querystring = "filter_object=#filterObject#&multiple=#multiple#&contextData=#contextData#&id="
 			);
 		}
 
