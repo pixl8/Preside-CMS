@@ -36,9 +36,9 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl, config=settings );
 
 		for( var ext in settings.activeExtensions ) {
-			try {
+			if ( fileExists( ( ext.directory ?: "" ) & "/assets/StickerBundle.cfc" ) ) {
 				sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=extensionsRootUrl & ListLast( ext.directory, "\/" ) & "/assets" );
-			} catch ( any e ) {}
+			}
 		}
 
 		sticker.load();
