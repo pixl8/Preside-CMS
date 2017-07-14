@@ -9,8 +9,7 @@ component {
 	property name="csvExportDelimiter" inject="coldbox:setting:dataExport.csv.delimiter";
 
 	private any function export(
-		  required array  selectFields
-		, required struct fieldTitles
+		  required struct fieldTitles
 		, required any    batchedRecordIterator
 	) {
 		var tmpFile  = getTempFile( getTempDirectory(), "CSVExport" );
