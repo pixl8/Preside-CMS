@@ -1,11 +1,13 @@
 ( function( $ ){
 
-	var expressionLib       = cfrequest.rulesEngineExpressions         || {}
-	  , renderFieldEndpoint = cfrequest.rulesEngineRenderFieldEndpoint || ""
-	  , editFieldEndpoint   = cfrequest.rulesEngineEditFieldEndpoint   || ""
-	  , filterCountEndpoint = cfrequest.rulesEngineFilterCountEndpoint || ""
-	  , contextData         = cfrequest.rulesEngineContextData         || {}
-	  , context             = cfrequest.rulesEngineContext             || "global";
+	var expressionLib         = cfrequest.rulesEngineExpressions           || {}
+	  , renderFieldEndpoint   = cfrequest.rulesEngineRenderFieldEndpoint   || ""
+	  , editFieldEndpoint     = cfrequest.rulesEngineEditFieldEndpoint     || ""
+	  , filterCountEndpoint   = cfrequest.rulesEngineFilterCountEndpoint   || ""
+	  , contextData           = cfrequest.rulesEngineContextData           || {}
+	  , preSavedFilters       = cfrequest.rulesEnginePreSavedFilters       || ""
+	  , preRulesEngineFilters = cfrequest.rulesEnginePreRulesEngineFilters || ""
+	  , context               = cfrequest.rulesEngineContext               || "global";
 
 	var RulesEngineCondition = (function() {
 		function RulesEngineCondition( $formControl, expressions, $ruleList, isFilter, $filterCount, objectName ) {
@@ -146,12 +148,18 @@
 		RulesEngineCondition.prototype.updateFilterCount = function() {
 			if ( !this.isFilter || !this.$filterCount.length ) { return; }
 
-			var conditionBuilder = this;
+			var conditionBuilder = this
+			  , postData         = contextData;
+
+			postData.condition             = this.serialize();
+			postData.objectName            = this.objectName;
+			postData.preSavedFilters       = preSavedFilters;
+			postData.preRulesEngineFilters = preRulesEngineFilters;
 
 			conditionBuilder.$filterCount.html( '' ).addClass( "loading" );
 			$.post(
 				  filterCountEndpoint
-				, { condition:this.serialize(), objectName:this.objectName }
+				, postData
 				, function( data ){ conditionBuilder.$filterCount.html( data ).removeClass( "loading" ); }
 			);
 		};

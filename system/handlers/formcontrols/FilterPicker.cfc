@@ -7,8 +7,11 @@ component  {
 			return "";
 		}
 
-		var multiple            = IsTrue( args.multiple ?: "" );
-		var prefetchCacheBuster = CreateUUId();
+		var multiple              = IsTrue( args.multiple ?: "" );
+		var prefetchCacheBuster   = CreateUUId();
+		var contextData           = UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) );
+		var preSavedFilters       = args.preSavedFilters ?: "";
+		var preRulesEngineFilters = args.preRulesEngineFilters ?: "";
 
 		args.object    = "rules_engine_condition";
 		args.remoteUrl = event.buildAdminLink(
@@ -24,13 +27,13 @@ component  {
 		if ( IsTrue( args.quickAdd ?: "" ) ) {
 			args.quickAddUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickAddFilterForm"
-				, querystring = "filter_object=#filterObject#&multiple=#multiple#&contextData=" & UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) )
+				, querystring = "filter_object=#filterObject#&multiple=#multiple#&contextData=#contextData#&preSavedFilters=#preSavedFilters#&preRulesEngineFilters=#preRulesEngineFilters#"
 			);
 		}
 		if ( IsTrue( args.quickEdit ?: "" ) ) {
 			args.quickEditUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickEditFilterForm"
-				, querystring = "filter_object=#filterObject#&multiple=#multiple#&id="
+				, querystring = "filter_object=#filterObject#&multiple=#multiple#&contextData=#contextData#&preSavedFilters=#preSavedFilters#&preRulesEngineFilters=#preRulesEngineFilters#&id="
 			);
 		}
 

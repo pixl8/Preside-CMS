@@ -715,6 +715,10 @@ $.extend( $.validator, {
 				return val;
 			}
 
+			if ( $element.data( "ckeditorinstance" ) ) {
+				val = $element.data( "ckeditorinstance" ).getData();
+			}
+
 			if ( typeof val === "string" ) {
 				return val.replace( /\r/g, "" );
 			}

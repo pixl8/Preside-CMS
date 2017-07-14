@@ -799,15 +799,37 @@ component displayName="Forms service" {
 
 // PRIVATE HELPERS
 	private void function _loadForms() {
-		var dirs     = _getFormDirectories();
-		var prefix   = "";
-		var dir      = "";
-		var formName = "";
-		var files    = "";
-		var file     = "";
-		var subDir   = "";
-		var forms    = {};
-		var frm      = "";
+		var dirs               = _getFormDirectories();
+		var prefix             = "";
+		var dir                = "";
+		var formName           = "";
+		var files              = "";
+		var file               = "";
+		var subDir             = "";
+		var forms              = {};
+		var frm                = "";
+		var resolvedExtensions = {};
+		var resolveExtensions = function( formName, frmDefinition, allForms ){
+			var parentFormName = arguments.frmDefinition.extends ?: "";
+
+			if ( !Len( Trim( parentFormName ) ) || resolvedExtensions.keyExists( arguments.formName ) ) {
+				return arguments.frmDefinition;
+			}
+
+			if ( !arguments.allForms.keyExists( parentFormName ) ) {
+				throw(
+					  type    = "FormService.MissingForm"
+					, message = "The form [#parentFormName#], defined as an extension of [#arguments.formName#], could not be found."
+				);
+			}
+
+			resolvedExtensions[ arguments.formName ] = true;
+
+			return _mergeForms(
+				  form1 = resolveExtensions( parentFormName, arguments.allForms[ parentFormName ], arguments.allForms )
+				, form2 = arguments.frmDefinition
+			);
+		};
 
 		for( dir in dirs ) {
 			dir = ExpandPath( dir );
@@ -836,6 +858,11 @@ component displayName="Forms service" {
 					, form2 = forms[ formName ][ i ]
 				);
 			}
+			forms[ formName ] = frm;
+		}
+		for( formName in forms ) {
+			frm = resolveExtensions( formName, forms[ formName ], forms );
+
 			if ( _registerForm( formName, frm ) ) {
 				_applyDefaultLabellingToForm( formName );
 			}

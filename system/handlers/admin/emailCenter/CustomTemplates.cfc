@@ -235,6 +235,20 @@ component extends="preside.system.base.AdminHandler" {
 			prc.formName = formsService.getMergedFormName( "preside-objects.email_template.configure.send", "preside-objects.email_template.configure.send.methods" );
 		}
 
+		if ( prc.record.blueprint_filter.len() ) {
+			var filterDescription = translateResource(
+				  uri = "preside-objects.email_template:fieldset.filter.description.additional.filter"
+				, data = [
+					  "<strong>" & renderlabel( "rules_engine_condition", prc.record.blueprint_filter ) & "</strong>"
+					, "<strong>" & renderLabel( "email_blueprint", prc.record.email_blueprint ) & "</strong>"
+				  ]
+			);
+			prc.formAdditionalArgs = {
+				  fields    = { recipient_filter = { preRulesEngineFilters = prc.record.blueprint_filter } }
+				, fieldsets = { filter           = { description           = filterDescription   } }
+			}
+		}
+
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.subTitle", data=[ prc.template.name ] );
 

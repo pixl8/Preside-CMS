@@ -25,14 +25,22 @@ component {
 	 * and arguments.
 	 *
 	 * @autodoc
+	 * exporter.hint           ID of the exporter to use (i.e. csv, excel, etc.)
+	 * objectName.hint         Name of the object from which the data is to be exported
+	 * meta.hint               Abitrary struct of data that an exporter may use to decorate the export document (e.g. could contain author, timestamp, etc.)
+	 * fieldTitles.hint        Struct of field titles where keys are raw field names and values are translated titles for columns
+	 * selectFields.hint       Array of select fields that will be selected against the object
+	 * exportPagingSize.hint   Number of records to fetch at a time during the export build process. Default is 1000.
+	 * recordsetDecorator.hint Closure that accepts a single 'recordset' argument that can be used to add columns to the recordset. Useful when a single query is not enough to populate the export data.
 	 */
 	public any function exportData(
 		  required string  exporter
 		, required string  objectName
-		,          struct  meta             = {}
-		,          struct  fieldTitles      = {}
-		,          array   selectFields     = []
-		,          numeric exportPagingSize = 1000
+		,          struct  meta               = {}
+		,          struct  fieldTitles        = {}
+		,          array   selectFields       = []
+		,          numeric exportPagingSize   = 1000
+		,          any     recordsetDecorator = ""
 	) {
 		var exporterHandler      = "dataExporters.#arguments.exporter#.export";
 		var coldboxController    = $getColdbox();
@@ -88,6 +96,10 @@ component {
 			var results = presideObjectService.selectData(
 				argumentCollection=selectDataArgs
 			);
+
+			if ( results.recordCount && IsClosure( selectDataArgs.recordsetDecorator ) ) {
+				selectDataArgs.recordsetDecorator( results );
+			}
 
 			selectDataArgs.startRow += selectDataArgs.maxRows;
 
