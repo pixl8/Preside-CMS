@@ -37,9 +37,12 @@ component {
 		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl, config=settings );
 
 		for( var ext in settings.activeExtensions ) {
-			try {
-				sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=extensionsRootUrl & ListLast( ext.directory, "\/" ) & "/assets" );
-			} catch ( any e ) {}
+			var stickerDirectory  = ( ext.directory ?: "" ) & "/assets";
+			var stickerBundleFile = stickerDirectory & "/StickerBundle.cfc";
+
+			if ( FileExists( stickerBundleFile ) ) {
+				sticker.addBundle( rootDirectory=stickerDirectory, rootUrl=extensionsRootUrl & ListLast( ext.directory, "\/" ) & "/assets" );
+			}
 		}
 
 		sticker.load();
