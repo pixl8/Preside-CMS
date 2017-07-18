@@ -1,6 +1,7 @@
 component extends="coldbox.system.Interceptor" output=false {
 	property name="applicationsService" inject="delayedInjector:applicationsService";
 	property name="messageBox"          inject="delayedInjector:messagebox@cbmessagebox";
+	property name="i18n"                inject="coldbox:plugin:i18n";
 
 // PUBLIC
 	public void function configure() output=false {}
@@ -13,7 +14,7 @@ component extends="coldbox.system.Interceptor" output=false {
 			persist = event.getCollectionWithoutSystemVars();
 
 			messageBox.error(
-				getPlugin( "i18n" ).translateResource( uri="cms:invalidCsrfToken.error" )
+				i18n.translateResource( uri="cms:invalidCsrfToken.error" )
 			);
 
 			if ( Len( Trim( cgi.http_referer ) ) ) {
