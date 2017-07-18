@@ -1,11 +1,11 @@
-component extends="coldbox.system.Interceptor" output=false {
+component extends="coldbox.system.Interceptor" {
 	property name="applicationsService"   inject="delayedInjector:applicationsService";
 	property name="featureService"        inject="delayedInjector:featureService";
 
 // PUBLIC
-	public void function configure() output=false {}
+	public void function configure() {}
 
-	public void function preEvent( event ) output=false {
+	public void function preEvent( event ) {
 		var valid   = "";
 		var persist = "";
 
@@ -25,11 +25,11 @@ component extends="coldbox.system.Interceptor" output=false {
 	}
 
 // PRIVATE HELPERS
-	private boolean function _isProtectedAction( event ) output=false {
+	private boolean function _isProtectedAction( event ) {
 		return event.isActionRequest();
 	}
 
-	private boolean function _isValid( event ) output=false {
+	private boolean function _isValid( event ) {
 		var csrfToken = event.getValue( name="csrfToken", defaultValue="" );
 
 		return event.validateCsrfToken( token=csrfToken );
