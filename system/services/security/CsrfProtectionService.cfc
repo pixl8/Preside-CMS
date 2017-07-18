@@ -3,8 +3,9 @@ component output=false singleton=true {
 // CONSTRUCTOR
 	/**
 	 * @sessionStorage.inject coldbox:plugin:sessionStorage
+	 * @tokenExpiryInSeconds.inject coldbox:setting:csrf.tokenExpiryInSeconds
 	 */
-	public any function init( required any sessionStorage, numeric tokenExpiryInSeconds=1200 ) output=false {
+	public any function init( required any sessionStorage, required numeric tokenExpiryInSeconds ) output=false {
 		_setSessionStorage( arguments.sessionStorage );
 		_setTokenExpiryInSeconds( arguments.tokenExpiryInSeconds );
 

@@ -370,6 +370,10 @@ component {
 			, bypassForAdministrators = true
 		};
 
+		settings.csrf = {
+			tokenExpiryInSeconds = 1200
+		};
+
 		settings.rest = {
 			  path          = "/api"
 			, corsEnabled   = false
