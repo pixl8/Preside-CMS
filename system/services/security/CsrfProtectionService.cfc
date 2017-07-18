@@ -1,10 +1,15 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject sessionStorage
+	 * @sessionStorage.inject       sessionStorage
+	 * @tokenExpiryInSeconds.inject coldbox:setting:csrf.tokenExpiryInSeconds
 	 */
-	public any function init( required any sessionStorage, numeric tokenExpiryInSeconds=1200 ) output=false {
+	public any function init( required any sessionStorage, required numeric tokenExpiryInSeconds ) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setTokenExpiryInSeconds( arguments.tokenExpiryInSeconds );
 
@@ -12,7 +17,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API
-	public string function generateToken() output=false {
+	public string function generateToken() {
 		var token      = _getToken();
 
 		if ( StructIsEmpty( token ) or not validateToken( token.value ?: "" ) ) {
@@ -23,7 +28,7 @@ component output=false singleton=true {
 		return token.value;
 	}
 
-	public boolean function validateToken( required string token ) output=false {
+	public boolean function validateToken( required string token ) {
 		var t = _getToken();
 
 		if ( ( t.value ?: "" ) eq arguments.token ) {
@@ -37,26 +42,26 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private struct function _getToken() output=false {
+	private struct function _getToken() {
 		return _getSessionStorage().getVar( "_csrfToken", {} );
 	}
 
-	private void function _setToken( required struct token ) output=false {
+	private void function _setToken( required struct token ) {
 		_getSessionStorage().setVar( "_csrfToken", arguments.token );
 	}
 
 // GETTERS AND SETTERS
-	private any function _getSessionStorage() output=false {
+	private any function _getSessionStorage() {
 		return _sessionStorage;
 	}
-	private void function _setSessionStorage( required any sessionStorage ) output=false {
+	private void function _setSessionStorage( required any sessionStorage ) {
 		_sessionStorage = arguments.sessionStorage;
 	}
 
-	private numeric function _getTokenExpiryInSeconds() output=false {
+	private numeric function _getTokenExpiryInSeconds() {
 		return _tokenExpiryInSeconds;
 	}
-	private void function _setTokenExpiryInSeconds( required numeric tokenExpiryInSeconds ) output=false {
+	private void function _setTokenExpiryInSeconds( required numeric tokenExpiryInSeconds ) {
 		_tokenExpiryInSeconds = arguments.tokenExpiryInSeconds;
 	}
 }

@@ -322,6 +322,7 @@ component {
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
+			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -368,6 +369,10 @@ component {
 			  enabled                 = true
 			, policy                  = "preside"
 			, bypassForAdministrators = true
+		};
+
+		settings.csrf = {
+			tokenExpiryInSeconds = 1200
 		};
 
 		settings.rest = {

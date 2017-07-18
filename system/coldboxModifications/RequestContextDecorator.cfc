@@ -178,7 +178,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	public string function buildAdminLink( string linkTo="", string queryString="", string siteId=this.getSiteId() ) output=false {
 		arguments.linkTo = ListAppend( "admin", arguments.linkTo, "." );
 
-		if ( isActionRequest( arguments.linkTo ) ) {
+		if ( isActionRequest( arguments.linkTo ) && this.getModel( "featureService" ).isFeatureEnabled( "adminCsrfProtection" ) ) {
 			arguments.queryString = ListPrepend( arguments.queryString, "csrfToken=" & this.getCsrfToken(), "&" );
 		}
 
@@ -306,7 +306,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService", "featureService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
@@ -327,7 +327,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getModel( "csrfProtectionService" ).generateToken( argumentCollection = arguments );
 	}
 
-	public string function validateCsrfToken() output=false {
+	public boolean function validateCsrfToken() output=false {
 		return getModel( "csrfProtectionService" ).validateToken( argumentCollection = arguments );
 	}
 
