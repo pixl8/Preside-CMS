@@ -330,7 +330,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getModel( "csrfProtectionService" ).generateToken( argumentCollection = arguments );
 	}
 
-	public string function validateCsrfToken() output=false {
+	public boolean function validateCsrfToken() output=false {
 		return getModel( "csrfProtectionService" ).validateToken( argumentCollection = arguments );
 	}
 
