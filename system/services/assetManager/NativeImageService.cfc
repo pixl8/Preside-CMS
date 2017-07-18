@@ -136,18 +136,16 @@ component displayname="Native Image Manipulation Service" {
 		var originY     = 0;
 		var cropCentreX = originX + int( arguments.width  / 2 );
 		var cropCentreY = originY + int( arguments.height / 2 );
+		var imageInfo   = ImageInfo( image );
+		var focalPoint  = len( arguments.focalPoint ) ? arguments.focalPoint : "0.5,0.5";
+		var focalPointX = int( listFirst( focalPoint ) * imageInfo.width  );
+		var focalPointY = int( listLast(  focalPoint ) * imageInfo.height );
 
-		if ( len( focalPoint ) ) {
-			var imageInfo   = ImageInfo( image );
-			var focalPointX = int( listFirst( arguments.focalPoint ) * imageInfo.width  );
-			var focalPointY = int( listLast(  arguments.focalPoint ) * imageInfo.height );
-
-			if ( focalPointX > cropCentreX ) {
-				originX = min( originX + ( focalPointX - cropCentreX ), imageInfo.width - arguments.width );
-			}
-			if ( focalPointY > cropCentreY ) {
-				originY = min( originY + ( focalPointY - cropCentreY ), imageInfo.height - arguments.height );
-			}
+		if ( focalPointX > cropCentreX ) {
+			originX = min( originX + ( focalPointX - cropCentreX ), imageInfo.width - arguments.width );
+		}
+		if ( focalPointY > cropCentreY ) {
+			originY = min( originY + ( focalPointY - cropCentreY ), imageInfo.height - arguments.height );
 		}
 
 		ImageCrop( image, originX, originY, arguments.width, arguments.height );
