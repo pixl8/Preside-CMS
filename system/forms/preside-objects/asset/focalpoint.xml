@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset: focal point form
+
+This form is used when editing image assets in the asset manager section of the
+administrator, and adds focalpoint controls.
+-->
+<form>
+
+	<tab id="focalpoint" sortorder="15" title="preside-objects.asset:focalpoint.tab.title">
+		<fieldset id="focalpoint" sortorder="10">
+			<field sortorder="10" binding="asset.focal_point" />
+		</fieldset>
+	</tab>
+
+</form>
