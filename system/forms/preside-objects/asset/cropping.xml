@@ -9,7 +9,7 @@ administrator, and adds focal point controls.
 
 	<tab id="cropping" sortorder="15" title="preside-objects.asset:cropping.tab.title">
 		<fieldset id="cropping" sortorder="10">
-			<field sortorder="10" binding="asset.focal_point" />
+			<field sortorder="10" binding="asset.focal_point" control="focalPointPicker" />
 		</fieldset>
 	</tab>
 
