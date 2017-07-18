@@ -640,7 +640,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder", "access_restriction" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder", "focal_point", "access_restriction" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -660,6 +660,7 @@ component displayName="AssetManager Service" {
 			, asset_type     = fileTypeInfo.typeName
 			, storage_path   = newFileName
 			, size           = Len( arguments.fileBinary )
+			, focal_point    = originalAsset.focal_point
 			, version_number = _getNextAssetVersionNumber( arguments.assetId )
 		};
 
@@ -727,6 +728,10 @@ component displayName="AssetManager Service" {
 		var asset       = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
+
+		if ( data.keyExists( "focal_point") && len( asset.active_version ) ) {
+			_getAssetVersionDao().updateData( id=asset.active_version, data={ focal_point=data.focal_point } )
+		}
 
 		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
 			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
@@ -1446,6 +1451,7 @@ component displayName="AssetManager Service" {
 				, "asset_version.size"
 				, "asset_version.asset_type"
 				, "asset_version.raw_text_content"
+				, "asset_version.focal_point"
 				, "asset_version.created_by"
 				, "asset_version.updated_by"
 				, "asset.title"
@@ -1469,6 +1475,7 @@ component displayName="AssetManager Service" {
 				, size             = versionToMakeActive.size
 				, asset_type       = versionToMakeActive.asset_type
 				, raw_text_content = versionToMakeActive.raw_text_content
+				, focal_point      = versionToMakeActive.focal_point
 				, created_by       = versionToMakeActive.created_by
 				, updated_by       = versionToMakeActive.updated_by
 				, width            = versionImageDimension.width  ?: ""
@@ -1823,6 +1830,7 @@ component displayName="AssetManager Service" {
 			, "asset_type"
 			, "active_version"
 			, "raw_text_content"
+			, "focal_point"
 			, "created_by"
 			, "updated_by"
 		] );
@@ -1835,6 +1843,7 @@ component displayName="AssetManager Service" {
 				, size             = asset.size
 				, asset_type       = asset.asset_type
 				, raw_text_content = asset.raw_text_content
+				, focal_point      = asset.focal_point
 				, created_by       = asset.created_by
 				, updated_by       = asset.updated_by
 			} );
