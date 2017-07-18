@@ -22,9 +22,11 @@ component displayname="ImageMagick"  {
 		,          string  quality              = "highPerformance"
 		,          boolean maintainAspectRatio  = false
 		,          string  gravity              = 'center'
+		,          string  focalPoint           = ""
 	) {
 
-		var imageBinary = arguments.asset;
+		var imageBinary       = arguments.asset;
+		var currentImageInfo  = getImageInformation( imageBinary );
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
@@ -43,6 +45,8 @@ component displayname="ImageMagick"  {
 				, expand          = maintainAspectRatio
 				, crop            = maintainAspectRatio
 				, gravity         = arguments.gravity
+				, focalPoint      = arguments.focalPoint
+				, imageInfo       = currentImageInfo
 			);
 
 			imageBinary = FileReadBinary( tmpDestFilePath );
@@ -143,19 +147,32 @@ component displayname="ImageMagick"  {
 		, required string  qualityArgs
 		, required numeric width
 		, required numeric height
-		,          boolean expand    = false
-		,          boolean crop      = false
-		,          string  gravity   = 'center'
+		,          boolean expand     = false
+		,          boolean crop       = false
+		,          string  gravity    = 'center'
+		,          string  focalPoint = ""
+		,          struct  imageInfo  = {}
 	) {
 		var defaultSettings = "-coalesce -auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
 		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings# -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
 		var interlace       = $getPresideSetting( "asset-manager", "imagemagick_interlace" );
+		var offset          = "+0+0";
 
 		if ( arguments.expand ) {
 			if ( arguments.crop ) {
 				args &= "^";
 			}
-			args &= " -gravity #arguments.gravity# -extent #arguments.width#x#arguments.height#";
+			if ( len( arguments.focalPoint ) && !imageInfo.isEmpty() ) {
+				gravity = "NorthWest";
+				offset  = _calculateFocalPointOffset(
+					  originalWidth  = imageInfo.width
+					, originalHeight = imageInfo.height
+					, newWidth       = arguments.width
+					, newHeight      = arguments.height
+					, focalPoint     = arguments.focalPoint
+				);
+			}
+			args &= " -gravity #gravity# -extent #arguments.width#x#arguments.height##offset#";
 		}
 
 		interlace = ( IsBoolean( interlace ) && interlace ) ? "line" : "none";
@@ -304,6 +321,35 @@ component displayname="ImageMagick"  {
 		} else {
 			throw( type="imagemagick.resize.failure",  message="Image resize operation failed. Expected dimensions [#arguments.width#x#arguments.height#]. Generated image dimensions could not be read, received instead [#rawInfo#]" );
 		}
+	}
+
+	private string function _calculateFocalPointOffset(
+		  required numeric originalWidth
+		, required numeric originalHeight
+		, required numeric newWidth
+		, required numeric newHeight
+		, required string  focalPoint
+	) {
+		var heightRatio   = newHeight / originalHeight;
+		var widthRatio    = newWidth  / originalWidth;
+		var scale         = max( heightRatio, widthRatio );
+		var interimHeight = int( originalHeight * scale );
+		var interimWidth  = int( originalWidth  * scale );
+		var originX       = 0;
+		var originY       = 0;
+		var cropCentreX   = int( arguments.newWidth  / 2 );
+		var cropCentreY   = int( arguments.newHeight / 2 );
+		var focalPointX   = int( listFirst( arguments.focalPoint ) * interimWidth  );
+		var focalPointY   = int( listLast(  arguments.focalPoint ) * interimHeight );
+
+		if ( focalPointX > cropCentreX ) {
+			originX = min( focalPointX - cropCentreX, interimWidth - arguments.newWidth );
+		}
+		if ( focalPointY > cropCentreY ) {
+			originY = min( focalPointY - cropCentreY, interimHeight - arguments.newHeight );
+		}
+
+		return "+#originX#+#originY#";
 	}
 
 	private string function _registerOperation( required numeric timeoutInSeconds ) {

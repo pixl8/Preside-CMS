@@ -30,6 +30,7 @@ component displayname="Native Image Manipulation Service" {
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
+		,          string  focalPoint          = ""
 	) {
 		var image              = "";
 		var interpolation      = arguments.quality;
@@ -62,11 +63,11 @@ component displayname="Native Image Manipulation Service" {
 				if ( currentAspectRatio gt targetAspectRatio ) {
 					ImageScaleToFit( image, "", arguments.height, interpolation );
 					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, Int( ( scaledImgInfo.width - arguments.width ) / 2 ), 0, arguments.width, arguments.height );
+					cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
 				} else {
 					ImageScaleToFit( image, arguments.width, "", interpolation );
 					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, 0, Int( ( scaledImgInfo.height - arguments.height ) / 2 ), arguments.width, arguments.height );
+					cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
 				}
 			}
 		}
@@ -109,6 +110,47 @@ component displayname="Native Image Manipulation Service" {
 		}else{
 			ImageScaleToFit( image, imageInfo.width, imageInfo.height, interpolation );
 		}
+
+		return ImageGetBlob( image );
+	}
+
+	/**
+	 * Crops an image to new dimensions, while ensuring that the asset's focal point
+	 * (if defined) is as close to the centre of the image as possible.
+	 *
+	 * @autodoc
+	 * @image.hint      Image object (generally already scaled)
+	 * @width.hint      Width of the crop area, in pixels
+	 * @height.hint     Height of the crop area, in pixels
+	 * @focalPoint.hint Coordinates of the image's focal point. Comma-separated x,y - where each coordinate is a value between 0 and 1, the offset of the point from the top left corner of the image. So "0.5,0.5" would place the focal point in the centre of the image.
+	 *
+	 */
+	public binary function cropAroundFocalPoint(
+		  required any     image
+		, required numeric width
+		, required numeric height
+		, required string  focalPoint
+	) {
+		var image       = arguments.image;
+		var originX     = 0;
+		var originY     = 0;
+		var cropCentreX = originX + int( arguments.width  / 2 );
+		var cropCentreY = originY + int( arguments.height / 2 );
+
+		if ( len( focalPoint ) ) {
+			var imageInfo   = ImageInfo( image );
+			var focalPointX = int( listFirst( arguments.focalPoint ) * imageInfo.width  );
+			var focalPointY = int( listLast(  arguments.focalPoint ) * imageInfo.height );
+
+			if ( focalPointX > cropCentreX ) {
+				originX = min( originX + ( focalPointX - cropCentreX ), imageInfo.width - arguments.width );
+			}
+			if ( focalPointY > cropCentreY ) {
+				originY = min( originY + ( focalPointY - cropCentreY ), imageInfo.height - arguments.height );
+			}
+		}
+
+		ImageCrop( image, originX, originY, arguments.width, arguments.height );
 
 		return ImageGetBlob( image );
 	}

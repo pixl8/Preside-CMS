@@ -1254,8 +1254,8 @@ component displayName="AssetManager Service" {
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
-			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path", "asset_folder" ] );
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.focal_point" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path", "asset_folder", "focal_point" ] );
 
 		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
 		var fileext         = ListLast( asset.storage_path, "." );
@@ -1279,11 +1279,14 @@ component displayName="AssetManager Service" {
 		}
 
 		for( var transformation in transformations ) {
+			var transformationArgs = transformation.args ?: {};
+			transformationArgs.focalPoint = asset.focal_point;
+			
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
 				assetBinary = _applyAssetTransformation(
 					  assetBinary          = assetBinary
 					, transformationMethod = transformation.method ?: ""
-					, transformationArgs   = transformation.args   ?: {}
+					, transformationArgs   = transformationArgs
 					, filename             = filename              ?: ""
 				);
 
