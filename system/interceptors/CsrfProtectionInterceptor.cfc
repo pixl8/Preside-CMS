@@ -1,7 +1,7 @@
 component extends="coldbox.system.Interceptor" {
 	property name="applicationsService" inject="delayedInjector:applicationsService";
 	property name="messageBox"          inject="delayedInjector:messagebox@cbmessagebox";
-	property name="i18n"                inject="delayedInjector:coldbox:plugin:i18n";
+	property name="i18n"                inject="delayedInjector:i18n";
 	property name="featureService"      inject="delayedInjector:featureService";
 
 // PUBLIC
