@@ -78,7 +78,7 @@
 
 				#renderForm(
 					  formName          = "preside-objects.asset.admin.edit"
-					, mergeWithFormName = isImageAsset ? "preside-objects.asset.focalpoint" : ""
+					, mergeWithFormName = isImageAsset ? "preside-objects.asset.cropping" : ""
 					, formId            = "edit-asset-form"
 					, context           = "admin"
 					, savedData         = asset
