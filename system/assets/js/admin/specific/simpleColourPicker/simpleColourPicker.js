@@ -6,11 +6,12 @@
 			, $selectedColour = $colourPicker.find( '.selected-colour-swatch' )
 			, $formInput      = $colourPicker.find( '.selected-colour-input' )
 			, colourFormat    = $colourPicker.data( 'colourFormat' )
+			, rawValues       = $colourPicker.data( 'rawValues' )
 			, popoverContent  = $colourPicker.find( '.available-colours' ).html();
 
 		$colourPicker.on( 'click', '.available-colour', function(){
 			var newColour = $( this ).data( 'value' );
-			var cssColour = colourFormat=='hex' ? '#' + newColour : 'rgb( ' + newColour + ' )';
+			var cssColour = rawValues ? ( colourFormat=='hex' ? '#' + newColour : 'rgb( ' + newColour + ' )' ) : newColour;
 
 			$formInput.val( newColour );
 			$selectedColour.removeClass( 'unselected' ).css( {
