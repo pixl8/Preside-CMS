@@ -5,7 +5,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			it( "should recursively replace delayed viewlet markup with dynamically rendered versions of the viewlet until there are no more viewlet markup tags left in the given content", function(){
 				var service = _getService();
 				var dvs     = [
-					  "<!--dv:test.viewlet(arg1=true,arg2='test')-->"
+					  "<!--dv:test.viewlet( arg1=true, arg2=test )-->"
 					, "<!--dv:another.test.viewlet(arg3=false)-->"
 					, "<!--dv:nested.viewlet()-->"
 				];
@@ -27,32 +27,17 @@ consequat. Duis aute irure dolor in reprehenderit in #replacements[ dvs[1] ]# vo
 cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt mollit anim id est laborum.";
 
-				mockColdbox.$( "runEvent" ).$args(
-					  event          = "test.viewlet"
-					, private        = true
-					, prepostExempt  = true
-					, eventArguments = {
-						  delayedViewlet = true
-						, args           = { arg1=true, arg2='test' }
-					  }
+				mockColdbox.$( "renderViewlet" ).$args(
+					  event = "test.viewlet"
+					, args  = { arg1=true, arg2='test' }
 				).$results( replacements[ dvs[1] ] );
-				mockColdbox.$( "runEvent" ).$args(
-					  event          = "another.test.viewlet"
-					, private        = true
-					, prepostExempt  = true
-					, eventArguments = {
-						  delayedViewlet = true
-						, args           = { arg3=false }
-					  }
+				mockColdbox.$( "renderViewlet" ).$args(
+					  event = "another.test.viewlet"
+					, args  = { arg3=false }
 				).$results( replacements[ dvs[2] ] );
-				mockColdbox.$( "runEvent" ).$args(
-					  event          = "nested.viewlet"
-					, private        = true
-					, prepostExempt  = true
-					, eventArguments = {
-						  delayedViewlet = true
-						, args           = {}
-					  }
+				mockColdbox.$( "renderViewlet" ).$args(
+					  event = "nested.viewlet"
+					, args  = {}
 				).$results( replacements[ dvs[3] ] );
 
 

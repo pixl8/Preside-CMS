@@ -23,7 +23,52 @@ component {
 	 *
 	 */
 	public string function renderDelayedViewlets( required string content ) {
-		return arguments.content;
+		var urlEncodedArgsRegex = "[a-zA-Z0-9%=,_\$\s]*"
+		var dvPattern       = "<!--dv:(.*?)\((#urlEncodedArgsRegex#)\)-->";
+		var processed       = arguments.content;
+		var cb              = $getColdbox();
+		var patternFound    = false;
+		var match           = "";
+		var wholeMatch      = "";
+		var viewlet         = "";
+		var argsString      = "";
+		var renderedViewlet = "";
+
+		do {
+			match        = processed.reFind( dvPattern, 1, true );
+			patternFound = ( match.pos[ 1 ] ?: 0 ) > 0;
+
+			if ( patternFound ) {
+				wholeMatch  = processed.mid( match.pos[ 1 ], match.len[ 1 ] );
+
+				viewlet     = processed.mid( match.pos[ 2 ], match.len[ 2 ] );
+				argsString  = processed.mid( match.pos[ 3 ], match.len[ 3 ] );
+				renderedViewlet = cb.renderViewlet(
+					  event = viewlet
+					, args  = _parseArgs( argsString.trim() )
+				);
+
+				processed = processed.replace( wholeMatch, renderedViewlet ?: "", "all" );
+			}
+		} while( patternFound )
+
+
+		return processed;
+	}
+
+// PRIVATE HELPERS
+	private struct function _parseArgs( required string args ) {
+		var parsed = {};
+		var keyValues = args.listToArray( "," );
+
+		for( var keyValue in keyValues ) {
+			var key   = keyValue.trim().listFirst( "=" ).trim();
+			var value = keyValue.trim().listRest( "=" ).trim();
+
+			parsed[ key ] = UrlDecode( value );
+		}
+
+		return parsed;
 	}
 
 }
