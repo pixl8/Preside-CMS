@@ -19,7 +19,7 @@ component {
 		}
 
 		if( items.isEmpty() ) {
-			return config.defaultLabel ?: "None";
+			return config.defaultLabel ?: translateResource( "cms:rulesEngine.fieldtype.select.default.label" )
 		}
 
 		return items.toList( ", " );
