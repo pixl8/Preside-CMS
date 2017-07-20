@@ -18,6 +18,10 @@ component {
 			}
 		}
 
+		if( items.isEmpty() ) {
+			return config.defaultLabel ?: "None";
+		}
+
 		return items.toList( ", " );
 	}
 
