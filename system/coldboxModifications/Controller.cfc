@@ -74,7 +74,19 @@ component extends="coldbox.system.web.Controller" output=false {
 		return handlerExists( arguments.event ) or viewExists( arguments.event );
 	}
 
-	public any function renderViewlet( required string event, struct args={}, boolean private=true, boolean prepostExempt=true  ) output=false {
+	public any function renderViewlet(
+		  required string  event
+		,          struct  args          = {}
+		,          boolean private       = true
+		,          boolean prepostExempt = true
+		,          boolean delayed       = false
+	) output=false {
+		if ( arguments.delayed ) {
+			return instance.wireBox.getInstance( "delayedViewletRendererService" ).renderDelayedViewletTag(
+				  event = arguments.event
+				, args  = arguments.args
+			);
+		}
 		var result        = "";
 		var view          = "";
 		var handler       = arguments.event;

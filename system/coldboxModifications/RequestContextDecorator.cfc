@@ -309,7 +309,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService", "featureService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
@@ -704,6 +704,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		}
 
 		return this;
+	}
+
+// CACHING HELPERS
+	public boolean function cachePage( boolean cache ) output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		if ( arguments.keyExists( "cache" ) ) {
+			prc._cachePage = arguments.cache;
+			return;
+		}
+
+		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
+		    && !event.valueExists( "fwreinit" )
+		    && !this.isAdminUser()
+		    && event.getHTTPMethod() == "GET"
+		    && !this.getCurrentUrl().startsWith( "/asset/" )
+		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 
 // status codes
