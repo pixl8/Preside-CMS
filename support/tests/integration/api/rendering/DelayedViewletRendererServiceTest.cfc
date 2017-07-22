@@ -3,9 +3,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 	function run(){
 		describe( "renderDelayedViewlets()", function(){
 			it( "should recursively replace delayed viewlet markup with dynamically rendered versions of the viewlet until there are no more viewlet markup tags left in the given content", function(){
-				var service = _getService();
-				var dvs     = [
-					  "<!--dv:test.viewlet( arg1=true, arg2=test )-->"
+				var service    = _getService();
+				var complexArg = { test="this" };
+				var dvs        = [
+					  "<!--dv:test.viewlet( arg1=true, arg2=test, arg3=#UrlEncodedFormat( SerializeJson( complexArg ) )# )-->"
 					, "<!--dv:another.test.viewlet(arg3=false)-->"
 					, "<!--dv:nested.viewlet()-->"
 				];
@@ -29,7 +30,7 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 
 				mockColdbox.$( "renderViewlet" ).$args(
 					  event = "test.viewlet"
-					, args  = { arg1=true, arg2='test' }
+					, args  = { arg1=true, arg2='test', arg3=complexArg }
 				).$results( replacements[ dvs[1] ] );
 				mockColdbox.$( "renderViewlet" ).$args(
 					  event = "another.test.viewlet"
@@ -42,6 +43,27 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 
 
 				expect( service.renderDelayedViewlets( content ) ).toBe( expected );
+			} );
+		} );
+
+		describe( "renderDelayedViewletTag()", function(){
+			it( "should return an html comment string with urlencoded and json serialized args", function(){
+				var service  = _getService();
+				var event    = "test.event.viewlet";
+				var args     = StructNew( 'linked' );
+				var expected = "";
+
+				args.aBool       = true
+				args.aString     = "test"
+				args.aNumber     = 345
+				args.aComplexOne = { fubar=true, test={ stuff=CreateUUId() } }
+
+				expected = "<!--dv:#event#(aBool=true,aString=test,aNumber=345,aComplexOne=#UrlEncodedFormat( SerializeJson( args.aComplexOne ) )#)-->";
+
+				expect( service.renderDelayedViewletTag(
+					  event = event
+					, args  = args
+				) ).toBe( expected );
 			} );
 		} );
 	}

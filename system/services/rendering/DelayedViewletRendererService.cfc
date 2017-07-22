@@ -56,6 +56,33 @@ component {
 		return processed;
 	}
 
+	/**
+	 * Takes event name and args that would be passed to renderViewlet()
+	 * and returns the special tag that can be parsed later in the request
+	 *
+	 * @autodoc true
+	 * @event   The viewlet event name
+	 * @args    Struct of args to be passed to the viewlet
+	 */
+	public string function renderDelayedViewletTag(
+		  required string event
+		, required struct args
+	) {
+		var tag = "<!--dv:#arguments.event#(";
+		var delim = "";
+
+		for( var key in arguments.args ) {
+			var value = IsSimpleValue( arguments.args[ key ] ) ? arguments.args[ key ] :  SerializeJson( arguments.args[ key ] );
+
+			tag &= delim & key & "=" & UrlEncodedFormat( value );
+			delim = ",";
+		}
+
+		tag &= ")-->";
+
+		return tag;
+	}
+
 // PRIVATE HELPERS
 	private struct function _parseArgs( required string args ) {
 		var parsed = {};
@@ -66,6 +93,10 @@ component {
 			var value = keyValue.trim().listRest( "=" ).trim();
 
 			parsed[ key ] = UrlDecode( value );
+
+			if ( IsJson( parsed[ key ] ) ) {
+				parsed[ key ] = DeserializeJSON( parsed[ key ] );
+			}
 		}
 
 		return parsed;
