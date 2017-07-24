@@ -79,7 +79,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		,          struct  args          = {}
 		,          boolean private       = true
 		,          boolean prepostExempt = true
-		,          boolean delayed       = false
+		,          boolean delayed       = _isViewletDelayed( arguments.event )
 	) output=false {
 		if ( arguments.delayed ) {
 			return instance.wireBox.getInstance( "delayedViewletRendererService" ).renderDelayedViewletTag(
@@ -171,5 +171,45 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 
 		return false;
+	}
+
+	private boolean function _isViewletDelayed( required string event ) {
+		variables._viewletDelayedLookupCache = variables._viewletDelayedLookupCache ?: {};
+
+		if ( _viewletDelayedLookupCache.keyExists( arguments.event ) ) {
+			return _viewletDelayedLookupCache[ arguments.event ];
+		}
+
+		var isDelayed     = false;
+		var defaultAction = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
+		var handler       = arguments.event;
+
+		if ( !handlerExists( handler ) ) {
+			handler = ListAppend( handler, defaultAction, "." );
+		}
+
+		if ( handlerExists( handler ) && instance.wirebox.getInstance( "featureService" ).isFeatureEnabled( "fullPageCaching" ) ) {
+			var action     = ListLast( handler, "." );
+			var handlerSvc = getHandlerService();
+
+			handler = handlerSvc.getRegisteredHandler( event=handler );
+			handler = handlerSvc.getHandler( handler, getRequestContext() );
+			handler = GetMetaData( handler );
+
+			var functions = handler.functions ?: [];
+
+			for( var func in functions ) {
+				if ( ( func.name ?: "" ) == action ) {
+					var cacheable = func.cacheable ?: "";
+
+					isDelayed = IsBoolean( func.cacheable ?: "" ) && !func.cacheable;
+					break;
+				}
+			}
+		}
+
+		_viewletDelayedLookupCache[ arguments.event ] = isDelayed;
+
+		return isDelayed;
 	}
 }
