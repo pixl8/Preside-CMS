@@ -103,20 +103,6 @@ component output=false {
 					}
 				},
 
-				ViewletExistsCache = {
-					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
-					, properties = {
-						  objectDefaultTimeout           = 0
-						, objectDefaultLastAccessTimeout = 0
-						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 10
-						, evictionPolicy                 = "LFU"
-						, evictCount                     = 200
-						, maxObjects                     = 1000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
-					}
-				},
-
 				LabelRendererCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {

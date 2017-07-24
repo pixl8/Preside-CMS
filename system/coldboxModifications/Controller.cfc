@@ -10,62 +10,57 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public boolean function handlerExists( required string event ) output=false {
-		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
+		variables._handlerExistsCache = variables._handlerExistsCache ?: {};
+		if ( variables._handlerExistsCache.keyExists( arguments.event ) ) {
+			return variables._handlerExistsCache[ arguments.event ];
+		}
+
 		var handlerSvc = "";
 		var handler    = "";
 		var action     = ListLast( arguments.event, "." );
-		var cacheKey   = "handler exists: " & arguments.event;
-		var exists     = cache.get( cacheKey );
-
-		if ( not IsNull( exists ) ) {
-			return exists;
-		}
+		var exists     = false;
 
 		try {
 			handlerSvc = getHandlerService();
 			handler = handlerSvc.getRegisteredHandler( event=arguments.event );
 
 			if ( handler.getViewDispatch() ) {
-				cache.set( cacheKey, false );
-				return false;
+				exists = false;
+			} else {
+				var fullEvent = handler.getFullEvent();
+				if ( fullEvent != arguments.event && fullEvent != ( arguments.event & ".index" ) ) {
+					exists = false;
+				} else {
+					handler = handlerSvc.getHandler( handler, getRequestContext() );
+					handler = GetMetaData( handler );
+
+					if ( Right( handler.fullname ?: "", Len( arguments.event ) ) eq arguments.event ) {
+						action = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
+					}
+
+					exists = _actionExistsInHandler( handler, action );
+				}
 			}
 
-			var fullEvent = handler.getFullEvent();
-			if ( fullEvent != arguments.event && fullEvent != ( arguments.event & ".index" ) ) {
-				cache.set( cacheKey, false );
-				return false;
-			}
-
-			handler = handlerSvc.getHandler( handler, getRequestContext() );
-			handler = GetMetaData( handler );
-			if ( Right( handler.fullname ?: "", Len( arguments.event ) ) eq arguments.event ) {
-				action = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
-			}
-			exists = _actionExistsInHandler( handler, action );
-			cache.set( cacheKey, exists );
-
-			return exists;
 
 		} catch( "HandlerService.EventHandlerNotRegisteredException" e ) {
-			cache.set( cacheKey, false );
-			return false;
+			exists = false;
 		}
+
+		variables._handlerExistsCache[ arguments.event ] = exists;
+		return exists;
 	}
 
 	public boolean function viewExists( required string view ) output=false {
-		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
-		var cacheKey   = "view exists: " & arguments.view;
-		var exists     = cache.get( cacheKey );
-		var targetView = "";
-
-		if ( not IsNull( exists ) ) {
-			return exists;
+		variables._viewExistsCache = variables._viewExistsCache ?: {};
+		if ( variables._viewExistsCache.keyExists( arguments.view ) ) {
+			return variables._viewExistsCache[ arguments.view ];
 		}
 
-		targetView = getPlugin( "Renderer" ).locateView( ListChangeDelims( arguments.view, "/", "." ) );
-		exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
+		var targetView = getPlugin( "Renderer" ).locateView( ListChangeDelims( arguments.view, "/", "." ) );
+		var exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
 
-		cache.set( cacheKey, exists );
+		variables._viewExistsCache[ arguments.view ] = exists;
 
 		return exists;
 	}
@@ -92,7 +87,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var handler       = arguments.event;
 		var defaultAction = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
 
-		if ( not handlerExists( handler ) ) {
+		if ( !handlerExists( handler ) ) {
 			handler = ListAppend( handler, defaultAction, "." );
 		}
 
@@ -106,28 +101,14 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 
 		view = ListChangeDelims( arguments.event, "/", "." );
-		if ( not viewExists( view ) ) {
+		if ( !viewExists( view ) ) {
 			view = ListAppend( view, defaultAction, "/" );
 		}
 
-		try {
-			return getPlugin( "Renderer" ).renderView(
-				  view = view
-				, args = arguments.args
-			);
-		} catch ( "missinginclude" e ) {
-			var cache             = getCacheBox().getCache( "ViewletExistsCache" );
-			var missingCheckedKey = "doublecheckmissing" & arguments.event;
-			var checkedAlready    = cache.get( missingCheckedKey );
-
-			if ( IsNull( checkedAlready ) ) {
-				cache.clearAll();
-				cache.set( missingCheckedKey, true );
-				return renderViewlet( argumentCollection=arguments );
-			}
-
-			rethrow;
-		}
+		return getPlugin( "Renderer" ).renderView(
+			  view = view
+			, args = arguments.args
+		);
 	}
 
 	public any function getRequestContext() output=false {
