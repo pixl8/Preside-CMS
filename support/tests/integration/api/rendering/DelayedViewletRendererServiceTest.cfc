@@ -6,8 +6,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var service    = _getService();
 				var complexArg = { test="this" };
 				var dvs        = [
-					  "<!--dv:test.viewlet( arg1=true, arg2=test, arg3=#UrlEncodedFormat( SerializeJson( complexArg ) )# )-->"
-					, "<!--dv:another.test.viewlet(arg3=false)-->"
+					  "<!--dv:test.viewlet( arg1=#ToBase64( 'true' )#, arg2=#ToBase64( 'test' )#, arg3=#ToBase64( SerializeJson( complexArg ) )# )-->"
+					, "<!--dv:another.test.viewlet(arg3=#ToBase64( 'false' )#)-->"
 					, "<!--dv:nested.viewlet()-->"
 				];
 				var replacements = {
@@ -29,16 +29,19 @@ cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt mollit anim id est laborum.";
 
 				mockColdbox.$( "renderViewlet" ).$args(
-					  event = "test.viewlet"
-					, args  = { arg1=true, arg2='test', arg3=complexArg }
+					  event   = "test.viewlet"
+					, args    = { arg1=true, arg2='test', arg3=complexArg }
+					, delayed = false
 				).$results( replacements[ dvs[1] ] );
 				mockColdbox.$( "renderViewlet" ).$args(
-					  event = "another.test.viewlet"
-					, args  = { arg3=false }
+					  event   = "another.test.viewlet"
+					, args    = { arg3=false }
+					, delayed = false
 				).$results( replacements[ dvs[2] ] );
 				mockColdbox.$( "renderViewlet" ).$args(
-					  event = "nested.viewlet"
-					, args  = {}
+					  event   = "nested.viewlet"
+					, args    = {}
+					, delayed = false
 				).$results( replacements[ dvs[3] ] );
 
 
@@ -58,7 +61,7 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 				args.aNumber     = 345
 				args.aComplexOne = { fubar=true, test={ stuff=CreateUUId() } }
 
-				expected = "<!--dv:#event#(aBool=true,aString=test,aNumber=345,aComplexOne=#UrlEncodedFormat( SerializeJson( args.aComplexOne ) )#)-->";
+				expected = "<!--dv:#event#(aBool=#ToBase64( 'true' )#,aString=#ToBase64( 'test' )#,aNumber=#ToBase64( '345' )#,aComplexOne=#ToBase64( SerializeJson( args.aComplexOne ) )#)-->";
 
 				expect( service.renderDelayedViewletTag(
 					  event = event

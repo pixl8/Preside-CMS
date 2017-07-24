@@ -23,16 +23,16 @@ component {
 	 *
 	 */
 	public string function renderDelayedViewlets( required string content ) {
-		var urlEncodedArgsRegex = "[a-zA-Z0-9%=,_\$\s]*"
-		var dvPattern       = "<!--dv:(.*?)\((#urlEncodedArgsRegex#)\)-->";
-		var processed       = arguments.content;
-		var cb              = $getColdbox();
-		var patternFound    = false;
-		var match           = "";
-		var wholeMatch      = "";
-		var viewlet         = "";
-		var argsString      = "";
-		var renderedViewlet = "";
+		var encodedArgsRegex = "[a-zA-Z0-9%=,_\$\s\+\/]*"
+		var dvPattern        = "<!--dv:(.*?)\((#encodedArgsRegex#)\)-->";
+		var processed        = arguments.content;
+		var cb               = $getColdbox();
+		var patternFound     = false;
+		var match            = "";
+		var wholeMatch       = "";
+		var viewlet          = "";
+		var argsString       = "";
+		var renderedViewlet  = "";
 
 		do {
 			match        = processed.reFind( dvPattern, 1, true );
@@ -44,8 +44,9 @@ component {
 				viewlet     = processed.mid( match.pos[ 2 ], match.len[ 2 ] );
 				argsString  = processed.mid( match.pos[ 3 ], match.len[ 3 ] );
 				renderedViewlet = cb.renderViewlet(
-					  event = viewlet
-					, args  = _parseArgs( argsString.trim() )
+					  event   = viewlet
+					, args    = _parseArgs( argsString.trim() )
+					, delayed = false
 				);
 
 				processed = processed.replace( wholeMatch, renderedViewlet ?: "", "all" );
@@ -74,7 +75,7 @@ component {
 		for( var key in arguments.args ) {
 			var value = IsSimpleValue( arguments.args[ key ] ) ? arguments.args[ key ] :  SerializeJson( arguments.args[ key ] );
 
-			tag &= delim & key & "=" & UrlEncodedFormat( value );
+			tag &= delim & key & "=" & ToBase64( value );
 			delim = ",";
 		}
 
@@ -92,7 +93,7 @@ component {
 			var key   = keyValue.trim().listFirst( "=" ).trim();
 			var value = keyValue.trim().listRest( "=" ).trim();
 
-			parsed[ key ] = UrlDecode( value );
+			parsed[ key ] = ToString( ToBinary( value ) );
 
 			if ( IsJson( parsed[ key ] ) ) {
 				parsed[ key ] = DeserializeJSON( parsed[ key ] );
