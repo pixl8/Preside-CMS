@@ -101,29 +101,33 @@ component {
 	public boolean function isViewletDelayedByDefault( required string viewlet, boolean defaultValue=false ) {
 		variables._viewletDelayedLookupCache = variables._viewletDelayedLookupCache ?: {};
 
-		var cacheKey = arguments.viewlet & ":default:" & arguments.defaultValue;
+		var cacheKey  = arguments.viewlet & ":default:" & arguments.defaultValue;
+		var isDelayed = arguments.defaultValue;
 
 		if ( _viewletDelayedLookupCache.keyExists( cacheKey ) ) {
 			return _viewletDelayedLookupCache[ cacheKey ];
 		}
 
-		var coldbox       = $getColdbox();
-		var isDelayed     = arguments.defaultValue;
-		var defaultAction = _getDefaultHandlerAction();
-		var handlerName   = arguments.viewlet;
-		var handlerExists = coldbox.handlerExists( handlerName );
+		if ( $isFeatureEnabled( "fullPageCaching" ) ) {
+			var coldbox       = $getColdbox();
+			var defaultAction = _getDefaultHandlerAction();
+			var handlerName   = arguments.viewlet;
+			var handlerExists = coldbox.handlerExists( handlerName );
 
-		if ( !handlerExists ) {
-			handlerName = ListAppend( handlerName, defaultAction, "." );
-			handlerExists = coldbox.handlerExists( handlerName );
-		}
-
-		if ( handlerExists ) {
-			var meta = _getHandlerMethodMeta( handlerName );
-
-			if ( IsBoolean( meta.cacheable ?: "" ) ) {
-				isDelayed = !meta.cacheable;
+			if ( !handlerExists ) {
+				handlerName = ListAppend( handlerName, defaultAction, "." );
+				handlerExists = coldbox.handlerExists( handlerName );
 			}
+
+			if ( handlerExists ) {
+				var meta = _getHandlerMethodMeta( handlerName );
+
+				if ( IsBoolean( meta.cacheable ?: "" ) ) {
+					isDelayed = !meta.cacheable;
+				}
+			}
+		} else {
+			isDelayed = false;
 		}
 
 		_viewletDelayedLookupCache[ cacheKey ] = isDelayed;

@@ -113,6 +113,18 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 
 				expect( service.isViewletDelayedByDefault( viewlet, true ) ).toBe( true );
 			} );
+
+			it( "should return false when the fullPageCaching feature is disabled", function(){
+				var service           = _getService();
+				var viewlet           = "test.this.viewlet";
+				var handlerMethodMeta = { name="viewlet", private=true, cacheable=false };
+
+				mockColdbox.$( "handlerExists" ).$args( viewlet ).$results( true );
+				service.$( "_getHandlerMethodMeta" ).$args( viewlet ).$results( handlerMethodMeta );
+				service.$( "$isFeatureEnabled" ).$args( "fullPageCaching" ).$results( false );
+
+				expect( service.isViewletDelayedByDefault( viewlet ) ).toBe( false );
+			} );
 		} );
 	}
 
@@ -124,6 +136,7 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$isFeatureEnabled", true );
 
 		return service;
 	}
