@@ -204,10 +204,7 @@
 			for( var filterByField in filterByFields ) {
 				filterValue = rc[filterByField] ?: "";
 				if( !isEmpty( filterValue ) ){
-					extraFilters.append({
-						  filter       = "#filterByField# in ( :#filterByField# )"
-						, filterParams = { "#filterByField#" = listToArray( filterValue ) }
-					});
+					extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
 				}
 			}
 
