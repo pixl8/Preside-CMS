@@ -2,6 +2,7 @@ component extends="coldbox.system.Interceptor" {
 
 	property name="cache"                         inject="cachebox:template";
 	property name="delayedViewletRendererService" inject="delayedInjector:delayedViewletRendererService";
+	property name="loginService"                  inject="delayedInjector:websiteLoginService";
 
 // PUBLIC
 	public void function configure() {}
@@ -46,7 +47,9 @@ component extends="coldbox.system.Interceptor" {
 
 // PRIVATE HELPERS
 	private string function _getCacheKey( event ) {
-		return "pagecache" & event.getCurrentUrl();
+		var isLoggedIn = loginService.get().isLoggedIn();
+
+		return "pagecache" & event.getCurrentUrl() & ( isLoggedIn ? "$loggedin" : "" );
 	}
 
 	private void function _clearCaches( event, interceptData ) {
