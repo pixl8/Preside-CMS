@@ -57,12 +57,8 @@
 				var validator = $('###formId#').validate()
 				  , options   = #validationJs#;
 
-				options.rules    = $.extend( validator.settings.rules   , options.rules    );
-				options.messages = $.extend( validator.settings.messages, options.messages );
-
-				validator.destroy();
-
-				$('###formId#').validate( options );
+				validator.settings.rules    = $.extend( validator.settings.rules   , options.rules    );
+				validator.settings.messages = $.extend( validator.settings.messages, options.messages );
 			} )( #validationJsJqueryRef# );
 		</cfsavecontent>
 		<cfset event.includeInlineJs( validationJs ) />
