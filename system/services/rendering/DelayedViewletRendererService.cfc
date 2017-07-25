@@ -9,7 +9,12 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @defaultHandlerAction.inject coldbox:fwsetting:eventAction
+	 *
+	 */
+	public any function init( required string defaultHandlerAction ) {
+		_setDefaultHandlerAction( arguments.defaultHandlerAction );
 		return this;
 	}
 
@@ -84,6 +89,47 @@ component {
 		return tag;
 	}
 
+	/**
+	 * Accepts a viewlet and returns whether or not it should be 'delayed rendered'
+	 * by default
+	 *
+	 * @autodoc      true
+	 * @viewlet      ID of the viewlet
+	 * @defaultValue If the viewlet's handler does not specify any cacheable instruction, use this value
+	 *
+	 */
+	public boolean function isViewletDelayedByDefault( required string viewlet, boolean defaultValue=false ) {
+		variables._viewletDelayedLookupCache = variables._viewletDelayedLookupCache ?: {};
+
+		var cacheKey = arguments.viewlet & ":default:" & arguments.defaultValue;
+
+		if ( _viewletDelayedLookupCache.keyExists( cacheKey ) ) {
+			return _viewletDelayedLookupCache[ cacheKey ];
+		}
+
+		var coldbox       = $getColdbox();
+		var isDelayed     = arguments.defaultValue;
+		var defaultAction = _getDefaultHandlerAction();
+		var handlerName   = arguments.viewlet;
+		var handlerExists = coldbox.handlerExists( handlerName );
+
+		if ( !handlerExists ) {
+			handlerName = ListAppend( handlerName, defaultAction, "." );
+			handlerExists = coldbox.handlerExists( handlerName );
+		}
+
+		if ( handlerExists ) {
+			var meta = _getHandlerMethodMeta( handlerName );
+
+			if ( IsBoolean( meta.cacheable ?: "" ) ) {
+				isDelayed = !meta.cacheable;
+			}
+		}
+
+		_viewletDelayedLookupCache[ cacheKey ] = isDelayed;
+		return isDelayed;
+	}
+
 // PRIVATE HELPERS
 	private struct function _parseArgs( required string args ) {
 		var parsed = {};
@@ -103,4 +149,29 @@ component {
 		return parsed;
 	}
 
+	private struct function _getHandlerMethodMeta( required string handlerName ) {
+		var action            = ListLast( arguments.handlerName, "." );
+		var coldbox           = $getColdbox();
+		var handlerSvc        = coldbox.getHandlerService();
+		var handlerDescriptor = handlerSvc.getRegisteredHandler( event=arguments.handlerName );
+		var handlerObject     = handlerSvc.getHandler( handlerDescriptor, coldbox.getRequestService().getContext() );
+		var handlerMeta       = GetMetaData( handlerObject );
+		var functions         = handlerMeta.functions ?: [];
+
+		for( var func in functions ) {
+			if ( ( func.name ?: "" ) == action ) {
+				return func;
+			}
+		}
+
+		return {};
+	}
+
+// GETTERS AND SETTERS
+	private string function _getDefaultHandlerAction() {
+		return _defaultHandlerAction;
+	}
+	private void function _setDefaultHandlerAction( required string defaultHandlerAction ) {
+		_defaultHandlerAction = arguments.defaultHandlerAction;
+	}
 }

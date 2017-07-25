@@ -69,12 +69,59 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 				) ).toBe( expected );
 			} );
 		} );
+
+		describe( "isViewletDelayedByDefault()", function(){
+			it( "should return false when viewlet does not have a handler", function(){
+				var service = _getService();
+				var viewlet = "test.this.viewlet";
+
+				mockColdbox.$( "handlerExists" ).$args( viewlet ).$results( false );
+				mockColdbox.$( "handlerExists" ).$args( viewlet & ".index" ).$results( false );
+
+				expect( service.isViewletDelayedByDefault( viewlet ) ).toBe( false );
+			} );
+
+			it( "should return false when viewlet has a handler that does not set any 'cacheable' attribute", function(){
+				var service           = _getService();
+				var viewlet           = "test.this.viewlet";
+				var handlerMethodMeta = { name="viewlet", private=true };
+
+				mockColdbox.$( "handlerExists" ).$args( viewlet ).$results( true );
+				service.$( "_getHandlerMethodMeta" ).$args( viewlet ).$results( handlerMethodMeta );
+
+				expect( service.isViewletDelayedByDefault( viewlet ) ).toBe( false );
+			} );
+
+			it( "should return true when viewlet has a hander that sets a 'cacheable' attribute that is set to false", function(){
+				var service           = _getService();
+				var viewlet           = "test.this.viewlet";
+				var handlerMethodMeta = { name="viewlet", private=true, cacheable=false };
+
+				mockColdbox.$( "handlerExists" ).$args( viewlet ).$results( true );
+				service.$( "_getHandlerMethodMeta" ).$args( viewlet ).$results( handlerMethodMeta );
+
+				expect( service.isViewletDelayedByDefault( viewlet ) ).toBe( true );
+			} );
+
+			it( "should return true when _default_ is passed as true and viewlet does not specify any 'cacheable' instruction", function(){
+				var service           = _getService();
+				var viewlet           = "test.this.viewlet";
+				var handlerMethodMeta = { name="viewlet", private=true };
+
+				mockColdbox.$( "handlerExists" ).$args( viewlet ).$results( true );
+				service.$( "_getHandlerMethodMeta" ).$args( viewlet ).$results( handlerMethodMeta );
+
+				expect( service.isViewletDelayedByDefault( viewlet, true ) ).toBe( true );
+			} );
+		} );
 	}
 
 	private function _getService(){
 		variables.mockColdbox = CreateStub();
 
-		var service = CreateMock( object=new preside.system.services.rendering.DelayedViewletRendererService() );
+		var service = CreateMock( object=new preside.system.services.rendering.DelayedViewletRendererService(
+			defaultHandlerAction = "index"
+		) );
 
 		service.$( "$getColdbox", mockColdbox );
 
