@@ -480,6 +480,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public void function checkPageAccess() output=false {
+		if ( !getCurrentPageId().len() ) {
+			return;
+		}
+
 		var websiteLoginService = getModel( "websiteLoginService" );
 		var accessRules         = getPageAccessRules();
 
