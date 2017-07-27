@@ -724,6 +724,40 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 
+	public struct function getCacheableRequestData() {
+		var event         = getRequestContext();
+		var rc            = event.getCollection( private=false );
+		var prc           = event.getCollection( private=true  );
+		var cacheableVars = { prc={}, rc={} };
+		var isCacheable   = function( value ) {
+			return IsSimpleValue( value ) || IsArray( value ) || IsStruct( value ) || IsQuery( value );
+		};
+
+		for( var key in rc ) {
+			if ( isCacheable( rc[ key ] ) ) {
+				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+			}
+		}
+		for( var key in prc ) {
+			if ( isCacheable( prc[ key ] ) ) {
+				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+			}
+		}
+
+		return cacheableVars;
+	}
+
+	public void function restoreCachedData( required struct cachedData ) {
+		var event = getRequestContext();
+		var rc    = event.getCollection( private=false );
+		var prc   = event.getCollection( private=true  );
+
+		rc.append( cachedData.rc ?: {}, false );
+		prc.append( cachedData.prc ?: {}, false );
+
+		getController().getRequestService().getFlashScope().inflateFlash();
+	}
+
 // status codes
 	public void function notFound() output=false {
 		announceInterception( "onNotFound" );

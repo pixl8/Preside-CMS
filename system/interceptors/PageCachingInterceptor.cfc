@@ -13,11 +13,11 @@ component extends="coldbox.system.Interceptor" {
 			var cached   = cache.get( cacheKey );
 
 			if ( !IsNull( cached ) ) {
+				event.restoreCachedData( cached.data ?: {} );
 				content reset=true;
-				echo( delayedViewletRendererService.renderDelayedViewlets( cached ) );
+				echo( delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" ) );
 				abort;
 			}
-
 		}
 	}
 
@@ -26,7 +26,10 @@ component extends="coldbox.system.Interceptor" {
 
 		if ( event.cachePage() ) {
 			var cacheKey = _getCacheKey( event );
-			cache.set( cacheKey, content )
+			cache.set( cacheKey, {
+				  body = content
+				, data = event.getCacheableRequestData()
+			} )
 		}
 
 		interceptData.renderedContent = delayedViewletRendererService.renderDelayedViewlets( content );
