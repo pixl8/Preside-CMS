@@ -86,6 +86,10 @@ component {
 		var dateCreatedField  = poService.getdateCreatedField( arguments.objectName );
 		var dateModifiedField = poService.getdateModifiedField( arguments.objectName );
 
+		if ( !existingRecords.recordCount ) {
+			existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=false );
+		}
+
 		newData.delete( dateCreatedField  );
 		newData.delete( dateModifiedField );
 
