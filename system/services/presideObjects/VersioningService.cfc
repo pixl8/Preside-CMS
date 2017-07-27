@@ -262,11 +262,11 @@ component {
 
 				var propDbType = ( properties[ field ].dbtype ?: "" );
 
-				if ( propDbType == "boolean" && IsEmpty( arguments.newData[ field ] ?: "" ) ) {
-					arguments.newData[ field ] = 0;
-				}
-
-				if ( ( propDbType == "datetime" || propDbType == "date" ) && isDate( arguments.newData[ field ] ?: "" ) && isDate( oldData[ field ] ) ) {
+				if ( propDbType == "boolean" && IsBoolean( arguments.newData[ field ] && IsBoolean( oldData[ field ] ) ) ) {
+					if ( arguments.newData[ field ] != oldData[ field ] ) {
+						changedFields.append( field );
+					}
+				} else if ( ( propDbType == "datetime" || propDbType == "date" ) && isDate( arguments.newData[ field ] ?: "" ) && isDate( oldData[ field ] ) ) {
 					if ( dateCompare( oldData[ field ], arguments.newData[ field ] ) ) {
 						changedFields.append( field );
 					}
