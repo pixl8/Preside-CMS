@@ -223,7 +223,7 @@ component {
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]

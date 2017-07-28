@@ -9,6 +9,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="messageBox"                       inject="coldbox:plugin:messageBox";
+	property name="pageCache"                        inject="cachebox:PresidePageCache";
 
 	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -1067,6 +1068,26 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function previewPage( event, rc, prc ) {
 		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ) ) );
+	}
+
+	public void function clearPageCacheAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="clearcaches" );
+
+		var pageId = rc.id ?: "";
+
+		if ( pageId.isEmpty() ) {
+			pageCache.clearAll();
+		} else {
+			var pageUrl    = event.buildLink( page=pageId ).reReplace( "^https?://.*?/", "/" );
+			var sectionUrl = pageUrl.reReplace( "\.html$", "/" );
+
+			pageCache.clearByKeySnippet( pageUrl );
+			pageCache.clearByKeySnippet( sectionUrl );
+		}
+
+		messagebox.info( translateResource( "cms:sitetree.flush.cache.confirmation" ) );
+
+		setNextEvent( url=event.buildAdminLink( "sitetree" ) );
 	}
 
 <!--- private viewlets --->
