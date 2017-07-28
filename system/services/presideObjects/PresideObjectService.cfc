@@ -2505,10 +2505,17 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) {
-		return _getRelationshipGuidance().resolveRelationshipPathToTargetObject(
-			  sourceObject     = arguments.startObject
-			, relationshipPath = arguments.joinSyntax
-		);
+		variables._relationshipPathCalcCache = variables._relationshipPathCalcCache ?: {};
+		var cacheKey = arguments.startObject & arguments.joinSyntax;
+
+		if ( !_relationshipPathCalcCache.keyExists( cacheKey ) ) {
+			_relationshipPathCalcCache[ cacheKey ] = _getRelationshipGuidance().resolveRelationshipPathToTargetObject(
+				  sourceObject     = arguments.startObject
+				, relationshipPath = arguments.joinSyntax
+			);
+		}
+
+		return _relationshipPathCalcCache[ cacheKey ];
 	}
 
 	private struct function _prepareFilter(

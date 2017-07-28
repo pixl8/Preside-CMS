@@ -477,6 +477,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public void function checkPageAccess() output=false {
+		if ( !getCurrentPageId().len() ) {
+			return;
+		}
+
 		var websiteLoginService = getModel( "websiteLoginService" );
 		var accessRules         = getPageAccessRules();
 
@@ -701,6 +705,72 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		}
 
 		return this;
+	}
+
+// CACHING HELPERS
+	public boolean function cachePage( boolean cache ) output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		if ( arguments.keyExists( "cache" ) ) {
+			prc._cachePage = arguments.cache;
+			return;
+		}
+
+		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
+		    && !event.valueExists( "fwreinit" )
+		    && !this.isAdminUser()
+		    && event.getHTTPMethod() == "GET"
+		    && !this.getCurrentUrl().startsWith( "/asset/" )
+		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
+	}
+
+	public struct function getCacheableRequestData() output=false {
+		var event         = getRequestContext();
+		var rc            = event.getCollection( private=false );
+		var prc           = event.getCollection( private=true  );
+		var cacheableVars = { prc={}, rc={} };
+		var isCacheable   = function( value ) {
+			return IsSimpleValue( value ) || IsArray( value ) || IsStruct( value ) || IsQuery( value );
+		};
+
+		for( var key in rc ) {
+			if ( isCacheable( rc[ key ] ) ) {
+				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+			}
+		}
+		for( var key in prc ) {
+			if ( isCacheable( prc[ key ] ) ) {
+				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+			}
+		}
+
+		return cacheableVars;
+	}
+
+	public void function restoreCachedData( required struct cachedData ) output=false {
+		var event = getRequestContext();
+		var rc    = event.getCollection( private=false );
+		var prc   = event.getCollection( private=true  );
+
+		rc.append( cachedData.rc ?: {}, false );
+		prc.append( cachedData.prc ?: {}, false );
+
+		getController().getRequestService().getFlashScope().inflateFlash();
+	}
+
+	public void function setPageCacheTimeout( required numeric timeoutInSeconds ) output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		prc._pageCacheTimeout = arguments.timeoutInSeconds;
+	}
+
+	public any function getPageCacheTimeout() output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		return prc._pageCacheTimeout ?: NullValue();
 	}
 
 // status codes

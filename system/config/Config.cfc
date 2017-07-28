@@ -51,7 +51,8 @@ component {
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } },
+			{ class="preside.system.interceptors.PageCachingInterceptor"              , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -223,7 +224,7 @@ component {
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
@@ -323,6 +324,7 @@ component {
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
 			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
+			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
