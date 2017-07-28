@@ -162,7 +162,7 @@ component extends="coldbox.system.web.Controller" {
 
 	private any function _getDelayedViewletRendererService() {
 		if ( !variables.keyExists( "_delayedViewletRendererService" ) ) {
-			variables._delayedViewletRendererService = instance.wireBox.getInstance( "delayedViewletRendererService" );
+			variables._delayedViewletRendererService = wireBox.getInstance( "delayedViewletRendererService" );
 		}
 
 		return variables._delayedViewletRendererService;
