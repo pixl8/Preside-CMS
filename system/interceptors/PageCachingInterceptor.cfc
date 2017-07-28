@@ -1,6 +1,6 @@
 component extends="coldbox.system.Interceptor" {
 
-	property name="cache"                         inject="cachebox:template";
+	property name="cache"                         inject="cachebox:PresidePageCache";
 	property name="delayedViewletRendererService" inject="delayedInjector:delayedViewletRendererService";
 	property name="loginService"                  inject="delayedInjector:websiteLoginService";
 
