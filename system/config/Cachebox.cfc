@@ -1,4 +1,5 @@
-component output=false {
+component {
+
 	function configure(){
 		cacheBox = {
 			// core coldbox cache
