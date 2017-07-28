@@ -262,7 +262,7 @@ component {
 
 				var propDbType = ( properties[ field ].dbtype ?: "" );
 
-				if ( propDbType == "boolean" && IsBoolean( arguments.newData[ field ] && IsBoolean( oldData[ field ] ) ) ) {
+				if ( propDbType == "boolean" && IsBoolean( arguments.newData[ field ] ) && IsBoolean( oldData[ field ] ) ) {
 					if ( arguments.newData[ field ] != oldData[ field ] ) {
 						changedFields.append( field );
 					}
