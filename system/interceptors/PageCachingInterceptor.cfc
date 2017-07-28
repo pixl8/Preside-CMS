@@ -26,11 +26,11 @@ component extends="coldbox.system.Interceptor" {
 		var content = interceptData.renderedContent ?: "";
 
 		if ( event.cachePage() ) {
-			var cacheKey = _getCacheKey( event );
-			cache.set( cacheKey, {
-				  body = content
-				, data = event.getCacheableRequestData()
-			} )
+			cache.set(
+				  objectKey = _getCacheKey( event )
+				, object    = { body=content, data=event.getCacheableRequestData() }
+				, timeout   = event.getPageCacheTimeout()
+			);
 		}
 
 		interceptData.renderedContent = delayedViewletRendererService.renderDelayedViewlets( content );

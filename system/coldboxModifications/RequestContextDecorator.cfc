@@ -728,7 +728,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 
-	public struct function getCacheableRequestData() {
+	public struct function getCacheableRequestData() output=false {
 		var event         = getRequestContext();
 		var rc            = event.getCollection( private=false );
 		var prc           = event.getCollection( private=true  );
@@ -751,7 +751,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return cacheableVars;
 	}
 
-	public void function restoreCachedData( required struct cachedData ) {
+	public void function restoreCachedData( required struct cachedData ) output=false {
 		var event = getRequestContext();
 		var rc    = event.getCollection( private=false );
 		var prc   = event.getCollection( private=true  );
@@ -760,6 +760,20 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		prc.append( cachedData.prc ?: {}, false );
 
 		getController().getRequestService().getFlashScope().inflateFlash();
+	}
+
+	public void function setPageCacheTimeout( required numeric timeoutInSeconds ) output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		prc._pageCacheTimeout = arguments.timeoutInSeconds;
+	}
+
+	public any function getPageCacheTimeout() output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		return prc._pageCacheTimeout ?: NullValue();
 	}
 
 // status codes
