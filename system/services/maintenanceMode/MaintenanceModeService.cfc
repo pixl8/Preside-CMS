@@ -53,6 +53,10 @@ component {
 	}
 
 	public boolean function canRequestBypassMaintenanceMode() {
+		if ( !_areSessionsEnabled() ) {
+			return false;
+		}
+
 		var settings       = getMaintenanceModeSettings();
 		var safeIps        = settings.allowedIps ?: [];
 		var bypassPassword = settings.bypassPassword;
@@ -96,7 +100,7 @@ component {
 			return {};
 		}
 	}
-	private void function _writeMaintenanceModeToFile( required struct maintenanceModeSettings ) ouptut=false {
+	private void function _writeMaintenanceModeToFile( required struct maintenanceModeSettings ) {
 		var filePath = _getConfigPath();
 
 		FileWrite( filePath, SerializeJson( arguments.maintenanceModeSettings ) );
@@ -107,6 +111,12 @@ component {
 	}
 	private void function _setApplicationVariable( required struct maintenanceModeSettings ) {
 		application.presideMaintenanceMode = arguments.maintenanceModeSettings;
+	}
+
+	private boolean function _areSessionsEnabled() {
+		var appSettings = getApplicationSettings( true );
+
+		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
 	}
 
 // getters and setters
