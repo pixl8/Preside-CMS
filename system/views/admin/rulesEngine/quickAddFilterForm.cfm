@@ -12,7 +12,11 @@
 			, context          = "admin"
 			, formId           = formId
 			, validationResult = args.validationResult
-			, additionalData   = { contextData=prc.contextData ?: {} }
+			, additionalArgs   = { fields={ expressions={
+				  contextData           = prc.contextData          ?: {}
+				, preSavedFilters       = rc.preSavedFilters       ?: ""
+				, preRulesEngineFilters = rc.preRulesEngineFilters ?: ""
+			  } } }
 		)#
 	</form>
 </cfoutput>

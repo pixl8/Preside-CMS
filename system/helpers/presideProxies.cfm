@@ -88,7 +88,15 @@
 
 <!--- FORMS --->
 	<cffunction name="renderForm" access="public" returntype="any" output="false">
-		<cfreturn getSingleton( "formsService" ).renderForm( argumentCollection=arguments ) />
+		<cfscript>
+			if ( !arguments.keyExists( "validationJsJqueryRef" ) ) {
+				var event = getController().getRequestContext();
+
+				arguments.validationJsJqueryRef = event.isAdminRequest() ? "presideJQuery" : "jQuery";
+			}
+
+			return getSingleton( "formsService" ).renderForm( argumentCollection=arguments );
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="renderFormControl" access="public" returntype="any" output="false">

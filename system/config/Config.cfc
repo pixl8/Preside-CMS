@@ -365,7 +365,7 @@ component {
 
 		settings.antiSamy = {
 			  enabled                 = true
-			, policy                  = "myspace"
+			, policy                  = "preside"
 			, bypassForAdministrators = true
 		};
 

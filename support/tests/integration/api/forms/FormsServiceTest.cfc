@@ -363,6 +363,48 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( stripped );
 			} );
 
+			it( "should return a merged form when requested form has an 'extends' definition for another valid form", function(){
+				var formsSvc   = _getFormsService( "/tests/resources/formsService/extending" );
+				var definition = formsSvc.getForm( "form1" );
+
+				expect( definition ).toBe( {
+					  extends = "form2"
+					, tabs    = [{
+						  id          = "tab1"
+						, title       = ""
+						, description = ""
+						, fieldsets   = [{
+							  id          = "fieldset1"
+							, title       = ""
+							, description = ""
+							, fields      = [
+								  { name="field1", rules=[] }
+								, { name="testfield", rules=[] }
+							  ]
+						  },{
+							  id          = "fieldset6"
+							, title       = ""
+							, description = ""
+							, fields      = [
+								{ name="testfield2", rules=[] }
+							  ]
+						  }]
+					  },{
+						  id          = "tab3"
+						, title       = ""
+						, description = ""
+						, fieldsets   = [{
+							  id          = "fieldset5"
+							, title       = ""
+							, description = ""
+							, fields      = [
+								{ name="anothertestfield", rules=[] }
+							  ]
+						  }]
+					  }]
+				} );
+			} );
+
 		} );
 
 		describe( "readForm()", function(){
