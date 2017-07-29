@@ -582,6 +582,11 @@ component {
 			, transformations = [ { method="shrinkToFit", args={ width=100, height=100 } } ]
 		};
 
+		derivatives.adminCropping = {
+			  permissions = "inherit"
+			, transformations = [ { method="shrinkToFit", args={ width=300, height=300 } } ]
+		};
+
 		return derivatives;
 	}
 

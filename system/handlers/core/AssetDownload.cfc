@@ -16,12 +16,13 @@ component output=false {
 		var asset             = "";
 		var assetSelectFields = [ "asset.title", "asset.is_trashed" ];
 		var passwordProtected = false;
-
+		var config            = assetManagerService.getDerivativeConfig( assetId );
+		var configHash        = assetManagerService.getDerivativeConfigHash( config );
+		
 		try {
 			if ( Len( Trim( derivativeName ) ) ) {
 				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
-
-				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
+				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, selectFields=assetSelectFields );
 			} else if( Len( Trim( versionId ) ) ) {
 				arrayAppend( assetSelectFields , "asset_version.asset_type" );
 				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
@@ -44,11 +45,11 @@ component output=false {
 			if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
 				var assetBinary = "";
 				var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
-				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
+				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, throwOnMissing=true, isTrashed=isTrashed  );
 				_doBrowserEtagLookup( etag );
 
 				if ( Len( Trim( derivativeName ) ) ) {
-					assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
+					assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash );
 				} else {
 					assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
 				}
