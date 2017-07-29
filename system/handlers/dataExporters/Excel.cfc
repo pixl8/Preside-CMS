@@ -9,8 +9,7 @@ component {
 	property name="presideObjectService" inject="presideObjectService";
 
 	private any function export(
-		  required array  selectFields
-		, required struct fieldTitles
+		  required struct fieldTitles
 		, required any    batchedRecordIterator
 		, required struct meta
 		, required string objectName
@@ -23,18 +22,22 @@ component {
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
 		var objectTitle   = translateResource( uri=objectUriRoot & "title", defaultValue=arguments.objectname );
 
+		objectTitle = Left( objectTitle, 31 );
 		spreadsheetLib.renameSheet( workbook, objectTitle, 1 );
 
-		for( var i=1; i <= arguments.selectFields.len(); i++ ){
-			spreadsheetLib.setCellValue( workbook, ( fieldTitles[ arguments.selectFields[i] ] ?: "" ), 1, i );
-		}
-
 		do {
-			data = arguments.batchedRecordIterator();
+			data     = arguments.batchedRecordIterator();
+			dataCols = ListToArray( data.columnList );
+
+			if ( row == 1 ) {
+				for( var i=1; i <= dataCols.len(); i++ ){
+					spreadsheetLib.setCellValue( workbook, ( fieldTitles[ dataCols[i] ] ?: "" ), 1, i );
+				}
+			}
 			for( var record in data ) {
 				row++;
 				col = 0;
-				for( var field in arguments.selectFields ) {
+				for( var field in dataCols ) {
 					col++;
 					spreadsheetLib.setCellValue( workbook, record[ field ] ?: "", row, col, "string" );
 				}

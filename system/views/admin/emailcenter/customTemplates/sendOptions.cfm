@@ -18,6 +18,7 @@
 				, formId            = formId
 				, savedData         = prc.template ?: {}
 				, validationResult  = rc.validationResult ?: ""
+				, additionalArgs    = prc.formAdditionalArgs ?: {}
 			)#
 
 			<div class="form-actions row">

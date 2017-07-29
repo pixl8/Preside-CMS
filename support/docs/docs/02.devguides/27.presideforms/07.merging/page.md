@@ -5,10 +5,28 @@ title: Merging Preside form definitions
 
 ## Merging Preside form definitions
 
-The [[presideforms]] provides logic for merging form definitions. This is used in two ways:
+The [[presideforms]] provides logic for merging form definitions. This is used in three ways:
 
+* Extending form definitions
 * Automatic merging of forms that match the same form ID but live in different locations (i.e. core, extensions, your application and site templates)
 * Manual merging of multiple form definitions. For example, site tree page forms are merged from the core page form and form definitions for the page type of the page
+
+## Extending form definitions
+
+Forms can extend one another by using the `extends` attribute. The child form can then make modifications and additions to elements in its parent. For example:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<form extends="preside-objects.page.add">
+	<tab id="main">
+		<fieldset id="main">
+			<field binding="page.rank" sortorder="45" />
+			<field name="layout" deleted="true" />
+		</fieldset>
+	</tab>
+	<tab id="dates" deleted="true" />
+</form>
+```
 
 ## Automatic merging
 

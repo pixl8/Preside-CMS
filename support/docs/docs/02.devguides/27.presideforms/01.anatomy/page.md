@@ -11,8 +11,10 @@ All forms must have a root `form` element that contains one or more `tab` elemen
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="system-config.sentry:" tabsPlacement="left">
-    ...
+<form i18nBaseUri="system-config.sentry:" tabsPlacement="left" extends="my.other.form">
+    <tab>
+        <!-- ... -->
+    </tab>
 </form>
 ```
 
@@ -28,6 +30,10 @@ All forms must have a root `form` element that contains one or more `tab` elemen
             <tr>
                 <th>tabsPlacement (optional)</th>
                 <td>Placement of the tabs UI in the admin. Valid values are: left, right, below and top (default)</td>
+            </tr>
+            <tr>
+                <th>extends (optional)</th>
+                <td>ID of another form whose definition this form should inherit and extend. See [[presideforms-merging]] for more details.</td>
             </tr>
         </tbody>
     </table>
