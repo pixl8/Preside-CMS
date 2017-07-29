@@ -10,6 +10,7 @@ component accessors=true displayName="Preside REST Request" {
 	property name="verb"     type="string"  default="GET";
 	property name="finished" type="boolean" default=false;
 	property name="resource" type="struct";
+	property name="user"     type="string" default="";
 
 	/**
 	 * Returns the API matched by this REST

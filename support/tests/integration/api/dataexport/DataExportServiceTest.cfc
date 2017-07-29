@@ -106,6 +106,69 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( errorThrown ).toBeTrue( "An informative error was not thrown" );
 			} );
+
+			it( "should allow passing of a closure to process each batched recordset and potentially decorate it", function(){
+				var service         = _getService();
+				var exporter        = "excel";
+				var exporterHandler = "dataExporters.excel.export";
+				var defaultFields   = {
+					  selectFields = [ "one", "two", "three" ]
+					, fieldTitles  = { one=CreateUUId(), two=CreateUUId(), three=CreateUUId() }
+				};
+				var args = {
+					  exporter           = "excel"
+					, meta               = { title="My title", author="John McFee", published=Now() }
+					, objectName         = "my_object"
+					, recordsetDecorator = function( recordset ) { QueryAddColumn( recordset, "fubar", [ 'test' ] ); }
+				};
+				var mockResult = CreateUUId();
+
+				mockPresideObjectService.$( "getObjectProperties", {} );
+				mockColdbox.$( "handlerExists" ).$args( exporterHandler ).$results( true );
+				mockColdbox.$( "runEvent", mockResult );
+
+				service.$( "getDefaultExportFieldsForObject" ).$args( args.objectName ).$results( defaultFields );
+				service.$( "_expandRelationshipFields", defaultFields.selectFields );
+				service.$( "_setDefaultFieldTitles", defaultFields.fieldTitles );
+
+				expect( service.exportData( argumentCollection=args ) ).toBe( mockResult );
+
+				var runEventCallLog = mockColdbox.$callLog().runevent;
+
+				expect( runEventCallLog.len() ).toBe( 1 );
+				expect( runEventCallLog[1].private ).toBe( true );
+				expect( runEventCallLog[1].prePostExempt ).toBe( true );
+				expect( runEventCallLog[1].event ).toBe( exporterHandler );
+				expect( runEventCallLog[1].eventArguments.selectFields ).toBe( defaultFields.selectFields );
+				expect( runEventCallLog[1].eventArguments.fieldTitles ).toBe( defaultFields.fieldTitles );
+				expect( runEventCallLog[1].eventArguments.meta ).toBe( args.meta );
+
+				var dummyresults = [
+					  QueryNew( 'blah', 'varchar', [ [ CreateUUId() ] ] )
+					, QueryNew( 'blah', 'varchar', [ [ CreateUUId() ] ] )
+					, QueryNew( 'blah', 'varchar', [ [ CreateUUId() ] ] )
+					, QueryNew( 'blah', 'varchar', [ [ CreateUUId() ] ] )
+					, QueryNew( 'blah', 'varchar', [] )
+				];
+				var expectedResults = [
+					  QueryNew( 'blah,fubar', 'varchar,varchar', [ [ dummyresults[1].blah, "test" ] ] )
+					, QueryNew( 'blah,fubar', 'varchar,varchar', [ [ dummyresults[2].blah, "test" ] ] )
+					, QueryNew( 'blah,fubar', 'varchar,varchar', [ [ dummyresults[3].blah, "test" ] ] )
+					, QueryNew( 'blah,fubar', 'varchar,varchar', [ [ dummyresults[4].blah, "test" ] ] )
+					, QueryNew( 'blah', 'varchar', [] )
+				];
+				mockPresideObjectService.$( "selectData" ).$results( dummyresults[1], dummyresults[2], dummyresults[3], dummyresults[4], dummyresults[5] );
+
+				var result       = "";
+				var resultNumber = 1;
+				do {
+					result = runEventCallLog[1].eventArguments.batchedRecordIterator();
+
+					expect( result ).toBe( expectedResults[ resultNumber ] );
+
+					resultNumber++;
+				} while( result.recordCount );
+			} );
 		} );
 
 		describe( "getDefaultExportFieldsForObject()", function(){

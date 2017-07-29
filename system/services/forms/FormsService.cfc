@@ -302,6 +302,7 @@ component displayName="Forms service" {
 		,          string  component               = ""
 		,          any     validationResult        = ""
 		,          boolean includeValidationJs     = true
+		,          string  validationJsJqueryRef   = "presideJQuery"
 		,          struct  savedData               = {}
 		,          struct  additionalArgs          = {}
 		,          string  fieldNamePrefix         = ""
@@ -351,11 +352,11 @@ component displayName="Forms service" {
 							, savedData          = arguments.savedData
 						};
 
-						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( field.name ) ) {
+						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( renderArgs.name ) ) {
 							renderArgs.error = i18n.translateResource(
-								  uri          = validationResult.getError( field.name )
-								, defaultValue = validationResult.getError( field.name )
-								, data         = validationResult.listErrorParameterValues( field.name )
+								  uri          = validationResult.getError( renderArgs.name )
+								, defaultValue = validationResult.getError( renderArgs.name )
+								, data         = validationResult.listErrorParameterValues( renderArgs.name )
 							);
 						}
 
@@ -365,6 +366,8 @@ component displayName="Forms service" {
 
 						if ( StructKeyExists( arguments.savedData, field.name ) ) {
 							renderArgs.defaultValue = arguments.savedData[ field.name ];
+						} else if ( StructKeyExists( arguments.savedData, renderArgs.name ) ) {
+							renderArgs.defaultValue = arguments.savedData[ renderArgs.name ];
 						} else if ( StructKeyExists( field, "default" ) ) {
 							renderArgs.defaultValue = field.default;
 						}
@@ -372,8 +375,8 @@ component displayName="Forms service" {
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
 						renderArgs.append( field, false );
-						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
 						renderArgs.append( _getI18nFieldAttributes( field=field ) );
+						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
@@ -406,12 +409,13 @@ component displayName="Forms service" {
 		}
 
 		var formArgs = {
-			  formId             = arguments.formId
-			, formName           = mergedFormName
-			, content            = renderedTabs.toString()
-			, tabs               = tabs
-			, validationResult   = arguments.validationResult
-			, validationJs       = arguments.includeValidationJs ? getValidationJs( arguments.formName, arguments.mergeWithFormName ) : ""
+			  formId                = arguments.formId
+			, formName              = mergedFormName
+			, content               = renderedTabs.toString()
+			, tabs                  = tabs
+			, validationResult      = arguments.validationResult
+			, validationJs          = arguments.includeValidationJs ? getValidationJs( argumentCollection=arguments ) : ""
+			, validationJsJqueryRef = arguments.validationJsJqueryRef
 		};
 
 		formArgs.append( frm, false );
@@ -525,6 +529,8 @@ component displayName="Forms service" {
 	 * @preProcessData.hint   Whether or not to _preprocess_ form submissions (see [[validation-engine]])
 	 * @ignoreMissing.hint    Whether or not to ignore entirely missing fields in the supplied data
 	 * @validationResult.hint A pre-existing validation result to which to add any errors found during validation
+	 * @fieldNamePrefix.hint  Prefix to add to fieldnames in error messages
+	 * @fieldNameSuffix.hint  Suffix to add to fieldnames in error messages
 	 */
 	public any function validateForm(
 		  required string  formName
@@ -535,6 +541,8 @@ component displayName="Forms service" {
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = ""
 		,          array   permissionContextKeys   = []
+		,          string  fieldNamePrefix         = ""
+		,          string  fieldNameSuffix         = ""
 	) {
 		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
 		var data    = Duplicate( arguments.formData );
@@ -544,17 +552,21 @@ component displayName="Forms service" {
 
 		if ( arguments.preProcessData ) {
 			return _getValidationEngine().validate(
-				  ruleset       = ruleset
-				, data          = data
-				, result        = preProcessForm( argumentCollection = arguments )
-				, ignoreMissing = arguments.ignoreMissing
+				  ruleset         = ruleset
+				, data            = data
+				, result          = preProcessForm( argumentCollection = arguments )
+				, ignoreMissing   = arguments.ignoreMissing
+				, fieldNamePrefix = arguments.fieldNamePrefix
+				, fieldNameSuffix = arguments.fieldNameSuffix
 			);
 		}
 
 		return _getValidationEngine().validate(
-			  ruleset = ruleset
-			, data    = data
-			, result  = arguments.validationResult
+			  ruleset         = ruleset
+			, data            = data
+			, result          = arguments.validationResult
+			, fieldNamePrefix = arguments.fieldNamePrefix
+			, fieldNameSuffix = arguments.fieldNameSuffix
 		);
 	}
 
@@ -568,7 +580,10 @@ component displayName="Forms service" {
 	 */
 	public any function getValidationJs(
 		  required string  formName
-		,          string  mergeWithFormName=""
+		,          string  mergeWithFormName     = ""
+		,          string  validationJsJqueryRef = "presideJQuery"
+		,          string  fieldNamePrefix       = ""
+		,          string  fieldNameSuffix       = ""
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = ""
 		,          array   permissionContextKeys   = []
@@ -576,7 +591,10 @@ component displayName="Forms service" {
 		var validationFormName = Len( Trim( mergeWithFormName ) ) ? getMergedFormName( formName, mergeWithFormName ) : formName;
 
 		return _getValidationEngine().getJqueryValidateJs(
-			ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments, formName=validationFormName )
+			  ruleset         = _getValidationRulesetFromFormName( argumentCollection=arguments, formName=validationFormName )
+			, jqueryReference = arguments.validationJsJqueryRef
+			, fieldNamePrefix = arguments.fieldNamePrefix
+			, fieldNameSuffix = arguments.fieldNameSuffix
 		);
 	}
 
@@ -781,15 +799,37 @@ component displayName="Forms service" {
 
 // PRIVATE HELPERS
 	private void function _loadForms() {
-		var dirs     = _getFormDirectories();
-		var prefix   = "";
-		var dir      = "";
-		var formName = "";
-		var files    = "";
-		var file     = "";
-		var subDir   = "";
-		var forms    = {};
-		var frm      = "";
+		var dirs               = _getFormDirectories();
+		var prefix             = "";
+		var dir                = "";
+		var formName           = "";
+		var files              = "";
+		var file               = "";
+		var subDir             = "";
+		var forms              = {};
+		var frm                = "";
+		var resolvedExtensions = {};
+		var resolveExtensions = function( formName, frmDefinition, allForms ){
+			var parentFormName = arguments.frmDefinition.extends ?: "";
+
+			if ( !Len( Trim( parentFormName ) ) || resolvedExtensions.keyExists( arguments.formName ) ) {
+				return arguments.frmDefinition;
+			}
+
+			if ( !arguments.allForms.keyExists( parentFormName ) ) {
+				throw(
+					  type    = "FormService.MissingForm"
+					, message = "The form [#parentFormName#], defined as an extension of [#arguments.formName#], could not be found."
+				);
+			}
+
+			resolvedExtensions[ arguments.formName ] = true;
+
+			return _mergeForms(
+				  form1 = resolveExtensions( parentFormName, arguments.allForms[ parentFormName ], arguments.allForms )
+				, form2 = arguments.frmDefinition
+			);
+		};
 
 		for( dir in dirs ) {
 			dir = ExpandPath( dir );
@@ -818,6 +858,11 @@ component displayName="Forms service" {
 					, form2 = forms[ formName ][ i ]
 				);
 			}
+			forms[ formName ] = frm;
+		}
+		for( formName in forms ) {
+			frm = resolveExtensions( formName, forms[ formName ], forms );
+
 			if ( _registerForm( formName, frm ) ) {
 				_applyDefaultLabellingToForm( formName );
 			}

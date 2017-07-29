@@ -14,7 +14,7 @@ component {
 	}
 
 // PUBLIC API
-	public any function clean( required string input, string policy="myspace" ) {
+	public any function clean( required string input, string policy="preside" ) {
 		var antiSamyResult = _getAntiSamy().scan( arguments.input, _getPolicy( arguments.policy ) );
 		var cleanHtml      = antiSamyResult.getCleanHtml();
 
@@ -31,6 +31,7 @@ component {
 			, myspace  = libPath & '/antisamy-myspace-1.4.4.xml'
 			, slashdot = libPath & '/antisamy-slashdot-1.4.4.xml'
 			, tinymce  = libPath & '/antisamy-tinymce-1.4.4.xml'
+			, preside  = libPath & '/antisamy-preside-1.4.4.xml'
 		} );
 	}
 

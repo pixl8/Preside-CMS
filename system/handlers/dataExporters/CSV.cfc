@@ -9,26 +9,29 @@ component {
 	property name="csvExportDelimiter" inject="coldbox:setting:dataExport.csv.delimiter";
 
 	private any function export(
-		  required array  selectFields
-		, required struct fieldTitles
+		  required struct fieldTitles
 		, required any    batchedRecordIterator
 	) {
-		var tmpFile = getTempFile( getTempDirectory(), "CSVExport" );
-		var writer  = csvWriter.newWriter( tmpFile, csvExportDelimiter );
-		var row     = [];
-		var data    = "";
+		var tmpFile  = getTempFile( getTempDirectory(), "CSVExport" );
+		var writer   = csvWriter.newWriter( tmpFile, csvExportDelimiter );
+		var row      = [];
+		var data     = "";
+		var dataCols = "";
 
 		try {
-			for( var field in arguments.selectFields ) {
-				row.append( arguments.fieldTitles[ field ] ?: "?" );
-			}
-			writer.writeNext( row );
-
 			do {
-				data = arguments.batchedRecordIterator();
+				data     = arguments.batchedRecordIterator();
+				dataCols = ListToArray( data.columnList );
+
+				if ( !row.len() ) {
+					for( var field in dataCols ) {
+						row.append( arguments.fieldTitles[ field ] ?: field );
+					}
+					writer.writeNext( row );
+				}
 				for( var record in data ) {
 					row  = [];
-					for( var field in arguments.selectFields ) {
+					for( var field in dataCols ) {
 						row.append( record[ field ] ?: "" );
 					}
 					writer.writeNext( row );

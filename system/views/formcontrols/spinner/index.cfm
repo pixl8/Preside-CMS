@@ -4,7 +4,7 @@
 	inputClass   = args.class         ?: "";
 	placeholder  = args.placeholder   ?: "";
 	defaultValue = args.defaultValue  ?: "";
-	minValue     = Val( args.minValue ?: 0 );
+	minValue     = args.minValue      ?: "";
 	maxValue     = args.maxValue      ?: "";
 	step         = Val( args.step     ?: 1 );
 
@@ -17,5 +17,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="number" id="#inputId#" class="#inputClass#" name="#inputName#" value="#value#" min="#minValue#" max="#maxValue#" step="#step#" maxlength="#Len( maxValue )#" tabindex="#getNextTabIndex()#">
+	<input type="number" id="#inputId#" class="#inputClass#" name="#inputName#" value="#value#"<cfif isNumeric( minValue )> min="#minValue#"</cfif><cfif isNumeric( maxValue )> max="#maxValue#"</cfif> step="#step#" tabindex="#getNextTabIndex()#">
 </cfoutput>

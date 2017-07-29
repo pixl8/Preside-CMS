@@ -45,4 +45,7 @@
 			else error.insertAfter(element.parent());
 		}
 	} );
+
+	// kill the god-awful core "step" validator!
+	$.validator.addMethod( "step", function(){ return true; } );
 } )( presideJQuery );

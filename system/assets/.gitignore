@@ -1,3 +1,7 @@
 # Ignore ckeditor (pulled in externally)
 /ckeditor/*
 /node_modules/*
+*.min.js
+*.min.css
+*.less.css
+*.min.map

@@ -109,16 +109,20 @@ component {
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
 	) {
-		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
-		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
+		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
+		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var possesses           = translateResource(
+			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
+			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
+		);
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
-			return translateResource( uri="rules.dynamicExpressions:related.oneToManyCount.label", data=[ relatedToTranslated, relatedPropertyTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.oneToManyCount.label", data=[ relatedToTranslated, possesses, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.label", data=[ relatedToTranslated, relatedPropertyTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.label", data=[ relatedToTranslated, possesses ] );
 	}
 
 	private string function getText(
@@ -129,16 +133,20 @@ component {
 		,          string parentObjectName   = ""
 		,          string parentPropertyName = ""
 	){
-		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
-		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
+		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
+		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var possesses           = translateResource(
+			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
+			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
+		);
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
-			return translateResource( uri="rules.dynamicExpressions:related.oneToManyCount.text", data=[ relatedToTranslated, relatedPropertyTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.oneToManyCount.text", data=[ relatedToTranslated, possesses, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.text", data=[ relatedToTranslated, relatedPropertyTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.text", data=[ relatedToTranslated, possesses ] );
 	}
 
 }
