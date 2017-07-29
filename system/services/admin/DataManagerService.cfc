@@ -14,14 +14,24 @@ component {
 	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
+	 * @relationshipGuidance.inject relationshipGuidance
 	 */
-	public any function init( required any presideObjectService, required any contentRenderer, required any labelRendererService, required any i18nPlugin, required any permissionService, required any siteService ) {
+	public any function init(
+		  required any presideObjectService
+		, required any contentRenderer
+		, required any labelRendererService
+		, required any i18nPlugin
+		, required any permissionService
+		, required any siteService
+		, required any relationshipGuidance
+	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
 		_setLabelRendererService( arguments.labelRendererService );
 		_setI18nPlugin( arguments.i18nPlugin );
 		_setPermissionService( arguments.permissionService );
 		_setSiteService( arguments.siteService );
+		_setRelationshipGuidance( arguments.relationshipGuidance );
 
 		return this;
 	}
@@ -401,11 +411,12 @@ component {
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, arguments.selectFields );
+			args.filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, args.selectFields, labelfield );
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
 
 		records = _getPresideObjectService().selectData( argumentCollection = args );
+
 		if ( arguments.ids.len() ) {
 			var tmp = {};
 			for( var r in records ) { tmp[ r.id ] = transformResult( r, arguments.labelRenderer ) };
@@ -480,13 +491,13 @@ component {
 		}
 
 		if ( dateCreatedField != "datecreated" && sqlFields.findNoCase( "dateCreated" ) ) {
-			sqlFields.delete( "datecreated" );
+			sqlFields.deleteAt( sqlFields.findNoCase( "datecreated" ) );
 			sqlFields.append( "#objName#.#dateCreatedField# as datecreated" );
 		}
 
-		if ( dateCreatedField != "dateModified" && sqlFields.findNoCase( "dateModified" ) ) {
-			sqlFields.delete( "dateModified" );
-			sqlFields.append( "#objName#.#dateModifiedField# as dateModified" );
+		if ( dateModifiedField != "dateModified" && sqlFields.findNoCase( "dateModified" ) ) {
+			sqlFields.deleteAt( sqlFields.findNoCase( "datemodified" ) );
+			sqlFields.append( "#objName#.#dateModifiedField# as datemodified" );
 		}
 
 		if ( arguments.draftsEnabled ) {
@@ -498,7 +509,7 @@ component {
 		var ignore = [
 			  "#objName#.#idField# as id"
 			, "#objName#.#dateCreatedField# as datecreated"
-			, "#objName#.#dateModifiedField# as dateModified"
+			, "#objName#.#dateModifiedField# as datemodified"
 			, replacedLabelField
 		];
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
@@ -561,21 +572,41 @@ component {
 		return newOrderBy.toList();
 	}
 
-	private string function _buildSearchFilter( required string q, required string objectName, required array gridFields ) {
-		var field  = "";
-		var filter = "";
-		var delim  = "";
+	private string function _buildSearchFilter(
+		  required string q
+		, required string objectName
+		, required array  gridFields
+		,          string labelfield = _getPresideObjectService().getLabelField( arguments.objectName )
+	) {
+		var field                = "";
+		var fullFieldName        = "";
+		var objName              = "";
+		var filter               = "";
+		var delim                = "";
+		var poService            = _getPresideObjectService();
+		var relationshipGuidance = _getRelationshipGuidance();
 
 		for( field in arguments.gridFields ){
-			field = ListFirst( field, " " );
-			var objName = arguments.objectName;
+			field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
+			objName = arguments.objectName;
+
 			if ( ListLen( field, "." ) == 2 ) {
-				objName = ListFirst( field, "." );
+				objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
+					  sourceObject     = arguments.objectName
+					, relationshipPath = ListFirst( field, "." )
+				);
 				field = ListLast( field, "." );
 			}
-			if ( _propertyIsSearchable( field, objName ) ) {
-				filter &= delim & _getFullFieldName( field, objName ) & " like :q";
-				delim = " or ";
+
+			if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
+				if ( ListLen( fullFieldName, "." ) < 2 ) {
+					fullFieldName = _getFullFieldName( field, objName );
+				}
+
+				if ( _propertyIsSearchable( field, objName ) ) {
+					filter &= delim & fullFieldName & " like :q";
+					delim = " or ";
+				}
 			}
 		}
 
@@ -668,6 +699,13 @@ component {
 	}
 	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
+	}
+
+	private any function _getRelationshipGuidance() {
+		return _RelationshipGuidance;
+	}
+	private void function _setRelationshipGuidance( required any RelationshipGuidance ) {
+		_RelationshipGuidance = arguments.RelationshipGuidance;
 	}
 
 }

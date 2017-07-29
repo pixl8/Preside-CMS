@@ -199,6 +199,7 @@ component {
 			, "auditTrail"
 			, "maintenanceMode"
 			, "taskmanager"
+			, "apiManager"
 			, "systemInformation"
 		];
 
@@ -235,14 +236,15 @@ component {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, systemInformation      = [ "navigate" ]
-			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
+			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
+			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
 			, emailCenter            = {
 				  layouts          = [ "navigate", "configure" ]
-				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send" ]
+				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read" ]
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 				, serviceProviders = [ "manage" ]
 				, settings         = [ "navigate", "manage" ]
@@ -313,10 +315,13 @@ component {
 			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, dataexport              = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
+			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
+			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
@@ -361,15 +366,18 @@ component {
 
 		settings.antiSamy = {
 			  enabled                 = true
-			, policy                  = "myspace"
+			, policy                  = "preside"
 			, bypassForAdministrators = true
 		};
 
 		settings.rest = {
-			  path        = "/api"
-			, corsEnabled = false
-			, apis        = {}
+			  path          = "/api"
+			, corsEnabled   = false
+			, apis          = {}
+			, authProviders = {}
 		};
+
+		settings.rest.authProviders.token = { feature = "restTokenAuth" };
 
 		settings.multilingual = {
 			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
@@ -395,6 +403,10 @@ component {
 
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
+
+		settings.dataExport = {};
+		settings.dataExport.csv = { delimiter="," };
+
 
 		settings.email = _getEmailSettings();
 
@@ -640,6 +652,8 @@ component {
 			, { id="anonymousCustomerEmail" }
 			, { id="loggedInUserEmail", feature="websiteUsers" }
 		];
+
+		fbSettings.export = { fieldNamesForHeaders=false };
 
 		return fbSettings;
 	}

@@ -84,7 +84,7 @@ component {
 		_defineCreatedField( meta );
 		_defineModifiedField( meta );
 		_defineLabelField( meta );
-		_addDefaultsToProperties( meta.properties );
+		_addDefaultsToProperties( meta );
 		_mergeSystemPropertyDefaults( meta );
 		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
 		_fixOrderOfProperties( meta );
@@ -168,7 +168,7 @@ component {
 	private void function _mergeProperties( required struct meta, required array properties, required string pathToCfc ) {
 		var prop         = "";
 		var propName     = "";
-		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
+		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
 		param name="arguments.meta.properties"    default=StructNew( "linked" );
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
@@ -217,7 +217,7 @@ component {
 		return prop;
 	}
 
-	private void function _addDefaultsToProperties( required struct properties ) {
+	private void function _addDefaultsToProperties( required struct meta ) {
 		var defaultAttributes = {
 			  type         = "string"
 			, dbtype       = "varchar"
@@ -228,10 +228,18 @@ component {
 			, generator    = "none"
 			, required     = "false"
 		};
+		var corePropertyNames = [
+			  arguments.meta.idField           ?: "id"
+			, arguments.meta.dateCreatedField  ?: "datecreated"
+			, arguments.meta.dateModifiedField ?: "datemodified"
+		];
+		if ( ( arguments.meta.labelField ?: "label" ) == "label" ) {
+			corePropertyNames.append( "label" );
+		}
 
-		for( var propName in properties ){
-			var prop           = properties[ propName ];
-			var isCoreProperty = ListFindNoCase( "id,label,datecreated,datemodified", propName );
+		for( var propName in arguments.meta.properties ){
+			var prop           = arguments.meta.properties[ propName ];
+			var isCoreProperty = corePropertyNames.findNoCase( propName );
 
 			if ( ( prop.type ?: "" ) == "any" ) {
 				StructDelete( prop, "type" );
@@ -241,7 +249,7 @@ component {
 				StructAppend( prop, defaultAttributes, false );
 			}
 
-			if ( StructKeyExists( prop, "relationship" ) and prop.relationship neq "none" and prop.relatedTo eq "none" ) {
+			if ( StructKeyExists( prop, "relationship" ) && prop.relationship != "none" && ( prop.relatedTo ?: "none" ) == "none" ) {
 				prop.relatedTo = propName;
 			}
 
@@ -281,11 +289,13 @@ component {
 			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
 		};
 
-		if ( arguments.meta.propertyNames.find( "label" ) ) {
-			StructAppend( arguments.meta.properties.label, defaults.label, false );
-		} else if ( !arguments.meta.noLabel ) {
-			arguments.meta.properties[ "label" ] = defaults[ "label" ];
-			ArrayPrepend( arguments.meta.propertyNames, "label" );
+		if ( labelField == "label" ) {
+			if ( arguments.meta.propertyNames.find( "label" ) ) {
+				StructAppend( arguments.meta.properties.label, defaults.label, false );
+			} else if ( !arguments.meta.noLabel ) {
+				arguments.meta.properties[ "label" ] = defaults[ "label" ];
+				ArrayPrepend( arguments.meta.propertyNames, "label" );
+			}
 		}
 
 		if ( arguments.meta.propertyNames.find( idField ) ) {
@@ -394,7 +404,7 @@ component {
 		arguments.meta.properties = orderedProps;
 	}
 
-	private array function _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( required string pathToCfc ) {
+	private array function _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( required string pathToCfc ) {
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 
@@ -443,7 +453,8 @@ component {
 		} else {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "label";
 		}
-		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield !== "label";
+		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield == "";
+		arguments.objectMeta.noLabel = IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel;
 	}
 
 	private void function _removeObjectsUsedInDisabledFeatures( required struct objects ) {

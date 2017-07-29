@@ -357,11 +357,18 @@
 		UberSelect.prototype.setup_search_engine = function(){
 			var uberSelect = this
 			  , i
-			  , prefetch_url = this.form_field.getAttribute( "data-prefetch-url" )
-			  , remote_url   = this.form_field.getAttribute( "data-remote-url" );
+			  , prefetch_url  = this.form_field.getAttribute( "data-prefetch-url" )
+			  , remote_url    = this.form_field.getAttribute( "data-remote-url" )
+			  , display_limit = this.form_field.getAttribute( "data-display-limit" );
 
 			if ( isNaN( this.prefetch_ttl ) ) {
 				this.prefetch_ttl = 0;
+			}
+
+			if ( display_limit === null || isNaN( display_limit ) ) {
+				this.display_limit = 200;
+			} else {
+				this.display_limit = parseInt( display_limit );
 			}
 
 			this.local_options = SelectParser.select_to_array( this.form_field );
@@ -382,9 +389,9 @@
 				  local          : this.local_options
 				, prefetch       : this.prefetch_url
 				, remote         : this.remote_url
-				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
-			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
-			 	, limit          : 100 // a sensible limit, should probably be configurable, right?!
+				, datumTokenizer : function(d) { return Bloodhound.tokenizers.nonwordandunderscore( d.text ); }
+			 	, queryTokenizer : Bloodhound.tokenizers.nonwordandunderscore
+			 	, limit          : this.display_limit
 			 	, dupDetector    : function( remote, local ){ return remote.value == local.value }
 			} );
 

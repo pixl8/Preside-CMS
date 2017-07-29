@@ -531,6 +531,7 @@ component singleton=true {
 		, required string  gridFields
 		, required boolean useDrafts
 		, required boolean allowBatchEdit
+		, required boolean allowDataExport
 		, required string  extension
 	) {
 		var templateVars = {
@@ -548,6 +549,7 @@ component singleton=true {
 			, gridFields         = arguments.gridFields
 			, useDrafts          = arguments.useDrafts
 			, allowBatchEdit     = arguments.allowBatchEdit
+			, allowDataExport    = arguments.allowDataExport
 			, labelfield         = _getPresideObjectService().getObjectAttribute( arguments.objectId, "labelfield" )
 		};
 
@@ -570,10 +572,11 @@ component singleton=true {
 			template = template.replaceNoCase( "${labelfield}"        , templateVars.labelfield        , "all" );
 			template = template.replaceNoCase( "${handlerFolder}"     , templateVars.handlerFolder     , "all" );
 
-			template = template.reReplaceNoCase( "// BEGIN DRAFTS(.*?)// END DRAFTS", ( templateVars.useDrafts ? "\1" : "" ), "all" );
-			template = template.reReplaceNoCase( "// BEGIN NO DRAFTS(.*?)// END NO DRAFTS", ( templateVars.useDrafts ? "" : "\1" ), "all" );
+			template = template.reReplaceNoCase( "// BEGIN DRAFTS\n(.*?)\n// END DRAFTS", ( templateVars.useDrafts ? "\1" : "" ), "all" );
+			template = template.reReplaceNoCase( "// BEGIN NO DRAFTS\n(.*?)\n// END NO DRAFTS", ( templateVars.useDrafts ? "" : "\1" ), "all" );
 
-			template = template.reReplaceNoCase( "// BEGIN BATCHEDIT(.*?)// END BATCHEDIT", ( templateVars.allowBatchEdit ? "\1" : "" ), "all" );
+			template = template.reReplaceNoCase( "// BEGIN BATCHEDIT\n(.*?)\n// END BATCHEDIT", ( templateVars.allowBatchEdit ? "\1" : "" ), "all" );
+			template = template.reReplaceNoCase( "// BEGIN DATAEXPORT\n(.*?)\n// END DATAEXPORT", ( templateVars.allowDataExport ? "\1" : "" ), "all" );
 
 			return template;
 		}

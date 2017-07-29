@@ -3,14 +3,19 @@ id: buildfromsource
 title: Building Preside locally
 ---
 
-In order to run Preside from a local copy of the codebase, the system requires that external dependencies be pulled in to the expected locations in the project. Before continuing, you will need to make sure you have [CommandBox](https://www.ortussolutions.com/products/commandbox) installed and available in your path. Build steps:
+In order to run Preside from a local copy of the codebase, the system requires that external dependencies be pulled in to the expected locations in the project. Before continuing, you will need to make sure you have [CommandBox](https://www.ortussolutions.com/products/commandbox), [NodeJs](https://nodejs.org/en/) and [grunt-cli](https://www.npmjs.com/package/grunt-cli) installed and available in your path. Build steps:
 
 1. [Fork](https://help.github.com/articles/fork-a-repo/) the [GitHub repository](https://github.com/pixl8/Preside-CMS)
 2. [Make a local clone](https://help.github.com/articles/cloning-a-repository/) of your forked repository
-3. Run the `box install` command to have CommandBox pull in all of presides dependencies that are declared in its `box.json` file:
+3. Run the `box install save=false` command to have CommandBox pull in all of presides dependencies that are declared in its `box.json` file:
 ```
 /preside> box install
 ```
+4. CD into the `system/assets` directory and run `grunt` to compile static assets:
+```
+/preside/system/assets> npm install && grunt all
+```
+
 
 Once you have the repository cloned to your local machine and have pulled down the dependencies, create a `/preside` mapping in your application that points at your clone. You will then be able to develop in your fork and test the changes in your application. See [[submittingchanges]] for details on how best to contribute your changes back to the project.
 

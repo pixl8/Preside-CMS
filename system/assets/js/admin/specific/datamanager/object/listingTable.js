@@ -15,6 +15,7 @@
 			  , setupCheckboxBehaviour
 			  , setupTableRowFocusBehaviour
 			  , setupFilters
+			  , setupDataExport
 			  , setupQuickSaveFilterIframeModal
 			  , prePopulateFilter
 			  , showFilters
@@ -22,15 +23,16 @@
 			  , dtSettings
 			  , getFavourites
 			  , setFavourites
-			  , object              = tableSettings.objectName     || cfrequest.objectName     || ""
-			  , datasourceUrl       = tableSettings.datasourceUrl  || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
-			  , isMultilingual      = tableSettings.isMultilingual || cfrequest.isMultilingual || false
-			  , draftsEnabled       = tableSettings.draftsEnabled  || cfrequest.draftsEnabled  || false
-			  , object              = tableSettings.objectName     || cfrequest.objectName     || ""
-			  , objectTitle         = tableSettings.objectTitle    || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
-			  , allowSearch         = tableSettings.allowSearch    || cfrequest.allowSearch
-			  , allowFilter         = tableSettings.allowFilter    || cfrequest.allowFilter
-			  , favouritesUrl       = tableSettings.favouritesUrl  || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
+			  , object              = tableSettings.objectName      || cfrequest.objectName     || ""
+			  , datasourceUrl       = tableSettings.datasourceUrl   || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
+			  , isMultilingual      = tableSettings.isMultilingual  || cfrequest.isMultilingual || false
+			  , draftsEnabled       = tableSettings.draftsEnabled   || cfrequest.draftsEnabled  || false
+			  , object              = tableSettings.objectName      || cfrequest.objectName     || ""
+			  , objectTitle         = tableSettings.objectTitle     || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
+			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
+			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
+			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
+			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
@@ -154,6 +156,10 @@
 
 						if ( allowFilter ) {
 							setupFilters( settings );
+						}
+
+						if ( allowDataExport ) {
+							setupDataExport( settings );
 						}
 					},
 					oLanguage : {
@@ -326,6 +332,87 @@
 						setFavourites( settings.oLoadedState.oFilter.favourites );
 					}
 				}
+			};
+
+			setupDataExport = function( settings ){
+				// setup DOM
+				var paginationContainers = settings.aanFeatures.p
+				  , $dataExportContainer = $( ".object-listing-table-export" )
+				  , $configForm          = $( ".object-listing-data-export-config-form" )
+				  , $exportBtn           = $( ".object-listing-data-export-button" )
+				  , iframeSrc            = $exportBtn.attr( "href" )
+				  , i, $container, modalOptions, callbacks, processExport, exportConfigModal, configIframe;
+
+				for( i=0; i<paginationContainers.length; i++ ) {
+					$container = $( paginationContainers[i] );
+					$container.prepend( $dataExportContainer.html() );
+				}
+
+				modalOptions    = {
+					title      : i18n.translateResource( "cms:dataexport.config.modal.title" ),
+					className  : "full-screen-dialog",
+					buttons : {
+						cancel : {
+							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
+							, className : "btn-default"
+						},
+						ok : {
+							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:export.btn" )
+							, className : "btn-primary ok-button"
+							, callback  : function(){ return processExport(); }
+						}
+					}
+				}
+				callbacks = {
+					onLoad : function( iframe ) {
+						configIframe = iframe;
+					}
+				};
+				processExport = function(){
+					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
+					  , $submissionForm  = $( ".object-listing-table-export-form" )
+					  , $searchContainer = $( dtSettings.aanFeatures.f[0] )
+					  , config           = $configForm.serializeObject()
+					  , favourites, key, $hiddenInput;
+
+					if ( allowFilter ) {
+						config.filterExpressions = $filterDiv.find( "[name=filter]" ).val();
+
+						favourites = getFavourites();
+						if ( favourites && favourites.length ) {
+							config.savedFilters = favourites;
+						} else {
+							config.savedFilters = $filterDiv.find( "[name=filters]" ).val();
+						}
+					}
+
+					config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+
+					for( key in config ) {
+						$hiddenInput = $submissionForm.find( "[name=" + key + "]" );
+
+						if ( !$hiddenInput.length ) {
+							$hiddenInput = $( '<input type="hidden" name="' + key + '">' );
+							$submissionForm.append( $hiddenInput );
+						}
+
+						$hiddenInput.val( config[ key ] );
+					}
+
+					$submissionForm.submit();
+
+					return true;
+				};
+
+				exportConfigModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
+
+				$( ".object-listing-data-export-button" ).on( "click", function(e ){
+					e.preventDefault();
+
+					exportConfigModal.open();
+				} );
+
+				$dataExportContainer.remove();
 			};
 
 			refreshFavourites = function(){

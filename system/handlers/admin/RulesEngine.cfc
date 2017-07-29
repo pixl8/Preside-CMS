@@ -345,9 +345,12 @@ component extends="preside.system.base.AdminHandler" {
 
 
 	public void function getFilterCount( event, rc, prc ) {
-		var objectName      = rc.objectName ?: "";
-		var expressionArray = "";
-		var count           = 0;
+		var objectName            = rc.objectName ?: "";
+		var preSavedFilters       = ListToArray( rc.preSavedFilters ?: "" );
+		var preRulesEngineFilters = ListToArray( rc.preRulesEngineFilters ?: "" );
+		var extraFilters          = [];
+		var expressionArray       = "";
+		var count                 = 0;
 
 		try {
 			expressionArray = DeSerializeJson( rc.condition ?: "" );
@@ -357,11 +360,20 @@ component extends="preside.system.base.AdminHandler" {
 			expressionArray = [];
 		}
 
+		for( var filterId in preRulesEngineFilters ) {
+			extraFilters.append( rulesEngineFilterService.prepareFilter(
+				  objectName = objectName
+				, filterId   = filterId
+			) );
+		}
+
 		if ( objectName.len() ) {
 			try {
 				var count = rulesEngineFilterService.getMatchingRecordCount(
 					  objectName      = objectName
 					, expressionArray = expressionArray
+					, savedFilters    = preSavedFilters
+					, extraFilters    = extraFilters
 				);
 			} catch ( any e ) {}
 		}
@@ -483,6 +495,14 @@ component extends="preside.system.base.AdminHandler" {
 	public void function quickEditFilterForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
 		event.include( "/js/admin/specific/datamanager/quickEditForm/" );
+		prc.contextData  = {};
+
+		try {
+			prc.contextData = DeSerializeJson( rc.contextData ?: "" );
+			if ( !IsStruct( prc.contextData ) ) {
+				prc.contextData = {};
+			}
+		} catch( any e ) {}
 
 		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
 		if ( prc.record.recordCount ) {

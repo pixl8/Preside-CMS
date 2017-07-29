@@ -3,6 +3,7 @@
 	<cfproperty name="presideObjectService"             inject="presideObjectService"             />
 	<cfproperty name="multilingualPresideObjectService" inject="multilingualPresideObjectService" />
 	<cfproperty name="dataManagerService"               inject="dataManagerService"               />
+	<cfproperty name="dataExportService"                inject="dataExportService"                />
 	<cfproperty name="formsService"                     inject="formsService"                     />
 	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
 	<cfproperty name="siteService"                      inject="siteService"                      />
@@ -204,10 +205,7 @@
 			for( var filterByField in filterByFields ) {
 				filterValue = rc[filterByField] ?: "";
 				if( !isEmpty( filterValue ) ){
-					extraFilters.append({
-						  filter       = "#filterByField# in ( :#filterByField# )"
-						, filterParams = { "#filterByField#" = listToArray( filterValue ) }
-					});
+					extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
 				}
 			}
 
@@ -1640,6 +1638,7 @@
 		<cfargument name="draftsEnabled"           type="boolean" required="false" default="false" />
 		<cfargument name="canPublish"              type="boolean" required="false" default="false" />
 		<cfargument name="canSaveDraft"            type="boolean" required="false" default="false" />
+		<cfargument name="validationResult"        type="any"     required="false" />
 		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
 		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
 		<cfargument name="permissionContextKeys"   type="array"   required="false" default="#ArrayNew(1)#" />
@@ -1654,7 +1653,7 @@
 			var persist          = "";
 			var isDraft          = false;
 
-			validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+			validationResult = validateForm( formName=arguments.formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -2154,6 +2153,51 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="dataExportConfigModal" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			if ( !isFeatureEnabled( "dataexport" ) ) {
+				event.notFound();
+			}
+			var args   = {};
+
+			args.objectName = rc.id ?: "";
+			args.objectTitle = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
+			args.defaultExportFilename = translateresource(
+				  uri  = "cms:dataexport.config.form.field.title.default"
+				, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
+			);
+
+			event.setView( view="/admin/datamanager/dataExportConfigModal", layout="adminModalDialog", args=args );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="exportDataAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			if ( !isFeatureEnabled( "dataexport" ) ) {
+				event.notFound();
+			}
+
+			var objectName = rc.object ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
+			runEvent(
+				  event          = "admin.DataManager._exportDataAction"
+				, prePostExempt  = true
+				, private        = true
+			);
+		</cfscript>
+	</cffunction>
+
 <!--- private utility methods --->
 	<cffunction name="_getObjectFieldsForGrid" access="private" returntype="array" output="false">
 		<cfargument name="objectName" type="string" required="true" />
@@ -2221,6 +2265,56 @@
 				, parentRecordLabel = parentRecord.label ?: ""
 				, parentObjectTitle = parentObjectTitle
 			};
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_exportDataAction" access="private" returntype="any" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+		<cfargument name="exporter"   type="string" required="false" default="#( rc.exporter ?: 'CSV' )#" />
+		<cfargument name="objectName"   type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="exportFields" type="string" required="false" default="#( rc.exportFields ?: '' )#" />
+		<cfargument name="filename" type="string" required="false" default="#( rc.fileName ?: '' )#" />
+		<cfargument name="filterExpressions" type="string" required="false" default="#( rc.filterExpressions ?: '' )#" />
+		<cfargument name="savedFilters" type="string" required="false" default="#( rc.savedFilters ?: '' )#" />
+		<cfargument name="extraFilters" type="array" required="false" default="#ArrayNew( 1 )#" />
+
+		<cfsetting requesttimeout="6000" />
+
+		<cfscript>
+			var exporterDetail = dataExportService.getExporterDetails( arguments.exporter );
+			var selectFields   = arguments.exportFields.listToArray();
+			var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
+			var args           = {
+				  exporter     = exporter
+				, objectName   = objectName
+				, selectFields = selectFields
+				, extraFilters = arguments.extraFilters
+				, autoGroupBy  = true
+			};
+
+			try {
+				args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+					  objectName      = objectName
+					, expressionArray = DeSerializeJson( arguments.filterExpressions )
+				) );
+			} catch( any e ){}
+
+			for( var filter in arguments.savedFilters.listToArray() ) {
+				try {
+					args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName = objectName
+						, filterId   = filter
+					) );
+				} catch( any e ){}
+			}
+
+			var exportedFile = dataExportService.exportData( argumentCollection=args );
+
+			header name="Content-Disposition" value="attachment; filename=""#fullFileName#""";
+			content reset=true file=exportedFile deletefile=true type=exporterDetail.mimeType;
+			abort;
 		</cfscript>
 	</cffunction>
 

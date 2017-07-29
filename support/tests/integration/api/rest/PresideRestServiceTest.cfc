@@ -307,7 +307,7 @@ component extends="testbox.system.BaseSpec"{
 
 				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
 				mockController.$( "runEvent" );
-				mockRequestContext.$( "getCollection", rc );
+				mockRequestContext.$( "getCollectionWithoutSystemVars", rc );
 
 				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
 
@@ -340,7 +340,7 @@ component extends="testbox.system.BaseSpec"{
 
 				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
 				mockController.$( "runEvent" );
-				mockRequestContext.$( "getCollection", rc );
+				mockRequestContext.$( "getCollectionWithoutSystemVars", rc );
 
 				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
 
@@ -1141,6 +1141,7 @@ component extends="testbox.system.BaseSpec"{
 	private any function getService( ) {
 		variables.mockController    = createStub();
 		variables.mockConfigWrapper = createEmptyMock( "preside.system.services.rest.PresideRestConfigurationWrapper" );
+		variables.mockAuthService   = createEmptyMock( "preside.system.services.rest.PresideRestAuthService" );
 		variables.mockValidationEngine = createMock( "preside.system.services.validation.ValidationEngine" ).init();
 		variables.mockI18n = createMock( "preside.system.services.i18n.i18n" );
 
@@ -1148,12 +1149,14 @@ component extends="testbox.system.BaseSpec"{
 			  controller           = mockController
 			, resourceDirectories  = [ "/resources/rest/dir1", "/resources/rest/dir2" ]
 			, configurationWrapper = mockConfigWrapper
+			, authService          = mockAuthService
 			, validationEngine 	   = mockValidationEngine
 			, i18n 				   = mockI18n
 		) );
 
 		restService.$( "_announceInterception" );
 		restService.$( "$raiseError" );
+		restService.$( "authenticateRequest" );
 
 		return restService;
 	}

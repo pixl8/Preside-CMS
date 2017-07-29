@@ -5,14 +5,19 @@
 		activeFolder = rootFolder;
 	}
 	isTrash = activeFolder == "trash";
+
+	permissionContext   = prc.permissionContext ?: [];
+	hasDeletePermission = hasCmsPermission( permissionKey="assetmanager.assets.delete" , context="assetmanagerfolder", contextKeys=permissionContext );
 </cfscript>
 
 <cfoutput>
 	<div class="form-actions" id="multi-action-buttons">
-		<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#translateResource( "cms:assetmanager.browser.deleteMulti.prompt" )#">
-			<i class="fa fa-trash-o bigger-110"></i>
-			#translateResource( "cms:assetmanager.browser.deleteMulti.btn" )#
-		</button>
+		<cfif hasDeletePermission>
+			<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#translateResource( "cms:assetmanager.browser.deleteMulti.prompt" )#">
+				<i class="fa fa-trash-o bigger-110"></i>
+				#translateResource( "cms:assetmanager.browser.deleteMulti.btn" )#
+			</button>
+		</cfif>
 
 		<cfif isTrash>
 			<button class="btn btn-info" disabled="disabled" data-global-key="m" data-toggle="move-assets-dialog" data-target="restore-assets-form" data-dialog-title="#translateResource( 'cms:assetmanager.restore.multi.assets.dialog.title' )#">

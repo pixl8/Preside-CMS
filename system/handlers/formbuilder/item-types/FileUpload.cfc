@@ -5,7 +5,7 @@ component {
 	private any function renderResponse( event, rc, prc, args={} ) {
 		var fileName = Listlast( args.response ?: "", '/\' );
 
-		if ( Len( Trim( fileName ) ) ) {
+		if ( Len( Trim( fileName ) ) && fileName != "{}" ) {
 			var downloadLink = event.buildLink(
 				  fileStorageProvider = 'formBuilderStorageProvider'
 				, fileStoragePath     = args.response

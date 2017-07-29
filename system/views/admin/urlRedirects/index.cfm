@@ -23,5 +23,7 @@
 		, multiActionUrl  = event.buildAdminLink( linkTo='urlRedirects.deleteRuleAction' )
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=urlRedirects.getRulesForAjaxDataTables" )
 		, gridFields      = [ "label", "source_url_pattern", "redirect_to_link" ]
+		, allowDataExport = true
+		, dataExportUrl   = event.buildAdminLink( linkTo='urlRedirects.exportAction' )
 	} )#
 </cfoutput>

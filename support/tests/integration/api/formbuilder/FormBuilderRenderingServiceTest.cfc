@@ -217,10 +217,25 @@ component extends="testbox.system.BaseSpec"{
 				var columns       = [ "column 1", "column 2" ];
 
 				mockColdbox.$( "handlerExists" ).$args( handler ).$results( false );
+				mockColdbox.$( "getSetting" ).$args( name="formbuilder", defaultValue={} ).$results( {} );
 
 				expect(
 					service.getItemTypeExportColumns( itemType="testtype", configuration=configuration )
 				).toBe( [ configuration.label ] );
+			} );
+
+			it( "should return the filed name of the item when no custom export columns handler action exists for the item type and the system is configured to use field names rather than labels", function(){
+				var service       = getService();
+				var handler       = "formbuilder.item-types.testtype.getExportColumns";
+				var configuration = { test="fubar", label="blah", name="field_name" };
+				var columns       = [ "column 1", "column 2" ];
+
+				mockColdbox.$( "handlerExists" ).$args( handler ).$results( false );
+				mockColdbox.$( "getSetting" ).$args( name="formbuilder", defaultValue={} ).$results( { export={ fieldNamesForHeaders=true } } );
+
+				expect(
+					service.getItemTypeExportColumns( itemType="testtype", configuration=configuration )
+				).toBe( [ configuration.name ] );
 			} );
 		} );
 	}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="tab1">
+		<fieldset id="fieldset1">
+			<field name="field1" />
+			<field name="field2" />
+		</fieldset>
+		<fieldset id="fieldset2">
+			<field name="field3" />
+		</fieldset>
+	</tab>
+	<tab id="tab2">
+		<fieldset id="fieldset3">
+			<field name="field4" />
+		</fieldset>
+	</tab>
+</form>

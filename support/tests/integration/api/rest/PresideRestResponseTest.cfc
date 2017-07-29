@@ -101,6 +101,13 @@ component extends="testbox.system.BaseSpec"{
 				expect( restResponse.getHeaders() ).toBe( expected );
 			} );
 
+			it( "should return a reference to itself so that methods can be chained", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+				var result = restResponse.setHeader( "test", true );
+
+				expect( result ).toBe( restResponse );
+			} );
+
 		} );
 
 		describe( "setData()", function(){

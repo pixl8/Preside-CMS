@@ -230,7 +230,6 @@ component displayName="Task Manager Service" {
 	 */
 	public void function runTask( required string taskKey, struct args={} ) {
 		var task        = getTask( arguments.taskKey );
-		var success     = true;
 		var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
 		var newLogId    = createTaskHistoryLog( arguments.taskKey, newThreadId );
 		var lockName    = "runtask-#taskKey#" & Hash( ExpandPath( "/" ) );
@@ -247,7 +246,8 @@ component displayName="Task Manager Service" {
 			thread name=newThreadId priority="low" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
 				setting requesttimeout = attributes.processTimeout;
 
-				var start = getTickCount();
+				var start   = getTickCount();
+				var success = false;
 
 				try {
 					success = _getController().runEvent(
@@ -282,7 +282,6 @@ component displayName="Task Manager Service" {
 
 						_getErrorLogService().raiseError( e );
 
-						success = false;
 						rethrow;
 					}
 				}

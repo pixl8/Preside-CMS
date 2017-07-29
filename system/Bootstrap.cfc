@@ -33,7 +33,7 @@ component {
 // APPLICATION LIFECYCLE EVENTS
 	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
-		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
+		_readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
 			_initEveryEverything();
@@ -284,7 +284,7 @@ component {
 		return "preside.system.config.Config";
 	}
 
-	private void function _readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
+	private void function _readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
 		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 
@@ -563,12 +563,15 @@ component {
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
 		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			new preside.system.services.errors.ErrorLogService(
-				  appMapping     = attributes.appMapping
-				, appMappingPath = attributes.appMappingPath
-				, logsMapping    = attributes.logsMapping
-				, logDirectory   = attributes.logsMapping & "/rte-logs"
-			).raiseError( attributes.e );
+			if ( !application.keyExists( "errorLogService" ) ) {
+				application.errorLogService = new preside.system.services.errors.ErrorLogService(
+					  appMapping     = attributes.appMapping
+					, appMappingPath = attributes.appMappingPath
+					, logsMapping    = attributes.logsMapping
+					, logDirectory   = attributes.logsMapping & "/rte-logs"
+				);
+			}
+			application.errorLogService.raiseError( attributes.e );
 		}
 
 		content reset=true;

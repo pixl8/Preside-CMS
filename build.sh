@@ -11,21 +11,32 @@ echo "";
 echo "This script will install dependencies, run tests, and conditionally build docs and package preside into a ZIP file.";
 echo "Each of these operations can be run independently with the following commands:";
 echo "";
-echo "box install                      - installs dependencies";
-echo "./test.sh                        - runs tests";
-echo "./support/docs/build.sh          - builds documentation";
-echo "ant -f ./support/build/build.xml - packages PresideCMS into a zip file";
+echo "box install                                   - installs dependencies";
+echo "cd system/assets/ && npm install && grunt all - builds static assets";
+echo "./test.sh                                     - runs tests";
+echo "./support/docs/build.sh                       - builds documentation";
+echo "ant -f ./support/build/build.xml              - packages PresideCMS into a zip file";
 echo "";
 echo "The script has dependencies on CommandBox, ant + an accessible database for running the test suite.";
 echo "";
 echo "-------------------------------------------------------";
+
 echo "";
 echo "Installing dependencies via box.json...";
 echo "";
+box install --force save=false || exit 1;
+rm -rf ./system/externals/lucee-spreadsheet/javaLoader;
+rm -rf ./system/externals/lucee-spreadsheet/test;
 
-box install --force save=false
-rm -rf ./system/externals/lucee-spreadsheet/javaLoader
-rm -rf ./system/externals/lucee-spreadsheet/test
+
+echo "";
+echo "Building static assets with grunt";
+echo "";
+
+cd system/assets;
+npm install || exit 1;
+grunt all || exit 1;
+cd ../../;
 
 echo "";
 echo "Running tests (please be patient, expect this to take several minutes)...";
@@ -53,11 +64,19 @@ else
 	echo "Skipping docs build, not on a release tag in a travis build. To build the docs yourself, run ./support/docs/build.sh"
 fi
 if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
-	echo "Packaging application...";
+	if [[ $TRAVIS_TAG == v* ]] ; then
+		VERSION_NUMBER="${TRAVIS_TAG//v}"
+	elif [[ $TRAVIS_BRANCH == release* ]] ; then
+		VERSION_NUMBER="${TRAVIS_BRANCH//release-}"
+	else
+		VERSION_NUMBER="unknown"
+	fi
+
+	echo "Packaging application ${VERSION_NUMBER}...";
 	echo "";
 	echo "";
 
-	ant -f support/build/build.xml -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG
+	ant -f support/build/build.xml -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG -Dversionnumber=$VERSION_NUMBER
 
 	echo "";
 	echo "";

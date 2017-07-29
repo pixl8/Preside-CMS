@@ -86,6 +86,10 @@ component {
 		var dateCreatedField  = poService.getdateCreatedField( arguments.objectName );
 		var dateModifiedField = poService.getdateModifiedField( arguments.objectName );
 
+		if ( !existingRecords.recordCount ) {
+			existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=false );
+		}
+
 		newData.delete( dateCreatedField  );
 		newData.delete( dateModifiedField );
 
@@ -209,7 +213,7 @@ component {
 					, values           = manyToManyData[ propertyName ]
 					, versionNumber    = arguments.versionNumber
 					, versionAuthor    = arguments.versionAuthor
-				);				
+				);
 			}
 		}
 
@@ -251,16 +255,26 @@ component {
 					changedFields.append( field );
 				}
 			} else {
-				var propDbType = ( properties[ field ].dbtype ?: "" );
-				if ( IsEmpty( arguments.newData[ field ] ?: "" ) ) {
-					if ( propDbType == "boolean" ) {
-						arguments.newData[ field ] = 0;
-					}
+
+				if ( !StructKeyExists( oldData, field ) ) {
+					continue;
 				}
-				if ( StructKeyExists( oldData, field ) && Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
+
+				var propDbType = ( properties[ field ].dbtype ?: "" );
+
+				if ( propDbType == "boolean" && IsBoolean( arguments.newData[ field ] ) && IsBoolean( oldData[ field ] ) ) {
+					if ( arguments.newData[ field ] != oldData[ field ] ) {
+						changedFields.append( field );
+					}
+				} else if ( ( propDbType == "datetime" || propDbType == "date" ) && isDate( arguments.newData[ field ] ?: "" ) && isDate( oldData[ field ] ) ) {
+					if ( dateCompare( oldData[ field ], arguments.newData[ field ] ) ) {
+						changedFields.append( field );
+					}
+				} else if ( Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
 					changedFields.append( field );
 				}
 			}
+
 		}
 
 		return changedFields;
@@ -677,7 +691,7 @@ component {
 		var targetObject  = prop.relatedTo       ?: "";
 		var targetIdField = poService.getIdField( targetObject );
 		var newDataItems  = len( newData ) ? deserializeJSON( "[ #newData# ]" ) : [];
-		
+
 		var existingRecords  = poService.selectData(
 			  objectName       = targetObject
 			, filter           = { "#targetFk#"=arguments.sourceId }
