@@ -1077,12 +1077,26 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( pageId.isEmpty() ) {
 			pageCache.clearAll();
+
+			event.audit(
+				  action = "clear_page_cache"
+				, type   = "sitetree"
+			);
 		} else {
+			var page = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
 			var pageUrl    = event.buildLink( page=pageId ).reReplace( "^https?://.*?/", "/" );
 			var sectionUrl = pageUrl.reReplace( "\.html$", "/" );
 
 			pageCache.clearByKeySnippet( pageUrl );
 			pageCache.clearByKeySnippet( sectionUrl );
+
+			event.audit(
+				  action   = "clear_cache_for_page"
+				, type     = "sitetree"
+				, detail   = QueryRowToStruct( page )
+				, recordId = page.id
+			);
 		}
 
 		messagebox.info( translateResource( "cms:sitetree.flush.cache.confirmation" ) );
