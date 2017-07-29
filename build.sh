@@ -34,6 +34,7 @@ echo "Building static assets with grunt";
 echo "";
 
 cd system/assets;
+npm install || exit 1;
 grunt all || exit 1;
 cd ../../;
 

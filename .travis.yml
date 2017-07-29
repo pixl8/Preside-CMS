@@ -3,6 +3,8 @@ rvm:
   - 1.9.3
 jdk:
   - oraclejdk8
+node_js:
+  - "4.2.6"
 sudo: required
 group: deprecated
 addons:
@@ -19,8 +21,13 @@ install:
 - gem install s3_website
 before_script:
 - mysql -u root -e 'create database preside_test;'
+- npm install grunt-cli -g
 script:
 - "./build.sh"
+cache:
+  directories:
+  - system/assets/node_modules
+  - $HOME/.CommandBox
 
 notifications:
   email: false
