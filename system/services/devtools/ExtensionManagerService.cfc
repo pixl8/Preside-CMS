@@ -115,7 +115,6 @@ component {
 					}
 				}
 			}
-
 		} while( swapped );
 
 		extensions = extensions.reverse();
@@ -161,4 +160,3 @@ component {
 	}
 
 }
-
