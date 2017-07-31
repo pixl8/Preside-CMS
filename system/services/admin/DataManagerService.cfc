@@ -103,6 +103,15 @@ component {
 		return ListToArray( fields );
 	}
 
+	public array function listSearchFields( required string objectName ) {
+		var fields = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerSearchFields"
+		);
+
+		return ListToArray( fields );
+	}
+
 	public array function listBatchEditableFields( required string objectName ) {
 		var fields               = [];
 		var objectAttributes     = _getPresideObjectService().getObjectProperties( objectName );
@@ -205,33 +214,37 @@ component {
 		,          any     filter        = {}
 		,          struct  filterParams  = {}
 		,          boolean draftsEnabled = areDraftsEnabledForObject( arguments.objectName )
-		,          array   extraFilters = []
+		,          array   extraFilters  = []
+		,          array   searchFields  = listSearchFields( arguments.objectName )
 	) {
 
 		var result = { totalRecords = 0, records = "" };
-		var args   = {
-			  objectName         = arguments.objectName
-			, selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled )
-			, startRow           = arguments.startRow
-			, maxRows            = arguments.maxRows
-			, orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy )
-			, filter             = arguments.filter
-			, filterParams       = arguments.filterParams
-			, autoGroupBy        = true
-			, allowDraftVersions = true
-			, extraFilters       = arguments.extraFilters
-		};
+		var args   = Duplicate( arguments );
+
+		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled );
+		args.orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy );
+		args.autoGroupBy        = true;
+		args.allowDraftVersions = true;
+
+		args.delete( "gridFields"   );
+		args.delete( "searchQuery"  );
+		args.delete( "searchFields" );
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.extraFilters.append({
-				  filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, arguments.gridFields )
+				  filter       = _buildSearchFilter(
+					  q            = arguments.searchQuery
+					, objectName   = arguments.objectName
+					, gridFields   = arguments.gridFields
+					, searchFields = arguments.searchFields
+				  )
 				, filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } }
 			});
 		}
 
-		result.records = _getPresideObjectService().selectData( argumentCollection = args );
+		result.records = _getPresideObjectService().selectData( argumentCollection=args );
 
-		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0 );
@@ -576,7 +589,8 @@ component {
 		  required string q
 		, required string objectName
 		, required array  gridFields
-		,          string labelfield = _getPresideObjectService().getLabelField( arguments.objectName )
+		,          string labelfield   = _getPresideObjectService().getLabelField( arguments.objectName )
+		,          array  searchFields = []
 	) {
 		var field                = "";
 		var fullFieldName        = "";
@@ -586,26 +600,41 @@ component {
 		var poService            = _getPresideObjectService();
 		var relationshipGuidance = _getRelationshipGuidance();
 
-		for( field in arguments.gridFields ){
-			field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
-			objName = arguments.objectName;
-
-			if ( ListLen( field, "." ) == 2 ) {
-				objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
-					  sourceObject     = arguments.objectName
-					, relationshipPath = ListFirst( field, "." )
-				);
-				field = ListLast( field, "." );
+		if ( arguments.searchFields.len() ) {
+			var parsedFields = poService.parseSelectFields(
+				  objectName   = arguments.objectName
+				, selectFields = arguments.searchFields
+				, includeAlias = false
+			);
+			for( field in parsedFields ){
+				if ( poService.getObjectProperties( arguments.objectName ).keyExists( field ) ) {
+					field = _getFullFieldName( field,  arguments.objectName );
+				}
+				filter &= delim & field & " like :q";
+				delim = " or ";
 			}
+		} else {
+			for( field in arguments.gridFields ){
+				field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
+				objName = arguments.objectName;
 
-			if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
-				if ( ListLen( fullFieldName, "." ) < 2 ) {
-					fullFieldName = _getFullFieldName( field, objName );
+				if ( ListLen( field, "." ) == 2 ) {
+					objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
+						  sourceObject     = arguments.objectName
+						, relationshipPath = ListFirst( field, "." )
+					);
+					field = ListLast( field, "." );
 				}
 
-				if ( _propertyIsSearchable( field, objName ) ) {
-					filter &= delim & fullFieldName & " like :q";
-					delim = " or ";
+				if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
+					if ( ListLen( fullFieldName, "." ) < 2 ) {
+						fullFieldName = _getFullFieldName( field, objName );
+					}
+
+					if ( _propertyIsSearchable( field, objName ) ) {
+						filter &= delim & fullFieldName & " like :q";
+						delim = " or ";
+					}
 				}
 			}
 		}

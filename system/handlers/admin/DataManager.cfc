@@ -1359,11 +1359,13 @@
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
 		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
 		<cfargument name="extraFilters"        type="array"   required="false" />
+		<cfargument name="searchFields"        type="array"   required="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
 
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var getRecordsArgs = Duplicate( arguments );
 			var checkboxCol         = [];
 			var optionsCol          = [];
 			var statusCol           = [];
@@ -1371,27 +1373,38 @@
 			var translations        = [];
 			var translateUrlBase    = "";
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
-			var sortOrder           = dtHelper.getSortOrder();
-			var expressionFilter    = rc.sFilterExpression ?: "";
-			var savedFilters        = ListToArray( rc.sSavedFilterExpressions ?: "" );
-			var extraFilters        = arguments.extraFilters ?: [];
+
+			getRecordsArgs.objectName    = arguments.object;
+			getRecordsArgs.startRow      = dtHelper.getStartRow();
+			getRecordsArgs.maxRows       = dtHelper.getMaxRows();
+			getRecordsArgs.orderBy       = dtHelper.getSortOrder();
+			getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
+
+			getRecordsArgs.delete( "event"           );
+			getRecordsArgs.delete( "rc"              );
+			getRecordsArgs.delete( "prc"             );
+			getRecordsArgs.delete( "actionsView"     );
+			getRecordsArgs.delete( "useMultiActions" );
+			getRecordsArgs.delete( "isMultilingual"  );
+			getRecordsArgs.delete( "draftsEnabled"   );
+			getRecordsArgs.delete( "object"   );
 
 			try {
-				extraFilters.append( rulesEngineFilterService.prepareFilter(
+				getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
 					  objectName = object
-					, expressionArray = DeSerializeJson( expressionFilter )
+					, expressionArray = DeSerializeJson( rc.sFilterExpression ?: "" )
 				) );
 			} catch( any e ){}
 
 			var savedFilters = presideObjectService.selectData(
-				  objectName = "rules_engine_condition"
+				  objectName   = "rules_engine_condition"
 				, selectFields = [ "expressions" ]
-				, filter = { id=savedFilters }
+				, filter       = { id=ListToArray( rc.sSavedFilterExpressions ?: "" ) }
 			);
 			for( var filter in savedFilters ) {
 				try {
-					extraFilters.append( rulesEngineFilterService.prepareFilter(
-						  objectName = object
+					getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName      = object
 						, expressionArray = DeSerializeJson( filter.expressions )
 					) );
 				} catch( any e ){}
@@ -1399,22 +1412,13 @@
 
 
 
-			if ( IsEmpty( sortOrder ) ) {
-				sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( object );
+			if ( IsEmpty( getRecordsArgs.orderBy ) ) {
+				getRecordsArgs.orderBy = dataManagerService.getDefaultSortOrderForDataGrid( object );
 			}
 
-			var results = dataManagerService.getRecordsForGridListing(
-				  objectName    = object
-				, gridFields    = gridFields
-				, filter        = arguments.filter
-				, startRow      = dtHelper.getStartRow()
-				, maxRows       = dtHelper.getMaxRows()
-				, orderBy       = sortOrder
-				, searchQuery   = dtHelper.getSearchQuery()
-				, draftsEnabled = arguments.draftsEnabled
-				, extraFilters = extraFilters
-			);
+			var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
 			var records = Duplicate( results.records );
+
 			for( var record in records ){
 				for( var field in gridFields ){
 					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], [ "adminDataTable", "admin" ] );
