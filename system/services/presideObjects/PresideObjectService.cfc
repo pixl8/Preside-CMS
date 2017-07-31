@@ -188,7 +188,7 @@ component displayName="Preside Object Service" {
 		var objMeta = _getObject( args.objectName ).meta;
 		var adapter = _getAdapter( objMeta.dsn );
 
-		args.selectFields   = _parseSelectFields( argumentCollection=args );
+		args.selectFields   = parseSelectFields( argumentCollection=args );
 
 		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
@@ -1671,6 +1671,64 @@ component displayName="Preside Object Service" {
 		return IsBoolean( configurator ) && configurator;
 	}
 
+	public array function parseSelectFields( required string objectName, required array selectFields, boolean includeAlias=true ) {
+		_announceInterception( "preParseSelectFields", arguments );
+		var fields  = arguments.selectFields;
+		var obj     = _getObject( arguments.objectName ).meta;
+		var adapter = _getAdapter( obj.dsn ?: "" );
+
+		if ( !fields.len() ) {
+			fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
+		}
+
+		for( var i=1; i <=fields.len(); i++ ){
+			var objName = "";
+			var match   = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", fields[i], 1, true );
+
+			match = match.len[1] ? Mid( fields[i], match.pos[1], match.len[1] ) : "";
+
+			if ( Len( Trim( match ) ) ) {
+				var labelField = "";
+				if ( ListLen( match, "." ) == 1 ) {
+					objName = arguments.objectName;
+				} else {
+					objName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
+				}
+
+				labelField = getObjectAttribute( objName, "labelfield", "label" );
+				if ( !Len( labelField ) ) {
+					throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
+				}
+
+				if ( ListLen( labelField, "." ) > 1 ) {
+					fields[i] = Replace( fields[i], "#arguments.objectName#.${labelfield}", "${labelfield}", "all" );
+					fields[i] = Replace( fields[i], ".${labelfield}", "$${labelfield}", "all" );
+				}
+				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
+			}
+
+			fields[i] = _expandFormulaFields(
+				  objectName = arguments.objectName
+				, expression = fields[i]
+				, dbAdapter  = adapter
+				, includeAlias = arguments.includeAlias
+			);
+
+			if ( arguments.includeAlias ) {
+				fields[i] = _autoAliasBareProperty(
+					  objectName   = arguments.objectName
+					, propertyName = fields[i]
+					, dbAdapter    = adapter
+				);
+			}
+		}
+
+		arguments.selectFields = fields;
+		_announceInterception( "postParseSelectFields", arguments );
+
+		return fields;
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
@@ -2426,61 +2484,6 @@ component displayName="Preside Object Service" {
 				cacheMaps[ joinObj ].__complexFilter[ arguments.cacheKey ] = 1;
 			}
 		}
-	}
-
-	private array function _parseSelectFields( required string objectName, required array selectFields ) {
-		_announceInterception( "preParseSelectFields", arguments );
-		var fields  = arguments.selectFields;
-		var obj     = _getObject( arguments.objectName ).meta;
-		var adapter = _getAdapter( obj.dsn ?: "" );
-
-		if ( !fields.len() ) {
-			fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
-		}
-
-		for( var i=1; i <=fields.len(); i++ ){
-			var objName = "";
-			var match   = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", fields[i], 1, true );
-
-			match = match.len[1] ? Mid( fields[i], match.pos[1], match.len[1] ) : "";
-
-			if ( Len( Trim( match ) ) ) {
-				var labelField = "";
-				if ( ListLen( match, "." ) == 1 ) {
-					objName = arguments.objectName;
-				} else {
-					objName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
-				}
-
-				labelField = getObjectAttribute( objName, "labelfield", "label" );
-				if ( !Len( labelField ) ) {
-					throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
-				}
-
-				if ( ListLen( labelField, "." ) > 1 ) {
-					fields[i] = Replace( fields[i], "#arguments.objectName#.${labelfield}", "${labelfield}", "all" );
-					fields[i] = Replace( fields[i], ".${labelfield}", "$${labelfield}", "all" );
-				}
-				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
-			}
-
-			fields[i] = _expandFormulaFields(
-				  objectName = arguments.objectName
-				, expression = fields[i]
-				, dbAdapter  = adapter
-			);
-
-			fields[i] = _autoAliasBareProperty(
-				  objectName   = arguments.objectName
-				, propertyName = fields[i]
-				, dbAdapter    = adapter
-			);
-		}
-
-		arguments.selectFields = fields;
-		_announceInterception( "postParseSelectFields", arguments );
-
-		return fields;
 	}
 
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
