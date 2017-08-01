@@ -1358,14 +1358,14 @@
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
 		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
-		<cfargument name="extraFilters"        type="array"   required="false" />
-		<cfargument name="searchFields"        type="array"   required="false" />
+		<cfargument name="extraFilters"        type="array"   required="false" default="#ArrayNew()#" />
+		<cfargument name="searchFields"        type="array"   required="false" default="#ArrayNew()#" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
 
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var getRecordsArgs = Duplicate( arguments );
+			var getRecordsArgs      = Duplicate( arguments );
 			var checkboxCol         = [];
 			var optionsCol          = [];
 			var statusCol           = [];
@@ -1389,27 +1389,31 @@
 			getRecordsArgs.delete( "draftsEnabled"   );
 			getRecordsArgs.delete( "object"   );
 
-			try {
-				getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
-					  objectName = object
-					, expressionArray = DeSerializeJson( rc.sFilterExpression ?: "" )
-				) );
-			} catch( any e ){}
-
-			var savedFilters = presideObjectService.selectData(
-				  objectName   = "rules_engine_condition"
-				, selectFields = [ "expressions" ]
-				, filter       = { id=ListToArray( rc.sSavedFilterExpressions ?: "" ) }
-			);
-			for( var filter in savedFilters ) {
+			if ( Len( Trim( rc.sFilterExpression ?: "" ) ) ) {
 				try {
 					getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
-						  objectName      = object
-						, expressionArray = DeSerializeJson( filter.expressions )
+						  objectName = object
+						, expressionArray = DeSerializeJson( rc.sFilterExpression ?: "" )
 					) );
 				} catch( any e ){}
 			}
 
+			if ( Len( Trim( rc.sSavedFilterExpressions ?: "" ) ) ) {
+				var savedFilters = presideObjectService.selectData(
+					  objectName   = "rules_engine_condition"
+					, selectFields = [ "expressions" ]
+					, filter       = { id=ListToArray( rc.sSavedFilterExpressions ?: "" ) }
+				);
+
+				for( var filter in savedFilters ) {
+					try {
+						getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
+							  objectName      = object
+							, expressionArray = DeSerializeJson( filter.expressions )
+						) );
+					} catch( any e ){}
+				}
+			}
 
 
 			if ( IsEmpty( getRecordsArgs.orderBy ) ) {
