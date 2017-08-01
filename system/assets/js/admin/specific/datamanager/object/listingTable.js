@@ -119,6 +119,7 @@
 					bProcessing   : true,
 					bStateSave    : true,
 					bFilter       : allowSearch,
+					iDeferLoading : 0,
 					bAutoWidth    : false,
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
 					sDom          : sDom,
@@ -161,6 +162,8 @@
 						if ( allowDataExport ) {
 							setupDataExport( settings );
 						}
+
+						this.fnDraw();
 					},
 					oLanguage : {
 						oAria : {
