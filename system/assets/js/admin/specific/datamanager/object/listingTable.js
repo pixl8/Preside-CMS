@@ -210,6 +210,9 @@
 						}
 
 						return sName + "="+JSON.stringify(oData)+"; expires=" + sExpires +"; path=" + sPath;
+					},
+					fnPreDrawCallback : function() {
+						$( this ).find( "tbody" ).presideLoadingSheen( true );
 					}
 				} ).fnSetFilteringDelay( searchDelay );
 			};
