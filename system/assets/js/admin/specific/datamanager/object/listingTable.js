@@ -107,7 +107,7 @@
 				}
 
 				if ( allowFilter ) {
-					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
+					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
 				} else {
 					sDom = "fr<'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				}
@@ -119,6 +119,7 @@
 					bProcessing   : true,
 					bStateSave    : true,
 					bFilter       : allowSearch,
+					iDeferLoading : 0,
 					bAutoWidth    : false,
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
 					sDom          : sDom,
@@ -161,6 +162,8 @@
 						if ( allowDataExport ) {
 							setupDataExport( settings );
 						}
+
+						this.fnDraw();
 					},
 					oLanguage : {
 						oAria : {
@@ -207,6 +210,12 @@
 						}
 
 						return sName + "="+JSON.stringify(oData)+"; expires=" + sExpires +"; path=" + sPath;
+					},
+					fnPreDrawCallback : function() {
+						$( ".datatable-container" ).presideLoadingSheen( true );
+					},
+					fnDrawCallback : function() {
+						$( ".datatable-container" ).presideLoadingSheen( false );
 					}
 				} ).fnSetFilteringDelay( searchDelay );
 			};
