@@ -1373,7 +1373,6 @@
 			var translateStatusCol  = [];
 			var translations        = [];
 			var translateUrlBase    = "";
-			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 
 			getRecordsArgs.objectName    = arguments.object;
 			getRecordsArgs.startRow      = dtHelper.getStartRow();
