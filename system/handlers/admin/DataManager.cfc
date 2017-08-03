@@ -1386,7 +1386,6 @@
 			getRecordsArgs.delete( "actionsView"     );
 			getRecordsArgs.delete( "useMultiActions" );
 			getRecordsArgs.delete( "isMultilingual"  );
-			getRecordsArgs.delete( "draftsEnabled"   );
 			getRecordsArgs.delete( "object"   );
 
 			if ( Len( Trim( rc.sFilterExpression ?: "" ) ) ) {
