@@ -121,9 +121,6 @@ component {
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
 
-		DirectoryCreate( presideroot & "/tmp", false, true );
-		this.mappings[ "/aoptmp" ] = presideroot & "/tmp";
-
 		variables.COLDBOX_APP_ROOT_PATH = arguments.appPath;
 		variables.COLDBOX_APP_KEY       = arguments.appPath;
 		variables.COLDBOX_APP_MAPPING   = arguments.appMapping;

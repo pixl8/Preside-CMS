@@ -1,7 +1,6 @@
  component extends="coldbox.system.ioc.config.Binder" {
 
 	public void function configure() {
-		_registerAopListener();
 		_setupCustomDslProviders();
 		_mapCommonSystemServices();
 		_mapSpecificSystemServices();
@@ -79,12 +78,6 @@
 				CreateObject( "#appMappingPath#.extensions.#ListLast( extensions[i].directory, '\/' )#.config.Wirebox" ).configure( binder=this );
 			}
 		}
-	}
-
-	private void function _registerAopListener() {
-		wirebox.listeners = [
-			{ class="coldbox.system.aop.Mixer", properties={ generationPath="/aoptmp" } }
-		];
 	}
 
 	private void function _injectPresideSuperClass( required any mapping, required string objectPath ) {
