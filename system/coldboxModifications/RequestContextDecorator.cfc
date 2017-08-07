@@ -714,7 +714,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		if ( arguments.keyExists( "cache" ) ) {
 			prc._cachePage = arguments.cache;
-			return;
+			return arguments.cache;
 		}
 
 		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
