@@ -31,13 +31,10 @@ component output=false {
 		announceInterception( "onLoginFailure"  );
 
 		websiteLoginService.setPostLoginUrl( postLoginUrl );
-		setNextEvent( url=event.buildLink( page="login" ), persistStruct={
-			  loginId      = loginId
-			, password     = password
-			, postLoginUrl = postLoginUrl
-			, rememberMe   = rememberMe
-			, message      = "LOGIN_FAILED"
-		} );
+		var persist = event.getCollectionWithoutSystemVars();
+		    persist.message = "LOGIN_FAILED";
+
+		setNextEvent( url=event.buildLink( page="login" ), persistStruct=persist );
 	}
 
 	public void function logout( event, rc, prc ) output=false {
