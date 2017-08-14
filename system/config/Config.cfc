@@ -164,6 +164,7 @@ component {
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
 		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics          = [];
+		settings.syncDb                      = IsBoolean( settings.injectedConfig.syncDb ?: ""  ) ? settings.injectedConfig.syncDb : true;
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
 		settings.devConsoleToggleKeyCode     = 96;
