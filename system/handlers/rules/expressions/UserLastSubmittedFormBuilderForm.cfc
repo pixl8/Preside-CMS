@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User's has submitted a specific form within the last x days"
+ * Expression handler for "User has submitted a specific form within the last x days"
  *
  * @feature websiteUsers
  * @expressionContexts user
