@@ -18,13 +18,19 @@ We recommend that you always use Maintenance Mode for upgrading Preside (see [[c
 
 ## Database upgrades
 
-Upgrades that require changes to the database deserve special care and attention. The Preside platform has the ability to automatically synchronize your database schema but the default setting is to turn this _off_ except for local development environments. This is controlled through a setting in `Config.cfc`:
+Upgrades that require changes to the database deserve special care and attention. The Preside platform has the ability to automatically synchronize your database schema but the default setting is to turn this _off_ except for local development environments. This is controlled through settings in `Config.cfc`:
 
 ```
+settings.syncDb     = true;
 settings.autoSyncDb = false;
 ```
 
-When set to `false`, the application will instead create an upgrade SQL script that you can then run directly on your database. The script will be saved at `/{webroot}/logs/sqlupgrade.sql` and a message will appear informing you that it has been generated. It is strongly advised to check the content of the script before running it against your database. Once the script has been run, you can reload your application again and you are all done.
+When `settings.syncDb` is set to `false`, the application will make **no attempt** to synchronise the database. You will be responsible for maintaining your database schema. The default value for this setting is `true`.
+
+If `settings.syncDb` is set to `true` and `settings.autoSyncDb` is set to `false`, the application will create an upgrade SQL script that you can then run directly on your database. The script will be saved at `/{webroot}/logs/sqlupgrade.sql` and a message will appear informing you that it has been generated. It is strongly advised to check the content of the script before running it against your database. Once the script has been run, you can reload your application again and you are all done.
+
+Finally, if `settings.syncDb` is set to `true` and `settings.autoSyncDb` is set to `true`, the application will directly modify your database's schema during the application reload/startup process. We recommend this for local/dev environments only.
+
 
 ### Schema sync script generator extension
 
