@@ -198,8 +198,9 @@ component displayName="AssetManager Service" {
 				, size            = asset.size
 				, currentFolderId = asset.asset_folder
 				, folderId        = arguments.folderId
-				, title           = arguments.restore ? asset.original_title : asset.title
+				, title           = asset.title
 				, throwIfNot      = arguments.throwIfNot
+				, restore         = arguments.restore
 				, restrictions    = restrictions
 			);
 
@@ -218,6 +219,7 @@ component displayName="AssetManager Service" {
 		,          string  currentFolderId = ""
 		,          string  title           = ""
 		,          boolean throwIfNot      = false
+		,          boolean restore         = false
 		,          struct  restrictions    = getFolderRestrictions( arguments.folderId )
 	) {
 		var typeDisallowed  = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
@@ -263,7 +265,7 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		if ( fileExist ) {
+		if ( fileExist && !arguments.restore ) {
 			if ( arguments.throwIfNot ) {
 				throw(
 					  type    = "PresideCMS.AssetManager.asset.file.exist.in.folder"
@@ -813,7 +815,7 @@ component displayName="AssetManager Service" {
 
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
-						, title          = asset.original_title
+						, title          = _ensureUniqueTitle( asset.original_title, arguments.folderId )
 						, is_trashed     = false
 						, storage_path   = newPath
 						, original_title = ""
