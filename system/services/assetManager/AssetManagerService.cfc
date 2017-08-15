@@ -1954,10 +1954,10 @@ component displayName="AssetManager Service" {
 		}
 
 		while( assetDao.dataExists( filter=filter, filterParams=params ) ) {
-			params.title = originalTitle & ++counter;
+			params.title = originalTitle & " " & ++counter;
 
 			if ( Len( params.title ) > maxLength ) {
-				params.title = Left( originalTitle, maxLength-Len( counter ) ) & counter;
+				params.title = Left( originalTitle, maxLength-Len( counter )-1 ) & " " & counter;
 			}
 		}
 
