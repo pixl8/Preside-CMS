@@ -267,7 +267,7 @@ component displayName="AssetManager Service" {
 			if ( arguments.throwIfNot ) {
 				throw(
 					  type    = "PresideCMS.AssetManager.asset.file.exist.in.folder"
-					, message = "Cannot add file to asset folder due file is already exist in the folder. "
+					, message = "Cannot add file to asset folder due file already existing in the folder."
 				);
 			}
 
