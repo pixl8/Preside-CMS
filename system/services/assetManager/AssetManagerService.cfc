@@ -184,11 +184,12 @@ component displayName="AssetManager Service" {
 		  required array   assetIds
 		, required string  folderId
 		,          boolean throwIfNot = false
+		,          boolean restore    = false
 	) {
 		var restrictions = getFolderRestrictions( arguments.folderId );
 		var assets       = _getAssetDao().selectData(
 			  filter       = { id = arguments.assetIds }
-			, selectFields = [ "asset_type", "size", "asset_folder", "title" ]
+			, selectFields = [ "asset_type", "size", "asset_folder", "title", "original_title" ]
 		);
 
 		for( var asset in assets ) {
@@ -197,7 +198,7 @@ component displayName="AssetManager Service" {
 				, size            = asset.size
 				, currentFolderId = asset.asset_folder
 				, folderId        = arguments.folderId
-				, title           = asset.title
+				, title           = arguments.restore ? asset.original_title : asset.title
 				, throwIfNot      = arguments.throwIfNot
 				, restrictions    = restrictions
 			);
@@ -216,13 +217,13 @@ component displayName="AssetManager Service" {
 		, required string  folderId
 		,          string  currentFolderId = ""
 		,          string  title           = ""
-		,          boolean throwIfNot   = false
-		,          struct  restrictions = getFolderRestrictions( arguments.folderId )
+		,          boolean throwIfNot      = false
+		,          struct  restrictions    = getFolderRestrictions( arguments.folderId )
 	) {
-		var typeDisallowed = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
-		var sizeInMb       = arguments.size / 1048576;
-		var tooBig         = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
-		var fileExist      = _getAssetDao().dataExists( filter = { title = arguments.title,  asset_folder = arguments.folderId} );
+		var typeDisallowed  = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
+		var sizeInMb        = arguments.size / 1048576;
+		var tooBig          = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+		var fileExist       = _getAssetDao().dataExists( filter={ title=arguments.title, asset_folder=arguments.folderId } );
 
 		if ( typeDisallowed  ) {
 			if ( arguments.throwIfNot ) {
@@ -788,6 +789,7 @@ component displayName="AssetManager Service" {
 				  assetIds   = arguments.assetIds
 				, folderId   = arguments.folderId
 				, throwIfNot = true
+				, restore    = true
 			);
 
 			for( var assetId in arguments.assetIds ) {
