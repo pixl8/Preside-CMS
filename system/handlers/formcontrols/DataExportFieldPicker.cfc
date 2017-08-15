@@ -1,6 +1,7 @@
 component {
 	property name="dataExportService"    inject="dataExportService";
 	property name="presideObjectService" inject="presideObjectService";
+	property name="i18n"                 inject="coldbox:plugin:i18n";
 
 	public string function index( event, rc, prc, args={} ) {
 		var objectName = args.exportObject ?: "";
@@ -26,9 +27,10 @@ component {
 
 		var baseI18nUri = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 		for( var prop in args.values ) {
+			var defaultResourceUri = "cms:preside-objects.default.field.#prop#.title";
 			args.labels.append( translateResource(
 				  uri          = baseI18nUri & "field.#prop#.title"
-				, defaultValue = prop
+				, defaultValue = i18n.isValidResourceUri( defaultResourceUri ) ? translateResource( defaultResourceUri ) : prop
 			) );
 		}
 
