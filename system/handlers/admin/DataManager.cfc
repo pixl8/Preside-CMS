@@ -1365,6 +1365,7 @@
 			gridFields = ListToArray( gridFields );
 
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var objectIsVersioned   = presideObjectService.objectIsVersioned( object );
 			var getRecordsArgs      = Duplicate( arguments );
 			var checkboxCol         = [];
 			var optionsCol          = [];
@@ -1446,7 +1447,7 @@
 						, viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id=#record.id#" )
 						, canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] )
 						, canDelete         = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
-						, canViewHistory    = datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] )
+						, canViewHistory    = objectIsVersioned && datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] )
 						, objectName        = object
 					} ) );
 				}

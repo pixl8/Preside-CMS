@@ -251,10 +251,10 @@ The view looks like this:
 
 ### Request context helper methods
 
-There are two helper methods available to you in the request context, `event.getBreadCrumbs()` and `event.addBreadCrumb( title, link )`.
+There are two helper methods available to you in the request context, `event.getBreadCrumbs()` and `event.addBreadCrumb( title, link, menuTitle )`.
 
-The `getBreadCrumbs()` method returns an array of the breadcrumbs that have been registered for the request. Each breadcrumb is a structure containing `title` and `link` keys.
+The `getBreadCrumbs()` method returns an array of the breadcrumbs that have been registered for the request. Each breadcrumb is a structure containing `title`, `link` and `menuTitle` keys.
 
-The `addBreadCrumb()` method allows you to append a breadcrumb item to the current stack. It requires you to pass both a title and a link for the breadcrumb item.
+The `addBreadCrumb()` method allows you to append a breadcrumb item to the current stack. It requires you to pass both a title and a link for the breadcrumb item. The menuTitle is optional, and if omitted or empty will default to the title.
 
 >>> The core site tree page handler will automatically register the breadcrumbs for the current page.

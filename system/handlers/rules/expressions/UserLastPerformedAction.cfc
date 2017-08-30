@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User's has performed some action within the last x days"
+ * Expression handler for "User has performed some action within the last x days"
  *
  * @feature websiteUsers
  * @expressionContexts user

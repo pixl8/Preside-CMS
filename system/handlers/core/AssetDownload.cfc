@@ -33,6 +33,11 @@ component output=false {
 			asset = QueryNew('');
 		} catch ( "AssetManager.versionNotFound" e ) {
 			asset = QueryNew('');
+		} catch ( "AssetManagerService.missingDerivativeConfiguration" e ) {
+			if ( getSetting( name="showErrors", defaultValue=false ) ) {
+				rethrow;
+			}
+			asset = QueryNew('');
 		} catch ( "storageProvider.objectNotFound" e ) {
 			asset = QueryNew('');
 		} catch( "AssetManager.Password error" e ){

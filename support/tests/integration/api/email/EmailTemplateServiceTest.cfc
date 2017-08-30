@@ -633,10 +633,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "replaceParameterTokens()", function(){
 			it( "it should replace all occurrences of param tokens (${param}) with the supplied params, using the appropriate html/text version of the param according to the passed type", function(){
 				var service = _getService();
-				var raw     = "${param1} was a ${param2} which was ${param1} and very ${param3}. Indeed! ${param4}";
+				var raw     = "${param1} was a ${param2} which was ${param1} and very ${param3}. indeed! ${param4}";
 				var type    = "text";
 				var params  = {
-					  param1 = { html="html 1", text="text1" }
+					  param1 = { html="html 1", text="İtext1" }
 					, param2 = "just text"
 					, param3 = { html="html 3", text="text 3" }
 				};
@@ -645,7 +645,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  text   = raw
 					, params = params
 					, type   = type
-				) ).toBe( "text1 was a just text which was text1 and very text 3. Indeed! ${param4}" );
+				) ).toBe( "İtext1 was a just text which was İtext1 and very text 3. indeed! ${param4}" );
 			} );
 		} );
 
