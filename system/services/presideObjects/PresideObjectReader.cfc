@@ -299,7 +299,7 @@ component {
 		}
 
 		if ( arguments.meta.propertyNames.find( idField ) ) {
-			StructAppend( arguments.meta.properties.id, defaults.id, false );
+			StructAppend( arguments.meta.properties[ idField ], defaults.id, false );
 		} else {
 			arguments.meta.properties[ idField ] = defaults[ "id" ];
 			ArrayPrepend( arguments.meta.propertyNames, idField );
@@ -309,7 +309,7 @@ component {
 		}
 
 		if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
-			StructAppend( arguments.meta.properties.dateCreated, defaults.dateCreated, false );
+			StructAppend( arguments.meta.properties[ dateCreatedField ], defaults.dateCreated, false );
 		} else {
 			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
 			ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
@@ -319,7 +319,7 @@ component {
 		}
 
 		if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
-			StructAppend( arguments.meta.properties.datemodified, defaults.datemodified, false );
+			StructAppend( arguments.meta.properties[ dateModifiedField ], defaults.datemodified, false );
 		} else {
 			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
 			ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
