@@ -424,7 +424,13 @@ component {
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, args.selectFields, labelfield );
+			args.filter       = _buildSearchFilter(
+				  q            = arguments.searchQuery
+				, objectName   = arguments.objectName
+				, gridFields   = args.selectFields
+				, labelfield   = labelfield
+				, searchFields = [ labelField ]
+			);
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
 
