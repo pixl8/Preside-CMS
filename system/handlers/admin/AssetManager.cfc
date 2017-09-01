@@ -233,6 +233,7 @@ component extends="preside.system.base.AdminHandler" {
 				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
 			}
+			
 			if ( !success ) {
 				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 			}

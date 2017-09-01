@@ -28,7 +28,7 @@ component {
 		for( var prop in args.values ) {
 			args.labels.append( translateResource(
 				  uri          = baseI18nUri & "field.#prop#.title"
-				, defaultValue = prop
+				, defaultValue = translateResource( uri="cms:preside-objects.default.field.#prop#.title", defaultValue=prop )
 			) );
 		}
 

@@ -130,6 +130,7 @@ component extends="preside.system.base.AdminHandler" {
 				, globalDefaultsOnly = true
 			);
 		}
+		prc.savedData.check_connection = true;
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.provider.page.title", data=[ prc.provider.title ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.provider.page.subTitle", data=[ prc.provider.description ] );

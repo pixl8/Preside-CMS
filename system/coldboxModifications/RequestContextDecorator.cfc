@@ -39,7 +39,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true ) output=false {
 		var fetchSite = Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId();
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
-		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
+		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
 
 		if ( cgi.server_port != 80 ) {
 			siteUrl &= ":#cgi.server_port#";
@@ -415,10 +415,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		clearBreadCrumbs();
 		for( var ancestor in ancestors ) {
-			addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
+			addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ), menuTitle=ancestor.navigation_title ?: "" );
 			page.ancestors.append( ancestor );
 		}
-		addBreadCrumb( title=page.title, link=buildLink( page=page.id ) );
+		addBreadCrumb( title=page.title, link=buildLink( page=page.id ), menuTitle=page.navigation_title ?: "" );
 
 		page.isInDateAndActive = isActive( argumentCollection = page );
 		if ( page.isInDateAndActive ) {
@@ -461,17 +461,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			}
 
 			for( var ancestor in ancestors ) {
-				addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
+				addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ), menuTitle=ancestor.navigation_title ?: "" );
 				page.ancestors.append( ancestor );
 			}
 
 			for( var p in arguments.parentPage ){
-				addBreadCrumb( title=p.title, link=buildLink( page=p.id ) );
+				addBreadCrumb( title=p.title, link=buildLink( page=p.id ), menuTitle=p.navigation_title ?: "" );
 				page.ancestors.append( p );
 			}
 		}
 
-		addBreadCrumb( title=page.title ?: "", link=getCurrentUrl() );
+		addBreadCrumb( title=page.title ?: "", link=getCurrentUrl(), menuTitle=page.navigation_title ?: "" );
 
 		prc.presidePage = page;
 	}
@@ -625,10 +625,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getPageProperty( "permissionContext", [] );
 	}
 
-	public void function addBreadCrumb( required string title, required string link ) output=false {
+	public void function addBreadCrumb( required string title, required string link, string menuTitle="" ) output=false {
 		var crumbs = getBreadCrumbs();
 
-		ArrayAppend( crumbs, { title=arguments.title, link=arguments.link } );
+		ArrayAppend( crumbs, {
+			  title     = arguments.title
+			, link      = arguments.link
+			, menuTitle = arguments.menuTitle.len() ? arguments.menuTitle : arguments.title
+		} );
 
 		getRequestContext().setValue( name="_breadCrumbs", value=crumbs, private=true );
 	}

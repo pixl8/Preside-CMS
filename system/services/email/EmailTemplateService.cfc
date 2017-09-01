@@ -407,13 +407,13 @@ component {
 		, required string type
 	) {
 		arguments.type = arguments.type == "text" ? "text" : "html";
-		var replaced = arguments.text;
+		var replaced = JavaCast( "String", arguments.text );
 
 		for( var paramName in arguments.params ) {
-			var token = "${#paramName#}";
+			var token = "(?i)\Q${#paramName#}\E";
 			var value = IsSimpleValue( arguments.params[ paramName ] ) ? arguments.params[ paramName ] : ( arguments.params[ paramName ][ arguments.type ] ?: "" );
 
-			replaced = replaced.replaceNoCase( token, value, "all" );
+			replaced = replaced.replaceAll( token, value );
 		}
 
 		return replaced;
