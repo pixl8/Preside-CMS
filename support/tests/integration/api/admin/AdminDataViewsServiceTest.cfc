@@ -62,13 +62,43 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "objectRelatedRecords" );
 			} );
 		} );
+
+		describe( "renderField()", function() {
+			it( "should call the content renderer for the field, passing in objectName, propertyName and recordId as additional args to the renderer", function(){
+				var service      = _getService();
+				var value        = CreateUUId();
+				var recordId     = CreateUUId();
+				var objectName   = "blah" & CreateUUId();
+				var propertyName = "fubar" & CreateUUId();
+				var renderer     = CreateUUId();
+				var rendered     = CreateUUId();
+
+				service.$( "getRendererForField" ).$args( objectName=objectName, propertyName=propertyname ).$results( renderer );
+				mockContentRenderer.$( "render" ).$args(
+					  renderer = renderer
+					, data     = value
+					, context  = [ "adminview", "admin" ]
+					, args     = { objectName=objectName, propertyName=propertyName, recordId=recordId }
+				).$results( rendered );
+
+				expect( service.renderField(
+					  recordId     = recordId
+					, objectName   = objectName
+					, propertyName = propertyName
+					, value        = value
+				) ).toBe( rendered );
+			} );
+		} );
 	}
 
 // HELPERS
 	private any function _getService() {
-		var service = CreateMock( object=new preside.system.services.admin.AdminDataViewsService() );
+		mockContentRenderer = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
+		mockPoService       = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 
-		mockPoService = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		var service = CreateMock( object=new preside.system.services.admin.AdminDataViewsService(
+			contentRendererService = mockContentRenderer
+		) );
 
 		service.$( "$getPresideObjectService", mockPoService );
 

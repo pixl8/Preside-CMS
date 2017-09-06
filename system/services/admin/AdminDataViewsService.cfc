@@ -10,15 +10,51 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @contentRendererService.inject contentRendererService
+	 *
+	 */
+	public any function init( required any contentRendererService ) {
+		_setContentRendererService( arguments.contentRendererService );
+
 		return this;
 	}
 
 // PUBLIC API METHODS
 	/**
+	 * Renders a field in the context of an admin data view
+	 *
+	 * @autodoc true
+	 * @autodoc           true
+	 * @objectName.hint   Name of the object whose property for which you are rendering content
+	 * @propertyName.hint Name of the property for which you are rendering content
+	 * @recordId.hint     ID of the record to whose content this belongs
+	 * @value.hint        Value to render (if any)
+	 * @renderer.hint     Renderer to use (will default to calculating the renderer using [[admindataviewsservice-getrendererforfield]])
+	 */
+	public string function renderField(
+		  required string objectName
+		, required string propertyName
+		, required string recordId
+		,          any    value    = ""
+		,          string renderer = getRendererForField( objectName=arguments.objectName, propertyName=arguments.propertyName )
+	) {
+
+		return _getContentRendererService().render(
+			  renderer = arguments.renderer
+			, context  = [ "adminview", "admin" ]
+			, data     = arguments.value
+			, args     = { objectName=arguments.objectName, propertyName=arguments.propertyName, recordId=arguments.recordId }
+		);
+	}
+
+	/**
 	 * Returns either the defined or default admin renderer for the given preside object
 	 * property for rendering in an admin record view.
 	 *
+	 * @autodoc           true
+	 * @objectName.hint   Name of the object whose property you wish to get the renderer for
+	 * @propertyName.hint Name of the property you wish to get the renderer for
 	 */
 	public string function getRendererForField( required string objectName, required string propertyName ) {
 		var prop = $getPresideObjectService().getObjectProperty(
@@ -81,5 +117,10 @@ component {
 
 
 // GETTERS/SETTERS
-
+	private any function _getContentRendererService() {
+		return _contentRendererService;
+	}
+	private void function _setContentRendererService( required any contentRendererService ) {
+		_contentRendererService = arguments.contentRendererService;
+	}
 }
