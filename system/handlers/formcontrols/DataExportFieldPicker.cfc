@@ -12,7 +12,7 @@ component {
 		var propertyNames = presideObjectService.getObjectAttribute( objectName=objectName, attributeName="propertyNames" );
 		var props         = presideObjectService.getObjectProperties( objectName=objectName );
 
-		args.defaultValue = dataExportService.getDefaultExportFieldsForObject( objectName ).selectFields.toList();
+		args.defaultValue = Len( args.defaultValue ?: "" ) ? args.defaultValue : dataExportService.getDefaultExportFieldsForObject( objectName ).selectFields.toList();
 		args.values       = [];
 		args.labels       = [];
 		args.multiple     = true;
