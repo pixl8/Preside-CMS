@@ -412,7 +412,7 @@ component {
 		_loadConfigurationFromExtensions();
 
 		environments = {
-			local = "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
+			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
 		};
 
 	}
