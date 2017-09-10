@@ -89,6 +89,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( rendered );
 			} );
 		} );
+
+		describe( "getViewletForObjectRender()", function(){
+			it( "should return specified 'viewRecordViewlet' attribute on the object when object defines it", function(){
+				var service = _getService();
+				var viewlet = "test.viewlet.#CreateUUId()#";
+
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="viewRecordViewlet" ).$results( viewlet );
+
+				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( viewlet );
+			} );
+		} );
 	}
 
 // HELPERS

@@ -112,6 +112,21 @@ component {
 		return "plaintext";
 	}
 
+	/**
+	 * Returns the viewlet to use to render an entire view
+	 * of the given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose viewlet you wish to get
+	 */
+	public string function getViewletForObjectRender( required string objectName ) {
+		var specificViewlet = $getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "viewRecordViewlet"
+		);
+
+		return specificViewlet;
+	}
 
 // PRIVATE HELPERS
 
