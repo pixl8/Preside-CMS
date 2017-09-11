@@ -120,12 +120,13 @@ component {
 	 * @objectName Name of the object whose viewlet you wish to get
 	 */
 	public string function getViewletForObjectRender( required string objectName ) {
+		var defaultViewlet  = "adminDataHelpers.viewRecord";
 		var specificViewlet = $getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "viewRecordViewlet"
 		);
 
-		return specificViewlet;
+		return specificViewlet.trim().len() ? specificViewlet : defaultViewlet;
 	}
 
 // PRIVATE HELPERS

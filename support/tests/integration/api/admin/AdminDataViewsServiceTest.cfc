@@ -99,6 +99,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( viewlet );
 			} );
+
+			it( "should return 'adminDataHelpers.viewRecord' when no specific 'viewRecordViewlet' is defined on an object", function(){
+				var service = _getService();
+
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="viewRecordViewlet" ).$results( "" );
+
+				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( "adminDataHelpers.viewRecord" );
+			} );
 		} );
 	}
 
