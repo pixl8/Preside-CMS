@@ -24,7 +24,7 @@ component displayName="Preside Object Service" {
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @coldboxController.inject      coldbox
 	 * @interceptorService.inject     coldbox:InterceptorService
-	 * @reloadDb.inject               coldbox:setting:autoSyncDb
+	 * @reloadDb.inject               coldbox:setting:syncDb
 	 */
 	public any function init(
 		  required array   objectDirectories
