@@ -3019,6 +3019,34 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test093_selectData_shouldReplaceForumulaPropertyWithItsDefinedFormulaAndPutObjectNameAsAliasWhereNecessaryToAvoidAmbiguousColumnNames" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var bIds      = [];
+			var cIds      = [];
+
+
+			poService.dbSync();
+
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 1" } ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2" } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
+
+			var result = poService.selectData(
+				  objectName   = "object_c"
+				, selectFields = [ "compound_label", "id" ]
+				, orderBy      = "compound_label"
+			);
+
+			super.assertEquals( result.recordCount      , 2        , "Expected record count mismatch" );
+			super.assertEquals( result.id[1]            , cIds[1]  , "Expected record ID mismatch" );
+			super.assertEquals( result.id[2]            , cIds[2]  , "Expected record ID mismatch" );
+			super.assertEquals( result.compound_label[1], "c 1 b 1", "Forumla field not calculated correctly" );
+			super.assertEquals( result.compound_label[2], "c 2 b 2", "Forumla field not calculated correctly" );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories" type="array"  required="true" />

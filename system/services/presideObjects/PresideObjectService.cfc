@@ -2790,6 +2790,9 @@ component displayName="Preside Object Service" {
 				if ( prefix.len() ) {
 					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "${prefix}$\1.", "all" );
 					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "${prefix}.\1", "all" );
+				} else {
+					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "\1.", "all" );
+					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "#arguments.objectName#.\1", "all" );
 				}
 				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
 			}
