@@ -3036,7 +3036,7 @@
 			var result = poService.selectData(
 				  objectName   = "object_c"
 				, selectFields = [ "compound_label", "id" ]
-				, orderBy      = "compound_label desc"
+				, orderBy      = "compound_label"
 			);
 
 			super.assertEquals( result.recordCount      , 2        , "Expected record count mismatch" );
