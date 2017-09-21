@@ -55,8 +55,13 @@ component {
 		var action       = args.action    ?: "";
 		var known_as     = args.known_as  ?: "";
 		var userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
-		var category     = translateResource( systemConfigurationService.getConfigCategory( args.record_id ?: "" ).getName() );
-		var categoryUrl  = event.buildAdminLink( linkTo="sysconfig.category", queryString="id=" & ( args.record_id ?: "" ) )
+		if( isFeatureEnabled( "emailcenter" ) && ( args.record_id ?: "" ) == "email"  ){
+			var category     = translateResource( "cms:emailCenter.menu.title" );
+			var categoryUrl  = event.buildAdminLink( linkTo="emailcenter.settings" );
+		} else {
+			var category     = translateResource( systemConfigurationService.getConfigCategory( args.record_id ?: "" ).getName() );
+			var categoryUrl  = event.buildAdminLink( linkTo="sysconfig.category", queryString="id=" & ( args.record_id ?: "" ) )
+		}
 		var categoryLink = '<a href="#categoryUrl#">#category#</a>';
 
 		return translateResource( uri="auditlog.sysconfig:#action#.message", data=[ userLink, categoryLink ] );
