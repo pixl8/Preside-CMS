@@ -253,6 +253,7 @@ component {
 				, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
 				, logs             = [ "view" ]
 				, queue            = [ "view", "clear" ]
+				, email            = [ "resend", "view" ]
 			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
