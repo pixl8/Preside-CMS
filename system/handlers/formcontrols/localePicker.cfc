@@ -1,7 +1,7 @@
 component output="false" displayname=""  {
 
 	property name="resourceBundleService"  inject="resourceBundleService";
-	property name="i18n"                   inject="coldbox:plugin:i18n";
+	property name="i18n"                   inject="i18n";
 	property name="loginService"           inject="loginService";
 
 	public string function index( event, rc, prc, args={} ) {

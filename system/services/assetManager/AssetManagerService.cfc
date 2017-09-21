@@ -643,7 +643,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder", "access_restriction" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder", "focal_point", "access_restriction" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -663,6 +663,7 @@ component displayName="AssetManager Service" {
 			, asset_type     = fileTypeInfo.typeName
 			, storage_path   = newFileName
 			, size           = Len( arguments.fileBinary )
+			, focal_point    = originalAsset.focal_point
 			, version_number = _getNextAssetVersionNumber( arguments.assetId )
 		};
 
@@ -730,6 +731,10 @@ component displayName="AssetManager Service" {
 		var asset       = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
+
+		if ( data.keyExists( "focal_point") && len( asset.active_version ) ) {
+			_getAssetVersionDao().updateData( id=asset.active_version, data={ focal_point=data.focal_point } )
+		}
 
 		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
 			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
@@ -894,7 +899,7 @@ component displayName="AssetManager Service" {
 		}
 	}
 
-	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
+	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", string configHash="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var asset            = "";
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 
@@ -902,6 +907,7 @@ component displayName="AssetManager Service" {
 			asset = getAssetDerivative(
 				  assetId        = arguments.id
 				, versionId      = arguments.versionId
+				, configHash     = arguments.configHash
 				, derivativeName = arguments.derivativeName
 				, throwOnMissing = arguments.throwOnMissing
 				, selectFields   = [ "asset_derivative.storage_path", "asset.asset_folder" ]
@@ -919,6 +925,9 @@ component displayName="AssetManager Service" {
 				, trashed = arguments.isTrashed
 				, private = private
 			);
+			if ( arguments.configHash.len() ) {
+				assetInfo.configHash = arguments.configHash;
+			}
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );
@@ -967,12 +976,14 @@ component displayName="AssetManager Service" {
 	public string function getDerivativeUrl(
 		  required string assetId
 		, required string derivativeName
-		,          string versionId = ""
+		,          string versionId  = ""
+		,          string configHash = ""
 	) {
 		var version    = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.assetId );
 		var derivative = getAssetDerivative(
 			  assetId           = arguments.assetId
 			, derivativeName    = arguments.derivativeName
+			, configHash        = arguments.configHash
 			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
 			, versionId         = version
 			, createIfNotExists = false
@@ -1142,6 +1153,7 @@ component displayName="AssetManager Service" {
 		  required string  assetId
 		, required string  derivativeName
 		,          string  versionId         = ""
+		,          string  configHash        = ""
 		,          array   selectFields      = []
 		,          boolean createIfNotExists = true
 	) {
@@ -1149,7 +1161,7 @@ component displayName="AssetManager Service" {
 		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
 		var derivative         = "";
 		var derivativeId       = "";
-		var lockName           = "getAssetDerivative( #arguments.assetId#, #arguments.derivativeName#, #arguments.versionId# )";
+		var lockName           = "getAssetDerivative( #arguments.assetId#, #arguments.derivativeName#, #arguments.versionId#, #arguments.configHash# )";
 		var selectFilter       = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
 		var selectFilterParams = {
 			  "asset_derivative.asset"         = arguments.assetId
@@ -1161,6 +1173,13 @@ component displayName="AssetManager Service" {
 			selectFilterParams[ "asset_derivative.asset_version" ] = arguments.versionId;
 		} else {
 			selectFilter &= " and asset_derivative.asset_version is null";
+		}
+
+		if ( Len( Trim( arguments.configHash ) ) ) {
+			selectFilter &= " and asset_derivative.config_hash = :asset_derivative.config_hash";
+			selectFilterParams[ "asset_derivative.config_hash" ] = arguments.configHash;
+		} else {
+			selectFilter &= " and asset_derivative.config_hash is null";
 		}
 
 		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
@@ -1183,7 +1202,7 @@ component displayName="AssetManager Service" {
 					return derivative;
 				}
 
-				derivativeId = createAssetDerivativeRecord(  assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName  );
+				derivativeId = createAssetDerivativeRecord( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 			}
 
 			createAssetDerivative( derivativeId=derivativeId, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
@@ -1194,11 +1213,12 @@ component displayName="AssetManager Service" {
 		return QueryNew( '' );
 	}
 
-	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="" ) {
+	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="", string configHash="" ) {
 		var derivative = getAssetDerivative(
 			  assetId        = arguments.assetId
 			, derivativeName = arguments.derivativeName
 			, versionId      = arguments.versionId
+			, configHash     = arguments.configHash
 			, selectFields   = [ "asset_derivative.storage_path", "asset.asset_folder" ]
 		);
 
@@ -1236,7 +1256,7 @@ component displayName="AssetManager Service" {
 	public string function createAssetDerivativeRecord(
 		  required string assetId
 		, required string derivativeName
-		,          string versionId       = ""
+		,          string versionId      = ""
 	) {
 		var signature = getDerivativeConfigSignature( arguments.derivativeName );
 
@@ -1244,6 +1264,7 @@ component displayName="AssetManager Service" {
 			  asset         = arguments.assetId
 			, asset_version = arguments.versionId
 			, label         = arguments.derivativeName & signature
+			, configHash    = left( createUUID(), 12 )
 			, asset_type    = "PENDING"
 			, storage_path  = "PENDING-" & CreateUUId()
 		} );
@@ -1258,12 +1279,14 @@ component displayName="AssetManager Service" {
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
-			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path", "asset_folder" ] );
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.focal_point" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path", "asset_folder", "focal_point" ] );
 
+		var config          = getDerivativeConfig( arguments.assetId );
+		var configHash      = getDerivativeConfigHash( config );
 		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
 		var fileext         = ListLast( asset.storage_path, "." );
-		var filename        = arguments.assetId & ( Len( Trim( arguments.versionId ) ) ? ".#arguments.versionId#" : "" ) & ".#fileext#";
+		var filename        = arguments.assetId & ( Len( configHash ) ? "_#configHash#" : "" ) & ( Len( Trim( arguments.versionId ) ) ? ".#arguments.versionId#" : "" ) & ".#fileext#";
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
 		var storagePath     = "/derivatives/#derivativeSlug#/#filename#";
 
@@ -1283,11 +1306,14 @@ component displayName="AssetManager Service" {
 		}
 
 		for( var transformation in transformations ) {
+			var transformationArgs = transformation.args ?: {};
+			transformationArgs.focalPoint = asset.focal_point;
+			
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
 				assetBinary = _applyAssetTransformation(
 					  assetBinary          = assetBinary
 					, transformationMethod = transformation.method ?: ""
-					, transformationArgs   = transformation.args   ?: {}
+					, transformationArgs   = transformationArgs
 					, filename             = filename              ?: ""
 				);
 
@@ -1309,6 +1335,8 @@ component displayName="AssetManager Service" {
 			_getDerivativeDao().updateData( id=arguments.derivativeId, data={
 				  asset_type    = assetType.typeName
 				, storage_path  = storagePath
+				, config        = config
+				, config_hash   = configHash
 			} );
 
 			return arguments.derivativeId;
@@ -1319,6 +1347,8 @@ component displayName="AssetManager Service" {
 				, asset_version = arguments.versionId
 				, label         = arguments.derivativeName & signature
 				, storage_path  = storagePath
+				, config        = config
+				, config_hash   = configHash
 			} );
 		}
 	}
@@ -1424,6 +1454,25 @@ component displayName="AssetManager Service" {
 		return "";
 	}
 
+	public string function getDerivativeConfig( required string assetId ) {
+		var config = [];
+		var asset  = getAsset( id=arguments.assetId, selectFields=[ "focal_point" ] );
+
+		if ( len( asset.focal_point ) ) {
+			config.append( "focal_point=#asset.focal_point#" );
+		}
+
+		return config.toList( "&" );
+	}
+
+	public string function getDerivativeConfigHash( required string config ) {
+		if ( !len( arguments.config ) ) {
+			return "";
+		}
+
+		return lcase( left( hash( arguments.config ), 12 ) );
+	}
+
 	public boolean function isSystemFolder( required string folderId ) {
 		return _getFolderDao().dataExists( filter={ id=arguments.folderId, is_system_folder=true } );
 	}
@@ -1447,6 +1496,7 @@ component displayName="AssetManager Service" {
 				, "asset_version.size"
 				, "asset_version.asset_type"
 				, "asset_version.raw_text_content"
+				, "asset_version.focal_point"
 				, "asset_version.created_by"
 				, "asset_version.updated_by"
 				, "asset.title"
@@ -1470,6 +1520,7 @@ component displayName="AssetManager Service" {
 				, size             = versionToMakeActive.size
 				, asset_type       = versionToMakeActive.asset_type
 				, raw_text_content = versionToMakeActive.raw_text_content
+				, focal_point      = versionToMakeActive.focal_point
 				, created_by       = versionToMakeActive.created_by
 				, updated_by       = versionToMakeActive.updated_by
 				, width            = versionImageDimension.width  ?: ""
@@ -1824,6 +1875,7 @@ component displayName="AssetManager Service" {
 			, "asset_type"
 			, "active_version"
 			, "raw_text_content"
+			, "focal_point"
 			, "created_by"
 			, "updated_by"
 		] );
@@ -1836,6 +1888,7 @@ component displayName="AssetManager Service" {
 				, size             = asset.size
 				, asset_type       = asset.asset_type
 				, raw_text_content = asset.raw_text_content
+				, focal_point      = asset.focal_point
 				, created_by       = asset.created_by
 				, updated_by       = asset.updated_by
 			} );

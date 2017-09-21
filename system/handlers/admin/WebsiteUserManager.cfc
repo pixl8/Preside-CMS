@@ -3,7 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="websiteLoginService"      inject="websiteLoginService";
 	property name="presideObjectService"     inject="presideObjectService";
-	property name="messageBox"               inject="coldbox:plugin:messageBox";
+	property name="messageBox"               inject="messagebox@cbmessagebox";
 	property name="bCryptService"            inject="bCryptService";
 	property name="passwordPolicyService"    inject="passwordPolicyService";
 

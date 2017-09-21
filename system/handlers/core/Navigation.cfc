@@ -56,4 +56,19 @@ component {
 
 		return renderView( view="/core/navigation/htmlSiteMap", args=args );
 	}
+
+	private string function restrictedMenuItem( event, rc, prc, args={} ) {
+		var item     = args.menuItem ?: {};
+		var itemView = args.view ?: "/core/navigation/mainNavigation";
+
+		if ( Len( Trim( item.id ?: "" ) ) && siteTreeSvc.userHasPageAccess( item.id ) ) {
+			item.hasRestrictions = false;
+			args.delayRestricted = false;
+			args.menuItems       = [ item ];
+
+			return renderView( view=itemView, args=args );
+		}
+
+		return "";
+	}
 }

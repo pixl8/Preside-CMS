@@ -3,7 +3,7 @@
  * one-to-many relationships has any relationships
  *
  */
-component {
+component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
 	property name="filterService"        inject="rulesEngineFilterService";
@@ -103,7 +103,7 @@ component {
 		);
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 			return translateResource( uri="rules.dynamicExpressions:related.oneToManyHas.label", data=[ relatedToTranslated, possesses, parentPropNameTranslated ] );
 		}
 
@@ -122,7 +122,7 @@ component {
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 			return translateResource( uri="rules.dynamicExpressions:related.oneToManyHas.text", data=[ relatedToTranslated, parentPropNameTranslated ] );
 		}
 

@@ -112,17 +112,14 @@ component {
 		var presideroot = _getPresideRoot();
 
 		this.mappings[ "/preside"        ] = presideroot;
-		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox";
+		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox";
 		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
 		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
-		this.mappings[ "/javaloader"     ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox/system/core/javaloader"
+		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
-
-		DirectoryCreate( presideroot & "/tmp", false, true );
-		this.mappings[ "/aoptmp" ] = presideroot & "/tmp";
 
 		variables.COLDBOX_APP_ROOT_PATH = arguments.appPath;
 		variables.COLDBOX_APP_KEY       = arguments.appPath;
