@@ -13,8 +13,13 @@ This form is used for configuring general email settings
 			<field sortorder="10" name="defaultProvider"   control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" />
 			<field sortorder="20" name="disabledProviders" control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" multiple="true" />
 		</fieldset>
-		<fieldset id="masssendout" sortorder="20">
+		<fieldset id="masssendout" sortorder="30">
 			<field sortorder="10" name="ratelimit" control="spinner" required="false" default="100" />
+		</fieldset>
+		<fieldset id="email_content" sortorder="40">
+			<field sortorder="10" name="enable_email_content_logging" control="yesnoSwitch"      required="false" default="false" />
+			<field sortorder="30" name="usage_storage"                control="emailContentUsage" unitSize="MB"/>
+			<field sortorder="40" name="keep_store_day"               control="spinner" default="30" minValue="1" maxValue="999" />
 		</fieldset>
 	</tab>
 </form>

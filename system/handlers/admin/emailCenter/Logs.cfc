@@ -1,6 +1,9 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="emailLoggingService" inject="emailLoggingService";
+	property name="emailLoggingService"       inject="emailLoggingService";
+	property name="emailService"              inject="emailService";
+	property name="emailRecipientTypeService" inject="emailRecipientTypeService";
+	property name="presideObjectService"      inject="presideObjectService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -50,6 +53,38 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function resendEmail( event, rc, prc ) {
+
+		_checkPermissions( event=event, key="resend" );
+
+		var logId = rc.id ?: "";
+
+		var log = emailLoggingService.getLog( logId );
+		if ( log.isEmpty() ) {
+			event.notFound();
+		}
+
+		var recipeintId            = "";
+		var recipientIdLogProperty = emailRecipientTypeService.getRecipientIdLogPropertyForRecipientType( log.recipient_type );
+		if( !isEmpty( recipientIdLogProperty ) ) {
+			recipeintId = presideObjectService.selectData( objectName="email_template_send_log", selectFields=["#recipientIdLogProperty#"], id=log.id )['#recipientIdLogProperty#'];
+		}
+
+		emailService.send(
+			  templateId  = log.email_template
+			, recipientId = recipeintId
+			, to          = [ log.recipient ]
+			, from        = log.sender
+			, subject     = log.subject
+			, htmlBody    = log.email_content_html ?: ""
+			, textBody    = log.email_content_text ?: ""
+			, args        = deserializeJson( log.send_args ?: "" )
+		);
+
+		messageBox.info( translateResource( uri="cms:emailcenter.logs.resend.success", data=[ log.recipient ] ) );
+		setNextEvent( url=cgi.http_referer );
+	}
+
 	private string function _logGridActions( event, rc, prc, args={} ) {
 		var logId = args.id ?: "";
 
@@ -61,4 +96,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		return renderView( view="/admin/emailcenter/logs/_logGridActions", args=args );
 	}
+
+	private void function _checkPermissions( required any event, required string key ) {
+		if ( !hasCmsPermission( "emailCenter.email." & arguments.key ) ) {
+			event.adminAccessDenied();
+		}
+	}
+
 }

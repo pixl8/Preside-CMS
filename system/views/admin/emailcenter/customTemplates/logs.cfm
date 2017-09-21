@@ -7,6 +7,10 @@
 	if ( showClicks ) {
 		gridFields.append( "click_count" );
 	}
+
+	event.include( "/js/admin/specific/htmliframepreview/" );
+	event.include( "/css/admin/specific/htmliframepreview/" );
+
 </cfscript>
 <cfoutput>
 	<cfsavecontent variable="body">

@@ -38,15 +38,22 @@ component {
 		, required string recipient
 		, required string sender
 		, required string subject
+		,          string htmlBody = ""
+		,          string textBody = ""
 		,          struct sendArgs = {}
 	) {
 		var data = {
-			  email_template = arguments.template
-			, recipient      = arguments.recipient
-			, sender         = arguments.sender
-			, subject        = arguments.subject
-			, send_args      = SerializeJson( arguments.sendArgs )
+			  email_template     = arguments.template
+			, recipient          = arguments.recipient
+			, sender             = arguments.sender
+			, subject            = arguments.subject
+			, send_args          = SerializeJson( arguments.sendArgs )
 		};
+
+		if( $getPresideSetting( 'email', 'enable_email_content_logging', false ) == 1 ){
+			data.email_content_html = arguments.htmlBody;
+			data.email_content_text = arguments.textBody;
+		}
 
 		if ( Len( Trim( arguments.recipientType ) ) ) {
 			data.append( _getAdditionalDataForRecipientType( arguments.recipientType, arguments.recipientId, arguments.sendArgs ) );
@@ -317,6 +324,7 @@ component {
 	 * @id.hint ID of the log record
 	 */
 	public struct function getLog( required string id ) {
+
 		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=[
 			  "email_template_send_log.recipient"
 			, "email_template_send_log.sender"
@@ -337,8 +345,12 @@ component {
 			, "email_template_send_log.click_count"
 			, "email_template_send_log.email_template"
 			, "email_template_send_log.datecreated"
+			, "email_template_send_log.email_content_text"
+			, "email_template_send_log.email_content_html"
+			, "email_template_send_log.id"
+			, "email_template_send_log.send_args"
 			, "email_template.name"
-			, "email_template.recipient_type"
+			, "ifnull( email_template.recipient_type, email_template$email_blueprint.recipient_type ) as recipient_type"
 		] );
 
 		for( var l in logRecord ) {
@@ -359,6 +371,16 @@ component {
 			  filter  = { message = arguments.id }
 			, orderBy = "datecreated"
 		);
+	}
+
+	/**
+	 * Returns total size of email content in bytes
+	 *
+	 */
+	public numeric function getEmailContentStorageSize() {
+		return $getPresideObject( "email_template_send_log" ).selectData(
+			selectFields = [ "ifnull( sum( length( email_content_html ) + length( email_content_text ) ), 0 ) as size" ]
+		).size;
 	}
 
 // PRIVATE HELPERS
@@ -394,6 +416,40 @@ component {
 
 	private date function _getNow() {
 		return Now(); // abstracting this makes testing easier
+	}
+
+
+	public boolean function cleanUpEmailContentLog( any logger ) {
+
+		var canLog         = arguments.keyExists( "logger" );
+		var canInfo        = canLog && logger.canInfo();
+		var canError       = canLog && logger.canError();
+
+		var filter       = "( not isNull( email_content_text ) or email_content_text !='' or not isNull( email_content_html ) or email_content_html !='' )";
+		var filterParams = {};
+
+		if( $getPresideSetting( 'email', 'enable_email_content_logging', false ) == 1 ){
+
+			var keepStoreForDays = $getPresideSetting( 'email', 'keep_store_day', 7 );
+			filter     &= " and datecreated < :datecreated"
+			filterParams = { datecreated = dateAdd( "d", "-#keepStoreForDays#", now() ) }
+
+			var result =  $getPresideObject( "email_template_send_log" ).updateData(
+				  filter       = filter
+				, filterParams = filterParams
+				, data         = {
+					  email_content_html = ""
+					, email_content_text = ""
+				}
+			);
+
+			if ( canInfo ) { logger.info( "Cleaned up #result# logged email content(s)" ); }
+
+		} else {
+			if ( canInfo ) { logger.info( "This feature has diabled from email center settings" ); }
+		}
+
+		return true;
 	}
 
 // GETTERS AND SETTERS
