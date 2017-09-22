@@ -58,59 +58,63 @@ component {
 	 * @propertyName.hint Name of the property you wish to get the renderer for
 	 */
 	public string function getRendererForField( required string objectName, required string propertyName ) {
-		var prop = $getPresideObjectService().getObjectProperty(
-			  objectName   = arguments.objectName
-			, propertyName = arguments.propertyName
-		);
-		var adminRenderer   = prop.adminRenderer ?: "";
-		var generalRenderer = prop.renderer      ?: "";
-		var type            = prop.type          ?: "";
-		var dbType          = prop.dbType        ?: "";
-		var relationship    = prop.relationship  ?: "";
+		var args = arguments;
 
-		if ( adminRenderer.trim().len() ) {
-			return adminRenderer.trim();
-		}
+		return _simpleLocalCache( "getRendererForField_#arguments.objectName#_#arguments.propertyName#", function(){
+			var prop = $getPresideObjectService().getObjectProperty(
+				  objectName   = args.objectName
+				, propertyName = args.propertyName
+			);
+			var adminRenderer   = prop.adminRenderer ?: "";
+			var generalRenderer = prop.renderer      ?: "";
+			var type            = prop.type          ?: "";
+			var dbType          = prop.dbType        ?: "";
+			var relationship    = prop.relationship  ?: "";
 
-		if ( generalRenderer.trim().len() ) {
-			return generalRenderer.trim();
-		}
+			if ( adminRenderer.trim().len() ) {
+				return adminRenderer.trim();
+			}
 
-		switch( relationship ) {
-			case "many-to-one":
-				var relatedTo = prop.relatedTo ?: "";
-				switch( relatedTo ) {
-					case "asset":
-					case "link":
-						return relatedTo;
-				}
-				return "manyToOne";
+			if ( generalRenderer.trim().len() ) {
+				return generalRenderer.trim();
+			}
 
-			case "many-to-many":
-			case "one-to-many":
-				return "objectRelatedRecords";
-		}
+			switch( relationship ) {
+				case "many-to-one":
+					var relatedTo = prop.relatedTo ?: "";
+					switch( relatedTo ) {
+						case "asset":
+						case "link":
+							return relatedTo;
+					}
+					return "manyToOne";
 
-		switch( dbtype ) {
-			case "text":
-			case "mediumtext":
-			case "longtext":
-				return "richeditor";
+				case "many-to-many":
+				case "one-to-many":
+					return "objectRelatedRecords";
+			}
 
-			case "boolean":
-			case "bit":
-				return "boolean";
+			switch( dbtype ) {
+				case "text":
+				case "mediumtext":
+				case "longtext":
+					return "richeditor";
 
-			case "date":
-				return "date";
+				case "boolean":
+				case "bit":
+					return "boolean";
 
-			case "datetime":
-			case "timestamp":
-				return "datetime";
-		}
+				case "date":
+					return "date";
+
+				case "datetime":
+				case "timestamp":
+					return "datetime";
+			}
 
 
-		return "plaintext";
+			return "plaintext";
+		} );
 	}
 
 	/**

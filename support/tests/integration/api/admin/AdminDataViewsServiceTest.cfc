@@ -17,49 +17,64 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should return sensible defaults when properties do not speficy an admin renderer or default renderer", function(){
-				var service = _getService();
+				var service  = _getService();
+				var propName = "";
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { type="string", dbtype="varchar", relationship="none" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "plaintext" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { type="string", dbtype="varchar", relationship="none" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "plaintext" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject2", "testprop2" ).$results( { type="string", dbtype="text", relationship="none" } );
-				expect( service.getRendererForField( "testobject2", "testprop2" ) ).toBe( "richeditor" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject2", propName ).$results( { type="string", dbtype="text", relationship="none" } );
+				expect( service.getRendererForField( "testobject2", propName ) ).toBe( "richeditor" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject2", "testprop2" ).$results( { type="string", dbtype="longtext", relationship="none" } );
-				expect( service.getRendererForField( "testobject2", "testprop2" ) ).toBe( "richeditor" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject2", propName ).$results( { type="string", dbtype="longtext", relationship="none" } );
+				expect( service.getRendererForField( "testobject2", propName ) ).toBe( "richeditor" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject2", "testprop2" ).$results( { type="string", dbtype="mediumtext", relationship="none" } );
-				expect( service.getRendererForField( "testobject2", "testprop2" ) ).toBe( "richeditor" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject2", propName ).$results( { type="string", dbtype="mediumtext", relationship="none" } );
+				expect( service.getRendererForField( "testobject2", propName ) ).toBe( "richeditor" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { type="date", dbtype="datetime", relationship="none" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "datetime" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { type="date", dbtype="datetime", relationship="none" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "datetime" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { type="date", dbtype="timestamp", relationship="none" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "datetime" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { type="date", dbtype="timestamp", relationship="none" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "datetime" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { type="date", dbtype="date", relationship="none" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "date" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { type="date", dbtype="date", relationship="none" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "date" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { type="boolean", dbtype="boolean", relationship="none" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "boolean" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { type="boolean", dbtype="boolean", relationship="none" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "boolean" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { type="boolean", dbtype="bit", relationship="none" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "boolean" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { type="boolean", dbtype="bit", relationship="none" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "boolean" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { relationship="many-to-one", relatedto="something" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "manyToOne" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { relationship="many-to-one", relatedto="something" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "manyToOne" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { relationship="many-to-one", relatedto="asset" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "asset" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { relationship="many-to-one", relatedto="asset" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "asset" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { relationship="many-to-one", relatedto="link" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "link" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { relationship="many-to-one", relatedto="link" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "link" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { relationship="one-to-many", relatedto="blah" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "objectRelatedRecords" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { relationship="one-to-many", relatedto="blah" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "objectRelatedRecords" );
 
-				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { relationship="many-to-many", relatedto="blah" } );
-				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "objectRelatedRecords" );
+				propName = "property_" & CreateUUId();
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { relationship="many-to-many", relatedto="blah" } );
+				expect( service.getRendererForField( "testobject", propName ) ).toBe( "objectRelatedRecords" );
 			} );
 		} );
 
