@@ -166,6 +166,26 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( "" );
 			} );
 		} );
+
+		describe( "doesObjectHaveBuildAdminLinkHandler()", function() {
+			it( "should return true when getBuildAdminLinkHandlerForObject() returns non-empty", function(){
+				var service    = _getService();
+				var objectName = "my_object_#CreateUUId()#";
+
+				service.$( "getBuildAdminLinkHandlerForObject" ).$args( objectName=objectName ).$results( "some.handler" );
+
+				expect( service.doesObjectHaveBuildAdminLinkHandler( objectName ) ).toBe( true );
+			} );
+
+			it( "should return false when getBuildAdminLinkHandlerForObject() returns non-empty", function(){
+				var service    = _getService();
+				var objectName = "my_object_#CreateUUId()#";
+
+				service.$( "getBuildAdminLinkHandlerForObject" ).$args( objectName=objectName ).$results( "" );
+
+				expect( service.doesObjectHaveBuildAdminLinkHandler( objectName ) ).toBe( false );
+			} );
+		} );
 	}
 
 // HELPERS

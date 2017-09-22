@@ -167,6 +167,17 @@ component {
 		} )
 	}
 
+	/**
+	 * Returns whether or not the given object has a corresponding view record link generator
+	 *
+	 * @autodoc true
+	 * @objectName Name of the object to check
+	 *
+	 */
+	public boolean function doesObjectHaveBuildAdminLinkHandler( required string objectName ) {
+		return getBuildAdminLinkHandlerForObject( objectName=arguments.objectName ).trim().len() > 0;
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
