@@ -125,13 +125,17 @@ component {
 	 * @objectName Name of the object whose viewlet you wish to get
 	 */
 	public string function getViewletForObjectRender( required string objectName ) {
-		var defaultViewlet  = "admin.dataHelpers.viewRecord";
-		var specificViewlet = $getPresideObjectService().getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "adminViewRecordViewlet"
-		);
+		var args = arguments;
 
-		return specificViewlet.trim().len() ? specificViewlet : defaultViewlet;
+		return _simpleLocalCache( "getViewletForObjectRender_#arguments.objectName#", function(){
+			var defaultViewlet  = "admin.dataHelpers.viewRecord";
+			var specificViewlet = $getPresideObjectService().getObjectAttribute(
+				  objectName    = args.objectName
+				, attributeName = "adminViewRecordViewlet"
+			);
+
+			return specificViewlet.trim().len() ? specificViewlet : defaultViewlet;
+		} );
 	}
 
 	/**
