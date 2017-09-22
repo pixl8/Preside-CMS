@@ -120,13 +120,30 @@ component {
 	 * @objectName Name of the object whose viewlet you wish to get
 	 */
 	public string function getViewletForObjectRender( required string objectName ) {
-		var defaultViewlet  = "adminDataHelpers.viewRecord";
+		var defaultViewlet  = "admin.dataHelpers.viewRecord";
 		var specificViewlet = $getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
-			, attributeName = "viewRecordViewlet"
+			, attributeName = "adminViewRecordViewlet"
 		);
 
 		return specificViewlet.trim().len() ? specificViewlet : defaultViewlet;
+	}
+
+	/**
+	 * Returns the handler to use in order to build an admin view record link
+	 * for an object record
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose admin view record link handler you wish to get
+	 */
+	public string function getBuildAdminLinkHandlerForObject( required string objectName ) {
+		var defaultHandler = "admin.dataHelpers.getViewRecordLink";
+		var definedHandler = $getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "adminBuildViewLinkHandler"
+		);
+
+		return definedHandler.len() ? definedHandler : defaultHandler;
 	}
 
 // PRIVATE HELPERS

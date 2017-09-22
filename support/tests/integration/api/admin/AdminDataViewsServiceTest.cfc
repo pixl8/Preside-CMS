@@ -91,21 +91,50 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "getViewletForObjectRender()", function(){
-			it( "should return specified 'viewRecordViewlet' attribute on the object when object defines it", function(){
+			it( "should return specified 'adminViewRecordViewlet' attribute on the object when object defines it", function(){
 				var service = _getService();
 				var viewlet = "test.viewlet.#CreateUUId()#";
 
-				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="viewRecordViewlet" ).$results( viewlet );
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="adminViewRecordViewlet" ).$results( viewlet );
 
 				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( viewlet );
 			} );
 
-			it( "should return 'adminDataHelpers.viewRecord' when no specific 'viewRecordViewlet' is defined on an object", function(){
+			it( "should return 'admin.dataHelpers.viewRecord' when no specific 'adminViewRecordViewlet' is defined on an object", function(){
 				var service = _getService();
 
-				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="viewRecordViewlet" ).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="adminViewRecordViewlet" ).$results( "" );
 
-				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( "adminDataHelpers.viewRecord" );
+				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( "admin.dataHelpers.viewRecord" );
+			} );
+		} );
+
+		describe( "getBuildAdminLinkHandlerForObject()", function(){
+			it( "should return the handler configured by the @adminBuildViewLinkHandler attribute on the object", function(){
+				var service = _getService();
+				var object  = "TestObject" & CreateUUId();
+				var handler = "test." & CreateUUId();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = object
+					, attributeName = "adminBuildViewLinkHandler"
+				).$results( handler );
+
+				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( handler );
+
+			} );
+
+			it( "should return a default admin handler for objects that do not define an @adminBuildViewLinkHandler attribute", function(){
+				var service = _getService();
+				var object  = "TestObject" & CreateUUId();
+				var handler = "admin.dataHelpers.getViewRecordLink";
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = object
+					, attributeName = "adminBuildViewLinkHandler"
+				).$results( "" );
+
+				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( handler );
 			} );
 		} );
 	}
