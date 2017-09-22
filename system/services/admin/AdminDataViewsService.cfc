@@ -16,6 +16,7 @@ component {
 	 */
 	public any function init( required any contentRendererService ) {
 		_setContentRendererService( arguments.contentRendererService );
+		_setLocalCache( {} );
 
 		return this;
 	}
@@ -137,16 +138,29 @@ component {
 	 * @objectName Name of the object whose admin view record link handler you wish to get
 	 */
 	public string function getBuildAdminLinkHandlerForObject( required string objectName ) {
-		var defaultHandler = "admin.dataHelpers.getViewRecordLink";
-		var definedHandler = $getPresideObjectService().getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "adminBuildViewLinkHandler"
-		);
+		var args = arguments;
 
-		return definedHandler.len() ? definedHandler : defaultHandler;
+		return _simpleLocalCache( "getBuildAdminLinkHandlerForObject_#arguments.objectName#", function(){
+			var defaultHandler = "admin.dataHelpers.getViewRecordLink";
+			var definedHandler = $getPresideObjectService().getObjectAttribute(
+				  objectName    = args.objectName
+				, attributeName = "adminBuildViewLinkHandler"
+			);
+
+			return definedHandler.len() ? definedHandler : defaultHandler;
+		} )
 	}
 
 // PRIVATE HELPERS
+	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
+		var cache = _getLocalCache();
+
+		if ( !cache.keyExists( cacheKey ) ) {
+			cache[ cacheKey ] = generator();
+		}
+
+		return cache[ cacheKey ] ?: NullValue();
+	}
 
 
 // GETTERS/SETTERS
@@ -155,5 +169,12 @@ component {
 	}
 	private void function _setContentRendererService( required any contentRendererService ) {
 		_contentRendererService = arguments.contentRendererService;
+	}
+
+	private struct function _getLocalCache() {
+		return _localCache;
+	}
+	private void function _setLocalCache( required struct localCache ) {
+		_localCache = arguments.localCache;
 	}
 }
