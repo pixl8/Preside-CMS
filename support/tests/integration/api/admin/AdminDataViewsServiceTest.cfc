@@ -139,7 +139,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 			} );
 
-			it( "should return a default admin handler for objects that do not define an @adminBuildViewLinkHandler attribute", function(){
+			it( "should return a default admin handler for objects that do not define an @adminBuildViewLinkHandler attribute and that are managed by datamanager", function(){
 				var service = _getService();
 				var object  = "TestObject" & CreateUUId();
 				var handler = "admin.dataHelpers.getViewRecordLink";
@@ -148,19 +148,35 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  objectName    = object
 					, attributeName = "adminBuildViewLinkHandler"
 				).$results( "" );
+				mockDataManagerService.$( "isObjectAvailableInDataManager" ).$args( objectName=object ).$results( true );
 
 				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( handler );
+			} );
+
+			it( "should return an empty string (no handler) when object is not managed in datamanager and does not define the @adminBuildViewLinkHandler attribte", function(){
+				var service = _getService();
+				var object  = "TestObject" & CreateUUId();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = object
+					, attributeName = "adminBuildViewLinkHandler"
+				).$results( "" );
+				mockDataManagerService.$( "isObjectAvailableInDataManager" ).$args( objectName=object ).$results( false );
+
+				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( "" );
 			} );
 		} );
 	}
 
 // HELPERS
 	private any function _getService() {
-		mockContentRenderer = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
-		mockPoService       = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		mockContentRenderer    = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
+		mockPoService          = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		mockDataManagerService = CreateEmptyMock( "preside.system.services.admin.DataManagerService" );
 
 		var service = CreateMock( object=new preside.system.services.admin.AdminDataViewsService(
-			contentRendererService = mockContentRenderer
+			  contentRendererService = mockContentRenderer
+			, dataManagerService     = mockDataManagerService
 		) );
 
 		service.$( "$getPresideObjectService", mockPoService );

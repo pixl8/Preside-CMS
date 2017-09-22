@@ -12,10 +12,11 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @contentRendererService.inject contentRendererService
-	 *
+	 * @dataManagerService.inject     dataManagerService
 	 */
-	public any function init( required any contentRendererService ) {
+	public any function init( required any contentRendererService, required any dataManagerService ) {
 		_setContentRendererService( arguments.contentRendererService );
+		_setDataManagerService( arguments.dataManagerService );
 		_setLocalCache( {} );
 
 		return this;
@@ -149,13 +150,20 @@ component {
 		var args = arguments;
 
 		return _simpleLocalCache( "getBuildAdminLinkHandlerForObject_#arguments.objectName#", function(){
-			var defaultHandler = "admin.dataHelpers.getViewRecordLink";
 			var definedHandler = $getPresideObjectService().getObjectAttribute(
 				  objectName    = args.objectName
 				, attributeName = "adminBuildViewLinkHandler"
 			);
 
-			return definedHandler.len() ? definedHandler : defaultHandler;
+			if ( definedHandler.len() ) {
+				return definedHandler;
+			}
+
+			if ( _getDataManagerService().isObjectAvailableInDataManager( objectName=args.objectName ) ) {
+				return "admin.dataHelpers.getViewRecordLink";
+			}
+
+			return "";
 		} )
 	}
 
@@ -184,5 +192,12 @@ component {
 	}
 	private void function _setLocalCache( required struct localCache ) {
 		_localCache = arguments.localCache;
+	}
+
+	private any function _getDataManagerService() {
+		return _dataManagerService;
+	}
+	private void function _setDataManagerService( required any dataManagerService ) {
+		_dataManagerService = arguments.dataManagerService;
 	}
 }
