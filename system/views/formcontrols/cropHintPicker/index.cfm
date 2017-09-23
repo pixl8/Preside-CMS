@@ -15,23 +15,22 @@
 	}
 	value = HtmlEditFormat( value );
 
-	event.include( "/css/admin/specific/focalPointPicker/" );
-	event.include( "/js/admin/specific/focalPointPicker/" );
+	event.include( "/css/admin/specific/cropHintPicker/" );
+	event.include( "/js/admin/specific/cropHintPicker/" );
 </cfscript>
 
 
 <cfoutput>
-	<div class="focal-point-picker clearfix" id="focal-point-picker-#controlId#">
-		<div class="focal-point-image-container">
-			#renderAsset( assetId=assetId, args={ derivative="adminCropping", class="focal-point-image" } )#
-			<span class="focal-point-crosshair"></span>
+	<div class="crop-hint-picker clearfix" id="crop-hint-picker-#controlId#">
+		<div class="crop-hint-image-container">
+			#renderAsset( assetId=assetId, args={ derivative="adminCropping", class="crop-hint-image" } )#
 		</div>
 		<div>
-			<button type="button" class="btn btn-danger btn-sm focal-point-clear">
+			<button type="button" class="btn btn-danger btn-sm crop-hint-clear">
 				<i class="fa fa-ban"></i>
-				#translateResource( uri="formcontrols.focalPointPicker:clear" )#
+				#translateResource( uri="formcontrols.cropHintPicker:clear" )#
 			</button>
-			<input type="hidden" class="#inputClass# focal-point-input #extraClasses#" name="#inputName#" id="#inputId#" value="#value#">
+			<input type="hidden" class="#inputClass# crop-hint-input #extraClasses#" name="#inputName#" id="#inputId#" value="#value#">
 		</div>
 	</div>
 </cfoutput>
