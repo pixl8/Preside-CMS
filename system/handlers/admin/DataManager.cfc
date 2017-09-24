@@ -1440,7 +1440,7 @@
 					ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
 				} else {
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
-						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#object#" )
+						  viewRecordLink    = event.buildAdminLink( objectName=object, recordId=record.id )
 						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
