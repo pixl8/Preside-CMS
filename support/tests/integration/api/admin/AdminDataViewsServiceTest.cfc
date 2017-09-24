@@ -186,6 +186,40 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.doesObjectHaveBuildAdminLinkHandler( objectName ) ).toBe( false );
 			} );
 		} );
+
+		describe( "buildViewObjectRecordLink()", function(){
+			it( "should return empty string when object does not have a build link handler", function(){
+				var service    = _getService();
+				var objectName = "test_object_" & CreateUUId();
+
+				service.$( "doesObjectHaveBuildAdminLinkHandler" ).$args( objectName=objectName ).$results( false );
+
+				expect( service.buildViewObjectRecordLink( objectName=objectName, recordId=CreateUUId() ) ).toBe( "" );
+			} );
+
+			it( "should return the result of calling the object's build admin link handler, passing through the supplied arguments", function(){
+				var service    = _getService();
+				var objectName = "test_object_" & CreateUUId();
+				var builtLink  = CreateUUid();
+				var handler    = "";
+				var args       = {
+					  objectName = "some_object_" & CreateUUId()
+					, recordId   = CreateUUId()
+					, artbitrary = { test=true }
+				};
+
+				service.$( "doesObjectHaveBuildAdminLinkHandler" ).$args( objectName=args.objectName ).$results( true );
+				service.$( "getBuildAdminLinkHandlerForObject" ).$args( objectName=args.objectName ).$results( handler );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = handler
+					, eventArguments = args
+					, private        = true
+					, prePostExempt  = true
+				).$results( builtLink );
+
+				expect( service.buildViewObjectRecordLink( argumentCollection=args ) ).toBe( builtLink );
+			} );
+		} );
 	}
 
 // HELPERS
@@ -193,6 +227,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockContentRenderer    = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
 		mockPoService          = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockDataManagerService = CreateEmptyMock( "preside.system.services.admin.DataManagerService" );
+		mockColdbox            = CreateStub();
 
 		var service = CreateMock( object=new preside.system.services.admin.AdminDataViewsService(
 			  contentRendererService = mockContentRenderer
@@ -200,6 +235,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		service.$( "$getPresideObjectService", mockPoService );
+		service.$( "$getColdbox", mockColdbox );
 
 		return service;
 	}

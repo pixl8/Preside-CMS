@@ -178,6 +178,27 @@ component {
 		return getBuildAdminLinkHandlerForObject( objectName=arguments.objectName ).trim().len() > 0;
 	}
 
+	/**
+	 * Builds an admin view link for the given object, record ID
+	 * and any other arbitrary arguments
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object for whose record you wish to build a link
+	 * @recordId   ID of the record for whom to build a link
+	 */
+	public string function buildViewObjectRecordLink( required string objectName, required string recordId ) {
+		if ( doesObjectHaveBuildAdminLinkHandler( objectName=arguments.objectName ) ) {
+			return $getColdbox().runEvent(
+				  event          = getBuildAdminLinkHandlerForObject( objectName=arguments.objectName )
+				, eventArguments = {}.append( arguments )
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return "";
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
