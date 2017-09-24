@@ -24,6 +24,20 @@ component {
 
 // PUBLIC API METHODS
 	/**
+	 * Renders an object record using its configured renderer
+	 *
+	 * @autodoc true
+	 * @objectName Name of the object whose record you wish to render
+	 * @recordId   ID of the record to render
+	 */
+	public string function renderObjectRecord( required string objectName, required string recordId ) {
+		return $getColdbox().renderViewlet(
+			  event = getViewletForObjectRender( objectName=arguments.objectName )
+			, args  = {}.append( arguments )
+		);
+	}
+
+	/**
 	 * Renders a field in the context of an admin data view
 	 *
 	 * @autodoc true

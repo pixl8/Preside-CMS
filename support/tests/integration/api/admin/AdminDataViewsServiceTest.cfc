@@ -124,6 +124,27 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "renderObject()", function(){
+			it( "should use the configured viewlet for an object to render the view record view", function(){
+				var service    = _getService();
+				var rendered   = CreateUUid();
+				var handler    = "";
+				var args       = {
+					  objectName = "test_object_" & CreateUUId()
+					, recordId   = CreateUUId()
+					, artbitrary = { test=true }
+				};
+
+				service.$( "getViewletForObjectRender" ).$args( objectName=args.objectName ).$results( handler );
+				mockColdbox.$( "renderViewlet" ).$args(
+					  event = handler
+					, args  = args
+				).$results( rendered );
+
+				expect( service.renderObjectRecord( argumentCollection=args ) ).toBe( rendered );
+			} );
+		} );
+
 		describe( "getBuildAdminLinkHandlerForObject()", function(){
 			it( "should return the handler configured by the @adminBuildViewLinkHandler attribute on the object", function(){
 				var service = _getService();
