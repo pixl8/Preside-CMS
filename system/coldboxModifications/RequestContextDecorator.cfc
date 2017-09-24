@@ -175,7 +175,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 // Admin specific
-	public string function buildAdminLink( string linkTo="", string queryString="", string siteId=this.getSiteId() ) output=false {
+	public string function buildAdminLink(
+		  string linkTo      = ""
+		, string queryString = ""
+		, string siteId      = this.getSiteId()
+	) output=false {
+		if ( arguments.keyExists( "objectName" ) && arguments.keyExists( "recordId" ) ) {
+			return getModel( "adminDataViewsService" ).buildViewObjectRecordLink( argumentCollection=arguments );
+		}
+
 		arguments.linkTo = ListAppend( "admin", arguments.linkTo, "." );
 
 		if ( isActionRequest( arguments.linkTo ) ) {
