@@ -32,6 +32,8 @@ component displayname="Image Manipulation Service" {
 		,          boolean maintainAspectRatio = false
 		,          string  gravity             = 'center'
 		,          string  focalPoint          = ""
+		,          string  cropHint            = ""
+		,          string  useCropHint         = false
 	) {
        	return _getImplementation().resize( argumentCollection = arguments);
 	}
