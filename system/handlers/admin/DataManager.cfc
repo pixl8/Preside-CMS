@@ -9,6 +9,7 @@
 	<cfproperty name="siteService"                      inject="siteService"                      />
 	<cfproperty name="versioningService"                inject="versioningService"                />
 	<cfproperty name="rulesEngineFilterService"         inject="rulesEngineFilterService"         />
+	<cfproperty name="adminDataViewsService"            inject="adminDataViewsService"            />
 	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
@@ -287,8 +288,20 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
-			// temporary redirect to edit record (we haven't implemented view record yet!)
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="id=#recordId#&object=#objectName#" ) );
+			prc.renderedRecord = adminDataViewsService.renderObjectRecord(
+				  objectName = objectName
+				, recordId   = recordId
+			);
+
+			_addObjectNameBreadCrumb( event, objectName );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title" )
+				, link  = ""
+			);
+
+			prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectName ] );
+			prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ renderLabel( objectName, recordId ) ] );
+
 		</cfscript>
 	</cffunction>
 

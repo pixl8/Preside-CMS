@@ -124,7 +124,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "renderObject()", function(){
+		describe( "renderObjectRecord()", function(){
 			it( "should use the configured viewlet for an object to render the view record view", function(){
 				var service    = _getService();
 				var rendered   = CreateUUid();
@@ -241,14 +241,39 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.buildViewObjectRecordLink( argumentCollection=args ) ).toBe( builtLink );
 			} );
 		} );
+
+		describe( "listRenderableObjectProperties()", function(){
+			it( "should return an array of property names for an object sorted by sort order and excluding those whose admin renderer is 'none'", function(){
+				var service    = _getService();
+				var objectName = "someObject" & CreateUUId();
+				var props      = {
+					  propx   = { sortorder=10  }
+					, propy   = { sortorder=5   }
+					, propz   = { sortorder=100 }
+					, test    = {}
+					, testify = { sortorder=39  }
+				};
+
+				mockPoService.$( "getObjectProperties" ).$args( objectName=objectName ).$results( props );
+				service.$( "getRendererForField" ).$args( objectName=objectName, propertyName="propx" ).$results( "none" );
+				service.$( "getRendererForField", "testRenderer" );
+
+				expect( service.listRenderableObjectProperties( objectName ) ).toBe( [
+					  "propy"
+					, "testify"
+					, "propz"
+					, "test"
+				] );
+			} );
+		} );
 	}
 
 // HELPERS
 	private any function _getService() {
-		mockContentRenderer    = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
-		mockPoService          = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
-		mockDataManagerService = CreateEmptyMock( "preside.system.services.admin.DataManagerService" );
-		mockColdbox            = CreateStub();
+		mockContentRenderer      = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
+		mockPoService            = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		mockDataManagerService   = CreateEmptyMock( "preside.system.services.admin.DataManagerService" );
+		mockColdbox              = CreateStub();
 
 		var service = CreateMock( object=new preside.system.services.admin.AdminDataViewsService(
 			  contentRendererService = mockContentRenderer

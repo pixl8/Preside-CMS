@@ -213,6 +213,36 @@ component {
 		return "";
 	}
 
+	/**
+	 * Returns array of property names in expected order that
+	 * can be rendered for a given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose properties you wish to get
+	 *
+	 */
+	public array function listRenderableObjectProperties( required string objectName ) {
+		var allProps       = $getPresideObjectService().getObjectProperties( objectName=arguments.objectName );
+		var availableProps = [];
+
+		for( var propertyName in allProps ) {
+			if ( getRendererForField( objectName=arguments.objectName, propertyName=propertyName ) !== "none" ) {
+				availableProps.append( propertyName )
+			}
+		}
+
+		return availableProps.sort( function( a, b ){
+			var aSortOrder = Val( allProps[ a ].sortOrder ?: 100000000 );
+			var bSortOrder = Val( allProps[ b ].sortOrder ?: 100000000 );
+
+			if ( aSortOrder == bSortOrder ) {
+				return a > b ? 1 : -1;
+			}
+
+			return aSortOrder > bSortOrder ? 1 : -1;
+		} );
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
