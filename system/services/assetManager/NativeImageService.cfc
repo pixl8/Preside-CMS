@@ -31,6 +31,8 @@ component displayname="Native Image Manipulation Service" {
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
 		,          string  focalPoint          = ""
+		,          string  cropHint            = ""
+		,          boolean useCropHint         = false
 	) {
 		var image              = "";
 		var interpolation      = arguments.quality;
@@ -51,6 +53,14 @@ component displayname="Native Image Manipulation Service" {
 			ImageScaleToFit( image, arguments.width, "", interpolation );
 		} else if ( !arguments.width ) {
 			ImageScaleToFit( image, "", arguments.height, interpolation );
+		} else if ( arguments.useCropHint && arguments.cropHint.len() ) {
+			cropUsingCropHint(
+				  image         = image
+				, width         = arguments.width
+				, height        = arguments.height
+				, cropHint      = arguments.cropHint
+			);
+			ImageResize( image, arguments.width, arguments.height, interpolation );
 		} else {
 			if ( maintainAspectRatio ) {
 				currentAspectRatio = currentImageInfo.width / currentImageInfo.height;
@@ -62,13 +72,10 @@ component displayname="Native Image Manipulation Service" {
 			} else {
 				if ( currentAspectRatio gt targetAspectRatio ) {
 					ImageScaleToFit( image, "", arguments.height, interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
 				} else {
 					ImageScaleToFit( image, arguments.width, "", interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
 				}
+				cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
 			}
 		}
 
@@ -150,6 +157,71 @@ component displayname="Native Image Manipulation Service" {
 
 		ImageCrop( image, originX, originY, arguments.width, arguments.height );
 
+		return ImageGetBlob( image );
+	}
+
+	public binary function cropUsingCropHint(
+		  required any     image
+		, required numeric width
+		, required numeric height
+		, required string  cropHint
+	) {
+		var image          = arguments.image;
+		var targetWidth    = arguments.width;
+		var targetHeight   = arguments.height;
+		var targetRatio    = targetWidth / targetHeight;
+		var imageInfo      = ImageInfo( image );
+		var cropHintCoords = arguments.cropHint.listToArray();
+		var cropX          = int( cropHintCoords[ 1 ] * imageInfo.width );
+		var cropY          = int( cropHintCoords[ 2 ] * imageInfo.height );
+		var cropWidth      = int( cropHintCoords[ 3 ] * imageInfo.width );
+		var cropHeight     = int( cropHintCoords[ 4 ] * imageInfo.height );
+		var cropHintRatio  = cropWidth / cropHeight;
+		var prevCropWidth  = 0;
+		var prevCropHeight = 0;
+		var widthRatio     = 0;
+		var heightRatio    = 0;
+
+		if ( cropHintRatio > targetRatio ) {
+			prevCropHeight = cropHeight;
+			cropHeight     = int( cropHeight * ( cropHintRatio / targetRatio ) );
+			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+		} else if ( cropHintRatio < targetRatio ) {
+			prevCropWidth = cropWidth;
+			cropWidth     = int( cropWidth * ( targetRatio / cropHintRatio ) );
+			cropX         = int( cropX - ( ( cropWidth - prevCropWidth ) / 2 ) );
+		}
+
+		if ( targetWidth > cropWidth ) {
+			prevCropWidth  = cropWidth;
+			widthRatio     = targetWidth / cropWidth;
+			cropWidth      = int( cropWidth  * widthRatio );
+			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+		}
+		if ( targetHeight > cropHeight ) {
+			prevCropHeight = cropHeight;
+			heightRatio    = targetHeight / cropHeight;
+			cropHeight     = int( cropHeight * heightRatio );
+			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+		}
+
+
+		if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
+			fitRatio       = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
+			prevCropWidth  = cropWidth;
+			prevCropHeight = cropHeight;
+			cropWidth      = int( cropWidth  * fitRatio );
+			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+			cropHeight     = int( cropHeight * fitRatio );
+			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+		}
+
+		cropX = max( cropX, 0 );
+		cropY = max( cropY, 0 );
+		cropX = min( cropX, imageInfo.width - cropWidth );
+		cropY = min( cropY, imageInfo.height - cropHeight );
+
+		ImageCrop( image, cropX, cropY, cropWidth, cropHeight );
 		return ImageGetBlob( image );
 	}
 
