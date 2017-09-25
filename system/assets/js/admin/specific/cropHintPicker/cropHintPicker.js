@@ -7,8 +7,7 @@
 		  , jcrop_api;
 
 		$chImage.Jcrop( {
-			  aspectRatio : 1
-			, onSelect    : selectCrop
+			  onSelect    : selectCrop
 			, onRelease   : clearCrop
 		}, function() {
 			jcrop_api = this;
@@ -35,10 +34,8 @@
 
 			coords.push( Math.round( parseFloat( savedCoords[ 0 ] ) * imageWidth  ) );
 			coords.push( Math.round( parseFloat( savedCoords[ 1 ] ) * imageHeight ) );
-
-			selectionSize = Math.round( parseFloat( savedCoords[ 2 ] ) * imageWidth );
-			coords.push( coords[ 0 ] + selectionSize );
-			coords.push( coords[ 1 ] + selectionSize );
+			coords.push( coords[ 0 ] + Math.round( parseFloat( savedCoords[ 2 ] ) * imageWidth ) );
+			coords.push( coords[ 1 ] + Math.round( parseFloat( savedCoords[ 3 ] ) * imageHeight ) );
 
 			jcrop_api.setSelect( coords );
 		}
@@ -56,6 +53,7 @@
 			coords.push( ( c.x / imageWidth  ).toFixed( 3 ) );
 			coords.push( ( c.y / imageHeight ).toFixed( 3 ) );
 			coords.push( ( c.w / imageWidth  ).toFixed( 3 ) );
+			coords.push( ( c.h / imageHeight ).toFixed( 3 ) );
 
 			$formInput.val( coords.join() );
 			$clearButton.removeAttr( "disabled" );
