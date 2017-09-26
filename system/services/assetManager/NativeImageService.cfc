@@ -22,6 +22,9 @@ component displayname="Native Image Manipulation Service" {
 	 * @height.hint              New height, in pixels
 	 * @quality.hint             Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
 	 * @maintainAspectRatio.hint Whether or not maintain the aspect ratio of the native image (if true, an autocrop may be applied if the aspect ratio of the resize differs from the source native image)
+	 * @focalPoint.hint          Comma-separated list (x,y) defining coordinates of the image's focal point. When cropped, this point will be kept as close as possible to the centre of the resulting image.
+	 * @cropHint.hint            Comma-separated list (x,y,w,h) defining a crop hint area of the image. When resized/cropped using this, the image will be cropped so this area fills the resulting image.
+	 * @useCropHint.hint         Whether or not to use cropHint when resizing.
 	 *
 	 */
 	public binary function resize(
@@ -160,6 +163,17 @@ component displayname="Native Image Manipulation Service" {
 		return ImageGetBlob( image );
 	}
 
+
+	/**
+	 * Crops an image to fit the crop hint area as large as possible within it.
+	 *
+	 * @autodoc
+	 * @image.hint      Image object
+	 * @width.hint      Width of the final image, in pixels
+	 * @height.hint     Height of the final image, in pixels
+	 * @cropHint.hint   Coordinates of the image's crop hint area. Comma-separated x,y,w,h - where each coordinate is a value between 0 and 1; x and y are the offset of the area from the top left corner of the image; w and h are the width and height of the crop area. So "0.5,0.5,0.25,0.25" would define an area whose top left corner is the centre of the image, whose width is 1/4 of the source image width, and whose height is 1/4 of the source image height.
+	 *
+	 */
 	public binary function cropUsingCropHint(
 		  required any     image
 		, required numeric width
