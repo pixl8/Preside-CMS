@@ -246,13 +246,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should return an array of property names for an object sorted by sort order and excluding those whose admin renderer is 'none'", function(){
 				var service    = _getService();
 				var objectName = "someObject" & CreateUUId();
-				var props      = {
-					  propx   = { sortorder=10  }
-					, propy   = { sortorder=5   }
-					, propz   = { sortorder=100 }
-					, test    = {}
-					, testify = { sortorder=39  }
-				};
+				var props      = StructNew( "linked" );
+
+				props[ "propx"   ] = { sortorder=10  };
+				props[ "propy"   ] = { sortorder=5   };
+				props[ "propz"   ] = { sortorder=100 };
+				props[ "test"    ] = {};
+				props[ "testify" ] = { sortorder=39  };
 
 				mockPoService.$( "getObjectProperties" ).$args( objectName=objectName ).$results( props );
 				service.$( "getRendererForField" ).$args( objectName=objectName, propertyName="propx" ).$results( "none" );

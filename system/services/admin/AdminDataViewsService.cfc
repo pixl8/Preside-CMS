@@ -235,11 +235,7 @@ component {
 			var aSortOrder = Val( allProps[ a ].sortOrder ?: 100000000 );
 			var bSortOrder = Val( allProps[ b ].sortOrder ?: 100000000 );
 
-			if ( aSortOrder == bSortOrder ) {
-				return a > b ? 1 : -1;
-			}
-
-			return aSortOrder > bSortOrder ? 1 : -1;
+			return ( aSortOrder == bSortOrder ) ? 0 : ( aSortOrder > bSortOrder ? 1 : -1 );
 		} );
 	}
 
