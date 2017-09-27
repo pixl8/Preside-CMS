@@ -23,8 +23,7 @@ component displayname="Native Image Manipulation Service" {
 	 * @quality.hint             Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
 	 * @maintainAspectRatio.hint Whether or not maintain the aspect ratio of the native image (if true, an autocrop may be applied if the aspect ratio of the resize differs from the source native image)
 	 * @focalPoint.hint          Comma-separated list (x,y) defining coordinates of the image's focal point. When cropped, this point will be kept as close as possible to the centre of the resulting image.
-	 * @cropHint.hint            Comma-separated list (x,y,w,h) defining a crop hint area of the image. When resized/cropped using this, the image will be cropped so this area fills the resulting image.
-	 * @useCropHint.hint         Whether or not to use cropHint when resizing.
+	 * @cropHintArea.hint        Struct (x,y,width,height) defining a crop hint area of the image. Image will be cropped to this area before resizing.
 	 *
 	 */
 	public binary function resize(
@@ -34,8 +33,7 @@ component displayname="Native Image Manipulation Service" {
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
 		,          string  focalPoint          = ""
-		,          string  cropHint            = ""
-		,          boolean useCropHint         = false
+		,          struct  cropHintArea        = {}
 	) {
 		var image              = "";
 		var interpolation      = arguments.quality;
@@ -56,13 +54,8 @@ component displayname="Native Image Manipulation Service" {
 			ImageScaleToFit( image, arguments.width, "", interpolation );
 		} else if ( !arguments.width ) {
 			ImageScaleToFit( image, "", arguments.height, interpolation );
-		} else if ( arguments.useCropHint && arguments.cropHint.len() ) {
-			cropUsingCropHint(
-				  image         = image
-				, width         = arguments.width
-				, height        = arguments.height
-				, cropHint      = arguments.cropHint
-			);
+		} else if ( !arguments.cropHintArea.isEmpty() ) {
+			ImageCrop( image, arguments.cropHintArea.x, arguments.cropHintArea.y, arguments.cropHintArea.width, arguments.cropHintArea.height );
 			ImageResize( image, arguments.width, arguments.height, interpolation );
 		} else {
 			if ( maintainAspectRatio ) {
@@ -163,81 +156,6 @@ component displayname="Native Image Manipulation Service" {
 		return ImageGetBlob( image );
 	}
 
-
-	/**
-	 * Crops an image to fit the crop hint area as large as possible within it.
-	 *
-	 * @autodoc
-	 * @image.hint      Image object
-	 * @width.hint      Width of the final image, in pixels
-	 * @height.hint     Height of the final image, in pixels
-	 * @cropHint.hint   Coordinates of the image's crop hint area. Comma-separated x,y,w,h - where each coordinate is a value between 0 and 1; x and y are the offset of the area from the top left corner of the image; w and h are the width and height of the crop area. So "0.5,0.5,0.25,0.25" would define an area whose top left corner is the centre of the image, whose width is 1/4 of the source image width, and whose height is 1/4 of the source image height.
-	 *
-	 */
-	public binary function cropUsingCropHint(
-		  required any     image
-		, required numeric width
-		, required numeric height
-		, required string  cropHint
-	) {
-		var image          = arguments.image;
-		var targetWidth    = arguments.width;
-		var targetHeight   = arguments.height;
-		var targetRatio    = targetWidth / targetHeight;
-		var imageInfo      = ImageInfo( image );
-		var cropHintCoords = arguments.cropHint.listToArray();
-		var cropX          = int( cropHintCoords[ 1 ] * imageInfo.width );
-		var cropY          = int( cropHintCoords[ 2 ] * imageInfo.height );
-		var cropWidth      = int( cropHintCoords[ 3 ] * imageInfo.width );
-		var cropHeight     = int( cropHintCoords[ 4 ] * imageInfo.height );
-		var cropHintRatio  = cropWidth / cropHeight;
-		var prevCropWidth  = 0;
-		var prevCropHeight = 0;
-		var widthRatio     = 0;
-		var heightRatio    = 0;
-
-		if ( cropHintRatio > targetRatio ) {
-			prevCropHeight = cropHeight;
-			cropHeight     = int( cropHeight * ( cropHintRatio / targetRatio ) );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
-		} else if ( cropHintRatio < targetRatio ) {
-			prevCropWidth = cropWidth;
-			cropWidth     = int( cropWidth * ( targetRatio / cropHintRatio ) );
-			cropX         = int( cropX - ( ( cropWidth - prevCropWidth ) / 2 ) );
-		}
-
-		if ( targetWidth > cropWidth ) {
-			prevCropWidth  = cropWidth;
-			widthRatio     = targetWidth / cropWidth;
-			cropWidth      = int( cropWidth  * widthRatio );
-			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
-		}
-		if ( targetHeight > cropHeight ) {
-			prevCropHeight = cropHeight;
-			heightRatio    = targetHeight / cropHeight;
-			cropHeight     = int( cropHeight * heightRatio );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
-		}
-
-
-		if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
-			fitRatio       = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
-			prevCropWidth  = cropWidth;
-			prevCropHeight = cropHeight;
-			cropWidth      = int( cropWidth  * fitRatio );
-			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
-			cropHeight     = int( cropHeight * fitRatio );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
-		}
-
-		cropX = max( cropX, 0 );
-		cropY = max( cropY, 0 );
-		cropX = min( cropX, imageInfo.width - cropWidth );
-		cropY = min( cropY, imageInfo.height - cropHeight );
-
-		ImageCrop( image, cropX, cropY, cropWidth, cropHeight );
-		return ImageGetBlob( image );
-	}
 
 	/**
 	 * Generates an native image from the first page of the provided PDF binary
