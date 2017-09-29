@@ -1,6 +1,6 @@
 ---
 id: rulesengine
-title: Preside Rules Engine
+title: Rules engine
 ---
 
 ## Overview

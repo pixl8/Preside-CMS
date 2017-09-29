@@ -1,6 +1,6 @@
 ---
 id: assetmanager
-title: Working with the Asset Manager
+title: Working with the asset manager
 ---
 
 ## Introduction

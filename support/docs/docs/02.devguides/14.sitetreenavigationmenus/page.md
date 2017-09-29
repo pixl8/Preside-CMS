@@ -1,6 +1,6 @@
 ---
 id: sitetreenavigationmenus
-title: Sitetree Navigation Menus
+title: Sitetree navigation menus
 ---
 
 ## Overview

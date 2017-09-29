@@ -1,6 +1,6 @@
 ---
 id: dataobjectviews
-title: Data Object Views
+title: Data object views
 ---
 
 ## Overview

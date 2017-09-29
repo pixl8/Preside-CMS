@@ -1,6 +1,6 @@
 ---
 id: dataobjects
-title: Data Objects
+title: Data objects
 ---
 
 ## Overview

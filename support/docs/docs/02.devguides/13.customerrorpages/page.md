@@ -1,6 +1,6 @@
 ---
 id: customerrorpages
-title: Custom error pages & Maintenance mode
+title: Custom error pages & maintenance mode
 ---
 
 ## Overview
