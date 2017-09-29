@@ -1,9 +1,9 @@
 ---
-id: presidewidgets
-title: Preside Widgets
+id: widgets
+title: Widgets
 ---
 
-One of Preside's most powerful and easy to build features is its widget framework. Technially, a widget is a [[presideviewlets|Preside viewlet]] for which the editorial user supplies the configuration arguments through a [[presideforms|Preside config form]]. Editorial users are able to insert a Preside widget in any part of a [[workingwiththericheditor||Preside Richeditor field]] and the widget will be fully rendered at runtime. Visually, they look like this:
+One of Preside's most powerful and easy to build features is its widget framework. Technially, a widget is a [[viewlets|Preside viewlet]] for which the editorial user supplies the configuration arguments through a [[presideforms|Preside config form]]. Editorial users are able to insert a Preside widget in any part of a [[workingwiththericheditor||Preside Richeditor field]] and the widget will be fully rendered at runtime. Visually, they look like this:
 
 ![Screenshot showing widget selector](images/screenshots/widgetSelection.jpg)
 
@@ -86,7 +86,7 @@ field.instanceid.help=If you plan on embeddeding the same form in multiple locat
 
 ### The render viewlet
 
-The viewlet used to render a widget at runtime will be `widgets.{widgetid}`, or `widgets.{widgetid}.index`. If you're creating a handler, create it at `/handlers/widgets/MyWidget.cfc` and implement an `index` action to process the render. 
+The viewlet used to render a widget at runtime will be `widgets.{widgetid}`, or `widgets.{widgetid}.index`. If you're creating a handler, create it at `/handlers/widgets/MyWidget.cfc` and implement an `index` action to process the render.
 
 The `args` struct passed to the action will contain the user configured values from the config form. For example:
 

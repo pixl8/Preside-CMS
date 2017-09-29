@@ -1,6 +1,6 @@
 ---
-id: presidedataobjectviews
-title: Preside Data Object Views
+id: dataobjectviews
+title: Data Object Views
 ---
 
 ## Overview
@@ -45,7 +45,7 @@ In order for the `renderView()` function to know what fields to select for your 
 </cfoutput>
 ```
 
->>> We introduced the `<cf_presideparam` custom tag in **PresideCMS 10.2.4**. Prior to this, we used the `<cfparam` tag for this feature. The 
+>>> We introduced the `<cf_presideparam` custom tag in **PresideCMS 10.2.4**. Prior to this, we used the `<cfparam` tag for this feature. The
 `<cfparam` tag approach will continue to work in version 10 but we may decide to drop this support in future versions. This change is due to an unforeseen incompatibility with Adobe ColdFusion.
 
 Given the examples above, the SQL you would expect to be automatically generated and executed for you would look something like this:

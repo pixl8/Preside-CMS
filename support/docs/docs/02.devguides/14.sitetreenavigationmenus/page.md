@@ -5,7 +5,7 @@ title: Sitetree Navigation Menus
 
 ## Overview
 
-A common task for CMS driven websites is to build navigation menus based on the site tree. PresideCMS provides two extendable viewlets (see [[presideviewlets]]) to aid in rendering such menus with the minimum of fuss; `core.navigation.mainNavigation` and `core.navigation.subNavigation`.
+A common task for CMS driven websites is to build navigation menus based on the site tree. PresideCMS provides two extendable viewlets (see [[viewlets]]) to aid in rendering such menus with the minimum of fuss; `core.navigation.mainNavigation` and `core.navigation.subNavigation`.
 
 ## Main navigation
 

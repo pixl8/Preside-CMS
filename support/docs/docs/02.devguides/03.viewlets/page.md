@@ -1,11 +1,11 @@
 ---
-id: presideviewlets
-title: Preside viewlets
+id: viewlets
+title: Viewlets
 ---
 
 ## Overview
 
-Coldbox has a concept of viewlets ([see what they have to say about it in their docs](http://wiki.coldbox.org/wiki/Layouts-Views.cfm)). 
+Coldbox has a concept of viewlets ([see what they have to say about it in their docs](http://wiki.coldbox.org/wiki/Layouts-Views.cfm)).
 
 Preside builds on this concept and provides a concrete implementation with the `renderViewlet()` method. This implementation is used throughout Preside and is an important concept to grok when building custom Preside functionality (widgets, form controls, etc.).
 
@@ -41,7 +41,7 @@ Below is an example of a Preside viewlet handler action. It is much the same as 
 ```luceescript
 private any function myViewlet( event, rc, prc, args={} ) {
     args.someData = getModel( "someService" ).getSomeData( id=( args.id ?: 0 ) );
- 
+
     return getPlugin( "renderer" ).renderView( view="/my/viewlets/view", args=args );
 }
 ```
@@ -57,9 +57,9 @@ You could then render the viewlet with:
 Sometimes you will implement viewlets in Preside without a handler. You might find yourself doing this for custom form controls or widgets (which are implemented as viewlets). For example:
 
 ```lucee
-<cfparam name="args.title" type="string" /> 
+<cfparam name="args.title" type="string" />
 <cfparam name="args.description" type="string" />
- 
+
 <cfoutput>
     <h1>#args.title</h1>
     <p>#args.description#</p>

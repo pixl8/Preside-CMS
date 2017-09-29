@@ -57,7 +57,7 @@ component labelfield="page.title" {
 
 ### View layer
 
-The page types system takes advantage of auto wired views (see [[presidedataobjectviews]]). What this means is that we do not need to create a service layer or a coldbox handler for our page type, PresideCMS will take care of wiring your view to your page type data object.
+The page types system takes advantage of auto wired views (see [[dataobjectviews]]). What this means is that we do not need to create a service layer or a coldbox handler for our page type, PresideCMS will take care of wiring your view to your page type data object.
 
 Using our "event" page type example, we would create a view file at `/views/page-types/event/index.cfm`. A simplified example might then look something like this:
 
@@ -80,7 +80,7 @@ Using our "event" page type example, we would create a view file at `/views/page
 
 If you need to do some handler logic before rendering your page type, you take full control of fetching the data and rendering the view for your page type.
 
-You will need to create a handler under a 'page-types' folder whose filename matches your page type object, e.g. `/handlers/page-types/event.cfc`. The "index" action will be called by default and will be called as a Preside Viewlet (see [[presideviewlets]]). For example:
+You will need to create a handler under a 'page-types' folder whose filename matches your page type object, e.g. `/handlers/page-types/event.cfc`. The "index" action will be called by default and will be called as a Preside Viewlet (see [[viewlets]]). For example:
 
 ```luceescript
 component {

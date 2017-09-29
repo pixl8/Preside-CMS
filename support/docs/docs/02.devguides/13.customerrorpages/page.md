@@ -12,7 +12,7 @@ PresideCMS provides a simple mechanism for creating custom `401`, `404` and `500
 
 ### Creating a 404 template
 
-The 404 template is implemented as a Preside Viewlet (see [[[presideviewlets]]) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the `notFoundViewlet` setting. The default is "errors.notFound":
+The 404 template is implemented as a Preside Viewlet (see [[[viewlets]]) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the `notFoundViewlet` setting. The default is "errors.notFound":
 
 ```luceescript
 // /application/config/Config.cfc
@@ -155,7 +155,7 @@ Access denied pages can be created and used in exactly the same way as 404 pages
 
 ### Creating a 401 template
 
-The 401 template is implemented as a Preside Viewlet (see [[presideviewlets]]) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the `accessDeniedViewlet` setting. The default is "errors.accessDenied":
+The 401 template is implemented as a Preside Viewlet (see [[viewlets]]) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the `accessDeniedViewlet` setting. The default is "errors.accessDenied":
 
 ```luceescript
 // /application/config/Config.cfc
@@ -341,7 +341,7 @@ The administrator interface provides a simple GUI for putting the site into main
 
 ### Creating a custom 503 page
 
-The 503 template is implemented as a Preside Viewlet (see [[presideviewlets]]) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the `maintenanceModeViewlet` setting. The default is "errors.maintenanceMode":
+The 503 template is implemented as a Preside Viewlet (see [[viewlets]]) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the `maintenanceModeViewlet` setting. The default is "errors.maintenanceMode":
 
 ```luceescript
 // /application/config/Config.cfc
@@ -389,9 +389,9 @@ You may find yourself in a situation where you application is in maintenance mod
 To find the current bypass password, you can query the database with:
 
 ```sql
-select value 
-from   psys_system_config 
-where  category = 'maintenanceMode' 
+select value
+from   psys_system_config
+where  category = 'maintenanceMode'
 and    setting  = 'bypass_password';
 ```
 

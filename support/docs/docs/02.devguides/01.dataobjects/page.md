@@ -10,7 +10,7 @@ title: Data Objects
 The Preside Data Objects system is deeply integrated into the CMS:
 
 * Input forms and other administrative GUIs can be automatically generated for your preside objects
-* [[presidedataobjectviews]] provide a way to present your data to end users without the need for handler or service layers
+* [[dataobjectviews]] provide a way to present your data to end users without the need for handler or service layers
 *  The Data Manager provides a GUI for managing your client specific data and is based on entirely on Preside Data Objects
 * Your preside objects can have their data tied to individual [[workingwithmultiplesites]], without the need for any extra programming of site filters.
 
