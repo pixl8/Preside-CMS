@@ -91,6 +91,11 @@
 				var coldbox = arguments.coldbox ?: getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 				var versioningService = getMockBox().createMock( object=new preside.system.services.presideObjects.VersioningService() );
 
+				var mockLabelRendererCache = getMockBox().createStub();
+				var labelRendererService = getMockBox().createMock( object= new preside.system.services.rendering.LabelRendererService(
+					labelRendererCache = mockLabelRendererCache
+				) );
+
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
 				mockFeatureService.$( "isFeatureEnabled", true );
@@ -112,6 +117,7 @@
 					, relationshipGuidance   = relationshipGuidance
 					, presideObjectDecorator = presideObjectDecorator
 					, versioningService      = versioningService
+					, labelRendererService   = labelRendererService
 					, filterService          = mockFilterService
 					, cache                  = cachebox.getCache( "PresideSystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
