@@ -21,20 +21,20 @@ All pages in the tree must be associated with a page *type*; this page type will
 
 ## Creating a page type
 
-There are four essential parts to building a page type. The data model, view layer, i18n properties file and form layout(s). 
+There are four essential parts to building a page type. The data model, view layer, i18n properties file and form layout(s).
 
 >>>>>> You can scaffold all the parts of a page template very quickly using the Developer console (see :doc:`developerconsole`). Once in the console, type `new pagetype` and follow the prompts.
 
 ### The data model
 
-A page type is defined by creating a **Preside Data Object** (see [[presidedataobjects]]) that lives in a subdirectory called "page-types". For example: `/preside-objects/page-types/event.cfc`:
+A page type is defined by creating a **Preside Data Object** (see [[dataobjects]]) that lives in a subdirectory called "page-types". For example: `/preside-objects/page-types/event.cfc`:
 
 ```luceescript
 // /preside-objects/page-types/event.cfc
 component {
     property name="start_date" type="date"   dbtype="date"                  required=true;
     property name="end_date"   type="date"   dbtype="date"                  required=true;
-    property name="location"   type="string" dbtype="varchar" maxLength=100 required=false; 
+    property name="location"   type="string" dbtype="varchar" maxLength=100 required=false;
 }
 ```
 
@@ -45,7 +45,7 @@ Under the hood, the system will add some fields for you to cement the relationsh
 component labelfield="page.title" {
     property name="start_date" type="date"   dbtype="date"                  required=true;
     property name="end_date"   type="date"   dbtype="date"                  required=true;
-    property name="location"   type="string" dbtype="varchar" maxLength=100 required=false; 
+    property name="location"   type="string" dbtype="varchar" maxLength=100 required=false;
 
     // auto generated property (you don't need to create this yourself)
     property mame="page" relationship="many-to-one" relatedto="page" required=true uniqueindexes="page" ondelete="cascade" onupdate="cascade";
@@ -78,7 +78,7 @@ Using our "event" page type example, we would create a view file at `/views/page
 
 #### Using a handler
 
-If you need to do some handler logic before rendering your page type, you take full control of fetching the data and rendering the view for your page type. 
+If you need to do some handler logic before rendering your page type, you take full control of fetching the data and rendering the view for your page type.
 
 You will need to create a handler under a 'page-types' folder whose filename matches your page type object, e.g. `/handlers/page-types/event.cfc`. The "index" action will be called by default and will be called as a Preside Viewlet (see [[presideviewlets]]). For example:
 
@@ -88,11 +88,11 @@ component {
     private string function index( event, rc, prc, args ) {
         args.someValue = getModel( "someServiceOrSomesuch" ).getSomeValue();
 
-        return renderView( 
+        return renderView(
               view          = "/page-types/event/index"
             , presideObject = "event"
             , id            = event.getCurrentPageId()
-            , args          = args 
+            , args          = args
         );
     }
 }
@@ -113,7 +113,7 @@ You can create layout variations for your page type that the users of the CMS wi
 
 >>> Any views that begin with an underscore are ignored. Use these for reusable view snippets that are not templates in themselves.
 
-If your page type has more than one layout, a drop down will appear in the page form, allowing the user to select which template to use. 
+If your page type has more than one layout, a drop down will appear in the page form, allowing the user to select which template to use.
 
 ![Screenshot of a layout picker.](images/screenshots/layout_picker.png)
 
@@ -122,7 +122,7 @@ You can control the labels of your layouts that appear in the dropdown menu by a
 
 ### UI and i18n
 
-In order for the page type to appear in a satisfactory way for your users when creating new pages (see screenshot below), you will also need to create a `.properties` file for the page type. 
+In order for the page type to appear in a satisfactory way for your users when creating new pages (see screenshot below), you will also need to create a `.properties` file for the page type.
 
 
 For example, if your page type **Preside data object** was, `/preside-objects/page-types/event.cfc`, you would need to create a `.properties` file at, `/i18n/page-types/event.properties`. In it, you will need to add *name*, *description* and *iconclass* keys, e.g.
@@ -192,7 +192,7 @@ To achieve this, you can either create a single form layout that will be used to
 
 ### Controlling behaviour in the tree
 
-There are a number of flags that you can set in your page type object files to determine how the pages can be used and viewed within the tree. 
+There are a number of flags that you can set in your page type object files to determine how the pages can be used and viewed within the tree.
 
 #### Limiting child and parent page types
 
@@ -209,7 +209,7 @@ For example, to create an exclusive relationship bewteen parent and child types,
  *
  */
 component {
-  // ...   
+  // ...
 }
 
 // /preside-objects/page-types/blog.cfc
@@ -219,7 +219,7 @@ component {
  *
  */
 component {
-  // ...   
+  // ...
 }
 ```
 
@@ -240,7 +240,7 @@ Again, using a blog post page type as an example:
  *
  */
 component {
-  // ...   
+  // ...
 }
 ```
 
