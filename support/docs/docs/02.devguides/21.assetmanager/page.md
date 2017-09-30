@@ -1,6 +1,6 @@
 ---
 id: assetmanager
-title: Working with the Asset Manager
+title: Working with the asset manager
 ---
 
 ## Introduction
@@ -11,7 +11,7 @@ PresideCMS provides an asset management system that allows users of the system t
 
 ## Data model
 
-The metadata and folder structure of your assets are all stored in your application's database using [[presidedataobjects]]. The objects and their relationships are modelled below:
+The metadata and folder structure of your assets are all stored in your application's database using [[dataobjects]]. The objects and their relationships are modelled below:
 
 ![Asset manager database model](images/diagrams/asset_manager_erd.png)
 
@@ -61,9 +61,9 @@ component {
 
 ### Allow picking of assets in your forms
 
-The [[formcontrol-assetpicker|Asset picker]] form control provides a GUI for selecting and uploading one or more assets in a form. 
+The [[formcontrol-assetpicker|Asset picker]] form control provides a GUI for selecting and uploading one or more assets in a form.
 
-![Screenshot showing asset picker](images/screenshots/assetpicker.jpg) 
+![Screenshot showing asset picker](images/screenshots/assetpicker.jpg)
 
 The form control will *automatically* be used for object properties that have a relationship with the `asset` object. However, you can specify the control directly in a form (for a widget, for example) with:
 
@@ -83,7 +83,7 @@ The form control will *automatically* be used for object properties that have a 
 This can be done with:
 
 ```luceescript
-event.buildLink( 
+event.buildLink(
       assetId    = idOfAsset
     , derivative = "optionalDerivative"
     , versionId  = optionalVersionId
@@ -99,7 +99,7 @@ The `renderAsset()` helper function will render the asset referenced by the pass
 ```lucee
 <cfoutput>
     <!-- ... -->
-    #renderAsset( 
+    #renderAsset(
           assetId = myauthor.profile_image
         , context = "preview"
         , args    = { derivative="authorprofile" }
@@ -116,7 +116,7 @@ The [[assetrendererservice-renderasset]] method will choose a viewlet with which
 1. The type of asset, or "super-type" of the asset
 2. The supplied context
 
-The type of the asset is simply its extension. A "super type" is the file type group, i.e. "image", "document", etc. Types and super types are configured in your application's `Config.cfc` file (see below). 
+The type of the asset is simply its extension. A "super type" is the file type group, i.e. "image", "document", etc. Types and super types are configured in your application's `Config.cfc` file (see below).
 
 The asset manager will try to use the most specific viewlet it can find to render your asset. For example, if the supplied asset was a *jpg image* and the supplied context was *"thumbnail"*, the system would go through the following viewlet names and use the first available one:
 
@@ -145,7 +145,7 @@ A "banner" context viewlet for images could therefor be implemented as a view at
 
 ## Configuration
 
-Overall configuration of asset manager behaviour is made in the `settings.assetmanager` struct in your application's `Config.cfc` file. 
+Overall configuration of asset manager behaviour is made in the `settings.assetmanager` struct in your application's `Config.cfc` file.
 
 Valid keys are:
 
@@ -242,7 +242,7 @@ Once defined, a derivative can then be used when building a link to an asset and
 ```luceescript
 assetUrl = event.buildLink( assetId=myImageId, derivative="leadImage" );
 // ...
-renderedAsset = renderAsset( assetId=myImageId, args={ derivative="leadImage" } ); 
+renderedAsset = renderAsset( assetId=myImageId, args={ derivative="leadImage" } );
 
 ```
 
@@ -269,7 +269,7 @@ thumbnail.title=Thumbnail (100x100)
 
 #### Transformations
 
-An array of configured transformations that the original asset binary will be passed through in order to create a new version. 
+An array of configured transformations that the original asset binary will be passed through in order to create a new version.
 
 A transformation is defined as a CFML structure, with the following keys:
 
@@ -336,7 +336,7 @@ Create a CFC that implements the [[api-storageprovider]] interface, i.e.
 
 ```luceescript
 compoment implements="preside.system.services.fileStorage.StorageProvider" {
-    // ...   
+    // ...
 }
 ```
 
@@ -347,7 +347,7 @@ You will need to thoroughly read the [[api-storageprovider|interface documentati
 You must declare the storage provider in your application's `Config.cfc` file, this is simply mapping an ID to a CFC path:
 
 ```luceescript
-settings.storageProviders.myProvider = { 
+settings.storageProviders.myProvider = {
     class = "app.services.filestorage.MyProvider"
 };
 ```
@@ -426,7 +426,7 @@ component extends="preside.system.config.WireBox" {
 
         var settings = getColdbox().getSettingStructure();
 
-        if ( IsBoolean( settings.myProvider.enabled ?: "" ) && settings.myProvider.enabled ) {       
+        if ( IsBoolean( settings.myProvider.enabled ?: "" ) && settings.myProvider.enabled ) {
 
             map( "assetStorageProvider" ).asSingleton().to( "app.services.fileStorage.MyProvider" ).noAutoWire()
                 .initArg( name="apiKey"    , value=settings.myProvider.apiKey                 )

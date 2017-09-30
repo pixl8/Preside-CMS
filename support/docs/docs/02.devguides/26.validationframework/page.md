@@ -1,6 +1,6 @@
 ---
 id: validation-framework
-title: Validation Framework
+title: Validation framework
 ---
 
 The PresideCMS platform provides its own validation framework. This framework is used in the forms system without the need of any specific knowledge of its working. However, you may find yourself requiring custom validation and wanting to use the framework directly. The guide below provides a comprehensive reference for the framework's APIs.
@@ -64,14 +64,14 @@ if ( validationResult.validated() ) {
 <!-- HTML and client side validation -->
 <cfoutput>
     <form id="myCustomForm" method="post" action="#urlToProcessFormSubmission#">
-       
+
         <!-- outputting an error message for a field -->
         <cfif validationResult.fieldHasError( "emailAddress" )>
             <p class="error-message">#validationResult.getError( "emailAddress" )#</p>
         </cfif>
-  
+
     </form>
- 
+
     <!-- generating js for client side validation -->
     <script type="text/javascript">
         ( function( $ ){
@@ -81,7 +81,7 @@ if ( validationResult.validated() ) {
     </script>
 </cfoutput>
 ```
- 
+
 # Rules and Rulesets
 
 ## Rules
@@ -104,14 +104,14 @@ A rule defines a constraint for a named field. e.g. the field named "username" m
     , validator : "required"
     , message   : "Username is required"
 }
-  
+
 // field should be between 3 and 10 characters long
 {
       fieldName : "username"
     , validator : "rangeLength"
     , params    : { minLength : 3, maxLength : 10 }
 }
-  
+
 // field is only required when the "Where did you hear" field is equal to "other"
 {
       fieldName : "whereDidYouHearOther"
@@ -123,7 +123,7 @@ A rule defines a constraint for a named field. e.g. the field named "username" m
 
 ### Conditional rules, referencing other fields
 
-As shown above, conditional rules allow you to conditionally run a rule based on just about any logic you can think of. For ease and information hiding, the API provides the `${fieldname}` syntax for accessing other fields in the form / dataset. 
+As shown above, conditional rules allow you to conditionally run a rule based on just about any logic you can think of. For ease and information hiding, the API provides the `${fieldname}` syntax for accessing other fields in the form / dataset.
 
 For server side validation, the macro will evaluate to the _value_ of the field, i.e. `${password}` will be translated to something like: `arguments.data[ 'password' ]`.
 
@@ -142,21 +142,21 @@ A ruleset is an array of rules that are registered, with a unique name, to the c
 ```luceescript
 // register a ruleset with the name "myRuleset", using an array of structs
 ruleset = validationEngine.newRuleset( "myRuleset", [{fieldName="username", validator="required"}, {fieldName="password", validator="required" }] );
-  
+
 // register a ruleset with the name "myRuleset", using a json string
 ruleset = validationEngine.newRuleset( "myRuleset", '[{"fieldName":"username", "validator":"required"}, {"fieldName":"password", "validator":"required" }]' );
-  
+
 // register a ruleset with the name "myRuleset", using a filepath
 ruleset = validationEngine.newRuleset( "myRuleset", ExpandPath( "/myrulesets/myruleset.json" ) );
 ```
- 
+
 ## Custom validators and validator providers
 
 Custom validators can be passed to the engine by passing an _instantiated_ CFC that contains public _validator methods_. For example, you might have:
 
 ```luceescript
 myValidatorCfc = getModel( "someComponentThatHasValidatorMethods" );
-  
+
 validationEngine.newProvider( myValidatorCfc );
 ```
 
@@ -193,12 +193,12 @@ public boolean function slug(
     , required boolean allowMixedCase // custom argument
 ) {
     var aToZ = arguments.allowMixedCase ? "a-zA-Z" : "a-z";
-  
+
     // if empty input, do not perform custom validation
     if ( !IsSimpleValue( arguments.value ) || !Len( Trim( arguments.value ) ) ) {
         return true;
     }
-    
+
     return ReFind( "^[#aToZ#0-9\-]+$", arguments.value );
 }
 
@@ -233,7 +233,7 @@ public boolean function slug_js() {
  * @validationProvider
  */
 component {
-    
+
     /**
      * @validatorMessage customvalidators:slug.message
      */
@@ -244,12 +244,12 @@ component {
         , required boolean allowMixedCase // custom argument
     ) {
         var aToZ = arguments.allowMixedCase ? "a-zA-Z" : "a-z";
-      
+
         // if empty input, do not perform custom validation
         if ( !IsSimpleValue( arguments.value ) || !Len( Trim( arguments.value ) ) ) {
             return true;
         }
-        
+
         return ReFind( "^[#aToZ#0-9\-]+$", arguments.value );
     }
 
@@ -269,11 +269,11 @@ Any old CFC with ad-hoc validation methods:
 component {
 
     /**
-     * This is not a validator, as it is not 
+     * This is not a validator, as it is not
      * tagged with @validator (and the CFC is not
      * tagged with @validationProvider)
      *
-     */    
+     */
     public any function someFunction() {
         // do stuff
     }
@@ -281,7 +281,7 @@ component {
     /**
      * A method that will be used as a validator
      * because tagged with @validator, below
-     * 
+     *
      * @validator
      * @validatorMessage customvalidators:slug.message
      */
@@ -328,11 +328,11 @@ The `getJqueryValidateJs( ruleset, jqueryReference )` method, will return JavaSc
 ( function( $ ){
     // translateResource() for i18n w/ error messages
     var translateResource = ( i18n && i18n.translateResource ) ? i18n.translateResource : function(a){ return a };
-     
+
     // register custom validators
     $.validator.addMethod( "validator1", function( value, element, params ){ return false; }, "" );
     $.validator.addMethod( "validator2", function( value, element, params ){ return true; }, "" );
-     
+
     // return the options to be passed to validate()
     return {
         rules : {
@@ -363,14 +363,14 @@ An example usage of the generated javascript might then look like:
 ( function( $ ){
     // auto generate the rules and messages for validate()
     var validateOptions = #validationEngine.getJQueryValidateJs( "myRuleset", "jQuery" )#;
-  
+
     // add any other options you need
     validateOptions.debug = true;
     validateOptions.submitHandler = myCustomSubmitHandler;
-  
+
     // apply to the form
     $( '##myFormId' ).validate( validateOptions );
-} )( jQuery ); 
+} )( jQuery );
 ```
 
 ## i18n
@@ -380,7 +380,7 @@ The validation API does not take any responsibility for i18n. If you wish to hav
 ```luceescript
 // non-i18n version
 ruleset.append( { fieldName="username", validator="minLength", message="Username must be less than 3 characters", params={length=3} } );
-  
+
 // i18n version
 ruleset.append({ fieldName="username", validator="minLength", message="validationMessages:myform.username.minLength", params={length=3} } );
 ```
@@ -394,12 +394,12 @@ The generated client side code will automatically try to translate the message u
         , defaultValue = validationResult.getError( "myField" )
         , data         = validationResult.listErrorParameterValues( "myField" )
     )#
-</p> 
+</p>
 ```
 
 ### Dynamic parameters for translations
 
-Translatable texts often require dynamic variables. An example validation message requiring dynamic values might be: `"Must be at least {1} characters"`. Depending on the configured minimum character count, the message would substitue `"{1}"` for the minimum length. 
+Translatable texts often require dynamic variables. An example validation message requiring dynamic values might be: `"Must be at least {1} characters"`. Depending on the configured minimum character count, the message would substitue `"{1}"` for the minimum length.
 
 For this to work, the method that translates the message must accept an array of dynamic parameters. These parameters can be retrieved using the `listErrorParameterValues( fieldName )` method of the [[api-validationresult]] object (see the example, above). The parameters themselves will be any custom parameters defined in your validator, **in the order that they are defined in the validator method**. For example:
 
@@ -413,7 +413,7 @@ public boolean function rangeLength(
     required numeric maxLength // custom
 ) {
     var length = Len( Trim( arguments.value ) );
-    
+
     return !length || ( length >= arguments.minLength && length <= arguments.maxLength );
 }
 

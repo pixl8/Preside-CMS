@@ -1,6 +1,6 @@
 ---
 id: xss
-title: XSS Protection
+title: XSS protection
 ---
 
 >>> This feature was first introduced in **PresideCMS v10.3.6**. The details below do not apply for older versions of the software.
@@ -17,10 +17,10 @@ public void function configure() {
     super.configure();
 
     // turn off antisamy (don't do this!)
-    settings.antiSamy.enabled = false;     
+    settings.antiSamy.enabled = false;
 
     // use the "tinymce" AntiSamy policy (default is myspace)
-    settings.antiSamy.policy  = "tinymce"; 
+    settings.antiSamy.policy  = "tinymce";
 
     // do not bypass antisamy, even when logged in user is admin
     settings.antiSamy.bypassForAdministrators = false;
