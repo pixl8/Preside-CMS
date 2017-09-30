@@ -19,6 +19,7 @@ component displayName="Preside Object Service" {
 	 * @relationshipGuidance.inject   RelationshipGuidance
 	 * @presideObjectDecorator.inject PresideObjectDecorator
 	 * @versioningService.inject      VersioningService
+	 * @labelRendererService.inject   LabelRendererService
 	 * @filterService.inject          presideObjectSavedFilterService
 	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
@@ -34,6 +35,7 @@ component displayName="Preside Object Service" {
 		, required any     relationshipGuidance
 		, required any     presideObjectDecorator
 		, required any     versioningService
+		, required any     labelRendererService
 		, required any     filterService
 		, required any     cache
 		, required any     defaultQueryCache
@@ -52,6 +54,7 @@ component displayName="Preside Object Service" {
 		_setCache( arguments.cache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( arguments.versioningService );
+		_setLabelRendererService( arguments.labelRendererService );
 		_setCacheMaps( {} );
 		_setInterceptorService( arguments.interceptorService );
 		_setInstanceId( CreateObject('java','java.lang.System').identityHashCode( this ) );
@@ -1144,21 +1147,79 @@ component displayName="Preside Object Service" {
 		var manyToManyData = {};
 
 		for( var prop in props ) {
-			if ( ( !arguments.selectFields.len() || arguments.selectFields.findNoCase( prop ) ) && isManyToManyProperty( arguments.objectName, prop ) ) {
+			if ( ( !arguments.selectFields.len() || arguments.selectFields.findNoCase( prop ) ) ) {
+				if ( isManyToManyProperty( arguments.objectName, prop ) ) {
 
-				var records = selectData(
-					  objectName       = arguments.objectName
-					, id               = arguments.id
-					, selectFields     = [ "#prop#.id" ]
-					, fromVersionTable = arguments.fromVersionTable
-					, specificVersion  = arguments.specificVersion
-				);
+					var records = selectData(
+						  objectName       = arguments.objectName
+						, id               = arguments.id
+						, selectFields     = [ "#prop#.id" ]
+						, fromVersionTable = arguments.fromVersionTable
+						, specificVersion  = arguments.specificVersion
+					);
 
-				manyToManyData[ prop ] = records.recordCount ? ValueList( records.id ) : "";
+					manyToManyData[ prop ] = records.recordCount ? ValueList( records.id ) : "";
+				} else if ( isOneToManyConfiguratorObject( arguments.objectName, prop ) ) {
+
+					var property = getObjectProperty( arguments.objectName, prop );
+
+					manyToManyData[ prop ] = getOneToManyConfiguratorJsonString(
+						  sourceObject    = arguments.objectName
+						, sourceId        = arguments.id
+						, relatedTo       = property.relatedTo       ?: nullValue()
+						, relationshipKey = property.relationshipKey ?: nullValue()
+						, labelRenderer   = property.labelRenderer   ?: nullValue()
+						, specificVersion = arguments.specificVersion
+					);
+				}
 			}
 		}
 
 		return manyToManyData;
+	}
+
+
+	public string function getOneToManyConfiguratorJsonString(
+		  required string sourceObject
+		, required string sourceId
+		,          string relatedTo
+		,          string relationshipKey
+		,          string labelRenderer
+		,          string specificVersion
+	) {
+		var targetObject  = arguments.relatedTo       ?: "";
+		var targetFk      = arguments.relationshipKey ?: arguments.sourceObject;
+		var targetIdField = getIdField( targetObject );
+		var useVersioning = Val( arguments.specificVersion ?: "" ) && objectIsVersioned( targetObject );
+		var hasSortOrder  = getObjectProperties( targetObject ).keyExists( "sort_order" );
+		var orderBy       = hasSortOrder ? "sort_order" : "";
+		var labelRenderer = arguments.labelRenderer ?: getObjectAttribute( targetObject, "labelRenderer" );
+		var labelFields   = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
+		var values        = [];
+
+		if ( Len( Trim( arguments.sourceId ) ) ) {
+			var records = selectData(
+				  objectName       = targetObject
+				, filter           = { "#targetFk#"=arguments.sourceId }
+				, selectFields     = labelFields.append( "#targetObject#.#targetIdField# as id" )
+				, orderBy          = orderBy
+				, useCache         = false
+				, fromVersionTable = useVersioning
+				, specificVersion  = Val( arguments.specificVersion ?: "" )
+			);
+
+			for( var record in records ) {
+				var item = {
+					  id       = record.id
+					, __fromDb = true
+					, __label  = _getLabelRendererService().renderLabel( labelRenderer=labelRenderer, args=record )
+				};
+				values.append( serializeJSON( item ) );
+			}
+			return ArrayToList( values );
+		}
+
+		return "";
 	}
 
 	/**
@@ -2920,6 +2981,13 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setVersioningService( required any versioningService ) {
 		_versioningService = arguments.versioningService;
+	}
+
+	private any function _getLabelRendererService() {
+		return _labelRendererService;
+	}
+	private void function _setLabelRendererService( required any labelRendererService ) {
+		_labelRendererService = arguments.labelRendererService;
 	}
 
 	private any function _getPresideObjectDecorator() {
