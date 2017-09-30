@@ -1,6 +1,6 @@
 ---
 id: taskmanager
-title: Preside Task Manager
+title: Task manager
 ---
 
 As of v10.7.0, PresideCMS comes with an built-in task management system designed for running and monitoring scheduled and ad-hoc tasks in the system. For example, you might have a nightly data import task, or an ad-hoc task for optimizing images.
@@ -17,7 +17,7 @@ The system uses a coldbox handler, `Tasks.cfc`, to define tasks (it also support
 
 * Each task is defined as a private action in the `Tasks.cfc` handler and decorated with metadata to give information about the task.
 * The action must return a boolean value to indicate success or failure
-* The action accepts a `logger` argument that should be used for all task logging - doing so will enable the live log view for your task. 
+* The action accepts a `logger` argument that should be used for all task logging - doing so will enable the live log view for your task.
 
 For example:
 
@@ -50,11 +50,11 @@ Tasks can be given a default schedule, or defined as _not_ scheduled tasks using
 /**
  * Every 15 minutes
  * @schedule 0 *\/15 * * * *
- * 
+ *
  * At 25 minutes past the hour, every 2 hours
  * @schedule 0 25 *\/2 * * *
  *
- * At 4:06 AM, only on Tuesday 
+ * At 4:06 AM, only on Tuesday
  * @schedule 0 06 04 * * Tue
  */
 ```

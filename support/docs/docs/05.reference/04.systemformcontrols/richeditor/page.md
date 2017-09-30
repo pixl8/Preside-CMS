@@ -22,7 +22,7 @@ For an in-depth guide, see [[workingwiththericheditor]].
             </tr>
             <tr>
                 <th>widgetCategories (optional)</th>
-                <td>Optional comma separated list of categories of widget that are eligible for insertion into this content. See [[presidewidgets]] for further details.</td>
+                <td>Optional comma separated list of categories of widget that are eligible for insertion into this content. See [[widgets]] for further details.</td>
             </tr>
         </tbody>
     </table>

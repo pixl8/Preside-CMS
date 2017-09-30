@@ -1,6 +1,6 @@
 ---
 id: editablesystemsettings
-title: Editable System settings
+title: Editable system settings
 ---
 
 ## Overview
@@ -9,8 +9,8 @@ Editable system settings are settings that effect the working of your entire sys
 
 They are stored against a single data object, `system_config`, and are organised into categories.
 
-![Screenshot showing system settings with two categories, "General" and "Hipchat integration"](images/screenshots/system_settings_menu.png)   
-    
+![Screenshot showing system settings with two categories, "General" and "Hipchat integration"](images/screenshots/system_settings_menu.png)
+
 
 ## Categories
 
@@ -24,8 +24,8 @@ A category groups configuration options into a single form. To define a new cate
     <tab>
         <fieldset>
             <field name="hipchat_api_key"               control="textinput"   required="true" label="system-config.hipchat-settings:api_key.label" maxLength="50" />
-            <field name="hipchat_room_name"             control="textinput"   required="true" label="system-config.hipchat-settings:room_name.label" maxLength="50" /> 
-            <field name="hipchat_use_html_notification" control="yesNoSwitch" required="true" label="system-config.hipchat-settings:use_html_notification.label" /> 
+            <field name="hipchat_room_name"             control="textinput"   required="true" label="system-config.hipchat-settings:room_name.label" maxLength="50" />
+            <field name="hipchat_use_html_notification" control="yesNoSwitch" required="true" label="system-config.hipchat-settings:use_html_notification.label" />
         </fieldset>
     </tab>
 </form>
@@ -60,7 +60,7 @@ function myHandler( event, rc, prc ) {
         , setting  = "hipchat_api_key"
         , default  = "someDefaultApiKey"
     );
-} 
+}
 ```
 
 ### From within your service layer
@@ -75,7 +75,7 @@ The preferred method of retrieving settings through the service layer is through
  *
  */
 component {
-    
+
     public void function doSomething() {
         var settings    = $getPresideCategorySettings( category="email" );
         var emailServer = $getPresideSetting( category="email", setting="server", default="127.0.0.1" );
@@ -107,7 +107,7 @@ component {
     ...
 
     private string function _getApiKey() {
-        return systemConfigurationService.getSetting( 
+        return systemConfigurationService.getSetting(
               category = "hipchat-integration"
             , setting  = "hipchat_api_key"
             , default  = "nokeyselected"
@@ -144,7 +144,7 @@ component extends="coldbox.system.Interceptor" {
         // form contains all the server configuration variables
         // we need to check
         if ( category == "email" && configuration.keyExists( "server" ) && configuration.keyExists( "port" ) && configuration.keyExists( "username" ) && configuration.keyExists( "password" ) && !IsSimpleValue( validationResult ) ) {
-            
+
             var errorMessage = emailService.validateConnectionSettings(
                   host     = configuration.server
                 , port     = configuration.port
@@ -154,11 +154,11 @@ component extends="coldbox.system.Interceptor" {
 
             if ( Len( Trim( errorMessage ) ) ) {
                 if ( errorMessage == "authentication failure" ) {
-                    // adding an error to the validation result with a 
+                    // adding an error to the validation result with a
                     // translatable error message
                     validationResult.addError( "username", "system-config.email:validation.server.authentication.failure" );
                 } else {
-                    // adding an error to the validation result with a 
+                    // adding an error to the validation result with a
                     // translatable error message
                     validationResult.addError( "server", "system-config.email:validation.server.details.invalid", [ errorMessage ] );
                 }

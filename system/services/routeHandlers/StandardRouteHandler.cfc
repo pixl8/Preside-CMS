@@ -21,12 +21,6 @@ component implements="iRouteHandler" output=false singleton=true {
 		var site          = event.getSite();
 		var pathMinusSite = arguments.path;
 
-		if ( Len( site.path ?: "" ) > 1 ) {
-			pathMinusSite = Right( pathMinusSite, Len( pathMinusSite ) - Len( site.path ) );
-			if ( Left( pathMinusSite, 1 ) != "/" ) {
-				pathMinusSite = "/" & pathMinusSite;
-			}
-		}
 		var translated = ReReplace( pathMinusSite, "^/", "" );
 		    translated = Replace( translated, "/$", "" );
 		    translated = ListChangeDelims( translated, ".", "/" );
