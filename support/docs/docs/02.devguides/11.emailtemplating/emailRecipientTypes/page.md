@@ -22,7 +22,7 @@ All email recipient types must be registered in `Config.cfc`. An example configu
 
 ```luceescript
 // register an 'eventDelegate' recipient type:
-settings.email.templates.recipientTypes.eventDelegate   = {
+settings.email.recipientTypes.eventDelegate   = {
 	  parameters             = [ "first_name", "last_name", "email_address", "mobile_number" ]
 	, filterObject           = "event_delegate"
 	, gridFields             = [ "first_name", "last_name", "email_address", "mobile_number" ]
