@@ -1,6 +1,6 @@
 ---
 id: spreadsheets
-title: Working with Spreadsheets
+title: Working with spreadsheets
 ---
 
 As of v10.5.0, PresideCMS comes with a built in spreadsheet library. Lucee itself does not have any out-of-box `<cfspreadsheet` functionality so traditionally an extension will be installed to provide compatibility. However, to avoid dependencies on server extension installs, we decided to include a library that would be available as part of the software.
@@ -19,7 +19,7 @@ component {
 
     function index() {
         var workbook    = spreadSheetLib.new();
-        var data        = QueryNew( "First,Last", "VarChar,VarChar", [ 
+        var data        = QueryNew( "First,Last", "VarChar,VarChar", [
               [ "Susi"  , "Sorglos"  ]
             , [ "Frumpo", "McNugget" ]
         ] );

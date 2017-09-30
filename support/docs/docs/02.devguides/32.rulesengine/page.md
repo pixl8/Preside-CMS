@@ -1,6 +1,6 @@
 ---
 id: rulesengine
-title: Preside Rules Engine
+title: Rules engine
 ---
 
 ## Overview
@@ -29,7 +29,7 @@ See [[rulesenginecontexts]] for a full guide.
 
 Similar to conditions, filters are a user-configured combination of one or more logical _filter_ expressions, grouped into sets that are combined with `and` or `or` joins. Administrative users of the platform can create filters and save them with a unique name for later use in various scenarios, e.g. to filter recordsets in admin data views, or for use in _conditions_ that control access to pages, etc.
 
-Unlike conditions, filters must apply to a single [[presidedataobjects|preside data object]] and are used to create a database filter that is then applied to a [[presideobjectservice-selectdata]] query.
+Unlike conditions, filters must apply to a single [[dataobjects|preside data object]] and are used to create a database filter that is then applied to a [[presideobjectservice-selectdata]] query.
 
 >>>>>> Filters can be used as conditions but conditions can not be used as filters.
 

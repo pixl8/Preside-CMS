@@ -1,6 +1,6 @@
 ---
 id: cmspermissioning
-title: CMS Permissioning
+title: CMS permissioning
 ---
 
 ## Overview

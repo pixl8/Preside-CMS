@@ -1,16 +1,16 @@
 ---
-id: presidedataobjects
-title: Preside Data Objects
+id: dataobjects
+title: Data objects
 ---
 
 ## Overview
 
-**Preside Data Objects** are the data layer implementation for PresideCMS. Just about everything in the system that persists data to the database uses Preside Data Objects to do so. 
+**Preside Data Objects** are the data layer implementation for PresideCMS. Just about everything in the system that persists data to the database uses Preside Data Objects to do so.
 
 The Preside Data Objects system is deeply integrated into the CMS:
 
 * Input forms and other administrative GUIs can be automatically generated for your preside objects
-* [[presidedataobjectviews]] provide a way to present your data to end users without the need for handler or service layers
+* [[dataobjectviews]] provide a way to present your data to end users without the need for handler or service layers
 *  The Data Manager provides a GUI for managing your client specific data and is based on entirely on Preside Data Objects
 * Your preside objects can have their data tied to individual [[workingwithmultiplesites]], without the need for any extra programming of site filters.
 
@@ -50,8 +50,8 @@ component {
 >>> All of the preside objects that are provided by the core PresideCMS system have their table names prefixed with **psys_**.
 
 ### Registering objects
-    
-The system will automatically register any CFC files that live under the `/application/preside-objects` folder of your site (and any of its sub-folders). Each .cfc file will be registered with an ID that is the name of the file without the ".cfc" extension. 
+
+The system will automatically register any CFC files that live under the `/application/preside-objects` folder of your site (and any of its sub-folders). Each .cfc file will be registered with an ID that is the name of the file without the ".cfc" extension.
 
 For example, given the directory structure below, *four* objects will be registered with the IDs *blog*, *blogAuthor*, *event*, *eventCategory*:
 
@@ -72,7 +72,7 @@ For example, given the directory structure below, *four* objects will be registe
 
 For extensions, the system will search for CFC files in a `/preside-objects` folder at the root of your extension.
 
-Core system Preside Objects can be found at `/preside/system/preside-objects`. 
+Core system Preside Objects can be found at `/preside/system/preside-objects`.
 
 ## Properties
 
@@ -172,7 +172,7 @@ component {
 
 #### The Label field
 
-The **label** field is used by the system for building automatic GUI selectors that allow users to choose your object records. 
+The **label** field is used by the system for building automatic GUI selectors that allow users to choose your object records.
 
 ![Screenshot showing a record picker for a "Blog author" object](images/screenshots/object_picker_example.png)
 
@@ -186,7 +186,7 @@ If you wish to use a different property to represent a record, you can use the `
  */
 component {
     property name="title" type="string" dbtype="varchar" maxlength="100" required=true;
-    // etc. 
+    // etc.
 }
 ```
 
@@ -220,7 +220,7 @@ component {
 
 #### Dynamic defaults
 
-Default values can also be generated dynamically at runtime. Currently, this comes in two flavours: 
+Default values can also be generated dynamically at runtime. Currently, this comes in two flavours:
 
 1. Supplying raw CFML to be evaluated at runtime
 2. Supplying the name of a method defined in your object that will be called at runtime, this method will be passed a 'data' argument that is a structure containing the data to be inserted
@@ -261,7 +261,7 @@ component {
 
     // ...
 
-    // The method will receive a single argument that is the struct 
+    // The method will receive a single argument that is the struct
     // of data passed to the insertData() or updateData() methods
     public any function hashDescription( required struct changedData ) {
         if ( changedData.keyExists( "description" ) ) {
@@ -322,7 +322,7 @@ component {
     property name="last_name"  ...;
 
     property name="full_name" formula="Concat( ${prefix}first_name, ' ', ${prefix}last_name )";
-    // ... 
+    // ...
 }
 ```
 Now, let us imagine we have a company object, with an "employees" `one-to-many` property that relates to our `person` object above. We may want to select employees from a company:
@@ -407,7 +407,7 @@ component {
 // event.cfc
 component {
     property name="eventCategory" relationship="many-to-one" required=true;
-}    
+}
 ```
 
 #### Many to Many relationships
@@ -433,10 +433,10 @@ create table `pobj_event__join__eventcategory` (
       `event`         varchar(35) not null
     , `eventcategory` varchar(35) not null
 
-    -- plus we always add a sort_order column, should you care about 
+    -- plus we always add a sort_order column, should you care about
     -- the order in which records are related
     , `sort_order`    int(11)     default null
-    
+
     -- unique index on the event and eventCategory fields
     , unique key `ux_event__join__eventcategory` (`event`,`eventcategory`)
 
@@ -455,9 +455,9 @@ You can excert a little more control over your many-to-many relationships by mak
 ```luceescript
 // event.cfc
 component {
-    property name                 = "eventCategory" 
-             relationship         = "many-to-many" 
-             relatedTo            = "eventCategory" 
+    property name                 = "eventCategory"
+             relationship         = "many-to-many"
+             relatedTo            = "eventCategory"
              relationshipIsSource = false              // the event object is regarded as the 'target' side of the relationship rather than the 'source' (default is 'source' when relationship defined in the object)
              relatedVia           = "event_categories" // create a new auto pivot object called "event_categories" rather than the default "event__join__eventCategory"
              relatedViaSourceFk   = "cat"              // name the foreign key field to the source object (eventCategory) to be just 'cat'
@@ -683,14 +683,14 @@ records = newsObject.selectData( filter={
 More complex filters can be achieved with a plain SQL filter combined with filter params to make use of parametized SQL statements:
 
 ```luceescript
-records = newsObject.selectData( 
+records = newsObject.selectData(
       filter       = "category != :category and DateDiff( publishdate, :publishdate ) > :daysold and category$tag.label = :category$tag.label"
     , filterParams = {
            category             = chosenCategory
          , publishdate          = publishDateFilter
          , "category$tag.label" = "red"
          , daysOld              = { type="integer", value=3 }
-      } 
+      }
 );
 ```
 
@@ -698,7 +698,7 @@ records = newsObject.selectData(
 
 #### Making use of relationships
 
-As seen in the examples above, you can use a special field syntax to reference properties in objects that are related to the object that you are selecting data from / updating data on. When you do this, the service layer will automatically create the necessary SQL joins for you. 
+As seen in the examples above, you can use a special field syntax to reference properties in objects that are related to the object that you are selecting data from / updating data on. When you do this, the service layer will automatically create the necessary SQL joins for you.
 
 The syntax takes the form: `(relatedObjectReference).(propertyName)`. The related object reference can either be the name of the related object, or a `$` delimited path of property names that navigate through the relationships (see examples below).
 
@@ -748,7 +748,7 @@ presideObjectService.updateData(
 presideObjectService.deleteData(
       objectName = "news"
     , data       = { archived = true }
-    , filter     = { "news_category.label" = "red" } 
+    , filter     = { "news_category.label" = "red" }
 );
 
 // select title and category tag from all news objects, order by the category tag
@@ -763,7 +763,7 @@ presideObjectService.selectData(
       objectName   = "category"
     , selectFields = [ "category.label", "Count( news_items.id ) as news_item_count" ]
     , orderBy      = "news_item_count desc"
-);    
+);
 ```
 
 >>>> While the auto join syntax can be really useful, it is limited to cases where there is only a single relationship path between the two objects. If there are multiple ways in which you could join the two objects, the system can have no way of knowing which path it should take and will throw an error.
@@ -863,7 +863,7 @@ By default, when the data actually changes in your object, a new version will be
 An example scenario for this might be an object whose data is synced with an external source on a schedule. You may add a helper property to record the last sync check date, if no other fields have changed, you probably don't want a new version record being created just for that sync check date. In this case, you could do:
 
 ```luceescript
-property name="_last_sync_check" type="date" dbtype="datetime" ignoreChangesForVersioning=true; 
+property name="_last_sync_check" type="date" dbtype="datetime" ignoreChangesForVersioning=true;
 ```
 
 ## Organising data by sites

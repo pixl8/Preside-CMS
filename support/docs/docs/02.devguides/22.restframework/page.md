@@ -1,6 +1,6 @@
 ---
 id: restframework
-title: REST Framework
+title: REST framework
 ---
 
 >>>> As of v10.4.0, the REST framework should be considered BETA. We expect details may change in upcoming releases, though we do not expect those changes to be dramatic or breaking.
@@ -9,7 +9,7 @@ title: REST Framework
 
 PresideCMS provides a framework for developing REST APIs that work inline and seamlessly with the rest of the ecosystem. It has taken inspiration from the [Taffy REST Framework](http://taffy.io/) by Adam Tuttle, and follows several of its patterns.
 
-The current version of the framework provides you with the conventions, services and routing layer to help you easily author your own REST APIs; further tooling such as documentation generation and user management are planned for future releases. 
+The current version of the framework provides you with the conventions, services and routing layer to help you easily author your own REST APIs; further tooling such as documentation generation and user management are planned for future releases.
 
 >>> The documentation here will not attempt to teach the ins and outs of RESTful APIs; rather document how PresideCMS implements RESTful concepts. We can highly recommend Adam Tuttle's book, [REST Assured](http://restassuredbook.com/) as a primer and go-to resource for authoring REST APIs.
 
@@ -36,7 +36,7 @@ Resource CFCs are simple ColdBox handlers with some additional annotations to de
  *
  */
 component {
-	
+
 	property name="pageDao" inject="presidecms:object:page";
 
 	private void function get( required string variable, required string variable2 ) {
@@ -96,7 +96,7 @@ By providing methods on your resource CFC that match the names of HTTP Methods, 
  *
  */
 component {
-	
+
 	property name="blogCategoryDao" inject="presidecms:object:blog_category";
 
 	private void function delete( required string id ) {
@@ -117,7 +117,7 @@ If you prefer, or need, to use different method names, you can map HTTP methods 
  *
  */
 component {
-	
+
 	property name="blogCategoryDao" inject="presidecms:object:blog_category";
 
 	/**
@@ -134,7 +134,7 @@ component {
 
 ## Accepting arguments
 
-Because your REST API resources are defined as ColdBox handlers, your handler actions will always receive the usual `event`, `rc` and `prc` arguments. 
+Because your REST API resources are defined as ColdBox handlers, your handler actions will always receive the usual `event`, `rc` and `prc` arguments.
 
 ### REST Request and Response objects
 
@@ -150,10 +150,10 @@ See the reference docs for [[api-presiderestrequest]] and [[api-presiderestrespo
  */
 component {
 	private void function get() {
-		restResponse.setError( 
+		restResponse.setError(
 			  errorCode = 501
 			, title     = "Not implemented"
-			, message   = "The /events/ GET api has not yet been implemented." 
+			, message   = "The /events/ GET api has not yet been implemented."
 		);
 	}
 }
@@ -171,8 +171,8 @@ If your resource defines a URI mapping that includes tokens, these will also be 
  *
  */
 component {
-	
-	// here, the 'id' argument is automatically 
+
+	// here, the 'id' argument is automatically
 	// passed to the action when it is present
 	// in the rest URI
 	private void function get( string id="" ) {
@@ -193,7 +193,7 @@ For example:
  *
  */
 component {
-	
+
 	private void function get(
 		  string  id       = ""
 		, numeric page     = 1

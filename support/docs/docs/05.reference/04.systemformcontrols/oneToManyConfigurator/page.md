@@ -68,7 +68,7 @@ First, let's set up our configurator Preside object:
  * @nolabel
  * @oneToManyConfigurator
  * @labelRenderer           event_ticket_session_category
- * @configuratorFormName    event_ticket_session_category.configurator
+ * @configuratorFormName    preside-objects.event_ticket_session_category.configurator
  */
 component  {
 	property name="event_ticket"           relationship="many-to-one" relatedTo="event_ticket"           required=true;
@@ -103,7 +103,7 @@ By specifying `fields="eventId"`, we are saying we want the `eventId` value from
 <!-- /forms/preside-objects/event_ticket/admin.edit.xml -->
 <!-- /forms/preside-objects/event_ticket/admin.add.xml -->
 <!-- ... -->
-<field binding="ems_ticket.session_categories" sortorder="30" control="oneToManyConfigurator" fields="eventId" />
+<field binding="event_ticket.session_categories" sortorder="30" control="oneToManyConfigurator" fields="eventId" />
 ```
 
 ![Screenshot of the empty configurator form control](images/screenshots/configurator1.png)
