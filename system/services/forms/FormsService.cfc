@@ -233,7 +233,8 @@ component displayName="Forms service" {
 	 *
 	 */
 	public struct function getDefaultFormForPresideObject( required string objectName ) {
-		var fields = _getPresideObjectService().getObjectProperties( objectName = arguments.objectName );
+		var fields     = _getPresideObjectService().getObjectProperties( objectName=arguments.objectName );
+		var fieldNames = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="propertyNames" );
 		var formLayout = {
 			tabs = [{
 				title       = "",
@@ -248,7 +249,7 @@ component displayName="Forms service" {
 			}]
 		};
 
-		for( var fieldName in fields ){
+		for( var fieldName in fieldNames ){
 			var field = fields[ fieldName ];
 			if ( ( field.control ?: "" ) != "none" ) {
 				ArrayAppend( formLayout.tabs[1].fieldsets[1].fields, field );
