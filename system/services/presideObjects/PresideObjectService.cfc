@@ -2369,10 +2369,16 @@ component displayName="Preside Object Service" {
 		var escapedAlias = dbAdapter.escapeEntity( arguments.tableAlias );
 
 		for( var i=1; i <= fieldArray.len(); i++ ){
-			convertedArray.append( escapedAlias & "." & dbAdapter.escapeEntity( fieldArray[i] ) );
+			var fieldName = escapedAlias & "." & dbAdapter.escapeEntity( fieldArray[i] );
+			if( !arrayFind( convertedArray, fieldName ) ){
+				convertedArray.append( fieldName );
+			}
 			var prop = getObjectProperty( tableAlias, fieldArray[i] );
 			for( var alias in ( prop.aliases ?: "" ).listToArray() ) {
-				convertedArray.append( escapedAlias & "." & dbAdapter.escapeEntity( fieldArray[i] ) & " as " & dbAdapter.escapeEntity( alias ) );
+				var aliasName = fieldName & " as " & dbAdapter.escapeEntity( alias );
+				if( !arrayFind( convertedArray, aliasName ) ){
+					convertedArray.append( aliasName );
+				}
 			}
 		}
 
