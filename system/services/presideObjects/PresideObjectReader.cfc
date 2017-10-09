@@ -170,8 +170,8 @@ component {
 		var propName     = "";
 		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
-		arguments.meta.properties    = arguments.meta.properties    ?: {};
-		arguments.meta.propertyNames = arguments.meta.propertyNames ?: [];
+		param name="arguments.meta.properties"    default=StructNew();
+		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
