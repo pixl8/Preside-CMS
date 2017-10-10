@@ -10,11 +10,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @defaultHandlerAction.inject coldbox:fwsetting:eventAction
+	 * @defaultHandlerAction.inject   coldbox:fwsetting:eventAction
+	 * @contentRendererService.inject contentRendererService
 	 *
 	 */
-	public any function init( required string defaultHandlerAction ) {
+	public any function init( required string defaultHandlerAction, required any contentRendererService ) {
 		_setDefaultHandlerAction( arguments.defaultHandlerAction );
+		_setContentRendererService( arguments.contentRendererService );
 		return this;
 	}
 
@@ -52,6 +54,11 @@ component {
 					  event   = viewlet
 					, args    = _parseArgs( argsString.trim() )
 					, delayed = false
+				);
+
+				renderedViewlet = _getContentRendererService().render(
+					  renderer = "richeditor"
+					, data     = renderedViewlet
 				);
 
 				processed = processed.replace( wholeMatch, renderedViewlet ?: "", "all" );
@@ -177,5 +184,12 @@ component {
 	}
 	private void function _setDefaultHandlerAction( required string defaultHandlerAction ) {
 		_defaultHandlerAction = arguments.defaultHandlerAction;
+	}
+
+	private any function _getContentRendererService() {
+		return _contentRendererService;
+	}
+	private void function _setContentRendererService( required any contentRendererService ) {
+		_contentRendererService = arguments.contentRendererService;
 	}
 }

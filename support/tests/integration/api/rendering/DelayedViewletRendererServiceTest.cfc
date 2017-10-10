@@ -23,10 +23,10 @@ cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in #dvs[2]# culpa qui officia deserunt mollit anim id est laborum.";
 				var expected = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
 tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-#replacements[ dvs[1] ]# exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit in #replacements[ dvs[1] ]# voluptate velit esse
+#replacements[ dvs[1] ]#==RICHRENDERED exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in #replacements[ dvs[1] ]#==RICHRENDERED voluptate velit esse
 cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt mollit anim id est laborum.";
+proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culpa qui officia deserunt mollit anim id est laborum.";
 
 				mockColdbox.$( "renderViewlet" ).$args(
 					  event   = "test.viewlet"
@@ -43,6 +43,10 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 					, args    = {}
 					, delayed = false
 				).$results( replacements[ dvs[3] ] );
+
+				for( var replacementKey in replacements ) {
+					mockContentRenderer.$( "render" ).$args( renderer="richeditor", data=replacements[ replacementKey ] ).$results( replacements[ replacementKey ] & "==RICHRENDERED" );
+				}
 
 
 				expect( service.renderDelayedViewlets( content ) ).toBe( expected );
@@ -129,10 +133,12 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 	}
 
 	private function _getService(){
-		variables.mockColdbox = CreateStub();
+		variables.mockColdbox         = CreateStub();
+		variables.mockContentRenderer = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
 
 		var service = CreateMock( object=new preside.system.services.rendering.DelayedViewletRendererService(
-			defaultHandlerAction = "index"
+			  defaultHandlerAction = "index"
+			, contentRendererService = mockContentRenderer
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
