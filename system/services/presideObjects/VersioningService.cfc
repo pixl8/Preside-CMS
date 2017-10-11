@@ -554,30 +554,32 @@ component {
 
 	private void function _addAdditionalVersioningPropertiesToSourceObject( required struct objMeta, required string objectName ) {
 		objMeta.properties[ "_version_is_draft" ] = {
-			  name         = "_version_is_draft"
-			, required     = false
-			, type         = "boolean"
-			, dbtype       = "boolean"
-			, indexes      = ""
-			, control      = "none"
-			, maxLength    = 0
-			, relationship = "none"
-			, relatedto    = "none"
-			, generator    = "none"
-			, default      = false
+			  name          = "_version_is_draft"
+			, required      = false
+			, type          = "boolean"
+			, dbtype        = "boolean"
+			, indexes       = ""
+			, control       = "none"
+			, maxLength     = 0
+			, relationship  = "none"
+			, relatedto     = "none"
+			, generator     = "none"
+			, default       = false
+			, adminRenderer = "none"
 		};
 		objMeta.properties[ "_version_has_drafts" ] = {
-			  name         = "_version_has_drafts"
-			, required     = false
-			, type         = "boolean"
-			, dbtype       = "boolean"
-			, indexes      = ""
-			, control      = "none"
-			, maxLength    = 0
-			, relationship = "none"
-			, relatedto    = "none"
-			, generator    = "none"
-			, default      = false
+			  name          = "_version_has_drafts"
+			, required      = false
+			, type          = "boolean"
+			, dbtype        = "boolean"
+			, indexes       = ""
+			, control       = "none"
+			, maxLength     = 0
+			, relationship  = "none"
+			, relatedto     = "none"
+			, generator     = "none"
+			, default       = false
+			, adminRenderer = "none"
 		};
 
 		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_is_draft,_version_has_drafts" );
