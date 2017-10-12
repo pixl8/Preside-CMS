@@ -432,7 +432,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertFalse( userService.resetPassword( testToken, "somePassword" ) );
 	}
 
-	function test23_resetPassword_shouldSetEncryptedPasswordAndClearTokens_whenTokenRecordFount() output=false {
+	function test23_resetPassword_shouldSetEncryptedPasswordAndClearTokens_whenTokenRecordFound() output=false {
 		var userService       = _getUserService();
 		var testToken         = "xxxxxx-yyyyyy";
 		var testRecord        = QueryNew( 'id', 'varchar', [[CreateUUId()]] );
