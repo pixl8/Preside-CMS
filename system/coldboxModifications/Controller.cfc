@@ -83,8 +83,10 @@ component extends="coldbox.system.web.Controller" {
 	) {
 		if ( arguments.delayed ) {
 			return _getDelayedViewletRendererService().renderDelayedViewletTag(
-				  event = arguments.event
-				, args  = arguments.args
+				  event         = arguments.event
+				, args          = arguments.args
+				, private       = arguments.private
+				, prepostExempt = arguments.prepostExempt
 			);
 		}
 
