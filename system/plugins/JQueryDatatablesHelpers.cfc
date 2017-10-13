@@ -47,7 +47,7 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		return maxRows;
 	}
 
-	public string function getSortOrder() output=false {
+	public string function getSortOrder( string defaultOrder="" ) output=false {
 		var event        = getRequestContext();
 		var nSortingCols = Val( event.getValue( name="iSortingCols", default="0" ) );
 		var i            = 0;
@@ -69,6 +69,9 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 				}
 
 			}
+		}
+		if ( !sortOrder.len() ) {
+			sortOrder = arguments.defaultOrder;
 		}
 
 		return sortOrder;

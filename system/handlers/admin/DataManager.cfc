@@ -1354,6 +1354,7 @@
 		<cfargument name="object"              type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="gridFields"          type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
 		<cfargument name="actionsView"         type="string"  required="false" default="" />
+		<cfargument name="orderBy"             type="string"  required="false" default="" />
 		<cfargument name="filter"              type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
@@ -1378,7 +1379,7 @@
 			getRecordsArgs.objectName    = arguments.object;
 			getRecordsArgs.startRow      = dtHelper.getStartRow();
 			getRecordsArgs.maxRows       = dtHelper.getMaxRows();
-			getRecordsArgs.orderBy       = dtHelper.getSortOrder();
+			getRecordsArgs.orderBy       = dtHelper.getSortOrder( arguments.orderBy );
 			getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
 
 			getRecordsArgs.delete( "event"           );
@@ -1494,6 +1495,7 @@
 		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
+		<cfargument name="orderBy"         type="string"  required="false" default="" />
 
 		<cfscript>
 			var versionObject       = presideObjectService.getVersionObjectName( object );
@@ -1506,7 +1508,7 @@
 				, property    = property
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = dtHelper.getSortOrder()
+				, orderBy     = dtHelper.getSortOrder( arguments.orderBy )
 				, searchQuery = dtHelper.getSearchQuery()
 			);
 			var records    = Duplicate( results.records );
@@ -1560,6 +1562,7 @@
 		<cfargument name="languageId"      type="string"  required="false" default="#( rc.language ?: '' )#" />
 		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
+		<cfargument name="orderBy"         type="string"  required="false" default="" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1581,7 +1584,7 @@
 				, property    = property
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = dtHelper.getSortOrder()
+				, orderBy     = dtHelper.getSortOrder( arguments.orderBy )
 				, searchQuery = dtHelper.getSearchQuery()
 				, filter      = { _translation_language = languageId }
 			);
