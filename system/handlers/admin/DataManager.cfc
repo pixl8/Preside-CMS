@@ -1379,7 +1379,7 @@
 			getRecordsArgs.objectName    = arguments.object;
 			getRecordsArgs.startRow      = dtHelper.getStartRow();
 			getRecordsArgs.maxRows       = dtHelper.getMaxRows();
-			getRecordsArgs.orderBy       = dtHelper.getSortOrder( arguments.orderBy );
+			getRecordsArgs.orderBy       = dtHelper.getSortOrder();
 			getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
 
 			getRecordsArgs.delete( "event"           );
@@ -1418,7 +1418,7 @@
 
 
 			if ( IsEmpty( getRecordsArgs.orderBy ) ) {
-				getRecordsArgs.orderBy = dataManagerService.getDefaultSortOrderForDataGrid( object );
+				getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
 			}
 
 			var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
