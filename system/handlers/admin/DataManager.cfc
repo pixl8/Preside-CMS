@@ -1495,7 +1495,6 @@
 		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
-		<cfargument name="orderBy"         type="string"  required="false" default="" />
 
 		<cfscript>
 			var versionObject       = presideObjectService.getVersionObjectName( object );
@@ -1508,7 +1507,7 @@
 				, property    = property
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = dtHelper.getSortOrder( arguments.orderBy )
+				, orderBy     = dtHelper.getSortOrder()
 				, searchQuery = dtHelper.getSearchQuery()
 			);
 			var records    = Duplicate( results.records );
@@ -1562,7 +1561,6 @@
 		<cfargument name="languageId"      type="string"  required="false" default="#( rc.language ?: '' )#" />
 		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
-		<cfargument name="orderBy"         type="string"  required="false" default="" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1584,7 +1582,7 @@
 				, property    = property
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = dtHelper.getSortOrder( arguments.orderBy )
+				, orderBy     = dtHelper.getSortOrder()
 				, searchQuery = dtHelper.getSearchQuery()
 				, filter      = { _translation_language = languageId }
 			);
