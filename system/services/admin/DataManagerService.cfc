@@ -114,7 +114,8 @@ component {
 
 	public array function listBatchEditableFields( required string objectName ) {
 		var fields               = [];
-		var objectAttributes     = _getPresideObjectService().getObjectProperties( objectName );
+		var propertyNames        = _getPresideObjectService().getObjectAttribute( objectName=objectName, attributeName="propertyNames" );
+		var props                = _getPresideObjectService().getObjectProperties( objectName );
 		var dao                  = _getPresideObjectService().getObject( objectName );
 		var forbiddenFields      = [ dao.getIdField(), dao.getLabelField(), dao.getDateCreatedField(), dao.getDateModifiedField() ];
 		var isFieldBatchEditable = function( propertyName, attributes ) {
@@ -137,9 +138,9 @@ component {
 			return true;
 		}
 
-		for( var property in objectAttributes ) {
-			if ( isFieldBatchEditable( property, objectAttributes[ property ] ) ) {
-       		 	ArrayAppend( fields, property );
+		for( var propertyName in propertyNames ) {
+			if ( isFieldBatchEditable( propertyName, props[ propertyName ] ) ) {
+       		 	ArrayAppend( fields, propertyName );
 			}
 		}
 

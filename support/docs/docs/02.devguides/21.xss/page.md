@@ -1,6 +1,6 @@
 ---
 id: xss
-title: XSS Protection
+title: XSS protection
 ---
 
 PresideCMS comes with XSS protection out of the box using the AntiSamy project. This protection will automatically strip unwanted HTML from user input in order to prevent the possibility of successful cross site scripting attacks. See also [[csrf]].
@@ -15,7 +15,7 @@ public void function configure() {
     super.configure();
 
     // turn off antisamy (don't do this!)
-    settings.antiSamy.enabled = false;     
+    settings.antiSamy.enabled = false;
 
     // use the "tinymce" AntiSamy policy (default is preside as of 10.8.24, myspace before that)
     settings.antiSamy.policy  = "tinymce"; 

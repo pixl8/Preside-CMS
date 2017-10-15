@@ -10,11 +10,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @defaultHandlerAction.inject coldbox:fwsetting:eventAction
+	 * @defaultHandlerAction.inject   coldbox:fwsetting:eventAction
+	 * @contentRendererService.inject contentRendererService
 	 *
 	 */
-	public any function init( required string defaultHandlerAction ) {
+	public any function init( required string defaultHandlerAction, required any contentRendererService ) {
 		_setDefaultHandlerAction( arguments.defaultHandlerAction );
+		_setContentRendererService( arguments.contentRendererService );
 		return this;
 	}
 
@@ -29,13 +31,15 @@ component {
 	 */
 	public string function renderDelayedViewlets( required string content ) {
 		var encodedArgsRegex = "[a-zA-Z0-9%=,_\$\s\+\/]*"
-		var dvPattern        = "<!--dv:(.*?)\((#encodedArgsRegex#)\)-->";
+		var dvPattern        = "<!--dv:(.*?)\((#encodedArgsRegex#)\)\(private=(true|false),prePostExempt=(true|false)\)-->";
 		var processed        = arguments.content;
 		var cb               = $getColdbox();
 		var patternFound     = false;
 		var match            = "";
 		var wholeMatch       = "";
 		var viewlet          = "";
+		var privateViewlet   = "";
+		var prePostExempt    = "";
 		var argsString       = "";
 		var renderedViewlet  = "";
 
@@ -46,12 +50,22 @@ component {
 			if ( patternFound ) {
 				wholeMatch  = processed.mid( match.pos[ 1 ], match.len[ 1 ] );
 
-				viewlet     = processed.mid( match.pos[ 2 ], match.len[ 2 ] );
-				argsString  = processed.mid( match.pos[ 3 ], match.len[ 3 ] );
+				viewlet        = processed.mid( match.pos[ 2 ], match.len[ 2 ] );
+				argsString     = processed.mid( match.pos[ 3 ], match.len[ 3 ] );
+				privateViewlet = processed.mid( match.pos[ 4 ], match.len[ 4 ] );
+				prePostExempt  = processed.mid( match.pos[ 5 ], match.len[ 5 ] );
+
 				renderedViewlet = cb.renderViewlet(
-					  event   = viewlet
-					, args    = _parseArgs( argsString.trim() )
-					, delayed = false
+					  event         = viewlet
+					, args          = _parseArgs( argsString.trim() )
+					, delayed       = false
+					, private       = IsBoolean( privateViewlet ) && privateViewlet
+					, prePostExempt = IsBoolean( prePostExempt  ) && prePostExempt
+				);
+
+				renderedViewlet = _getContentRendererService().render(
+					  renderer = "richeditor"
+					, data     = renderedViewlet
 				);
 
 				processed = processed.replace( wholeMatch, renderedViewlet ?: "", "all" );
@@ -66,13 +80,17 @@ component {
 	 * Takes event name and args that would be passed to renderViewlet()
 	 * and returns the special tag that can be parsed later in the request
 	 *
-	 * @autodoc true
-	 * @event   The viewlet event name
-	 * @args    Struct of args to be passed to the viewlet
+	 * @autodoc       true
+	 * @event         The viewlet event name
+	 * @args          Struct of args to be passed to the viewlet
+	 * @private       Whether or not the viewlet action is a private method
+	 * @prePostExempt Whether or not the viewlet should skip pre/post event handlers and interception points
 	 */
 	public string function renderDelayedViewletTag(
-		  required string event
-		, required struct args
+		  required string  event
+		, required struct  args
+		,          boolean private       = true
+		,          boolean prePostExempt = true
 	) {
 		var tag = "<!--dv:#arguments.event#(";
 		var delim = "";
@@ -84,7 +102,7 @@ component {
 			delim = ",";
 		}
 
-		tag &= ")-->";
+		tag &= ")(private=#arguments.private#,prePostExempt=#arguments.prePostExempt#)-->";
 
 		return tag;
 	}
@@ -177,5 +195,12 @@ component {
 	}
 	private void function _setDefaultHandlerAction( required string defaultHandlerAction ) {
 		_defaultHandlerAction = arguments.defaultHandlerAction;
+	}
+
+	private any function _getContentRendererService() {
+		return _contentRendererService;
+	}
+	private void function _setContentRendererService( required any contentRendererService ) {
+		_contentRendererService = arguments.contentRendererService;
 	}
 }

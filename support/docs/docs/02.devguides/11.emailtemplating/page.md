@@ -1,6 +1,6 @@
 ---
 id: emailtemplatingv2
-title: Email Centre
+title: Email centre
 ---
 
 ## Overview
@@ -42,7 +42,7 @@ You may also have further custom recipient types and you may wish to modify the 
 
 ### Service providers
 
-Email service providers are mechanims for performing an email send. You may have a 'Mailgun API' service provider, for example (see our [Mailgun Extension](https://github.com/pixl8/preside-ext-mailgun)). 
+Email service providers are mechanims for performing an email send. You may have a 'Mailgun API' service provider, for example (see our [Mailgun Extension](https://github.com/pixl8/preside-ext-mailgun)).
 
 The core provides a default SMTP provider and you are free to create multiple different providers for different purposes. See [[emailServiceProviders]] for a full guide.
 

@@ -6,9 +6,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var service    = _getService();
 				var complexArg = { test="this" };
 				var dvs        = [
-					  "<!--dv:test.viewlet( arg1=#ToBase64( 'true' )#, arg2=#ToBase64( 'test' )#, arg3=#ToBase64( SerializeJson( complexArg ) )# )-->"
-					, "<!--dv:another.test.viewlet(arg3=#ToBase64( 'false' )#)-->"
-					, "<!--dv:nested.viewlet()-->"
+					  "<!--dv:test.viewlet( arg1=#ToBase64( 'true' )#, arg2=#ToBase64( 'test' )#, arg3=#ToBase64( SerializeJson( complexArg ) )# )(private=true,prePostExempt=false)-->"
+					, "<!--dv:another.test.viewlet(arg3=#ToBase64( 'false' )#)(private=true,prePostExempt=true)-->"
+					, "<!--dv:nested.viewlet()(private=false,prePostExempt=false)-->"
 				];
 				var replacements = {
 					  "#dvs[1]#" = CreateUUId()
@@ -23,26 +23,36 @@ cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in #dvs[2]# culpa qui officia deserunt mollit anim id est laborum.";
 				var expected = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
 tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-#replacements[ dvs[1] ]# exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit in #replacements[ dvs[1] ]# voluptate velit esse
+#replacements[ dvs[1] ]#==RICHRENDERED exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in #replacements[ dvs[1] ]#==RICHRENDERED voluptate velit esse
 cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt mollit anim id est laborum.";
+proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culpa qui officia deserunt mollit anim id est laborum.";
 
 				mockColdbox.$( "renderViewlet" ).$args(
-					  event   = "test.viewlet"
-					, args    = { arg1=true, arg2='test', arg3=complexArg }
-					, delayed = false
+					  event         = "test.viewlet"
+					, args          = { arg1=true, arg2='test', arg3=complexArg }
+					, private       = true
+					, prepostExempt = false
+					, delayed       = false
 				).$results( replacements[ dvs[1] ] );
 				mockColdbox.$( "renderViewlet" ).$args(
-					  event   = "another.test.viewlet"
-					, args    = { arg3=false }
-					, delayed = false
+					  event         = "another.test.viewlet"
+					, args          = { arg3=false }
+					, private       = true
+					, prepostExempt = true
+					, delayed       = false
 				).$results( replacements[ dvs[2] ] );
 				mockColdbox.$( "renderViewlet" ).$args(
-					  event   = "nested.viewlet"
-					, args    = {}
-					, delayed = false
+					  event         = "nested.viewlet"
+					, args          = {}
+					, private       = false
+					, prepostExempt = false
+					, delayed       = false
 				).$results( replacements[ dvs[3] ] );
+
+				for( var replacementKey in replacements ) {
+					mockContentRenderer.$( "render" ).$args( renderer="richeditor", data=replacements[ replacementKey ] ).$results( replacements[ replacementKey ] & "==RICHRENDERED" );
+				}
 
 
 				expect( service.renderDelayedViewlets( content ) ).toBe( expected );
@@ -61,11 +71,13 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 				args.aNumber     = 345
 				args.aComplexOne = { fubar=true, test={ stuff=CreateUUId() } }
 
-				expected = "<!--dv:#event#(aBool=#ToBase64( 'true' )#,aString=#ToBase64( 'test' )#,aNumber=#ToBase64( '345' )#,aComplexOne=#ToBase64( SerializeJson( args.aComplexOne ) )#)-->";
+				expected = "<!--dv:#event#(aBool=#ToBase64( 'true' )#,aString=#ToBase64( 'test' )#,aNumber=#ToBase64( '345' )#,aComplexOne=#ToBase64( SerializeJson( args.aComplexOne ) )#)(private=true,prepostexempt=false)-->";
 
 				expect( service.renderDelayedViewletTag(
-					  event = event
-					, args  = args
+					  event         = event
+					, args          = args
+					, private       = true
+					, prepostExempt = false
 				) ).toBe( expected );
 			} );
 		} );
@@ -129,10 +141,12 @@ proident, sunt in Test #replacements[ dvs[3] ]# culpa qui officia deserunt molli
 	}
 
 	private function _getService(){
-		variables.mockColdbox = CreateStub();
+		variables.mockColdbox         = CreateStub();
+		variables.mockContentRenderer = CreateEmptyMock( "preside.system.services.rendering.ContentRendererService" );
 
 		var service = CreateMock( object=new preside.system.services.rendering.DelayedViewletRendererService(
-			defaultHandlerAction = "index"
+			  defaultHandlerAction = "index"
+			, contentRendererService = mockContentRenderer
 		) );
 
 		service.$( "$getColdbox", mockColdbox );

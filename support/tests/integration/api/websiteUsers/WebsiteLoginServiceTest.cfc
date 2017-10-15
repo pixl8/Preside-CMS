@@ -387,7 +387,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() );
 	}
 
-	function test20_validateResetPasswordToken_shouldReturnFalseAndClearToken_whenRecordFoundAndNotExipiredByHashedKeyDoesNotMatch() output=false {
+	function test20_validateResetPasswordToken_shouldReturnFalseAndClearToken_whenRecordFoundAndNotExpiredByHashedKeyDoesNotMatch() output=false {
 		var userService = _getUserService();
 		var testToken   = "xxxxxx-yyyyyy";
 		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ) ]]);
@@ -408,7 +408,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() )
 	}
 
-	function test21_validateResetPasswordToken_shouldReturnTrue_whenRecordFoundAndNotExipiredAndHashedKeyMatches() output=false {
+	function test21_validateResetPasswordToken_shouldReturnTrue_whenRecordFoundAndNotExpiredAndHashedKeyMatches() output=false {
 		var userService = _getUserService();
 		var testToken   = "xxxxxx-yyyyyy";
 		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ) ]]);
@@ -432,7 +432,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertFalse( userService.resetPassword( testToken, "somePassword" ) );
 	}
 
-	function test23_resetPassword_shouldSetEncryptedPasswordAndClearTokens_whenTokenRecordFount() output=false {
+	function test23_resetPassword_shouldSetEncryptedPasswordAndClearTokens_whenTokenRecordFound() output=false {
 		var userService       = _getUserService();
 		var testToken         = "xxxxxx-yyyyyy";
 		var testRecord        = QueryNew( 'id', 'varchar', [[CreateUUId()]] );

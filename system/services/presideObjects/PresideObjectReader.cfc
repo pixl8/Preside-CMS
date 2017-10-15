@@ -170,20 +170,20 @@ component {
 		var propName     = "";
 		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
-		param name="arguments.meta.properties"    default=StructNew( "linked" );
+		param name="arguments.meta.properties"    default=StructNew();
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
-				if ( prop.name eq propName ) {
-					if ( not StructKeyExists( arguments.meta.properties, prop.name ) ) {
+				if ( prop.name == propName ) {
+					if ( !arguments.meta.properties.keyExists( prop.name ) ) {
 						arguments.meta.properties[ prop.name ] = {};
 					}
 
 					arguments.meta.properties[ prop.name ] = _readProperty( prop, arguments.meta.properties[ prop.name ] );
 
-					if ( not arguments.meta.propertyNames.find( prop.name ) ) {
-						ArrayAppend( arguments.meta.propertyNames, prop.name );
+					if ( !arguments.meta.propertyNames.find( prop.name ) ) {
+						arguments.meta.propertyNames.append( prop.name );
 					}
 				}
 			}

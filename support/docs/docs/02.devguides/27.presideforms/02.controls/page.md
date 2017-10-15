@@ -5,7 +5,7 @@ title: Preside form controls
 
 ## Preside form controls
 
-Form controls are named [[presideviewlets|viewlets]] that are used for rendering form fields with the [[presideforms|Preside forms system]]. All form controls are implemented as viewlets whose path follows the convention `formcontrols.{nameofcontrol}.{renderercontext}`.
+Form controls are named [[viewlets|viewlets]] that are used for rendering form fields with the [[presideforms|Preside forms system]]. All form controls are implemented as viewlets whose path follows the convention `formcontrols.{nameofcontrol}.{renderercontext}`.
 
 For a full reference list of core form controls, see [[systemformcontrols]].
 
@@ -66,7 +66,7 @@ component {
 
 	public string function index( event, rc, prc, args={} ) {
 		var derivatives = assetManagerService.listEditorDerivatives();
-		
+
 		if ( !derivatives.len() ) {
 		    return ""; // do not render the control at all if no derivatives
 		}

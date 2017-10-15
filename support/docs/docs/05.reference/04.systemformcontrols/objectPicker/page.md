@@ -20,7 +20,7 @@ The `objectPicker` control allows users to select one or multiple records from a
             </tr>
             <tr>
                 <th>objectFilters (optional)</th>
-                <td>String list of saved preside object filters. See [[presidedataobjects]]</td>
+                <td>String list of saved preside object filters. See [[dataobjects]]</td>
             </tr>
             <tr>
                 <th>prefetchUrl (optional)</th>
@@ -50,7 +50,7 @@ The `objectPicker` control allows users to select one or multiple records from a
                 <th>searchable (optional)</th>
                 <td>True (default) or false. Whether or not the search feature of the control is enabled.</td>
             </tr>
-            
+
             <tr>
                 <th>resultTemplate (optional)</th>
                 <td>A Mustache template for rendering items in the drop down list. The default is "{{text}}". This can be used in conjunction with a custom remote URL for providing a highly customized object picker.</td>
@@ -77,7 +77,7 @@ The `objectPicker` control allows users to select one or multiple records from a
             </tr>
         </tbody>
     </table>
-</div> 
+</div>
 
 ### Example
 
