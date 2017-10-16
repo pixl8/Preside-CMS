@@ -1354,6 +1354,7 @@
 		<cfargument name="object"              type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="gridFields"          type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
 		<cfargument name="actionsView"         type="string"  required="false" default="" />
+		<cfargument name="orderBy"             type="string"  required="false" default="" />
 		<cfargument name="filter"              type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
@@ -1417,7 +1418,7 @@
 
 
 			if ( IsEmpty( getRecordsArgs.orderBy ) ) {
-				getRecordsArgs.orderBy = dataManagerService.getDefaultSortOrderForDataGrid( object );
+				getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
 			}
 
 			var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
