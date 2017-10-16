@@ -434,7 +434,8 @@ component {
 			objMeta.properties[ idField ].generate = "never";
 		}
 
-		objMeta.properties[ "_version_number" ] = {
+		objMeta.properties[ "_version_number" ] = objMeta.properties[ "_version_number" ] ?: {};
+		objMeta.properties[ "_version_number" ].append( {
 			  name         = "_version_number"
 			, required     = true
 			, type         = "numeric"
@@ -445,9 +446,10 @@ component {
 			, relationship = "none"
 			, relatedto    = "none"
 			, generator    = "none"
-		};
+		} );
 
-		objMeta.properties[ "_version_author" ] = {
+		objMeta.properties[ "_version_author" ] = objMeta.properties[ "_version_author" ] ?: {};
+		objMeta.properties[ "_version_author" ].append( {
 			  name         = "_version_author"
 			, required     = false
 			, type         = "string"
@@ -459,9 +461,10 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, renderer     = "adminuser"
-		};
+		} );
 
-		objMeta.properties[ "_version_changed_fields" ] = {
+		objMeta.properties[ "_version_changed_fields" ] = objMeta.properties[ "_version_changed_fields" ] ?: {};
+		objMeta.properties[ "_version_changed_fields" ].append( {
 			  name         = "_version_changed_fields"
 			, required     = false
 			, type         = "string"
@@ -472,9 +475,10 @@ component {
 			, relationship = "none"
 			, relatedto    = "none"
 			, generator    = "none"
-		};
+		} );
 
-		objMeta.properties[ "_version_is_draft" ] = {
+		objMeta.properties[ "_version_is_draft" ] = objMeta.properties[ "_version_is_draft" ] ?: {};
+		objMeta.properties[ "_version_is_draft" ].append( {
 			  name         = "_version_is_draft"
 			, required     = false
 			, type         = "boolean"
@@ -486,9 +490,10 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
-		};
+		} );
 
-		objMeta.properties[ "_version_has_drafts" ] = {
+		objMeta.properties[ "_version_has_drafts" ] = objMeta.properties[ "_version_has_drafts" ] ?: {};
+		objMeta.properties[ "_version_has_drafts" ].append( {
 			  name         = "_version_has_drafts"
 			, required     = false
 			, type         = "boolean"
@@ -500,9 +505,10 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
-		};
+		} );
 
-		objMeta.properties[ "_version_is_latest" ] = {
+		objMeta.properties[ "_version_is_latest" ] = objMeta.properties[ "_version_is_latest" ] ?: {};
+		objMeta.properties[ "_version_is_latest" ].append( {
 			  name         = "_version_is_latest"
 			, required     = false
 			, type         = "boolean"
@@ -514,9 +520,10 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
-		};
+		} );
 
-		objMeta.properties[ "_version_is_latest_draft" ] = {
+		objMeta.properties[ "_version_is_latest_draft" ] = objMeta.properties[ "_version_is_latest_draft" ] ?: {};
+		objMeta.properties[ "_version_is_latest_draft" ].append( {
 			  name         = "_version_is_latest_draft"
 			, required     = false
 			, type         = "boolean"
@@ -528,9 +535,13 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
-		};
+		} );
 
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts,_version_is_latest,_version_is_latest_draft" );
+		for( var fieldName in [ "_version_number", "_version_author", "_version_changed_fields", "_version_is_draft", "_version_has_drafts", "_version_is_latest", "_version_is_latest_draft" ] ) {
+			if ( !objMeta.dbFieldList.listFindNoCase( fieldName ) ) {
+				objMeta.dbFieldList = objMeta.dbFieldList.listAppend( fieldName );
+			}
+		}
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for(indexKey in objMeta.indexes){
@@ -548,7 +559,8 @@ component {
 	}
 
 	private void function _addAdditionalVersioningPropertiesToSourceObject( required struct objMeta, required string objectName ) {
-		objMeta.properties[ "_version_is_draft" ] = {
+		objMeta.properties[ "_version_is_draft" ] = objMeta.properties[ "_version_is_draft" ] ?: {};
+		objMeta.properties[ "_version_is_draft" ].append( {
 			  name         = "_version_is_draft"
 			, required     = false
 			, type         = "boolean"
@@ -560,8 +572,9 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
-		};
-		objMeta.properties[ "_version_has_drafts" ] = {
+		} );
+		objMeta.properties[ "_version_has_drafts" ] = objMeta.properties[ "_version_has_drafts" ] ?: {};
+		objMeta.properties[ "_version_has_drafts" ].append( {
 			  name         = "_version_has_drafts"
 			, required     = false
 			, type         = "boolean"
@@ -573,9 +586,14 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
-		};
+		} );
 
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_is_draft,_version_has_drafts" );
+		for( var fieldName in [ "_version_is_draft", "_version_has_drafts" ] ) {
+			if ( !objMeta.dbFieldList.listFindNoCase( fieldName ) ) {
+				objMeta.dbFieldList = objMeta.dbFieldList.listAppend( fieldName );
+			}
+		}
+
 		objMeta.indexes[ "ix_#arguments.objectName#_is_draft" ] = { unique=false, fields="_version_is_draft" };
 		objMeta.indexes[ "ix_#arguments.objectName#_has_drafts" ] = { unique=false, fields="_version_has_drafts" };
 	}
