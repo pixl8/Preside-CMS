@@ -2082,10 +2082,10 @@ component displayName="Preside Object Service" {
 	private struct function _cleanupPropertyAliases() {
 		var aliasCache = _getAliasCache();
 		if ( aliasCache.isEmpty() ) {
-			return Duplicate( arguments );
+			return arguments;
 		}
 
-		var args        = Duplicate( arguments );
+		var args        = arguments;
 		var aliasRegex  = _getAlaisedAliasRegex();
 		var systemCache = _getCache();
 
