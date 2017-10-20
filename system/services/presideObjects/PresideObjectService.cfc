@@ -188,11 +188,6 @@ component displayName="Preside Object Service" {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
 		}
 
-		var objMeta = _getObject( args.objectName ).meta;
-		var adapter = _getAdapter( objMeta.dsn );
-
-		args.selectFields   = parseSelectFields( argumentCollection=args );
-
 		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
 		}
@@ -210,6 +205,10 @@ component displayName="Preside Object Service" {
 			}
 		}
 
+		var objMeta = _getObject( args.objectName ).meta;
+		var adapter = _getAdapter( objMeta.dsn );
+
+		args.selectFields   = parseSelectFields( argumentCollection=args );
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
 			, adapter            = adapter
