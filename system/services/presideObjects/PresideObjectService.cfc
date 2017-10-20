@@ -2087,6 +2087,7 @@ component displayName="Preside Object Service" {
 
 		var args        = Duplicate( arguments );
 		var aliasRegex  = _getAlaisedAliasRegex();
+		var systemCache = _getCache();
 
 		var findAndReplace = function( plainString ) {
 			if ( Len( aliasCache[ args.objectName ][ plainString ] ?: "" ) ) {
@@ -2096,6 +2097,12 @@ component displayName="Preside Object Service" {
 					, aliasProperty = plainString
 					, realProperty  = aliasCache[ args.objectName ][ plainString ]
 				} ];
+			}
+
+			var cacheKey = "_cleanupProperyAliasesFAndR#args.objectName##arguments.plainString#";
+			var cached   = systemCache.get( cacheKey );
+			if ( !IsNull( cached ) ) {
+				return cached;
 			}
 
 			var matches = _reSearch( aliasRegex, plainString );
@@ -2119,6 +2126,8 @@ component displayName="Preside Object Service" {
 				}
 			}
 
+			systemCache.set( cacheKey, results );
+
 			return results;
 		};
 		var structKeyReplacer = function( theStruct ){
@@ -2132,6 +2141,13 @@ component displayName="Preside Object Service" {
 			}
 		}
 		var simpleReplacer = function( plainString, addAsAlias=false ) {
+			var cacheKey = "_cleanupProperyAliasesReplacer#args.objectName##arguments.plainString##arguments.addAsAlias#";
+			var cached   = systemCache.get( cacheKey );
+
+			if( !IsNull( cached ) ) {
+				return cached;
+			}
+
 			var replaced    = plainString;
 			var fAndRResult = findAndReplace( plainString );
 
@@ -2141,6 +2157,8 @@ component displayName="Preside Object Service" {
 			if ( addAsAlias && fAndRResult.len() && !plainString.findNoCase( " as " ) ) {
 				replaced &= " as " & fAndRResult[1].aliasProperty;
 			}
+
+			systemCache.set( cacheKey, replaced );
 
 			return replaced;
 		}
