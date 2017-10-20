@@ -43,7 +43,7 @@ component {
 						, reapFrequency                  = 60
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 1
-						, maxObjects                     = 300
+						, maxObjects                     = 3000
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
