@@ -41,6 +41,7 @@ component displayName="Task Manager Service" {
 		_setLogger( arguments.logger );
 		_setErrorLogService( arguments.errorLogService );
 		_setSiteService( arguments.siteService );
+		_setMachineId();
 
 		_initialiseDb();
 
@@ -174,12 +175,16 @@ component displayName="Task Manager Service" {
 
 	public boolean function taskThreadIsRunning( required string taskKey ) {
 		var task = _getTaskDao().selectData(
-			  selectFields = [ "running_thread" ]
+			  selectFields = [ "running_thread", "running_machine" ]
 			, filter       = { task_key=arguments.taskKey }
 		);
 
 		if ( !task.recordCount || !Len( Trim( task.running_thread ) ) ) {
 			return false;
+		}
+
+		if ( task.running_machine != _getMachineId() ) {
+			return true;
 		}
 
 		var runningStatuses = [ "RUNNING", "NOT_STARTED" ];
@@ -349,8 +354,14 @@ component displayName="Task Manager Service" {
 
 	public numeric function markTaskAsRunning( required string taskKey, required string threadId ) {
 		return _getTaskDao().updateData(
-			  data   = { is_running=true, next_run=getNextRunDate( arguments.taskKey ), run_expires=getTaskRunExpiry( arguments.taskKey ), running_thread = arguments.threadId }
-			, filter = { task_key = arguments.taskKey }
+			  filter = { task_key = arguments.taskKey }
+			, data   = {
+				  is_running      = true
+				, next_run        = getNextRunDate( arguments.taskKey )
+				, run_expires     = getTaskRunExpiry( arguments.taskKey )
+				, running_thread  = arguments.threadId
+				, running_machine = _getMachineId()
+			  }
 		);
 	}
 
@@ -367,6 +378,7 @@ component displayName="Task Manager Service" {
 				, last_run_time_taken  = arguments.timeTaken
 				, run_expires          = ""
 				, running_thread       = ""
+				, running_machine      = ""
 			  }
 		);
 
@@ -379,6 +391,7 @@ component displayName="Task Manager Service" {
 		return _getTaskHistoryDao().insertData( data={
 			  task_key   = arguments.taskKey
 			, thread_id  = arguments.threadId
+			, machine_id = _getMachineId()
 		} );
 	}
 
@@ -786,6 +799,15 @@ component displayName="Task Manager Service" {
 	}
 	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
+	}
+
+	private string function _getMachineId() {
+		return _machineId;
+	}
+	private void function _setMachineId() {
+		var localHost = CreateObject("java", "java.net.InetAddress").getLocalHost();
+
+		_machineId = Left( localHost.getHostAddress() & "-" & localHost.getHostName(), 255 );
 	}
 
 }
