@@ -291,6 +291,8 @@ settings.assetmanager.derivatives.adminthumbnail = {
 };
 ```
 
+For more information on transformations, see [[transformations]].
+
 ## System folders
 
 System folders are pre-defined asset manager folders that will always exist in your asset manager folder structure. They cannot be deleted through the admin UI and can optionally be completely hidden from the UI. They are configured in `Config.cfc`, for example:
