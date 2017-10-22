@@ -1,6 +1,6 @@
 ---
 id: transformations
-title: Asset transformations
+title: Image asset transformations
 ---
 
 ## Introduction
