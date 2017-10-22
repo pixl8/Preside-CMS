@@ -291,7 +291,7 @@ settings.assetmanager.derivatives.adminthumbnail = {
 };
 ```
 
-For more information on transformations, see [[transformations]].
+For more information on image transformations, see [[transformations]].
 
 ## System folders
 
