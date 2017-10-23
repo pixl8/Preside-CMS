@@ -27,6 +27,7 @@ settings.assetmanager.derivatives.adminthumbnail = {
 };
 ```
 
+
 ## Available transformations
 
 There are three transformation methods built in to Preside:
@@ -34,6 +35,7 @@ There are three transformation methods built in to Preside:
 * shrinkToFit
 * resize
 * pdfPreview
+
 
 ### shrinkToFit
 
@@ -44,6 +46,7 @@ The following settings can be passed to the method in the **args** struct:
 * **width (required)**: Maximum width in pixels for the resulting image.
 * **height (required)**: Maximum height in pixels for the resulting image.
 * **quality (optional)**: The image quality to use when resizing the image. Available values are `highestQuality`, `highQuality`, `mediumQuality`, `highestPerformance`, `highPerformance` and `mediumPerformance`. Defaults to `highPerformance`.
+
 
 ### resize
 
