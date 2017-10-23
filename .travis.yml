@@ -32,6 +32,9 @@ notifications:
   slack:
     secure: GOg8gziksTpVHkAUPUlcMngYkz4Z1Ro9ou/dUzDS6yC2TTYX2lzfyhYonZElyT/01bnMB8liR+NUx7d+Q6ozt56OODLfKz/mpNsxWhaCFivcD+shN+TYhzKM8DTVRGFxZjTXhC7mxQiPLMl/CtcJtYhkTlYLvlx+V4DmD/TiPCQ=
 
+after_failure:
+  - cat support/build/artifacts/testresults/testresults_*.html
+
 deploy:
   provider: s3
   access_key_id: AKIAJ3PTU73IHOOZV3LQ
