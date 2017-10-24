@@ -1066,7 +1066,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function previewPage( event, rc, prc ) {
-		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ) ) );
+		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ), lookupDomain=true ) );
 	}
 
 <!--- private viewlets --->
