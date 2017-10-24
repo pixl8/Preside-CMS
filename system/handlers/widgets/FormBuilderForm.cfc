@@ -2,12 +2,17 @@ component {
 	property name="formbuilderService" inject="formbuilderService";
 
 	private function index( event, rc, prc, args={} ) {
+		var pageCachingEnabled = isFeatureEnabled( "fullPageCaching" );
+
 		event.include( assetId="/js/frontend/formbuilder/" );
+		if ( pageCachingEnabled ) {
+			event.include( "recaptcha-js" );
+		}
 
 		return renderViewlet(
 			  event   = "widgets.FormBuilderForm._renderForm"
 			, args    = args
-			, delayed = isFeatureEnabled( "fullPageCaching" )
+			, delayed = pageCachingEnabled
 		);
 	}
 
