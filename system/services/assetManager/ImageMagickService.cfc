@@ -17,12 +17,13 @@ component displayname="ImageMagick"  {
 
 	public binary function resize(
 		  required binary  asset
-		,          numeric width                = 0
-		,          numeric height               = 0
-		,          string  quality              = "highPerformance"
-		,          boolean maintainAspectRatio  = false
-		,          string  gravity              = 'center'
-		,          string  focalPoint           = ""
+		,          numeric width               = 0
+		,          numeric height              = 0
+		,          string  quality             = "highPerformance"
+		,          boolean maintainAspectRatio = false
+		,          string  gravity             = 'center'
+		,          string  focalPoint          = ""
+		,          struct  cropHintArea        = {}
 	) {
 
 		var imageBinary       = arguments.asset;
@@ -46,6 +47,7 @@ component displayname="ImageMagick"  {
 				, crop            = maintainAspectRatio
 				, gravity         = arguments.gravity
 				, focalPoint      = arguments.focalPoint
+				, cropHintArea    = arguments.cropHintArea
 				, imageInfo       = currentImageInfo
 			);
 
@@ -147,22 +149,30 @@ component displayname="ImageMagick"  {
 		, required string  qualityArgs
 		, required numeric width
 		, required numeric height
-		,          boolean expand     = false
-		,          boolean crop       = false
-		,          string  gravity    = 'center'
-		,          string  focalPoint = ""
-		,          struct  imageInfo  = {}
+		,          boolean expand       = false
+		,          boolean crop         = false
+		,          string  gravity      = 'center'
+		,          string  focalPoint   = ""
+		,          struct  cropHintArea = {}
+		,          struct  imageInfo    = {}
 	) {
 		var defaultSettings = "-coalesce -auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
-		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings# -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
+		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings#{preCrop} -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
 		var interlace       = $getPresideSetting( "asset-manager", "imagemagick_interlace" );
+		var extent          = " -extent #arguments.width#x#arguments.height#";
 		var offset          = "+0+0";
+		var preCrop         = "";
 
 		if ( arguments.expand ) {
 			if ( arguments.crop ) {
 				args &= "^";
 			}
-			if ( len( arguments.focalPoint ) && !imageInfo.isEmpty() ) {
+			if ( !arguments.cropHintArea.isEmpty() && !imageInfo.isEmpty() ) {
+				gravity = "NorthWest";
+				preCrop = " -extent #arguments.cropHintArea.width#x#arguments.cropHintArea.height#+#arguments.cropHintArea.x#+#arguments.cropHintArea.y#";
+				extent  = "";
+				offset  = ""
+			} else if ( len( arguments.focalPoint ) && !imageInfo.isEmpty() ) {
 				gravity = "NorthWest";
 				offset  = _calculateFocalPointOffset(
 					  originalWidth  = imageInfo.width
@@ -172,12 +182,12 @@ component displayname="ImageMagick"  {
 					, focalPoint     = arguments.focalPoint
 				);
 			}
-			args &= " -gravity #gravity# -extent #arguments.width#x#arguments.height##offset#";
+			args &= " -gravity #gravity##extent##offset#";
+			args = args.replace( "{preCrop}", preCrop );
 		}
 
 		interlace = ( IsBoolean( interlace ) && interlace ) ? "line" : "none";
 		args &= " -interlace #interlace#";
-
 		args &= " " & '"#arguments.destinationFile#"';
 
 		_exec( command="convert", args=args );
