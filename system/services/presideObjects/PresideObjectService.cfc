@@ -181,7 +181,7 @@ component displayName="Preside Object Service" {
 		,          boolean getSqlAndParamsOnly = false
 		,          boolean distinct            = false
 	) autodoc=true {
-		var args = _cleanupPropertyAliases( argumentCollection=arguments );
+		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
@@ -315,7 +315,7 @@ component displayName="Preside Object Service" {
 			return interceptorResult.returnValue ?: "";
 		}
 
-		var args               = _cleanupPropertyAliases( argumentCollection=arguments );
+		var args               = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 		var obj                = _getObject( args.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var dateCreatedField   = getDateCreatedField( args.objectName );
@@ -766,7 +766,7 @@ component displayName="Preside Object Service" {
 			return Val( interceptorResult.returnValue ?: 0 );
 		}
 
-		var args           = _cleanupPropertyAliases( argumentCollection=arguments );
+		var args           = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 		var obj            = _getObject( args.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
 		var sql            = "";
