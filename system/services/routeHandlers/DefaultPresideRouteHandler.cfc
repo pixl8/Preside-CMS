@@ -92,7 +92,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		var homepage = treeSvc.getSiteHomepage();
 		var page     = _getPageByIdOrPageType( arguments.buildArgs.page );
 		var link     = "";
-		var root     = event.getSiteUrl( siteId=page.site, fetchSite=( buildArgs.lookupDomain ?: false ) );
+		var root     = event.getSiteUrl( page.site );
 
 		if ( page.recordCount ) {
 			if ( page.id eq homepage.id ) {

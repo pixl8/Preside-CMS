@@ -36,11 +36,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return {};
 	}
 
-	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true, fetchSite=false ) output=false {
-		var fetchSite = arguments.fetchSite || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
+	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true ) output=false {
+		var prc       = getRequestContext().getCollection( private=true );
+		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
 
+		prc.delete( "_forceDomainLookup" );
+		
 		if ( cgi.server_port != 80 ) {
 			siteUrl &= ":#cgi.server_port#";
 		}
