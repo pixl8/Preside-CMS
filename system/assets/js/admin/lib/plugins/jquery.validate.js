@@ -592,12 +592,18 @@ $.extend( $.validator, {
 		focusInvalid: function() {
 			if ( this.settings.focusInvalid ) {
 				try {
-					$( this.findLastActive() || this.errorList.length && this.errorList[ 0 ].element || [] )
-					.filter( ":visible" )
-					.focus()
+					var fieldToFocus = $( this.findLastActive() || this.errorList.length && this.errorList[ 0 ].element || [] );
 
-					// Manually trigger focusin event; without it, focusin handler isn't called, findLastActive won't have anything to find
-					.trigger( "focusin" );
+					if ( fieldToFocus.hasClass( "chosen-hidden-field" ) ) {
+						var offsetTop     = fieldToFocus.closest( ".object-picker" ).offset().top;
+						var scrollTargetY = offsetTop - ( window.innerHeight/2 );
+						window.scrollTo( 0, scrollTargetY );
+					} else {
+						fieldToFocus.filter( ":visible" ).focus()
+
+						// Manually trigger focusin event; without it, focusin handler isn't called, findLastActive won't have anything to find
+						.trigger( "focusin" );
+					}
 				} catch ( e ) {
 
 					// Ignore IE throwing errors when focusing hidden elements
