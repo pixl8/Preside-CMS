@@ -16,6 +16,6 @@ component {
 	}
 
 	private array function responseForExport( event, rc, prc, args={} ) {
-		return [ args.response ?: "" ];
+		return [ renderContent( renderer="plaintext", data=( args.response ?: "" ) ) ];
 	}
 }
