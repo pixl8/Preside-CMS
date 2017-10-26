@@ -1641,6 +1641,7 @@
 		<cfargument name="successUrl"              type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
 		<cfargument name="redirectOnSuccess"       type="boolean" required="false" default="true" />
 		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="mergeWithFormName"       type="string"  required="false" default="" />
 		<cfargument name="audit"                   type="boolean" required="false" default="false" />
 		<cfargument name="auditAction"             type="string"  required="false" default="" />
 		<cfargument name="auditType"               type="string"  required="false" default="datamanager" />
@@ -1653,6 +1654,7 @@
 		<cfargument name="permissionContextKeys"   type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
+			arguments.formName = Len( Trim( arguments.mergeWithFormName ) ) ? formsService.getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
 			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
