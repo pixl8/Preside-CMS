@@ -290,16 +290,6 @@ component {
 				return "system";
 			}
 
-			var relationship = poService.getObjectPropertyAttribute(
-				  objectName    = args.objectName
-				, propertyName  = args.propertyName
-				, attributeName = "relationship"
-			);
-
-			if ( ( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) ) {
-				return "";
-			}
-
 			return "default";
 		} );
 	}

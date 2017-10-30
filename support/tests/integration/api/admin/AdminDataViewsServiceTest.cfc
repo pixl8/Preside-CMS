@@ -281,31 +281,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getDefaultViewGroupForProperty( objectName, "__datemodified" ) ).toBe( "system" );
 			} );
 
-			it( "should return empty string if property is a many-to-many or one-to-many field", function(){
-				var service    = _getService();
-				var objectName = "testObject" & CreateUUId();
-				var m2mField   = "m2m"        & CreateUUId();
-				var one2mField = "one2m"      & CreateUUId();
-
-				mockPoService.$( "getIdField"           ).$args( objectName ).$results( "id"           );
-				mockPoService.$( "getDateCreatedField"  ).$args( objectName ).$results( "datecreated"  );
-				mockPoService.$( "getDateModifiedField" ).$args( objectName ).$results( "datemodified" );
-
-				mockPoService.$( "getObjectPropertyAttribute" ).$args(
-					  objectName    = objectName
-					, propertyName  = m2mField
-					, attributeName = "relationship"
-				).$results( "many-to-many" );
-				mockPoService.$( "getObjectPropertyAttribute" ).$args(
-					  objectName    = objectName
-					, propertyName  = one2mField
-					, attributeName = "relationship"
-				).$results( "one-to-many" );
-
-				expect( service.getDefaultViewGroupForProperty( objectName, m2mField   ) ).toBe( "" );
-				expect( service.getDefaultViewGroupForProperty( objectName, one2mField ) ).toBe( "" );
-			} );
-
 			it( "should return 'default' for all other fields", function(){
 				var service    = _getService();
 				var objectName = "testObject" & CreateUUId();
