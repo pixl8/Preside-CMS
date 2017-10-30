@@ -325,6 +325,34 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getViewGroupForProperty( objectName, propertyName ) ).toBe( defaultGroup );
 			} );
 		} );
+
+		describe( "getViewGroupDetail()", function(){
+			it( "should read view group details from the preside object properties file", function(){
+				var service     = _getService();
+				var objectName  = "testObject" & CreateUUId();
+				var groupName   = "testGroup"  & CreateUUId();
+				var rootUri     = "testuri"    & CreateUUId();
+				var groupDetail = {
+					  id          = groupName
+					, title       = "Test group"
+					, description = "Test group description"
+					, iconClass   = "fa-test-icon"
+					, sortorder   = 49
+				};
+
+				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
+
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.title"      , defaultValue=groupName ).$results( groupDetail.title       );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=""        ).$results( groupDetail.description );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=""        ).$results( groupDetail.iconClass   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue=""        ).$results( groupDetail.sortOrder   );
+
+				expect( service.getViewGroupDetail(
+					  objectName = objectName
+					, groupName  = groupName
+				) ).toBe( groupDetail );
+			} );
+		} );
 	}
 
 // HELPERS

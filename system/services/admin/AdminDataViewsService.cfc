@@ -294,6 +294,29 @@ component {
 		} );
 	}
 
+	/**
+	 * Returns details of a given 'view group' for an object
+	 *
+	 * @autodoc true
+	 * @objectName Name of the object that the view group belongs to
+	 * @groupName  Name of the view group whose detail you wish to get
+	 */
+
+	public struct function getViewGroupDetail(
+		  required string objectName
+		, required string groupName
+	) {
+		var uriRoot = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
+
+		return {
+			  id          = arguments.groupName
+			, title       = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.title"      , defaultValue=arguments.groupName )
+			, description = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.description", defaultValue=""                  )
+			, iconClass   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.iconClass"  , defaultValue=""                  )
+			, sortOrder   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.sortOrder"  , defaultValue=""                  )
+		};
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
