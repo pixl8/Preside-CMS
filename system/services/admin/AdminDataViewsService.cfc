@@ -239,6 +239,45 @@ component {
 		} );
 	}
 
+	/**
+	 * Returns the default view group for a property
+	 *
+	 * @autodoc      true
+	 * @objectName   Name of the object to which the property belongs
+	 * @propertyName Name of the property whose group you wish to get
+	 */
+	public string function getDefaultViewGroupForProperty(
+		  required string objectName
+		, required string propertyName
+	){
+		var args = arguments;
+
+		return _simpleLocalCache( "getDefaultViewGroupForProperty_#arguments.objectName#_#arguments.propertyName#", function(){
+			var poService   = $getPresideObjectService();
+			var systemProps = [
+				  poService.getIdField( args.objectName )
+				, poService.getDateCreatedField( args.objectName )
+				, poService.getDateModifiedField( args.objectName )
+			];
+
+			if ( systemProps.findNoCase( args.propertyName ) ) {
+				return "system";
+			}
+
+			var relationship = poService.getObjectPropertyAttribute(
+				  objectName    = args.objectName
+				, propertyName  = args.propertyName
+				, attributeName = "relationship"
+			);
+
+			if ( ( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) ) {
+				return "";
+			}
+
+			return "default";
+		} );
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
