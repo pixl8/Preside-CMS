@@ -240,6 +240,32 @@ component {
 	}
 
 	/**
+	 * Returns the view group for a property. View group will be used
+	 * in the default rendering of an admin view for an object record
+	 *
+	 * @autodoc      true
+	 * @objectName   Name of the object to which the property belongs
+	 * @propertyName Name of the property whose group you wish to get
+	 */
+	public string function getViewGroupForProperty(
+		  required string objectName
+		, required string propertyName
+	){
+		var args = arguments;
+
+		return _simpleLocalCache( "getViewGroupForProperty_#arguments.objectName#_#arguments.propertyName#", function(){
+			var poService     = $getPresideObjectService();
+			var definedAttrib = poService.getObjectPropertyAttribute(
+				  objectName    = args.objectName
+				, propertyName  = args.propertyName
+				, attributeName = "adminViewGroup"
+			);
+
+			return definedAttrib.len() ? definedAttrib : getDefaultViewGroupForProperty( argumentCollection=args );
+		} );
+	}
+
+	/**
 	 * Returns the default view group for a property
 	 *
 	 * @autodoc      true

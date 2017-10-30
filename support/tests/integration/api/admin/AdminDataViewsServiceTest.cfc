@@ -318,6 +318,38 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getDefaultViewGroupForProperty( objectName, "somefield" ) ).toBe( "default" );
 			} );
 		} );
+
+		describe( "getViewGroupForProperty()", function(){
+			it( "should return the group defined on the property using the 'adminViewGroup' attribute", function(){
+				var service      = _getService();
+				var objectName   = "testobjectName"   & CreateUUId();
+				var propertyName = "testpropertyName" & CreateUUId();
+				var groupName    = "testdefaultGroup" & CreateUUId();
+
+				mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName   = objectName
+					, propertyName = propertyName
+					, attributeName = "adminViewGroup"
+				).$results( groupName );
+
+				expect( service.getViewGroupForProperty( objectName, propertyName ) ).toBe( groupName );
+			} );
+
+			it( "should return default group if property does not define its own", function(){
+				var service      = _getService();
+				var objectName   = "testobjectName"   & CreateUUId();
+				var propertyName = "testpropertyName" & CreateUUId();
+				var defaultGroup = "testdefaultGroup" & CreateUUId();
+
+				mockPoService.$( "getObjectPropertyAttribute", "" );
+				service.$( "getDefaultViewGroupForProperty" ).$args(
+					  objectName   = objectName
+					, propertyName = propertyName
+				).$results( defaultGroup );
+
+				expect( service.getViewGroupForProperty( objectName, propertyName ) ).toBe( defaultGroup );
+			} );
+		} );
 	}
 
 // HELPERS
