@@ -307,13 +307,34 @@ component {
 		, required string groupName
 	) {
 		var uriRoot = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
+		var defaults = {
+			  title       = arguments.groupName
+			, description = ""
+			, iconClass   = ""
+			, sortOrder   = 1000
+		};
+
+		switch( arguments.groupName ) {
+			case "default":
+				defaults.title       = $translateResource( uri=uriRoot & "title.singular", defaultValue=arguments.objectName );
+				defaults.description = $translateResource( uri=uriRoot & "description"   , defaultValue=""                   );
+				defaults.iconClass   = $translateResource( uri=uriRoot & "iconClass"     , defaultValue=""                   );
+				defaults.sortOrder   = 1;
+			break;
+			case "system":
+				defaults.title       = $translateResource( uri="cms:admin.view.system.group.title"      , defaultValue=arguments.groupName  );
+				defaults.description = $translateResource( uri="cms:admin.view.system.group.description", defaultValue=""                   );
+				defaults.iconClass   = $translateResource( uri="cms:admin.view.system.group.iconclass"  , defaultValue=""                   );
+				defaults.sortOrder   = 2;
+			break;
+		}
 
 		return {
 			  id          = arguments.groupName
-			, title       = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.title"      , defaultValue=arguments.groupName )
-			, description = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.description", defaultValue=""                  )
-			, iconClass   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.iconClass"  , defaultValue=""                  )
-			, sortOrder   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.sortOrder"  , defaultValue=""                  )
+			, title       = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.title"      , defaultValue=defaults.title       )
+			, description = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.description", defaultValue=defaults.description )
+			, iconClass   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.iconClass"  , defaultValue=defaults.iconClass   )
+			, sortOrder   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.sortOrder"  , defaultValue=defaults.sortOrder   )
 		};
 	}
 

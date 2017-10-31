@@ -345,7 +345,73 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.title"      , defaultValue=groupName ).$results( groupDetail.title       );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=""        ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=""        ).$results( groupDetail.iconClass   );
-				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue=""        ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue=1000      ).$results( groupDetail.sortOrder   );
+
+				expect( service.getViewGroupDetail(
+					  objectName = objectName
+					, groupName  = groupName
+				) ).toBe( groupDetail );
+			} );
+
+			it( "should use special defaults when the group is 'default'", function(){
+				var service     = _getService();
+				var groupName   = "default";
+				var objectName  = "testObject"   & CreateUUId();
+				var objectDesc  = "yadda yadda"  & CreateUUId();
+				var objectIcon  = "fa-icon-"     & CreateUUId();
+				var objectTitle = "Test Object " & CreateUUId();
+				var rootUri     = "testuri"      & CreateUUId();
+				var groupDetail = {
+					  id          = groupName
+					, title       = "Test group"
+					, description = "Test group description"
+					, iconClass   = "fa-test-icon"
+					, sortorder   = 49
+				};
+
+				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
+
+				service.$( "$translateResource" ).$args( uri=rootUri & "title.singular", defaultValue=objectName ).$results( objectTitle );
+				service.$( "$translateResource" ).$args( uri=rootUri & "description"   , defaultValue=""         ).$results( objectDesc );
+				service.$( "$translateResource" ).$args( uri=rootUri & "iconClass"     , defaultValue=""         ).$results( objectIcon );
+
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.title"      , defaultValue=objectTitle ).$results( groupDetail.title       );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=objectDesc  ).$results( groupDetail.description );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=objectIcon  ).$results( groupDetail.iconClass   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="1"         ).$results( groupDetail.sortOrder   );
+
+				expect( service.getViewGroupDetail(
+					  objectName = objectName
+					, groupName  = groupName
+				) ).toBe( groupDetail );
+			} );
+
+			it( "should use special defaults when the group is 'system'", function(){
+				var service     = _getService();
+				var groupName   = "system";
+				var objectName  = "testObject"   & CreateUUId();
+				var objectDesc  = "yadda yadda"  & CreateUUId();
+				var objectIcon  = "fa-icon-"     & CreateUUId();
+				var objectTitle = "Test Object " & CreateUUId();
+				var rootUri     = "testuri"      & CreateUUId();
+				var groupDetail = {
+					  id          = groupName
+					, title       = "Test group"
+					, description = "Test group description"
+					, iconClass   = "fa-test-icon"
+					, sortorder   = 49
+				};
+
+				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
+
+				service.$( "$translateResource" ).$args( uri="cms:admin.view.system.group.title"      , defaultValue=groupName ).$results( objectTitle );
+				service.$( "$translateResource" ).$args( uri="cms:admin.view.system.group.description", defaultValue=""        ).$results( objectDesc );
+				service.$( "$translateResource" ).$args( uri="cms:admin.view.system.group.iconclass"  , defaultValue=""        ).$results( objectIcon );
+
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.title"      , defaultValue=objectTitle ).$results( groupDetail.title       );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=objectDesc  ).$results( groupDetail.description );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=objectIcon  ).$results( groupDetail.iconClass   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="2"         ).$results( groupDetail.sortOrder   );
 
 				expect( service.getViewGroupDetail(
 					  objectName = objectName
