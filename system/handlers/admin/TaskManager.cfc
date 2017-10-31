@@ -202,6 +202,7 @@ component extends="preside.system.base.AdminHandler" {
 		var log = taskHistoryDao.selectData(
 			  id           = rc.id ?: "---"
 			, selectFields = [ "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
+			, useCache     = false
 		);
 
 		if ( !log.recordCount ) {
@@ -242,6 +243,7 @@ component extends="preside.system.base.AdminHandler" {
 		var log = taskHistoryDao.selectData(
 			  id           = rc.id ?: "---"
 			, selectFields = [ "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
+			, useCache     = false
 		);
 		if ( !log.recordCount ) {
 			event.notFound();
