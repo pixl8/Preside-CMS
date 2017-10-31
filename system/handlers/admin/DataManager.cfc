@@ -1368,27 +1368,26 @@
 
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var objectIsVersioned   = presideObjectService.objectIsVersioned( object );
-			var getRecordsArgs      = Duplicate( arguments );
 			var checkboxCol         = [];
 			var optionsCol          = [];
 			var statusCol           = [];
 			var translateStatusCol  = [];
 			var translations        = [];
 			var translateUrlBase    = "";
+			var getRecordsArgs      = {};
+			var excludedArguments   = [ "event", "rc", "prc", "actionsView", "useMultiActions", "isMultilingual", "object" ];
+
+			for( var argument in arguments ) {
+				if ( !excludedArguments.find( argument ) ) {
+					getRecordsArgs[ argument ] = duplicate( arguments[ argument ] );
+				}
+			}
 
 			getRecordsArgs.objectName    = arguments.object;
 			getRecordsArgs.startRow      = dtHelper.getStartRow();
 			getRecordsArgs.maxRows       = dtHelper.getMaxRows();
 			getRecordsArgs.orderBy       = dtHelper.getSortOrder();
 			getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
-
-			getRecordsArgs.delete( "event"           );
-			getRecordsArgs.delete( "rc"              );
-			getRecordsArgs.delete( "prc"             );
-			getRecordsArgs.delete( "actionsView"     );
-			getRecordsArgs.delete( "useMultiActions" );
-			getRecordsArgs.delete( "isMultilingual"  );
-			getRecordsArgs.delete( "object"   );
 
 			if ( Len( Trim( rc.sFilterExpression ?: "" ) ) ) {
 				try {
@@ -1416,13 +1415,22 @@
 				}
 			}
 
-
 			if ( IsEmpty( getRecordsArgs.orderBy ) ) {
 				getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
 			}
 
 			var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
 			var records = Duplicate( results.records );
+
+			if ( !actionsView.trim().len() ) {
+				var viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="object=#object#&id={id}" )
+				var editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id={id}" )
+				var deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id={id}" )
+				var viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id={id}" )
+				var canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] );
+				var canDelete         = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
+				var canViewHistory    = objectIsVersioned && datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] )
+			}
 
 			for( var record in records ){
 				for( var field in gridFields ){
@@ -1433,7 +1441,7 @@
 					ArrayAppend( checkboxCol, renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
 				}
 
-				if ( Len( Trim( actionsView ) ) ) {
+				if ( actionsView.trim().len() ) {
 					var actionsViewlet = Replace( ReReplace( actionsView, "^/", "" ), "/", ".", "all" );
 					var viewletArgs    = Duplicate( record );
 					viewletArgs.objectName = object;
@@ -1441,14 +1449,14 @@
 					ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
 				} else {
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
-						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#object#" )
-						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
-						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
+						  viewRecordLink    = viewRecordLink.replace( "{id}", record.id )
+						, editRecordLink    = editRecordLink.replace( "{id}", record.id )
+						, deleteRecordLink  = deleteRecordLink.replace( "{id}", record.id )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
-						, viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id=#record.id#" )
-						, canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] )
-						, canDelete         = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
-						, canViewHistory    = objectIsVersioned && datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] )
+						, viewHistoryLink   = viewHistoryLink.replace( "{id}", record.id )
+						, canEdit           = canEdit
+						, canDelete         = canDelete
+						, canViewHistory    = canViewHistory
 						, objectName        = object
 					} ) );
 				}
