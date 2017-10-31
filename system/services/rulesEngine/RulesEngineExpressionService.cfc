@@ -11,10 +11,12 @@ component displayName="RulesEngine Expression Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @expressionReaderService.inject rulesEngineExpressionReaderService
-	 * @fieldTypeService.inject        rulesEngineFieldTypeService
-	 * @contextService.inject          rulesEngineContextService
-	 * @expressionDirectories.inject   presidecms:directories:/handlers/rules/expressions
+	 * @expressionReaderService.inject     rulesEngineExpressionReaderService
+	 * @fieldTypeService.inject            rulesEngineFieldTypeService
+	 * @contextService.inject              rulesEngineContextService
+	 * @expressionDirectories.inject       presidecms:directories:/handlers/rules/expressions
+	 * @rulesEngineExpressionCache.inject  cachebox:rulesEngineExpressionCache
+	 * @i18n.inject                        coldbox:plugin:i18n
 	 *
 	 */
 	public any function init(
@@ -22,10 +24,14 @@ component displayName="RulesEngine Expression Service" {
 		, required any   fieldTypeService
 		, required any   contextService
 		, required array expressionDirectories
+		, required any   rulesEngineExpressionCache
+		, required any   i18n
 	) {
 		_setFieldTypeService( fieldTypeService );
 		_setContextService( contextService );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) );
+		_setRulesEngineExpressionCache( rulesEngineExpressionCache );
+		_setI18n( i18n );
 
 		return this;
 	}
@@ -40,10 +46,16 @@ component displayName="RulesEngine Expression Service" {
 	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
 	 */
 	public array function listExpressions( string context="", string filterObject="" ) {
-		var allExpressions     = _getExpressions();
-		var list               = [];
-		var filterOnContext    = arguments.context.len() > 0;
-		var filterOnObject     = arguments.filterObject.len();
+		var allExpressions  = _getExpressions();
+		var list            = [];
+		var filterOnContext = arguments.context.len() > 0;
+		var filterOnObject  = arguments.filterObject.len();
+		var cachekey        = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context;
+		var cachedResult    = _getRulesEngineExpressionCache().get( cacheKey );
+
+		if ( !IsNull( cachedResult ) ) {
+			return cachedResult;
+		}
 
 		for( var expressionId in allExpressions ) {
 			var contexts = allExpressions[ expressionId ].contexts ?: [];
@@ -76,6 +88,7 @@ component displayName="RulesEngine Expression Service" {
 			return aCategory > bCategory ? 1 : -1;
 		} );
 
+		_getRulesEngineExpressionCache().set( cacheKey, list );
 		return list;
 	}
 
@@ -488,5 +501,19 @@ component displayName="RulesEngine Expression Service" {
 	}
 	private void function _setContextService( required any contextService ) {
 		_contextService = arguments.contextService;
+	}
+
+	private any function _getRulesEngineExpressionCache() {
+		return _rulesEngineExpressionCache;
+	}
+	private void function _setRulesEngineExpressionCache( required any rulesEngineExpressionCache ) {
+		_rulesEngineExpressionCache = arguments.rulesEngineExpressionCache;
+	}
+
+	private any function _getI18n() {
+		return _i18n;
+	}
+	private void function _setI18n( required any i18n ) {
+		_i18n = arguments.i18n;
 	}
 }
