@@ -205,7 +205,7 @@ component extends="coldbox.system.Bootstrap" {
 		var event = "";
 		var iData = structnew();
 
-		lock type="readonly" name="#getAppHash()#" timeout="#instance.lockTimeout#" throwontimeout="true" {
+		lock type="readonly" name="#getAppHash()#" timeout="#variables.lockTimeout#" throwontimeout="true" {
 			cbController = arguments.appScope[ locateAppKey() ] ?: "";
 		}
 
