@@ -181,7 +181,7 @@ If you wish to use a different property to represent a record, you can use the `
 
 ```luceescript
 /**
- * labelfield title
+ * @labelfield title
  *
  */
 component {
@@ -194,7 +194,7 @@ If you do not want your object to have a label field at all (i.e. you know it is
 
 ```luceescript
 /**
- * nolabel true
+ * @nolabel true
  *
  */
 component {
