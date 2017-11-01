@@ -137,11 +137,11 @@ component output=false {
 						  objectDefaultTimeout           = 0
 						, objectDefaultLastAccessTimeout = 0
 						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 10
+						, reapFrequency                  = 0
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 10
-						, maxObjects                     = 200
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, evictCount                     = 0
+						, maxObjects                     = 0
+						, objectStore                    = "ConcurrentStore"
 					}
 				}
 			}
