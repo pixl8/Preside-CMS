@@ -71,6 +71,8 @@ component extends="preside.system.base.adminHandler" {
 	 * that will be rendered within the preview layout
 	 */
 	public string function richeditorPreview( event, rc, prc ) {
+		event.include( "/css/admin/specific/richeditorPreview/" );
+
 		return renderLayout(
 			  layout = "richeditorPreview"
 			, args   = { content = renderContent( "richeditor", rc.content ?: "" ) }

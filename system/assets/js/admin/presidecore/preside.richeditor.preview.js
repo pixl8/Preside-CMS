@@ -18,6 +18,8 @@
 				iframe.contentWindow.document.open( 'text/html' );
 				iframe.contentWindow.document.write( result );
 				iframe.contentWindow.document.close();
+
+				$iframe.height( $( iframe.contentWindow.document ).height() + "px" );
 			} );
 		} );
 	};

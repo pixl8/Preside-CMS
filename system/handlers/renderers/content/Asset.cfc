@@ -24,7 +24,7 @@ component {
 		if ( adminDataViewsService.doesObjectHaveBuildAdminLinkHandler( fkObjectName ) ) {
 			args.recordLink = adminDataViewsService.buildViewObjectRecordLink( fkObjectName, fkId );
 		}
-		args.renderedAsset = renderAsset( assetId=fkId, context="adminPreview" );
+		args.renderedAsset = renderAsset( assetId=fkId, args={ derivative="icon" } );
 
 		return renderView( view="/renderers/content/asset/adminView", args=args );
 
