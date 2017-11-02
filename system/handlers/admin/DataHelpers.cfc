@@ -3,7 +3,7 @@
  * and actions for preside object data
  *
  */
-component {
+component extends="preside.system.base.adminHandler" {
 
 	property name="adminDataViewsService" inject="adminDataViewsService";
 	property name="presideObjectService"  inject="presideObjectService";
@@ -64,6 +64,17 @@ component {
 		}
 
 		return renderView( view="/admin/dataHelpers/displayGroup", args=args );
+	}
+
+	/**
+	 * Public action that is expected to be POSTed to with a 'content' variable
+	 * that will be rendered within the preview layout
+	 */
+	public string function richeditorPreview( event, rc, prc ) {
+		return renderLayout(
+			  layout = "richeditorPreview"
+			, args   = { content = renderContent( "richeditor", rc.content ?: "" ) }
+		);
 	}
 
 }
