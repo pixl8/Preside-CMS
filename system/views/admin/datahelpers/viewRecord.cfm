@@ -1,12 +1,19 @@
 <cfscript>
-	renderedProps = args.renderedProps ?: [];
+	viewGroups = args.viewGroups ?: [];
 </cfscript>
 
 <cfoutput>
-	<dl class="dl-horizontal">
-		<cfloop array="#renderedProps#" item="prop" index="i">
-			<dt>#prop.propertyTitle#</dt>
-			<dd>#prop.rendered#</dd>
+	<div class="row">
+		<cfloop array="#viewGroups#" item="group" index="i">
+			<cfscript>
+				groupArgs = args.copy();
+				groupArgs.append( group );
+			</cfscript>
+
+			#renderViewlet(
+				  event = "admin.datahelpers.displayGroup"
+				, args  = groupArgs
+			)#
 		</cfloop>
-	</dl>
+	</div>
 </cfoutput>

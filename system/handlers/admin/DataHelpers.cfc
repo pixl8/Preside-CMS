@@ -26,32 +26,44 @@ component {
 	 *
 	 */
 	private string function viewRecord( event, rc, prc, args={} ) {
-		var objectName      = args.objectName ?: "";
-		var recordId        = args.recordId   ?: "";
-		var renderableProps = adminDataViewsService.listRenderableObjectProperties( objectName );
-		var record          = presideObjectService.selectData( objectName=objectName, id=recordId );
-		var uriRoot         = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+		var objectName = args.objectName ?: "";
+
+		args.viewGroups = adminDataViewsService.listViewGroupsForObject( objectName );
+
+		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
+	}
+
+	/**
+	 * Helper viewlet for rendering a admin data view 'display group'
+	 * for a given object/record
+	 */
+	private string function displayGroup( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+		var props      = args.properties ?: [];
+		var uriRoot    = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+
+		prc.record = prc.record ?: presideObjectService.selectData( objectName=objectName, id=recordId );
 
 		args.renderedProps = [];
-
-		for( var propertyName in renderableProps ) {
+		for( var propertyName in props ) {
 			var renderedValue = adminDataViewsService.renderField(
 				  objectName   = objectName
 				, propertyName = propertyName
 				, recordId     = recordId
-				, value        = record[ propertyName ] ?: ""
+				, value        = prc.record[ propertyName ] ?: ""
 			);
 			args.renderedProps.append( {
 				  objectName    = objectName
 				, propertyName  = propertyName
 				, propertyTitle = translateResource( uri="#uriRoot#field.#propertyName#.title", defaultValue=translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=propertyName ) )
 				, recordId      = recordId
-				, value         = record[ propertyName ] ?: ""
+				, value         = prc.record[ propertyName ] ?: ""
 				, rendered      = renderedValue
 			} );
 		}
 
-		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
+		return renderView( view="/admin/dataHelpers/displayGroup", args=args );
 	}
 
 }
