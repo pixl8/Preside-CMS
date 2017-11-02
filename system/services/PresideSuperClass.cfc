@@ -696,6 +696,20 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
+	 * Proxy to i18n service's getFWCountryCode() and getFWLanguageCode()
+	 * methods to provide the locale of the current request
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * currentLocale = $getI18nLocale()
+	 * ```
+	 */
+	public string function $getI18nLocale() {
+		return $i18n.getFWLanguageCode() & "-" & $i18n.getFWCountryCode();
+	}
+
+	/**
 	 * Proxy to the core PresideCMS 'renderViewlet' method.
 	 * \n
 	 * ## Example

@@ -469,6 +469,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		service.$( "$getPresideObjectService", mockPoService );
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$getI18nLocale", "en-UK" );
 
 		return service;
 	}

@@ -347,29 +347,34 @@ component {
 	 *
 	 */
 	public array function listViewGroupsForObject( required string objectName ) {
-		var properties   = listRenderableObjectProperties( arguments.objectName );
-		var uniqueGroups = {};
-		var listedGroups = [];
+		var args     = arguments;
+		var cacheKey = "listViewGroupsForObject-" & arguments.objectName & "-" & $getI18nLocale();
 
-		for( var propertyName in properties ) {
-			var groupName = getViewGroupForProperty( arguments.objectName, propertyName );
-			uniqueGroups[ groupName ] = uniqueGroups[ groupName ] ?: [];
-			uniqueGroups[ groupName ].append( propertyName );
-		}
+		return _simpleLocalCache( cacheKey, function(){
+			var properties   = listRenderableObjectProperties( args.objectName );
+			var uniqueGroups = {};
+			var listedGroups = [];
 
-		for( var groupName in uniqueGroups ) {
-			var group = getViewGroupDetail( arguments.objectName, groupName ).copy();
-			group.properties = uniqueGroups[ groupName ];
-
-			listedGroups.append( group )
-		}
-
-		return listedGroups.sort( function( a, b ){
-			if ( a.sortOrder == b.sortOrder ) {
-				return a.title > b.title ? 1 : -1;
+			for( var propertyName in properties ) {
+				var groupName = getViewGroupForProperty( args.objectName, propertyName );
+				uniqueGroups[ groupName ] = uniqueGroups[ groupName ] ?: [];
+				uniqueGroups[ groupName ].append( propertyName );
 			}
 
-			return a.sortOrder > b.sortOrder ? 1 : -1;
+			for( var groupName in uniqueGroups ) {
+				var group = getViewGroupDetail( args.objectName, groupName ).copy();
+				group.properties = uniqueGroups[ groupName ];
+
+				listedGroups.append( group )
+			}
+
+			return listedGroups.sort( function( a, b ){
+				if ( a.sortOrder == b.sortOrder ) {
+					return a.title > b.title ? 1 : -1;
+				}
+
+				return a.sortOrder > b.sortOrder ? 1 : -1;
+			} );
 		} );
 	}
 
