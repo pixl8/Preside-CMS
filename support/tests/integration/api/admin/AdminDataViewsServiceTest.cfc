@@ -419,6 +419,40 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( groupDetail );
 			} );
 		} );
+
+		describe( "listViewGroupsForObject()", function(){
+			it( "should return an array of view groups configured for the object's properties, ordered by group sort order / group title", function(){
+				var service    = _getService();
+				var objectName = "test_object_" & CreateUUId();
+				var props      = [ "prop1", "prop2", "prop3", "prop4", "prop5", "prop6" ];
+				var groups     = {
+					  system  = { blah="blah", test=CreateUUId(), title="System" , sortOrder=300 }
+					, default = { blah="blah", test=CreateUUId(), title="Default", sortOrder=100 }
+					, group1  = { blah="blah", test=CreateUUId(), title="Group 1", sortOrder=300 }
+				};
+				var expectedGroups = [];
+
+				expectedGroups.append( duplicate( groups.default ) );
+				expectedGroups.append( duplicate( groups.group1 ) );
+				expectedGroups.append( duplicate( groups.system ) );
+				expectedGroups[ 1 ].properties = [ props[ 2 ] ];
+				expectedGroups[ 2 ].properties = [ props[ 1 ], props[ 4 ], props[ 5 ] ];
+				expectedGroups[ 3 ].properties = [ props[ 3 ], props[ 6 ] ];
+
+				service.$( "listRenderableObjectProperties" ).$args( objectName ).$results( props );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 1 ] ).$results( "group1"  );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 2 ] ).$results( "default" );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 3 ] ).$results( "system"  );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 4 ] ).$results( "group1"  );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 5 ] ).$results( "group1"  );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 6 ] ).$results( "system"  );
+				for( var groupName in groups ) {
+					service.$( "getViewGroupDetail" ).$args( objectName, groupName ).$results( groups[ groupName ] );
+				}
+
+				expect( service.listViewGroupsForObject( objectName ) ).toBe( expectedGroups );
+			} );
+		} );
 	}
 
 // HELPERS

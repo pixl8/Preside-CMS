@@ -338,6 +338,41 @@ component {
 		};
 	}
 
+	/**
+	 * Returns an ordered array of view groups with their renderable properties
+	 * ready for rendering an admin view of an object
+	 *
+	 * @autodoc    true
+	 * @objectName name of the object whose groups you wish to get
+	 *
+	 */
+	public array function listViewGroupsForObject( required string objectName ) {
+		var properties   = listRenderableObjectProperties( arguments.objectName );
+		var uniqueGroups = {};
+		var listedGroups = [];
+
+		for( var propertyName in properties ) {
+			var groupName = getViewGroupForProperty( arguments.objectName, propertyName );
+			uniqueGroups[ groupName ] = uniqueGroups[ groupName ] ?: [];
+			uniqueGroups[ groupName ].append( propertyName );
+		}
+
+		for( var groupName in uniqueGroups ) {
+			var group = getViewGroupDetail( arguments.objectName, groupName ).copy();
+			group.properties = uniqueGroups[ groupName ];
+
+			listedGroups.append( group )
+		}
+
+		return listedGroups.sort( function( a, b ){
+			if ( a.sortOrder == b.sortOrder ) {
+				return a.title > b.title ? 1 : -1;
+			}
+
+			return a.sortOrder > b.sortOrder ? 1 : -1;
+		} );
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
