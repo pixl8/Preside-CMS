@@ -18,13 +18,18 @@
 
 			<div class="widget-body">
 				<div class="widget-main padding-20">
-
-					<dl class="dl-horizontal">
-						<cfloop array="#renderedProps#" item="prop" index="i">
-							<dt>#prop.propertyTitle#</dt>
-							<dd>#prop.rendered#</dd>
-						</cfloop>
-					</dl>
+ 					<div class="table-responsive">
+	 					<table class="table table-condensed table-no-header table-non-clickable">
+	 						<tbody>
+								<cfloop array="#renderedProps#" item="prop" index="i">
+									<tr>
+										<th>#prop.propertyTitle#:</th>
+										<td>#prop.rendered#</td>
+									</tr>
+								</cfloop>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>
