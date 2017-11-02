@@ -10,7 +10,7 @@ component {
 	 * @loginService.inject             loginService
 	 * @pageTypesService.inject         pageTypesService
 	 * @siteService.inject              siteService
-	 * @i18nService.inject              coldbox:plugin:i18n
+	 * @i18nService.inject              i18n
 	 * @coldboxController.inject        coldbox
 	 * @presideObjectService.inject     presideObjectService
 	 * @versioningService.inject        versioningService

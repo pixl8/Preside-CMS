@@ -1,6 +1,6 @@
 component output=false hint="Manage preside extensions" {
 
-	property name="jsonRpc2Plugin"          inject="coldbox:myPlugin:JsonRpc2";
+	property name="jsonRpc2Plugin"          inject="JsonRpc2";
 	property name="extensionManagerService" inject="extensionManagerService";
 
 	private function index( event, rc, prc ) {
