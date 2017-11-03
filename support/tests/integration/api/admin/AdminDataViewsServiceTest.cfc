@@ -133,6 +133,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  objectName = "test_object_" & CreateUUId()
 					, recordId   = CreateUUId()
 					, artbitrary = { test=true }
+					, version    = 39
 				};
 
 				service.$( "getViewletForObjectRender" ).$args( objectName=args.objectName ).$results( handler );

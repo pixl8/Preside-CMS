@@ -284,7 +284,9 @@
 		<cfscript>
 			var object     = rc.object ?: "";
 			var recordId   = rc.id     ?: "";
+			var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, recordId ) : 0 );
 
+			prc.useVersioning = datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
 			prc.objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
@@ -294,6 +296,7 @@
 			prc.renderedRecord = adminDataViewsService.renderObjectRecord(
 				  objectName = object
 				, recordId   = recordId
+				, version    = version
 			);
 
 			prc.recordLabel    = renderLabel( object, recordId );

@@ -38,12 +38,18 @@ component extends="preside.system.base.adminHandler" {
 	 * for a given object/record
 	 */
 	private string function displayGroup( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
-		var recordId   = args.recordId   ?: "";
-		var props      = args.properties ?: [];
-		var uriRoot    = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+		var objectName    = args.objectName ?: "";
+		var recordId      = args.recordId   ?: "";
+		var props         = args.properties ?: [];
+		var version       = Val( args.version ?: "" );
+		var uriRoot       = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+		var useVersioning = presideObjectService.objectIsVersioned( objectName );
 
-		prc.record = prc.record ?: presideObjectService.selectData( objectName=objectName, id=recordId );
+		if ( useVersioning && Val( version ) ) {
+			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
+		} else {
+			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, allowDraftVersions=true );
+		}
 
 		args.renderedProps = [];
 		for( var propertyName in props ) {

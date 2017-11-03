@@ -1,12 +1,14 @@
 <cfscript>
 	object              = rc.object ?: "";
 	id                  = rc.id ?: "";
+	version             = Val( rc.version ?: "" );
 	recordLabel         = prc.recordLabel ?: "";
 	objectTitleSingular = prc.objectName  ?: "";
 	renderedRecord      = prc.renderedRecord ?: "";
 
-	canEdit   = IsTrue( prc.canEdit   ?: "" );
-	canDelete = IsTrue( prc.canDelete ?: "" );
+	canEdit       = IsTrue( prc.canEdit       ?: "" );
+	canDelete     = IsTrue( prc.canDelete     ?: "" );
+	useVersioning = IsTrue( prc.useVersioning ?: "" );
 
 	if ( canEdit ) {
 		editRecordLink  = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" );
@@ -39,6 +41,16 @@
 			</a>
 		</cfif>
 	</div>
+
+	<cfif useVersioning>
+		#renderViewlet( event='admin.datamanager.versionNavigator', args={
+			  object  = object
+			, id      = id
+			, version = version
+			, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
+			, baseUrl = event.buildAdminLink( linkTo='datamanager.viewRecord', queryString='object=#object#&id=#id#&version=' )
+		} )#
+	</cfif>
 
 	#renderedRecord#
 </cfoutput>

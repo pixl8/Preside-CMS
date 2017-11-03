@@ -29,8 +29,9 @@ component {
 	 * @autodoc true
 	 * @objectName Name of the object whose record you wish to render
 	 * @recordId   ID of the record to render
+	 * @version    Version of the record to use
 	 */
-	public string function renderObjectRecord( required string objectName, required string recordId ) {
+	public string function renderObjectRecord( required string objectName, required string recordId, numeric version=0 ) {
 		return $getColdbox().renderViewlet(
 			  event = getViewletForObjectRender( objectName=arguments.objectName )
 			, args  = {}.append( arguments )
