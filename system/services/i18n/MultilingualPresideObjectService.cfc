@@ -198,6 +198,7 @@ component displayName="Multilingual Preside Object Service" {
 			, indexes         = ""
 			, generator       = "none"
 			, control         = "none"
+			, adminRenderer   = "none"
 		};
 	}
 
