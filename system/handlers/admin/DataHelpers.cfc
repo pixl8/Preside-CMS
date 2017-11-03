@@ -102,7 +102,7 @@ component extends="preside.system.base.adminHandler" {
 			, useMultiActions = false
 			, isMultilingual  = false
 			, draftsEnabled   = false
-			, allowSearch     = false
+			, allowSearch     = true
 			, allowFilter     = false
 			, allowDataExport = false
 		} );

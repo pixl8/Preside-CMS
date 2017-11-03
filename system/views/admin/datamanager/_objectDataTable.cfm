@@ -41,7 +41,7 @@
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
 </cfscript>
 <cfoutput>
-	<div class="table-responsive">
+	<div class="table-responsive<cfif args.compact> table-compact</cfif>">
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
