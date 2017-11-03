@@ -172,6 +172,23 @@
 		}
 	}
 
+	&.table-no-header {
+		border-top: none !important;
+		tbody > tr:first-child {
+			> td, > th {
+				border: none !important;
+			}
+		}
+	}
+
+	&.table-non-clickable {
+		tr:active {
+			td, th {
+				background-color : inherit !important;
+			}
+		}
+	}
+
 }
 
 .filter-quick-save-modal {
@@ -190,6 +207,6 @@
 
 .table-responsive.table-compact {
 	.dataTables_wrapper .dataTables_filter {
-		padding : 10px 0px;
+		padding : 0px;
 	}
 }

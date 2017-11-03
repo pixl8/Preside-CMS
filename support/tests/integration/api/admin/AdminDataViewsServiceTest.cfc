@@ -616,33 +616,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, propertyName = propertyName
 				) ).toBe( expectedFields );
 			} );
-
-			it( "should expand all the fields to include property name prefix when 'expandPaths' is passed as true", function(){
-				var service           = _getService();
-				var objectName        = "test_object"   & CreateUUId();
-				var relatedObjectName = "related_object" & CreateUUId();
-				var propertyName      = "property_name" & CreateUUId();
-				var relatedGridFields = "label,category.label as category,category$parent.label as parentCategory";
-				var expectedFields    = [ "#propertyName#.label", "#propertyName#$category.label as category", "#propertyName#$category$parent.label as parentCategory" ];
-
-
-				mockPoService.$( "getObjectPropertyAttribute" ).$args(
-					  objectName    = objectName
-					, propertyName  = propertyName
-					, attributeName = "relatedTo"
-				).$results( relatedObjectName );
-
-				mockPoService.$( "getObjectAttribute" ).$args(
-					  objectName    = relatedObjectName
-					, attributeName = "minimalGridFields"
-				).$results( relatedGridFields );
-
-				expect( service.listGridFieldsForRelationshipPropertyTable(
-					  objectName   = objectName
-					, propertyName = propertyName
-					, expandPaths  = true
-				) ).toBe( expectedFields );
-			} );
 		} );
 	}
 

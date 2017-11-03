@@ -390,50 +390,43 @@ component {
 	public array function listGridFieldsForRelationshipPropertyTable(
 		  required string  objectName
 		, required string  propertyName
-		,          boolean expandPaths = false
 	) {
-		var gridFields       = [];
-		var delim            = "";
-		var field            = "";
-		var attrib           = "";
-		var rawGridFields    = "";
-		var poService        = $getPresideObjectService();
-		var gridFieldAttribs = [ "minimalGridFields", "gridFields", "datamanagerGridFields" ];
-		var relatedObject    = poService.getObjectPropertyAttribute(
-			  objectName    = arguments.objectName
-			, propertyName  = arguments.propertyName
-			, attributeName = "relatedTo"
-		);
+		var args = arguments;
 
-		for( attrib in gridFieldAttribs ) {
-			rawGridFields = poService.getObjectAttribute(
-				  objectName    = relatedObject
-				, attributeName = attrib
+		return _simpleLocalCache( "listGridFieldsForRelationshipPropertyTable#arguments.objectName##arguments.propertyName#", function(){
+			var delim            = "";
+			var field            = "";
+			var attrib           = "";
+			var gridFields    = "";
+			var poService        = $getPresideObjectService();
+			var gridFieldAttribs = [ "minimalGridFields", "gridFields", "datamanagerGridFields" ];
+			var relatedObject    = poService.getObjectPropertyAttribute(
+				  objectName    = args.objectName
+				, propertyName  = args.propertyName
+				, attributeName = "relatedTo"
 			);
 
-			if ( rawGridFields.len() ) {
-				break;
+			for( attrib in gridFieldAttribs ) {
+				gridFields = poService.getObjectAttribute(
+					  objectName    = relatedObject
+					, attributeName = attrib
+				);
+
+				if ( gridFields.len() ) {
+					break;
+				}
 			}
-		}
 
-		if ( !rawGridFields.len() ) {
-			rawGridFields = poService.getLabelField( relatedObject );
+			if ( !gridFields.len() ) {
+				gridFields = poService.getLabelField( relatedObject );
 
-			if ( !rawGridFields.len() ) {
-				rawGridFields = poService.getIdField( relatedObject );
+				if ( !gridFields.len() ) {
+					gridFields = poService.getIdField( relatedObject );
+				}
 			}
-		}
 
-		if ( arguments.expandPaths ) {
-			for( field in rawGridFields ) {
-				delim = field.find( "." ) ? "$" : ".";
-				gridFields.append( arguments.propertyName & delim & field );
-			}
-		} else {
-			gridFields = rawGridFields.listToArray();
-		}
-
-		return gridFields;
+			return gridFields.listToArray();
+		} );
 	}
 
 // PRIVATE HELPERS
