@@ -307,10 +307,7 @@
 			}
 
 			_addObjectNameBreadCrumb( event, object );
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title" )
-				, link  = ""
-			);
+			_addViewRecordBreadCrumb( event, object, recordId );
 
 			prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ prc.objectName ] );
 			prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ prc.recordLabel ] );
@@ -345,6 +342,7 @@
 
 			// breadcrumb setup
 			_addObjectNameBreadCrumb( event, object );
+			_addViewRecordBreadCrumb( event, object, recordId );
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
 				, link  = ""
@@ -815,6 +813,7 @@
 
 			// breadcrumb setup
 			_addObjectNameBreadCrumb( event, object );
+			_addViewRecordBreadCrumb( event, object, id );
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
 				, link  = ""
@@ -2250,6 +2249,20 @@
 			event.addAdminBreadCrumb(
 				  title = translateResource( "preside-objects.#objectName#:title" )
 				, link  = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" )
+			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_addViewRecordBreadCrumb" access="private" returntype="void" output="false">
+		<cfargument name="event"      type="any"    required="true" />
+		<cfargument name="objectName" type="string" required="true" />
+		<cfargument name="recordId"   type="string" required="true" />
+
+		<cfscript>
+			var recordLabel = prc.recordLabel ?: renderLabel( objectName, recordId );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
+				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#id#" )
 			);
 		</cfscript>
 	</cffunction>
