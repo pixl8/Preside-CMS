@@ -284,7 +284,8 @@
 		<cfscript>
 			var object     = rc.object ?: "";
 			var recordId   = rc.id     ?: "";
-			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+
+			prc.objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
@@ -295,14 +296,24 @@
 				, recordId   = recordId
 			);
 
+			prc.recordLabel    = renderLabel( object, recordId );
+			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
+			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
+			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
+			prc.canEdit        = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit"  , context="datamanager", contextKeys=[ object ] );
+
+			if ( prc.canTranslate ) {
+				prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+			}
+
 			_addObjectNameBreadCrumb( event, object );
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title" )
 				, link  = ""
 			);
 
-			prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectName ] );
-			prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ renderLabel( object, recordId ) ] );
+			prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ prc.objectName ] );
+			prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ prc.recordLabel ] );
 
 		</cfscript>
 	</cffunction>
