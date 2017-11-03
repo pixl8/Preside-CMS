@@ -189,6 +189,15 @@
 		}
 	}
 
+	&.table-admin-view-record {
+		tr > {
+			td, th {
+				padding-top    : 12px;
+				padding-bottom : 12px;
+			}
+		}
+	}
+
 }
 
 .filter-quick-save-modal {
@@ -205,12 +214,14 @@
 	}
 }
 
-.table-responsive.table-compact {
-	.dataTables_wrapper .dataTables_filter {
-		padding : 0px;
-	}
+.table-responsive {
+	&.table-compact {
+		.dataTables_wrapper .dataTables_filter {
+			padding : 0px;
+		}
 
-	.table {
-		border-top: none !important;
+		.table {
+			border-top: none !important;
+		}
 	}
 }
