@@ -378,6 +378,64 @@ component {
 		} );
 	}
 
+	/**
+	 * Returns an array of grid fields to use for displaying a many-to-many, or one-to-many table
+	 * for relationship property of an object
+	 *
+	 * @autodoc      true
+	 * @objectName   The name of the object that has the relationship property
+	 * @propertyName The name of the relationship property
+	 * @expandPaths  Whether or not to prefix all the field names with the relationship property name (use case: displaying grid fields vs selecting them)
+	 */
+	public array function listGridFieldsForRelationshipPropertyTable(
+		  required string  objectName
+		, required string  propertyName
+		,          boolean expandPaths = false
+	) {
+		var gridFields       = [];
+		var delim            = "";
+		var field            = "";
+		var attrib           = "";
+		var rawGridFields    = "";
+		var poService        = $getPresideObjectService();
+		var gridFieldAttribs = [ "minimalGridFields", "gridFields", "datamanagerGridFields" ];
+		var relatedObject    = poService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.propertyName
+			, attributeName = "relatedTo"
+		);
+
+		for( attrib in gridFieldAttribs ) {
+			rawGridFields = poService.getObjectAttribute(
+				  objectName    = relatedObject
+				, attributeName = attrib
+			);
+
+			if ( rawGridFields.len() ) {
+				break;
+			}
+		}
+
+		if ( !rawGridFields.len() ) {
+			rawGridFields = poService.getLabelField( relatedObject );
+
+			if ( !rawGridFields.len() ) {
+				rawGridFields = poService.getIdField( relatedObject );
+			}
+		}
+
+		if ( arguments.expandPaths ) {
+			for( field in rawGridFields ) {
+				delim = field.find( "." ) ? "$" : ".";
+				gridFields.append( arguments.propertyName & delim & field );
+			}
+		} else {
+			gridFields = rawGridFields.listToArray();
+		}
+
+		return gridFields;
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();

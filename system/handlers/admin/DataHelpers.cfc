@@ -79,4 +79,93 @@ component extends="preside.system.base.adminHandler" {
 		);
 	}
 
+	/**
+	 * Viewlet for rendering a datatable of related records, i.e.
+	 * a many-to-many or one-to-many relationship.
+	 *
+	 */
+	private string function relatedRecordsDatatable( event, rc, prc, args={} ) {
+		var objectName    = args.objectName   ?: "";
+		var propertyName  = args.propertyName ?: "";
+		var recordId      = args.recordId     ?: "";
+		var queryString   = "objectName=#args.objectName#&propertyName=#args.propertyName#&recordId=#args.recordId#";
+		var datasourceUrl = event.buildAdminLink( linkto="dataHelpers.getRecordsForRelatedRecordsDatatable", queryString=queryString );
+		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
+		var gridFields    = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
+
+		return renderView( view="/admin/datamanager/_objectDataTable", args={
+			  objectName      = relatedObject
+			, gridFields      = gridFields
+			, dataSourceUrl   = dataSourceUrl
+			, id              = "related-object-datatable-#objectName#-#propertyName#-" & CreateUUId()
+			, compact         = true
+			, useMultiActions = false
+			, isMultilingual  = false
+			, draftsEnabled   = false
+			, allowSearch     = false
+			, allowFilter     = false
+			, allowDataExport = false
+		} );
+	}
+
+	/**
+	 * Ajax event for returning records to populate the relatedRecordsDatatable
+	 *
+	 */
+	public void function getRecordsForRelatedRecordsDatatable( event, rc, prc ) {
+		var objectName     = rc.objectName   ?: "";
+		var propertyName   = rc.propertyName ?: "";
+		var recordId       = rc.recordId     ?: "";
+		var gridFields     = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName ).toList();
+		var relatedObject  = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
+		var relatedIdField = presideObjectService.getIdField( objectName=relatedObject );
+		var extraFilters   = [];
+		var subquerySelect = presideObjectService.selectData(
+			  objectName          = objectName
+			, id                  = recordId
+			, selectFields        = [ "#propertyName#.#relatedIdField# as id" ]
+			, getSqlAndParamsOnly = true
+		);
+		var subQueryAlias = "relatedRecordsFilter";
+		var params        = {};
+
+		for( var param in subquerySelect.params ) { params[ param.name ] = param; }
+
+		extraFilters.append( {
+			filter="1=1", filterParams=params, extraJoins=[ {
+				  type           = "inner"
+				, subQuery       = subquerySelect.sql
+				, subQueryAlias  = subQueryAlias
+				, subQueryColumn = "id"
+				, joinToTable    = relatedObject
+				, joinToColumn   = relatedIdField
+			} ]
+		} );
+
+		prc.viewRecordLink = adminDataViewsService.buildViewObjectRecordLink( objectName=relatedObject, recordId="{id}" );
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object          = relatedObject
+				, gridFields      = gridFields
+				, extraFilters    = extraFilters
+				, useMultiActions = false
+				, isMultilingual  = false
+				, draftsEnabled   = false
+				, actionsView     = "admin.dataHelpers.relatedRecordTableActions"
+			}
+		);
+	}
+
+	private string function relatedRecordTableActions( event, rc, prc, args={} ) {
+		if ( Len( Trim( prc.viewRecordLink ?: "" ) ) ) {
+			args.viewRecordLink = prc.viewRecordLink.replace( "{id}", ( args.id ?: "" ) );
+
+			return renderView( view="/admin/dataHelpers/relatedRecordTableActions", args=args );
+		}
+		return "";
+	}
 }

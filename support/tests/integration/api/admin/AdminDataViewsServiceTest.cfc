@@ -453,6 +453,197 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.listViewGroupsForObject( objectName ) ).toBe( expectedGroups );
 			} );
 		} );
+
+		describe( "listGridFieldsForRelationshipPropertyTable()", function(){
+			it( "should return grid fields based on @minimalGridFields property defined on the related object", function(){
+				var service           = _getService();
+				var objectName        = "test_object"   & CreateUUId();
+				var relatedObjectName = "related_object" & CreateUUId();
+				var propertyName      = "property_name" & CreateUUId();
+				var relatedGridFields = "label,category.label as category,category$parent.label as parentCategory";
+				var expectedFields    = [ "label", "category.label as category", "category$parent.label as parentCategory" ];
+
+
+				mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = objectName
+					, propertyName  = propertyName
+					, attributeName = "relatedTo"
+				).$results( relatedObjectName );
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "minimalGridFields"
+				).$results( relatedGridFields );
+
+				expect( service.listGridFieldsForRelationshipPropertyTable(
+					  objectName   = objectName
+					, propertyName = propertyName
+				) ).toBe( expectedFields );
+
+			} );
+
+			it( "should return grid fields based on @gridFields property defined on the related object, should the object not supply @minimalGridFields", function(){
+				var service           = _getService();
+				var objectName        = "test_object"   & CreateUUId();
+				var relatedObjectName = "related_object" & CreateUUId();
+				var propertyName      = "property_name" & CreateUUId();
+				var relatedGridFields = "label,category.label as category,category$parent.label as parentCategory";
+				var expectedFields    = [ "label", "category.label as category", "category$parent.label as parentCategory" ];
+
+
+				mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = objectName
+					, propertyName  = propertyName
+					, attributeName = "relatedTo"
+				).$results( relatedObjectName );
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "minimalGridFields"
+				).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "gridFields"
+				).$results( relatedGridFields );
+
+				expect( service.listGridFieldsForRelationshipPropertyTable(
+					  objectName   = objectName
+					, propertyName = propertyName
+				) ).toBe( expectedFields );
+			} );
+
+			it( "should return grid fields based on @datamanagerGridFields property defined on the related object, should the object not supply @minimalGridFields or @gridFields", function(){
+				var service           = _getService();
+				var objectName        = "test_object"   & CreateUUId();
+				var relatedObjectName = "related_object" & CreateUUId();
+				var propertyName      = "property_name" & CreateUUId();
+				var relatedGridFields = "label,category.label as category,category$parent.label as parentCategory";
+				var expectedFields    = [ "label", "category.label as category", "category$parent.label as parentCategory" ];
+
+
+				mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = objectName
+					, propertyName  = propertyName
+					, attributeName = "relatedTo"
+				).$results( relatedObjectName );
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "minimalGridFields"
+				).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "gridFields"
+				).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "datamanagerGridFields"
+				).$results( relatedGridFields );
+
+				expect( service.listGridFieldsForRelationshipPropertyTable(
+					  objectName   = objectName
+					, propertyName = propertyName
+				) ).toBe( expectedFields );
+			} );
+
+			it( "should return labelfield + datemodified when the related object does not define any grid fields", function(){
+				var service           = _getService();
+				var objectName        = "test_object"   & CreateUUId();
+				var relatedObjectName = "related_object" & CreateUUId();
+				var propertyName      = "property_name" & CreateUUId();
+				var expectedFields    = [ "mylabelfield" ];
+
+
+				mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = objectName
+					, propertyName  = propertyName
+					, attributeName = "relatedTo"
+				).$results( relatedObjectName );
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "minimalGridFields"
+				).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "gridFields"
+				).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "datamanagerGridFields"
+				).$results( "" );
+
+				mockPoService.$( "getLabelField" ).$args( relatedObjectName ).$results( "mylabelfield" );
+
+				expect( service.listGridFieldsForRelationshipPropertyTable(
+					  objectName   = objectName
+					, propertyName = propertyName
+				) ).toBe( expectedFields );
+			} );
+
+			it( "should return idFIeld + datemodified when the related object does not have a label field", function(){
+				var service           = _getService();
+				var objectName        = "test_object"   & CreateUUId();
+				var relatedObjectName = "related_object" & CreateUUId();
+				var propertyName      = "property_name" & CreateUUId();
+				var expectedFields    = [ "myidfield" ];
+
+
+				mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = objectName
+					, propertyName  = propertyName
+					, attributeName = "relatedTo"
+				).$results( relatedObjectName );
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "minimalGridFields"
+				).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "gridFields"
+				).$results( "" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "datamanagerGridFields"
+				).$results( "" );
+
+				mockPoService.$( "getLabelField" ).$args( relatedObjectName ).$results( "" );
+				mockPoService.$( "getIdField" ).$args( relatedObjectName ).$results( "myidfield" );
+
+				expect( service.listGridFieldsForRelationshipPropertyTable(
+					  objectName   = objectName
+					, propertyName = propertyName
+				) ).toBe( expectedFields );
+			} );
+
+			it( "should expand all the fields to include property name prefix when 'expandPaths' is passed as true", function(){
+				var service           = _getService();
+				var objectName        = "test_object"   & CreateUUId();
+				var relatedObjectName = "related_object" & CreateUUId();
+				var propertyName      = "property_name" & CreateUUId();
+				var relatedGridFields = "label,category.label as category,category$parent.label as parentCategory";
+				var expectedFields    = [ "#propertyName#.label", "#propertyName#$category.label as category", "#propertyName#$category$parent.label as parentCategory" ];
+
+
+				mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = objectName
+					, propertyName  = propertyName
+					, attributeName = "relatedTo"
+				).$results( relatedObjectName );
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = relatedObjectName
+					, attributeName = "minimalGridFields"
+				).$results( relatedGridFields );
+
+				expect( service.listGridFieldsForRelationshipPropertyTable(
+					  objectName   = objectName
+					, propertyName = propertyName
+					, expandPaths  = true
+				) ).toBe( expectedFields );
+			} );
+		} );
 	}
 
 // HELPERS

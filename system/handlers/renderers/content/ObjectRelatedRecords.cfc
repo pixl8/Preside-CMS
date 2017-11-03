@@ -4,7 +4,7 @@ component {
 	property name="presideObjectService"  inject="presideObjectService";
 
 	public string function adminView( event, rc, prc, args={} ){
-		return '<span class="grey">!!!TODO!!!</span>';
+		return renderViewlet( event="admin.dataHelpers.relatedRecordsDatatable", args=args );
 	}
 
 }

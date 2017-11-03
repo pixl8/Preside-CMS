@@ -11,6 +11,7 @@
 	param name="args.allowFilter"         type="boolean" default=true;
 	param name="args.allowDataExport"     type="boolean" default=false;
 	param name="args.clickableRows"       type="boolean" default=true;
+	param name="args.compact"             type="boolean" default=false;
 	param name="args.batchEditableFields" type="array"   default=[];
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#&draftsEnabled=#args.draftsEnabled#" );
 	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( linkTo="dataManager.exportDataAction" );
@@ -132,6 +133,7 @@
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
 		    data-allow-filter="#args.allowFilter#"
+		    data-compact="#args.compact#"
 		>
 			<thead>
 				<tr>
