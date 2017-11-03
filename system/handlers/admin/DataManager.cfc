@@ -1570,6 +1570,7 @@
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_historyActions", args={
 						  objectName = object
 						, recordId   = recordId
+						, viewRecordLink = event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
 						, editRecordLink = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
 					} ) );
 				}
