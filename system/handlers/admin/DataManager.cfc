@@ -282,26 +282,27 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = rc.object ?: "";
+			var object     = rc.object ?: "";
 			var recordId   = rc.id     ?: "";
+			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
-			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="read", object=object );
 
 			prc.renderedRecord = adminDataViewsService.renderObjectRecord(
-				  objectName = objectName
+				  objectName = object
 				, recordId   = recordId
 			);
 
-			_addObjectNameBreadCrumb( event, objectName );
+			_addObjectNameBreadCrumb( event, object );
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title" )
 				, link  = ""
 			);
 
 			prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectName ] );
-			prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ renderLabel( objectName, recordId ) ] );
+			prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ renderLabel( object, recordId ) ] );
 
 		</cfscript>
 	</cffunction>
