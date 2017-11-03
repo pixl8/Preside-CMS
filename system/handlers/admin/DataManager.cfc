@@ -553,18 +553,20 @@
 		<cfscript>
 			var objectName = rc.object ?: "";
 
+			prc.id       = rc.id       ?: "";
+			prc.blockers = rc.blockers ?: {};
+
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
 			_addObjectNameBreadCrumb( event, objectName );
+			_addViewRecordBreadCrumb(event, objectName, prc.id );
 
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.cascadeDelete.breadcrumb.title" )
 				, link  = ""
 			);
 
-			prc.blockers = event.getValue( name="blockers", defaultValue={}, private=false );
-			prc.id       = event.getValue( name="id", defaultValue="" );
 		</cfscript>
 	</cffunction>
 
@@ -805,7 +807,6 @@
 
 			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
 			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
-			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 
 			if ( prc.canTranslate ) {
 				prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
@@ -1860,6 +1861,7 @@
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
 		<cfargument name="postActionUrl"     type="string"  required="false" default="#( rc.postActionUrl ?: ( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) ) )#" />
+		<cfargument name="cancelUrl"         type="string"  required="false" default="#cgi.http_referer#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
 		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_delete_record" />
@@ -1900,7 +1902,7 @@
 				blockers = presideObjectService.listForeignObjectsBlockingDelete( object, ids );
 
 				if ( ArrayLen( blockers ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids), postActionUrl=postActionUrl } );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids), postActionUrl=postActionUrl, cancelUrl=cancelUrl } );
 				}
 			} else {
 				try {
@@ -2262,7 +2264,7 @@
 			var recordLabel = prc.recordLabel ?: renderLabel( objectName, recordId );
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
-				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#id#" )
+				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
 			);
 		</cfscript>
 	</cffunction>
