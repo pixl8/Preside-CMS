@@ -115,7 +115,7 @@ component {
 	private void function _setupConfiguredApplications( required array configuredApplications ) {
 		var applications = StructNew( "linked" );
 
-		for( var app in configuredApplications ) {
+		for( var app in arguments.configuredApplications ) {
 			var applicationId = Trim( IsSimpleValue( app ) ? app : ( app.id ?: "" ) );
 
 			if ( applicationId.len() ) {

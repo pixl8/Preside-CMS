@@ -12,6 +12,7 @@ component {
 		, string  scriptProtect                = "none"
 		, string  reloadPassword               = "true"
 		, boolean showDbSyncScripts            = false
+		  ,string appBasePath				= ""
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -25,6 +26,7 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
+		this.appBasePath                             = arguments.appBasePath;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -108,6 +110,7 @@ component {
 		, string appPath        = _getApplicationRoot() & "/application"
 		, string assetsPath     = _getApplicationRoot() & "/assets"
 		, string logsPath       = _getApplicationRoot() & "/logs"
+		  , string appBasePath	= ""
 	) {
 		var presideroot = _getPresideRoot();
 
@@ -120,6 +123,7 @@ component {
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
+		this.mappings[ arguments.appBasePath ] = arguments.appBasePath;
 
 		variables.COLDBOX_APP_ROOT_PATH = arguments.appPath;
 		variables.COLDBOX_APP_KEY       = arguments.appPath;
@@ -127,8 +131,8 @@ component {
 
 		request._presideMappings = {
 			  appMapping     = arguments.appMapping
-			, assetsMapping  = arguments.assetsMapping
-			, logsMapping    = arguments.logsMapping
+			, assetsMapping  = arguments.appBasePath & arguments.assetsMapping
+			, logsMapping    = arguments.appBasePath & arguments.logsMapping
 		};
 
 		_setupCustomTagPath( presideroot );
@@ -215,10 +219,10 @@ component {
 
 			try {
 				admin action="getCompilerSettings" returnVariable="luceeCompilerSettings";
-				admin action               = "updateCompilerSettings"
-				      dotNotationUpperCase = false
-				      suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
-				      nullSupport          = luceeCompilerSettings.nullSupport
+				admin action               = "updateCompilerSettings";
+				      dotNotationUpperCase = false;
+				      suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg;
+				      nullSupport          = luceeCompilerSettings.nullSupport;
 				      templateCharset      = luceeCompilerSettings.templateCharset;
 			} catch( security e ) {
 				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
@@ -566,7 +570,7 @@ component {
 	}
 
 	private string function _getApplicationRoot() {
-		return ExpandPath( "/" );
+		return ExpandPath( len( this.appBasePath ) ? this.appBasePath : "/"  );
 	}
 
 	private void function _friendlyError( required any exception, numeric statusCode=500 ) {

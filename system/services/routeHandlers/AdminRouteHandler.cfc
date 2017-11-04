@@ -7,13 +7,15 @@ component implements="iRouteHandler" output=false {
 // constructor
 	/**
 	 * @adminPath.inject           coldbox:setting:preside_admin_path
+	 * @adminBasePath.inject       coldbox:setting:preside_admin_base_path
 	 * @eventName.inject           coldbox:setting:eventName
 	 * @sysConfigService.inject    delayedInjector:systemConfigurationService
 	 * @applicationsService.inject delayedInjector:applicationsService
 	 * @controller.inject          coldbox
 	 */
-	public any function init( required string adminPath, required string eventName, required any applicationsService, required any sysConfigService, required any controller ) {
-		_setAdminPath( arguments.adminPath );
+	public any function init( string adminBasePath = "", required string adminPath, required string eventName, required any applicationsService, required any sysConfigService, required any controller ) {
+		_setAdminPath( arguments.adminBasePath & arguments.adminPath );
+		_setAdminBasePath( arguments.adminBasePath );
 		_setEventName( arguments.eventName );
 		_setApplicationsService( arguments.applicationsService );
 		_setSysConfigService( arguments.sysConfigService );
@@ -56,6 +58,11 @@ component implements="iRouteHandler" output=false {
 		return event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
 	}
 
+	public string function getAdminBasePath() {
+		return _getAdminBasePath();
+	}
+
+
 // private helpers
 	private string function _getDefaultEvent() {
 		return _getApplicationsService().getDefaultEvent();
@@ -69,6 +76,13 @@ component implements="iRouteHandler" output=false {
 	}
 	private void function _setAdminPath( required string adminPath ) {
 		_adminPath = arguments.adminPath;
+	}
+
+	private string function _getAdminBasePath() {
+		return _adminBasePath;
+	}
+	private void function _setAdminBasePath( required string adminBasePath ) {
+		_adminBasePath = arguments.adminBasePath;
 	}
 
 	private string function _getEventName() {

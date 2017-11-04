@@ -149,6 +149,7 @@ component {
 		settings.widgets                     = {};
 		settings.templates                   = [];
 		settings.adminDefaultEvent           = "sitetree";
+		settings.preside_admin_base_path     = "";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
 		settings.dsn                         = "preside";
@@ -177,7 +178,7 @@ component {
 			, feature            = "cms"
 			, defaultEvent       = "admin.sitetree"
 			, accessPermission   = "cms.access"
-			, activeEventPattern = "admin\..*"
+			, activeEventPattern = "admin\.*"
 			, layout             = "admin"
 		} ];
 
