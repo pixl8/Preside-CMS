@@ -195,7 +195,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public string function getAdminPath() output=false {
-		var path = getController().getSetting( "preside_admin_path" );
+		var path = getController().getSetting( "preside_admin_base_path" );
+		path = path & getController().getSetting( "preside_admin_path" );
 
 		return Len( Trim( path ) ) ? "/#path#/" : "/";
 	}
