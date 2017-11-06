@@ -1,6 +1,7 @@
 <cfscript>
 	object              = rc.object ?: "";
 	id                  = rc.id ?: "";
+	language            = rc.language ?: "";
 	version             = Val( rc.version ?: "" );
 	recordLabel         = prc.recordLabel ?: "";
 	objectTitleSingular = prc.objectName  ?: "";
@@ -11,7 +12,11 @@
 	useVersioning = IsTrue( prc.useVersioning ?: "" );
 
 	if ( canEdit ) {
-		editRecordLink  = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" );
+		if ( language.len() ) {
+			editRecordLink  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=#language#" );
+		} else {
+			editRecordLink  = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" );
+		}
 		editRecordTitle = translateResource( uri="cms:datamanager.editRecord.btn" );
 	}
 	if ( canDelete ) {

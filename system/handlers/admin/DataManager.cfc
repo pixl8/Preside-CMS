@@ -282,11 +282,22 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object     = rc.object ?: "";
-			var recordId   = rc.id     ?: "";
+			var object     = rc.object   ?: "";
+			var recordId   = rc.id       ?: "";
+			var language   = rc.language ?: "";
 			var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, recordId ) : 0 );
 
-			prc.useVersioning = datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
+			if ( language.len() ) {
+				prc.language = multilingualPresideObjectService.getLanguage( language );
+
+				if ( prc.language.isempty() ) {
+					messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#id#" ) );
+				}
+				event.setLanguage( language );
+			}
+
+			prc.useVersioning = !language.len() && datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
 			prc.objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
@@ -917,6 +928,7 @@
 			prc.formName = "preside-objects.#translationObjectName#.admin.edit";
 
 			_addObjectNameBreadCrumb( event, object );
+			_addViewRecordBreadCrumb( event, object, id );
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 				, link  = ""

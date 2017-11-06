@@ -16,7 +16,7 @@
 	canDelete           = prc.canDelete;
 	translations        = prc.translations     ?: [];
 	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
-	cancelAction        = prc.cancelAction     ?: event.buildAdminLink( linkTo="datamanager.editRecord", querystring='object=#object#&id=#id#' );
+	cancelAction        = prc.cancelAction     ?: event.buildAdminLink( linkTo="datamanager.viewRecord", querystring='object=#object#&id=#id#' );
 	formAction          = prc.formAction       ?: event.buildAdminLink( linkTo='datamanager.translateRecordAction');
 	formId              = "translate-record-form";
 
