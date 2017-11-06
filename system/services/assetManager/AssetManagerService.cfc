@@ -1820,10 +1820,30 @@ component displayName="AssetManager Service" {
 			return configured[ arguments.derivativeName ].transformations ?: [];
 		}
 
+		var adHocTransformation = _getAdhocDerivativeTransformationFromName( arguments.derivativeName );
+		if ( adHocTransformation.len() ) {
+			return adHocTransformation;
+		}
+
 		throw(
 			  type    = "AssetManagerService.missingDerivativeConfiguration"
 			, message = "No configured asset transformations were found for an asset derivative with name, [#arguments.derivativeName#]"
 		);
+	}
+
+	private array function _getAdhocDerivativeTransformationFromName( required string derivativeName ) {
+		if ( arguments.derivativeName.refind( "^([0-9]+)x([0-9]+)-([a-zA-Z]+)$" ) ) {
+			var derivativeArgs = arguments.derivativeName.listToArray( "x-" );
+			var transformArgs = {
+				  width   = derivativeArgs[ 1 ]
+				, height  = derivativeArgs[ 2 ]
+				, quality = derivativeArgs[ 3 ]
+				, maintainAspectRatio = true
+			};
+			return [ { method="resize", args=transformArgs } ];
+		}
+
+		return [];
 	}
 
 	private void function _setupConfiguredFileTypesAndGroups( required struct typesByGroup ) {
