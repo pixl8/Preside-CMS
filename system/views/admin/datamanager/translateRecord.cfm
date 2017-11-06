@@ -100,7 +100,7 @@
 				</cfif>
 			<cfelse>
 				<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.btn", data=[  objectTitleSingular  ] )#
+					<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.save.translation.btn", data=[  objectTitleSingular  ] )#
 				</button>
 			</cfif>
 		</div>
