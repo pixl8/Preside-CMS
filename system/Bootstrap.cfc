@@ -107,10 +107,11 @@ component {
 		  string appMapping     = "/app"
 		, string assetsMapping  = "/assets"
 		, string logsMapping    = "/logs"
-		, string appPath        = _getApplicationRoot() & "/application"
-		, string assetsPath     = _getApplicationRoot() & "/assets"
-		, string logsPath       = _getApplicationRoot() & "/logs"
 		  , string appBasePath	= ""
+		, string appPath        = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/application"
+		, string assetsPath     = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/assets"
+		, string logsPath       = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/logs"
+
 	) {
 		var presideroot = _getPresideRoot();
 
@@ -123,7 +124,6 @@ component {
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
-		this.mappings[ arguments.appBasePath ] = arguments.appBasePath;
 
 		variables.COLDBOX_APP_ROOT_PATH = arguments.appPath;
 		variables.COLDBOX_APP_KEY       = arguments.appPath;
@@ -569,8 +569,8 @@ component {
 		return anyCleared;
 	}
 
-	private string function _getApplicationRoot() {
-		return ExpandPath( len( this.appBasePath ) ? this.appBasePath : "/"  );
+	private string function _getApplicationRoot( required string appRoot ) {
+		return ExpandPath( arguments.appRoot );
 	}
 
 	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
