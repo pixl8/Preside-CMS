@@ -987,13 +987,14 @@ component displayName="AssetManager Service" {
 		  required string assetId
 		, required string derivativeName
 		,          string versionId  = ""
-		,          string configHash = ""
+		,          string configHash
 	) {
 		var version    = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.assetId );
+		var configHash = arguments.configHash ?: getDerivativeConfigHash( getDerivativeConfig( arguments.assetId ) );
 		var derivative = getAssetDerivative(
 			  assetId           = arguments.assetId
 			, derivativeName    = arguments.derivativeName
-			, configHash        = arguments.configHash
+			, configHash        = configHash
 			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
 			, versionId         = version
 			, createIfNotExists = false
@@ -1023,8 +1024,6 @@ component displayName="AssetManager Service" {
 		_getDerivativeDao().updateData( id=derivative.id, data={ asset_url = generatedUrl } );
 
 		return generatedUrl;
-
-		return "";
 	}
 
 	public string function getActiveAssetVersion( required string id ) {
@@ -1212,7 +1211,7 @@ component displayName="AssetManager Service" {
 					return derivative;
 				}
 
-				derivativeId = createAssetDerivativeRecord( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+				derivativeId = createAssetDerivativeRecord( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName, configHash=arguments.configHash );
 			}
 
 			createAssetDerivative( derivativeId=derivativeId, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
@@ -1267,14 +1266,16 @@ component displayName="AssetManager Service" {
 		  required string assetId
 		, required string derivativeName
 		,          string versionId      = ""
+		,          string configHash
 	) {
-		var signature = getDerivativeConfigSignature( arguments.derivativeName );
+		var signature  = getDerivativeConfigSignature( arguments.derivativeName );
+		var configHash = arguments.configHash ?: getDerivativeConfigHash( getDerivativeConfig( arguments.assetId ) );
 
 		return _getDerivativeDao().insertData( {
 			  asset         = arguments.assetId
 			, asset_version = arguments.versionId
 			, label         = arguments.derivativeName & signature
-			, configHash    = left( createUUID(), 12 )
+			, config_hash   = arguments.configHash
 			, asset_type    = "PENDING"
 			, storage_path  = "PENDING-" & CreateUUId()
 		} );
@@ -1819,10 +1820,30 @@ component displayName="AssetManager Service" {
 			return configured[ arguments.derivativeName ].transformations ?: [];
 		}
 
+		var adHocTransformation = _getAdhocDerivativeTransformationFromName( arguments.derivativeName );
+		if ( adHocTransformation.len() ) {
+			return adHocTransformation;
+		}
+
 		throw(
 			  type    = "AssetManagerService.missingDerivativeConfiguration"
 			, message = "No configured asset transformations were found for an asset derivative with name, [#arguments.derivativeName#]"
 		);
+	}
+
+	private array function _getAdhocDerivativeTransformationFromName( required string derivativeName ) {
+		if ( arguments.derivativeName.refind( "^([0-9]+)x([0-9]+)-([a-zA-Z]+)$" ) ) {
+			var derivativeArgs = arguments.derivativeName.listToArray( "x-" );
+			var transformArgs = {
+				  width   = derivativeArgs[ 1 ]
+				, height  = derivativeArgs[ 2 ]
+				, quality = derivativeArgs[ 3 ]
+				, maintainAspectRatio = true
+			};
+			return [ { method="resize", args=transformArgs } ];
+		}
+
+		return [];
 	}
 
 	private void function _setupConfiguredFileTypesAndGroups( required struct typesByGroup ) {
