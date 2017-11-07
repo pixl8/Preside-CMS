@@ -185,7 +185,10 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		var pathToRemove = ( site.path ?: "" ).reReplace( "/$", "" );
 		var fullPath     = super.getCGIElement( "path_info", event );
 		var presidePath  = "";
-		var adminBasePath = Left(adminRouteHandler.getAdminBasePath(), len(adminRouteHandler.getAdminBasePath())-1);
+		var adminBasePath = adminRouteHandler.getAdminBasePath();
+		if ( right( adminBasePath, 1 ) == "/" ) {
+			adminBasePath = left( adminBasePath, len( adminBasePath) -1 );
+		}
 		adminBasePath = "/" & adminBasePath;
 		var languageSlug = event.getLanguageSlug();
 		if ( Len( Trim( languageSlug ) ) ) {

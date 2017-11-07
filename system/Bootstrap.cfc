@@ -131,6 +131,7 @@ component {
 
 		request._presideMappings = {
 			  appMapping     = arguments.appMapping
+			, appBasePath    = arguments.appBasePath
 			, assetsMapping  = arguments.appBasePath & arguments.assetsMapping
 			, logsMapping    = arguments.appBasePath & arguments.logsMapping
 		};

@@ -17,6 +17,8 @@ component displayName="AssetManager Service" {
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
+	 * @controller.inject coldbox
+	 *
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
@@ -39,6 +41,7 @@ component displayName="AssetManager Service" {
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
+		variables.appBasePath = $getColdbox().getSettingStructure().appBasePath;
 
 		return this;
 	}
@@ -1043,7 +1046,7 @@ component displayName="AssetManager Service" {
 	) {
 		if ( !arguments.trashed ) {
 			if ( Len( Trim( arguments.derivative ) ) && isDerivativePubliclyAccessible( arguments.derivative ) ) {
-				var permissions = { restricted = false }
+				var permissions = { restricted = false };
 			} else {
 				var permissions = getAssetPermissioningSettings( arguments.id );
 			}
@@ -1067,7 +1070,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function getInternalAssetUrl( required string id, string versionId="", string derivative="", boolean trashed=false ) {
-		var internalUrl = "/asset/";
+		var internalUrl = variables.appBasePath & "/asset/";
 
 		if ( arguments.trashed ) {
 			internalUrl &= "$";
