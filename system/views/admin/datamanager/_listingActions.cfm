@@ -10,15 +10,19 @@
 
 <cfoutput>
 	<div class="action-buttons btn-group">
+		<a href="#args.viewRecordLink#" data-context-key="v">
+			<i class="fa fa-fw fa-eye"></i>
+		</a>
+
 		<cfif args.canEdit>
 			<a href="#args.editRecordLink#" data-context-key="e">
-				<i class="fa fa-pencil"></i>
+				<i class="fa fa-fw fa-pencil"></i>
 			</a>
 		</cfif>
 
 		<cfif args.canDelete>
 			<a class="confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
-				<i class="fa fa-trash-o"></i>
+				<i class="fa fa-fw fa-trash-o"></i>
 			</a>
 		</cfif>
 
@@ -26,7 +30,7 @@
 			<cfif args.canViewHistory>
 				<li>
 					<a data-context-key="h" href="#args.viewHistoryLink#">
-						<i class="fa fa-history"></i>
+						<i class="fa fa-fw fa-history"></i>
 						#translateResource( uri="cms:datatable.contextmenu.history" )#
 					</a>
 				</li>
@@ -34,7 +38,7 @@
 		</cfsavecontent>
 
 		<cfif Len( Trim( extraMenuItems ) )>
-			<a class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i></a>
+			<a class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-fw fa-cog"></i></a>
 
 			<ul class="dropdown-menu pull-right text-left">
 				#extraMenuItems#

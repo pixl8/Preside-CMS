@@ -233,7 +233,7 @@ component extends="preside.system.base.AdminHandler" {
 				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
 			}
-			
+
 			if ( !success ) {
 				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 			}
@@ -1251,6 +1251,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function locationGridActions( event, rc, prc, args={} ) {
 		return renderView( view="/admin/assetmanager/_locationGridActions", args=args );
+	}
+
+	private string function getViewAssetLink( event, rc, prc, recordId="" ) {
+		return event.buildAdminLink( linkTo="assetmanager.editAsset", querystring="asset=#arguments.recordId#" )
 	}
 
 // PRIVATE HELPERS

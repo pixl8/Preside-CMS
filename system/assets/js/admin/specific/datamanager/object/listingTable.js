@@ -33,6 +33,7 @@
 			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
 			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
+			  , compact             = tableSettings.compact         || cfrequest.compact
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
@@ -108,6 +109,8 @@
 
 				if ( allowFilter ) {
 					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
+				} else if ( compact ) {
+					sDom = "frt<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				} else {
 					sDom = "fr<'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				}
