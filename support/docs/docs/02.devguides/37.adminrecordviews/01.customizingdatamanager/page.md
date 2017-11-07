@@ -74,11 +74,104 @@ Leads to:
 ![Screenshot showing example data view with a custom group decorated with custom labelling](images/screenshots/adminviewCustomGroupWithLabels.jpg)
 
 
-
-
-
 ### Field renderers
 
-### Field sort orders
+Each field is rendered using a regular Preside content renderer with a context of `[ "adminview", "admin" ]` (if the renderer has a `adminview` context, use that, if not, use `admin`, if not, use `default`). In addition, the renderer viewlet is passed `objectName`, `propertyName`, and `recordId` in the `args` struct so that it can do things like render a datatable showing related records filtered by the current record.
+
+For the most part, you should not need to customize the renderers here and a sensible default will be chosen.
+
+#### Assigning a renderer
+
+To assign a renderer to a property specifically for admin record views, use the `adminRenderer` attibute:
+
+```luceescript
+property name="label" adminrenderer="richeditor";
+```
+
+If you do not specify an `adminRenderer` but you _do_ specify a general renderer with the `renderer` attribute, the `renderer` value will be used:
+
+```luceescript
+property name="label" renderer="richeditor";
+property name="something" renderer="richeditor" adminRenderer="none";
+```
+
+>>> A renderer value of `none` will mean that the property will not be displayed at all.
+
+#### Creating a custom renderer
+
+Content renderers are viewlets that live at `renderers.content.{renderername}.{context}`. To create a specific admin record view renderer named `myrenderer`, you could create a handler CFC with the following:
+
+```luceescript
+// /handlers/renderers/content/MyRenderer.cfc
+component {
+
+	private string function adminView( event, rc, prc, args={} ) {
+		var value         = args.data         ?: "";
+		var objectName    = args.objectName   ?: "";
+		var propertyName  = args.propertyName ?: "";
+		var recordId      = args.recordId     ?: "";
+
+		return _doSomethingToValue( value, ... );
+	}
+}
+```
+
+Alternatively, the renderer could be just a view at `/views/renderers/content/myRenderer/adminView.cfm`:
+
+```lucee
+<cfparam name="args.data"         default="" />
+<cfparam name="args.objectName"   default="" />
+<cfparam name="args.propertyName" default="" />
+<cfparam name="args.recordId"     default="" />
+
+<!--- obviously do more than this... --->
+<cfoutput>#args.data#</cfoutput>
+```
+
+### Property sort orders
+
+The order of properties within an admin view defaults to the order of definition of the properties within the `.cfc` file. However, you can influence the sort order by adding a `sortOrder` attribute (which will also be the default sort order for the field in form layouts):
+
+```luceescript
+property name="title" sortorder=20;
+property name="blog" sortorder=10;
+// etc.
+```
 
 ### Richeditor preview layout
+
+The `richeditor` content renderer uses a special iFrame to display the rendered content in a full HTML layout. The purpose of this is to allow you to load front-end CSS and show the content as it would appear in the front end site.
+
+The default preview layout provided by Preside will load the css defined to be used within your ckeditor instances with the `settings.ckeditor.defaults.stylesheets` setting. To change this, define your own layout in your application folder at `/application/layouts/richeditorPreview.cfm`. Use the following core layout as a starting point to customize:
+
+```lucee
+<cfscript>
+	stylesheets = getSetting( name="ckeditor.defaults.stylesheets", defaultValue=[] );
+	if ( IsArray( stylesheets ) ) {
+		for( var stylesheet in stylesheets ) {
+			event.include( stylesheet );
+		}
+	}
+
+	css         = event.renderIncludes( "css" );
+	js          = event.renderIncludes( "js" );
+	content     = args.content ?: "";
+</cfscript>
+
+<cfoutput><!DOCTYPE html>
+<html lang="en" class="richeditor-preview presidecms">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="robots" content="NOINDEX,NOFOLLOW" />
+		<meta name="description" content="" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		#css#
+	</head>
+
+	<body>
+		#content#
+		#js#
+	</body>
+</html></cfoutput>
+```
