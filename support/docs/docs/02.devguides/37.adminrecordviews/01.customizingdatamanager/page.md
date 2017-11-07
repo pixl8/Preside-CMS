@@ -5,7 +5,13 @@ title: Customizing record views in Data manager
 
 ## Overview
 
-As of **Preside 10.9.0**, the admin system comes with a [[adminrecordviews|framework for displaying single records]] through the data manager. This guide shows you how to customize the appearance of the view for individual objects.
+As of **Preside 10.9.0**, the admin system comes with a [[adminrecordviews|framework for displaying single records]] through the data manager. This guide shows you how to customize the appearance of the view for individual objects. It covers:
+
+* View groups
+* Field renderers
+* Field sort orders
+* Richeditor preview layout
+* Defining your own viewlet
 
 ### View groups
 
@@ -175,3 +181,37 @@ The default preview layout provided by Preside will load the css defined to be u
 	</body>
 </html></cfoutput>
 ```
+
+### Defining your own viewlet
+
+If you want to do something completely different with your view of your object, you can define your own viewlet for rendering an object's record. Do so with the `@adminViewRecordViewlet` attribute defined on the _object_ itself:
+
+```luceescript
+/**
+ * /preside-object/my_object.cfc
+ *
+ * @adminViewRecordViewlet admin.myobjectManager.adminRecordRenderer
+ */
+component {
+	//...
+}
+```
+
+This would be accompanied by a handler:
+
+```luceescript
+// /application/handlers/admin/MyObjectManager.cfc
+component {
+
+	private string function adminRecordRenderer( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+		var version    = args.version    ?: "";
+		var language   = args.language   ?: "";
+
+		// your logic here to render the whole record
+	}
+}
+```
+
+You can, of course, use core viewlets to help with the rendering of the record in your custom viewlets. See [[adminrecordviews-nondatamanager]] for more details.
