@@ -14,8 +14,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
  *
  */
 
-
-
 // URL related
 	public void function setSite( required struct site ) output=false {
 		getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
@@ -43,9 +41,9 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
 
 		prc.delete( "_forceDomainLookup" );
-		
-		if ( cgi.server_port != 80 ) {
-			siteUrl &= ":#cgi.server_port#";
+
+		if ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ) {
+			siteUrl &= ":#cgi.SERVER_PORT#";
 		}
 
 		if ( arguments.includePath ) {
@@ -114,7 +112,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public string function getBaseUrl() output=false {
-		return getProtocol() & "://" & getServerName();
+		return getProtocol() & "://" & getServerName() & ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ":" & cgi.SERVER_PORT : "" );
 	}
 
 	public string function getCurrentUrl( boolean includeQueryString=true ) output=false {
