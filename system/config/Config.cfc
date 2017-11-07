@@ -5,6 +5,7 @@ component {
 		settings = {};
 
 		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
+		settings.appBasePath   = request._presideMappings.appBasePath;
 		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
 		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
 
