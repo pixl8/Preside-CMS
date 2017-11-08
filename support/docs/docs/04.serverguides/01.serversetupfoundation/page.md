@@ -65,7 +65,9 @@ PresideCMS requires the use of a couple of non-default settings in Lucee that ca
 
 ### Preserve case for structs
 
-Log in to the Lucee _Server_ admin and go to **Settings -> Language/Compiler**. Choose the **"Keep original case"** option for the **Dot notation** setting and hit **update**.
+Log in to the Lucee _Server_ admin and go to **Settings -> Language/Compiler**. 
+(Lucee 4.x) Choose the **"Keep original case"** option for the **Dot notation** setting and hit **update**.
+(Lucee 5.x) Choose the **"Preserve case"** option for the **Key case** setting and hit **update**.
 
 ### Lucee Admin API password
 
