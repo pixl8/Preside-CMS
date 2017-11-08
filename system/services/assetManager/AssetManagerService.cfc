@@ -17,7 +17,7 @@ component displayName="AssetManager Service" {
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
-	 * @controller.inject coldbox
+	 * @appBasePath.inject                coldbox:setting:appBasePath
 	 *
 	 */
 	public any function init(
@@ -29,6 +29,7 @@ component displayName="AssetManager Service" {
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 		,          struct configuredFolders={}
+		  ,        string appBasePath=""
 	) {
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( arguments.configuredFolders );
@@ -41,7 +42,7 @@ component displayName="AssetManager Service" {
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
-		variables.appBasePath = $getColdbox().getSettingStructure().appBasePath;
+		_setAssetPath( arguments.appBasePath );
 
 		return this;
 	}
@@ -1069,7 +1070,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function getInternalAssetUrl( required string id, string versionId="", string derivative="", boolean trashed=false ) {
-		var internalUrl = variables.appBasePath & "/asset/";
+		var internalUrl = _getAssetPath();
 
 		if ( arguments.trashed ) {
 			internalUrl &= "$";
@@ -1871,6 +1872,14 @@ component displayName="AssetManager Service" {
 
 		_setGroups( groups );
 		_setTypes( types );
+	}
+
+	private string function _getAssetPath( string appBasePath="/asset/" ) {
+		return _assetPath;
+	}
+
+	private string function _setAssetPath( string appBasePath="" ) {
+		_assetPath = arguments.appBasePath & "/asset/";
 	}
 
 	private void function _saveAssetMetaData( required string assetId, required struct metaData, string versionId="" ) {
