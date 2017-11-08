@@ -183,8 +183,8 @@ component displayname="ImageMagick"  {
 				);
 			}
 			args &= " -gravity #gravity##extent##offset#";
-			args = args.replace( "{preCrop}", preCrop );
 		}
+		args = args.replace( "{preCrop}", preCrop );
 
 		interlace = ( IsBoolean( interlace ) && interlace ) ? "line" : "none";
 		args &= " -interlace #interlace#";
