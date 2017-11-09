@@ -73,6 +73,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function viewGroup( event, rc, prc ) {
+		_checkPermissions( event=event, key="groupmanager.read" );
+
 		prc.record = presideObjectService.selectData( objectName="security_group", filter={ id=rc.id ?: "" } );
 
 		if ( !prc.record.recordCount ) {
@@ -199,6 +201,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function viewUser( event, rc, prc ) {
+		_checkPermissions( event=event, key="usermanager.read" );
+
 		prc.record = presideObjectService.selectData( objectName="security_user", filter={ id=rc.id ?: "" } );
 
 		if ( !prc.record.recordCount ) {
