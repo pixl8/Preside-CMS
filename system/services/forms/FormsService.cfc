@@ -546,6 +546,7 @@ component displayName="Forms service" {
 		,          string  fieldNameSuffix         = ""
 	) {
 		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
+		var result  = arguments.preProcessData ? preProcessForm( argumentCollection = arguments ) : "";
 		var data    = Duplicate( arguments.formData );
 
 		// add active "site" id to form data, should unique indexes require checking against a specific site
@@ -555,7 +556,7 @@ component displayName="Forms service" {
 			return _getValidationEngine().validate(
 				  ruleset         = ruleset
 				, data            = data
-				, result          = preProcessForm( argumentCollection = arguments )
+				, result          = result
 				, ignoreMissing   = arguments.ignoreMissing
 				, fieldNamePrefix = arguments.fieldNamePrefix
 				, fieldNameSuffix = arguments.fieldNameSuffix
