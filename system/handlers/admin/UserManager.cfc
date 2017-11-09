@@ -72,6 +72,20 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
+	function viewGroup( event, rc, prc ) {
+		prc.record = presideObjectService.selectData( objectName="security_group", filter={ id=rc.id ?: "" } );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:usermanager.groupNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.groups" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:usermanager.viewGroup.page.title", data=[ prc.record.label ] )
+			, link  = event.buildAdminLink( linkTo="usermanager.viewGroup", queryString="id=#rc.id#" )
+		);
+	}
+
 	function editGroup( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="groupmanager.edit" );
 
@@ -288,6 +302,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	private string function buildUserLink( event, rc, prc, recordId="" ) {
 		return event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#arguments.recordId#" );
+	}
+
+	private string function buildGroupLink( event, rc, prc, recordId="" ) {
+		return event.buildAdminLink( linkto="usermanager.viewGroup", queryString="id=#arguments.recordId#" );
 	}
 
 // private utility
