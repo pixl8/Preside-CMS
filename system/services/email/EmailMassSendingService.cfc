@@ -73,6 +73,7 @@ component {
 			var result = emailService.send(
 				  template    = queuedEmail.template
 				, recipientId = queuedEmail.recipient
+				, args        = queuedEmail.parameters
 			);
 
 			if ( !result && canError ) {
@@ -244,12 +245,13 @@ component {
 	 */
 	public struct function getNextQueuedEmail() {
 		var queuedEmail = $getPresideObject( "email_mass_send_queue" ).selectData(
-			  selectFields = [ "id", "recipient", "template" ]
+			  selectFields = [ "id", "recipient", "template", "parameters" ]
 			, orderby      = "id"
 			, maxRows      = 1
 		);
 
 		for( var q in queuedEmail ) {
+			q.parameters = Len( q.parameters ) && IsJSON( q.parameters ) ? DeserializeJSON( q.parameters ) : {};
 			return q;
 		}
 

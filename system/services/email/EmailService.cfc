@@ -43,23 +43,31 @@ component displayName="Email service" {
 	 * @htmlBody.hint    Optional HTML body
 	 * @textBody.hint    Optional plain text body
 	 * @params.hint      Optional struct of cfmail params (headers, attachments, etc.)
+	 * @useQueue.hint    Optional flag to inidicate if the email should be queued instead of directly sending it out (for new as of 10.8.0 templated emails only)
 	 */
 	public boolean function send(
-		  string template    = ""
-		, string recipientId = ""
-		, struct args        = {}
-		, array  to          = []
-		, string from        = ""
-		, string subject     = ""
-		, array  cc          = []
-		, array  bcc         = []
-		, string htmlBody    = ""
-		, string textBody    = ""
-		, struct params      = {}
+		  string  template    = ""
+		, string  recipientId = ""
+		, struct  args        = {}
+		, array   to          = []
+		, string  from        = ""
+		, string  subject     = ""
+		, array   cc          = []
+		, array   bcc         = []
+		, string  htmlBody    = ""
+		, string  textBody    = ""
+		, struct  params      = {}
+		, boolean useQueue    = false
 	) autodoc=true {
+
 		var hasTemplate = Len( Trim( arguments.template ) );
-		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
-		    sendArgs    = _addDefaultsForMissingArguments( sendArgs );
+
+		if ( hasTemplate && Len( arguments.recipientId ) && arguments.useQueue ) {
+			return _queueEmail( template=arguments.template, recipientId=arguments.recipientId, parameters=arguments.args );
+		}
+
+		var sendArgs = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
+		    sendArgs = _addDefaultsForMissingArguments( sendArgs );
 
 		_validateArguments( sendArgs );
 
@@ -213,6 +221,31 @@ component displayName="Email service" {
 				, message= "Missing body when sending message with subject [#sendArgs.subject ?: ''#]"
 			);
 		}
+	}
+
+	private boolean function _queueEmail( required string template, required string recipientId, required struct parameters ) {
+
+		try {
+			$getPresideObject( "email_mass_send_queue" ).insertData(
+				data = {
+					  template   = arguments.template
+					, recipient  = arguments.recipientId
+					, parameters = !isEmpty( arguments.parameters ) ? serializeJSON( arguments.parameters ) : ""
+				}
+			);
+		}
+		catch ( any e ) {
+
+			var errorType   = e.type   ?: "";
+			var errorDetail = e.detail ?: "";
+			
+			// we are fine if it's a unique constraint error - the exact same record already exists (nothing to do in this case, in all other cases rethrow)
+			if ( errorType != "database" || !errorDetail.findNoCase( "Duplicate entry" ) ) {
+				rethrow;
+			}
+		}
+
+		return true;
 	}
 
 
