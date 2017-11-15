@@ -161,6 +161,7 @@ component extends="preside.system.base.adminHandler" {
 				, useMultiActions = false
 				, isMultilingual  = false
 				, draftsEnabled   = false
+				, useCache        = false
 				, actionsView     = "admin.dataHelpers.relatedRecordTableActions"
 			}
 		);

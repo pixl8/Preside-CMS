@@ -310,7 +310,11 @@
 				, version    = version
 			);
 
-			prc.recordLabel    = renderLabel( object, recordId );
+			try {
+				prc.recordLabel = renderLabel( object, recordId );
+			} catch ( "PresideObjectService.no.label.field" e ) {
+				prc.recordLabel = recordId;
+			}
 			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
 			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
@@ -784,11 +788,12 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object     = rc.object  ?: "";
-			var id         = rc.id      ?: "";
-			var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
-			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var record     = "";
+			var object       = rc.object  ?: "";
+			var id           = rc.id      ?: "";
+			var version      = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
+			var objectName   = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var record       = "";
+			var resultAction = rc.resultAction ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
@@ -826,6 +831,14 @@
 				prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
 			}
 
+			switch( resultAction ) {
+				case "grid":
+					prc.cancelAction = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" );
+				break;
+				default:
+					prc.cancelAction = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#object#&id=#id#" );
+			}
+
 			// breadcrumb setup
 			_addObjectNameBreadCrumb( event, object );
 			_addViewRecordBreadCrumb( event, object, id );
@@ -843,6 +856,7 @@
 
 		<cfscript>
 			var objectName = rc.object ?: "";
+			var recordId   = rc.id     ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
@@ -857,6 +871,15 @@
 				}
 			}
 
+			var successUrl = "";
+			switch( rc.__resultAction ?: "" ) {
+				case "grid":
+					successUrl = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" );
+				break;
+				default:
+					successUrl = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" );
+			}
+
 			runEvent(
 				  event          = "admin.DataManager._editRecordAction"
 				, prePostExempt  = true
@@ -866,6 +889,7 @@
 					, draftsEnabled = prc.draftsEnabled
 					, canPublish    = IsTrue( prc.canPublish   ?: "" )
 					, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+					, successUrl    = successUrl
 				  }
 			);
 		</cfscript>
@@ -1464,7 +1488,7 @@
 
 			if ( !actionsView.trim().len() ) {
 				var viewRecordLink    = event.buildAdminLink( objectName=object, recordId="{id}" );
-				var editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id={id}" );
+				var editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id={id}&resultAction=grid" );
 				var deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id={id}" );
 				var viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id={id}" );
 				var canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] );
@@ -2284,7 +2308,13 @@
 		<cfargument name="recordId"   type="string" required="true" />
 
 		<cfscript>
-			var recordLabel = prc.recordLabel ?: renderLabel( objectName, recordId );
+			var recordLabel = "";
+			try {
+				recordLabel = prc.recordLabel ?: renderLabel( objectName, recordId );
+			} catch ( "PresideObjectService.no.label.field" e ) {
+				recordLabel = prc.recordLabel = recordId;
+			}
+
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
 				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
