@@ -310,7 +310,11 @@
 				, version    = version
 			);
 
-			prc.recordLabel    = renderLabel( object, recordId );
+			try {
+				prc.recordLabel = renderLabel( object, recordId );
+			} catch ( "PresideObjectService.no.label.field" e ) {
+				prc.recordLabel = recordId;
+			}
 			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
 			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
@@ -2297,7 +2301,13 @@
 		<cfargument name="recordId"   type="string" required="true" />
 
 		<cfscript>
-			var recordLabel = prc.recordLabel ?: renderLabel( objectName, recordId );
+			var recordLabel = "";
+			try {
+				recordLabel = prc.recordLabel ?: renderLabel( objectName, recordId );
+			} catch ( "PresideObjectService.no.label.field" e ) {
+				recordLabel = prc.recordLabel = recordId;
+			}
+
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
 				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
