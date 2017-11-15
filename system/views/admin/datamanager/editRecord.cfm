@@ -54,5 +54,7 @@
 		, draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
 		, canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
 		, canPublish    = IsTrue( prc.canPublish    ?: "" )
+		, resultAction  = rc.resultAction  ?: ""
+		, cancelAction  = prc.cancelAction ?: ""
 	} )#
 </cfoutput>

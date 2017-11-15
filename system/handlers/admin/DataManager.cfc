@@ -784,11 +784,12 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object     = rc.object  ?: "";
-			var id         = rc.id      ?: "";
-			var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
-			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var record     = "";
+			var object       = rc.object  ?: "";
+			var id           = rc.id      ?: "";
+			var version      = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
+			var objectName   = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var record       = "";
+			var resultAction = rc.resultAction ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
@@ -826,6 +827,14 @@
 				prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
 			}
 
+			switch( resultAction ) {
+				case "grid":
+					prc.cancelAction = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" );
+				break;
+				default:
+					prc.cancelAction = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#object#&id=#id#" );
+			}
+
 			// breadcrumb setup
 			_addObjectNameBreadCrumb( event, object );
 			_addViewRecordBreadCrumb( event, object, id );
@@ -843,6 +852,7 @@
 
 		<cfscript>
 			var objectName = rc.object ?: "";
+			var recordId   = rc.id     ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
@@ -857,6 +867,15 @@
 				}
 			}
 
+			var successUrl = "";
+			switch( rc.__resultAction ?: "" ) {
+				case "grid":
+					successUrl = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" );
+				break;
+				default:
+					successUrl = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" );
+			}
+
 			runEvent(
 				  event          = "admin.DataManager._editRecordAction"
 				, prePostExempt  = true
@@ -866,6 +885,7 @@
 					, draftsEnabled = prc.draftsEnabled
 					, canPublish    = IsTrue( prc.canPublish   ?: "" )
 					, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+					, successUrl    = successUrl
 				  }
 			);
 		</cfscript>
@@ -1485,7 +1505,7 @@
 				} else {
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
 						  viewRecordLink    = event.buildAdminLink( objectName=object, recordId=record.id )
-						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
+						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#&resultAction=grid" )
 						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
 						, viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id=#record.id#" )

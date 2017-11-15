@@ -15,7 +15,7 @@
 		if ( language.len() ) {
 			editRecordLink  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=#language#" );
 		} else {
-			editRecordLink  = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" );
+			editRecordLink  = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#&resultAction=viewRecord" );
 		}
 		editRecordTitle = translateResource( uri="cms:datamanager.editRecord.btn" );
 	}
