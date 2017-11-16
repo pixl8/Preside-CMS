@@ -6,7 +6,9 @@
 component extends="preside.system.base.adminHandler" {
 
 	property name="adminDataViewsService" inject="adminDataViewsService";
+	property name="dataManagerService"    inject="dataManagerService";
 	property name="presideObjectService"  inject="presideObjectService";
+
 	/**
 	 * Method that is called from `adminDataViewsService.buildViewObjectRecordLink()`
 	 * for objects that are managed in the DataManager. Hint: this can also be invoked with:
@@ -14,10 +16,13 @@ component extends="preside.system.base.adminHandler" {
 	 *
 	 */
 	private string function getViewRecordLink( required string objectName, required string recordId ) {
-		return event.buildAdminLink(
-			  linkto      = "datamanager.viewRecord"
-			, queryString = "object=#arguments.objectName#&id=#arguments.recordId#"
-		);
+		if ( dataManagerService.isOperationAllowed( arguments.objectName, "read" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.viewRecord"
+				, queryString = "object=#arguments.objectName#&id=#arguments.recordId#"
+			);
+		}
+		return "";
 	}
 
 
