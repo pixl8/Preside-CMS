@@ -77,7 +77,7 @@
 		<cfscript>
 			var objectName = rc.id ?: "";
 
-			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
 			runEvent(
 				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -201,7 +201,7 @@
 			var orderBy        = rc.orderBy       ?: "label";
 			var labelRenderer  = rc.labelRenderer ?: "";
 
-			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
 			for( var filterByField in filterByFields ) {
 				filterValue = rc[filterByField] ?: "";
@@ -287,6 +287,10 @@
 			var language   = rc.language ?: "";
 			var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, recordId ) : 0 );
 
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="read", object=object );
+
 			if ( language.len() ) {
 				prc.language = multilingualPresideObjectService.getLanguage( language );
 
@@ -300,9 +304,6 @@
 			prc.useVersioning = !language.len() && datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
 			prc.objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
-			_checkObjectExists( argumentCollection=arguments, object=object );
-			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-			_checkPermission( argumentCollection=arguments, key="read", object=object );
 
 			prc.renderedRecord = adminDataViewsService.renderObjectRecord(
 				  objectName = object
@@ -1513,6 +1514,7 @@
 						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
 						, viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id=#record.id#" )
+						, canView           = datamanagerService.isOperationAllowed( object, "read"   )
 						, canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] )
 						, canDelete         = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
 						, canViewHistory    = objectIsVersioned && datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] )
@@ -2157,18 +2159,19 @@
 	</cffunction>
 
 	<cffunction name="_checkPermission" access="public" returntype="any" output="false">
-		<cfargument name="event"        type="any"     required="true" />
-		<cfargument name="rc"           type="struct"  required="true" />
-		<cfargument name="prc"          type="struct"  required="true" />
-		<cfargument name="key"          type="string"  required="true" />
-		<cfargument name="object"       type="string"  required="true" />
-		<cfargument name="throwOnError" type="boolean" required="false" default="true" />
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+		<cfargument name="key"             type="string"  required="true" />
+		<cfargument name="object"          type="string"  required="true" />
+		<cfargument name="throwOnError"    type="boolean" required="false" default="true" />
+		<cfargument name="checkOperations" type="boolean" required="false" default="true" />
 
 		<cfscript>
-			var operations = [ "add", "edit", "delete", "viewversions" ];
+			var operations = [ "read", "add", "edit", "delete", "viewversions" ];
 			var permitted  = true;
 
-			if ( operations.find( arguments.key ) && !datamanagerService.isOperationAllowed( arguments.object, arguments.key ) ) {
+			if ( arguments.checkOperations && operations.find( arguments.key ) && !datamanagerService.isOperationAllowed( arguments.object, arguments.key ) ) {
 				permitted = false;
 			} else if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
 				permitted = false;
@@ -2266,7 +2269,7 @@
 			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
 			runEvent(
 				  event          = "admin.DataManager._exportDataAction"

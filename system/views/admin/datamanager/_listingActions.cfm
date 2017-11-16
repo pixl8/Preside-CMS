@@ -4,15 +4,18 @@
 <cfparam name="args.viewHistoryLink"   type="string" />
 <cfparam name="args.deleteRecordTitle" type="string" />
 <cfparam name="args.objectName"        type="string" />
+<cfparam name="args.canView"           type="boolean" />
 <cfparam name="args.canEdit"           type="boolean" />
 <cfparam name="args.canDelete"         type="boolean" />
 <cfparam name="args.canViewHistory"    type="boolean" />
 
 <cfoutput>
 	<div class="action-buttons btn-group">
-		<a href="#args.viewRecordLink#" data-context-key="v">
-			<i class="fa fa-fw fa-eye"></i>
-		</a>
+		<cfif args.canView>
+			<a href="#args.viewRecordLink#" data-context-key="v">
+				<i class="fa fa-fw fa-eye"></i>
+			</a>
+		</cfif>
 
 		<cfif args.canEdit>
 			<a href="#args.editRecordLink#" data-context-key="e">
