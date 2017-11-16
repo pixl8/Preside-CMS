@@ -27,7 +27,7 @@ component displayName="Ad-hoc Task Manager Service" {
 
 		$getColdbox().runEvent(
 			  event          = task.event
-			, eventArguments = { args=args }
+			, eventArguments = { args=args, logger=_getTaskLogger( taskId ), progress=_getTaskProgressReporter( taskId ) }
 			, private        = true
 			, prepostExempt  = true
 		);
@@ -45,6 +45,13 @@ component displayName="Ad-hoc Task Manager Service" {
 		return $getPresideObject( "taskmanager_adhoc_task" ).selectData( id=arguments.taskId );
 	}
 
+// PRIVATE HELPERS
+	private any function _getTaskLogger() {
+		return "stub";
+	}
 
-// GETTERS AND SETTERS
+	private any function _getTaskProgressReporter() {
+		return "stub";
+	}
+
 }

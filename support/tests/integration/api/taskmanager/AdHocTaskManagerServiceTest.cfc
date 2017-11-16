@@ -2,7 +2,7 @@ component extends="testbox.system.BaseSpec" {
 
 	public void function run() {
 		describe( "runTask()", function(){
-			it( "should call the handler defined for the task, passing additional args set", function(){
+			it( "should call the handler defined for the task, passing additional args set, a special logger and special progress object for the task", function(){
 				var service = _getService();
 				var taskId  = CreateUUId();
 				var event   = "some.handler.action";
@@ -10,7 +10,9 @@ component extends="testbox.system.BaseSpec" {
 				var taskDef = QueryNew( 'event,event_args', 'varchar,varchar', [ [ event, SerializeJson( args ) ] ] );
 
 				_mockGetTask( taskId, taskDef );
-				_mockRunEvent( event, { args=args } );
+				mockColdbox.$( "runEvent" );
+				var mockProgress = _mockProgress( service, taskId );
+				var mockLogger   = _mockLogger( service, taskId );
 
 				service.runTask( taskId );
 
@@ -18,7 +20,7 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  event          = event
-					, eventArguments = { args=args }
+					, eventArguments = { args=args, logger=mockLogger, progress=mockProgress }
 					, private        = true
 					, prepostExempt  = true
 				} );
@@ -46,12 +48,20 @@ component extends="testbox.system.BaseSpec" {
 		mockTaskDao.$( "selectData" ).$args( id=arguments.taskId ).$results( arguments.result );
 	}
 
-	private void function _mockRunEvent( required string event, struct args={}, any result ) {
-		mockColdbox.$( "runEvent" ).$args(
-			  event          = arguments.event
-			, eventArguments = arguments.args
-			, private        = true
-			, prepostExempt  = true
-		).$results( arguments.result ?: NullValue() );
+	private any function _mockProgress( required any service, required string taskId ) {
+		var dummyObj    = CreateStub();
+		    dummyObj.id = CreateUUId();
+
+		service.$( "_getTaskProgressReporter" ).$args( arguments.taskId ).$results( dummyObj );
+
+		return dummyObj;
+	}
+	private any function _mockLogger( required any service, required string taskId ) {
+		var dummyObj    = CreateStub();
+		    dummyObj.id = CreateUUId();
+
+		service.$( "_getTaskLogger" ).$args( arguments.taskId ).$results( dummyObj );
+
+		return dummyObj;
 	}
 }
