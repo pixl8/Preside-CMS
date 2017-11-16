@@ -1586,6 +1586,8 @@
 			);
 			var records    = Duplicate( results.records );
 			var gridFields = [ "published", "datemodified", "_version_author", "_version_changed_fields" ];
+			var canView    = datamanagerService.isOperationAllowed( object, "read"   );
+			var canEdit    = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] );
 
 			for( var record in records ){
 				for( var field in gridFields ){
@@ -1612,8 +1614,10 @@
 					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
 				} else {
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_historyActions", args={
-						  objectName = object
-						, recordId   = recordId
+						  objectName     = object
+						, recordId       = recordId
+						, canEdit        = canEdit
+						, canView        = canView
 						, viewRecordLink = event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
 						, editRecordLink = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
 					} ) );
