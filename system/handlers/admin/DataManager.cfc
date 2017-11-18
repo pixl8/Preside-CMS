@@ -1578,8 +1578,8 @@
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 				persist = formData;
 				persist.validationResult = validationResult;
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
+				if ( Len( arguments.errorAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=arguments.errorAction ), persistStruct=persist );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#object#" ), persistStruct=persist );
 				}
@@ -1618,11 +1618,11 @@
 				);
 			}
 
-			if ( !redirectOnSuccess ) {
+			if ( !arguments.redirectOnSuccess ) {
 				return newId;
 			}
 
-			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+			newRecordLink = event.buildAdminLink( linkTo=arguments.viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
@@ -1630,13 +1630,13 @@
 			] ) );
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				if ( Len( addAnotherAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
+				if ( Len( arguments.addAnotherAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=arguments.addAnotherAction ), persist="_addAnother" );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
 				}
 			} else {
-				if ( Len( successAction ?: "" ) ) {
+				if ( Len( arguments.successAction ?: "" ) ) {
 					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#newId#" ) );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
@@ -1676,8 +1676,8 @@
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 				persist = formData;
 				persist.validationResult = validationResult;
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
+				if ( Len( arguments.errorAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=arguments.errorAction ), persistStruct=persist );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addOneToManyRecord", querystring="object=#object#&parentId=#arguments.parentId#&relationshipKey=#arguments.relationshipKey#" ), persistStruct=persist );
 				}
@@ -1686,11 +1686,11 @@
 			obj = presideObjectService.getObject( object );
 			newId = obj.insertData( data=formData, insertManyToManyRecords=true );
 
-			if ( !redirectOnSuccess ) {
+			if ( !arguments.redirectOnSuccess ) {
 				return newId;
 			}
 
-			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+			newRecordLink = event.buildAdminLink( linkTo=arguments.viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
@@ -1698,14 +1698,14 @@
 			] ) );
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				if ( Len( addAnotherAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
+				if ( Len( arguments.addAnotherAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=arguments.addAnotherAction ), persist="_addAnother" );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addOneToManyRecord", queryString="object=#object#&parentId=#arguments.parentId#&relationshipKey=#arguments.relationshipKey#" ), persist="_addAnother" );
 				}
 			} else {
-				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction ) );
+				if ( Len( arguments.successAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=arguments.successAction ) );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#arguments.parentId#&relationshipKey=#arguments.relationshipKey#" ) );
 				}
@@ -1803,7 +1803,7 @@
 					}
 				}
 
-				if ( redirectOnSuccess ) {
+				if ( arguments.redirectOnSuccess ) {
 					if ( ids.len() eq 1 ) {
 						messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records[labelField][1] ] ) );
 					} else {
@@ -1826,10 +1826,10 @@
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="recordId"          type="string"  required="false" default="#( rc.id     ?: '' )#" />
 		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.editRecord", querystring="object=#arguments.object#&id=#arguments.recordId#" ) )#" />
+		<cfargument name="errorUrl"          type="string"  required="false" default="#( arguments.errorAction.len() ? event.buildAdminLink( linkTo=arguments.errorAction ) : event.buildAdminLink( linkTo="datamanager.editRecord", querystring="object=#arguments.object#&id=#arguments.recordId#" ) )#" />
 		<cfargument name="missingUrl"        type="string"  required="false" default="#event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" )#" />
 		<cfargument name="successAction"     type="string"  required="false" default="" />
-		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
+		<cfargument name="successUrl"        type="string"  required="false" default="#( arguments.successAction.len() ? event.buildAdminLink( linkTo=arguments.successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
 		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
@@ -1841,7 +1841,7 @@
 		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
 
 		<cfscript>
-			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
+			formName = Len( Trim( arguments.mergeWithFormName ) ) ? formsService.getMergedFormName( formName, arguments.mergeWithFormName ) : formName;
 
 			var id               = rc.id      ?: "";
 			var version          = rc.version ?: "";
@@ -1917,10 +1917,10 @@
 				);
 			}
 
-			if ( redirectOnSuccess ) {
+			if ( arguments.redirectOnSuccess ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
 
-				setNextEvent( url=successUrl );
+				setNextEvent( url=arguments.successUrl );
 			}
 
 
