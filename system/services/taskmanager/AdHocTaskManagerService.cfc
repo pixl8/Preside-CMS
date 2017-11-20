@@ -21,16 +21,22 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public boolean function runTask( required string taskId ) {
-		var task = getTask( arguments.taskId );
+		var task  = getTask( arguments.taskId );
 		var event = task.event ?: "";
 		var args  = IsJson( task.event_args ?: "" ) ? DeserializeJson( task.event_args ) : {};
+		var e     = "";
 
-		$getColdbox().runEvent(
-			  event          = task.event
-			, eventArguments = { args=args, logger=_getTaskLogger( taskId ), progress=_getTaskProgressReporter( taskId ) }
-			, private        = true
-			, prepostExempt  = true
-		);
+		try {
+			$getColdbox().runEvent(
+				  event          = task.event
+				, eventArguments = { args=args, logger=_getTaskLogger( taskId ), progress=_getTaskProgressReporter( taskId ) }
+				, private        = true
+				, prepostExempt  = true
+			);
+		} catch( any e ) {
+			$raiseError( error=e );
+			return false;
+		}
 
 		return true;
 	}

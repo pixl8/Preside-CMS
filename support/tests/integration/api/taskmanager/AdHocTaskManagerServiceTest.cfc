@@ -14,7 +14,7 @@ component extends="testbox.system.BaseSpec" {
 				var mockProgress = _mockProgress( service, taskId );
 				var mockLogger   = _mockLogger( service, taskId );
 
-				service.runTask( taskId );
+				expect( service.runTask( taskId ) ).toBe( true );
 
 				var log = mockColdbox.$callLog().runEvent;
 				expect( log.len() ).toBe( 1 );
@@ -24,6 +24,28 @@ component extends="testbox.system.BaseSpec" {
 					, private        = true
 					, prepostExempt  = true
 				} );
+			} );
+
+			it( "should return false and log error when an error is thrown during execution of the handler action", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+				var event   = "some.handler.action";
+				var args    = { test=CreateUUId(), fubar=123 };
+				var taskDef = QueryNew( 'event,event_args', 'varchar,varchar', [ [ event, SerializeJson( args ) ] ] );
+
+				_mockGetTask( taskId, taskDef );
+				var mockProgress = _mockProgress( service, taskId );
+				var mockLogger   = _mockLogger( service, taskId );
+
+				mockColdbox.$( "runEvent" ).$throws( type="SomeError", message="boo :(" );
+				service.$( "$raiseError" )
+
+				expect( service.runTask( taskId ) ).toBe( false );
+
+				var log = service.$callLog().$raiseError;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1].error.type    ?: "" ).toBe( "SomeError" );
+				expect( log[1].error.message ?: "" ).toBe( "boo :(" );
 			} );
 		} );
 	}
