@@ -112,7 +112,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	/**
 	 * Marks a task as complete
 	 *
-	 * @autodoc
+	 * @autodoc true
 	 * @taskId ID of the task to mark as complete
 	 */
 	public void function completeTask( required string taskId ) {
@@ -125,13 +125,41 @@ component displayName="Ad-hoc Task Manager Service" {
 	/**
 	 * Marks a task as failed
 	 *
-	 * @autodoc
-	 * @taskId ID of the task to mark as failed
+	 * @autodoc true
+	 * @taskId  ID of the task to mark as failed
 	 */
 	public void function failTask( required string taskId ) {
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
 			, data = { status="failed" }
+		);
+	}
+
+	/**
+	 * Sets progress on a task
+	 *
+	 * @autodoc  true
+	 * @taskId   ID of the task
+	 * @progress Progress percentage of the task
+	 */
+	public void function setProgress( required string taskId, required numeric progress ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = { progress_percentage=arguments.progress }
+		);
+	}
+
+	/**
+	 * Sets the result of a task
+	 *
+	 * @autodoc  true
+	 * @taskId   ID of the task
+	 * @result   The task result (will be serialized when saving against DB record)
+	 */
+	public void function setResult( required string taskId, required any result ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = { result=SerializeJson( arguments.result ) }
 		);
 	}
 

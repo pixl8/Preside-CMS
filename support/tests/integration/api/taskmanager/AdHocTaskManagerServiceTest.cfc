@@ -188,6 +188,44 @@ component extends="testbox.system.BaseSpec" {
 				} );
 			} );
 		} );
+
+		describe( "setProgress()", function(){
+			it( "should set the progress percentage against the DB record", function(){
+				var service = _getService();
+				var taskId = CreateUUId();
+				var progress = 84;
+
+				mockTaskDao.$( "updateData", 1 );
+
+				service.setProgress( taskId, progress );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id   = taskId
+					, data = { progress_percentage=progress }
+				} );
+			} );
+		} );
+
+		describe( "setResult()", function(){
+			it( "should set the task result against the DB record", function(){
+				var service = _getService();
+				var taskId = CreateUUId();
+				var result = { complex=true, random=[ CreateUUId() ] };
+
+				mockTaskDao.$( "updateData", 1 );
+
+				service.setResult( taskId, result );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id   = taskId
+					, data = { result=SerializeJson( result ) }
+				} );
+			} );
+		} );
 	}
 
 

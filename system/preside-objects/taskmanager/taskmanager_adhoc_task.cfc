@@ -14,4 +14,5 @@ component extends="preside.system.base.SystemPresideObject"  {
 	property name="progress_percentage" type="numeric" dbtype="int"                     required=false default=0;
 
 	property name="admin_owner" relationship="many-to-one" relatedto="security_user" required=false;
+	property name="web_owner"   relationship="many-to-one" relatedto="website_user"  required=false;
 }
