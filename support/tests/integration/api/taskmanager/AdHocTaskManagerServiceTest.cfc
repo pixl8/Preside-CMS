@@ -226,6 +226,34 @@ component extends="testbox.system.BaseSpec" {
 				} );
 			} );
 		} );
+
+		describe( "getProgress()", function(){
+			it( "should return a struct with task ID, status, progress and result from the DB record", function(){
+				var service  = _getService();
+				var taskId   = CreateUUId();
+				var dbResult = QueryNew( 'id,status,progress_percentage,result', 'varchar,varchar,varchar,varchar', [[ taskId, "running", 45, "{ test:'this' }" ]] );
+				var expected = {
+					  id       = dbResult.id
+					, status   = dbResult.status
+					, progress = dbResult.progress_percentage
+					, result   = DeserializeJson( dbResult.result )
+				};
+
+				service.$( "getTask" ).$args( taskId ).$results( dbResult );
+
+				expect( service.getProgress( taskId ) ).toBe( expected );
+			} );
+
+			it( "should return an empty struct when the task does not exist", function(){
+				var service  = _getService();
+				var taskId   = CreateUUId();
+				var dbResult = QueryNew( 'id,status,progress_percentage,result' );
+
+				service.$( "getTask" ).$args( taskId ).$results( dbResult );
+
+				expect( service.getProgress( taskId ) ).toBe( {} );
+			} );
+		} );
 	}
 
 

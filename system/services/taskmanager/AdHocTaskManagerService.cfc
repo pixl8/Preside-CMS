@@ -163,6 +163,28 @@ component displayName="Ad-hoc Task Manager Service" {
 		);
 	}
 
+	/**
+	 * Returns progress of the given task as a struct. Struct keys:
+	 * [id, progress, status, result].
+	 *
+	 * @autodoc true
+	 * @taskId  ID of the task whose progress you wish to get
+	 */
+	public struct function getProgress( required string taskId ) {
+		var task = getTask( arguments.taskId );
+
+		for( var t in task ) {
+			return {
+				  id       = t.id
+				, status   = t.status
+				, progress = t.progress_percentage
+				, result   = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
+			};
+		}
+
+		return {};
+	}
+
 
 // PRIVATE HELPERS
 	private any function _getTaskLogger() {
