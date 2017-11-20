@@ -69,6 +69,32 @@ component extends="testbox.system.BaseSpec" {
 					, args       = args
 				) ).toBe( taskId );
 			} );
+
+			it( "should run the newly created task in a new thread if 'runNow' is passed and is 'true'", function(){
+				var service = _getService();
+				var owner   = CreateUUId();
+				var event   = "some.event";
+				var args    = { test=CreateUUId(), foobar=[ 1, 2, CreateUUId() ] };
+				var taskId  = CreateUUId();
+
+				mockTaskDao.$( "insertData" ).$args( {
+					  event       = event
+					, event_args  = SerializeJson( args )
+					, admin_owner = owner
+				} ).$results( taskId );
+				service.$( "runTaskInThread" );
+
+				service.createTask(
+					  adminOwner = owner
+					, event      = event
+					, args       = args
+					, runNow     = true
+				);
+
+				var log = service.$callLog().runTaskInThread;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { taskId=taskId } );
+			} );
 		} );
 	}
 
