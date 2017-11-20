@@ -71,6 +71,11 @@ component displayName="Ad-hoc Task Manager Service" {
 				return false;
 			}
 
+			$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+				  id   = arguments.taskId
+				, data = { status="running" }
+			);
+
 			try {
 				$getColdbox().runEvent(
 					  event          = task.event

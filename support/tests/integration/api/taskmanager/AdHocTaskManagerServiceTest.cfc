@@ -16,6 +16,7 @@ component extends="testbox.system.BaseSpec" {
 
 				service.$( "completeTask" );
 				service.$( "failTask" );
+				mockTaskDao.$( "updateData" );
 
 				expect( service.runTask( taskId ) ).toBe( true );
 
@@ -27,6 +28,29 @@ component extends="testbox.system.BaseSpec" {
 					, private        = true
 					, prepostExempt  = true
 				} );
+			} );
+
+			it( "should mark the task as running during the process", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+				var event   = "some.handler.action";
+				var args    = { test=CreateUUId(), fubar=123 };
+				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "pending" ] ] );
+
+				_mockGetTask( taskId, taskDef );
+				mockColdbox.$( "runEvent" );
+				var mockProgress = _mockProgress( service, taskId );
+				var mockLogger   = _mockLogger( service, taskId );
+
+				service.$( "completeTask" );
+				service.$( "failTask" );
+				mockTaskDao.$( "updateData" );
+
+				service.runTask( taskId );
+
+				log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { id=taskId, data={ status="running" } } );
 			} );
 
 			it( "should mark the task as complete when finished successfully", function(){
@@ -43,6 +67,7 @@ component extends="testbox.system.BaseSpec" {
 
 				service.$( "completeTask" );
 				service.$( "failTask" );
+				mockTaskDao.$( "updateData" );
 
 				service.runTask( taskId );
 
@@ -66,6 +91,7 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "$raiseError" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
+				mockTaskDao.$( "updateData" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 
@@ -94,6 +120,7 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "$raiseError" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
+				mockTaskDao.$( "updateData" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
