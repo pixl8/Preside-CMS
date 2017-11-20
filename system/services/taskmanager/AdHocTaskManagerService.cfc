@@ -212,7 +212,7 @@ component displayName="Ad-hoc Task Manager Service" {
 				return getPageContext().hasFamily();
 				break;
 			}
-		} //end switch statement.
+		}
 
 		return false;
 	}
