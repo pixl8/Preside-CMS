@@ -254,6 +254,22 @@ component extends="testbox.system.BaseSpec" {
 				expect( service.getProgress( taskId ) ).toBe( {} );
 			} );
 		} );
+
+		describe( "discardTask()", function(){
+			it( "should delete the task from the database", function(){
+				var service  = _getService();
+				var taskId   = CreateUUId();
+
+				mockTaskDao.$( "deleteData", 1 );
+
+				expect( service.discardTask( taskId ) ).toBe( true );
+
+				var log = mockTaskDao.$callLog().deleteData;
+
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { id=taskId } );
+			} );
+		} );
 	}
 
 

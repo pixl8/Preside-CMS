@@ -186,6 +186,19 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 
 
+	/**
+	 * Discards the given task
+	 *
+	 * @autodoc true
+	 * @taskId  ID of the task to discard
+	 */
+	public boolean function discardTask( required string taskId ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).deleteData( id=arguments.taskId );
+
+		return true;
+	}
+
+
 // PRIVATE HELPERS
 	private any function _getTaskLogger() {
 		return "stub";
