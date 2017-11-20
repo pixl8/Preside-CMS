@@ -114,9 +114,11 @@ component extends="testbox.system.BaseSpec" {
 				var taskId  = CreateUUId();
 
 				mockTaskDao.$( "insertData" ).$args( {
-					  event       = event
-					, event_args  = SerializeJson( args )
-					, admin_owner = owner
+					  event               = event
+					, event_args          = SerializeJson( args )
+					, admin_owner         = owner
+					, web_owner           = ""
+					, discard_on_complete = false
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -134,17 +136,20 @@ component extends="testbox.system.BaseSpec" {
 				var taskId  = CreateUUId();
 
 				mockTaskDao.$( "insertData" ).$args( {
-					  event       = event
-					, event_args  = SerializeJson( args )
-					, admin_owner = owner
+					  event               = event
+					, event_args          = SerializeJson( args )
+					, admin_owner         = ""
+					, web_owner           = owner
+					, discard_on_complete = true
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
 
 				service.createTask(
-					  adminOwner = owner
-					, event      = event
-					, args       = args
-					, runNow     = true
+					  webOwner          = owner
+					, event             = event
+					, args              = args
+					, runNow            = true
+					, discardOnComplete = true
 				);
 
 				var log = service.$callLog().runTaskInThread;
@@ -160,6 +165,7 @@ component extends="testbox.system.BaseSpec" {
 
 				mockTaskDao.$( "updateData", 1 );
 
+				service.$( "getTask" ).$args( taskId ).$results( QueryNew( 'discard_on_complete', 'boolean', [[ false ]] ) );
 				service.completeTask( taskId );
 
 				var log = mockTaskDao.$callLog().updateData;
@@ -168,6 +174,24 @@ component extends="testbox.system.BaseSpec" {
 					  id   = taskId
 					, data = { status="succeeded" }
 				} );
+			} );
+
+			it( "should discard the task if set to discard on complete", function(){
+				var service = _getService();
+				var taskId = CreateUUId();
+
+				service.$( "getTask" ).$args( taskId ).$results( QueryNew( 'discard_on_complete', 'boolean', [[ true ]] ) );
+				service.$( "discardTask", true );
+				mockTaskDao.$( "updateData", 1 );
+
+				service.completeTask( taskId );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 0 );
+
+				log = service.$callLog().discardTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { taskId=taskId } );
 			} );
 		} );
 

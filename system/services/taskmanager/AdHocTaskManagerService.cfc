@@ -18,21 +18,28 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * Registers a new task, optionally running it there and then
 	 * in a background thread
 	 *
-	 * @autodoc    true
-	 * @event      Coldbox event that will be run
-	 * @args       Args struct to pass to the coldbox event
-	 * @adminOwner Optional admin user ID, owner of the task
+	 * @autodoc           true
+	 * @event             Coldbox event that will be run
+	 * @args              Args struct to pass to the coldbox event
+	 * @adminOwner        Optional admin user ID, owner of the task
+	 * @adminOwner        Optional admin user ID, owner of the task
+	 * @webOwner          Optional website user ID, owner of the task
+	 * @discardOnComplete Whether or not to discard the task once completed or permanently failed.
 	 */
 	public string function createTask(
 		  required string  event
-		,          struct  args       = {}
-		,          string  adminOwner = ""
-		,          boolean runNow     = false
+		,          struct  args              = {}
+		,          string  adminOwner        = ""
+		,          string  webOwner          = ""
+		,          boolean runNow            = false
+		,          boolean discardOnComplete = false
 	) {
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
-			  event       = arguments.event
-			, event_args  = SerializeJson( arguments.args )
-			, admin_owner = arguments.adminOwner
+			  event               = arguments.event
+			, event_args          = SerializeJson( arguments.args )
+			, admin_owner         = arguments.adminOwner
+			, web_owner           = arguments.webOwner
+			, discard_on_complete = arguments.discardOnComplete
 		} );
 
 		if ( arguments.runNow ) {
@@ -116,6 +123,13 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId ID of the task to mark as complete
 	 */
 	public void function completeTask( required string taskId ) {
+		var task = getTask( arguments.taskId );
+
+		if ( IsBoolean( task.discard_on_complete ?: "" ) && task.discard_on_complete ) {
+			discardTask( taskId=arguments.taskId );
+			return;
+		}
+
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
 			, data = { status="succeeded" }
