@@ -7,7 +7,7 @@ component extends="testbox.system.BaseSpec" {
 				var taskId  = CreateUUId();
 				var event   = "some.handler.action";
 				var args    = { test=CreateUUId(), fubar=123 };
-				var taskDef = QueryNew( 'event,event_args', 'varchar,varchar', [ [ event, SerializeJson( args ) ] ] );
+				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "pending" ] ] );
 
 				_mockGetTask( taskId, taskDef );
 				mockColdbox.$( "runEvent" );
@@ -31,7 +31,7 @@ component extends="testbox.system.BaseSpec" {
 				var taskId  = CreateUUId();
 				var event   = "some.handler.action";
 				var args    = { test=CreateUUId(), fubar=123 };
-				var taskDef = QueryNew( 'event,event_args', 'varchar,varchar', [ [ event, SerializeJson( args ) ] ] );
+				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "pending" ] ] );
 
 				_mockGetTask( taskId, taskDef );
 				var mockProgress = _mockProgress( service, taskId );
@@ -46,6 +46,29 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1].error.type    ?: "" ).toBe( "SomeError" );
 				expect( log[1].error.message ?: "" ).toBe( "boo :(" );
+			} );
+
+			it( "should silenty raise an error and return false when the task is already running", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+				var event   = "some.handler.action";
+				var args    = { test=CreateUUId(), fubar=123 };
+				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "running" ] ] );
+
+				_mockGetTask( taskId, taskDef );
+				var mockProgress = _mockProgress( service, taskId );
+				var mockLogger   = _mockLogger( service, taskId );
+
+				mockColdbox.$( "runEvent" );
+				service.$( "$raiseError" )
+
+				expect( service.runTask( taskId ) ).toBe( false );
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
+
+				var log = service.$callLog().$raiseError;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1].error.type    ?: "" ).toBe( "AdHoTaskManagerService.task.already.running" );
+				expect( log[1].error.message ?: "" ).toBe( "Task not run. The task with ID, [#taskId#], is already running." );
 			} );
 		} );
 

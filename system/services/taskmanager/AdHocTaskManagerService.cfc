@@ -49,21 +49,32 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public boolean function runTask( required string taskId ) {
-		var task  = getTask( arguments.taskId );
-		var event = task.event ?: "";
-		var args  = IsJson( task.event_args ?: "" ) ? DeserializeJson( task.event_args ) : {};
-		var e     = "";
+		lock timeout="1" name="adhocRunTask#arguments.taskId#" {
+			var task  = getTask( arguments.taskId );
+			var event = task.event ?: "";
+			var args  = IsJson( task.event_args ?: "" ) ? DeserializeJson( task.event_args ) : {};
+			var e     = "";
 
-		try {
-			$getColdbox().runEvent(
-				  event          = task.event
-				, eventArguments = { args=args, logger=_getTaskLogger( taskId ), progress=_getTaskProgressReporter( taskId ) }
-				, private        = true
-				, prepostExempt  = true
-			);
-		} catch( any e ) {
-			$raiseError( error=e );
-			return false;
+			if ( task.status == "running" ) {
+				$raiseError( error={
+					  type    = "AdHoTaskManagerService.task.already.running"
+					, message = "Task not run. The task with ID, [#arguments.taskId#], is already running."
+				} );
+
+				return false;
+			}
+
+			try {
+				$getColdbox().runEvent(
+					  event          = task.event
+					, eventArguments = { args=args, logger=_getTaskLogger( taskId ), progress=_getTaskProgressReporter( taskId ) }
+					, private        = true
+					, prepostExempt  = true
+				);
+			} catch( any e ) {
+				$raiseError( error=e );
+				return false;
+			}
 		}
 
 		return true;
