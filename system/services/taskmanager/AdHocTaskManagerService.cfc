@@ -87,7 +87,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public void function runTaskInThread( required string taskId ) {
-		if ( _isInThreadAlready() ) {
+		if ( _inThread() ) {
 			runTask( arguments.taskId );
 		}
 
@@ -115,7 +115,25 @@ component displayName="Ad-hoc Task Manager Service" {
 		return "stub";
 	}
 
-	private boolean function _isInThreadAlready() {
+	private boolean function _inThread() {
+		var engine = "ADOBE";
+
+		if ( server.coldfusion.productname == "Railo" ){ engine = "RAILO"; }
+		if ( server.coldfusion.productname == "Lucee" ){ engine = "LUCEE"; }
+
+		switch( engine ){
+			case "ADOBE"	: {
+				if( findNoCase( "cfthread", createObject( "java", "java.lang.Thread" ).currentThread().getThreadGroup().getName() ) ){
+					return true;
+				}
+				break;
+			}
+			case "RAILO" : case "LUCEE" : {
+				return getPageContext().hasFamily();
+				break;
+			}
+		} //end switch statement.
+
 		return false;
 	}
 
