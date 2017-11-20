@@ -14,6 +14,9 @@ component extends="testbox.system.BaseSpec" {
 				var mockProgress = _mockProgress( service, taskId );
 				var mockLogger   = _mockLogger( service, taskId );
 
+				service.$( "completeTask" );
+				service.$( "failTask" );
+
 				expect( service.runTask( taskId ) ).toBe( true );
 
 				var log = mockColdbox.$callLog().runEvent;
@@ -26,7 +29,29 @@ component extends="testbox.system.BaseSpec" {
 				} );
 			} );
 
-			it( "should return false and log error when an error is thrown during execution of the handler action", function(){
+			it( "should mark the task as complete when finished successfully", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+				var event   = "some.handler.action";
+				var args    = { test=CreateUUId(), fubar=123 };
+				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "pending" ] ] );
+
+				_mockGetTask( taskId, taskDef );
+				mockColdbox.$( "runEvent" );
+				var mockProgress = _mockProgress( service, taskId );
+				var mockLogger   = _mockLogger( service, taskId );
+
+				service.$( "completeTask" );
+				service.$( "failTask" );
+
+				service.runTask( taskId );
+
+				log = service.$callLog().completeTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { taskId=taskId } );
+			} );
+
+			it( "should return false, fail the task and log error when an error is thrown during execution of the handler action", function(){
 				var service = _getService();
 				var taskId  = CreateUUId();
 				var event   = "some.handler.action";
@@ -38,7 +63,9 @@ component extends="testbox.system.BaseSpec" {
 				var mockLogger   = _mockLogger( service, taskId );
 
 				mockColdbox.$( "runEvent" ).$throws( type="SomeError", message="boo :(" );
-				service.$( "$raiseError" )
+				service.$( "$raiseError" );
+				service.$( "completeTask" );
+				service.$( "failTask" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 
@@ -46,6 +73,10 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1].error.type    ?: "" ).toBe( "SomeError" );
 				expect( log[1].error.message ?: "" ).toBe( "boo :(" );
+
+				var log = service.$callLog().failTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { taskId=taskId } );
 			} );
 
 			it( "should silenty raise an error and return false when the task is already running", function(){
@@ -60,7 +91,9 @@ component extends="testbox.system.BaseSpec" {
 				var mockLogger   = _mockLogger( service, taskId );
 
 				mockColdbox.$( "runEvent" );
-				service.$( "$raiseError" )
+				service.$( "$raiseError" );
+				service.$( "completeTask" );
+				service.$( "failTask" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
@@ -117,6 +150,42 @@ component extends="testbox.system.BaseSpec" {
 				var log = service.$callLog().runTaskInThread;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( { taskId=taskId } );
+			} );
+		} );
+
+		describe( "completeTask()", function(){
+			it( "should update status of db record", function(){
+				var service = _getService();
+				var taskId = CreateUUId();
+
+				mockTaskDao.$( "updateData", 1 );
+
+				service.completeTask( taskId );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id   = taskId
+					, data = { status="succeeded" }
+				} );
+			} );
+		} );
+
+		describe( "failTask()", function(){
+			it( "should update status of db record", function(){
+				var service = _getService();
+				var taskId = CreateUUId();
+
+				mockTaskDao.$( "updateData", 1 );
+
+				service.failTask( taskId );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id   = taskId
+					, data = { status="failed" }
+				} );
 			} );
 		} );
 	}

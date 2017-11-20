@@ -72,9 +72,12 @@ component displayName="Ad-hoc Task Manager Service" {
 					, prepostExempt  = true
 				);
 			} catch( any e ) {
+				failTask( taskId=arguments.taskId );
 				$raiseError( error=e );
 				return false;
 			}
+
+			completeTask( taskId=arguments.taskId );
 		}
 
 		return true;
@@ -105,6 +108,33 @@ component displayName="Ad-hoc Task Manager Service" {
 	public query function getTask( required string taskId ) {
 		return $getPresideObject( "taskmanager_adhoc_task" ).selectData( id=arguments.taskId );
 	}
+
+	/**
+	 * Marks a task as complete
+	 *
+	 * @autodoc
+	 * @taskId ID of the task to mark as complete
+	 */
+	public void function completeTask( required string taskId ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = { status="succeeded" }
+		);
+	}
+
+	/**
+	 * Marks a task as failed
+	 *
+	 * @autodoc
+	 * @taskId ID of the task to mark as failed
+	 */
+	public void function failTask( required string taskId ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = { status="failed" }
+		);
+	}
+
 
 // PRIVATE HELPERS
 	private any function _getTaskLogger() {
