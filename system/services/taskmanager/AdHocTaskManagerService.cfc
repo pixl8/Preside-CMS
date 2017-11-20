@@ -15,6 +15,29 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // PUBLIC API METHODS
 	/**
+	 * Registers a new task, optionally running it there and then
+	 * in a background thread
+	 *
+	 * @autodoc    true
+	 * @event      Coldbox event that will be run
+	 * @args       Args struct to pass to the coldbox event
+	 * @adminOwner Optional admin user ID, owner of the task
+	 */
+	public string function createTask(
+		  required string event
+		,          struct args       = {}
+		,          string adminOwner = ""
+	) {
+		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
+			  event       = arguments.event
+			, event_args  = SerializeJson( arguments.args )
+			, admin_owner = arguments.adminOwner
+		} );
+
+		return taskId;
+	}
+
+	/**
 	 * Runs a registered task
 	 *
 	 * @autodoc true

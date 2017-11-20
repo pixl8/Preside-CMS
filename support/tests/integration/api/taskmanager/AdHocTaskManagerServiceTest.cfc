@@ -48,6 +48,28 @@ component extends="testbox.system.BaseSpec" {
 				expect( log[1].error.message ?: "" ).toBe( "boo :(" );
 			} );
 		} );
+
+		describe( "createTask()", function(){
+			it( "should insert a new record into the adhoc task table and return the ID", function(){
+				var service = _getService();
+				var owner   = CreateUUId();
+				var event   = "some.event";
+				var args    = { test=CreateUUId(), foobar=[ 1, 2, CreateUUId() ] };
+				var taskId  = CreateUUId();
+
+				mockTaskDao.$( "insertData" ).$args( {
+					  event       = event
+					, event_args  = SerializeJson( args )
+					, admin_owner = owner
+				} ).$results( taskId );
+
+				expect( service.createTask(
+					  adminOwner = owner
+					, event      = event
+					, args       = args
+				) ).toBe( taskId );
+			} );
+		} );
 	}
 
 

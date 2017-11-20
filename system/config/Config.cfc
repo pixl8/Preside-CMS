@@ -360,6 +360,7 @@ component {
 		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "running", "requeued", "succeeded", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
