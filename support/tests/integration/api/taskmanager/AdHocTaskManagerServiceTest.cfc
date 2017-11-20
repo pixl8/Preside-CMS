@@ -102,7 +102,9 @@ component extends="testbox.system.BaseSpec" {
 
 				var log = service.$callLog().failTask;
 				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( { taskId=taskId } );
+				expect( log[1].taskId ).toBe( taskId );
+				expect( log[1].error.type    ?: "" ).toBe( "SomeError" );
+				expect( log[1].error.message ?: "" ).toBe( "boo :(" );
 			} );
 
 			it( "should silenty raise an error and return false when the task is already running", function(){
@@ -146,6 +148,7 @@ component extends="testbox.system.BaseSpec" {
 					, admin_owner         = owner
 					, web_owner           = ""
 					, discard_on_complete = false
+					, retry_interval      = "[]"
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -168,6 +171,7 @@ component extends="testbox.system.BaseSpec" {
 					, admin_owner         = ""
 					, web_owner           = owner
 					, discard_on_complete = true
+					, retry_interval      = "[]"
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
 
@@ -223,19 +227,47 @@ component extends="testbox.system.BaseSpec" {
 		} );
 
 		describe( "failTask()", function(){
-			it( "should update status of db record", function(){
-				var service = _getService();
-				var taskId = CreateUUId();
+			it( "should update status of db record to failed when no retry attempts defined", function(){
+				var service     = _getService();
+				var taskId      = CreateUUId();
+				var error       = { type="test.error", message="Something went wrong" };
+				var nextAttempt = { totalAttempts=1, nextAttemptDate="" };
 
 				mockTaskDao.$( "updateData", 1 );
+				service.$( "getNextAttemptInfo" ).$args( taskId ).$results( nextAttempt );
 
-				service.failTask( taskId );
+				service.failTask( taskId, error );
 
 				var log = mockTaskDao.$callLog().updateData;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  id   = taskId
-					, data = { status="failed" }
+					, data = { status="failed", last_error=SerializeJson( error ), attempt_count=nextAttempt.totalAttempts }
+				} );
+			} );
+
+			it( "should requeue task when another attempt is due", function(){
+				var service     = _getService();
+				var taskId      = CreateUUId();
+				var error       = { type="test.error", message="Something went wrong" };
+				var nextAttempt = { totalAttempts=3, nextAttemptDate=DateAdd( "n", 40, Now() ) };
+
+				mockTaskDao.$( "updateData", 1 );
+				service.$( "getNextAttemptInfo" ).$args( taskId ).$results( nextAttempt );
+				service.$( "requeueTask" );
+
+				service.failTask( taskId, error );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 0 );
+
+				log = service.$callLog().requeueTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  taskId          = taskId
+					, error           = error
+					, attemptCount    = nextAttempt.totalAttempts
+					, nextAttemptDate = nextAttempt.nextAttemptDate
 				} );
 			} );
 		} );
@@ -319,6 +351,43 @@ component extends="testbox.system.BaseSpec" {
 
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( { id=taskId } );
+			} );
+		} );
+
+		describe( "getNextAttemptInfo()", function(){
+			it( "should should return a struct with totalAttempts set to previous attempts+1 and an empty string for next date, when task has no retry attempts configured", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+				var task    = QueryNew( "retry_interval,attempt_count", "varchar,int", [ [ "[]", 0 ] ] );
+
+				service.$( "getTask" ).$args( taskId ).$results( task );
+
+				expect( service.getNextAttemptInfo( taskId ) ).toBe( { totalAttempts=1, nextAttemptDate="" } );
+			} );
+
+			it( "should return an empty struct when the task is all out of retries", function(){
+				var service       = _getService();
+				var taskId        = CreateUUId();
+				var retryInterval = [ { tries=3,interval=5 }, { tries=2, interval=30 } ];
+				var task          = QueryNew( "retry_interval,attempt_count", "varchar,int", [ [ SerializeJson( retryInterval ), 4 ] ] );
+
+				service.$( "getTask" ).$args( taskId ).$results( task );
+
+				expect( service.getNextAttemptInfo( taskId ) ).toBe( { totalAttempts=5, nextAttemptDate="" } );
+			} );
+
+			it( "should return a struct with 'nextAttemptDate' calculated from current date + next retry interval + 'totalAttempts' from database attempt count (plus one)", function(){
+				var service       = _getService();
+				var taskId        = CreateUUId();
+				var retryInterval = [ { tries=3,interval=5 }, { tries=2, interval=30 } ];
+				var task          = QueryNew( "retry_interval,attempt_count", "varchar,int", [ [ SerializeJson( retryInterval ), 3 ] ] );
+
+				service.$( "getTask" ).$args( taskId ).$results( task );
+
+				expect( service.getNextAttemptInfo( taskId ) ).toBe( {
+					  totalAttempts   = 4
+					, nextAttemptDate = DateTimeFormat( DateAdd( "n", 30, Now() ), "yyyy-mm-dd HH:nn" )
+				} );
 			} );
 		} );
 	}

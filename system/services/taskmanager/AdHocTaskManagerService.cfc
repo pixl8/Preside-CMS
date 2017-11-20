@@ -25,6 +25,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @adminOwner        Optional admin user ID, owner of the task
 	 * @webOwner          Optional website user ID, owner of the task
 	 * @discardOnComplete Whether or not to discard the task once completed or permanently failed.
+	 * @retryInterval     Definition of retry attempts for tasks that fail to run. Array of structs with the following keys, "tries": number of attempts, "interval":number in minutes between tries. For example: `[ { tries:3, interval=5 }, { tries:2, interval=60 }]` will retry three times with 5 minutes between attempts and then retry a further two times with 60 minutes between attempts.
 	 */
 	public string function createTask(
 		  required string  event
@@ -33,6 +34,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          string  webOwner          = ""
 		,          boolean runNow            = false
 		,          boolean discardOnComplete = false
+		,          array   retryInterval     = []
 	) {
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
 			  event               = arguments.event
@@ -40,6 +42,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, admin_owner         = arguments.adminOwner
 			, web_owner           = arguments.webOwner
 			, discard_on_complete = arguments.discardOnComplete
+			, retry_interval      = SerializeJson( arguments.retryInterval )
 		} );
 
 		if ( arguments.runNow ) {
@@ -84,7 +87,7 @@ component displayName="Ad-hoc Task Manager Service" {
 					, prepostExempt  = true
 				);
 			} catch( any e ) {
-				failTask( taskId=arguments.taskId );
+				failTask( taskId=arguments.taskId, error=e );
 				$raiseError( error=e );
 				return false;
 			}
@@ -146,12 +149,43 @@ component displayName="Ad-hoc Task Manager Service" {
 	 *
 	 * @autodoc true
 	 * @taskId  ID of the task to mark as failed
+	 * @error   Error that prompted task failure
 	 */
-	public void function failTask( required string taskId ) {
+	public void function failTask( required string taskId, struct error={} ) {
+		var nextAttempt = getNextAttemptInfo( arguments.taskId );
+
+		if ( IsDate( nextAttempt.nextAttemptDate ) ) {
+			requeueTask(
+				  taskId          = arguments.taskId
+				, error           = arguments.error
+				, attemptCount    = nextAttempt.totalAttempts
+				, nextAttemptDate = nextAttempt.nextAttemptDate
+			);
+
+			return;
+		}
+
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
-			, data = { status="failed" }
+			, data = {
+				  status        = "failed"
+				, last_error    = SerializeJson( arguments.error )
+				, attempt_count = nextAttempt.totalAttempts
+			  }
 		);
+	}
+
+	/**
+	 * Requeues a task for execution
+	 *
+	 * @autodoc         true
+	 * @taskId          ID of the task to re-queue
+	 * @error           Error that prompted requeue (see failtask())
+	 * @attemptCount    Number of attempts made so far
+	 * @nextAttemptDate Date of next attempt
+	 */
+	public void function requeueTask() {
+		return;
 	}
 
 	/**
@@ -215,6 +249,38 @@ component displayName="Ad-hoc Task Manager Service" {
 		$getPresideObject( "taskmanager_adhoc_task" ).deleteData( id=arguments.taskId );
 
 		return true;
+	}
+
+	/**
+	 * Returns a struct with information about the next retry attempt for a task.
+	 * Keys are: "nextAttemptDate", "totalAttempts". Returns an empty struct
+	 * if task cannot be retried.
+	 *
+	 * @autodoc true
+	 * @taskId  ID of the task
+	 *
+	 */
+	public struct function getNextAttemptInfo( required string taskId ) {
+		var task          = getTask( arguments.taskId );
+		var retryConfig   = IsJson( task.retry_interval ?: "" ) ? DeserializeJson( task.retry_interval ) : [];
+		var maxAttempts   = 0;
+		var nextInterval  = 0;
+		var totalAttempts = Val( task.attempt_count ) + 1;
+		var info          = {
+			  totalAttempts   = totalAttempts
+			, nextAttemptDate = ""
+		};
+
+		for( var interval in retryConfig ) {
+			maxAttempts += Val( interval.tries ?: "" );
+
+			if ( maxAttempts > totalAttempts ) {
+				info.nextAttemptDate = DateTimeFormat( DateAdd( "n", Val( interval.interval ?: "" ), Now() ), "yyyy-mm-dd HH:nn" );
+				break;
+			}
+		}
+
+		return info;
 	}
 
 
