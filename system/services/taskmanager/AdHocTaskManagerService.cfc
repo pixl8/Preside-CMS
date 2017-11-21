@@ -123,6 +123,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		}
 
 		thread action="run" name="runTask-#CreateUUId()#" taskId=arguments.taskId {
+			setting requesttimeout=0;
 			runTask( taskId=attributes.taskId );
 		}
 	}
