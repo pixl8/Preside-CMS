@@ -17,17 +17,17 @@ component {
 		return this;
 	}
 
-	public void function setProgress() {
+	public void function setProgress( required numeric progress ) {
 		_getAdhocTaskManagerService().setProgress(
-			  argumentCollection = arguments
-			, taskId             = _getTaskId()
+			  progress = arguments.progress
+			, taskId   = _getTaskId()
 		);
 	}
 
-	public void function setResult() {
+	public void function setResult( required any result ) {
 		_getAdhocTaskManagerService().setResult(
-			  argumentCollection = arguments
-			, taskId             = _getTaskId()
+			  result = arguments.result
+			, taskId = _getTaskId()
 		);
 	}
 

@@ -15,13 +15,15 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @logger.inject        logbox:logger:taskmanager
 	 */
 	public any function init(
-		  required any taskScheduler
-		, required any siteService
-		, required any logger
+		  required any     taskScheduler
+		, required any     siteService
+		, required any     logger
+		,          numeric maxTaskTimeout = ( 60 * 60 * 24 * 365 ) // one year!
 	) {
 		_setTaskScheduler( arguments.taskScheduler );
 		_setSiteService( arguments.siteService );
 		_setLogger( arguments.logger );
+		_setMaxTimeout( arguments.maxTaskTimeout );
 
 		return this;
 	}
@@ -118,12 +120,12 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public void function runTaskInThread( required string taskId ) {
-		if ( _inThread() ) {
+		if ( _inChildThread() ) {
 			runTask( arguments.taskId );
 		}
 
 		thread action="run" name="runTask-#CreateUUId()#" taskId=arguments.taskId {
-			setting requesttimeout=0;
+			setting requesttimeout=_getMaxTimeout();
 			runTask( taskId=attributes.taskId );
 		}
 	}
@@ -356,26 +358,10 @@ component displayName="Ad-hoc Task Manager Service" {
 		);
 	}
 
-	private boolean function _inThread() {
-		var engine = "ADOBE";
+	private boolean function _inChildThread() {
+		var currentThreadName = CreateObject( "java", "java.lang.Thread" ).currentThread().getThreadGroup().getName();
 
-		if ( server.coldfusion.productname == "Railo" ){ engine = "RAILO"; }
-		if ( server.coldfusion.productname == "Lucee" ){ engine = "LUCEE"; }
-
-		switch( engine ){
-			case "ADOBE"	: {
-				if( findNoCase( "cfthread", createObject( "java", "java.lang.Thread" ).currentThread().getThreadGroup().getName() ) ){
-					return true;
-				}
-				break;
-			}
-			case "RAILO" : case "LUCEE" : {
-				return getPageContext().hasFamily();
-				break;
-			}
-		}
-
-		return false;
+		return currentThreadName.findNoCase( "cfthread" );
 	}
 
 // GETTERS AND SETTERS
@@ -398,6 +384,13 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 	private void function _setLogger( required any logger ) {
 		_logger = arguments.logger;
+	}
+
+	private numeric function _getMaxTimeout() {
+		return _maxTimeout;
+	}
+	private void function _setMaxTimeout( required numeric maxTimeout ) {
+		_maxTimeout = arguments.maxTimeout;
 	}
 
 }
