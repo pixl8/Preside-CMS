@@ -36,8 +36,8 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" output=false {
 
 	private array function _processDirectoriesDsl( string subDir=""  ) output=false {
 		var cb         = _getInjector().getInstance( dsl="coldbox" );
-		var extensions = cb.getSetting( name="activeExtensions", defaultValue=[]     );
-		var appMapping = cb.getSetting( name="appMapping"      , defaultValue="/app" );
+		var extensions = cb.getSetting( name="activeExtensions", defaultValue=[] );
+		var appMapping = "/" & cb.getSetting( name="appMapping", defaultValue="app" ).reReplace( "^/", "" );
 
 		if ( !ReFind( "^/", subDir ) ) {
 			subDir = "/" & subDir;

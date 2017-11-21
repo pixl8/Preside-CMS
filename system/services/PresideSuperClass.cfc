@@ -25,6 +25,7 @@ component displayName="Preside Super Class" {
 	 * @validationEngine.inject           delayedInjector:validationEngine
 	 * @adHocTaskManagerService.inject    delayedInjector:adHocTaskManagerService
 	 * @coldbox.inject                    delayedInjector:coldbox
+	 * @i18n.inject                       delayedInjector:i18n
 	 *
 	 */
 	public any function init(
@@ -45,6 +46,7 @@ component displayName="Preside Super Class" {
 		, required any validationEngine
 		, required any adHocTaskManagerService
 		, required any coldbox
+		, required any i18n
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -63,6 +65,7 @@ component displayName="Preside Super Class" {
 		$validationEngine           = arguments.validationEngine;
 		$adHocTaskManagerService    = arguments.adHocTaskManagerService;
 		$coldbox                    = arguments.coldbox;
+		$i18n                       = arguments.i18n;
 
 		return this;
 	}
@@ -692,7 +695,21 @@ component displayName="Preside Super Class" {
 	 * @autodoc
 	 */
 	public any function $translateResource() {
-		return $getColdbox().getPlugin( "i18n" ).translateResource( argumentCollection=arguments );
+		return $i18n.translateResource( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to i18n service's getFWCountryCode() and getFWLanguageCode()
+	 * methods to provide the locale of the current request
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * currentLocale = $getI18nLocale()
+	 * ```
+	 */
+	public string function $getI18nLocale() {
+		return $i18n.getFWLanguageCode() & "-" & $i18n.getFWCountryCode();
 	}
 
 	/**

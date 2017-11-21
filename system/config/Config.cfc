@@ -4,11 +4,11 @@ component {
 
 		settings = {};
 
-		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
+		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
 		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
 		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
 
-		settings.appMappingPath    = Replace( ReReplace( settings.appMapping   , "^/", "" ), "/", ".", "all" );
+		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
 
@@ -19,12 +19,11 @@ component {
 			, handlersIndexAutoReload   = false
 			, debugMode                 = false
 			, defaultEvent              = "general.index"
-			, customErrorTemplate       = ""
 			, reinitPassword            = ( applicationSettings.COLDBOX_RELOAD_PASSWORD ?: "true" )
 			, handlerCaching            = true
 			, eventCaching              = true
 			, requestContextDecorator   = "preside.system.coldboxModifications.RequestContextDecorator"
-			, UDFLibraryFile            = _getUdfFiles()
+			, applicationHelper         = _getUdfFiles()
 			, pluginsExternalLocation   = "preside.system.plugins"
 			, viewsExternalLocation     = "/preside/system/views"
 			, layoutsExternalLocation   = "/preside/system/layouts"
@@ -36,6 +35,7 @@ component {
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
+			, customErrorTemplate       = "/preside/system/coldboxModifications/includes/errorReport.cfm"
 		};
 
 		i18n = {
@@ -129,8 +129,8 @@ component {
 		logbox = {
 			appenders = {
 				defaultLogAppender = {
-					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
-					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
+					  class      = 'coldbox.system.logging.appenders.RollingFileAppender'
+					, properties = { filePath=settings.logsMapping, filename="coldbox.log", async=true }
 				},
 				taskmanagerRequestAppender = {
 					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
@@ -168,6 +168,7 @@ component {
 		settings.devConsoleToggleKeyCode     = 96;
 		settings.adminLanguages              = [];
 		settings.showNonLiveContentByDefault = true;
+		settings.coldboxVersion              = _calculateColdboxVersion();
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -224,7 +225,7 @@ component {
 			  cms                    = [ "access" ]
 			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
-			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft" ]
+			, datamanager            = [ "navigate", "read", "view", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, passwordPolicyManager  = [ "manage" ]
@@ -415,7 +416,6 @@ component {
 		environments = {
 			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
 		};
-
 	}
 
 // ENVIRONMENT SPECIFIC
@@ -438,11 +438,11 @@ component {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "#settings.appMapping#/helpers" ) ) {
-			siteUdfs = DirectoryList( "#settings.appMapping#/helpers", true, false, "*.cfm" );
+		if ( DirectoryExists( "/#settings.appMapping#/helpers" ) ) {
+			siteUdfs = DirectoryList( "/#settings.appMapping#/helpers", true, false, "*.cfm" );
 
 			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "#settings.appMapping#/helpers" ) );
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/#settings.appMapping#/helpers" ) );
 			}
 		}
 
@@ -467,7 +467,7 @@ component {
 	}
 
 	private string function _discoverWireboxBinder() {
-		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/WireBox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.WireBox";
 		}
 
@@ -475,7 +475,7 @@ component {
 	}
 
 	private string function _discoverCacheboxConfigurator() {
-		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/Cachebox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.Cachebox";
 		}
 
@@ -716,5 +716,21 @@ component {
 			, recipientTypes   = recipientTypes
 			, serviceProviders = serviceProviders
 		};
+	}
+
+	private string function _calculateColdboxVersion() {
+		var boxJsonPath = "/coldbox/box.json";
+
+		if ( FileExists( boxJsonPath ) ) {
+			try {
+				var boxInfo = DeserializeJson( FileRead( boxJsonPath ) );
+
+				return boxInfo.version ?: "unknown";
+			} catch( any e ) {
+				return "unknown";
+			}
+		}
+
+		return "3.8.2";
 	}
 }

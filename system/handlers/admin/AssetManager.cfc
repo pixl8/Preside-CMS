@@ -9,8 +9,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="errorLogService"                  inject="errorLogService";
 	property name="storageProviderService"           inject="storageProviderService";
 	property name="storageLocationService"           inject="storageLocationService";
-	property name="messageBox"                       inject="coldbox:plugin:messageBox";
-	property name="datatableHelper"                  inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="messageBox"                       inject="messagebox@cbmessagebox";
+	property name="datatableHelper"                  inject="jQueryDatatablesHelpers";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 
 	function preHandler( event, rc, prc ) {
@@ -233,7 +233,7 @@ component extends="preside.system.base.AdminHandler" {
 				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
 			}
-			
+
 			if ( !success ) {
 				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 			}
@@ -1250,6 +1250,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function locationGridActions( event, rc, prc, args={} ) {
 		return renderView( view="/admin/assetmanager/_locationGridActions", args=args );
+	}
+
+	private string function getViewAssetLink( event, rc, prc, recordId="" ) {
+		return event.buildAdminLink( linkTo="assetmanager.editAsset", querystring="asset=#arguments.recordId#" )
 	}
 
 // PRIVATE HELPERS

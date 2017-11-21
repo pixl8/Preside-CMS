@@ -572,6 +572,7 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
+			, adminRenderer = "none"
 		} );
 		objMeta.properties[ "_version_has_drafts" ] = objMeta.properties[ "_version_has_drafts" ] ?: {};
 		objMeta.properties[ "_version_has_drafts" ].append( {
@@ -586,6 +587,7 @@ component {
 			, relatedto    = "none"
 			, generator    = "none"
 			, default      = false
+			, adminRenderer = "none"
 		} );
 
 		for( var fieldName in [ "_version_is_draft", "_version_has_drafts" ] ) {

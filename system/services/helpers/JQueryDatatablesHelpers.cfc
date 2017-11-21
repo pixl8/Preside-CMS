@@ -1,18 +1,16 @@
-component extends="coldbox.system.Plugin" output="false" singleton="true" {
+/**
+ * @presideService true
+ * @singleton      true
+ *
+ */
+component {
 
-	public any function init( controller ) output=false {
-		super.init( arguments.controller );
-
-		setpluginName("JQuery Datatables Helper");
-		setpluginVersion("1.0");
-		setpluginDescription( "Provides methods for easy client-server interactivity with jQuery datatables" );
-		setPluginAuthor("Pixl8 Interactive");
-		setPluginAuthorURL("www.pixl8.co.uk");
-
+	public any function init() {
+		return this;
 	}
 
-	public struct function queryToResult( required query qry, array columns=ListToArray( arguments.qry.columnList ), numeric totalRecords = arguments.qry.recordCount ) output=false {
-		var event  = getRequestContext();
+	public struct function queryToResult( required query qry, array columns=ListToArray( arguments.qry.columnList ), numeric totalRecords = arguments.qry.recordCount ) {
+		var event  = $getRequestContext();
 		var row    = "";
 		var col    = "";
 		var record = "";
@@ -34,12 +32,12 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		return result;
 	}
 
-	public numeric function getStartRow() output=false {
-		return Val( getRequestContext().getValue( name="iDisplayStart", defaultValue="0" ) ) + 1;
+	public numeric function getStartRow() {
+		return Val( $getRequestContext().getValue( name="iDisplayStart", defaultValue="0" ) ) + 1;
 	}
 
-	public numeric function getMaxRows() output=false {
-		var maxRows = Val( getRequestContext().getValue( name="iDisplayLength", defaultValue="10" ) );
+	public numeric function getMaxRows() {
+		var maxRows = Val( $getRequestContext().getValue( name="iDisplayLength", defaultValue="10" ) );
 		if ( maxRows lte 0 ) {
 			return 0;
 		}
@@ -47,8 +45,8 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		return maxRows;
 	}
 
-	public string function getSortOrder() output=false {
-		var event        = getRequestContext();
+	public string function getSortOrder() {
+		var event        = $getRequestContext();
 		var nSortingCols = Val( event.getValue( name="iSortingCols", default="0" ) );
 		var i            = 0;
 		var sortOrder    = "";
@@ -74,7 +72,7 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		return sortOrder;
 	}
 
-	public string function getSearchQuery() output=false {
-		return getRequestContext().getValue( name="sSearch", defaultValue="" );
+	public string function getSearchQuery() {
+		return $getRequestContext().getValue( name="sSearch", defaultValue="" );
 	}
 }

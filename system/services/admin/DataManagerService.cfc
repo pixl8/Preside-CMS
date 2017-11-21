@@ -11,7 +11,7 @@ component {
 	 * @presideObjectService.inject PresideObjectService
 	 * @contentRenderer.inject      ContentRendererService
 	 * @labelRendererService.inject LabelRendererService
-	 * @i18nPlugin.inject           coldbox:plugin:i18n
+	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
@@ -151,8 +151,11 @@ component {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "add,edit,delete,viewversions"
+			, defaultValue  = "read,add,edit,delete,viewversions"
 		);
+
+		operations = operations.reReplaceNoCase( "\bview\b", "read" );
+
 
 		return operations != "none" && ListFindNoCase( operations, arguments.operation );
 	}

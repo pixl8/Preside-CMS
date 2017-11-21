@@ -1,6 +1,6 @@
 component hint="Interact with and report on system caches" {
 
-	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";
+	property name="jsonRpc2Plugin" inject="JsonRpc2";
 	property name="cachebox"       inject="cachebox";
 
 	private function index( event, rc, prc ) {

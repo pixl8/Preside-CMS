@@ -1,7 +1,7 @@
 component extends="coldbox.system.web.services.HandlerService" output=false {
 
 	public void function registerHandlers() output=false {
-		var appMapping                   = controller.getSetting( "appMapping" );
+		var appMapping                   = "/" & controller.getSetting( "appMapping" ).reReplace( "^/", "" );
 		var appMappingPath               = controller.getSetting( "appMappingPath" );
 		var handlersPath                 = controller.getSetting( "HandlersPath" );
 		var handlersExternalLocationPath = controller.getSetting( "HandlersExternalLocationPath" );
@@ -31,7 +31,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		instance.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
 	}
 
-	public array function getHandlerListing( required string directory, required string invocationPath ) output=false {
+	public array function getHandlerListing( required string directory, string invocationPath ) output=false {
 		var i                = 1;
 		var thisAbsolutePath = "";
 		var cleanHandler     = "";
@@ -52,7 +52,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 			cleanHandler = removeChars(replacenocase(cleanHandler,"/",".","all"),1,1);
 
 			//Clean Extension
-			cleanHandler = getUtil().ripExtension(cleanhandler);
+			cleanHandler = controller.getUtil().ripExtension(cleanhandler);
 
 			//Add data to array
 			actions = _getCfcMethods( getComponentMetaData( ListAppend( arguments.invocationPath, cleanHandler, "." ) ) );
@@ -113,7 +113,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 				}
 			}
 
-			controller.getPlugin("Logger").error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
+			getController().getLogBox().getLogger(this).error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
 		}
 
 		// Do View Dispatch Check Procedures
@@ -130,8 +130,8 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 	}
 
 	public any function getHandler( required any ehBean, required any requestContext ) output=false {
-		try {
 			return super.getHandler( argumentCollection=arguments );
+		try {
 		} catch( expression e ) {
 			if ( ( e.message ?: "" ) contains "has no accessible Member with name" ) {
 				invalidEvent( arguments.ehBean.getFullEvent(), arguments.ehBean );

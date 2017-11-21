@@ -4,7 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formBuilderRenderingService" inject="formBuilderRenderingService";
 	property name="itemTypesService"            inject="formBuilderItemTypesService";
 	property name="actionsService"              inject="formBuilderActionsService";
-	property name="messagebox"                  inject="coldbox:plugin:messagebox";
+	property name="messagebox"                  inject="messagebox@cbmessagebox";
 	property name="spreadsheetLib"              inject="spreadsheetLib";
 
 
@@ -542,7 +542,7 @@ component extends="preside.system.base.AdminHandler" {
 		var checkboxCol     = [];
 		var optionsCol      = [];
 		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
-		var dtHelper        = getMyPlugin( "JQueryDatatablesHelpers" );
+		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
 		var results         = formbuilderService.getSubmissionsForGridListing(
 			  formId      = formId
 			, startRow    = dtHelper.getStartRow()

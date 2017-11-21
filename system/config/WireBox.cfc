@@ -14,6 +14,7 @@
 	private void function _setupCustomDslProviders() {
 		mapDSL( "presidecms", "preside.system.coldboxModifications.PresideWireboxDsl" );
 		mapDSL( "delayedInjector", "preside.system.coldboxModifications.DelayedInjectorDsl" );
+		mapDSL( "coldbox", "preside.system.coldboxModifications.LegacyDslBuilder" );
 	}
 
 	private void function _mapCommonSystemServices() {
@@ -23,10 +24,10 @@
 	}
 
 	private void function _mapSiteServices() {
-		var appMapping     = getColdbox().getSetting( name="appMapping"    , defaultValue="/app" );
+		var appMapping     = getColdbox().getSetting( name="appMapping"    , defaultValue="app" ).reReplace( "^/", "" );
 		var appMappingPath = getColdbox().getSetting( name="appMappingPath", defaultValue="app"  );
 
-		if ( DirectoryExists( "#appMapping#/services" ) ) {
+		if ( DirectoryExists( "/#appMapping#/services" ) ) {
 			mapDirectory( packagePath="#appMappingPath#.services", influence=function( mapping, objectPath ) {
 				_injectPresideSuperClass( argumentCollection=arguments );
 			} );
@@ -67,6 +68,7 @@
 			.initArg( name="rootUrl"         , value="" );
 
 		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
+		map( "presideRenderer" ).asSingleton().to( "preside.system.coldboxModifications.services.Renderer" );
 	}
 
 	private void function _loadExtensionConfigurations() {
