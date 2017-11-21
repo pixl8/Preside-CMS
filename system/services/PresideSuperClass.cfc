@@ -23,6 +23,7 @@ component displayName="Preside Super Class" {
 	 * @contentRendererService.inject     delayedInjector:contentRendererService
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
 	 * @validationEngine.inject           delayedInjector:validationEngine
+	 * @adHocTaskManagerService.inject    delayedInjector:adHocTaskManagerService
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 *
 	 */
@@ -42,6 +43,7 @@ component displayName="Preside Super Class" {
 		, required any contentRendererService
 		, required any taskmanagerService
 		, required any validationEngine
+		, required any adHocTaskManagerService
 		, required any coldbox
 	) {
 		$presideObjectService       = arguments.presideObjectService;
@@ -59,6 +61,7 @@ component displayName="Preside Super Class" {
 		$contentRendererService     = arguments.contentRendererService;
 		$taskmanagerService         = arguments.taskmanagerService;
 		$validationEngine           = arguments.validationEngine;
+		$adHocTaskManagerService    = arguments.adHocTaskManagerService;
 		$coldbox                    = arguments.coldbox;
 
 		return this;
@@ -723,4 +726,34 @@ component displayName="Preside Super Class" {
 	public any function $announceInterception() {
 		return $getColdbox().getInterceptorService().processState( argumentCollection=arguments )
 	}
+
+	/**
+	 * Gets the adhoc taskmanager service
+	 *
+	 * @autodoc
+	 */
+	public any function $getAdhocTaskManagerService() {
+		return $adHocTaskManagerService;
+	}
+
+	/**
+	 * Proxy to the [[adhoctaskmanagerservice-createtask]] method of the [[api-adhoctaskmanagerservice]]
+	 * service.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var taskId = $createTask(
+	 * \t  event  = "generate.invoice"
+	 * \t, args   = { salesref=salesref }
+	 * \t, runNow = true
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $createTask() {
+		return $getAdhocTaskManagerService().createTask( argumentCollection=arguments );
+	}
+
 }
