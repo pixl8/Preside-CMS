@@ -9,7 +9,15 @@
 component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @taskScheduler.inject taskScheduler
+	 * @siteService.inject   siteService
+	 *
+	 */
+	public any function init( required any taskScheduler, required any siteService ) {
+		_setTaskScheduler( arguments.taskScheduler );
+		_setSiteService( arguments.siteService );
+
 		return this;
 	}
 
@@ -184,7 +192,41 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @attemptCount    Number of attempts made so far
 	 * @nextAttemptDate Date of next attempt
 	 */
-	public void function requeueTask() {
+	public void function requeueTask(
+		  required string  taskId
+		, required date    nextAttemptDate
+		,          any     error = {}
+		,          numeric attemptCount = 1
+	) {
+		var scheduleSettings = $getPresideCategorySettings( category="taskmanager" );
+
+		_getTaskScheduler().createTask(
+			  task          = "PresideAdHocTask-" & arguments.taskId
+			, url           = getTaskRunnerUrl( taskId=taskId, siteContext=scheduleSettings.site_context )
+			, port          = Val( scheduleSettings.http_port ?: "" ) ? scheduleSettings.http_port : 80
+			, username      = scheduleSettings.http_username  ?: ""
+			, password      = scheduleSettings.http_password  ?: ""
+			, proxyServer   = scheduleSettings.proxy_server   ?: ""
+			, proxyPort     = scheduleSettings.proxy_port     ?: ""
+			, proxyUser     = scheduleSettings.proxy_user     ?: ""
+			, proxyPassword = scheduleSettings.proxy_password ?: ""
+			, startdate     = DateFormat( arguments.nextAttemptDate, "yyyy-mm-dd" )
+			, startTime     = TimeFormat( arguments.nextAttemptDate, "HH:mm:ss" )
+			, interval      = "Once"
+			, hidden        = true
+			, autoDelete    = true
+		);
+
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = {
+				  status            = "requeued"
+				, last_error        = SerializeJson( arguments.error )
+				, attempt_count     = arguments.attemptCount
+				, next_attempt_date = arguments.nextAttemptDate
+			  }
+		);
+
 		return;
 	}
 
@@ -283,6 +325,13 @@ component displayName="Ad-hoc Task Manager Service" {
 		return info;
 	}
 
+	public string function getTaskRunnerUrl( required string taskId, required string siteContext ) {
+		var siteSvc    = _getSiteService();
+		var site       = siteSvc.getSite( Len( Trim( arguments.siteContext ) ) ? arguments.siteContext : siteSvc.getActiveSiteId() );
+		var serverName = ( site.domain ?: cgi.server_name );
+
+		return "http://" & serverName & "/taskmanager/runadhoctask/?taskId=" & arguments.taskId;
+	}
 
 // PRIVATE HELPERS
 	private any function _getTaskLogger() {
@@ -313,6 +362,21 @@ component displayName="Ad-hoc Task Manager Service" {
 		}
 
 		return false;
+	}
+
+// GETTERS AND SETTERS
+	private any function _getTaskScheduler() {
+		return _taskScheduler;
+	}
+	private void function _setTaskScheduler( required any taskScheduler ) {
+		_taskScheduler = arguments.taskScheduler;
+	}
+
+	private any function _getSiteService() {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) {
+		_siteService = arguments.siteService;
 	}
 
 }

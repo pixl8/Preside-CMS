@@ -272,6 +272,97 @@ component extends="testbox.system.BaseSpec" {
 			} );
 		} );
 
+		describe( "requeueTask()", function(){
+			it( "should create a task through the task scheduler to run the task", function(){
+				var service         = _getService();
+				var taskId          = CreateUUId();
+				var error           = { type="blah", message=CreateUUId() };
+				var attemptCount    = 10;
+				var nextAttemptDate = DateAdd( 'n', 40, Now() );
+				var taskUrl         = "http://blah.com/run/task/?taskId=#taskId#";
+				var settings        = {
+					  site_context   = CreateUUId()
+					, http_port      = 8880
+					, http_username  = "testusername"
+					, http_password  = "testpassword"
+					, proxy_server   = "https://myproxy.com"
+					, proxy_port     = "443"
+					, proxy_user     = "proxyuser"
+					, proxy_password = "proxypass"
+				};
+
+				service.$( "getTaskRunnerUrl" ).$args( taskId=taskId, siteContext=settings.site_context ).$results( taskUrl );
+				service.$( "$getPresideCategorySettings" ).$args( category="taskmanager" ).$results( settings );
+				mockTaskScheduler.$( "createTask" );
+				mockTaskDao.$( "updateData" );
+
+				service.requeueTask(
+					  taskId          = taskId
+					, error           = error
+					, attemptCount    = attemptCount
+					, nextAttemptDate = nextAttemptDate
+				);
+
+				var log = mockTaskScheduler.$callLog().createTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[ 1 ] ).toBe( {
+					  task          = "PresideAdHocTask-" & taskId
+					, url           = taskUrl
+					, port          = settings.http_port
+					, username      = settings.http_username
+					, password      = settings.http_password
+					, proxyServer   = settings.proxy_server
+					, proxyPort     = settings.proxy_port
+					, proxyUser     = settings.proxy_user
+					, proxyPassword = settings.proxy_password
+					, startdate     = DateFormat( nextAttemptDate, "yyyy-mm-dd" )
+					, startTime     = TimeFormat( nextAttemptDate, "HH:mm:ss" )
+					, interval      = "once"
+					, hidden        = true
+					, autoDelete    = true
+				} );
+			} );
+
+			it( "should update status of db record to requeued", function(){
+				var service         = _getService();
+				var taskId          = CreateUUId();
+				var error           = { type="blah", message=CreateUUId() };
+				var attemptCount    = 10;
+				var nextAttemptDate = DateAdd( 'n', 40, Now() );
+				var taskUrl         = "http://blah.com/run/task/?taskId=#taskId#";
+				var settings        = {
+					  site_context   = CreateUUId()
+					, http_port      = 8880
+					, http_username  = "testusername"
+					, http_password  = "testpassword"
+					, proxy_server   = "https://myproxy.com"
+					, proxy_port     = "443"
+					, proxy_user     = "proxyuser"
+					, proxy_password = "proxypass"
+				};
+
+				service.$( "getTaskRunnerUrl" ).$args( taskId=taskId, siteContext=settings.site_context ).$results( taskUrl );
+				service.$( "$getPresideCategorySettings" ).$args( category="taskmanager" ).$results( settings );
+				mockTaskScheduler.$( "createTask" );
+				mockTaskDao.$( "updateData", 1 );
+
+				service.requeueTask(
+					  taskId          = taskId
+					, error           = error
+					, attemptCount    = attemptCount
+					, nextAttemptDate = nextAttemptDate
+				);
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id   = taskId
+					, data = { status="requeued", last_error=SerializeJson( error ), attempt_count=attemptCount, next_attempt_date=nextAttemptDate }
+				} );
+			} );
+
+		} );
+
 		describe( "setProgress()", function(){
 			it( "should set the progress percentage against the DB record", function(){
 				var service = _getService();
@@ -390,17 +481,33 @@ component extends="testbox.system.BaseSpec" {
 				} );
 			} );
 		} );
+
+		describe( "getTaskRunnerUrl()", function(){
+			it( "should build a /taskmanager/runadhoctask/ URL for the given task ID and site context", function(){
+				var service     = _getService();
+				var taskId      = CreateUUId();
+				var siteContext = CreateUUId();
+				var domain      = "my.#CreateUUId()#.com";
+
+				mockSiteService.$( "getSite" ).$args( siteContext ).$results( { domain=domain } );
+
+				expect( service.getTaskRunnerUrl( taskId, siteContext) ).toBe( "http://#domain#/taskmanager/runadhoctask/?taskId=" & taskId );
+			} );
+		} );
 	}
 
 
 // private helpers
 	private any function _getService() {
-		var service = new preside.system.services.taskmanager.AdHocTaskManagerService();
+		mockTaskDao       = CreateStub();
+		mockColdbox       = CreateStub();
+		mockTaskScheduler = CreateStub();
+		mockSiteService   = CreateStub();
 
-		service = CreateMock( object=service );
-
-		mockTaskDao = CreateStub();
-		mockColdbox = CreateStub();
+		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
+			  taskScheduler = mockTaskScheduler
+			, siteService   = mockSiteService
+		) );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
 		service.$( "$getColdbox", mockColdbox );
