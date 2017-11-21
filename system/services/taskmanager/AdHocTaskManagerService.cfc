@@ -338,8 +338,11 @@ component displayName="Ad-hoc Task Manager Service" {
 		return "stub";
 	}
 
-	private any function _getTaskProgressReporter() {
-		return "stub";
+	private any function _getTaskProgressReporter( required string taskId ) {
+		return new AdHocTaskProgressReporter(
+			  adhocTaskManagerService = this
+			, taskId                  = arguments.taskId
+		);
 	}
 
 	private boolean function _inThread() {
