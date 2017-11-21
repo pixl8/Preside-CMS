@@ -687,6 +687,7 @@ component extends="testbox.system.BaseSpec" {
 		mockCfThreadHelper   = mockbox.createStub();
 		mockErrorLogService  = mockbox.createStub();
 		mockSiteService      = mockbox.createStub();
+		mockTaskScheduler    = mockbox.createStub();
 		mockLogger           = _getMockLogger();
 
 		configWrapper.$( "getConfiguredTasks", arguments.dummyConfig );
@@ -707,6 +708,7 @@ component extends="testbox.system.BaseSpec" {
 			, cfThreadHelper             = mockCfThreadHelper
 			, errorLogService            = mockErrorLogService
 			, siteService                = mockSiteService
+			, taskScheduler              = mockTaskScheduler
 		);
 	}
 
