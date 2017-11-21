@@ -503,10 +503,12 @@ component extends="testbox.system.BaseSpec" {
 		mockColdbox       = CreateStub();
 		mockTaskScheduler = CreateStub();
 		mockSiteService   = CreateStub();
+		mockLogboxLogger  = CreateStub();
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
 			  taskScheduler = mockTaskScheduler
 			, siteService   = mockSiteService
+			, logger        = mockLogBoxLogger
 		) );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );

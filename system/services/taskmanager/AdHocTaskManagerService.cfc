@@ -12,11 +12,16 @@ component displayName="Ad-hoc Task Manager Service" {
 	/**
 	 * @taskScheduler.inject taskScheduler
 	 * @siteService.inject   siteService
-	 *
+	 * @logger.inject        logbox:logger:taskmanager
 	 */
-	public any function init( required any taskScheduler, required any siteService ) {
+	public any function init(
+		  required any taskScheduler
+		, required any siteService
+		, required any logger
+	) {
 		_setTaskScheduler( arguments.taskScheduler );
 		_setSiteService( arguments.siteService );
+		_setLogger( arguments.logger );
 
 		return this;
 	}
@@ -334,8 +339,12 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 
 // PRIVATE HELPERS
-	private any function _getTaskLogger() {
-		return "stub";
+	private any function _getTaskLogger( required string taskId ) {
+		return new TaskManagerLoggerWrapper(
+			  logboxLogger   = _getLogger()
+			, taskRunId      = arguments.taskId
+			, taskHistoryDao = $getPresideObject( "taskmanager_adhoc_task" )
+		);
 	}
 
 	private any function _getTaskProgressReporter( required string taskId ) {
@@ -380,6 +389,13 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
+	}
+
+	private any function _getLogger() {
+		return _logger;
+	}
+	private void function _setLogger( required any logger ) {
+		_logger = arguments.logger;
 	}
 
 }
