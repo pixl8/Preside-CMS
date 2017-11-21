@@ -278,6 +278,7 @@ component displayName="Ad-hoc Task Manager Service" {
 				  id       = t.id
 				, status   = t.status
 				, progress = t.progress_percentage
+				, log      = t.log
 				, result   = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
 			};
 		}
