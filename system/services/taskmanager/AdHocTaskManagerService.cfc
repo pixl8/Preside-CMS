@@ -44,6 +44,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @title             Optional title of the task, can be an i18n resource URI for later translation. This will be used in any task progress UIs, etc.
 	 * @titleData         Optional array of strings that will be passed into translateResource() along with title URI to create translatable title
 	 * @resultUrl         Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
+	 * @returnUrl         Optional URL to which to direct users from core admin UIs when they have finished with viewing a task
 	 */
 	public string function createTask(
 		  required string  event
@@ -56,6 +57,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          string  title             = ""
 		,          array   titleData         = []
 		,          string  resultUrl         = ""
+		,          string  returnUrl         = ""
 	) {
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
 			  event               = arguments.event
@@ -67,6 +69,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, title               = arguments.title
 			, title_data          = SerializeJson( arguments.titleData )
 			, result_url          = arguments.resultUrl
+			, return_url          = arguments.returnUrl
 		} );
 
 		if ( arguments.resultUrl.findNoCase( "{taskId}" ) ) {

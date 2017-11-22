@@ -13,6 +13,7 @@ component extends="preside.system.base.SystemPresideObject"  {
 	property name="title_args"     type="string"  dbtype="longtext"               required=false;
 	property name="result"         type="string"  dbtype="longtext"               required=false;
 	property name="result_url"     type="string"  dbtype="varchar"  maxlength=255 required=false;
+	property name="return_url"     type="string"  dbtype="varchar"  maxlength=255 required=false;
 	property name="log"            type="string"  dbtype="longtext"               required=false;
 
 	property name="status"              type="string"  dbtype="varchar"   maxlength=50  required=false default="pending" enum="adhocTaskStatus";

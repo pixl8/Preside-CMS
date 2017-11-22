@@ -154,6 +154,7 @@ component extends="testbox.system.BaseSpec" {
 					, title               = ""
 					, title_data          = "[]"
 					, result_url          = ""
+					, return_url          = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -180,6 +181,7 @@ component extends="testbox.system.BaseSpec" {
 					, title               = "myresource:export.title"
 					, title_data          = '["test","this"]'
 					, result_url          = "http://www.mysite.com/download/export/"
+					, return_url          = "http://www.mysite.com/download/cancelled/"
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
 
@@ -192,6 +194,7 @@ component extends="testbox.system.BaseSpec" {
 					, title             = "myresource:export.title"
 					, titleData         = [ "test", "this" ]
 					, resultUrl         = "http://www.mysite.com/download/export/"
+					, returnUrl         = "http://www.mysite.com/download/cancelled/"
 				);
 
 				var log = service.$callLog().runTaskInThread;
@@ -217,6 +220,7 @@ component extends="testbox.system.BaseSpec" {
 					, title               = ""
 					, title_data          = "[]"
 					, result_url          = resultUrl
+					, return_url          = ""
 				} ).$results( taskId );
 
 				service.$( "setResultUrl" );
@@ -253,6 +257,7 @@ component extends="testbox.system.BaseSpec" {
 					, title               = ""
 					, title_data          = "[]"
 					, result_url          = ""
+					, return_url          = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -279,6 +284,7 @@ component extends="testbox.system.BaseSpec" {
 					, title               = ""
 					, title_data          = "[]"
 					, result_url          = ""
+					, return_url          = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
