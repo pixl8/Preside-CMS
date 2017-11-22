@@ -14,9 +14,9 @@ component extends="testbox.system.BaseSpec" {
 				var mockProgress = _mockProgress( service, taskId );
 				var mockLogger   = _mockLogger( service, taskId );
 
+				service.$( "markTaskAsRunning" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				mockTaskDao.$( "updateData" );
 
 				expect( service.runTask( taskId ) ).toBe( true );
 
@@ -36,21 +36,23 @@ component extends="testbox.system.BaseSpec" {
 				var event   = "some.handler.action";
 				var args    = { test=CreateUUId(), fubar=123 };
 				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "pending" ] ] );
+				var nowish  = Now();
 
 				_mockGetTask( taskId, taskDef );
 				mockColdbox.$( "runEvent" );
 				var mockProgress = _mockProgress( service, taskId );
 				var mockLogger   = _mockLogger( service, taskId );
 
+				service.$( "markTaskAsRunning" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				mockTaskDao.$( "updateData" );
+				service.$( "_now", nowish );
 
 				service.runTask( taskId );
 
-				log = mockTaskDao.$callLog().updateData;
+				log = service.$callLog().markTaskAsRunning;
 				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( { id=taskId, data={ status="running" } } );
+				expect( log[1] ).toBe( { taskId=taskId } );
 			} );
 
 			it( "should mark the task as complete when finished successfully", function(){
@@ -67,7 +69,7 @@ component extends="testbox.system.BaseSpec" {
 
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				mockTaskDao.$( "updateData" );
+				service.$( "markTaskAsRunning" );
 
 				service.runTask( taskId );
 
@@ -91,7 +93,7 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "$raiseError" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				mockTaskDao.$( "updateData" );
+				service.$( "markTaskAsRunning" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 
@@ -122,7 +124,7 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "$raiseError" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				mockTaskDao.$( "updateData" );
+				service.$( "markTaskAsRunning" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
@@ -232,6 +234,79 @@ component extends="testbox.system.BaseSpec" {
 					  taskId    = taskId
 					, resultUrl = "https://www.mysite.com/task/result/?taskId=#taskId#&really=#taskId#"
 				} );
+			} );
+
+			it( "should turn single struct retry interval to an array", function(){
+				var service = _getService();
+				var owner   = CreateUUId();
+				var event   = "some.event";
+				var args    = { test=CreateUUId(), foobar=[ 1, 2, CreateUUId() ] };
+				var taskId  = CreateUUId();
+
+				mockTaskDao.$( "insertData" ).$args( {
+					  event               = event
+					, event_args          = SerializeJson( args )
+					, admin_owner         = ""
+					, web_owner           = ""
+					, discard_on_complete = false
+					, retry_interval      = SerializeJson( [{ tries=4, interval=120 }] )
+					, title               = ""
+					, title_data          = "[]"
+					, result_url          = ""
+				} ).$results( taskId );
+
+				expect( service.createTask(
+					  event         = event
+					, args          = args
+					, retryInterval = { tries=4, interval=120 }
+				) ).toBe( taskId );
+			} );
+
+			it( "should convert CreateTimeSpan() entries to seconds in the retry interval configuration", function(){
+				var service = _getService();
+				var owner   = CreateUUId();
+				var event   = "some.event";
+				var args    = { test=CreateUUId(), foobar=[ 1, 2, CreateUUId() ] };
+				var taskId  = CreateUUId();
+
+				mockTaskDao.$( "insertData" ).$args( {
+					  event               = event
+					, event_args          = SerializeJson( args )
+					, admin_owner         = ""
+					, web_owner           = ""
+					, discard_on_complete = false
+					, retry_interval      = SerializeJson( [{ tries=4, interval=CreateTimeSpan( 0, 0, 3, 45 ).getSeconds() }] )
+					, title               = ""
+					, title_data          = "[]"
+					, result_url          = ""
+				} ).$results( taskId );
+
+				expect( service.createTask(
+					  event         = event
+					, args          = args
+					, retryInterval = [{ tries=4, interval=CreateTimeSpan( 0, 0, 3, 45 ) }]
+				) ).toBe( taskId );
+			} );
+		} );
+
+		describe( "markTaskAsRunning()", function(){
+			it( "should update status of db record", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+
+				mockTaskDao.$( "updateData", 1 );
+
+				service.markTaskAsRunning( taskId );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { id=taskId, data={
+					  status              = "running"
+					, started_on          = nowish
+					, progress_percentage = 0
+					, log                 = ""
+					, next_attempt_date   = ""
+				} } );
 			} );
 		} );
 
@@ -537,14 +612,14 @@ component extends="testbox.system.BaseSpec" {
 			it( "should return a struct with 'nextAttemptDate' calculated from current date + next retry interval + 'totalAttempts' from database attempt count (plus one)", function(){
 				var service       = _getService();
 				var taskId        = CreateUUId();
-				var retryInterval = [ { tries=3,interval=5 }, { tries=2, interval=30 } ];
+				var retryInterval = [ { tries=3,interval=CreateTimeSpan( 0, 0, 5, 0 ).getSeconds() }, { tries=2, interval=CreateTimeSpan( 0, 0, 30, 0 ).getSeconds() } ];
 				var task          = QueryNew( "retry_interval,attempt_count", "varchar,int", [ [ SerializeJson( retryInterval ), 3 ] ] );
 
 				service.$( "getTask" ).$args( taskId ).$results( task );
 
 				expect( service.getNextAttemptInfo( taskId ) ).toBe( {
 					  totalAttempts   = 4
-					, nextAttemptDate = DateTimeFormat( DateAdd( "n", 30, Now() ), "yyyy-mm-dd HH:nn" )
+					, nextAttemptDate = DateTimeFormat( DateAdd( "n", 30, nowish ), "yyyy-mm-dd HH:nn:ss" )
 				} );
 			} );
 		} );
@@ -571,6 +646,7 @@ component extends="testbox.system.BaseSpec" {
 		mockTaskScheduler = CreateStub();
 		mockSiteService   = CreateStub();
 		mockLogboxLogger  = CreateStub();
+		nowish            = DateAdd( 'd', 1, Now() );
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
 			  taskScheduler = mockTaskScheduler
@@ -580,6 +656,7 @@ component extends="testbox.system.BaseSpec" {
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "_now", nowish );
 
 		return service;
 	}

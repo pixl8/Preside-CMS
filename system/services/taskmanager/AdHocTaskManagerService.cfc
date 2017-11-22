@@ -40,7 +40,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @adminOwner        Optional admin user ID, owner of the task
 	 * @webOwner          Optional website user ID, owner of the task
 	 * @discardOnComplete Whether or not to discard the task once completed or permanently failed.
-	 * @retryInterval     Definition of retry attempts for tasks that fail to run. Array of structs with the following keys, "tries": number of attempts, "interval":number in minutes between tries. For example: `[ { tries:3, interval=5 }, { tries:2, interval=60 }]` will retry three times with 5 minutes between attempts and then retry a further two times with 60 minutes between attempts.
+	 * @retryInterval     Definition of retry attempts for tasks that fail to run. Either a single struct, or array of structs with the following keys: `tries`: number of attempts, `interval`:number in seconds between tries (can also use CreateTimeSpan()). For example: `[ { tries:3, interval=CreateTimeSpan( 0, 0, 5, 0 ) }, { tries:2, interval=3600 }]` will retry three times with 5 minutes between attempts and then retry a further two times with 60 minutes between attempts.
 	 * @title             Optional title of the task, can be an i18n resource URI for later translation. This will be used in any task progress UIs, etc.
 	 * @titleData         Optional array of strings that will be passed into translateResource() along with title URI to create translatable title
 	 * @resultUrl         Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
@@ -52,7 +52,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          string  webOwner          = ""
 		,          boolean runNow            = false
 		,          boolean discardOnComplete = false
-		,          array   retryInterval     = []
+		,          any     retryInterval     = []
 		,          string  title             = ""
 		,          array   titleData         = []
 		,          string  resultUrl         = ""
@@ -63,7 +63,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, admin_owner         = arguments.adminOwner
 			, web_owner           = arguments.webOwner
 			, discard_on_complete = arguments.discardOnComplete
-			, retry_interval      = SerializeJson( arguments.retryInterval )
+			, retry_interval      = _serializeRetryInterval( arguments.retryInterval )
 			, title               = arguments.title
 			, title_data          = SerializeJson( arguments.titleData )
 			, result_url          = arguments.resultUrl
@@ -102,10 +102,12 @@ component displayName="Ad-hoc Task Manager Service" {
 				return false;
 			}
 
+			markTaskAsRunning( taskId=arguments.taskId );
+			/*
 			$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 				  id   = arguments.taskId
 				, data = { status="running" }
-			);
+			);*/
 
 			try {
 				$getColdbox().runEvent(
@@ -151,6 +153,25 @@ component displayName="Ad-hoc Task Manager Service" {
 	 */
 	public query function getTask( required string taskId ) {
 		return $getPresideObject( "taskmanager_adhoc_task" ).selectData( id=arguments.taskId );
+	}
+
+	/**
+	 * Marks a task as running and resets running date, log, stats, etc.
+	 *
+	 * @autodoc true
+	 * @taskId  ID of the task to mark as running
+	 */
+	public void function markTaskAsRunning( required string taskId ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = {
+				  status              = "running"
+				, started_on          = _now()
+				, progress_percentage = 0
+				, log                 = ""
+				, next_attempt_date   = ""
+			  }
+		);
 	}
 
 	/**
@@ -354,7 +375,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			maxAttempts += Val( interval.tries ?: "" );
 
 			if ( maxAttempts > totalAttempts ) {
-				info.nextAttemptDate = DateTimeFormat( DateAdd( "n", Val( interval.interval ?: "" ), Now() ), "yyyy-mm-dd HH:nn" );
+				info.nextAttemptDate = DateTimeFormat( DateAdd( "s", Val( interval.interval ?: "" ), _now() ), "yyyy-mm-dd HH:nn:ss" );
 				break;
 			}
 		}
@@ -390,6 +411,33 @@ component displayName="Ad-hoc Task Manager Service" {
 		var currentThreadName = CreateObject( "java", "java.lang.Thread" ).currentThread().getThreadGroup().getName();
 
 		return currentThreadName.findNoCase( "cfthread" );
+	}
+
+	private date function _now() {
+		return Now(); // to help with automated tests
+	}
+
+	private string function _serializeRetryInterval( required any retryInterval ) {
+		var raw       = IsArray( arguments.retryInterval ) ? Duplicate( arguments.retryInterval ) : [ Duplicate( arguments.retryInterval ) ];
+		var converted = [];
+
+		for( var config in raw ) {
+			converted.append({
+				  tries    = Val( config.tries ?: 1 )
+				, interval = _isTimespan( config.interval ?: "" ) ? _timespanToSeconds( config.interval ) : config.interval
+			});
+		}
+
+		return SerializeJson( converted );
+	}
+
+	private any function _isTimespan( required any input ) {
+		return SerializeJson( arguments.input ).reFindNoCase( "^createTimeSpan\(" ) > 0;
+	}
+	private any function _timespanToSeconds( required any input ) {
+		var secondsInADay = 86400;
+
+		return Round( Val( arguments.input ) * secondsInADay );
 	}
 
 // GETTERS AND SETTERS
