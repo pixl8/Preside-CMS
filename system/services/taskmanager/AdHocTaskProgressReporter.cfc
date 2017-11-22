@@ -38,6 +38,12 @@ component {
 		);
 	}
 
+	public boolean function isCancelled() {
+		var task = _getAdhocTaskManagerService().getTask( _getTaskId() );
+
+		return !task.recordCount || task.status != "running";
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getAdhocTaskManagerService() {

@@ -106,6 +106,10 @@ component {
 		};
 
 		var batchedRecordIterator = function(){
+			if ( canReportProgress && progress.isCancelled() ) {
+				abort;
+			}
+
 			var results = presideObjectService.selectData(
 				argumentCollection=selectDataArgs
 			);
