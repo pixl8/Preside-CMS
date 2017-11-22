@@ -2423,11 +2423,15 @@
 				} catch( any e ){}
 			}
 
-			var exportedFile = dataExportService.exportData( argumentCollection=args );
+			var taskId = createTask(
+				  event             = "admin.datahelpers.exportDataInBackgroundThread"
+				, args              = args
+				, runNow            = true
+				, adminOwner        = event.getAdminUserId()
+				, discardOnComplete = false
+			);
 
-			header name="Content-Disposition" value="attachment; filename=""#fullFileName#""";
-			content reset=true file=exportedFile deletefile=true type=exporterDetail.mimeType;
-			abort;
+			event.renderData( data={ taskId=taskId }, type="json" );
 		</cfscript>
 	</cffunction>
 

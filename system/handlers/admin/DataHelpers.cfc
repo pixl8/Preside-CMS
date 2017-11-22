@@ -8,6 +8,7 @@ component extends="preside.system.base.adminHandler" {
 	property name="adminDataViewsService" inject="adminDataViewsService";
 	property name="dataManagerService"    inject="dataManagerService";
 	property name="presideObjectService"  inject="presideObjectService";
+	property name="dataExportService"     inject="dataExportService";
 
 	/**
 	 * Method that is called from `adminDataViewsService.buildViewObjectRecordLink()`
@@ -179,5 +180,17 @@ component extends="preside.system.base.adminHandler" {
 			return renderView( view="/admin/dataHelpers/relatedRecordTableActions", args=args );
 		}
 		return "";
+	}
+
+	/**
+	 * Exports data to csv/excel in a background thread run using createTask()
+	 *
+	 */
+	public void function exportDataInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		dataExportService.exportData(
+			  argumentCollection = args
+			, logger             = logger   ?: NullValue()
+			, progress           = progress ?: NullValue()
+		);
 	}
 }
