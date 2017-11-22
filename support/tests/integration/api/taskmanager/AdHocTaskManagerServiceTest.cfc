@@ -546,13 +546,14 @@ component extends="testbox.system.BaseSpec" {
 			it( "should return a struct with task ID, status, progress and result from the DB record", function(){
 				var service  = _getService();
 				var taskId   = CreateUUId();
-				var dbResult = QueryNew( 'id,status,progress_percentage,result,log', 'varchar,varchar,varchar,varchar,varchar', [[ taskId, "running", 45, "{ test:'this' }", "blah" ]] );
+				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on', 'varchar,varchar,varchar,varchar,varchar,date', [[ taskId, "running", 45, "{ test:'this' }", "blah", DateAdd( "s", -234, nowish ) ]] );
 				var expected = {
 					  id       = dbResult.id
 					, status   = dbResult.status
 					, progress = dbResult.progress_percentage
 					, log      = dbResult.log
 					, result   = DeserializeJson( dbResult.result )
+					, timeTaken = 234
 				};
 
 				service.$( "getTask" ).$args( taskId ).$results( dbResult );

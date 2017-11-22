@@ -327,11 +327,12 @@ component displayName="Ad-hoc Task Manager Service" {
 
 		for( var t in task ) {
 			return {
-				  id       = t.id
-				, status   = t.status
-				, progress = t.progress_percentage
-				, log      = t.log
-				, result   = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
+				  id        = t.id
+				, status    = t.status
+				, progress  = t.progress_percentage
+				, log       = t.log
+				, result    = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
+				, timeTaken = DateDiff( 's', t.started_on, _now() )
 			};
 		}
 
