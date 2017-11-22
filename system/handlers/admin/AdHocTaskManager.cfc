@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="adHocTaskManagerService" inject="adHocTaskManagerService";
+	property name="taskManagerService"      inject="taskManagerService";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
@@ -16,6 +17,9 @@ component extends="preside.system.base.AdminHandler" {
 		var taskId = rc.taskId ?: "";
 
 		prc.task = adHocTaskManagerService.getTask( taskId );
+		if ( !prc.task.recordCount ) {
+			event.notFound();
+		}
 
 		if ( !prc.task.admin_owner.len() || prc.task.admin_owner != event.getAdminUserId() ) {
 			_checkPermissions( event, "viewtask" );
@@ -23,6 +27,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		var taskTitleData = IsJson( prc.task.title_data ?: "" ) ? DeserializeJson( prc.task.title_data ) : [];
 		var taskTitle = translateResource( uri=prc.task.title, data=taskTitleData, defaultValue=prc.task.title );
+
+		prc.taskProgress           = adHocTaskManagerService.getProgress( taskId );
+		prc.taskProgress.log       = taskManagerService.createLogHtml( prc.taskProgress.log );
+		prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
+
+		prc.canCancel = prc.task.status == "running";
+		prc.canCancel = prc.canCancel && ( prc.task.admin_owner == event.getAdminUserId() || hasCmsPermission( "adhocTaskManager.cancelTasks" ) );
 
 		prc.pageTitle    = translateResource( uri="cms:adhoctaskmanager.progress.page.title", data=[ taskTitle ] );
 		prc.pageSubtitle = translateResource( uri="cms:adhoctaskmanager.progress.page.subtitle", data=[ taskTitle ] );
