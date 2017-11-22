@@ -177,7 +177,7 @@ component extends="testbox.system.BaseSpec" {
 					, retry_interval      = "[]"
 					, title               = "myresource:export.title"
 					, title_data          = '["test","this"]'
-					, result_url          = "http://www.mysite.com/download/export/?taskId={taskId}"
+					, result_url          = "http://www.mysite.com/download/export/"
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
 
@@ -189,12 +189,49 @@ component extends="testbox.system.BaseSpec" {
 					, discardOnComplete = true
 					, title             = "myresource:export.title"
 					, titleData         = [ "test", "this" ]
-					, resultUrl         = "http://www.mysite.com/download/export/?taskId={taskId}"
+					, resultUrl         = "http://www.mysite.com/download/export/"
 				);
 
 				var log = service.$callLog().runTaskInThread;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( { taskId=taskId } );
+			} );
+
+			it( "should replace {taskId} in task result URL with the newly created task ID", function(){
+				var service = _getService();
+				var owner   = CreateUUId();
+				var event   = "some.event";
+				var args    = { test=CreateUUId(), foobar=[ 1, 2, CreateUUId() ] };
+				var taskId  = CreateUUId();
+				var resultUrl = "https://www.mysite.com/task/result/?taskId={taskid}&really={taskid}";
+
+				mockTaskDao.$( "insertData" ).$args( {
+					  event               = event
+					, event_args          = SerializeJson( args )
+					, admin_owner         = owner
+					, web_owner           = ""
+					, discard_on_complete = false
+					, retry_interval      = "[]"
+					, title               = ""
+					, title_data          = "[]"
+					, result_url          = resultUrl
+				} ).$results( taskId );
+
+				service.$( "setResultUrl" );
+
+				service.createTask(
+					  adminOwner = owner
+					, event      = event
+					, args       = args
+					, resultUrl  = resultUrl
+				);
+
+				var log = service.$callLog().setResultUrl;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  taskId    = taskId
+					, resultUrl = "https://www.mysite.com/task/result/?taskId=#taskId#&really=#taskId#"
+				} );
 			} );
 		} );
 

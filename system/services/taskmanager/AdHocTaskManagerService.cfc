@@ -69,6 +69,10 @@ component displayName="Ad-hoc Task Manager Service" {
 			, result_url          = arguments.resultUrl
 		} );
 
+		if ( arguments.resultUrl.findNoCase( "{taskId}" ) ) {
+			setResultUrl( taskId=taskId, resultUrl=arguments.resultUrl.replaceNoCase( "{taskId}", taskId, "all" ) );
+		}
+
 		if ( arguments.runNow ) {
 			runTaskInThread( taskId=taskId );
 		}
