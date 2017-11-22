@@ -329,11 +329,15 @@ component displayName="Ad-hoc Task Manager Service" {
 		var task = getTask( arguments.taskId );
 
 		for( var t in task ) {
-			var timeTaken = 0;
+			var timeTaken     = 0;
+			var timeRemaining = 0;
 
 			switch( t.status ) {
 				case "running":
 					timeTaken = DateDiff( 's', t.started_on, _now() );
+					if ( Val( t.progress_percentage ) && t.progress_percentage < 100 ) {
+						timeRemaining = Round( ( timeTaken / t.progress_percentage ) * ( 100-t.progress_percentage ) );
+					}
 				break;
 				case "requeued":
 				case "succeeded":
@@ -342,12 +346,13 @@ component displayName="Ad-hoc Task Manager Service" {
 				break;
 			}
 			return {
-				  id        = t.id
-				, status    = t.status
-				, progress  = t.progress_percentage
-				, log       = t.log
-				, result    = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
-				, timeTaken = timeTaken
+				  id            = t.id
+				, status        = t.status
+				, progress      = t.progress_percentage
+				, log           = t.log
+				, result        = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
+				, timeTaken     = timeTaken
+				, timeRemaining = timeRemaining
 			};
 		}
 
