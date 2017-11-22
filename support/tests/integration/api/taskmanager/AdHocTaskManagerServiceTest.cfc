@@ -303,6 +303,7 @@ component extends="testbox.system.BaseSpec" {
 				expect( log[1] ).toBe( { id=taskId, data={
 					  status              = "running"
 					, started_on          = nowish
+					, finished_on         = ""
 					, progress_percentage = 0
 					, log                 = ""
 					, next_attempt_date   = ""
@@ -324,7 +325,7 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  id   = taskId
-					, data = { status="succeeded" }
+					, data = { status="succeeded", finished_on=nowish }
 				} );
 			} );
 
@@ -363,7 +364,7 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  id   = taskId
-					, data = { status="failed", last_error=SerializeJson( error ), attempt_count=nextAttempt.totalAttempts }
+					, data = { status="failed", last_error=SerializeJson( error ), attempt_count=nextAttempt.totalAttempts, finished_on=nowish }
 				} );
 			} );
 
@@ -478,7 +479,7 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  id   = taskId
-					, data = { status="requeued", last_error=SerializeJson( error ), attempt_count=attemptCount, next_attempt_date=nextAttemptDate }
+					, data = { status="requeued", last_error=SerializeJson( error ), attempt_count=attemptCount, next_attempt_date=nextAttemptDate, finished_on=nowish }
 				} );
 			} );
 
@@ -543,7 +544,7 @@ component extends="testbox.system.BaseSpec" {
 		} );
 
 		describe( "getProgress()", function(){
-			it( "should return a struct with task ID, status, progress and result from the DB record", function(){
+			it( "should return a struct with task ID, status, progress, time taken and result from the DB record", function(){
 				var service  = _getService();
 				var taskId   = CreateUUId();
 				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on', 'varchar,varchar,varchar,varchar,varchar,date', [[ taskId, "running", 45, "{ test:'this' }", "blah", DateAdd( "s", -234, nowish ) ]] );
@@ -569,6 +570,42 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "getTask" ).$args( taskId ).$results( dbResult );
 
 				expect( service.getProgress( taskId ) ).toBe( {} );
+			} );
+
+			it( "should return time taken as 0 when status is 'pending'", function(){
+				var service  = _getService();
+				var taskId   = CreateUUId();
+				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on,finished_on', 'varchar,varchar,varchar,varchar,varchar,date,date', [[ taskId, "pending", 0, "", "", "", "" ]] );
+				var expected = {
+					  id        = dbResult.id
+					, status    = dbResult.status
+					, progress  = dbResult.progress_percentage
+					, log       = dbResult.log
+					, result    = {}
+					, timeTaken = 0
+				};
+
+				service.$( "getTask" ).$args( taskId ).$results( dbResult );
+
+				expect( service.getProgress( taskId ) ).toBe( expected );
+			} );
+
+			it( "should return time taken calculated from start and finish date when status is 'failed'", function(){
+				var service  = _getService();
+				var taskId   = CreateUUId();
+				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on,finished_on', 'varchar,varchar,varchar,varchar,varchar,date,date', [[ taskId, "failed", 85, "", "", DateAdd('h',-1,nowish), DateAdd('n',-46,nowish) ]] );
+				var expected = {
+					  id        = dbResult.id
+					, status    = dbResult.status
+					, progress  = dbResult.progress_percentage
+					, log       = dbResult.log
+					, result    = {}
+					, timeTaken = 840
+				};
+
+				service.$( "getTask" ).$args( taskId ).$results( dbResult );
+
+				expect( service.getProgress( taskId ) ).toBe( expected );
 			} );
 		} );
 

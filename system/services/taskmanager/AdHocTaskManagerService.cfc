@@ -170,6 +170,7 @@ component displayName="Ad-hoc Task Manager Service" {
 				, progress_percentage = 0
 				, log                 = ""
 				, next_attempt_date   = ""
+				, finished_on         = ""
 			  }
 		);
 	}
@@ -190,7 +191,7 @@ component displayName="Ad-hoc Task Manager Service" {
 
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
-			, data = { status="succeeded" }
+			, data = { status="succeeded", finished_on=_now() }
 		);
 	}
 
@@ -221,6 +222,7 @@ component displayName="Ad-hoc Task Manager Service" {
 				  status        = "failed"
 				, last_error    = SerializeJson( arguments.error )
 				, attempt_count = nextAttempt.totalAttempts
+				, finished_on   = _now()
 			  }
 		);
 	}
@@ -266,6 +268,7 @@ component displayName="Ad-hoc Task Manager Service" {
 				, last_error        = SerializeJson( arguments.error )
 				, attempt_count     = arguments.attemptCount
 				, next_attempt_date = arguments.nextAttemptDate
+				, finished_on       = _now()
 			  }
 		);
 
@@ -326,13 +329,25 @@ component displayName="Ad-hoc Task Manager Service" {
 		var task = getTask( arguments.taskId );
 
 		for( var t in task ) {
+			var timeTaken = 0;
+
+			switch( t.status ) {
+				case "running":
+					timeTaken = DateDiff( 's', t.started_on, _now() );
+				break;
+				case "requeued":
+				case "succeeded":
+				case "failed":
+					timeTaken = DateDiff( 's', t.started_on, t.finished_on );
+				break;
+			}
 			return {
 				  id        = t.id
 				, status    = t.status
 				, progress  = t.progress_percentage
 				, log       = t.log
 				, result    = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
-				, timeTaken = DateDiff( 's', t.started_on, _now() )
+				, timeTaken = timeTaken
 			};
 		}
 

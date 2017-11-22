@@ -24,6 +24,7 @@ component extends="preside.system.base.SystemPresideObject"  {
 	property name="next_attempt_date" type="date"    dbtype="datetime" required=false;
 	property name="last_error"        type="string"  dbtype="longtext" required=false;
 	property name="started_on"        type="date"    dbtype="datetime" required=false;
+	property name="finished_on"       type="date"    dbtype="datetime" required=false;
 
 	property name="admin_owner" relationship="many-to-one" relatedto="security_user" required=false;
 	property name="web_owner"   relationship="many-to-one" relatedto="website_user"  required=false;
