@@ -41,6 +41,9 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @webOwner          Optional website user ID, owner of the task
 	 * @discardOnComplete Whether or not to discard the task once completed or permanently failed.
 	 * @retryInterval     Definition of retry attempts for tasks that fail to run. Array of structs with the following keys, "tries": number of attempts, "interval":number in minutes between tries. For example: `[ { tries:3, interval=5 }, { tries:2, interval=60 }]` will retry three times with 5 minutes between attempts and then retry a further two times with 60 minutes between attempts.
+	 * @title             Optional title of the task, can be an i18n resource URI for later translation. This will be used in any task progress UIs, etc.
+	 * @titleData         Optional array of strings that will be passed into translateResource() along with title URI to create translatable title
+	 * @resultUrl         Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
 	 */
 	public string function createTask(
 		  required string  event
@@ -50,6 +53,9 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          boolean runNow            = false
 		,          boolean discardOnComplete = false
 		,          array   retryInterval     = []
+		,          string  title             = ""
+		,          array   titleData         = []
+		,          string  resultUrl         = ""
 	) {
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
 			  event               = arguments.event
@@ -58,6 +64,9 @@ component displayName="Ad-hoc Task Manager Service" {
 			, web_owner           = arguments.webOwner
 			, discard_on_complete = arguments.discardOnComplete
 			, retry_interval      = SerializeJson( arguments.retryInterval )
+			, title               = arguments.title
+			, title_data          = SerializeJson( arguments.titleData )
+			, result_url          = arguments.resultUrl
 		} );
 
 		if ( arguments.runNow ) {
@@ -263,6 +272,21 @@ component displayName="Ad-hoc Task Manager Service" {
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
 			, data = { result=SerializeJson( arguments.result ) }
+		);
+	}
+
+	/**
+	 * Sets the result URL of a task. Useful/required when wanting
+	 * to use built in admin UIs for progress / result viewing of tasks
+	 *
+	 * @autodoc   true
+	 * @taskId    ID of the task
+	 * @resultUrl The URL for viewing the result of the task
+	 */
+	public void function setResultUrl( required string taskId, required any resultUrl ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = { result_url=arguments.resultUrl }
 		);
 	}
 

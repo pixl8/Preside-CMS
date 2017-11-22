@@ -6,11 +6,14 @@
  *
  */
 component extends="preside.system.base.SystemPresideObject"  {
-	property name="event"          type="string"  dbtype="varchar"   maxlength=255 required=true;
-	property name="event_args"     type="string"  dbtype="longtext"                required=false;
-	property name="retry_interval" type="string"  dbtype="longtext"                required=false;
-	property name="result"         type="string"  dbtype="longtext"                required=false;
-	property name="log"            type="string"  dbtype="longtext"                required=false;
+	property name="event"          type="string"  dbtype="varchar"  maxlength=255 required=true;
+	property name="event_args"     type="string"  dbtype="longtext"               required=false;
+	property name="retry_interval" type="string"  dbtype="longtext"               required=false;
+	property name="title"          type="string"  dbtype="varchar"  maxlength=255 required=false;
+	property name="title_args"     type="string"  dbtype="longtext"               required=false;
+	property name="result"         type="string"  dbtype="longtext"               required=false;
+	property name="result_url"     type="string"  dbtype="varchar"  maxlength=255 required=false;
+	property name="log"            type="string"  dbtype="longtext"               required=false;
 
 	property name="status"              type="string"  dbtype="varchar"   maxlength=50  required=false default="pending" enum="adhocTaskStatus";
 	property name="progress_percentage" type="numeric" dbtype="int"                     required=false default=0;

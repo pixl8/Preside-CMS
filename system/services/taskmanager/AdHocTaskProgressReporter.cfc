@@ -31,6 +31,13 @@ component {
 		);
 	}
 
+	public void function setResultUrl( required string resultUrl ) {
+		_getAdhocTaskManagerService().setResult(
+			  resultUrl = arguments.resultUrl
+			, taskId    = _getTaskId()
+		);
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getAdhocTaskManagerService() {

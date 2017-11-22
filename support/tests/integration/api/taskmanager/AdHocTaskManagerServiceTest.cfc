@@ -149,6 +149,9 @@ component extends="testbox.system.BaseSpec" {
 					, web_owner           = ""
 					, discard_on_complete = false
 					, retry_interval      = "[]"
+					, title               = ""
+					, title_data          = "[]"
+					, result_url          = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -172,6 +175,9 @@ component extends="testbox.system.BaseSpec" {
 					, web_owner           = owner
 					, discard_on_complete = true
 					, retry_interval      = "[]"
+					, title               = "myresource:export.title"
+					, title_data          = '["test","this"]'
+					, result_url          = "http://www.mysite.com/download/export/?taskId={taskId}"
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
 
@@ -181,6 +187,9 @@ component extends="testbox.system.BaseSpec" {
 					, args              = args
 					, runNow            = true
 					, discardOnComplete = true
+					, title             = "myresource:export.title"
+					, titleData         = [ "test", "this" ]
+					, resultUrl         = "http://www.mysite.com/download/export/?taskId={taskId}"
 				);
 
 				var log = service.$callLog().runTaskInThread;
@@ -397,6 +406,26 @@ component extends="testbox.system.BaseSpec" {
 				expect( log[1] ).toBe( {
 					  id   = taskId
 					, data = { result=SerializeJson( result ) }
+				} );
+			} );
+		} );
+
+
+		describe( "setResultUrl()", function(){
+			it( "should set the task URL against the DB record", function(){
+				var service   = _getService();
+				var taskId    = CreateUUId();
+				var resultUrl = "http://www.test.this.com/blah=" & taskId;
+
+				mockTaskDao.$( "updateData", 1 );
+
+				service.setResultUrl( taskId, resultUrl );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id   = taskId
+					, data = { result_url=resultUrl }
 				} );
 			} );
 		} );
