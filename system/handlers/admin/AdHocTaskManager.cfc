@@ -33,6 +33,21 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function status( event, rc, prc ) {
+		var taskId = rc.taskId ?: "";
+
+		prc.task = adHocTaskManagerService.getTask( taskId );
+
+		if ( !prc.task.admin_owner.len() || prc.task.admin_owner != event.getAdminUserId() ) {
+			_checkPermissions( event, "viewtask" );
+		}
+
+		event.renderData(
+			  data = adHocTaskManagerService.getProgress( taskId )
+			, type = "json"
+		);
+	}
+
 // PRIVATE HELPERS
 	private boolean function _checkPermissions( required any event, required string key, boolean throwOnError=true ) {
 		var hasPermission = hasCmsPermission( "adhocTaskManager." & arguments.key );

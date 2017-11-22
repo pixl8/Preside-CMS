@@ -2392,6 +2392,7 @@
 		<cfargument name="filterExpressions" type="string" required="false" default="#( rc.filterExpressions ?: '' )#" />
 		<cfargument name="savedFilters"      type="string" required="false" default="#( rc.savedFilters ?: '' )#" />
 		<cfargument name="extraFilters"      type="array"  required="false" default="#ArrayNew( 1 )#" />
+		<cfargument name="returnUrl"         type="string" required="false" default="#cgi.http_referer#" />
 
 		<cfsetting requesttimeout="6000" />
 
@@ -2430,7 +2431,8 @@
 				, adminOwner        = event.getAdminUserId()
 				, discardOnComplete = false
 				, title             = "cms:dataexport.task.title"
-				, resultUrl         = event.buildAdminLink( linkto="admin.datahelpers.downloadExport", querystring="taskId={taskId}" )
+				, resultUrl         = event.buildAdminLink( linkto="datahelpers.downloadExport", querystring="taskId={taskId}" )
+				, returnUrl         = arguments.returnUrl
 			);
 
 			setNextEvent( url=event.buildAdminLink(
