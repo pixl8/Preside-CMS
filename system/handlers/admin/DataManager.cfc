@@ -2382,16 +2382,16 @@
 	</cffunction>
 
 	<cffunction name="_exportDataAction" access="private" returntype="any" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-		<cfargument name="exporter"   type="string" required="false" default="#( rc.exporter ?: 'CSV' )#" />
-		<cfargument name="objectName"   type="string" required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="exportFields" type="string" required="false" default="#( rc.exportFields ?: '' )#" />
-		<cfargument name="filename" type="string" required="false" default="#( rc.fileName ?: '' )#" />
+		<cfargument name="event"             type="any"    required="true" />
+		<cfargument name="rc"                type="struct" required="true" />
+		<cfargument name="prc"               type="struct" required="true" />
+		<cfargument name="exporter"          type="string" required="false" default="#( rc.exporter ?: 'CSV' )#" />
+		<cfargument name="objectName"        type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="exportFields"      type="string" required="false" default="#( rc.exportFields ?: '' )#" />
+		<cfargument name="filename"          type="string" required="false" default="#( rc.fileName ?: '' )#" />
 		<cfargument name="filterExpressions" type="string" required="false" default="#( rc.filterExpressions ?: '' )#" />
-		<cfargument name="savedFilters" type="string" required="false" default="#( rc.savedFilters ?: '' )#" />
-		<cfargument name="extraFilters" type="array" required="false" default="#ArrayNew( 1 )#" />
+		<cfargument name="savedFilters"      type="string" required="false" default="#( rc.savedFilters ?: '' )#" />
+		<cfargument name="extraFilters"      type="array"  required="false" default="#ArrayNew( 1 )#" />
 
 		<cfsetting requesttimeout="6000" />
 
@@ -2429,9 +2429,14 @@
 				, runNow            = true
 				, adminOwner        = event.getAdminUserId()
 				, discardOnComplete = false
+				, title             = "cms:dataexport.task.title"
+				, resultUrl         = event.buildAdminLink( linkto="admin.datahelpers.downloadExport", querystring="taskId={taskId}" )
 			);
 
-			event.renderData( data={ taskId=taskId }, type="json" );
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=" & taskId
+			) );
 		</cfscript>
 	</cffunction>
 
