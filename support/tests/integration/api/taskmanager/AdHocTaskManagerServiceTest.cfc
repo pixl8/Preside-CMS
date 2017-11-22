@@ -553,7 +553,7 @@ component extends="testbox.system.BaseSpec" {
 			it( "should return a struct with task ID, status, progress, time taken, time remaining and result from the DB record", function(){
 				var service  = _getService();
 				var taskId   = CreateUUId();
-				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on', 'varchar,varchar,varchar,varchar,varchar,date', [[ taskId, "running", 45, "{ test:'this' }", "blah", DateAdd( "s", -234, nowish ) ]] );
+				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on,finished_on,return_url,result_url', 'varchar,varchar,varchar,varchar,varchar,date,date,varchar,varchar', [[ taskId, "running", 45, "{ test:'this' }", "blah", DateAdd( "s", -234, nowish ), "", "", "" ]] );
 				var expected = {
 					  id            = dbResult.id
 					, status        = dbResult.status
@@ -562,6 +562,8 @@ component extends="testbox.system.BaseSpec" {
 					, result        = DeserializeJson( dbResult.result )
 					, timeTaken     = 234
 					, timeRemaining = 286
+					, resultUrl     = ""
+					, returnUrl     = ""
 				};
 
 				service.$( "getTask" ).$args( taskId ).$results( dbResult );
@@ -582,7 +584,7 @@ component extends="testbox.system.BaseSpec" {
 			it( "should return time taken/remaining as 0 when status is 'pending'", function(){
 				var service  = _getService();
 				var taskId   = CreateUUId();
-				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on,finished_on', 'varchar,varchar,varchar,varchar,varchar,date,date', [[ taskId, "pending", 0, "", "", "", "" ]] );
+				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on,finished_on,return_url,result_url', 'varchar,varchar,varchar,varchar,varchar,date,date,varchar,varchar', [[ taskId, "pending", 0, "", "", "", "", "", "" ]] );
 				var expected = {
 					  id            = dbResult.id
 					, status        = dbResult.status
@@ -591,6 +593,8 @@ component extends="testbox.system.BaseSpec" {
 					, result        = {}
 					, timeTaken     = 0
 					, timeRemaining = 0
+					, resultUrl     = ""
+					, returnUrl     = ""
 				};
 
 				service.$( "getTask" ).$args( taskId ).$results( dbResult );
@@ -601,7 +605,7 @@ component extends="testbox.system.BaseSpec" {
 			it( "should return time taken calculated from start and finish date when status is 'failed'", function(){
 				var service  = _getService();
 				var taskId   = CreateUUId();
-				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on,finished_on', 'varchar,varchar,varchar,varchar,varchar,date,date', [[ taskId, "failed", 85, "", "", DateAdd('h',-1,nowish), DateAdd('n',-46,nowish) ]] );
+				var dbResult = QueryNew( 'id,status,progress_percentage,result,log,started_on,finished_on,return_url,result_url', 'varchar,varchar,varchar,varchar,varchar,date,date,varchar,varchar', [[ taskId, "failed", 85, "", "", DateAdd('h',-1,nowish), DateAdd('n',-46,nowish), "", "" ]] );
 				var expected = {
 					  id            = dbResult.id
 					, status        = dbResult.status
@@ -610,6 +614,8 @@ component extends="testbox.system.BaseSpec" {
 					, result        = {}
 					, timeTaken     = 840
 					, timeRemaining = 0
+					, resultUrl     = ""
+					, returnUrl     = ""
 				};
 
 				service.$( "getTask" ).$args( taskId ).$results( dbResult );
