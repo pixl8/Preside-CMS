@@ -25,6 +25,10 @@ component extends="preside.system.base.AdminHandler" {
 			_checkPermissions( event, "viewtask" );
 		}
 
+		if ( prc.task.status == "succeeded" && prc.task.result_url.len() ) {
+			setNextEvent( url=prc.task.result_url );
+		}
+
 		var taskTitleData = IsJson( prc.task.title_data ?: "" ) ? DeserializeJson( prc.task.title_data ) : [];
 		var taskTitle = translateResource( uri=prc.task.title, data=taskTitleData, defaultValue=prc.task.title );
 

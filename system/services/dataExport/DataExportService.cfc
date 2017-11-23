@@ -41,6 +41,8 @@ component {
 		,          array   selectFields       = []
 		,          numeric exportPagingSize   = 1000
 		,          any     recordsetDecorator = ""
+		,          string  exportFileName     = ""
+		,          string  mimetype           = ""
 		,          any     logger
 		,          any     progress
 	) {
@@ -170,7 +172,11 @@ component {
 		);
 
 		if ( canReportProgress ) {
-			progress.setResult( result );
+			progress.setResult( {
+				  exportFileName = arguments.exportFileName
+				, mimetype       = arguments.mimetype
+				, filePath       = result
+			} );
 		}
 
 		return result;

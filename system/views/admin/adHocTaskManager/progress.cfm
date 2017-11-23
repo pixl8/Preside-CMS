@@ -10,10 +10,8 @@
 
 	canCancel    = IsTrue( prc.canCancel ?: "" );
 	hasReturnUrl = Len( Trim( taskProgress.returnUrl ) );
-	hasResultUrl = Len( Trim( taskProgress.resultUrl ) );
 	succeeded    = status == "succeeded";
 	isRunning    = status == "running";
-	resultDisabled = !hasResultUrl || !succeeded;
 
 	if ( canCancel ) {
 		cancelAction = event.buildAdminLink( linkto="adhocTaskManager.cancelTaskAction", querystring="taskId=" & taskId );
@@ -30,7 +28,10 @@
 	event.include( "/css/admin/specific/taskmanager/" );
 	if ( isRunning ) {
 		event.include( "/js/admin/specific/adhoctaskprogress/" );
-		event.includeData({ adhocTaskStatusUpdateUrl=event.buildAdminLink( linkto="adhocTaskManager.status", queryString="taskId=#taskId#" ) } );
+		event.includeData({
+			  adhocTaskStatusUpdateUrl = event.buildAdminLink( linkto="adhocTaskManager.status", queryString="taskId=#taskId#" )
+			, adhocTaskLineCount       = task.log.listLen( Chr( 10 ) )
+		} );
 	}
 </cfscript>
 <cfoutput>
@@ -56,7 +57,7 @@
 
 		<div class="form-actions row">
 			<cfif hasReturnUrl>
-				<a href="#task.return_url#" class="btn btn-default">
+				<a href="#task.return_url#" class="btn btn-info">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:adhoctaskmanager.progress.return.btn" )#
 				</a>
@@ -67,12 +68,6 @@
 					#translateResource( "cms:adhoctaskmanager.progress.cancel.task.btn" )#
 				</a>
 			</cfif>
-
-			<a href="#task.result_url#" class="btn btn-info<cfif resultDisabled> btn-disabled</cfif>"<cfif resultDisabled> disabled</cfif> id="view-result-button">
-				<i class="fa fa-check bigger-110">
-					#translateResource( "cms:adhoctaskmanager.progress.view.result.btn" )#
-				</i>
-			</a>
 		</div>
 	</div>
 </cfoutput>

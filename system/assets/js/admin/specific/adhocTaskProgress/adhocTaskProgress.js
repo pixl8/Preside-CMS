@@ -6,14 +6,13 @@
 		return;
 	}
 
-	var $logArea  = $( '#taskmanager-log' )
-	  , $timeArea = $( '#task-log-timetaken' )
+	var $logArea     = $( '#taskmanager-log' )
+	  , $timeArea    = $( '#task-log-timetaken' )
 	  , $progressBar = $progressContainer.find( ".progress:first" )
 	  , $cancelBtn   = $( '#task-cancel-button' )
 	  , $resultBtn   = $( '#view-result-button' )
-	  , updateUrl = cfrequest.logUpdateUrl || ""
-	  , lineCount = cfrequest.lineCount || ""
-	  , fetchRate = 1000
+	  , lineCount    = cfrequest.adhocTaskLineCount || ""
+	  , fetchRate    = 1000
 	  , fetchUpdate, processUpdate, intervalId, scrollToBottom, setProgress;
 
 
@@ -23,10 +22,7 @@
 	};
 
 	fetchUpdate = function(){
-		$.ajax( statusUpdateUrl, {
-			  data    : { fetchAfterLines : lineCount }
-			, success : processUpdate
-		} );
+		$.get( statusUpdateUrl, { fetchAfterLines : lineCount }, processUpdate );
 	};
 
 	setProgress = function( progress ){
@@ -42,7 +38,7 @@
 		$timeArea.html( data.timeTaken );
 		if ( $.trim( data.log ).length ) {
 			$logArea.html( $logArea.html() + String.fromCharCode( 10 ) + data.log );
-			lineCount = data.lineCount;
+			lineCount = data.logLineCount;
 
 			if ( isScrolledToBottom ) {
 				scrollToBottom();
@@ -62,17 +58,8 @@
 				$timeArea.parent().addClass( "red" );
 			}
 
-			if ( data.status == "succeeded" && data.resultUrl.length && $resultBtn.length ) {
-				$resultBtn.prop( "disabled", false );
-				$resultBtn.removeAttr( "disabled" );
-				$resultBtn.removeClass( "btn-disabled" );
-				$resultBtn.removeClass( "disabled" );
-				$resultBtn.attr( "href", data.resultUrl );
-			} else if ( $resultBtn.length ) {
-				$resultBtn.prop( "disabled", true );
-				$resultBtn.addClass( "btn-disabled" );
-				$resultBtn.addClass( "disabled" );
-				console.log( "damn...!" );
+			if ( data.status == "succeeded" && data.resultUrl.length ) {
+				window.location = data.resultUrl;
 			}
 
 			if ( $cancelBtn.length ) {

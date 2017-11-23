@@ -5,10 +5,11 @@
  */
 component extends="preside.system.base.adminHandler" {
 
-	property name="adminDataViewsService" inject="adminDataViewsService";
-	property name="dataManagerService"    inject="dataManagerService";
-	property name="presideObjectService"  inject="presideObjectService";
-	property name="dataExportService"     inject="dataExportService";
+	property name="adminDataViewsService"   inject="adminDataViewsService";
+	property name="dataManagerService"      inject="dataManagerService";
+	property name="presideObjectService"    inject="presideObjectService";
+	property name="dataExportService"       inject="dataExportService";
+	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 
 	/**
 	 * Method that is called from `adminDataViewsService.buildViewObjectRecordLink()`
@@ -192,6 +193,28 @@ component extends="preside.system.base.adminHandler" {
 			, logger             = logger   ?: NullValue()
 			, progress           = progress ?: NullValue()
 		);
+	}
+
+	/**
+	 * Result handler for background-threaded data export
+	 *
+	 */
+	public void function downloadExport( event, rc, prc ) {
+		var taskId          = rc.taskId ?: "";
+		var task            = adhocTaskManagerService.getProgress( taskId );
+		var localExportFile = task.result.filePath       ?: "";
+		var exportFileName  = task.result.exportFileName ?: "";
+		var mimetype        = task.result.mimetype       ?: "";
+
+		if ( task.isEmpty() || !localExportFile.len() || !FileExists( localExportFile ) ) {
+			event.notFound();
+		}
+
+		header name="Content-Disposition" value="attachment; filename=""#exportFileName#""";
+		content reset=true file=localExportFile deletefile=true type=mimetype;
+
+		adhocTaskManagerService.discardTask( taskId );
+		abort;
 	}
 
 }

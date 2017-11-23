@@ -2406,6 +2406,8 @@
 				, selectFields = selectFields
 				, extraFilters = arguments.extraFilters
 				, autoGroupBy  = true
+				, fileName     = fullFileName
+				, mimetype     = exporterDetail.mimeType
 			};
 
 			try {
