@@ -37,7 +37,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
 
 		prc.canCancel = prc.task.status == "running";
-		prc.canCancel = prc.canCancel && ( prc.task.admin_owner == event.getAdminUserId() || hasCmsPermission( "adhocTaskManager.cancelTasks" ) );
+		prc.canCancel = prc.canCancel && ( prc.task.admin_owner == event.getAdminUserId() || hasCmsPermission( "adhocTaskManager.canceltask" ) );
 
 		prc.pageTitle    = translateResource( uri="cms:adhoctaskmanager.progress.page.title", data=[ taskTitle ] );
 		prc.pageSubtitle = translateResource( uri="cms:adhoctaskmanager.progress.page.subtitle", data=[ taskTitle ] );
@@ -65,6 +65,20 @@ component extends="preside.system.base.AdminHandler" {
 			  data = taskProgress
 			, type = "json"
 		);
+	}
+
+	public void function cancelTaskAction( event, rc, prc ) {
+		var taskId       = rc.taskId ?: "";
+		var task         = adHocTaskManagerService.getTask( taskId );
+		var taskProgress = adHocTaskManagerService.getProgress( taskId );
+		var resultUrl    = task.return_url.len() ? task.return_url : event.buildAdminLink();
+
+		if ( !task.admin_owner.len() || task.admin_owner != event.getAdminUserId() ) {
+			_checkPermissions( event, "canceltask" );
+		}
+
+		adhocTaskManagerService.discardTask( taskId );
+		setNextEvent( url=resultUrl );
 	}
 
 // PRIVATE HELPERS
