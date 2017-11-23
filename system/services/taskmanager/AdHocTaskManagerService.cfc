@@ -106,22 +106,21 @@ component displayName="Ad-hoc Task Manager Service" {
 			}
 
 			markTaskAsRunning( taskId=arguments.taskId );
-			/*
-			$getPresideObject( "taskmanager_adhoc_task" ).updateData(
-				  id   = arguments.taskId
-				, data = { status="running" }
-			);*/
+
+			var logger   = _getTaskLogger( taskId );
+			var progress = _getTaskProgressReporter( taskId );
 
 			try {
 				$getColdbox().runEvent(
 					  event          = task.event
-					, eventArguments = { args=args, logger=_getTaskLogger( taskId ), progress=_getTaskProgressReporter( taskId ) }
+					, eventArguments = { args=args, logger=logger, progress=progress }
 					, private        = true
 					, prepostExempt  = true
 				);
 			} catch( any e ) {
 				failTask( taskId=arguments.taskId, error=e );
 				$raiseError( error=e );
+				logger.error( "An [#( e.type ?: '' )#] error occurred running task. Error message: [#( e.message ?: '' )#]" );
 				return false;
 			}
 

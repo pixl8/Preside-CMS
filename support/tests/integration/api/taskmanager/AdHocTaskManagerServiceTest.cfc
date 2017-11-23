@@ -94,6 +94,7 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "completeTask" );
 				service.$( "failTask" );
 				service.$( "markTaskAsRunning" );
+				mockLogger.$( "error" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 
@@ -102,11 +103,14 @@ component extends="testbox.system.BaseSpec" {
 				expect( log[1].error.type    ?: "" ).toBe( "SomeError" );
 				expect( log[1].error.message ?: "" ).toBe( "boo :(" );
 
-				var log = service.$callLog().failTask;
+				log = service.$callLog().failTask;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1].taskId ).toBe( taskId );
 				expect( log[1].error.type    ?: "" ).toBe( "SomeError" );
 				expect( log[1].error.message ?: "" ).toBe( "boo :(" );
+
+				log = mockLogger.$callLog().error;
+				expect( log.len() ).toBe( 1 );
 			} );
 
 			it( "should silenty raise an error and return false when the task is already running", function(){
