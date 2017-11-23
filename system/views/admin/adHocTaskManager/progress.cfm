@@ -4,7 +4,6 @@
 	taskProgress   = prc.taskProgress ?: {};
 	status         = taskProgress.status ?: "";
 	progress       = Round( Val( taskProgress.progress ) );
-	progressActive = progress < 100;
 	log            = taskProgress.log;
 	timeTaken      = taskProgress.timeTaken;
 
@@ -36,7 +35,7 @@
 </cfscript>
 <cfoutput>
 	<div id="ad-hoc-task-progress-container">
-		<div class="progress progress-striped pos-rel<cfif progressActive> active</cfif>" data-percent="#progress#%">
+		<div class="progress progress-striped pos-rel<cfif isRunning> active</cfif>" data-percent="#progress#%">
 			<div class="progress-bar progress-bar-#progressClass#" style="width:#progress#%;"></div>
 		</div>
 		<div class="task-log">
@@ -48,7 +47,9 @@
 					<i class="fa fa-fw fa-clock-o"></i>
 
 					<span class="time-taken">#translateResource( "cms:taskamanager.log.timetaken" )#</span>
-					<span class="running-for">#translateResource( "cms:taskamanager.log.runningfor" )#</span>
+					<cfif isRunning>
+						<span class="running-for">#translateResource( "cms:taskamanager.log.runningfor" )#</span>
+					</cfif>
 
 					<span class="time" id="task-log-timetaken">#timeTaken#</span>
 				</span>
