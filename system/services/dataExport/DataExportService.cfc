@@ -78,8 +78,9 @@ component {
 			var totalRecordsToExport = presideObjectService.selectData(
 				  argumentCollection = selectDataArgs
 				, recordCountOnly    = true
+				, maxRows            = 0
 			);
-			var totalPagesToExport = Ceiling( totalRecordsToExport / arguments.exportPagingSize );
+			var totalPagesToExport = Ceiling( totalRecordsToExport / selectDataArgs.maxRows );
 		}
 
 		var simpleFormatField = function( required string fieldName, required any value ){
@@ -118,7 +119,7 @@ component {
 				var currentPage = ( ( selectDataArgs.startRow-1 ) + selectDataArgs.maxRows ) / selectDataArgs.maxRows;
 				if ( canInfo ) {
 					if ( results.recordCount ) {
-						logger.info( "Fetched next [#NumberFormat( results.recordCount )#] records, page [#NumberFormat( currentPage )#] of [#NumberFormat( totalPagesToExport )#]" );
+						logger.info( "Fetched next [#NumberFormat( results.recordCount )#] of [#NumberFormat( totalRecordsToExport )#] records (page [#NumberFormat( currentPage )#] of [#NumberFormat( totalPagesToExport )#])" );
 					} else {
 						logger.info( "Completed export" );
 					}

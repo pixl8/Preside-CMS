@@ -45,16 +45,20 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function status( event, rc, prc ) {
-		var taskId = rc.taskId ?: "";
+		var taskId       = rc.taskId ?: "";
+		var task         = adHocTaskManagerService.getTask( taskId );
+		var taskProgress = adHocTaskManagerService.getProgress( taskId );
 
-		prc.task = adHocTaskManagerService.getTask( taskId );
-
-		if ( !prc.task.admin_owner.len() || prc.task.admin_owner != event.getAdminUserId() ) {
+		if ( !task.admin_owner.len() || task.admin_owner != event.getAdminUserId() ) {
 			_checkPermissions( event, "viewtask" );
 		}
 
+		taskProgress.logLineCount = taskProgress.log.listLen( Chr( 10 ) );
+		taskProgress.log          = taskManagerService.createLogHtml( taskProgress.log, Val( rc.fetchAfterLines ?: "" ) );
+		taskProgress.timeTaken    = renderContent( renderer="TaskTimeTaken", data=taskProgress.timeTaken*1000, context=[ "accurate" ] );
+
 		event.renderData(
-			  data = adHocTaskManagerService.getProgress( taskId )
+			  data = taskProgress
 			, type = "json"
 		);
 	}
