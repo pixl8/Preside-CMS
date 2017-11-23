@@ -133,10 +133,6 @@ component {
 						progress.setProgress( 100 );
 					}
 				}
-
-				if ( Ceiling( ( 100 / totalPagesToExport ) * currentPage-1 ) > 65 ) {
-					throw( type="test.error", message="blah.blah blah blah blah" );
-				}
 			}
 
 			if ( results.recordCount && IsClosure( selectDataArgs.recordsetDecorator ) ) {
