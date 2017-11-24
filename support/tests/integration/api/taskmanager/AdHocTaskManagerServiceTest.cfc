@@ -297,6 +297,51 @@ component extends="testbox.system.BaseSpec" {
 					, retryInterval = [{ tries=4, interval=CreateTimeSpan( 0, 0, 3, 45 ) }]
 				) ).toBe( taskId );
 			} );
+
+			it( "should schedule execution in the future when 'runIn' is set", function(){
+				var service     = _getService();
+				var owner       = CreateUUId();
+				var event       = "some.event";
+				var args        = { test=CreateUUId(), foobar=[ 1, 2, CreateUUId() ] };
+				var taskId      = CreateUUId();
+				var runIn       = CreateTimeSpan( 3, 5, 25, 35 );
+				var nextRunDate = DateAdd( "s", runIn.getSeconds(), nowish );
+
+				mockTaskDao.$( "insertData" ).$args( {
+					  event               = event
+					, event_args          = SerializeJson( args )
+					, admin_owner         = ""
+					, web_owner           = owner
+					, discard_on_complete = true
+					, retry_interval      = "[]"
+					, title               = "myresource:export.title"
+					, title_data          = '["test","this"]'
+					, result_url          = "http://www.mysite.com/download/export/"
+					, return_url          = "http://www.mysite.com/download/cancelled/"
+				} ).$results( taskId );
+				service.$( "runTaskInThread" );
+				service.$( "requeueTask" );
+
+				service.createTask(
+					  webOwner          = owner
+					, event             = event
+					, args              = args
+					, runIn             = runIn
+					, discardOnComplete = true
+					, title             = "myresource:export.title"
+					, titleData         = [ "test", "this" ]
+					, resultUrl         = "http://www.mysite.com/download/export/"
+					, returnUrl         = "http://www.mysite.com/download/cancelled/"
+				);
+
+				var log = service.$callLog().requeueTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  taskId          = taskId
+					, nextAttemptDate = nextRunDate
+					, attemptCount    = 0
+				} );
+			} );
 		} );
 
 		describe( "markTaskAsRunning()", function(){

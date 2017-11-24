@@ -39,6 +39,8 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @adminOwner        Optional admin user ID, owner of the task
 	 * @adminOwner        Optional admin user ID, owner of the task
 	 * @webOwner          Optional website user ID, owner of the task
+	 * @runNow            Whether or not to immediately run the task in a background thread. **Note:** If neither `runNow` or `runIn` is set, you will be responsible for running the task yourself with [[adhoctaskmanagerservice-runtask]].
+	 * @runIn             Optional *timespan* (`CreateTimeSpan()`) to delay the execution of this task (will only be used if `runNow` is `false`). **Note:** If neither `runNow` or `runIn` is set, you will be responsible for running the task yourself with [[adhoctaskmanagerservice-runtask]].
 	 * @discardOnComplete Whether or not to discard the task once completed or permanently failed.
 	 * @retryInterval     Definition of retry attempts for tasks that fail to run. Either a single struct, or array of structs with the following keys: `tries`: number of attempts, `interval`:number in seconds between tries (can also use CreateTimeSpan()). For example: `[ { tries:3, interval=CreateTimeSpan( 0, 0, 5, 0 ) }, { tries:2, interval=3600 }]` will retry three times with 5 minutes between attempts and then retry a further two times with 60 minutes between attempts.
 	 * @title             Optional title of the task, can be an i18n resource URI for later translation. This will be used in any task progress UIs, etc.
@@ -47,17 +49,18 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @returnUrl         Optional URL to which to direct users from core admin UIs when they have finished with viewing a task
 	 */
 	public string function createTask(
-		  required string  event
-		,          struct  args              = {}
-		,          string  adminOwner        = ""
-		,          string  webOwner          = ""
-		,          boolean runNow            = false
-		,          boolean discardOnComplete = false
-		,          any     retryInterval     = []
-		,          string  title             = ""
-		,          array   titleData         = []
-		,          string  resultUrl         = ""
-		,          string  returnUrl         = ""
+		  required string   event
+		,          struct   args              = {}
+		,          string   adminOwner        = ""
+		,          string   webOwner          = ""
+		,          boolean  runNow            = false
+		,          timespan runIn             = CreateTimeSpan( 0, 0, 0, 0 )
+		,          boolean  discardOnComplete = false
+		,          any      retryInterval     = []
+		,          string   title             = ""
+		,          array    titleData         = []
+		,          string   resultUrl         = ""
+		,          string   returnUrl         = ""
 	) {
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
 			  event               = arguments.event
@@ -78,6 +81,12 @@ component displayName="Ad-hoc Task Manager Service" {
 
 		if ( arguments.runNow ) {
 			runTaskInThread( taskId=taskId );
+		} else if ( Val( arguments.runIn ) ) {
+			requeueTask(
+				  taskId          = taskId
+				, nextAttemptDate = DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
+				, attemptCount    = 0
+			);
 		}
 
 		return taskId;
