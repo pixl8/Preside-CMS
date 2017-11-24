@@ -237,6 +237,11 @@
 		<cfreturn getController().getWireBox().getInstance( "errorLogService" ).raiseError( argumentCollection=arguments ) />
 	</cffunction>
 
+<!--- tasks --->
+	<cffunction name="createTask" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "adHocTaskManagerService" ).createTask( argumentCollection = arguments ) />
+	</cffunction>
+
 <!--- helpers --->
 	<cffunction name="simpleRequestCache" access="public" returntype="any" output="false">
 		<cfargument name="key" type="string" required="true" />

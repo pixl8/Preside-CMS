@@ -241,6 +241,7 @@ component {
 			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
+			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
 			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
@@ -365,6 +366,7 @@ component {
 		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "running", "requeued", "succeeded", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
