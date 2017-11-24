@@ -82,10 +82,9 @@ component displayName="Ad-hoc Task Manager Service" {
 		if ( arguments.runNow ) {
 			runTaskInThread( taskId=taskId );
 		} else if ( Val( arguments.runIn ) ) {
-			requeueTask(
+			_scheduleTask(
 				  taskId          = taskId
 				, nextAttemptDate = DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
-				, attemptCount    = 0
 			);
 		}
 
@@ -253,24 +252,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          any     error = {}
 		,          numeric attemptCount = 1
 	) {
-		var scheduleSettings = $getPresideCategorySettings( category="taskmanager" );
-
-		_getTaskScheduler().createTask(
-			  task          = "PresideAdHocTask-" & arguments.taskId
-			, url           = getTaskRunnerUrl( taskId=taskId, siteContext=scheduleSettings.site_context )
-			, port          = Val( scheduleSettings.http_port ?: "" ) ? scheduleSettings.http_port : 80
-			, username      = scheduleSettings.http_username  ?: ""
-			, password      = scheduleSettings.http_password  ?: ""
-			, proxyServer   = scheduleSettings.proxy_server   ?: ""
-			, proxyPort     = scheduleSettings.proxy_port     ?: ""
-			, proxyUser     = scheduleSettings.proxy_user     ?: ""
-			, proxyPassword = scheduleSettings.proxy_password ?: ""
-			, startdate     = DateFormat( arguments.nextAttemptDate, "yyyy-mm-dd" )
-			, startTime     = TimeFormat( arguments.nextAttemptDate, "HH:mm:ss" )
-			, interval      = "Once"
-			, hidden        = true
-			, autoDelete    = true
-		);
+		_scheduleTask( taskId=arguments.taskId, nextAttemptDate=arguments.nextAttemptDate );
 
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
@@ -472,6 +454,27 @@ component displayName="Ad-hoc Task Manager Service" {
 		var secondsInADay = 86400;
 
 		return Round( Val( arguments.input ) * secondsInADay );
+	}
+
+	private void function _scheduleTask( required string taskId, required date nextAttemptDate ) {
+		var scheduleSettings = $getPresideCategorySettings( category="taskmanager" );
+
+		_getTaskScheduler().createTask(
+			  task          = "PresideAdHocTask-" & arguments.taskId
+			, url           = getTaskRunnerUrl( taskId=taskId, siteContext=scheduleSettings.site_context )
+			, port          = Val( scheduleSettings.http_port ?: "" ) ? scheduleSettings.http_port : 80
+			, username      = scheduleSettings.http_username  ?: ""
+			, password      = scheduleSettings.http_password  ?: ""
+			, proxyServer   = scheduleSettings.proxy_server   ?: ""
+			, proxyPort     = scheduleSettings.proxy_port     ?: ""
+			, proxyUser     = scheduleSettings.proxy_user     ?: ""
+			, proxyPassword = scheduleSettings.proxy_password ?: ""
+			, startdate     = DateFormat( arguments.nextAttemptDate, "yyyy-mm-dd" )
+			, startTime     = TimeFormat( arguments.nextAttemptDate, "HH:mm:ss" )
+			, interval      = "Once"
+			, hidden        = true
+			, autoDelete    = true
+		);
 	}
 
 // GETTERS AND SETTERS

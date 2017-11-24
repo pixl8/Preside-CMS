@@ -320,7 +320,7 @@ component extends="testbox.system.BaseSpec" {
 					, return_url          = "http://www.mysite.com/download/cancelled/"
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
-				service.$( "requeueTask" );
+				service.$( "_scheduleTask" );
 
 				service.createTask(
 					  webOwner          = owner
@@ -334,12 +334,11 @@ component extends="testbox.system.BaseSpec" {
 					, returnUrl         = "http://www.mysite.com/download/cancelled/"
 				);
 
-				var log = service.$callLog().requeueTask;
+				var log = service.$callLog()._scheduleTask;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  taskId          = taskId
 					, nextAttemptDate = nextRunDate
-					, attemptCount    = 0
 				} );
 			} );
 		} );
