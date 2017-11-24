@@ -2401,13 +2401,13 @@
 			var selectFields   = arguments.exportFields.listToArray();
 			var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
 			var args           = {
-				  exporter     = exporter
-				, objectName   = objectName
-				, selectFields = selectFields
-				, extraFilters = arguments.extraFilters
-				, autoGroupBy  = true
-				, fileName     = fullFileName
-				, mimetype     = exporterDetail.mimeType
+				  exporter       = exporter
+				, objectName     = objectName
+				, selectFields   = selectFields
+				, extraFilters   = arguments.extraFilters
+				, autoGroupBy    = true
+				, exportFileName = fullFileName
+				, mimetype       = exporterDetail.mimeType
 			};
 
 			try {
