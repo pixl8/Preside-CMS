@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="actionsService"              inject="formBuilderActionsService";
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
 	property name="spreadsheetLib"              inject="spreadsheetLib";
+	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
 
 
 // PRE-HANDLER
@@ -299,11 +300,53 @@ component extends="preside.system.base.AdminHandler" {
 			event.adminNotFound();
 		}
 
-		var fileName = LCase( ReReplace( theForm.name, "[\W]", "_", "all" ) ) & "_" & DateTimeFormat( Now(), "yyyymmdd_HHnn" ) & ".xls";
-		var workbook = formBuilderService.exportResponsesToExcel( rc.formId ?: "" );
+		var taskId = createTask(
+			  event             = "admin.formbuilder.exportSubmissionsInBackgroundThread"
+			, args              = { formId=formId }
+			, runNow            = true
+			, adminOwner        = event.getAdminUserId()
+			, discardOnComplete = false
+			, title             = "cms:formbuilder.export.task.title"
+			, resultUrl         = event.buildAdminLink( linkto="formbuilder.downloadExport", querystring="taskId={taskId}" )
+			, returnUrl         = event.buildAdminLink( linkto="formbuilder.manageForm", querystring="id=" & formId )
+		);
 
-		spreadsheetLib.download( workbook, fileName );
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
 	}
+
+	private void function exportSubmissionsInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var formId = args.formId ?: "";
+
+		formBuilderService.exportResponsesToExcel(
+			  formId      = formId
+			, writeToFile = true
+			, logger      = arguments.logger   ?: NullValue()
+			, progress    = arguments.progress ?: NullValue()
+		);
+	}
+
+	public void function downloadExport( event, rc, prc ) {
+		var taskId          = rc.taskId ?: "";
+		var task            = adhocTaskManagerService.getProgress( taskId );
+		var localExportFile = task.result.filePath       ?: "";
+		var exportFileName  = task.result.exportFileName ?: "";
+		var mimetype        = task.result.mimetype       ?: "";
+
+		if ( task.isEmpty() || !localExportFile.len() || !FileExists( localExportFile ) ) {
+			event.notFound();
+		}
+
+		header name="Content-Disposition" value="attachment; filename=""#exportFileName#""";
+		content reset=true file=localExportFile deletefile=true type=mimetype;
+
+		adhocTaskManagerService.discardTask( taskId );
+		abort;
+
+	}
+
 
 // DOING STUFF ACTIONS
 	public void function addFormAction( event, rc, prc ) {
