@@ -913,6 +913,9 @@ component {
 
 			if ( !row mod 100 && ( canInfo || canReportProgress ) ) {
 				if ( canReportProgress ) {
+					if ( progress.isCancelled() ) {
+						abort;
+					}
 					progress.setProgress( ( 100 / submissions.recordCount ) * row );
 				}
 				if ( canInfo ) {
