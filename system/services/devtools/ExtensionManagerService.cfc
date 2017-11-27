@@ -117,8 +117,6 @@ component {
 			}
 		} while( swapped );
 
-		extensions = extensions.reverse();
-
 		return extensions;
 	}
 
