@@ -470,8 +470,6 @@
 				var loaded = false;
 
 				if ( filters && filters.length ) {
-					loaded = true;
-
 					var filterArray   = filters.split(",")
 					  , filtersSelect = $filterDiv.find( "[name=filters]" ).data( "uberSelect")
 					  , i;
@@ -482,19 +480,14 @@
 						}
 					}
 
+					showFilters();
 				}
 
 				if ( filter && filter.length ) {
-					loaded = true;
-					var conditionBuilder = $filterDiv.find( "[name=filter]" ).data( "conditionBuilder" )
-					conditionBuilder.load( filter );
-				}
-
-				if ( loaded ) {
+					$( document ).on( "conditionBuilderInitialized", function(){
+						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).load( filter );
+					} );
 					showFilters();
-					if ( !filter || !filter.length ) {
-						$filterDiv.find( ".quick-filter-toggler" ).click();
-					}
 				}
 			}
 

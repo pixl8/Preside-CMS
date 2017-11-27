@@ -682,6 +682,7 @@
 						condition.loadFromStringValue( value );
 					}
 				} );
+				$hiddenControl.trigger( "conditionBuilderInitialized" );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
