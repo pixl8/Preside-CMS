@@ -330,7 +330,7 @@ component displayName="Preside Object Service" {
 		var rightNow           = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
 		var cleanedData        = _addDefaultValuesToDataSet( args.objectName, args.data );
 		var manyToManyData     = {};
-		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName );
+		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName ) && versioningRequiredOnInsert( args.objectName );
 		var versionNumber      = 0;
 
 		cleanedData.append( _addGeneratedValues(
@@ -1465,6 +1465,18 @@ component displayName="Preside Object Service" {
 		var obj = _getObject( objectName );
 
 		return IsBoolean( obj.meta.versioned ?: "" ) && obj.meta.versioned;
+	}
+
+	/**
+	 * Returns whether or not the given object is configured to create
+	 * versions on insert
+	 *
+	 * @objectName.hint Name of the object you wish to check
+	 */
+	public boolean function versioningRequiredOnInsert( required string objectName ) {
+		var versionOnInsert = getObjectAttribute( arguments.objectName, "versionOnInsert" );
+
+		return !IsBoolean( versionOnInsert ) || versionOnInsert;
 	}
 
 	/**
