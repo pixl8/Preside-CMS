@@ -10,7 +10,7 @@ component {
 		var recordId      = args.recordId     ?: "";
 		var fkObjectName  = "";
 
-		if ( !fkId.len() ) {
+		if ( !Len( fkId ) ) {
 			return "";
 		}
 
