@@ -1144,16 +1144,19 @@ component displayName="Preside Object Service" {
 		,          array   selectFields     = []
 	) autodoc=true {
 		var props          = getObjectProperties( arguments.objectName );
+		var adapter        = getDbAdapterForObject( arguments.objectName );
+		var escapedId      = adapter.escapeEntity( "id" );
 		var manyToManyData = {};
 
 		for( var prop in props ) {
 			if ( ( !arguments.selectFields.len() || arguments.selectFields.findNoCase( prop ) ) ) {
 				if ( isManyToManyProperty( arguments.objectName, prop ) ) {
 
+					var idField = getIdField( props[ prop ].relatedTo ?: "" );
 					var records = selectData(
 						  objectName       = arguments.objectName
 						, id               = arguments.id
-						, selectFields     = [ "#prop#.id" ]
+						, selectFields     = [ adapter.escapeEntity( "#prop#.#idField#" ) & " as #escapedId#" ]
 						, fromVersionTable = arguments.fromVersionTable
 						, specificVersion  = arguments.specificVersion
 					);
