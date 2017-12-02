@@ -24,12 +24,13 @@
 					<a href="##" class="edit-link">
 						<i class="fa fa-pencil"></i>
 					</a>
+					<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
+						<i class="fa fa-fw fa-clone"></i>
+					</a>
 				<cfelse>
 					<a class="grey disabled"><i class="fa fa-pencil"></i></a>
+					<a class="grey disabled"><i class="fa fa-fw fa-clone"></i></a>
 				</cfif>
-				<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
-					<i class="fa fa-fw fa-clone"></i>
-				</a>
 				<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
 					<i class="fa fa-trash"></i>
 				</a>

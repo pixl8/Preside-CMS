@@ -19,6 +19,7 @@ component displayName="Task Manager Service" {
 	 * @logger.inject                     logbox:logger:taskmanager
 	 * @errorLogService.inject            errorLogService
 	 * @siteService.inject                siteService
+	 * @taskScheduler.inject              taskScheduler
 	 *
 	 */
 	public any function init(
@@ -31,6 +32,7 @@ component displayName="Task Manager Service" {
 		, required any logger
 		, required any errorLogService
 		, required any siteService
+		, required any taskScheduler
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
@@ -42,6 +44,7 @@ component displayName="Task Manager Service" {
 		_setErrorLogService( arguments.errorLogService );
 		_setSiteService( arguments.siteService );
 		_setMachineId();
+		_setTaskScheduler( arguments.taskScheduler );
 
 		_initialiseDb();
 
@@ -490,27 +493,34 @@ component displayName="Task Manager Service" {
 	}
 
 	public void function registerMasterScheduledTask() {
-		var settings = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
-		var enabled  = IsBoolean( settings.scheduledtasks_enabled ?: "" ) && settings.scheduledtasks_enabled;
-		var action   = enabled ? "update" : "delete";
-		var args     = {};
-
-		args.task = "PresideTaskManager_" & LCase( Hash( GetCurrentTemplatePath() ) );
+		var settings  = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
+		var enabled   = IsBoolean( settings.scheduledtasks_enabled ?: "" ) && settings.scheduledtasks_enabled;
+		var scheduler = _getTaskScheduler();
+		var task      = "PresideTaskManager_" & LCase( Hash( GetCurrentTemplatePath() ) );
 
 		if ( enabled ) {
-			args.url       = _getScheduledTaskUrl( settings.site_context ?: "" );
-			args.startdate = "1900-01-01";
-			args.startTime = "00:00:00";
-			args.interval  = "30";
+			scheduler.createTask(
+				  task          = task
+				, url           = _getScheduledTaskUrl( settings.site_context ?: "" )
+				, startdate     = "1900-01-01"
+				, startTime     = "00:00:00"
+				, interval      = "30"
+				, port          = Val( settings.http_port ?: "" ) ? settings.http_port : 80
+				, username      = settings.http_username  ?: ""
+				, password      = settings.http_password  ?: ""
+				, proxyServer   = settings.proxy_server   ?: ""
+				, proxyPort     = settings.proxy_port     ?: ""
+				, proxyUser     = settings.proxy_user     ?: ""
+				, proxyPassword = settings.proxy_password ?: ""
+			);
+		} else {
+			scheduler.deleteTask( task=task );
+		}
 
-			if ( cgi.server_port != 80 ) {
-				args.port = cgi.server_port;
-			}
-		};
-
-		schedule action=action attributeCollection=args;
-
-		_deleteOldTaskManagerScheduledTasks( args.task );
+		scheduler.deleteTasks(
+			  taskPattern   = "^PresideTaskManager_"
+			, preserveTasks = [ task ]
+		);
 	}
 
 	public array function getAllTaskDetails() {
@@ -718,19 +728,6 @@ component displayName="Task Manager Service" {
 		];
 	}
 
-	private void function _deleteOldTaskManagerScheduledTasks( required string validTaskName ) {
-		var tasks       = "";
-		var taskPattern = "^PresideTaskManager_";
-
-		schedule action="list" returnvariable="tasks";
-
-		for( var task in tasks ) {
-			if ( task.task != arguments.validTaskName && task.task.reFindNoCase( taskPattern ) ) {
-				schedule action="delete" task=task.task;
-			}
-		}
-	}
-
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTasks() {
 		return _configuredTasks;
@@ -808,6 +805,13 @@ component displayName="Task Manager Service" {
 		var localHost = CreateObject("java", "java.net.InetAddress").getLocalHost();
 
 		_machineId = Left( localHost.getHostAddress() & "-" & localHost.getHostName(), 255 );
+	}
+
+	private any function _getTaskScheduler() {
+		return _taskScheduler;
+	}
+	private void function _setTaskScheduler( required any taskScheduler ) {
+		_taskScheduler = arguments.taskScheduler;
 	}
 
 }

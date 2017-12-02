@@ -82,6 +82,24 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	function viewUser( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.read" );
+
+		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+		prc.record.permissions = websitePermissionService.listUserPermissions( userId = rc.id ?: "" ).toList();
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:websiteUserManager.viewUser.page.title", data=[ prc.record.display_name ] )
+			, link  = event.buildAdminLink( linkTo="websiteUserManager.viewUser", queryString="id=#(rc.id ?: '')#" )
+		);
+	}
+
 	function editUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.edit" );
 
@@ -213,6 +231,10 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = { objectName="website_user" }
 		);
+	}
+
+	private string function buildUserLink( event, rc, prc, recordId="" ) {
+		return event.buildAdminLink( linkto="websiteUserManager.viewUser", queryString="id=" & arguments.recordId );
 	}
 
 // private utility

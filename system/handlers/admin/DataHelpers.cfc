@@ -5,8 +5,12 @@
  */
 component extends="preside.system.base.adminHandler" {
 
-	property name="adminDataViewsService" inject="adminDataViewsService";
-	property name="presideObjectService"  inject="presideObjectService";
+	property name="adminDataViewsService"   inject="adminDataViewsService";
+	property name="dataManagerService"      inject="dataManagerService";
+	property name="presideObjectService"    inject="presideObjectService";
+	property name="dataExportService"       inject="dataExportService";
+	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
+
 	/**
 	 * Method that is called from `adminDataViewsService.buildViewObjectRecordLink()`
 	 * for objects that are managed in the DataManager. Hint: this can also be invoked with:
@@ -14,10 +18,13 @@ component extends="preside.system.base.adminHandler" {
 	 *
 	 */
 	private string function getViewRecordLink( required string objectName, required string recordId ) {
-		return event.buildAdminLink(
-			  linkto      = "datamanager.viewRecord"
-			, queryString = "object=#arguments.objectName#&id=#arguments.recordId#"
-		);
+		if ( dataManagerService.isOperationAllowed( arguments.objectName, "read" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.viewRecord"
+				, queryString = "object=#arguments.objectName#&id=#arguments.recordId#"
+			);
+		}
+		return "";
 	}
 
 
@@ -161,6 +168,7 @@ component extends="preside.system.base.adminHandler" {
 				, useMultiActions = false
 				, isMultilingual  = false
 				, draftsEnabled   = false
+				, useCache        = false
 				, actionsView     = "admin.dataHelpers.relatedRecordTableActions"
 			}
 		);
@@ -174,4 +182,39 @@ component extends="preside.system.base.adminHandler" {
 		}
 		return "";
 	}
+
+	/**
+	 * Exports data to csv/excel in a background thread run using createTask()
+	 *
+	 */
+	public void function exportDataInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		dataExportService.exportData(
+			  argumentCollection = args
+			, logger             = logger   ?: NullValue()
+			, progress           = progress ?: NullValue()
+		);
+	}
+
+	/**
+	 * Result handler for background-threaded data export
+	 *
+	 */
+	public void function downloadExport( event, rc, prc ) {
+		var taskId          = rc.taskId ?: "";
+		var task            = adhocTaskManagerService.getProgress( taskId );
+		var localExportFile = task.result.filePath       ?: "";
+		var exportFileName  = task.result.exportFileName ?: "";
+		var mimetype        = task.result.mimetype       ?: "";
+
+		if ( task.isEmpty() || !localExportFile.len() || !FileExists( localExportFile ) ) {
+			event.notFound();
+		}
+
+		header name="Content-Disposition" value="attachment; filename=""#exportFileName#""";
+		content reset=true file=localExportFile deletefile=true type=mimetype;
+
+		adhocTaskManagerService.discardTask( taskId );
+		abort;
+	}
+
 }
