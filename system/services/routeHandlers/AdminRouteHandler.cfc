@@ -14,8 +14,9 @@ component implements="iRouteHandler" output=false {
 	 * @controller.inject          coldbox
 	 */
 	public any function init( string adminBasePath = "", required string adminPath, required string eventName, required any applicationsService, required any sysConfigService, required any controller ) {
-		_setAdminPath( arguments.adminBasePath & arguments.adminPath );
 		_setAdminBasePath( arguments.adminBasePath );
+		var adminBasePath = Len( arguments.adminBasePath ) ? arguments.adminBasePath : _getAdminBasePath();
+		_setAdminPath( adminBasePath & arguments.adminPath );
 		_setEventName( arguments.eventName );
 		_setApplicationsService( arguments.applicationsService );
 		_setSysConfigService( arguments.sysConfigService );
@@ -81,8 +82,27 @@ component implements="iRouteHandler" output=false {
 	private string function _getAdminBasePath() {
 		return _adminBasePath;
 	}
-	private void function _setAdminBasePath( required string adminBasePath ) {
-		_adminBasePath = arguments.adminBasePath;
+	private void function _setAdminBasePath( string adminBasePath ) {
+		var adminBasePath = "";
+
+		if ( Len( arguments.adminBasePath ) ) {
+			adminBasePath = arguments.adminBasePath;
+		} else {
+			var appSettings = getApplicationSettings();
+			adminBasePath = request._presideMappings.appBasePath;
+		}
+
+		if ( Len(adminBasePath) ) {
+			if ( left(adminBasePath, 1) == "/" ) {
+				adminBasePath = right( adminBasePath, len(adminBasePath) - 1 );
+			}
+
+			if ( right(adminBasePath, 1 ) != "/" ) {
+				adminBasePath = adminBasePath & "/";
+			}
+		}
+
+		_adminBasePath = adminBasePath;
 	}
 
 	private string function _getEventName() {

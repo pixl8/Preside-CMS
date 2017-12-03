@@ -31,7 +31,8 @@ component {
 		var extensionsRootUrl = "/preside/system/assets/extension/";
 		var siteAssetsPath    = settings.static.siteAssetsPath ?: "/assets";
 		var siteAssetsUrl     = settings.static.siteAssetsUrl  ?: "/assets";
-		var rootURl           = ( settings.static.rootUrl ?: "" );
+		_setRootUrl();
+		var rootUrl = Len( settings.static.rootUrl ) ? settings.static.rootUrl : _getRootUrl();
 
 		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=sysAssetsPath          , config=settings )
 		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl, config=settings );
@@ -56,6 +57,28 @@ component {
 	}
 	private void function _setSticker( required any sticker ) {
 		_sticker = arguments.sticker;
+	}
+
+	private any function _getRootUrl() {
+		return _rootUrl;
+	}
+	private string function _setRootUrl() {
+		var appSettings = getApplicationSettings();
+
+		rootUrl = request._presideMappings.appBasePath;
+		if ( Len(rootUrl) ) {
+
+			if ( right(rootUrl, 1) == "/" ) {
+				rootUrl = left( rootUrl, len(rootUrl) - 1 );
+			}
+
+			if ( left(rootUrl, 1) != "/" ) {
+				rootUrl ="/" & rootUrl;
+			}
+
+		}
+
+		_rootUrl = rootUrl;
 	}
 
 }

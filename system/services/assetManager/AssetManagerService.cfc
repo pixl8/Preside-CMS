@@ -1874,12 +1874,27 @@ component displayName="AssetManager Service" {
 		_setTypes( types );
 	}
 
-	private string function _getAssetPath( string appBasePath="/asset/" ) {
+	private string function _getAssetPath() {
 		return _assetPath;
 	}
 
 	private string function _setAssetPath( string appBasePath="" ) {
-		_assetPath = arguments.appBasePath & "/asset/";
+		var appSettings = getApplicationSettings();
+
+		rootUrl = request._presideMappings.appBasePath;
+		if ( Len(rootUrl) ) {
+
+			if ( right(rootUrl, 1) == "/" ) {
+				rootUrl = left( rootUrl, len(rootUrl) - 1 );
+			}
+
+			if ( left(rootUrl, 1) != "/" ) {
+				rootUrl ="/" & rootUrl;
+			}
+
+		}
+
+		_assetPath = rootUrl & "/asset/";
 	}
 
 	private void function _saveAssetMetaData( required string assetId, required struct metaData, string versionId="" ) {
