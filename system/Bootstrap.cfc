@@ -107,7 +107,7 @@ component {
 		  string appMapping     = "/app"
 		, string assetsMapping  = "/assets"
 		, string logsMapping    = "/logs"
-		  , string appBasePath	= ""
+	    , string appBasePath	= _getAppBasePath( appBasePath = arguments.appBasePath )
 		, string appPath        = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/application"
 		, string assetsPath     = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/assets"
 		, string logsPath       = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/logs"
@@ -549,6 +549,32 @@ component {
 
 	private string function _getPresideRoot() {
 		return ExpandPath( "/preside" );
+	}
+
+	private string function _getAppBasePath( string appBasePath ) {
+		var appBasePath = "";
+
+		if ( Len( arguments.appBasePath ) ) {
+			appBasePath = arguments.appBasePath;
+		} else {
+			var cbController = _getColdboxController();
+			var site = cbController.getRequestContext().getSite();
+			appBasePath = ( site.path == "/" ) ? "" : site.path;
+		}
+
+		if ( ! Len(adminBasePath) ) {
+			return appBasePath;
+		}
+
+		if ( right(appBasePath, 1) == "/" ) {
+			appBasePath = left(appBasePath, len(appBasePath) - 1);
+		}
+
+		if ( left(appBasePath, 1) != "/" ) {
+			appBasePath = "/" & appBasePath;
+		}
+
+		return appBasePath;
 	}
 
 	private boolean function _clearoutDuplicateCookies( required array cookieSet ) {
