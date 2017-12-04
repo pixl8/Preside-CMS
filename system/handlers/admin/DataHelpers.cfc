@@ -210,11 +210,30 @@ component extends="preside.system.base.adminHandler" {
 			event.notFound();
 		}
 
+		createTask(
+			  event             = "admin.dataHelpers.discardExport"
+			, args              = { taskId=taskId }
+			, runIn             = CreateTimeSpan( 0, 0, 10, 0 )
+			, discardOnComplete = true
+		);
+
 		header name="Content-Disposition" value="attachment; filename=""#exportFileName#""";
 		content reset=true file=localExportFile deletefile=true type=mimetype;
-
-		adhocTaskManagerService.discardTask( taskId );
 		abort;
+	}
+
+	public void function discardExport( event, rc, prc ) {
+		var taskId          = args.taskId ?: "";
+		var task            = adhocTaskManagerService.getProgress( taskId );
+		var localExportFile = task.result.filePath       ?: "";
+
+		if ( !task.isEmpty() ) {
+			adhocTaskManagerService.discardTask( taskId );
+
+			if ( FileExists( localExportFile ) ) {
+				FileDelete( localExportFile );
+			}
+		}
 	}
 
 }
