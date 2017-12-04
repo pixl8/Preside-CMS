@@ -35,7 +35,7 @@
 </cfscript>
 <cfoutput>
 	<div id="ad-hoc-task-progress-container">
-		<div class="progress progress-striped pos-rel<cfif isRunning> active</cfif>" data-percent="#progress#%">
+		<div class="progress pos-rel <cfif isRunning> progress-striped active</cfif>" data-percent="#progress#%">
 			<div class="progress-bar progress-bar-#progressClass#" style="width:#progress#%;"></div>
 		</div>
 		<div class="task-log">

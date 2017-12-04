@@ -339,14 +339,33 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		header name="Content-Disposition" value="attachment; filename=""#exportFileName#""";
-		content reset=true file=localExportFile deletefile=true type=mimetype;
+		createTask(
+			  event             = "admin.formBuilder.discardExport"
+			, args              = { taskId=taskId }
+			, runIn             = CreateTimeSpan( 0, 0, 10, 0 )
+			, discardOnComplete = true
+		);
 
-		adhocTaskManagerService.discardTask( taskId );
+		header name="Content-Disposition" value="attachment; filename=""#exportFileName#""";
+		content reset=true file=localExportFile deletefile=false type=mimetype;
+
 		abort;
 
 	}
 
+	private void function discardExport( event, rc, prc, args={} ) {
+		var taskId          = args.taskId ?: "";
+		var task            = adhocTaskManagerService.getProgress( taskId );
+		var localExportFile = task.result.filePath       ?: "";
+
+		if ( !task.isEmpty() ) {
+			adhocTaskManagerService.discardTask( taskId );
+
+			if ( FileExists( localExportFile ) ) {
+				FileDelete( localExportFile );
+			}
+		}
+	}
 
 // DOING STUFF ACTIONS
 	public void function addFormAction( event, rc, prc ) {
