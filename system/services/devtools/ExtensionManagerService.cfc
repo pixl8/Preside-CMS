@@ -106,13 +106,11 @@ component {
 							break;
 						}
 					}
-				} else {
-					if ( extA.id > extB.id ) {
-						var tmp = extB;
-						extensions[ i+1 ] = extA;
-						extensions[ i ]   = tmp;
-						swapped = true;
-					}
+				} else if ( extA.id > extB.id && !extB.dependsOn.findNoCase( extA.id ) ) {
+					var tmp = extB;
+					extensions[ i+1 ] = extA;
+					extensions[ i ]   = tmp;
+					swapped = true;
 				}
 			}
 		} while( swapped );
