@@ -4,7 +4,7 @@ component {
 	property name="resourceBundleService"  inject="resourceBundleService";
 	property name="adminLanguages"         inject="coldbox:setting:adminLanguages";
 	property name="applicationsService"    inject="applicationsService";
-	property name="i18n"                   inject="coldbox:plugin:i18n";
+	property name="i18n"                   inject="i18n";
 
 	private string function siteAlerts( event, rc, prc, args={} ) {
 		args.inMaintenanceMode = maintenanceModeService.isMaintenanceModeActive();

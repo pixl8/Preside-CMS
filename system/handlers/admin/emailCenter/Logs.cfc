@@ -25,7 +25,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.logs.page.subtitle" );
 	}
 
-	public void function log( event, rc, prc ) {
+	public void function viewLog( event, rc, prc ) {
 		var logId = rc.id ?: "";
 
 		prc.log = emailLoggingService.getLog( logId );
@@ -54,7 +54,7 @@ component extends="preside.system.base.AdminHandler" {
 		var logId = args.id ?: "";
 
 		args.viewlink = event.buildAdminLink(
-			  linkTo      = "emailcenter.logs.log"
+			  linkTo      = "emailcenter.logs.viewLog"
 			, queryString = "id=#logId#"
 		);
 		args.viewLogTitle = translateResource( "cms:emailcenter.logs.view.log.modal.title" );

@@ -5,7 +5,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 	property name="siteDao"         inject="presidecms:object:site";
 	property name="aliasDao"        inject="presidecms:object:site_alias_domain";
 	property name="redirectDao"     inject="presidecms:object:site_redirect_domain";
-	property name="messagebox"      inject="coldbox:plugin:messagebox";
+	property name="messagebox"      inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
