@@ -2014,7 +2014,7 @@
 	<cffunction name="test057_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", left("_version_ptest_category_join_object",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_category_join_object", "ptest_an_object_with_versioning" ];
+			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object_no_version_on_insert", left("_version_ptest_category_join_object",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object_no_version_on_insert", "ptest_category_join_object", "ptest_an_object_with_versioning" ];
 			var tables         = "";
 
 			poService.dbSync();
@@ -2099,6 +2099,21 @@
 				super.assertEquals( 1    , record._version_number );
 				super.assertEquals( newId, record.id );
 			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test0_62_b_insertData_shouldNotAddVersionRecord_forVersionedObject_whenVersionOnInsertIsFalse" returntype="void">
+		<cfscript>
+			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
+
+			poService.dbSync();
+
+			var newId          = poService.insertData( "a_category_object_no_version_on_insert", { label="my new label" } );
+			var versionRecords = poService.selectData( "vrsn_a_category_object_no_version_on_insert" );
+			var records        = poService.selectData( "a_category_object_no_version_on_insert" );
+
+			super.assertEquals( 0, versionRecords.recordCount );
+			super.assertEquals( 1, records.recordCount );
 		</cfscript>
 	</cffunction>
 

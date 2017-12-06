@@ -27,7 +27,7 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default" ) {
+	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
@@ -39,8 +39,9 @@ component {
 
 			return rendered;
 		} else {
-			var args = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
-			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=args );
+			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
+			viewletArgs.append( arguments.args, false );
+			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
 	}
 

@@ -3,7 +3,7 @@
  * of records in a many-to-many relationship
  *
  */
-component {
+component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
 	property name="filterService"        inject="rulesEngineFilterService";
@@ -103,7 +103,7 @@ component {
 		);
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 			return translateResource( uri="rules.dynamicExpressions:related.manyToManyHas.label", data=[ objectNameTranslated, relatedToTranslated, parentPropNameTranslated, possesses ] );
 		}
 
@@ -123,7 +123,7 @@ component {
 		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 			return translateResource( uri="rules.dynamicExpressions:related.manyToManyHas.text", data=[ objectNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
 		}
 

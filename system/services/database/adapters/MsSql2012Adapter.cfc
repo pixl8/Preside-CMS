@@ -84,4 +84,8 @@ component extends="MsSqlAdapter" {
 
 		return sql;
 	}
+
+	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
+		return "Concat( #leftExpression#, #rightExpression# )";
+	}
 }

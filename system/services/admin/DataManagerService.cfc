@@ -11,7 +11,7 @@ component {
 	 * @presideObjectService.inject PresideObjectService
 	 * @contentRenderer.inject      ContentRendererService
 	 * @labelRendererService.inject LabelRendererService
-	 * @i18nPlugin.inject           coldbox:plugin:i18n
+	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
@@ -151,8 +151,11 @@ component {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "add,edit,delete,viewversions"
+			, defaultValue  = "read,add,edit,delete,viewversions"
 		);
+
+		operations = operations.reReplaceNoCase( "\bview\b", "read" );
+
 
 		return operations != "none" && ListFindNoCase( operations, arguments.operation );
 	}
@@ -410,6 +413,9 @@ component {
 			return result;
 		};
 		var labelField         = _getPresideOBjectService().getLabelField( arguments.objectName );
+		if (args.orderBy is 'label') {
+			args.orderBy = labelField;
+		}
 		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 		if ( len( arguments.labelRenderer ) ) {
@@ -425,12 +431,16 @@ component {
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
+			var searchFields = [ labelField ];
+			if ( len( arguments.labelRenderer ) ) {
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery
 				, objectName   = arguments.objectName
 				, gridFields   = args.selectFields
 				, labelfield   = labelfield
-				, searchFields = [ labelField ]
+				, searchFields = searchFields
 			);
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
