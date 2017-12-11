@@ -1,6 +1,7 @@
 /**
  * The asset object represents the core data associated with any file uploaded into the Asset manager
  *
+ * @adminBuildViewLinkHandler admin.assetManager.getViewAssetLink
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" {
 
@@ -16,6 +17,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="raw_text_content"  type="string"  dbtype="longtext";
 	property name="width"             type="numeric" dbtype="int"                       required=false;
 	property name="height"            type="numeric" dbtype="int"                       required=false;
+	property name="focal_point"       type="string"  dbtype="varchar" maxLength=15      required=false;
+	property name="crop_hint"         type="string"  dbtype="varchar" maxLength=30      required=false;
 	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
 	property name="is_trashed"        type="boolean" dbtype="boolean"                   required=false default=false;
