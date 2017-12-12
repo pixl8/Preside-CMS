@@ -7,14 +7,21 @@
 
 <cfoutput>
 	<div class="well">
+		<div class="pull-right">
+			<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmail", queryString="id=#prc.log.id#" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend" )#</a>
+		</div>
 		<h2>#prc.log.subject#</h2>
 		<dl class="dl-horizontal">
-			<dt>To</dt>
+			<dt>#translateResource( "cms:mailcenter.logs.metadata.to.label" )#</dt>
 			<dd>#prc.log.recipient#</dd>
-			<dt>From</dt>
+			<dt>#translateResource( "cms:mailcenter.logs.metadata.from.label" )#</dt>
 			<dd>#prc.log.sender#</dd>
-			<dt>Template</dt>
+			<dt>#translateResource( "cms:mailcenter.logs.metadata.template.label" )#</dt>
 			<dd>#prc.log.name#</dd>
+			<cfif len( prc.log.resend_of )>
+				<dt>#translateResource( "cms:mailcenter.logs.metadata.resent.label" )#</dt>
+				<dd><a href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#prc.log.resend_of#" )#" class="load-in-place">#translateResource( "cms:mailcenter.logs.metadata.resent.link" )#</a></dd>
+			</cfif>
 		</dl>
 	</div>
 	<div class="modal-padding-horizontal">
@@ -87,6 +94,14 @@
 						<cfset link       = '<a>#Trim( data.link ?: "unknown" )#</a>' />
 						<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ link ] ) />
 					</cfcase>
+					<cfcase value="resend">
+						<cfset logIcon    = "fa-refresh" />
+						<cfset linkTitle  = translateResource( "cms:mailcenter.logs.action.resend.link.title" ) />
+						<cfset data       = DeserializeJson( prc.activity.extra_data ) />
+						<cfset link       = '<a class="load-in-place" href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#data.resentMessageId#" )#">#linkTitle#</a>' />
+						<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.resend.title" ) />
+						<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.resend.message", data=[ link ] ) />
+					</cfcase>
 				</cfswitch>
 
 				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
@@ -98,6 +113,7 @@
 					, message         = logMessage
 					, ipAddress       = prc.activity.user_ip
 					, userAgent       = prc.activity.user_agent
+					, showAuditTrail  = prc.activity.activity_type != "resend"
 				} )#
 			</cfloop>
 		</div>

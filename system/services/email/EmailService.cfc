@@ -43,19 +43,22 @@ component displayName="Email service" {
 	 * @htmlBody.hint    Optional HTML body
 	 * @textBody.hint    Optional plain text body
 	 * @params.hint      Optional struct of cfmail params (headers, attachments, etc.)
+	 * @resendOf.hint    Optional ID of the message log item that is being resent
 	 */
-	public boolean function send(
-		  string template    = ""
-		, string recipientId = ""
-		, struct args        = {}
-		, array  to          = []
-		, string from        = ""
-		, string subject     = ""
-		, array  cc          = []
-		, array  bcc         = []
-		, string htmlBody    = ""
-		, string textBody    = ""
-		, struct params      = {}
+	public any function send(
+		  string  template    = ""
+		, string  recipientId = ""
+		, struct  args        = {}
+		, array   to          = []
+		, string  from        = ""
+		, string  subject     = ""
+		, array   cc          = []
+		, array   bcc         = []
+		, string  htmlBody    = ""
+		, string  textBody    = ""
+		, struct  params      = {}
+		, string  resendOf    = ""
+		, boolean returnLogId = false
 	) autodoc=true {
 		var hasTemplate = Len( Trim( arguments.template ) );
 		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;

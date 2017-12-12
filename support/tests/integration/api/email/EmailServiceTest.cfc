@@ -27,6 +27,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, textBody    = ""
 					, params      = {}
 					, template    = "notification"
+					, resendOf    = ""
 					, args        = testArgs
 				};
 
@@ -53,17 +54,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var recipientId         = CreateUUId();
 				var testPreparedMessage = { from="someone@test.com", to="to@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject", textBody="text only body" };
 				var expectedSendArgs  = {
-					  from     = ""
-					, subject  = ""
-					, to       = ""
-					, cc       = []
-					, bcc      = []
-					, htmlBody = ""
-					, textBody = ""
-					, params   = {}
-					, template = "notification"
+					  from        = ""
+					, subject     = ""
+					, to          = ""
+					, cc          = []
+					, bcc         = []
+					, htmlBody    = ""
+					, textBody    = ""
+					, params      = {}
+					, template    = "notification"
+					, resendOf    = ""
 					, recipientId = recipientId
-					, args     = testArgs
+					, args        = testArgs
 				};
 				expectedPrepArgs = {
 					  template    = "notification"
@@ -115,6 +117,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, params      = {}
 					, args        = testArgs
 					, template    = "notification"
+					, resendOf    = ""
 				};
 
 				expectedSendArgs.append( testHandlerResult );

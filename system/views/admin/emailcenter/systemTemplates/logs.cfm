@@ -7,6 +7,8 @@
 	if ( showClicks ) {
 		gridFields.append( "click_count" );
 	}
+
+	event.include( "/js/admin/specific/emailcenter/logs/viewlog/" );
 </cfscript>
 <cfoutput>
 	<cfsavecontent variable="body">

@@ -10,10 +10,12 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @recipientTypeService.inject emailRecipientTypeService
+	 * @emailTemplateService.inject emailTemplateService
 	 *
 	 */
-	public any function init( required any recipientTypeService ) {
+	public any function init( required any recipientTypeService, required any emailTemplateService ) {
 		_setRecipientTypeService( arguments.recipientTypeService );
+		_setEmailTemplateService( arguments.emailTemplateService );
 
 		return this;
 	}
@@ -38,6 +40,7 @@ component {
 		, required string recipient
 		, required string sender
 		, required string subject
+		,          string resendOf = ""
 		,          struct sendArgs = {}
 	) {
 		var data = {
@@ -45,6 +48,7 @@ component {
 			, recipient      = arguments.recipient
 			, sender         = arguments.sender
 			, subject        = arguments.subject
+			, resend_of      = arguments.resendOf
 			, send_args      = SerializeJson( arguments.sendArgs )
 		};
 
@@ -238,6 +242,32 @@ component {
 	}
 
 	/**
+	 * Resends an email. Email is regenerated using the original sendArgs
+	 *
+	 */
+	public void function resendEmail( required string id ) {
+		var dao                    = $getPresideObject( "email_template_send_log");
+		var message                = dao.selectData( id=arguments.id );
+		var template               = _getEmailTemplateService().getTemplate( message.email_template );
+		var recipientIdLogProperty = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( template.recipient_type );
+		var resentMessageId        = $sendEmail(
+		      template    = message.email_template
+		    , recipientId = message[ recipientIdLogProperty ]
+		    , args        = deserializeJson( message.send_args )
+		    , resendOf    = message.id
+		    , returnLogId = true
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "resend"
+			, userAgent = ""
+			, extraData = { resentMessageId=resentMessageId }
+		);
+
+	}
+
+	/**
 	 * Inserts a tracking pixel into the given HTML email
 	 * content (based on the given message ID). Returns
 	 * the HTML with the inserted tracking pixel
@@ -300,12 +330,14 @@ component {
 		  required string messageId
 		, required string activity
 		,          struct extraData = {}
+		,          string userIp    = cgi.remote_addr
+		,          string userAgent = cgi.http_user_agent
 	) {
 		$getPresideObject( "email_template_send_log_activity" ).insertData({
 			  message       = arguments.messageId
 			, activity_type = arguments.activity
-			, user_ip       = cgi.remote_addr
-			, user_agent    = cgi.http_user_agent
+			, user_ip       = arguments.userIp
+			, user_agent    = arguments.userAgent
 			, extra_data    = SerializeJson( arguments.extraData )
 		});
 	}
@@ -318,7 +350,8 @@ component {
 	 */
 	public struct function getLog( required string id ) {
 		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=[
-			  "email_template_send_log.recipient"
+			  "email_template_send_log.id"
+			, "email_template_send_log.recipient"
 			, "email_template_send_log.sender"
 			, "email_template_send_log.subject"
 			, "email_template_send_log.sent"
@@ -337,6 +370,7 @@ component {
 			, "email_template_send_log.click_count"
 			, "email_template_send_log.email_template"
 			, "email_template_send_log.datecreated"
+			, "email_template_send_log.resend_of"
 			, "email_template.name"
 			, "email_template.recipient_type"
 		] );
@@ -402,6 +436,13 @@ component {
 	}
 	private void function _setRecipientTypeService( required any recipientTypeService ) {
 		_recipientTypeService = arguments.recipientTypeService;
+	}
+
+	private any function _getEmailTemplateService() {
+		return _emailTemplateService;
+	}
+	private void function _setEmailTemplateService( required any emailTemplateService ) {
+		_emailTemplateService = arguments.emailTemplateService;
 	}
 
 }

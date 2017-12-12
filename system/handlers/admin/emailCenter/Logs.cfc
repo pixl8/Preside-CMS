@@ -50,6 +50,21 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public string function resendEmail( event, rc, prc ) {
+		var logId = rc.id ?: "";
+		emailLoggingService.resendEmail( logId );
+
+		prc.log = emailLoggingService.getLog( logId );
+		if ( prc.log.isEmpty() ) {
+			event.notFound();
+		}
+		prc.activity = emailLoggingService.getActivity( logId );
+
+		event.noLayout();
+
+		return renderView( view="/admin/emailcenter/logs/viewLog" );
+	}
+
 	private string function _logGridActions( event, rc, prc, args={} ) {
 		var logId = args.id ?: "";
 
