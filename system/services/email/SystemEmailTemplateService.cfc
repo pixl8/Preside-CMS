@@ -173,6 +173,34 @@ component {
 	}
 
 	/**
+	 * Runs an email template's 'rebuildArgsForResend' handler action
+	 * to rebuild arguments for resending an email.
+	 *
+	 * @autodoc       true
+	 * @template.hint The template whose args are to be rebuilt
+	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 *
+	 */
+	public struct function rebuildArgsForResend(
+		  required string template
+		, required string logId
+		, required struct originalArgs
+	) {
+		var handlerAction = "email.template.#arguments.template#.rebuildArgsForResend";
+
+		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = { logId=arguments.logId }
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return arguments.originalArgs;
+	}
+
+	/**
 	 * Returns the default layout for a given template, read from the global
 	 * email template configuration set in Config.cfc.
 	 *

@@ -250,10 +250,12 @@ component {
 		var message                = dao.selectData( id=arguments.id );
 		var template               = _getEmailTemplateService().getTemplate( message.email_template );
 		var recipientIdLogProperty = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( template.recipient_type );
+		var originalArgs           = deserializeJson( message.send_args );
+		var sendArgs               = _getEmailTemplateService().rebuildArgsForResend( template=message.email_template, logId=id, originalArgs=originalArgs );
 		var resentMessageId        = $sendEmail(
 		      template    = message.email_template
 		    , recipientId = message[ recipientIdLogProperty ]
-		    , args        = deserializeJson( message.send_args )
+		    , args        = sendArgs
 		    , resendOf    = message.id
 		    , returnLogId = true
 		);

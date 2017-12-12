@@ -475,6 +475,31 @@ component {
 	}
 
 	/**
+	 * Returns preview  params (for use in replacing tokens in subject and body)
+	 * for the given email template and recipient type.
+	 *
+	 * @autodoc       true
+	 * @template      ID of the template of the email that is being prepared
+	 * @logId         ID of the email template log entry
+	 * @originalArgs  The args originally used and stored in the template log
+	 */
+	public struct function rebuildArgsForResend(
+		  required string template
+		, required string logId
+		, required struct originalArgs
+	) {
+		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+			return _getSystemEmailTemplateService().rebuildArgsForResend(
+				  template     = arguments.template
+				, logId        = arguments.logId
+				, originalArgs = arguments.originalArgs
+			);
+		}
+
+		return arguments.originalArgs;
+	}
+
+	/**
 	 * Updates fields related to scheduled sending to maintain schedules
 	 *
 	 * @autodoc         true
