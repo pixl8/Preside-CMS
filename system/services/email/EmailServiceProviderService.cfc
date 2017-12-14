@@ -210,6 +210,7 @@ component {
 		var logService  = _getEmailLoggingService();
 		var sent        = false;
 		var returnLogId = arguments.sendArgs.returnLogId ?: false;
+		var htmlBody    = sendArgs.htmlBody ?: "";
 
 		if ( !$getColdbox().handlerExists( sendAction ) ) {
 			throw(
@@ -255,6 +256,7 @@ component {
 
 		if ( sent ) {
 			logService.markAsSent( sendArgs.messageId );
+			logService.logEmailContent( id=sendArgs.messageId, htmlBody=htmlBody, textBody=sendArgs.textBody ?: "" );
 		}
 
 		return returnLogId ? sendArgs.messageId : sent;

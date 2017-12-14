@@ -60,6 +60,32 @@ component {
 	}
 
 	/**
+	 * Saves the email content of a sent email, to be used to view exact content
+	 * sent, and for resending the original email
+	 *
+	 * @autodoc            true
+	 * @id.hint            ID of the email template log record
+	 * @htmlBody.hint      HTML content of the email
+	 * @textBody.hint      Plain-text content of the email
+	 */
+	public boolean function logEmailContent(
+		  required string id
+		, required string htmlBody
+		, required string textBody
+	) {
+		var contentId = $getPresideObject( "email_template_send_log_content" ).insertData( {
+			  html_body = arguments.htmlBody
+			, text_body = arguments.textBody
+		} );
+
+		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
+			content = contentId
+		} );
+
+		return true;
+	}
+
+	/**
 	 * Marks the given email as sent
 	 *
 	 * @autodoc true
@@ -375,6 +401,8 @@ component {
 			, "email_template_send_log.resend_of"
 			, "email_template.name"
 			, "email_template.recipient_type"
+			, "content.html_body"
+			, "content.text_body"
 		] );
 
 		for( var l in logRecord ) {

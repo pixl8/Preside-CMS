@@ -9,6 +9,7 @@
 	}
 
 	event.include( "/js/admin/specific/emailcenter/logs/viewlog/" );
+	event.include( "/css/admin/specific/htmliframepreview/" );
 </cfscript>
 <cfoutput>
 	<cfsavecontent variable="body">
