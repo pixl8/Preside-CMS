@@ -21,7 +21,6 @@ component displayName="Preside Object Service" {
 	 * @versioningService.inject      VersioningService
 	 * @labelRendererService.inject   LabelRendererService
 	 * @filterService.inject          presideObjectSavedFilterService
-	 * @hooksService.inject           presideObjectHooksService
 	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @coldboxController.inject      coldbox
@@ -39,7 +38,6 @@ component displayName="Preside Object Service" {
 		, required any     versioningService
 		, required any     labelRendererService
 		, required any     filterService
-		, required any     hooksService
 		, required any     cache
 		, required any     defaultQueryCache
 		, required any     coldboxController
@@ -54,7 +52,6 @@ component displayName="Preside Object Service" {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setPresideObjectDecorator( arguments.presideObjectDecorator );
 		_setFilterService( arguments.filterService );
-		_setHooksService( arguments.hooksService );
 		_setCache( arguments.cache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( arguments.versioningService );
@@ -2960,21 +2957,6 @@ component displayName="Preside Object Service" {
 	}
 
 	private any function _announceInterception( required string state, struct interceptData={} ) {
-		var hooksService = _getHooksService();
-		var objectName   = arguments.interceptData.objectName ?: "";
-		var hookExists   = objectName.len() && hooksService.hookExists(
-			  objectName = objectName
-			, hook       = arguments.state
-		);
-
-		if ( hookExists ) {
-			hooksService.callHook(
-				  objectName = objectName
-				, hook       = arguments.state
-				, args       = arguments.interceptData
-			);
-		}
-
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};
@@ -3105,12 +3087,5 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setAliasCache( required struct aliasCache ) {
 		_aliasCache = arguments.aliasCache;
-	}
-
-	private any function _getHooksService() {
-		return _hooksService;
-	}
-	private void function _setHooksService( required any hooksService ) {
-		_hooksService = arguments.hooksService;
 	}
 }

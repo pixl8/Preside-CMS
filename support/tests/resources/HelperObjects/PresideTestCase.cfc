@@ -95,9 +95,6 @@
 				var labelRendererService = getMockBox().createMock( object= new preside.system.services.rendering.LabelRendererService(
 					labelRendererCache = mockLabelRendererCache
 				) );
-				var mockHooksService   = getMockBox().createStub();
-
-				mockHooksService.$( "hookExists", false );
 
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
@@ -127,7 +124,6 @@
 					, coldboxController      = coldbox
 					, interceptorService     = arguments.interceptorService
 					, reloadDb               = false
-					, hooksService           = mockHooksService
 				);
 
 				request[ key ] = getMockbox().createMock( object=request[ key ] );
