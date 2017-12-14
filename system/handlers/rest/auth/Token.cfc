@@ -23,7 +23,7 @@ component {
 		}
 
 		var userId = authService.getUserIdByToken( token );
-		if ( userId.len() && presideRestAuthService.userHasAccessToApi( userId, restRequest.getApi() ) ) {
+		if ( userId.len() && authService.userHasAccessToApi( userId, restRequest.getApi() ) ) {
 			return userId;
 		}
 
