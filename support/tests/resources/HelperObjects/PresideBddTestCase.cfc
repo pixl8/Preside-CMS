@@ -96,6 +96,10 @@
 					labelRendererCache = mockLabelRendererCache
 				) );
 
+				var mockHooksService   = getMockBox().createStub();
+
+				mockHooksService.$( "hasHook", false );
+
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
 				mockFeatureService.$( "isFeatureEnabled", true );
@@ -124,6 +128,7 @@
 					, coldboxController      = coldbox
 					, interceptorService     = arguments.interceptorService
 					, reloadDb               = false
+					, hooksService           = mockHooksService
 				);
 				request[ key ] = getMockbox().createMock( object=request[ key ] );
 
