@@ -295,15 +295,15 @@ component {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			args = {
-				  objectName   = arguments.objectName
-				, id           = arguments.recordId
-				, selectFields = [ "count( * ) as nRows" ]
+				  objectName      = arguments.objectName
+				, id              = arguments.recordId
+				, recordCountOnly = true
 			};
 			if ( Len( Trim( arguments.property ) ) ) {
 				args.fieldName = arguments.property;
 			}
 
-			result.totalRecords = _getPresideObjectService().getRecordVersions( argumentCollection = args ).nRows;
+			result.totalRecords = _getPresideObjectService().getRecordVersions( argumentCollection = args );
 		}
 
 		return result;
