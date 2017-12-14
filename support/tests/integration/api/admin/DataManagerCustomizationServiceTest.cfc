@@ -21,6 +21,19 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getCustomizationHandlerForObject( objectName ) ).toBe( handler );
 			} );
 		} );
+
+		describe( "getCustomizationEventForObject()", function(){
+			it( "should append customization action to customization handler for the object", function(){
+				var service       = _getService();
+				var objectName    = "my_object";
+				var customization = "buildCrumbtrail";
+				var handler       = "some.handler";
+
+				service.$( "getCustomizationHandlerForObject" ).$args( objectName ).$results( handler );
+
+				expect( service.getCustomizationEventForObject( objectName, customization ) ).toBe( "some.handler.buildCrumbtrail" );
+			} );
+		} );
 	}
 
 // private helpers

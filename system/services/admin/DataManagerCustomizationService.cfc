@@ -34,6 +34,18 @@ component {
 		} );
 	}
 
+	/**
+	 * Returns the full coldbox event path for a given object and
+	 * customization action
+	 *
+	 * @autodoc true
+	 * @objectName Name of the object
+	 * @action     Name of the customization action
+	 */
+	public string function getCustomizationEventForObject( required string objectName, required string action ) {
+		return getCustomizationHandlerForObject( arguments.objectName ) & "." & arguments.action;
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any provider ) {
 		if ( !variables.keyExists( arguments.cacheKey ) ) {
