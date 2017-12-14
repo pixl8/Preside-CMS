@@ -97,7 +97,7 @@
 				) );
 				var mockHooksService   = getMockBox().createStub();
 
-				mockHooksService.$( "hasHook", false );
+				mockHooksService.$( "hookExists", false );
 
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
