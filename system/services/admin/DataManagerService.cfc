@@ -582,6 +582,9 @@ component {
 
 			if ( fieldRelationship == "many-to-one" ) {
 				var relatedLabelField = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+				var delim             = relatedLabelField.find( "$" ) ? "$" : ".";
+
+				relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
 
 				newOrderBy.append( relatedLabelField & " " & orderDirection );
 			} else {
