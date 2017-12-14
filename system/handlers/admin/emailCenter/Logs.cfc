@@ -51,8 +51,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public string function resendEmail( event, rc, prc ) {
-		var logId = rc.id ?: "";
-		emailLoggingService.resendEmail( logId );
+		var logId   = rc.id ?: "";
+		var rebuild = isTrue( rc.rebuild ?: "" );
+
+		if ( rebuild ) {
+			emailLoggingService.rebuildAndResendEmail( logId );
+		} else {
+			emailLoggingService.resendOriginalEmail( logId );
+		}
 
 		prc.log = emailLoggingService.getLog( logId );
 		if ( prc.log.isEmpty() ) {

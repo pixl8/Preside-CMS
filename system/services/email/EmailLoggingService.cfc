@@ -268,10 +268,51 @@ component {
 	}
 
 	/**
+	 * Resends an email. A duplicate of the original content is sent
+	 *
+	 */
+	public void function resendOriginalEmail( required string id ) {
+		var dao                    = $getPresideObject( "email_template_send_log");
+		var message                = dao.selectData(
+			  id           = arguments.id
+			, selectFields = [
+				  "email_template_send_log.*"
+				, "content.html_body as html_body"
+				, "content.text_body as text_body"
+			  ]
+		);
+		var template               = _getEmailTemplateService().getTemplate( message.email_template );
+		var recipientIdLogProperty = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( template.recipient_type );
+		var sendArgs               = deserializeJson( message.send_args );
+
+		var resentMessageId        = $sendEmail(
+		      template              = message.email_template
+		    , recipientId           = message[ recipientIdLogProperty ]
+		    , to                    = [ message.recipient ]
+		    , from                  = message.sender
+		    , subject               = message.subject
+		    , htmlBody              = message.html_body
+		    , textBody              = message.text_body
+		    , args                  = sendArgs
+		    , resendOf              = message.id
+		    , returnLogId           = true
+		    , overwriteTemplateArgs = true
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "resend"
+			, userAgent = ""
+			, extraData = { resentMessageId=resentMessageId, resendType="original" }
+		);
+
+	}
+
+	/**
 	 * Resends an email. Email is regenerated using the original sendArgs
 	 *
 	 */
-	public void function resendEmail( required string id ) {
+	public void function rebuildAndResendEmail( required string id ) {
 		var dao                    = $getPresideObject( "email_template_send_log");
 		var message                = dao.selectData( id=arguments.id );
 		var template               = _getEmailTemplateService().getTemplate( message.email_template );
@@ -290,7 +331,7 @@ component {
 			  messageId = arguments.id
 			, activity  = "resend"
 			, userAgent = ""
-			, extraData = { resentMessageId=resentMessageId }
+			, extraData = { resentMessageId=resentMessageId, resendType="rebuild" }
 		);
 
 	}
