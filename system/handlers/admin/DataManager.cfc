@@ -238,27 +238,26 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function batchEditField( event, rc, prc ) {
-		var object      = rc.object;
-		var field       = rc.field ?: "";
+		var objectName  = prc.objectName  ?: "";
+		var objectTitle = prc.objectTitle ?: "";
+		var ids         = prc.recordId    ?: "";
+		var field       = rc.field        ?: "";
 		var formControl = {};
-		var ids         = rc.id ?: "";
 		var recordCount = ListLen( Trim( ids ) );
-		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
+		var fieldName   = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 		if ( !recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 		}
 
 		prc.fieldFormControl = formsService.renderFormControlForObjectField(
-		      objectName = object
+		      objectName = objectName
 		    , fieldName  = field
 		);
 
-		if ( presideObjectService.isManyToManyProperty( object, field ) ) {
+		if ( presideObjectService.isManyToManyProperty( objectName, field ) ) {
 			prc.multiEditBehaviourControl = renderFormControl(
 				  type   = "select"
 				, name   = "multiValueBehaviour"
@@ -269,22 +268,22 @@ component extends="preside.system.base.AdminHandler" {
 
 			prc.batchEditWarning = translateResource(
 				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
-				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				, data = [ "<strong>#objectTitle#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		} else {
 			prc.batchEditWarning = translateResource(
 				  uri  = "cms:datamanager.batch.edit.warning"
-				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				, data = [ "<strong>#objectTitle#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		}
 
-		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectName, NumberFormat( recordCount ) ] );
+		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectTitle, NumberFormat( recordCount ) ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
 		prc.pageIcon     = "pencil";
 
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldName ] )
+			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectTitle, fieldName ] )
 			, link  = ""
 		);
 
