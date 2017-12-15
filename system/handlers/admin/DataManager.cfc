@@ -2094,7 +2094,7 @@ component extends="preside.system.base.AdminHandler" {
 			_checkPermission( argumentCollection=arguments, key="navigate", object=prc.objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
 
-			prc.objectTitle         = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title", defaultValue=prc.objectName );
+			prc.objectTitle         = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title.singular", defaultValue=prc.objectName );
 			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
 			prc.canAdd              = datamanagerService.isOperationAllowed( prc.objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ prc.objectName ] );
 			prc.canedit             = datamanagerService.isOperationAllowed( prc.objectName, "edit" )   && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextkeys=[ prc.objectName ] );
