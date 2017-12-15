@@ -211,12 +211,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function multiRecordAction( event, rc, prc ) {
-		var object     = rc.object      ?: "";
+		var objectName = prc.objectName ?: "";
 		var action     = rc.multiAction ?: "";
-		var ids        = rc.id          ?: "";
-		var listingUrl = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.object", queryString="id=#object#" );
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
+		var ids        = prc.recordId   ?: "";
+		var listingUrl = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.object", queryString="id=#objectName#" );
 
 		if ( not Len( Trim( ids ) ) ) {
 			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
@@ -226,7 +224,7 @@ component extends="preside.system.base.AdminHandler" {
 		switch( action ){
 			case "batchUpdate":
 				setNextEvent(
-					  url           = event.buildAdminLink( linkTo="datamanager.batchEditField", queryString="object=#object#&field=#( rc.field ?: '' )#" )
+					  url           = event.buildAdminLink( linkTo="datamanager.batchEditField", queryString="object=#objectName#&field=#( rc.field ?: '' )#" )
 					, persistStruct = { id = ids }
 				);
 			break;
@@ -2068,7 +2066,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canPublish          = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="publish"  , object=prc.objectName, throwOnError=false );
 			prc.canSaveDraft        = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="savedraft", object=prc.objectName, throwOnError=false );
 
-			if ( Len( Trim( prc.recordId ) ) ) {
+			if ( Len( Trim( prc.recordId ) ) && ListLen( prc.recordId ) == 1 ) {
 				if ( prc.useVersioning ) {
 					prc.version = rc.version = Val( rc.version ?: ( presideObjectService.objectIsVersioned( prc.objectName ) ? versioningService.getLatestVersionNumber( prc.objectName, prc.recordId ) : 0 ) );
 				}
