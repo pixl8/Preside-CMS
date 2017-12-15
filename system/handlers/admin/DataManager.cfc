@@ -75,20 +75,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addRecord( event, rc, prc ) {
-		var objectName = event.getValue( name="object", defaultValue="" );
+		var objectName    = prc.objectName ?: "";
+		var draftsEnabled = IsTrue( prc.draftsEnabled ?: "" );
+		var canPublish    = IsTrue( prc.canPublish    ?: "" );
+		var canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 		_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
-		prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
-		if ( prc.draftsEnabled ) {
-			prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
-			prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
-
-			if ( !prc.canPublish && !prc.canSaveDraft ) {
-				event.adminAccessDenied();
-			}
+		if ( draftsEnabled && (!prc.canPublish && !prc.canSaveDraft ) ) {
+			event.adminAccessDenied();
 		}
 
 		event.addAdminBreadCrumb(
@@ -2107,6 +2102,8 @@ component extends="preside.system.base.AdminHandler" {
 			prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( prc.objectName );
 			prc.canTranslate        = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.translate", context="datamanager", contextKeys=[ prc.objectName ] );
 			prc.useVersioning       = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
+			prc.canPublish          = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="publish"  , object=prc.objectName, throwOnError=false );
+			prc.canSaveDraft        = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="savedraft", object=prc.objectName, throwOnError=false );
 
 			if ( Len( Trim( prc.recordId ) ) ) {
 				if ( prc.useVersioning ) {
