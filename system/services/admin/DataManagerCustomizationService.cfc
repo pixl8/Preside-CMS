@@ -23,15 +23,10 @@ component {
 	 * @objectName Name of the object
 	 */
 	public string function getCustomizationHandlerForObject( required string objectName ) {
-		var cacheKey = "getCustomizationHandlerForObject#objectName#";
-		var args     = arguments;
+		var customHandler  = $getPresideObjectService().getObjectAttribute( arguments.objectName, "dataManagerHandler" );
+		var defaultHandler = "admin.datamanager." & arguments.objectName;
 
-		return _simpleLocalCache( cacheKey, function(){
-			var customHandler  = $getPresideObjectService().getObjectAttribute( args.objectName, "dataManagerHandler" );
-			var defaultHandler = "datamanager." & args.objectName;
-
-			return customHandler.len() ? customHandler : defaultHandler;
-		} );
+		return customHandler.len() ? customHandler : defaultHandler;
 	}
 
 	/**
@@ -60,12 +55,7 @@ component {
 		  required string objectName
 		, required string action
 	) {
-		var cacheKey = "objectHasCustomization" & arguments.objectName;
-		var args     = arguments;
-
-		return _simpleLocalCache( cacheKey, function(){
-			return $getColdbox().handlerExists( getCustomizationEventForObject( args.objectName, args.action ) );
-		} );
+		return $getColdbox().handlerExists( getCustomizationEventForObject( arguments.objectName, arguments.action ) );
 	}
 
 	/**
@@ -98,11 +88,10 @@ component {
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any provider ) {
 		if ( !variables.keyExists( arguments.cacheKey ) ) {
-			variables[ arguments.cacheKey ] = provider();
+			variables[ arguments.cacheKey ] = arguments.provider();
 		}
 
-		return variables[ arguments.cacheKey ] ?: NullValue();
+		return variables[ arguments.cacheKey ];
 	}
-// GETTERS AND SETTERS
 
 }

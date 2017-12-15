@@ -8,7 +8,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName, "datamanagerHandler" ).$results( "" );
 
-				expect( service.getCustomizationHandlerForObject( objectName ) ).toBe( "datamanager.some_object" );
+				expect( service.getCustomizationHandlerForObject( objectName ) ).toBe( "admin.datamanager.some_object" );
 			} );
 
 			it( "should return the value of @datamanagerHandler if set on the object", function(){

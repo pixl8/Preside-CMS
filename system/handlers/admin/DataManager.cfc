@@ -22,14 +22,28 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:datamanager" )
-			, link  = event.buildAdminLink( linkTo="datamanager" )
-		);
+		_loadCommonVariables( argumentCollection=arguments );
+		if ( !arguments.action.endsWith( "action" ) ) {
+			var args = {
+				  action      = arguments.action
+				, objectName  = prc.objectName  ?: ""
+				, objectTitle = prc.objectTitle ?: ""
+				, recordId    = prc.recordId    ?: ""
+				, recordLabel = prc.recordLabel ?: ""
+			};
+
+			customizationService.runCustomization(
+				  objectName     = prc.objectName
+				, action         = "rootBreadcrumbs"
+				, defaultHandler = "admin.datamanager._rootBreadcrumbs"
+				, args           = args
+			);
+		}
 	}
 
 	public void function index( event, rc, prc ) {
 		_checkNavigatePermission( argumentCollection=arguments );
+
 
 		prc.objectGroups = dataManagerService.getGroupedObjects();
 	}
@@ -40,8 +54,6 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
 		_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-
-		_addObjectNameBreadCrumb( event, objectName );
 
 		prc.draftsEnabled = datamanagerService.areDraftsEnabledForObject( objectName );
 		prc.canAdd        = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
@@ -168,8 +180,6 @@ component extends="preside.system.base.AdminHandler" {
 		_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=objectName );
 
-		_addObjectNameBreadCrumb( event, objectName );
-
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.managePerms.breadcrumb.title" )
 			, link  = ""
@@ -243,9 +253,6 @@ component extends="preside.system.base.AdminHandler" {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
 		}
 
-		_addObjectNameBreadCrumb( event, object );
-		_addViewRecordBreadCrumb( event, object, recordId );
-
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ prc.objectName ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ prc.recordLabel ] );
 	}
@@ -270,9 +277,6 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 		}
 
-		// breadcrumb setup
-		_addObjectNameBreadCrumb( event, object );
-		_addViewRecordBreadCrumb( event, object, recordId );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
 			, link  = ""
@@ -310,7 +314,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
 		// breadcrumb setup
-		_addObjectNameBreadCrumb( event, object );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#recordId#&language=#languageId#" )
@@ -366,7 +369,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
 		prc.pageIcon     = "pencil";
 
-		_addObjectNameBreadCrumb( event, object );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldName ] )
@@ -450,9 +452,6 @@ component extends="preside.system.base.AdminHandler" {
 		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
-		_addObjectNameBreadCrumb( event, objectName );
-		_addViewRecordBreadCrumb(event, objectName, prc.id );
-
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.cascadeDelete.breadcrumb.title" )
 			, link  = ""
@@ -475,8 +474,6 @@ component extends="preside.system.base.AdminHandler" {
 				event.adminAccessDenied();
 			}
 		}
-
-		_addObjectNameBreadCrumb( event, objectName );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.addrecord.breadcrumb.title" )
@@ -657,9 +654,6 @@ component extends="preside.system.base.AdminHandler" {
 				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#object#&id=#id#" );
 		}
 
-		// breadcrumb setup
-		_addObjectNameBreadCrumb( event, object );
-		_addViewRecordBreadCrumb( event, object, id );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
 			, link  = ""
@@ -757,8 +751,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
 		prc.formName = "preside-objects.#translationObjectName#.admin.edit";
 
-		_addObjectNameBreadCrumb( event, object );
-		_addViewRecordBreadCrumb( event, object, id );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = ""
@@ -1031,7 +1023,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.records = datamanagerService.getRecordsForSorting( objectName=object );
 
-		_addObjectNameBreadCrumb( event, object );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )
 			, link  = ""
@@ -2054,30 +2045,10 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/datamanager/_oneToManyListingActions", args=args );
 	}
 
+
 <!--- private utility methods --->
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return dataManagerService.listGridFields( arguments.objectName );
-	}
-
-	private void function _addObjectNameBreadCrumb( required any event, required string objectName ) {
-		event.addAdminBreadCrumb(
-			  title = translateResource( "preside-objects.#objectName#:title" )
-			, link  = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" )
-		);
-	}
-
-	private void function _addViewRecordBreadCrumb( required any event, required string objectName, required string recordId ) {
-		var recordLabel = "";
-		try {
-			recordLabel = prc.recordLabel ?: renderLabel( objectName, recordId );
-		} catch ( "PresideObjectService.no.label.field" e ) {
-			recordLabel = prc.recordLabel = recordId;
-		}
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
-			, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
-		);
 	}
 
 	private boolean function _objectCanBeViewedInDataManager( required any event, required string objectName, boolean relocateIfNoAccess=false ) {
@@ -2117,5 +2088,94 @@ component extends="preside.system.base.AdminHandler" {
 			, parentRecordLabel = parentRecord.label ?: ""
 			, parentObjectTitle = parentObjectTitle
 		};
+	}
+
+	private void function _rootBreadCrumbs( event, rc, prc, args={} ) {
+		var action      = args.action      ?: "";
+		var objectName  = args.objectName  ?: "";
+		var objectTitle = args.objectTitle  ?: "";
+		var recordLabel = args.recordLabel ?: "";
+		var recordId    = args.recordId    ?: "";
+
+		// default root breadcrumb
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:datamanager" )
+			, link  = event.buildAdminLink( linkTo="datamanager" )
+		);
+		if ( action == "index" ) {
+			return;
+		}
+
+		// object listing page breadcrumb
+		event.addAdminBreadCrumb(
+			  title = translateResource( "preside-objects.#objectName#:title" )
+			, link  = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" )
+		);
+		if ( action == "object" ) {
+			return;
+		}
+
+		// view record breadcrumb
+		if ( Len( Trim( recordId ) ) ) {
+			if ( datamanagerService.isOperationAllowed( objectName, "read" ) ) {
+				event.addAdminBreadCrumb(
+					  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
+					, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
+				);
+			}
+		}
+	}
+
+	private void function _loadCommonVariables( event, action, eventArguments ) {
+		var rc  = event.getCollection();
+		var prc = event.getCollection( private=true );
+		var e    = "";
+
+		prc.objectName  = "";
+		prc.objectTitle = "";
+		prc.recordId    = "";
+		prc.record      = "";
+		prc.recordLabel = "";
+		prc.version     = 0;
+
+		switch( arguments.action ) {
+			case "index":
+				return;
+			break;
+			case "object":
+			case "getObjectRecordsForAjaxDataTables":
+				prc.objectName = rc.id ?: "";
+			break;
+			default:
+				prc.objectName = rc.object ?: "";
+				prc.recordId   = rc.id     ?: "";
+		}
+
+		if ( Len( Trim( prc.objectName ) ) ) {
+			prc.objectTitle = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title", defaultValue=prc.objectName );
+		}
+
+		if ( Len( Trim( prc.objectName ) ) && Len( Trim( prc.recordId ) ) ) {
+			prc.useVersioning = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
+			if ( prc.useVersioning ) {
+				prc.version = rc.version = Val( rc.version ?: ( presideObjectService.objectIsVersioned( prc.objectName ) ? versioningService.getLatestVersionNumber( prc.objectName, prc.recordId ) : 0 ) );
+			}
+			if ( prc.useVersioning && prc.version ) {
+				prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true );
+			} else {
+				prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, allowDraftVersions=true );
+			}
+
+			if ( !prc.record.recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#prc.objectName#" ) );
+			}
+
+			try {
+				prc.recordLabel = renderLabel( prc.objectName, prc.recordId );
+			} catch ( "PresideObjectService.no.label.field" e ) {
+				prc.recordLabel = prc.recordId;
+			}
+		}
 	}
 }
