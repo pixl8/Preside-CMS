@@ -184,9 +184,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function deleteRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
+		var objectName = prc.objectName ?: "";
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
 		runEvent(
