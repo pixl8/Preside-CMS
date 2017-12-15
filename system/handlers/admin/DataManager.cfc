@@ -237,6 +237,89 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=listingUrl );
 	}
 
+	public void function batchEditField( event, rc, prc ) {
+		var object      = rc.object;
+		var field       = rc.field ?: "";
+		var formControl = {};
+		var ids         = rc.id ?: "";
+		var recordCount = ListLen( Trim( ids ) );
+		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
+		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
+
+		_checkObjectExists( argumentCollection=arguments, object=object );
+		_checkPermission( argumentCollection=arguments, key="edit", object=object );
+		if ( !recordCount ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		}
+
+		prc.fieldFormControl = formsService.renderFormControlForObjectField(
+		      objectName = object
+		    , fieldName  = field
+		);
+
+		if ( presideObjectService.isManyToManyProperty( object, field ) ) {
+			prc.multiEditBehaviourControl = renderFormControl(
+				  type   = "select"
+				, name   = "multiValueBehaviour"
+				, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
+				, values = [ "append", "overwrite", "delete" ]
+				, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+			);
+
+			prc.batchEditWarning = translateResource(
+				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+			);
+		} else {
+			prc.batchEditWarning = translateResource(
+				  uri  = "cms:datamanager.batch.edit.warning"
+				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+			);
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectName, NumberFormat( recordCount ) ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
+		prc.pageIcon     = "pencil";
+
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldName ] )
+			, link  = ""
+		);
+
+		event.setView( view="/admin/datamanager/batchEditField" );
+	}
+
+	public void function batchEditAction( event, rc, prc ) {
+		var updateField = rc.updateField ?: "";
+		var objectName  = rc.objectName  ?: "";
+		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
+
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		if ( !sourceIds.len() ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		}
+
+		var success = datamanagerService.batchEditField(
+			  objectName         = objectName
+			, fieldName          = updateField
+			, sourceIds          = sourceIds
+			, value              = rc[ updateField ]      ?: ""
+			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+		);
+
+		if( success ) {
+			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectName ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+		} else {
+			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectName ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+		}
+	}
+
 	public void function recordHistory( event, rc, prc ) {
 		var objectName    = prc.objectName  ?: "";
 		var objectTitle   = prc.objectTitle ?: "";
@@ -553,7 +636,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 
-
 	public void function translationRecordHistory( event, rc, prc ) {
 		var objectName  = prc.objectName  ?: "";
 		var recordId    = prc.recordId    ?: "";
@@ -592,89 +674,6 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
 			, link  = ""
 		);
-	}
-
-	public void function batchEditField( event, rc, prc ) {
-		var object      = rc.object;
-		var field       = rc.field ?: "";
-		var formControl = {};
-		var ids         = rc.id ?: "";
-		var recordCount = ListLen( Trim( ids ) );
-		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
-		if ( !recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-		}
-
-		prc.fieldFormControl = formsService.renderFormControlForObjectField(
-		      objectName = object
-		    , fieldName  = field
-		);
-
-		if ( presideObjectService.isManyToManyProperty( object, field ) ) {
-			prc.multiEditBehaviourControl = renderFormControl(
-				  type   = "select"
-				, name   = "multiValueBehaviour"
-				, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
-				, values = [ "append", "overwrite", "delete" ]
-				, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
-			);
-
-			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
-				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
-			);
-		} else {
-			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning"
-				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
-			);
-		}
-
-		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectName, NumberFormat( recordCount ) ] );
-		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
-		prc.pageIcon     = "pencil";
-
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldName ] )
-			, link  = ""
-		);
-
-		event.setView( view="/admin/datamanager/batchEditField" );
-	}
-
-	public void function batchEditAction( event, rc, prc ) {
-		var updateField = rc.updateField ?: "";
-		var objectName  = rc.objectName  ?: "";
-		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-		if ( !sourceIds.len() ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-		}
-
-		var success = datamanagerService.batchEditField(
-			  objectName         = objectName
-			, fieldName          = updateField
-			, sourceIds          = sourceIds
-			, value              = rc[ updateField ]      ?: ""
-			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
-		);
-
-		if( success ) {
-			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectName ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
-		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectName ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
-		}
 	}
 
 	public void function deleteOneToManyRecordAction( event, rc, prc ) {
