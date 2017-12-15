@@ -228,39 +228,38 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function translationRecordHistory( event, rc, prc ) {
-		var object     = rc.object   ?: "";
-		var recordId   = rc.id       ?: "";
-		var languageId = rc.language ?: "";
-		var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+		var objectName  = prc.objectName  ?: "";
+		var recordId    = prc.recordId    ?: "";
+		var objectTitle = prc.objectTitle ?: "";
+		var languageId  = rc.language     ?: "";
+		var isVersioned = IsTrue( prc.isVersioned ?: "" );
 
 		prc.language = multilingualPresideObjectService.getLanguage( languageId );
 
 		if ( prc.language.isempty() ) {
 			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#id#" ) );
 		}
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="translate"   , object=object );
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
+		_checkPermission( argumentCollection=arguments, key="translate"   , object=objectName );
+		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
 
-		if ( !presideObjectService.objectIsVersioned( object ) ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		if ( !isVersioned ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.objectName", querystring="id=#objectName#" ) );
 		}
 
-		prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+		prc.record = presideObjectService.selectData( objectName=objectName, filter={ id=id }, useCache=false );
 		if ( not prc.record.recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 		}
-		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=objectName, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
 		// breadcrumb setup
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
-			, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#recordId#&language=#languageId#" )
+			, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id=#recordId#&language=#languageId#" )
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
