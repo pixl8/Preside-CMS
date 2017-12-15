@@ -209,23 +209,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function recordHistory( event, rc, prc ) {
-		var object     = rc.object ?: "";
-		var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-		var recordId   = rc.id     ?: "";
+		var objectName    = prc.objectName  ?: "";
+		var objectTitle   = prc.objectTitle ?: "";
+		var recordId      = prc.recordId    ?: "";
+		var useVersioning = IsTrue( prc.useVersioning ?: "" );
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
+		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
 
-		if ( !presideObjectService.objectIsVersioned( object ) ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-		}
-
-		prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
-		if ( !prc.record.recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		if ( !useVersioning ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ objectTitle ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 		}
 
 		event.addAdminBreadCrumb(
@@ -2111,9 +2104,9 @@ component extends="preside.system.base.AdminHandler" {
 			prc.batchEditableFields = dataManagerService.listBatchEditableFields( prc.objectName );
 			prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( prc.objectName );
 			prc.canTranslate        = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.translate", context="datamanager", contextKeys=[ prc.objectName ] );
+			prc.useVersioning       = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
 
 			if ( Len( Trim( prc.recordId ) ) ) {
-				prc.useVersioning = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
 				if ( prc.useVersioning ) {
 					prc.version = rc.version = Val( rc.version ?: ( presideObjectService.objectIsVersioned( prc.objectName ) ? versioningService.getLatestVersionNumber( prc.objectName, prc.recordId ) : 0 ) );
 				}
