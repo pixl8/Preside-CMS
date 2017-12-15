@@ -39,140 +39,6 @@ component extends="preside.system.base.AdminHandler" {
 		// all taken care of with common logic
 	}
 
-	public void function getObjectRecordsForAjaxDataTables( event, rc, prc ) {
-		_checkPermission( argumentCollection=arguments, key="read", object=prc.objectName, checkOperations=false );
-
-		runEvent(
-			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object              = prc.objectName
-				, useMultiActions     = prc.canDelete
-				, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
-				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
-				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
-			}
-		);
-	}
-
-	public void function getChildObjectRecordsForAjaxDataTables( event, rc, prc ) {
-		var objectName      = prc.objectName     ?: "";
-		var parentId        = rc.parentId        ?: "";
-		var relationshipKey = rc.relationshipKey ?: "";
-
-		runEvent(
-			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object          = objectName
-				, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
-				, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
-				, actionsView     = "/admin/datamanager/_oneToManyListingActions"
-				, filter          = { "#relationshipKey#" : parentId }
-			}
-		);
-	}
-
-	public void function getRecordHistoryForAjaxDataTables( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-		var recordId   = rc.id     ?: "";
-
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
-
-		runEvent(
-			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object     = objectName
-				, recordId   = recordId
-				, gridFields = ( rc.gridFields ?: 'datemodified,label' )
-			}
-		);
-	}
-
-	public void function getTranslationRecordHistoryForAjaxDataTables( event, rc, prc ) {
-		var objectName = rc.object   ?: "";
-		var recordId   = rc.id       ?: "";
-		var languageId = rc.language ?: "";
-
-		_checkPermission( argumentCollection=arguments, key="translate", object=objectName );
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
-
-		runEvent(
-			  event          = "admin.DataManager._getTranslationRecordHistoryForAjaxDataTables"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object     = objectName
-				, recordId   = recordId
-				, languageId = languageId
-				, gridFields = ( rc.gridFields ?: 'datemodified,label' )
-			}
-		);
-	}
-
-	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
-		var objectName     = rc.object ?: "";
-		var extraFilters   = [];
-		var filterByFields = ListToArray( rc.filterByFields ?: "" );
-		var filterValue    = "";
-		var orderBy        = rc.orderBy       ?: "label";
-		var labelRenderer  = rc.labelRenderer ?: "";
-
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
-
-		for( var filterByField in filterByFields ) {
-			filterValue = rc[filterByField] ?: "";
-			if( !isEmpty( filterValue ) ){
-				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
-			}
-		}
-
-		var records = dataManagerService.getRecordsForAjaxSelect(
-			  objectName    = rc.object  ?: ""
-			, maxRows       = rc.maxRows ?: 1000
-			, searchQuery   = rc.q       ?: ""
-			, savedFilters  = ListToArray( rc.savedFilters ?: "" )
-			, extraFilters  = extraFilters
-			, orderBy       = orderBy
-			, ids           = ListToArray( rc.values ?: "" )
-			, labelRenderer = labelRenderer
-		);
-
-		event.renderData( type="json", data=records );
-	}
-
-	public void function managePerms( event, rc, prc ) {
-		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.managePerms.breadcrumb.title" )
-			, link  = ""
-		);
-	}
-
-	public void function savePermsAction( event, rc, prc ) {
-		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
-
-		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
-			event.audit(
-				  action   = "edit_datamanager_object_admin_permissions"
-				, type     = "datamanager"
-				, recordId = prc.objectName
-				, detail   = { objectName=prc.objectName }
-			);
-
-			messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ prc.objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#prc.objectName#" ) );
-		}
-
-		messageBox.error( translateResource( uri="cms:datamanager.permsSaved.error", data=[ prc.objectTitle ] ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.managePerms", queryString="object=#prc.objectName#" ) );
-	}
-
 	public void function viewRecord( event, rc, prc ) {
 		var objectName   = prc.objectName ?: "";
 		var recordId     = prc.recordId   ?: ""
@@ -206,199 +72,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
-	}
-
-	public void function recordHistory( event, rc, prc ) {
-		var objectName    = prc.objectName  ?: "";
-		var objectTitle   = prc.objectTitle ?: "";
-		var recordId      = prc.recordId    ?: "";
-		var useVersioning = IsTrue( prc.useVersioning ?: "" );
-
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
-
-		if ( !useVersioning ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
-		}
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
-			, link  = ""
-		);
-	}
-
-	public void function translationRecordHistory( event, rc, prc ) {
-		var objectName  = prc.objectName  ?: "";
-		var recordId    = prc.recordId    ?: "";
-		var objectTitle = prc.objectTitle ?: "";
-		var languageId  = rc.language     ?: "";
-		var isVersioned = IsTrue( prc.isVersioned ?: "" );
-
-		prc.language = multilingualPresideObjectService.getLanguage( languageId );
-
-		if ( prc.language.isempty() ) {
-			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#id#" ) );
-		}
-
-		_checkPermission( argumentCollection=arguments, key="translate"   , object=objectName );
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
-
-		if ( !isVersioned ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.objectName", querystring="id=#objectName#" ) );
-		}
-
-		prc.record = presideObjectService.selectData( objectName=objectName, filter={ id=id }, useCache=false );
-		if ( not prc.record.recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
-		}
-		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=objectName, attributeName="labelfield", defaultValue="label" ) ] ?: "";
-
-		// breadcrumb setup
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
-			, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id=#recordId#&language=#languageId#" )
-		);
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
-			, link  = ""
-		);
-	}
-
-	public void function batchEditField( event, rc, prc ) {
-		var object      = rc.object;
-		var field       = rc.field ?: "";
-		var formControl = {};
-		var ids         = rc.id ?: "";
-		var recordCount = ListLen( Trim( ids ) );
-		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
-		if ( !recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-		}
-
-		prc.fieldFormControl = formsService.renderFormControlForObjectField(
-		      objectName = object
-		    , fieldName  = field
-		);
-
-		if ( presideObjectService.isManyToManyProperty( object, field ) ) {
-			prc.multiEditBehaviourControl = renderFormControl(
-				  type   = "select"
-				, name   = "multiValueBehaviour"
-				, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
-				, values = [ "append", "overwrite", "delete" ]
-				, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
-			);
-
-			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
-				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
-			);
-		} else {
-			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning"
-				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
-			);
-		}
-
-		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectName, NumberFormat( recordCount ) ] );
-		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
-		prc.pageIcon     = "pencil";
-
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldName ] )
-			, link  = ""
-		);
-
-		event.setView( view="/admin/datamanager/batchEditField" );
-	}
-
-	public void function batchEditAction( event, rc, prc ) {
-		var updateField = rc.updateField ?: "";
-		var objectName  = rc.objectName  ?: "";
-		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-		if ( !sourceIds.len() ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-		}
-
-		var success = datamanagerService.batchEditField(
-			  objectName         = objectName
-			, fieldName          = updateField
-			, sourceIds          = sourceIds
-			, value              = rc[ updateField ]      ?: ""
-			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
-		);
-
-		if( success ) {
-			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectName ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
-		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectName ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
-		}
-	}
-
-	public void function deleteRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
-
-		runEvent(
-			  event          = "admin.DataManager._deleteRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = { audit=true }
-		);
-	}
-
-	public void function deleteOneToManyRecordAction( event, rc, prc ) {
-		var objectName      = rc.object ?: "";
-		var relationshipKey = rc.relationshipKey ?: "";
-		var parentId        = rc.parentId ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		if ( !datamanagerService.isOperationAllowed( objectName, "delete"   ) ) {
-			event.adminAccessDenied();
-		}
-		rc.forceDelete = true;
-
-		runEvent(
-			  event          = "admin.DataManager._deleteRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  postActionUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#objectName#&relationshipKey=#relationshipKey#&parentId=#parentId#" )
-				, audit         = true
-			}
-		);
-	}
-
-	public void function cascadeDeletePrompt( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-
-		prc.id       = rc.id       ?: "";
-		prc.blockers = rc.blockers ?: {};
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.cascadeDelete.breadcrumb.title" )
-			, link  = ""
-		);
 	}
 
 	public void function addRecord( event, rc, prc ) {
@@ -450,99 +123,6 @@ component extends="preside.system.base.AdminHandler" {
 				, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
 			  }
 		);
-	}
-
-	public void function addOneToManyRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
-			event.adminAccessDenied();
-		}
-
-		runEvent(
-			  event          = "admin.DataManager._addOneToManyRecordAction"
-			, prePostExempt  = true
-			, private        = true
-		);
-	}
-
-	public void function quickAddForm( event, rc, prc ) {
-		var object = rc.object ?: "";
-		var args   = {};
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="add", object=object );
-
-		args.allowAddAnotherSwitch = IsTrue( rc.multiple ?: "" );
-
-		event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog", args=args );
-	}
-
-	public void function quickAddRecordAction( event, rc, prc ) {
-		var object = rc.object ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="add", object=object );
-
-		runEvent(
-			  event          = "admin.DataManager._quickAddRecordAction"
-			, prePostExempt  = true
-			, private        = true
-		);
-	}
-
-	public void function quickEditForm( event, rc, prc ) {
-		var object = rc.object ?: "";
-		var id     = rc.id     ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
-
-		prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
-		if ( prc.record.recordCount ) {
-			prc.record = queryRowToStruct( prc.record );
-		} else {
-			prc.record = {};
-		}
-
-		event.setView( view="/admin/datamanager/quickEditForm", layout="adminModalDialog" );
-	}
-
-	public void function quickEditRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-
-		runEvent(
-			  event          = "admin.DataManager._quickEditRecordAction"
-			, prePostExempt  = true
-			, private        = true
-		);
-	}
-
-	public void function configuratorForm( event, rc, prc ) {
-		var object     = rc.object   ?: "";
-		var id         = rc.id       ?: "";
-		var fromDb     = rc.__fromDb ?: false;
-		var args       = {};
-		var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-		var record     = "";
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="add", object=object );
-
-		if ( fromDb ) {
-			record = presideObjectService.selectData( objectName=object, id=id, useCache=false );
-			if ( record.recordCount ) {
-				args.savedData = queryRowToStruct( record );
-			}
-		}
-		args.sourceIdField = rc.sourceIdField ?: "";
-		args.sourceId      = rc.sourceId      ?: "";
-
-		event.setView( view="/admin/datamanager/configuratorForm", layout="adminModalDialog", args=args );
 	}
 
 	public void function editRecord( event, rc, prc ) {
@@ -640,6 +220,83 @@ component extends="preside.system.base.AdminHandler" {
 				, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
 				, successUrl    = successUrl
 			  }
+		);
+	}
+
+	public void function deleteRecordAction( event, rc, prc ) {
+		var objectName = rc.object ?: "";
+
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
+
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = { audit=true }
+		);
+	}
+
+	public void function cascadeDeletePrompt( event, rc, prc ) {
+		var objectName = rc.object ?: "";
+
+		prc.id       = rc.id       ?: "";
+		prc.blockers = rc.blockers ?: {};
+
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.cascadeDelete.breadcrumb.title" )
+			, link  = ""
+		);
+	}
+
+	public void function multiRecordAction( event, rc, prc ) {
+		var object     = rc.object      ?: "";
+		var action     = rc.multiAction ?: "";
+		var ids        = rc.id          ?: "";
+		var listingUrl = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.object", queryString="id=#object#" );
+
+		_checkObjectExists( argumentCollection=arguments, object=object );
+
+		if ( not Len( Trim( ids ) ) ) {
+			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+			setNextEvent( url=listingUrl );
+		}
+
+		switch( action ){
+			case "batchUpdate":
+				setNextEvent(
+					  url           = event.buildAdminLink( linkTo="datamanager.batchEditField", queryString="object=#object#&field=#( rc.field ?: '' )#" )
+					, persistStruct = { id = ids }
+				);
+			break;
+			case "delete":
+				return deleteRecordAction( argumentCollection = arguments );
+			break;
+		}
+
+		messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
+		setNextEvent( url=listingUrl );
+	}
+
+	public void function recordHistory( event, rc, prc ) {
+		var objectName    = prc.objectName  ?: "";
+		var objectTitle   = prc.objectTitle ?: "";
+		var recordId      = prc.recordId    ?: "";
+		var useVersioning = IsTrue( prc.useVersioning ?: "" );
+
+		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+
+		if ( !useVersioning ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ objectTitle ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
+			, link  = ""
 		);
 	}
 
@@ -804,33 +461,379 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function multiRecordAction( event, rc, prc ) {
-		var object     = rc.object      ?: "";
-		var action     = rc.multiAction ?: "";
-		var ids        = rc.id          ?: "";
-		var listingUrl = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.object", queryString="id=#object#" );
+
+	public void function getObjectRecordsForAjaxDataTables( event, rc, prc ) {
+		_checkPermission( argumentCollection=arguments, key="read", object=prc.objectName, checkOperations=false );
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object              = prc.objectName
+				, useMultiActions     = prc.canDelete
+				, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
+				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
+				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
+			}
+		);
+	}
+
+	public void function getChildObjectRecordsForAjaxDataTables( event, rc, prc ) {
+		var objectName      = prc.objectName     ?: "";
+		var parentId        = rc.parentId        ?: "";
+		var relationshipKey = rc.relationshipKey ?: "";
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object          = objectName
+				, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+				, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+				, actionsView     = "/admin/datamanager/_oneToManyListingActions"
+				, filter          = { "#relationshipKey#" : parentId }
+			}
+		);
+	}
+
+	public void function getRecordHistoryForAjaxDataTables( event, rc, prc ) {
+		var objectName = rc.object ?: "";
+		var recordId   = rc.id     ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+
+		runEvent(
+			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = objectName
+				, recordId   = recordId
+				, gridFields = ( rc.gridFields ?: 'datemodified,label' )
+			}
+		);
+	}
+
+	public void function getTranslationRecordHistoryForAjaxDataTables( event, rc, prc ) {
+		var objectName = rc.object   ?: "";
+		var recordId   = rc.id       ?: "";
+		var languageId = rc.language ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="translate", object=objectName );
+		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+
+		runEvent(
+			  event          = "admin.DataManager._getTranslationRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = objectName
+				, recordId   = recordId
+				, languageId = languageId
+				, gridFields = ( rc.gridFields ?: 'datemodified,label' )
+			}
+		);
+	}
+
+	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
+		var objectName     = rc.object ?: "";
+		var extraFilters   = [];
+		var filterByFields = ListToArray( rc.filterByFields ?: "" );
+		var filterValue    = "";
+		var orderBy        = rc.orderBy       ?: "label";
+		var labelRenderer  = rc.labelRenderer ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
+
+		for( var filterByField in filterByFields ) {
+			filterValue = rc[filterByField] ?: "";
+			if( !isEmpty( filterValue ) ){
+				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
+			}
+		}
+
+		var records = dataManagerService.getRecordsForAjaxSelect(
+			  objectName    = rc.object  ?: ""
+			, maxRows       = rc.maxRows ?: 1000
+			, searchQuery   = rc.q       ?: ""
+			, savedFilters  = ListToArray( rc.savedFilters ?: "" )
+			, extraFilters  = extraFilters
+			, orderBy       = orderBy
+			, ids           = ListToArray( rc.values ?: "" )
+			, labelRenderer = labelRenderer
+		);
+
+		event.renderData( type="json", data=records );
+	}
+
+	public void function managePerms( event, rc, prc ) {
+		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.managePerms.breadcrumb.title" )
+			, link  = ""
+		);
+	}
+
+	public void function savePermsAction( event, rc, prc ) {
+		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
+
+		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			event.audit(
+				  action   = "edit_datamanager_object_admin_permissions"
+				, type     = "datamanager"
+				, recordId = prc.objectName
+				, detail   = { objectName=prc.objectName }
+			);
+
+			messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ prc.objectTitle ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#prc.objectName#" ) );
+		}
+
+		messageBox.error( translateResource( uri="cms:datamanager.permsSaved.error", data=[ prc.objectTitle ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.managePerms", queryString="object=#prc.objectName#" ) );
+	}
+
+
+
+	public void function translationRecordHistory( event, rc, prc ) {
+		var objectName  = prc.objectName  ?: "";
+		var recordId    = prc.recordId    ?: "";
+		var objectTitle = prc.objectTitle ?: "";
+		var languageId  = rc.language     ?: "";
+		var isVersioned = IsTrue( prc.isVersioned ?: "" );
+
+		prc.language = multilingualPresideObjectService.getLanguage( languageId );
+
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#id#" ) );
+		}
+
+		_checkPermission( argumentCollection=arguments, key="translate"   , object=objectName );
+		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+
+		if ( !isVersioned ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.objectName", querystring="id=#objectName#" ) );
+		}
+
+		prc.record = presideObjectService.selectData( objectName=objectName, filter={ id=id }, useCache=false );
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+		}
+		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=objectName, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+		// breadcrumb setup
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
+			, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id=#recordId#&language=#languageId#" )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
+			, link  = ""
+		);
+	}
+
+	public void function batchEditField( event, rc, prc ) {
+		var object      = rc.object;
+		var field       = rc.field ?: "";
+		var formControl = {};
+		var ids         = rc.id ?: "";
+		var recordCount = ListLen( Trim( ids ) );
+		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
+		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
 
 		_checkObjectExists( argumentCollection=arguments, object=object );
-
-		if ( not Len( Trim( ids ) ) ) {
-			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
-			setNextEvent( url=listingUrl );
+		_checkPermission( argumentCollection=arguments, key="edit", object=object );
+		if ( !recordCount ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 		}
 
-		switch( action ){
-			case "batchUpdate":
-				setNextEvent(
-					  url           = event.buildAdminLink( linkTo="datamanager.batchEditField", queryString="object=#object#&field=#( rc.field ?: '' )#" )
-					, persistStruct = { id = ids }
-				);
-			break;
-			case "delete":
-				return deleteRecordAction( argumentCollection = arguments );
-			break;
+		prc.fieldFormControl = formsService.renderFormControlForObjectField(
+		      objectName = object
+		    , fieldName  = field
+		);
+
+		if ( presideObjectService.isManyToManyProperty( object, field ) ) {
+			prc.multiEditBehaviourControl = renderFormControl(
+				  type   = "select"
+				, name   = "multiValueBehaviour"
+				, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
+				, values = [ "append", "overwrite", "delete" ]
+				, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+			);
+
+			prc.batchEditWarning = translateResource(
+				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+			);
+		} else {
+			prc.batchEditWarning = translateResource(
+				  uri  = "cms:datamanager.batch.edit.warning"
+				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+			);
 		}
 
-		messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
-		setNextEvent( url=listingUrl );
+		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectName, NumberFormat( recordCount ) ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
+		prc.pageIcon     = "pencil";
+
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldName ] )
+			, link  = ""
+		);
+
+		event.setView( view="/admin/datamanager/batchEditField" );
+	}
+
+	public void function batchEditAction( event, rc, prc ) {
+		var updateField = rc.updateField ?: "";
+		var objectName  = rc.objectName  ?: "";
+		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
+
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		if ( !sourceIds.len() ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		}
+
+		var success = datamanagerService.batchEditField(
+			  objectName         = objectName
+			, fieldName          = updateField
+			, sourceIds          = sourceIds
+			, value              = rc[ updateField ]      ?: ""
+			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+		);
+
+		if( success ) {
+			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectName ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+		} else {
+			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectName ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+		}
+	}
+
+	public void function deleteOneToManyRecordAction( event, rc, prc ) {
+		var objectName      = rc.object ?: "";
+		var relationshipKey = rc.relationshipKey ?: "";
+		var parentId        = rc.parentId ?: "";
+
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		if ( !datamanagerService.isOperationAllowed( objectName, "delete"   ) ) {
+			event.adminAccessDenied();
+		}
+		rc.forceDelete = true;
+
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  postActionUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#objectName#&relationshipKey=#relationshipKey#&parentId=#parentId#" )
+				, audit         = true
+			}
+		);
+	}
+
+	public void function addOneToManyRecordAction( event, rc, prc ) {
+		var objectName = rc.object ?: "";
+
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
+			event.adminAccessDenied();
+		}
+
+		runEvent(
+			  event          = "admin.DataManager._addOneToManyRecordAction"
+			, prePostExempt  = true
+			, private        = true
+		);
+	}
+
+	public void function quickAddForm( event, rc, prc ) {
+		var object = rc.object ?: "";
+		var args   = {};
+
+		_checkObjectExists( argumentCollection=arguments, object=object );
+		_checkPermission( argumentCollection=arguments, key="add", object=object );
+
+		args.allowAddAnotherSwitch = IsTrue( rc.multiple ?: "" );
+
+		event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog", args=args );
+	}
+
+	public void function quickAddRecordAction( event, rc, prc ) {
+		var object = rc.object ?: "";
+
+		_checkObjectExists( argumentCollection=arguments, object=object );
+		_checkPermission( argumentCollection=arguments, key="add", object=object );
+
+		runEvent(
+			  event          = "admin.DataManager._quickAddRecordAction"
+			, prePostExempt  = true
+			, private        = true
+		);
+	}
+
+	public void function quickEditForm( event, rc, prc ) {
+		var object = rc.object ?: "";
+		var id     = rc.id     ?: "";
+
+		_checkObjectExists( argumentCollection=arguments, object=object );
+		_checkPermission( argumentCollection=arguments, key="edit", object=object );
+
+		prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+		if ( prc.record.recordCount ) {
+			prc.record = queryRowToStruct( prc.record );
+		} else {
+			prc.record = {};
+		}
+
+		event.setView( view="/admin/datamanager/quickEditForm", layout="adminModalDialog" );
+	}
+
+	public void function quickEditRecordAction( event, rc, prc ) {
+		var objectName = rc.object ?: "";
+
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+
+		runEvent(
+			  event          = "admin.DataManager._quickEditRecordAction"
+			, prePostExempt  = true
+			, private        = true
+		);
+	}
+
+	public void function configuratorForm( event, rc, prc ) {
+		var object     = rc.object   ?: "";
+		var id         = rc.id       ?: "";
+		var fromDb     = rc.__fromDb ?: false;
+		var args       = {};
+		var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+		var record     = "";
+
+		_checkObjectExists( argumentCollection=arguments, object=object );
+		_checkPermission( argumentCollection=arguments, key="add", object=object );
+
+		if ( fromDb ) {
+			record = presideObjectService.selectData( objectName=object, id=id, useCache=false );
+			if ( record.recordCount ) {
+				args.savedData = queryRowToStruct( record );
+			}
+		}
+		args.sourceIdField = rc.sourceIdField ?: "";
+		args.sourceId      = rc.sourceId      ?: "";
+
+		event.setView( view="/admin/datamanager/configuratorForm", layout="adminModalDialog", args=args );
 	}
 
 	public void function multiOneToManyRecordAction( event, rc, prc ) {
