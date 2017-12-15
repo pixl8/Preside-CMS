@@ -71,22 +71,28 @@ component {
 	/**
 	 * Runs the coldbox event for the given object/customization action
 	 *
-	 * @autodoc    true
-	 * @objectName Name of the object
-	 * @action     Name of the customization action
-	 * @args       Args struct to pass through to the customization handler action
+	 * @autodoc        true
+	 * @objectName     Name of the object
+	 * @action         Name of the customization action
+	 * @args           Args struct to pass through to the customization handler action
+	 * @defaultHandler Default handler to run should the object not have its own
 	 */
 	public any function runCustomization(
 		  required string objectName
 		, required string action
 		,          struct args = {}
+		,          string defaultHandler = ""
 	) {
-		return $getColdbox().runEvent(
-			  event          = getCustomizationEventForObject( arguments.objectName, arguments.action )
-			, private        = true
-			, prePostExempt  = true
-			, eventArguments = { args=arguments.args }
-		);
+		var event = objectHasCustomization( arguments.objectName, arguments.action ) ? getCustomizationEventForObject( arguments.objectName, arguments.action ) : arguments.defaultHandler;
+
+		if ( Len( Trim( event ) ) ) {
+			return $getColdbox().runEvent(
+				  event          = event
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args=arguments.args }
+			);
+		}
 	}
 
 // PRIVATE HELPERS

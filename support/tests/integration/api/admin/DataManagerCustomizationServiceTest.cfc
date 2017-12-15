@@ -70,6 +70,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var result        = CreateUUId();
 				var args          = { test=CreateUUId(), blah={ test=CreateUUId(), blah="not recursive" } };
 
+				service.$( "objectHasCustomization" ).$args( objectName, customization ).$results( true );
 				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
 				mockColdbox.$( "runEvent" ).$args(
 					  event         = event
@@ -79,6 +80,49 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				).$results( result );
 
 				expect( service.runCustomization( objectName, customization, args ) ).toBe( result );
+			} );
+
+			it( "should run the passed 'defaultHandler' if the object does not have the given customization", function(){
+				var service       = _getService();
+				var objectName    = "my_object";
+				var customization = "buildCrumbtrail";
+				var event         = "some.handler.buildCrumbtrail";
+				var result        = CreateUUId();
+				var args          = { test=CreateUUId(), blah={ test=CreateUUId(), blah="not recursive" } };
+				var defaultHandler = "another.handler.yikes";
+
+				service.$( "objectHasCustomization" ).$args( objectName, customization ).$results( false );
+				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
+				mockColdbox.$( "runEvent" ).$args(
+					  event         = defaultHandler
+					, private       = true
+					, prepostExempt = true
+					, eventArguments = { args=args }
+				).$results( result );
+
+				expect( service.runCustomization( objectName=objectName, action=customization, args=args, defaultHandler=defaultHandler ) ).toBe( result );
+			} );
+
+			it( "should do nothing when object does not have customization and no default handler passed", function(){
+				var service       = _getService();
+				var objectName    = "my_object";
+				var customization = "buildCrumbtrail";
+				var event         = "some.handler.buildCrumbtrail";
+				var result        = CreateUUId();
+				var args          = { test=CreateUUId(), blah={ test=CreateUUId(), blah="not recursive" } };
+				var defaultHandler = "";
+
+				service.$( "objectHasCustomization" ).$args( objectName, customization ).$results( false );
+				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
+				mockColdbox.$( "runEvent" ).$args(
+					  event         = defaultHandler
+					, private       = true
+					, prepostExempt = true
+					, eventArguments = { args=args }
+				).$results( result );
+
+				expect( service.runCustomization( objectName=objectName, action=customization, args=args, defaultHandler=defaultHandler ) ).toBeNull();
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
 			} );
 		} );
 	}
