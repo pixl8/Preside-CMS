@@ -291,15 +291,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function batchEditAction( event, rc, prc ) {
-		var updateField = rc.updateField ?: "";
-		var objectName  = rc.objectName  ?: "";
+		var updateField = rc.updateField  ?: "";
+		var objectName  = prc.objectName  ?: "";
+		var objectTitle = prc.objectTitle ?: "";
 		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 		if ( !sourceIds.len() ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 		}
 
 		var success = datamanagerService.batchEditField(
@@ -311,10 +311,10 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if( success ) {
-			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectName ] ) );
+			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectTitle ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectName ] ) );
+			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectTitle ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 		}
 	}
