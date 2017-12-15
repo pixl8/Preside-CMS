@@ -81,8 +81,7 @@ component extends="preside.system.base.AdminHandler" {
 		var canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="add", object=objectName );
-
-		if ( draftsEnabled && (!prc.canPublish && !prc.canSaveDraft ) ) {
+		if ( draftsEnabled && (!canPublish && !canSaveDraft ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -93,18 +92,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
+		var objectName    = prc.objectName ?: "";
+		var draftsEnabled = IsTrue( prc.draftsEnabled ?: "" );
+		var canPublish    = IsTrue( prc.canPublish    ?: "" );
+		var canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
+
 		_checkPermission( argumentCollection=arguments, key="add", object=objectName );
-
-		prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
-		if ( prc.draftsEnabled ) {
-			prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
-			prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
-
-			if ( !prc.canPublish && !prc.canSaveDraft ) {
-				event.adminAccessDenied();
-			}
+		if ( draftsEnabled && (!canPublish && !canSaveDraft ) ) {
+			event.adminAccessDenied();
 		}
 
 		runEvent(
@@ -113,9 +108,9 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  audit         = true
-				, draftsEnabled = prc.draftsEnabled
-				, canPublish    = IsTrue( prc.canPublish   ?: "" )
-				, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+				, draftsEnabled = draftsEnabled
+				, canPublish    = canPublish
+				, canSaveDraft  = canSaveDraft
 			  }
 		);
 	}
