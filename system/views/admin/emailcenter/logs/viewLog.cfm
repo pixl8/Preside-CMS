@@ -3,19 +3,22 @@
 
 <cfscript>
 	logDate          = DateFormat( prc.log.datecreated, "yyyy-mm-dd" );
-	hasSavedHtmlBody = len( prc.log.html_body ?: "" ) > 0;
-	hasSavedTextBody = len( prc.log.text_body ?: "" ) > 0;
-	hasSavedContent  = hasSavedHtmlBody || hasSavedTextBody;
+
+	canResendEmails  = prc.canResendEmails  ?: false;
+	hasSavedHtmlBody = prc.hasSavedHtmlBody ?: false;
+	hasSavedTextBody = prc.hasSavedTextBody ?: false;
+	hasSavedContent  = prc.hasSavedContent  ?: false;
 </cfscript>
 
 <cfoutput>
 	<div class="well">
-		<div class="pull-right">
-			<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmail", queryString="id=#prc.log.id#&rebuild=true" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.rebuild" )#</a>
-		</div>
-		<cfif hasSavedContent>
+		<cfif canResendEmails>
 			<div class="pull-right">
-				<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmail", queryString="id=#prc.log.id#" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.original" )#</a>
+				<cfif hasSavedContent>
+					<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmail", queryString="id=#prc.log.id#" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.original" )#</a>
+				</cfif>
+
+				<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmail", queryString="id=#prc.log.id#&rebuild=true" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.rebuild" )#</a>
 			</div>
 		</cfif>
 

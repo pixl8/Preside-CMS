@@ -256,7 +256,12 @@ component {
 
 		if ( sent ) {
 			logService.markAsSent( sendArgs.messageId );
-			logService.logEmailContent( id=sendArgs.messageId, htmlBody=htmlBody, textBody=sendArgs.textBody ?: "" );
+			logService.logEmailContent(
+				  template = sendArgs.args.template ?: ""
+				, id       = sendArgs.messageId
+				, htmlBody = htmlBody
+				, textBody = sendArgs.textBody ?: ""
+			);
 		}
 
 		return returnLogId ? sendArgs.messageId : sent;
