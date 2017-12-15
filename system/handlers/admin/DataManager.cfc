@@ -24,20 +24,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		_loadCommonVariables( argumentCollection=arguments );
 		if ( !arguments.action.endsWith( "action" ) ) {
-			var args = {
-				  action      = arguments.action
-				, objectName  = prc.objectName  ?: ""
-				, objectTitle = prc.objectTitle ?: ""
-				, recordId    = prc.recordId    ?: ""
-				, recordLabel = prc.recordLabel ?: ""
-			};
-
-			customizationService.runCustomization(
-				  objectName     = prc.objectName
-				, action         = "rootBreadcrumbs"
-				, defaultHandler = "admin.datamanager._rootBreadcrumbs"
-				, args           = args
-			);
+			_loadCommonBreadCrumbs( argumentCollection=arguments );
 		}
 	}
 
@@ -2090,39 +2077,33 @@ component extends="preside.system.base.AdminHandler" {
 		};
 	}
 
-	private void function _rootBreadCrumbs( event, rc, prc, args={} ) {
-		var action      = args.action      ?: "";
-		var objectName  = args.objectName  ?: "";
-		var objectTitle = args.objectTitle  ?: "";
-		var recordLabel = args.recordLabel ?: "";
-		var recordId    = args.recordId    ?: "";
-
-		// default root breadcrumb
+	private void function _rootBreadCrumb( event, rc, prc, args={} ) {
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:datamanager" )
 			, link  = event.buildAdminLink( linkTo="datamanager" )
 		);
-		if ( action == "index" ) {
-			return;
-		}
+	}
 
-		// object listing page breadcrumb
+	private void function _objectBreadCrumb( event, rc, prc, args={} ) {
+		var objectName  = args.objectName  ?: "";
+		var objectTitle = args.objectTitle  ?: "";
+
 		event.addAdminBreadCrumb(
-			  title = translateResource( "preside-objects.#objectName#:title" )
+			  title = objectTitle
 			, link  = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" )
 		);
-		if ( action == "object" ) {
-			return;
-		}
+	}
 
-		// view record breadcrumb
-		if ( Len( Trim( recordId ) ) ) {
-			if ( datamanagerService.isOperationAllowed( objectName, "read" ) ) {
-				event.addAdminBreadCrumb(
-					  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
-					, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
-				);
-			}
+	private void function _recordBreadcrumb( event, rc, prc, args={} ) {
+		var objectName  = args.objectName  ?: "";
+		var recordLabel = args.recordLabel ?: "";
+		var recordId    = args.recordId    ?: "";
+
+		if ( datamanagerService.isOperationAllowed( objectName, "read" ) ) {
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
+				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
+			);
 		}
 	}
 
@@ -2176,6 +2157,48 @@ component extends="preside.system.base.AdminHandler" {
 			} catch ( "PresideObjectService.no.label.field" e ) {
 				prc.recordLabel = prc.recordId;
 			}
+		}
+	}
+
+	private void function _loadCommonBreadCrumbs( event, action, eventArguments ) {
+		var prc = event.getCollection( private=true );
+		var args = {
+			  objectName  = prc.objectName  ?: ""
+			, objectTitle = prc.objectTitle ?: ""
+			, recordId    = prc.recordId    ?: ""
+			, recordLabel = prc.recordLabel ?: ""
+		};
+
+
+		if ( Len( Trim( args.objectname ?: "" ) ) ) {
+			customizationService.runCustomization(
+				  objectName     = args.objectName
+				, action         = "rootBreadcrumb"
+				, defaultHandler = "admin.datamanager._rootBreadcrumb"
+				, args           = args
+			);
+
+			customizationService.runCustomization(
+				  objectName     = args.objectName
+				, action         = "objectBreadcrumb"
+				, defaultHandler = "admin.datamanager._objectBreadcrumb"
+				, args           = args
+			);
+
+			if ( Len( Trim( args.recordId ?: "" ) ) ) {
+				customizationService.runCustomization(
+					  objectName     = args.objectName
+					, action         = "recordBreadcrumb"
+					, defaultHandler = "admin.datamanager._recordBreadcrumb"
+					, args           = args
+				);
+			}
+		} else {
+			runEvent(
+				  event         = "admin.datamanager._rootBreadcrumb"
+				, private       = true
+				, prePostExempt = true
+			);
 		}
 	}
 }
