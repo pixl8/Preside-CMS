@@ -36,34 +36,19 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function object( event, rc, prc ) {
-		var objectName   = event.getValue( name="id", default="" );
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
-
-		_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-
-		prc.draftsEnabled = datamanagerService.areDraftsEnabledForObject( objectName );
-		prc.canAdd        = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
-		prc.canDelete     = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
-		prc.canSort       = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
-
-		prc.gridFields          = _getObjectFieldsForGrid( objectName );
-		prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
-		prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( objectName );
+		// all taken care of with common logic
 	}
 
 	public void function getObjectRecordsForAjaxDataTables( event, rc, prc ) {
-		var objectName = rc.id ?: "";
-
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
+		_checkPermission( argumentCollection=arguments, key="read", object=prc.objectName, checkOperations=false );
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object              = objectName
-				, useMultiActions     = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+				  object              = prc.objectName
+				, useMultiActions     = prc.canDelete
 				, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
 				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
 				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
@@ -72,7 +57,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getChildObjectRecordsForAjaxDataTables( event, rc, prc ) {
-		var objectName      = rc.object          ?: "";
+		var objectName      = prc.objectName     ?: "";
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 
@@ -161,11 +146,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function managePerms( event, rc, prc ) {
-		var objectName = event.getValue( name="object", defaultValue="" );
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=objectName );
+		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.managePerms.breadcrumb.title" )
@@ -174,74 +155,57 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function savePermsAction( event, rc, prc ) {
-		var objectName = event.getValue( name="object", defaultValue="" );
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=objectName );
+		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
 			event.audit(
 				  action   = "edit_datamanager_object_admin_permissions"
 				, type     = "datamanager"
-				, recordId = objectName
-				, detail   = { objectName=objectName }
+				, recordId = prc.objectName
+				, detail   = { objectName=prc.objectName }
 			);
 
-			messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ objectName ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ prc.objectTitle ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#prc.objectName#" ) );
 		}
 
-		messageBox.error( translateResource( uri="cms:datamanager.permsSaved.error", data=[ objectName ] ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.managePerms", queryString="object=#objectName#" ) );
+		messageBox.error( translateResource( uri="cms:datamanager.permsSaved.error", data=[ prc.objectTitle ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.managePerms", queryString="object=#prc.objectName#" ) );
 	}
 
 	public void function viewRecord( event, rc, prc ) {
-		var object     = rc.object   ?: "";
-		var recordId   = rc.id       ?: "";
-		var language   = rc.language ?: "";
-		var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, recordId ) : 0 );
+		var objectName   = prc.objectName ?: "";
+		var recordId     = prc.recordId   ?: ""
+		var version      = Val( prc.version ?: "" );
+		var language     = rc.language ?: "";
+		var canTranslate = IsTrue( prc.canTranslate ?: "" );
+		var objectTitle  = prc.objectTitle ?: "";
+		var recordLabel  = prc.recordLabel ?: "";
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="read", object=object );
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 		if ( language.len() ) {
 			prc.language = multilingualPresideObjectService.getLanguage( language );
 
 			if ( prc.language.isempty() ) {
 				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#id#" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#objectName#&id=#recordId#" ) );
 			}
 			event.setLanguage( language );
 		}
 
-		prc.useVersioning = !language.len() && datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
-		prc.objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-
-
 		prc.renderedRecord = adminDataViewsService.renderObjectRecord(
-			  objectName = object
+			  objectName = objectName
 			, recordId   = recordId
 			, version    = version
 		);
 
-		try {
-			prc.recordLabel = renderLabel( object, recordId );
-		} catch ( "PresideObjectService.no.label.field" e ) {
-			prc.recordLabel = recordId;
-		}
-		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
-		prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
-		prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
-		prc.canEdit        = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit"  , context="datamanager", contextKeys=[ object ] );
-
-		if ( prc.canTranslate ) {
-			prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+		if ( canTranslate ) {
+			prc.translations = multilingualPresideObjectService.getTranslationStatus( objectName, recordId );
 		}
 
-		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ prc.objectName ] );
-		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ prc.recordLabel ] );
+		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
 	}
 
 	public void function recordHistory( event, rc, prc ) {
@@ -2133,31 +2097,45 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( Len( Trim( prc.objectName ) ) ) {
-			prc.objectTitle = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title", defaultValue=prc.objectName );
+			_checkObjectExists( argumentCollection=arguments, object=prc.objectName );
+			_checkPermission( argumentCollection=arguments, key="navigate", object=prc.objectName );
+			_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
+
+			prc.objectTitle         = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title", defaultValue=prc.objectName );
+			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
+			prc.canAdd              = datamanagerService.isOperationAllowed( prc.objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ prc.objectName ] );
+			prc.canedit             = datamanagerService.isOperationAllowed( prc.objectName, "edit" )   && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextkeys=[ prc.objectName ] );
+			prc.canDelete           = datamanagerService.isOperationAllowed( prc.objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ prc.objectName ] );
+			prc.canSort             = datamanagerService.isSortable( prc.objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ prc.objectName ] );
+			prc.gridFields          = _getObjectFieldsForGrid( prc.objectName );
+			prc.batchEditableFields = dataManagerService.listBatchEditableFields( prc.objectName );
+			prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( prc.objectName );
+			prc.canTranslate        = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.translate", context="datamanager", contextKeys=[ prc.objectName ] );
+
+			if ( Len( Trim( prc.recordId ) ) ) {
+				prc.useVersioning = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
+				if ( prc.useVersioning ) {
+					prc.version = rc.version = Val( rc.version ?: ( presideObjectService.objectIsVersioned( prc.objectName ) ? versioningService.getLatestVersionNumber( prc.objectName, prc.recordId ) : 0 ) );
+				}
+				if ( prc.useVersioning && prc.version ) {
+					prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true );
+				} else {
+					prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, allowDraftVersions=true );
+				}
+
+				if ( !prc.record.recordCount ) {
+					messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#prc.objectName#" ) );
+				}
+
+				try {
+					prc.recordLabel = renderLabel( prc.objectName, prc.recordId );
+				} catch ( "PresideObjectService.no.label.field" e ) {
+					prc.recordLabel = prc.recordId;
+				}
+			}
 		}
 
-		if ( Len( Trim( prc.objectName ) ) && Len( Trim( prc.recordId ) ) ) {
-			prc.useVersioning = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
-			if ( prc.useVersioning ) {
-				prc.version = rc.version = Val( rc.version ?: ( presideObjectService.objectIsVersioned( prc.objectName ) ? versioningService.getLatestVersionNumber( prc.objectName, prc.recordId ) : 0 ) );
-			}
-			if ( prc.useVersioning && prc.version ) {
-				prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true );
-			} else {
-				prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, allowDraftVersions=true );
-			}
-
-			if ( !prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#prc.objectName#" ) );
-			}
-
-			try {
-				prc.recordLabel = renderLabel( prc.objectName, prc.recordId );
-			} catch ( "PresideObjectService.no.label.field" e ) {
-				prc.recordLabel = prc.recordId;
-			}
-		}
 	}
 
 	private void function _loadCommonBreadCrumbs( event, action, eventArguments ) {
