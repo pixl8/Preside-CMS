@@ -38,12 +38,34 @@ component {
 	 * Returns the full coldbox event path for a given object and
 	 * customization action
 	 *
-	 * @autodoc true
+	 * @autodoc    true
 	 * @objectName Name of the object
 	 * @action     Name of the customization action
 	 */
-	public string function getCustomizationEventForObject( required string objectName, required string action ) {
+	public string function getCustomizationEventForObject(
+		  required string objectName
+		, required string action
+	) {
 		return getCustomizationHandlerForObject( arguments.objectName ) & "." & arguments.action;
+	}
+
+	/**
+	 * Returns whether or not an object has the given customization
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object
+	 * @action     Name of the customization action
+	 */
+	public boolean function objectHasCustomization(
+		  required string objectName
+		, required string action
+	) {
+		var cacheKey = "objectHasCustomization" & arguments.objectName;
+		var args     = arguments;
+
+		return _simpleLocalCache( cacheKey, function(){
+			return $getColdbox().handlerExists( getCustomizationEventForObject( args.objectName, args.action ) );
+		} );
 	}
 
 // PRIVATE HELPERS

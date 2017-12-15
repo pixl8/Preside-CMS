@@ -34,6 +34,32 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getCustomizationEventForObject( objectName, customization ) ).toBe( "some.handler.buildCrumbtrail" );
 			} );
 		} );
+
+		describe( "objectHasCustomization()", function(){
+			it( "should return true when coldbox handler exists", function(){
+				var service       = _getService();
+				var objectName    = "my_object";
+				var customization = "buildCrumbtrail";
+				var event         = "some.handler.buildCrumbtrail";
+
+				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
+				mockColdbox.$( "handlerExists" ).$args( event ).$results( true );
+
+				expect( service.objectHasCustomization( objectName, customization ) ).toBe( true );
+			} );
+
+			it( "should return false when coldbox handler does not exist", function(){
+				var service       = _getService();
+				var objectName    = "my_object";
+				var customization = "buildCrumbtrail";
+				var event         = "some.handler.buildCrumbtrail";
+
+				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
+				mockColdbox.$( "handlerExists" ).$args( event ).$results( false );
+
+				expect( service.objectHasCustomization( objectName, customization ) ).toBe( false );
+			} );
+		} );
 	}
 
 // private helpers
@@ -41,7 +67,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		var service = createMock( object=new preside.system.services.admin.DataManagerCustomizationService() );
 
 		mockPresideObjectService = CreateStub();
+		mockColdbox              = CreateStub();
+
 		service.$( "$getPresideObjectService", mockPresideObjectService );
+		service.$( "$getColdbox", mockColdbox );
 
 		return service;
 	}
