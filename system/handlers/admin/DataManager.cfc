@@ -116,55 +116,30 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function editRecord( event, rc, prc ) {
-		var object       = rc.object  ?: "";
-		var id           = rc.id      ?: "";
-		var version      = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
-		var objectName   = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-		var record       = "";
-		var resultAction = rc.resultAction ?: "";
+		var objectName    = prc.objectName ?: "";
+		var recordId      = prc.recordId   ?: "";
+		var draftsEnabled = IsTrue( prc.draftsEnabled ?: "" );
+		var canPublish    = IsTrue( prc.canPublish    ?: "" );
+		var canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
+		var canTranslate  = IsTrue( prc.canTranslate  ?: "" );
+		var resultAction  = rc.resultAction ?: "";
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
-
-		prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( object );
-		if ( prc.draftsEnabled ) {
-			prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=object, throwOnError=false );
-			prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=object, throwOnError=false );
-
-			if ( !prc.canPublish && !prc.canSaveDraft ) {
-				event.adminAccessDenied();
-			}
-		}
-
-		prc.useVersioning = datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
-		if ( prc.useVersioning && Val( version ) ) {
-			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
-		} else {
-			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
-		}
-
-		if ( not prc.record.recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		if ( draftsEnabled && (!canPublish && !canSaveDraft ) ) {
+			event.adminAccessDenied();
 		}
 
 		prc.record = queryRowToStruct( prc.record );
-		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
-
-		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
-		prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
-
 		if ( prc.canTranslate ) {
-			prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+			prc.translations = multilingualPresideObjectService.getTranslationStatus( objectName, recordId );
 		}
 
 		switch( resultAction ) {
 			case "grid":
-				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" );
+				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" );
 			break;
 			default:
-				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#object#&id=#id#" );
+				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" );
 		}
 
 		event.addAdminBreadCrumb(
@@ -174,20 +149,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function editRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-		var recordId   = rc.id     ?: "";
+		var objectName    = prc.objectName ?: "";
+		var recordId      = prc.recordId   ?: "";
+		var draftsEnabled = IsTrue( prc.draftsEnabled ?: "" );
+		var canPublish    = IsTrue( prc.canPublish    ?: "" );
+		var canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" );
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-
-		prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
-		if ( prc.draftsEnabled ) {
-			prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
-			prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
-
-			if ( !prc.canPublish && !prc.canSaveDraft ) {
-				event.adminAccessDenied();
-			}
+		if ( draftsEnabled && (!canPublish && !canSaveDraft ) ) {
+			event.adminAccessDenied();
 		}
 
 		var successUrl = "";
@@ -205,9 +175,9 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  audit         =true
-				, draftsEnabled = prc.draftsEnabled
-				, canPublish    = IsTrue( prc.canPublish   ?: "" )
-				, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+				, draftsEnabled = draftsEnabled
+				, canPublish    = canPublish
+				, canSaveDraft  = canSaveDraft
 				, successUrl    = successUrl
 			  }
 		);
