@@ -197,12 +197,11 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function cascadeDeletePrompt( event, rc, prc ) {
-		var objectName = rc.object ?: "";
+		var objectName = prc.object ?: "";
 
-		prc.id       = rc.id       ?: "";
-		prc.blockers = rc.blockers ?: {};
+		prc.id       = prc.recordId ?: "";
+		prc.blockers = rc.blockers  ?: {};
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
 		event.addAdminBreadCrumb(
