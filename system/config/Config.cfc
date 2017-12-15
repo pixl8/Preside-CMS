@@ -725,9 +725,10 @@ component {
 		serviceProviders.smtp = {};
 
 		return {
-			  templates        = templates
-			, recipientTypes   = recipientTypes
-			, serviceProviders = serviceProviders
+			  templates            = templates
+			, recipientTypes       = recipientTypes
+			, serviceProviders     = serviceProviders
+			, defaultContentExpiry = createTimespan( 30, 0, 0, 0 )
 		};
 	}
 

@@ -11,11 +11,13 @@ component {
 	/**
 	 * @recipientTypeService.inject emailRecipientTypeService
 	 * @emailTemplateService.inject emailTemplateService
+	 * @emailSettings.inject        coldbox:setting:email
 	 *
 	 */
-	public any function init( required any recipientTypeService, required any emailTemplateService ) {
+	public any function init( required any recipientTypeService, required any emailTemplateService, required any emailSettings ) {
 		_setRecipientTypeService( arguments.recipientTypeService );
 		_setEmailTemplateService( arguments.emailTemplateService );
+		_setEmailSettings( arguments.emailSettings );
 
 		return this;
 	}
@@ -68,21 +70,22 @@ component {
 	 * @htmlBody.hint      HTML content of the email
 	 * @textBody.hint      Plain-text content of the email
 	 */
-	public boolean function logEmailContent(
+	public void function logEmailContent(
 		  required string id
 		, required string htmlBody
 		, required string textBody
 	) {
-		var contentId = $getPresideObject( "email_template_send_log_content" ).insertData( {
+		var contentExpiry = _getEmailSettings().defaultContentExpiry;
+		var expires       = now() + contentExpiry;
+		var contentId     = $getPresideObject( "email_template_send_log_content" ).insertData( {
 			  html_body = arguments.htmlBody
 			, text_body = arguments.textBody
+			, expires   = expires
 		} );
 
 		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
 			content = contentId
 		} );
-
-		return true;
 	}
 
 	/**
@@ -514,6 +517,13 @@ component {
 	}
 	private void function _setEmailTemplateService( required any emailTemplateService ) {
 		_emailTemplateService = arguments.emailTemplateService;
+	}
+
+	private any function _getEmailSettings() {
+		return _emailSettings;
+	}
+	private void function _setEmailSettings( required any emailSettings ) {
+		_emailSettings = arguments.emailSettings;
 	}
 
 }
