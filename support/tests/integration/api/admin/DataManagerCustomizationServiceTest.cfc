@@ -60,6 +60,27 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( service.objectHasCustomization( objectName, customization ) ).toBe( false );
 			} );
 		} );
+
+		describe( "runCustomization()", function(){
+			it( "should run the coldbox action for the given customization for the object, passing through any given args", function(){
+				var service       = _getService();
+				var objectName    = "my_object";
+				var customization = "buildCrumbtrail";
+				var event         = "some.handler.buildCrumbtrail";
+				var result        = CreateUUId();
+				var args          = { test=CreateUUId(), blah={ test=CreateUUId(), blah="not recursive" } };
+
+				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
+				mockColdbox.$( "runEvent" ).$args(
+					  event         = event
+					, private       = true
+					, prepostExempt = true
+					, eventArguments = { args=args }
+				).$results( result );
+
+				expect( service.runCustomization( objectName, customization, args ) ).toBe( result );
+			} );
+		} );
 	}
 
 // private helpers

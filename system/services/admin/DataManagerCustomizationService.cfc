@@ -68,6 +68,27 @@ component {
 		} );
 	}
 
+	/**
+	 * Runs the coldbox event for the given object/customization action
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object
+	 * @action     Name of the customization action
+	 * @args       Args struct to pass through to the customization handler action
+	 */
+	public any function runCustomization(
+		  required string objectName
+		, required string action
+		,          struct args = {}
+	) {
+		return $getColdbox().runEvent(
+			  event          = getCustomizationEventForObject( arguments.objectName, arguments.action )
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=arguments.args }
+		);
+	}
+
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any provider ) {
 		if ( !variables.keyExists( arguments.cacheKey ) ) {
