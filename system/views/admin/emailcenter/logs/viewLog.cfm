@@ -1,10 +1,9 @@
 <cfparam name="prc.log"      type="struct" />
-<cfparam name="prc.activity" type="query"  />
-
 <cfscript>
-	logDate  = DateFormat( prc.log.datecreated, "yyyy-mm-dd" );
+	hasEmailLoggingFeatureEnabled   = getSystemSetting( 'email', 'enable_email_content_logging', false ) == 1;
+	hasEmailContent                 = !isEmpty( ( prc.log.email_content_html ?: "" ) & ( prc.log.email_content_text ?: "" ) );
+	hasPermissionToViewEmailContent = hasEmailLoggingFeatureEnabled && hasCmsPermission( "emailCenter.email.view" ) && hasEmailContent;
 </cfscript>
-
 <cfoutput>
 	<div class="well">
 		<h2>#prc.log.subject#</h2>
@@ -18,88 +17,31 @@
 		</dl>
 	</div>
 	<div class="modal-padding-horizontal">
-		<div class="timeline-container">
-			#renderView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
-
-			#renderView( view="/admin/emailcenter/logs/_logActivity", args={
-				  logDate         = prc.log.datecreated
-				, emailAddress    = prc.log.recipient
-				, datecreated     = prc.log.datecreated
-				, actionIconClass = "fa-envelope-o"
-				, actionTitle     = translateResource( "cms:mailcenter.logs.action.prepared.title" )
-				, message         = translateResource( "cms:mailcenter.logs.action.prepared.message" )
-			} )#
-
-			<cfif IsTrue( prc.log.sent )>
-				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
-					  logDate         = prc.log.sent_date
-					, emailAddress    = prc.log.recipient
-					, datecreated     = prc.log.sent_date
-					, actionIconClass = "fa-paper-plane"
-					, actionTitle     = translateResource( "cms:mailcenter.logs.action.sent.title" )
-					, message         = translateResource( "cms:mailcenter.logs.action.sent.message" )
-				} )#
-			</cfif>
-
-			<cfif IsTrue( prc.log.failed )>
-				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
-					  logDate         = prc.log.failed_date
-					, emailAddress    = prc.log.recipient
-					, datecreated     = prc.log.failed_date
-					, actionIconClass = "fa-exclamation-circle red"
-					, actionTitle     = translateResource( uri="cms:mailcenter.logs.action.failed.title" )
-					, message         = translateResource( uri="cms:mailcenter.logs.action.failed.message", data=[ prc.log.failed_reason ] )
-				} )#
-			</cfif>
-
-			<cfif IsTrue( prc.log.delivered )>
-				<cfset deliveredDate = IsDate( prc.log.delivered_date ) ? prc.log.delivered_date : prc.log.sent_date />
-
-				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
-					  logDate         = deliveredDate
-					, emailAddress    = prc.log.recipient
-					, datecreated     = deliveredDate
-					, actionIconClass = "fa-check green"
-					, actionTitle     = translateResource( "cms:mailcenter.logs.action.delivered.title" )
-					, message         = translateResource( "cms:mailcenter.logs.action.delivered.message" )
-				} )#
-			</cfif>
-
-
-			<cfloop query="#prc.activity#">
-				<cfif DateDiff( "d", prc.activity.datecreated, logDate )>
-					<cfset logDate = DateFormat( prc.activity.datecreated, "yyyy-mm-dd" ) />
-					</div>
-					#renderView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
-					<div class="timeline-items">
+		<div class="tabbable">
+			<ul class="nav nav-tabs">
+				<li class="active">
+					<a data-toggle="tab" href="##tab-activities">
+						<i class="fa fa-fw fa-history"></i>&nbsp;Activity logs
+					</a>
+				</li>
+				<cfif hasPermissionToViewEmailContent>
+					<li>
+						</a><a data-toggle="tab" href="##tab-content">
+							<i class="fa fa-fw fa-eye"></i>&nbsp;Email content
+						</a>
+					</li>
 				</cfif>
-
-				<cfswitch expression="#prc.activity.activity_type#">
-					<cfcase value="open">
-						<cfset logIcon    = "fa-eye" />
-						<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.opened.title" ) />
-						<cfset logMessage = translateResource( "cms:mailcenter.logs.action.opened.message" ) />
-					</cfcase>
-					<cfcase value="click">
-						<cfset logIcon    = "fa-mouse-pointer" />
-						<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.clicked.title" ) />
-						<cfset data       = DeserializeJson( prc.activity.extra_data ) />
-						<cfset link       = '<a>#Trim( data.link ?: "unknown" )#</a>' />
-						<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ link ] ) />
-					</cfcase>
-				</cfswitch>
-
-				#renderView( view="/admin/emailcenter/logs/_logActivity", args={
-					  logDate         = prc.activity.datecreated
-					, emailAddress    = prc.log.recipient
-					, datecreated     = prc.activity.datecreated
-					, actionIconClass = logIcon
-					, actionTitle     = logTitle
-					, message         = logMessage
-					, ipAddress       = prc.activity.user_ip
-					, userAgent       = prc.activity.user_agent
-				} )#
-			</cfloop>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane active" id="tab-activities">
+					#renderView( view="admin/emailcenter/logs/_activities", args=args )#
+				</div>
+				<cfif hasPermissionToViewEmailContent>
+					<div class="tab-pane" id="tab-content">
+						#renderView( view="admin/emailcenter/logs/_emailContent", args=args )#
+					</div>
+				</cfif>
+			</div>
 		</div>
 	</div>
 </cfoutput>

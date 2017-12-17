@@ -318,7 +318,7 @@ component {
 
 // PRIVATE HELPERS
 	private string function _logMessage( required struct sendArgs ) {
-		var templateId    = sendArgs.args.template ?: "";
+		var templateId    = !isEmpty( sendArgs.args.template ?: "" ) ? sendArgs.args.template : sendArgs.templateId ?: "";
 		var recipientType = "";
 
 		if ( templateId.len() ) {
@@ -329,6 +329,7 @@ component {
 			} else {
 				templateId = "";
 			}
+			sendArgs.args.template = templateId;
 		}
 
 		return _getEmailLoggingService().createEmailLog(
@@ -339,6 +340,8 @@ component {
 			, sender        = ( sendArgs.from    ?: "" )
 			, subject       = ( sendArgs.subject ?: "" )
 			, sendArgs      = ( sendArgs.args    ?: {} )
+			, htmlBody      = sendArgs.htmlBody ?: ""
+			, textBody      = sendArgs.textBody ?: ""
 		);
 	}
 
