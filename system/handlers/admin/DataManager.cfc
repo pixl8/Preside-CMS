@@ -487,14 +487,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
-		var objectName     = rc.object ?: "";
+		var objectName     = prc.objectName ?: "";
 		var extraFilters   = [];
 		var filterByFields = ListToArray( rc.filterByFields ?: "" );
 		var filterValue    = "";
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
 
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
+		_checkPermission( argumentCollection=arguments, key="read", checkOperations=false );
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
@@ -518,7 +518,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function managePerms( event, rc, prc ) {
-		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
+		_checkPermission( argumentCollection=arguments, key="manageContextPerms" );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.managePerms.breadcrumb.title" )
@@ -527,7 +527,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function savePermsAction( event, rc, prc ) {
-		_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=prc.objectName );
+		_checkPermission( argumentCollection=arguments, key="manageContextPerms" );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
 			event.audit(
