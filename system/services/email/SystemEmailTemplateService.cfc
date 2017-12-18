@@ -113,6 +113,20 @@ component {
 	}
 
 	/**
+	 * Returns a boolean defining whether email content for a system template should be
+	 * saved or not.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose content save setting you wish to get
+	 *
+	 */
+	public any function getSavedContentExpiry( required string template ) {
+		var templates = _getConfiguredTemplates();
+
+		return templates[ arguments.template ].contentExpiry ?: "";
+	}
+
+	/**
 	 * Runs an email template's 'prepareParameters' handler action
 	 * to prepare dynamic parameters for the email render.
 	 *

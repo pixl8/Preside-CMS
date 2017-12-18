@@ -24,6 +24,7 @@ component {
 	 * @emailSendingContextService.inject emailSendingContextService
 	 * @emailStyleInliner.inject          emailStyleInliner
 	 * @assetManagerService.inject        assetManagerService
+	 * @emailSettings.inject              coldbox:setting:email
 	 *
 	 */
 	public any function init(
@@ -33,6 +34,7 @@ component {
 		, required any emailSendingContextService
 		, required any assetManagerService
 		, required any emailStyleInliner
+		, required any emailSettings
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
@@ -40,6 +42,7 @@ component {
 		_setEmailSendingContextService( arguments.emailSendingContextService );
 		_setEmailStyleInliner( arguments.emailStyleInliner );
 		_setAssetManagerService( arguments.assetManagerService );
+		_setEmailSettings( arguments.emailSettings );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -275,9 +278,37 @@ component {
 			if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
 				return _getSystemEmailTemplateService().shouldSaveContentForTemplate( arguments.template );
 			}
+
+			if ( isBoolean( messageTemplate.save_content ) ) {
+				return messageTemplate.save_content;
+			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * How many days the saved content of an email should be retained for. If not
+	 * specifically configured, will return the system default.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose content expiry setting you wish to get
+	 *
+	 */
+	public numeric function getSavedContentExpiry( required string template ) {
+		var defaultExpiry    = _getEmailSettings().defaultContentExpiry;
+		var messageTemplate  = getTemplate( id=arguments.template );
+		var configuredExpiry = "";
+
+		if ( messageTemplate.count() ) {
+			if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+				configuredExpiry = _getSystemEmailTemplateService().getSavedContentExpiry( arguments.template );
+			} else {
+				configuredExpiry = messageTemplate.save_content_expiry;
+			}
+		}
+
+		return isNumeric( configuredExpiry ) ? configuredExpiry : defaultExpiry;
 	}
 
 	/**
@@ -1054,5 +1085,12 @@ component {
 	}
 	private void function _setEmailStyleInliner( required any emailStyleInliner ) {
 		_emailStyleInliner = arguments.emailStyleInliner;
+	}
+
+	private any function _getEmailSettings() {
+		return _emailSettings;
+	}
+	private void function _setEmailSettings( required any emailSettings ) {
+		_emailSettings = arguments.emailSettings;
 	}
 }
