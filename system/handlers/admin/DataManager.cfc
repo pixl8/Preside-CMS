@@ -58,6 +58,8 @@ component extends="preside.system.base.AdminHandler" {
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#objectName#&id=#recordId#" ) );
 			}
 			event.setLanguage( language );
+			prc.delete( "record" );
+			version = rc.version = prc.version = Val( url.version ?: "" );
 		}
 
 		prc.renderedRecord = adminDataViewsService.renderObjectRecord(
@@ -547,35 +549,20 @@ component extends="preside.system.base.AdminHandler" {
 
 
 	public void function translationRecordHistory( event, rc, prc ) {
-		var objectName  = prc.objectName  ?: "";
-		var recordId    = prc.recordId    ?: "";
-		var objectTitle = prc.objectTitle ?: "";
-		var languageId  = rc.language     ?: "";
-		var isVersioned = IsTrue( prc.isVersioned ?: "" );
+		var objectName    = prc.objectName  ?: "";
+		var recordId      = prc.recordId    ?: "";
+		var objectTitle   = prc.objectTitle ?: "";
+		var languageId    = rc.language     ?: "";
+		var useVersioning = IsTrue( prc.useVersioning ?: "" );
 
-		prc.language = multilingualPresideObjectService.getLanguage( languageId );
+		_checkPermission( argumentCollection=arguments, key="translate"    );
+		_checkPermission( argumentCollection=arguments, key="viewversions" );
 
-		if ( prc.language.isempty() ) {
-			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#id#" ) );
-		}
-
-		_checkPermission( argumentCollection=arguments, key="translate"   , object=objectName );
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
-
-		if ( !isVersioned ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.objectName", querystring="id=#objectName#" ) );
-		}
-
-		prc.record = presideObjectService.selectData( objectName=objectName, filter={ id=id }, useCache=false );
-		if ( not prc.record.recordCount ) {
+		if ( !useVersioning ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 		}
-		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=objectName, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
-		// breadcrumb setup
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id=#recordId#&language=#languageId#" )
@@ -1258,9 +1245,12 @@ component extends="preside.system.base.AdminHandler" {
 				ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
 			} else {
 				ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_historyActions", args={
-					  objectName = object
-					, recordId   = recordId
+					  objectName     = object
+					, recordId       = recordId
+					, canEdit        = IsTrue( prc.canEdit ?: "" )
+					, canView        = IsTrue( prc.canView ?: "" )
 					, editRecordLink = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#recordId#&language=#languageId#&version=#record._version_number#" )
+					, viewRecordLink = event.buildAdminLink( objectName=object, recordId=recordId, queryString="language=#languageId#&version=#record._version_number#" )
 				} ) );
 			}
 		}
@@ -1973,6 +1963,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			prc.objectTitle         = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title.singular", defaultValue=prc.objectName );
 			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
+			prc.canView             = datamanagerService.isOperationAllowed( prc.objectName, "read" );
 			prc.canAdd              = datamanagerService.isOperationAllowed( prc.objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ prc.objectName ] );
 			prc.canedit             = datamanagerService.isOperationAllowed( prc.objectName, "edit" )   && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextkeys=[ prc.objectName ] );
 			prc.canDelete           = datamanagerService.isOperationAllowed( prc.objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ prc.objectName ] );
@@ -2014,16 +2005,16 @@ component extends="preside.system.base.AdminHandler" {
 					}
 
 					prc.sourceRecord  = presideObjectService.selectData( objectName=prc.objectName, filter={ id=prc.recordId }, useCache=false );
+					if ( !prc.sourceRecord.recordCount ) {
+						messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
+						setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#prc.objectName#" ) );
+					}
 					if ( prc.useVersioning && prc.version ) {
 						prc.record = multiLingualPresideObjectService.selectTranslation( objectName=prc.objectName, id=prc.recordId, languageId=prc.language.id, useCache=false, version=prc.version );
 					} else {
 						prc.record = multiLingualPresideObjectService.selectTranslation( objectName=prc.objectName, id=prc.recordId, languageId=prc.language.id, useCache=false );
 					}
 
-					if ( !prc.sourceRecord.recordCount ) {
-						messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
-						setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#prc.objectName#" ) );
-					}
 				}
 
 
