@@ -423,10 +423,12 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
 		mockLogDao               = CreateStub();
 		mockLogActivityDao       = CreateStub();
+		mockEmailSettings        = { defaultContentExpiry=createTimespan( 30, 0, 0, 0 ) };
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
 			  recipientTypeService = mockRecipientTypeService
 			, emailTemplateService = mockEmailTemplateService
+			, emailSettings        = mockEmailSettings
 		) );
 
 		mockRecipientTypeService.$( "getRecipientId", "" );

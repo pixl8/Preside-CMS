@@ -698,6 +698,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getColdbox", mockColdbox );
 		mockColdbox.$( "handlerExists", true );
 		mockEmailLoggingService.$( "markAsSent", 1 );
+		mockEmailLoggingService.$( "logEmailContent" );
 
 		dummyHtmlBody = CreateUUId();
 		mockEmailLoggingService.$( "insertTrackingPixel", dummyHtmlBody );
