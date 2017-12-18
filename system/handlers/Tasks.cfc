@@ -15,6 +15,7 @@ component {
 	 * @timeout      1200
 	 * @displayName  Process batch email
 	 * @displayGroup Email
+	 * @feature      customEmailTemplates
 	 */
 	private boolean function processBatchedEmails( logger ) {
 		return emailMassSendingService.processQueue( arguments.logger ?: NullValue() );
@@ -28,6 +29,7 @@ component {
 	 * @timeout      1200
 	 * @displayName  Delete expired email content
 	 * @displayGroup Email
+	 * @feature      emailCenter.resend
 	 */
 	private boolean function deleteExpiredEmailContent( logger ) {
 		return emailLoggingService.deleteExpiredContent( arguments.logger ?: NullValue() );
