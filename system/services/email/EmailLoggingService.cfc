@@ -83,6 +83,10 @@ component {
 		}
 
 		var contentExpiry = _getEmailTemplateService().getSavedContentExpiry( arguments.template );
+		if ( contentExpiry <= 0 ) {
+			return;
+		}
+
 		var expires       = now().add( "d", contentExpiry );
 		var contentId     = $getPresideObject( "email_template_send_log_content" ).insertData( {
 			  html_body = arguments.htmlBody
