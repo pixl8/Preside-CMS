@@ -26,16 +26,17 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function viewLog( event, rc, prc ) {
-		var logId = rc.id ?: "";
+		var logId         = rc.id ?: "";
+		var resendEnabled = isFeatureEnabled( "emailCenter.resend" );
 
 		prc.log = emailLoggingService.getLog( logId );
 		if ( prc.log.isEmpty() ) {
 			event.notFound();
 		}
 		prc.activity         = emailLoggingService.getActivity( logId );
-		prc.canResendEmails  = hasCmsPermission( "emailCenter.settings.resend" );
-		prc.hasSavedHtmlBody = len( prc.log.html_body ?: "" ) > 0;
-		prc.hasSavedTextBody = len( prc.log.text_body ?: "" ) > 0;
+		prc.canResendEmails  = resendEnabled && hasCmsPermission( "emailCenter.settings.resend" );
+		prc.hasSavedHtmlBody = resendEnabled && len( prc.log.html_body ?: "" ) > 0;
+		prc.hasSavedTextBody = resendEnabled && len( prc.log.text_body ?: "" ) > 0;
 		prc.hasSavedContent  = prc.hasSavedHtmlBody || prc.hasSavedTextBody;
 
 		event.noLayout();

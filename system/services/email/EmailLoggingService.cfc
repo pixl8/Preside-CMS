@@ -75,6 +75,10 @@ component {
 		, required string htmlBody
 		, required string textBody
 	) {
+		if ( $isFeatureEnabled( "emailCenter.resend" ) ) {
+			return;
+		}
+
 		var contentExpiry = _getEmailSettings().defaultContentExpiry;
 		var expires       = now() + contentExpiry;
 		var contentId     = $getPresideObject( "email_template_send_log_content" ).insertData( {

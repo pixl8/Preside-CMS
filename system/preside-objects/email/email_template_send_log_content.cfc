@@ -3,6 +3,7 @@
  *
  * @nolabel       true
  * @versioned     false
+ * @feature       emailCenter.resend
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="html_body" type="string" dbtype="longtext" required=true;

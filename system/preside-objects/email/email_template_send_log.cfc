@@ -11,7 +11,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="website_user_recipient"  relationship="many-to-one" relatedto="website_user"  required=false;
 	property name="security_user_recipient" relationship="many-to-one" relatedto="security_user" required=false;
 
-	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false;
+	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenter.resend";
 
 	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true;
 	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true;

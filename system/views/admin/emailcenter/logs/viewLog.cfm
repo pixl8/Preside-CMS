@@ -30,7 +30,7 @@
 			<dd>#prc.log.sender#</dd>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.template.label" )#</dt>
 			<dd>#prc.log.name#</dd>
-			<cfif len( prc.log.resend_of )>
+			<cfif canResendEmails && len( prc.log.resend_of )>
 				<dt>#translateResource( "cms:mailcenter.logs.metadata.resent.label" )#</dt>
 				<dd><a href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#prc.log.resend_of#" )#" class="load-in-place">#translateResource( "cms:mailcenter.logs.metadata.resent.link" )#</a></dd>
 			</cfif>
