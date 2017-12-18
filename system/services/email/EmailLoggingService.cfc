@@ -340,6 +340,28 @@ component {
 	}
 
 	/**
+	 * Resends an email. Email is regenerated using the original sendArgs
+	 *
+	 */
+	public boolean function deleteExpiredContent( any logger ) {
+		var canLog   = arguments.keyExists( "logger" );
+		var canInfo  = canLog && logger.canInfo();
+		var canError = canLog && logger.canError();
+		var dao      = $getPresideObject( "email_template_send_log_content");
+
+		if ( canInfo ) { logger.info( "Deleting expired email content from logs..." ); }
+
+		var deleted  = dao.deleteData(
+			  filter       = "expires <= :expires"
+			, filterParams = { expires=now() }
+		);
+
+		if ( canInfo ) { logger.info( "Content of [#deleted#] emails deleted." ); }
+
+		return true;
+	}
+
+	/**
 	 * Inserts a tracking pixel into the given HTML email
 	 * content (based on the given message ID). Returns
 	 * the HTML with the inserted tracking pixel
