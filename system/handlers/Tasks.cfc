@@ -29,7 +29,7 @@ component {
 	 * @timeout      1200
 	 * @displayName  Delete expired email content
 	 * @displayGroup Email
-	 * @feature      emailCenter.resend
+	 * @feature      emailCenterResend
 	 */
 	private boolean function deleteExpiredEmailContent( logger ) {
 		return emailLoggingService.deleteExpiredContent( arguments.logger ?: NullValue() );

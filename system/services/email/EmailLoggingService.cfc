@@ -75,7 +75,7 @@ component {
 		, required string htmlBody
 		, required string textBody
 	) {
-		if ( !$isFeatureEnabled( "emailCenter.resend" ) ) {
+		if ( !$isFeatureEnabled( "emailCenterResend" ) ) {
 			return;
 		}
 		if ( !_getEmailTemplateService().shouldSaveContentForTemplate( arguments.template ) ) {

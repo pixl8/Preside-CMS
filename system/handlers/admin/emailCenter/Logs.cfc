@@ -27,7 +27,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function viewLog( event, rc, prc ) {
 		var logId         = rc.id ?: "";
-		var resendEnabled = isFeatureEnabled( "emailCenter.resend" );
+		var resendEnabled = isFeatureEnabled( "emailCenterResend" );
 
 		prc.log = emailLoggingService.getLog( logId );
 		if ( prc.log.isEmpty() ) {

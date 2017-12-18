@@ -322,7 +322,7 @@ component {
 			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
-			, "emailCenter.resend"    = { enabled=false, siteTemplates=[ "*" ] }
+			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
