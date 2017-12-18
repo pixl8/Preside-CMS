@@ -574,11 +574,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function deleteOneToManyRecordAction( event, rc, prc ) {
-		var objectName      = rc.object ?: "";
+		var objectName      = prc.objectName ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 		var parentId        = rc.parentId ?: "";
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		if ( !datamanagerService.isOperationAllowed( objectName, "delete"   ) ) {
 			event.adminAccessDenied();
 		}
@@ -596,10 +595,9 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addOneToManyRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
+		var objectName = prc.objectName ?: "";
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
+		if ( !datamanagerService.isOperationAllowed( objectName, "add" ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -611,22 +609,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function quickAddForm( event, rc, prc ) {
-		var object = rc.object ?: "";
-		var args   = {};
+ 		_checkPermission( argumentCollection=arguments, key="add" );
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="add", object=object );
-
-		args.allowAddAnotherSwitch = IsTrue( rc.multiple ?: "" );
-
-		event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog", args=args );
+		event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog", args={
+			allowAddAnotherSwitch = IsTrue( rc.multiple ?: "" )
+		} );
 	}
 
 	public void function quickAddRecordAction( event, rc, prc ) {
-		var object = rc.object ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="add", object=object );
+		_checkPermission( argumentCollection=arguments, key="add" );
 
 		runEvent(
 			  event          = "admin.DataManager._quickAddRecordAction"
@@ -636,27 +627,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function quickEditForm( event, rc, prc ) {
-		var object = rc.object ?: "";
-		var id     = rc.id     ?: "";
+		_checkPermission( argumentCollection=arguments, key="edit" );
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
-
-		prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
-		if ( prc.record.recordCount ) {
-			prc.record = queryRowToStruct( prc.record );
-		} else {
-			prc.record = {};
-		}
+		prc.record = queryRowToStruct( prc.record );
 
 		event.setView( view="/admin/datamanager/quickEditForm", layout="adminModalDialog" );
 	}
 
 	public void function quickEditRecordAction( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		_checkPermission( argumentCollection=arguments, key="edit" );
 
 		runEvent(
 			  event          = "admin.DataManager._quickEditRecordAction"
@@ -666,21 +645,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function configuratorForm( event, rc, prc ) {
-		var object     = rc.object   ?: "";
-		var id         = rc.id       ?: "";
+		var id         = prc.recordId ?: "";
 		var fromDb     = rc.__fromDb ?: false;
 		var args       = {};
-		var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 		var record     = "";
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_checkPermission( argumentCollection=arguments, key="add", object=object );
+		_checkPermission( argumentCollection=arguments, key="add" );
 
 		if ( fromDb ) {
-			record = presideObjectService.selectData( objectName=object, id=id, useCache=false );
-			if ( record.recordCount ) {
-				args.savedData = queryRowToStruct( record );
-			}
+			args.savedData = queryRowToStruct( prc.record );
 		}
 		args.sourceIdField = rc.sourceIdField ?: "";
 		args.sourceId      = rc.sourceId      ?: "";
