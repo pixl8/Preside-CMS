@@ -15,10 +15,10 @@
 		<cfif canResendEmails>
 			<div class="pull-right">
 				<cfif hasSavedContent>
-					<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmail", queryString="id=#prc.log.id#" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.original" )#</a>
+					<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmailAction", queryString="id=#prc.log.id#" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.original" )#</a>
 				</cfif>
 
-				<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmail", queryString="id=#prc.log.id#&rebuild=true" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.rebuild" )#</a>
+				<a href="#event.buildAdminLink( linkTo="emailCenter.logs.resendEmailAction", queryString="id=#prc.log.id#&rebuild=true" )#" class="btn btn-primary load-in-place"><i class="fa fa-refresh"></i> #translateResource( "cms:mailcenter.logs.action.resend.rebuild" )#</a>
 			</div>
 		</cfif>
 

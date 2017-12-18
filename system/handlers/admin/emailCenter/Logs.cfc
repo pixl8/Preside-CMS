@@ -55,7 +55,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public string function resendEmail( event, rc, prc ) {
+	public string function resendEmailAction( event, rc, prc ) {
 		var logId   = rc.id ?: "";
 		var rebuild = isTrue( rc.rebuild ?: "" );
 
