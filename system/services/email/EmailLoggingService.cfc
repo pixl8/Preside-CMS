@@ -313,6 +313,13 @@ component {
 		    , overwriteTemplateArgs = true
 		);
 
+		$audit(
+			  action   = "resend_original_email"
+			, type     = "emailresend"
+			, recordId = resentMessageId
+			, detail   = { subject=message.subject, recipient=message.recipient, originalMessageId=arguments.id }
+		);
+
 		recordActivity(
 			  messageId = arguments.id
 			, activity  = "resend"
@@ -339,6 +346,13 @@ component {
 		    , args        = sendArgs
 		    , resendOf    = message.id
 		    , returnLogId = true
+		);
+
+		$audit(
+			  action   = "rebuild_and_resend_email"
+			, type     = "emailresend"
+			, recordId = resentMessageId
+			, detail   = { subject=message.subject, recipient=message.recipient, originalMessageId=arguments.id }
 		);
 
 		recordActivity(
