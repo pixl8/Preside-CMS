@@ -448,10 +448,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getRecordHistoryForAjaxDataTables( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-		var recordId   = rc.id     ?: "";
+		var objectName = prc.object   ?: "";
+		var recordId   = prc.recordId ?: "";
 
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+		_checkPermission( argumentCollection=arguments, key="viewversions" );
 
 		runEvent(
 			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
@@ -466,12 +466,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getTranslationRecordHistoryForAjaxDataTables( event, rc, prc ) {
-		var objectName = rc.object   ?: "";
-		var recordId   = rc.id       ?: "";
-		var languageId = rc.language ?: "";
+		var objectName = prc.objectName ?: "";
+		var recordId   = prc.recordId   ?: "";
+		var languageId = rc.language    ?: "";
 
-		_checkPermission( argumentCollection=arguments, key="translate", object=objectName );
-		_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+		_checkPermission( argumentCollection=arguments, key="translate" );
+		_checkPermission( argumentCollection=arguments, key="viewversions" );
 
 		runEvent(
 			  event          = "admin.DataManager._getTranslationRecordHistoryForAjaxDataTables"
