@@ -66,16 +66,21 @@ component {
 	 * sent, and for resending the original email
 	 *
 	 * @autodoc            true
+	 * @template.hint      ID of the email template
 	 * @id.hint            ID of the email template log record
 	 * @htmlBody.hint      HTML content of the email
 	 * @textBody.hint      Plain-text content of the email
 	 */
 	public void function logEmailContent(
-		  required string id
+		  required string template
+		, required string id
 		, required string htmlBody
 		, required string textBody
 	) {
-		if ( $isFeatureEnabled( "emailCenter.resend" ) ) {
+		if ( !$isFeatureEnabled( "emailCenter.resend" ) ) {
+			return;
+		}
+		if ( !_getEmailTemplateService().shouldSaveContentForTemplate( arguments.template ) ) {
 			return;
 		}
 

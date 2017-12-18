@@ -261,6 +261,26 @@ component {
 	}
 
 	/**
+	 * Returns a boolean defining whether email content for a system template should be
+	 * saved or not.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose content save setting you wish to get
+	 *
+	 */
+	public boolean function shouldSaveContentForTemplate( required string template ) {
+		var messageTemplate = getTemplate( id=arguments.template );
+
+		if ( messageTemplate.count() ) {
+			if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+				return _getSystemEmailTemplateService().shouldSaveContentForTemplate( arguments.template );
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Inserts or updates the given email template
 	 *
 	 * @autodoc  true
