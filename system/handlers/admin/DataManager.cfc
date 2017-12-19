@@ -744,15 +744,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function editOneToManyRecordAction( event, rc, prc ) {
-		var id              = rc.id              ?: "";
-		var object          = rc.object          ?: "";
+		var id              = prc.recordId       ?: "";
+		var objectName      = prc.objectName     ?: "";
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 
 		rc[ relationshipKey ] = parentId;
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		if ( !datamanagerService.isOperationAllowed( object, "edit"   ) ) {
+		if ( !datamanagerService.isOperationAllowed( objectName, "edit"   ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -761,58 +760,53 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  errorUrl   = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord"   , queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#&id=#id#" )
-				, successUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" )
+				  errorUrl   = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord"   , queryString="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#&id=#id#" )
+				, successUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#" )
 				, audit      = true
 			}
 		);
 	}
 
 	public void function sortRecords( event, rc, prc ) {
-		var object           = rc.object  ?: "";
-		var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-		var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
+		var objectName        = prc.objectName        ?: "";
+		var objectTitle       = prc.objectTitle       ?: "";
+		var objectTitlePlural = prc.objectTitlePlural ?: "";
 
-		if ( ! datamanagerService.isSortable( object ) ) {
-			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		if ( !datamanagerService.isSortable( objectName ) ) {
+			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectTitle  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 		}
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
+		_checkPermission( argumentCollection=arguments, key="edit" );
 
-		prc.records = datamanagerService.getRecordsForSorting( objectName=object );
+		prc.records = datamanagerService.getRecordsForSorting( objectName=objectName );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )
 			, link  = ""
 		);
-		prc.pageTitle = translateResource( uri="cms:datamanager.sortRecords.title", data=[ objectNamePlural ] );
+		prc.pageTitle = translateResource( uri="cms:datamanager.sortRecords.title", data=[ objectTitlePlural ] );
 		prc.pageIcon  = "sort-amount-asc";
 	}
 
 	public void function sortRecordsAction( event, rc, prc ) {
-		var object           = rc.object  ?: "";
-		var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-		var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
+		var objectName        = prc.objectName        ?: "";
+		var objectTitle       = prc.objectTitle       ?: "";
 
-		if ( ! datamanagerService.isSortable( object ) ) {
-			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		if ( !datamanagerService.isSortable( objectName ) ) {
+			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectTitle  ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 		}
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-		_checkPermission( argumentCollection=arguments, key="edit", object=object );
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 		datamanagerService.saveSortedRecords(
-			  objectName = object
+			  objectName = objectName
 			, sortedIds  = ListToArray( rc.ordered ?: "" )
 		);
 
-		messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectName  ] ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectTitle  ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
 	}
 
 	public void function dataExportConfigModal( event, rc, prc ) {
@@ -1915,12 +1909,14 @@ component extends="preside.system.base.AdminHandler" {
 			, "exportDataAction"
 		];
 
-		prc.objectName  = "";
-		prc.objectTitle = "";
-		prc.recordId    = "";
-		prc.record      = "";
-		prc.recordLabel = "";
-		prc.version     = 0;
+		prc.objectName        = "";
+		prc.objectTitle       = "";
+		prc.objectTitlePlural = "";
+		prc.recordId          = "";
+		prc.record            = "";
+		prc.recordLabel       = "";
+		prc.objectRootUri     = "";
+		prc.version           = 0;
 
 		switch( arguments.action ) {
 			case "index":
@@ -1943,7 +1939,9 @@ component extends="preside.system.base.AdminHandler" {
 				_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
 			}
 
-			prc.objectTitle         = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title.singular", defaultValue=prc.objectName );
+			prc.objectRootUri       = presideObjectService.getResourceBundleUriRoot( prc.objectName );
+			prc.objectTitle         = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
+			prc.objectTitlePlural   = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
 			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
 			prc.canView             = datamanagerService.isOperationAllowed( prc.objectName, "read" );
 			prc.canAdd              = datamanagerService.isOperationAllowed( prc.objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ prc.objectName ] );
