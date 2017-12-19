@@ -51,7 +51,7 @@ component {
 		  required string objectName
 		, required string action
 	) {
-		var event = getCustomizationHandlerForObject( arguments.objectName ) & "." & arguments.action;
+		var event = arguments.objectName.len() ? ( getCustomizationHandlerForObject( arguments.objectName ) & "." & arguments.action ) : "";
 
 		if ( !$getColdbox().handlerExists( event ) ) {
 			event = getGlobalCustomizationEvent( arguments.action );

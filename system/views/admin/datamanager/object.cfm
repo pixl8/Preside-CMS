@@ -10,12 +10,13 @@
 	prc.pageIcon        = "puzzle-piece";
 	prc.pageTitle       = objectTitle;
 	prc.pageSubTitle    = objectDescription;
-	batchEditableFields = prc.batchEditableFields       ?: {};
-	canAdd              = prc.canAdd                    ?: false;
-	canDelete           = prc.canDelete                 ?: false;
-	canSort             = prc.canSort                   ?: false;
-	isMultilingual      = prc.isMultilingual            ?: false;
-	draftsEnabled       = prc.draftsEnabled             ?: false;
+	batchEditableFields = prc.batchEditableFields ?: {};
+	canAdd              = IsTrue( prc.canAdd         ?: "" );
+	canDelete           = IsTrue( prc.canDelete      ?: "" );
+	canSort             = IsTrue( prc.canSort        ?: "" );
+	canManagePerms      = IsTrue( prc.canManagePerms ?: "" );
+	isMultilingual      = IsTrue( prc.isMultilingual ?: "" );
+	draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" );
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -35,7 +36,7 @@
 				</button>
 			</a>
 		</cfif>
-		<cfif hasCmsPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextkeys=[ objectName ] )>
+		<cfif canManagePerms>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.manageperms", queryString="object=#objectName#" )#" data-global-key="p">
 				<button class="btn btn-default btn-sm">
 					<i class="fa fa-lock"></i>

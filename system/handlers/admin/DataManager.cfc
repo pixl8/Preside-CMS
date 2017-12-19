@@ -29,7 +29,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
-		_checkNavigatePermission( argumentCollection=arguments );
+		_checkPermission( argumentCollection=arguments, key="navigate" );
 
 
 		prc.objectGroups = dataManagerService.getGroupedObjects();
@@ -441,7 +441,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object          = objectName
-				, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+				, useMultiActions = _checkPermission( argumentCollection=arguments, key="delete", throwOnError=false )
 				, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
 				, actionsView     = "/admin/datamanager/_oneToManyListingActions"
 				, filter          = { "#relationshipKey#" : parentId }
@@ -1005,10 +1005,10 @@ component extends="preside.system.base.AdminHandler" {
 			var editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id={id}&resultAction=grid" );
 			var deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id={id}" );
 			var viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id={id}" );
-			var canView           = datamanagerService.isOperationAllowed( object, "read"   );
-			var canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] );
-			var canDelete         = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
-			var canViewHistory    = objectIsVersioned && datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] );
+			var canView           = IsTrue( prc.canView       ?: "" );
+			var canEdit           = IsTrue( prc.canEdit       ?: "" );
+			var canDelete         = IsTrue( prc.canDelete     ?: "" );
+			var canViewHistory    = IsTrue( prc.useVersioning ?: "" );
 		}
 
 		for( var record in records ){
@@ -1097,8 +1097,8 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		var records    = Duplicate( results.records );
 		var gridFields = [ "published", "datemodified", "_version_author", "_version_changed_fields" ];
-		var canView    = datamanagerService.isOperationAllowed( object, "read"   );
-		var canEdit    = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] );
+		var canView    = IsTrue( prc.canView ?: "" );
+		var canEdit    = IsTrue( prc.canEdit ?: "" );
 
 		for( var record in records ){
 			for( var field in gridFields ){
@@ -1655,12 +1655,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	private void function _checkNavigatePermission( event, rc, prc ) {
-		if ( !hasCmsPermission( "datamanager.navigate" ) ) {
-			event.adminAccessDenied();
-		}
-	}
-
 	private any function _checkPermission(
 		  required any     event
 		, required struct  rc
@@ -1685,7 +1679,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( arguments.checkOperations && operations.find( arguments.key ) && !datamanagerService.isOperationAllowed( arguments.object, arguments.key ) ) {
 			permitted = false;
-		} else if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
+		} else if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && (!arguments.object.len() || !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) ) {
 			permitted = false;
 		} else {
 			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );
@@ -1942,7 +1936,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( Len( Trim( prc.objectName ) ) ) {
 			_checkObjectExists( argumentCollection=arguments, object=prc.objectName );
-			_checkPermission( argumentCollection=arguments, key="navigate", object=prc.objectName );
+			_checkPermission( argumentCollection=arguments, key="navigate" )
 
 			if ( !useAnyWhereActions.findNoCase( arguments.action ) ) {
 				_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
@@ -1952,15 +1946,16 @@ component extends="preside.system.base.AdminHandler" {
 			prc.objectTitle         = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
 			prc.objectTitlePlural   = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
 			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
-			prc.canView             = datamanagerService.isOperationAllowed( prc.objectName, "read" );
-			prc.canAdd              = datamanagerService.isOperationAllowed( prc.objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ prc.objectName ] );
-			prc.canedit             = datamanagerService.isOperationAllowed( prc.objectName, "edit" )   && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextkeys=[ prc.objectName ] );
-			prc.canDelete           = datamanagerService.isOperationAllowed( prc.objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ prc.objectName ] );
-			prc.canSort             = datamanagerService.isSortable( prc.objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ prc.objectName ] );
+			prc.canView             = _checkPermission( argumentCollection=arguments, key="read"              , throwOnError=false );
+			prc.canAdd              = _checkPermission( argumentCollection=arguments, key="add"               , throwOnError=false );
+			prc.canedit             = _checkPermission( argumentCollection=arguments, key="edit"              , throwOnError=false );
+			prc.canDelete           = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
+			prc.canManagePerms      = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
+			prc.canSort             = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields          = _getObjectFieldsForGrid( prc.objectName );
 			prc.batchEditableFields = dataManagerService.listBatchEditableFields( prc.objectName );
 			prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( prc.objectName );
-			prc.canTranslate        = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.translate", context="datamanager", contextKeys=[ prc.objectName ] );
+			prc.canTranslate        = prc.isMultilingual && _checkPermission( argumentCollection=arguments, key="translate", throwOnError=false );
 			prc.useVersioning       = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
 			prc.canPublish          = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="publish"  , object=prc.objectName, throwOnError=false );
 			prc.canSaveDraft        = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="savedraft", object=prc.objectName, throwOnError=false );
