@@ -815,8 +815,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		var args   = {};
 
-		args.objectName = rc.id ?: "";
-		args.objectTitle = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
+		args.objectName            = prc.objectName ?: "";
+		args.objectTitle           = prc.objectTitle ?: "";
 		args.defaultExportFilename = translateresource(
 			  uri  = "cms:dataexport.config.form.field.title.default"
 			, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
@@ -1924,6 +1924,7 @@ component extends="preside.system.base.AdminHandler" {
 			break;
 			case "object":
 			case "getObjectRecordsForAjaxDataTables":
+			case "dataExportConfigModal":
 				prc.objectName = rc.id ?: "";
 			break;
 			default:
