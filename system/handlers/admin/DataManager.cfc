@@ -1670,6 +1670,15 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean throwOnError    = true
 		,          boolean checkOperations = true
 	) {
+		if ( customizationService.objectHasCustomization( arguments.object, "checkPermission" ) ) {
+			return customizationService.runCustomization( objectName=arguments.object, action="checkPermission", args={
+				  key             = arguments.key
+				, object          = arguments.object
+				, throwOnError    = arguments.throwOnError
+				, checkOperations = arguments.checkOperations
+			} );
+		}
+
 		var operations      = [ "read", "add", "edit", "delete", "viewversions" ];
 		var draftOperations = [ "addRecord", "addRecordAction", "editRecord", "editRecordAction", "translateRecord", "translateRecordAction" ];
 		var permitted       = true;
