@@ -15,6 +15,7 @@ component {
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
+	 * @customizationService.inject datamanagerCustomizationService
 	 */
 	public any function init(
 		  required any presideObjectService
@@ -24,6 +25,7 @@ component {
 		, required any permissionService
 		, required any siteService
 		, required any relationshipGuidance
+		, required any customizationService
 	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
@@ -32,6 +34,7 @@ component {
 		_setPermissionService( arguments.permissionService );
 		_setSiteService( arguments.siteService );
 		_setRelationshipGuidance( arguments.relationshipGuidance );
+		_setCustomizationService( arguments.customizationService );
 
 		return this;
 	}
@@ -148,6 +151,16 @@ component {
 	}
 
 	public boolean function isOperationAllowed( required string objectName, required string operation ) {
+		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, "isOperationAllowed" ) ) {
+			var result = _getCustomizationService().runCustomization(
+				  objectName = arguments.objectName
+				, action     = "isOperationAllowed"
+				, args       = arguments
+			);
+
+			return IsBoolean( result ?: "" ) && result;
+		}
+
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
@@ -755,6 +768,13 @@ component {
 	}
 	private void function _setRelationshipGuidance( required any RelationshipGuidance ) {
 		_RelationshipGuidance = arguments.RelationshipGuidance;
+	}
+
+	private any function _getCustomizationService() {
+		return _customizationService;
+	}
+	private void function _setCustomizationService( required any customizationService ) {
+		_customizationService = arguments.customizationService;
 	}
 
 }

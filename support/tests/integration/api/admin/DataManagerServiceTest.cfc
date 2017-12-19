@@ -188,6 +188,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockI18nPlugin           = createEmptyMock( "preside.system.services.i18n.i18n" );
 		mockSiteService          = createEmptyMock( "preside.system.services.siteTree.SiteService" );
 		mockRelationshipGuidance = createEmptyMock( "preside.system.services.presideObjects.RelationshipGuidance" );
+		mockCustomizationService = createEmptyMock( "preside.system.services.admin.DataManagerCustomizationService" );
 
 		_setupMockObjectMeta();
 
@@ -199,6 +200,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, permissionService    = mockPermissionService
 			, siteService          = mockSiteService
 			, relationshipGuidance = mockRelationshipGuidance
+			, customizationService = mockCustomizationService
 		);
 	}
 
