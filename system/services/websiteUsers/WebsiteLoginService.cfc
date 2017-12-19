@@ -257,21 +257,18 @@ component displayName="Website login service" {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.count() ) {
-			var resetToken       = _createTemporaryResetToken();
-			var resetKey         = _createTemporaryResetKey();
-			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
-			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
+			var token = createPasswordResetToken();
 
 			_getUserDao().updateData( id=userRecord.id, data={
-				  reset_password_token        = resetToken
-				, reset_password_key          = hashedResetKey
-				, reset_password_token_expiry = resetTokenExpiry
+				  reset_password_token        = token.resetToken
+				, reset_password_key          = token.hashedResetKey
+				, reset_password_token_expiry = token.resetTokenExpiry
 			} );
 
 			_getEmailService().send(
 				  template    = "resetWebsitePassword"
 				, recipientId = userRecord.id
-				, args        = { resetToken = "#resetToken#-#resetKey#" }
+				, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
 			);
 
 			$recordWebsiteUserAction(
@@ -284,6 +281,19 @@ component displayName="Website login service" {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Creates a password reset token.
+	 */
+	public struct function createPasswordResetToken() autodoc=true {
+		var token              = {};
+		token.resetToken       = _createTemporaryResetToken();
+		token.resetKey         = _createTemporaryResetKey();
+		token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
+		token.resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		return token;
 	}
 
 	/**
