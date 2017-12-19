@@ -662,16 +662,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function multiOneToManyRecordAction( event, rc, prc ) {
-		var object          = rc.object          ?: "";
+		var objectName      = prc.objectName     ?: "";
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 		var action          = rc.multiAction     ?: "";
 		var ids             = rc.id              ?: "";
-		var listingUrl      = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
+		var listingUrl      = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.manageOneToManyRecords", queryString="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
+		_checkObjectExists( argumentCollection=arguments, object=objectName );
 
-		if ( not Len( Trim( ids ) ) ) {
+		if ( !Len( Trim( ids ) ) ) {
 			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
 			setNextEvent( url=listingUrl );
 		}
@@ -688,12 +688,9 @@ component extends="preside.system.base.AdminHandler" {
 
 
 	public void function manageOneToManyRecords( event, rc, prc ) {
-		var objectName = rc.object ?: "";
-
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
-
+		var objectName    = prc.objectName  ?: "";
+		var objectTitle   = prc.objectTitle ?: "";
 		var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
-		var objectTitle   = translateResource( "preside-objects.#objectName#:title" );
 
 		prc.gridFields    = _getObjectFieldsForGrid( objectName );
 		prc.canAdd        = datamanagerService.isOperationAllowed( objectName, "add" );
@@ -706,15 +703,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addOneToManyRecord( event, rc, prc ) {
-		var objectName = event.getValue( name="object", defaultValue="" );
+		var objectName  = prc.objectName ?: "";
+		var objectTitle = prc.objectTitle ?: "";
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
 			event.adminAccessDenied();
 		}
 
 		var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
-		var objectTitle   = translateResource( "preside-objects.#objectName#:title.singular" );
 
 		prc.pageTitle     = translateResource( uri="cms:datamanager.oneToMany.addRecord.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
 		prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToMany.addRecord.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
@@ -724,30 +720,24 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function editOneToManyRecord( event, rc, prc ) {
-		var object          = rc.object          ?: "";
+		var objectName      = prc.objectName     ?: "";
+		var objectTitle     = prc.objectTitle    ?: "";
+		var id              = prc.recordId       ?: "";
+		var version         = prc.version        ?: 0;
+		var record          = prc.record         ?: QueryNew( '' )
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
-		var id              = rc.id              ?: "";
-		var version         = rc.version         ?: "";
-		var objectName      = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
-		_checkObjectExists( argumentCollection=arguments, object=object );
-		if ( !datamanagerService.isOperationAllowed( object, "edit"   ) ) {
+		if ( !datamanagerService.isOperationAllowed( objectName, "edit"   ) ) {
 			event.adminAccessDenied();
 		}
 
-		prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
-		if ( not prc.record.recordCount ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", querystring="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" ) );
-		}
 		prc.record = queryRowToStruct( prc.record );
-		prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
 		var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
 
-		prc.pageTitle     = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.title"   , data=[ objectName, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
-		prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.subtitle", data=[ objectName, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+		prc.pageTitle     = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.title"   , data=[ objectTitle, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+		prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.subtitle", data=[ objectTitle, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
 		prc.pageIcon      = "pencil";
 
 		event.setLayout( "adminModalDialog" );
