@@ -1,6 +1,40 @@
 component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 	function run() {
+		describe( "getGlobalCustomizationHandler()", function(){
+			it( "should return a conventions based handler path", function(){
+				var service    = _getService();
+
+				expect( service.getGlobalCustomizationHandler() ).toBe( "admin.datamanager.GlobalCustomizations" );
+			} );
+		} );
+
+		describe( "getGlobalCustomizationEvent()", function(){
+			it( "should append customization action to customization handler", function(){
+				var service       = _getService();
+				var customization = "buildCrumbtrail";
+				var handler       = "some.handler";
+				var event         = "some.handler.buildCrumbtrail";
+
+				service.$( "getGlobalCustomizationHandler", handler );
+				mockColdbox.$( "handlerExists" ).$args( event ).$results( true );
+
+				expect( service.getGlobalCustomizationEvent( customization ) ).toBe( event );
+			} );
+
+			it( "should return empty string when handler action does not exist", function(){
+				var service       = _getService();
+				var customization = "buildCrumbtrail";
+				var handler       = "some.handler";
+				var event         = "some.handler.buildCrumbtrail";
+
+				service.$( "getGlobalCustomizationHandler", handler );
+				mockColdbox.$( "handlerExists" ).$args( event ).$results( false );
+
+				expect( service.getGlobalCustomizationEvent( customization ) ).toBe( "" );
+			} );
+		} );
+
 		describe( "getCustomizationHandlerForObject()", function(){
 			it( "should return a conventions based handler path when object does not specify its own", function(){
 				var service    = _getService();
@@ -28,10 +62,27 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var objectName    = "my_object";
 				var customization = "buildCrumbtrail";
 				var handler       = "some.handler";
+				var event         = "some.handler.buildCrumbtrail";
 
 				service.$( "getCustomizationHandlerForObject" ).$args( objectName ).$results( handler );
+				mockColdbox.$( "handlerExists" ).$args( event ).$results( true );
 
-				expect( service.getCustomizationEventForObject( objectName, customization ) ).toBe( "some.handler.buildCrumbtrail" );
+				expect( service.getCustomizationEventForObject( objectName, customization ) ).toBe( event );
+			} );
+
+			it( "should return the global customization if no customization exists for the object", function(){
+				var service       = _getService();
+				var objectName    = "my_object";
+				var customization = "buildCrumbtrail";
+				var objectHandler = "some.handler";
+				var objectEvent   = "some.handler.buildCrumbtrail";
+				var globalEvent   = "some.altogether.different.handler.buildCrumbtrail";
+
+				service.$( "getCustomizationHandlerForObject" ).$args( objectName ).$results( objecthandler );
+				service.$( "getGlobalCustomizationEvent" ).$args( customization ).$results( globalEvent );
+				mockColdbox.$( "handlerExists" ).$args( objectEvent ).$results( false );
+
+				expect( service.getCustomizationEventForObject( objectName, customization ) ).toBe( globalEvent );
 			} );
 		} );
 
@@ -43,7 +94,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var event         = "some.handler.buildCrumbtrail";
 
 				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
-				mockColdbox.$( "handlerExists" ).$args( event ).$results( true );
 
 				expect( service.objectHasCustomization( objectName, customization ) ).toBe( true );
 			} );
@@ -52,10 +102,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var service       = _getService();
 				var objectName    = "my_object";
 				var customization = "buildCrumbtrail";
-				var event         = "some.handler.buildCrumbtrail";
+				var event         = "";
 
 				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
-				mockColdbox.$( "handlerExists" ).$args( event ).$results( false );
 
 				expect( service.objectHasCustomization( objectName, customization ) ).toBe( false );
 			} );
@@ -70,7 +119,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var result        = CreateUUId();
 				var args          = { test=CreateUUId(), blah={ test=CreateUUId(), blah="not recursive" } };
 
-				service.$( "objectHasCustomization" ).$args( objectName, customization ).$results( true );
 				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
 				mockColdbox.$( "runEvent" ).$args(
 					  event         = event
@@ -86,12 +134,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var service       = _getService();
 				var objectName    = "my_object";
 				var customization = "buildCrumbtrail";
-				var event         = "some.handler.buildCrumbtrail";
+				var event         = "";
 				var result        = CreateUUId();
 				var args          = { test=CreateUUId(), blah={ test=CreateUUId(), blah="not recursive" } };
 				var defaultHandler = "another.handler.yikes";
 
-				service.$( "objectHasCustomization" ).$args( objectName, customization ).$results( false );
 				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
 				mockColdbox.$( "runEvent" ).$args(
 					  event         = defaultHandler
@@ -107,12 +154,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var service       = _getService();
 				var objectName    = "my_object";
 				var customization = "buildCrumbtrail";
-				var event         = "some.handler.buildCrumbtrail";
+				var event         = "";
 				var result        = CreateUUId();
 				var args          = { test=CreateUUId(), blah={ test=CreateUUId(), blah="not recursive" } };
 				var defaultHandler = "";
 
-				service.$( "objectHasCustomization" ).$args( objectName, customization ).$results( false );
 				service.$( "getCustomizationEventForObject" ).$args( objectName, customization ).$results( event );
 				mockColdbox.$( "runEvent" ).$args(
 					  event         = defaultHandler

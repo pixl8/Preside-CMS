@@ -1,5 +1,5 @@
 /**
- * Provides logic for the system of per-object
+ * Provides logic for the system of per-object and global
  * customizations of datamanager
  *
  * @autodoc        true
@@ -30,6 +30,16 @@ component {
 	}
 
 	/**
+	 * Returns the global handler to use when object does not have
+	 * its own customizations
+	 *
+	 * @autodoc true
+	 */
+	public string function getGlobalCustomizationHandler() {
+		return "admin.datamanager.GlobalCustomizations";
+	}
+
+	/**
 	 * Returns the full coldbox event path for a given object and
 	 * customization action
 	 *
@@ -41,7 +51,26 @@ component {
 		  required string objectName
 		, required string action
 	) {
-		return getCustomizationHandlerForObject( arguments.objectName ) & "." & arguments.action;
+		var event = getCustomizationHandlerForObject( arguments.objectName ) & "." & arguments.action;
+
+		if ( !$getColdbox().handlerExists( event ) ) {
+			event = getGlobalCustomizationEvent( arguments.action );
+		}
+
+		return event;
+	}
+
+	/**
+	 * Returns the full coldbox event path for the given
+	 * customization action
+	 *
+	 * @autodoc    true
+	 * @action     Name of the customization action
+	 */
+	public string function getGlobalCustomizationEvent( required string action ) {
+		var event = getGlobalCustomizationHandler() & "." & arguments.action;
+
+		return $getColdbox().handlerExists( event ) ? event : "";
 	}
 
 	/**
@@ -55,7 +84,7 @@ component {
 		  required string objectName
 		, required string action
 	) {
-		return $getColdbox().handlerExists( getCustomizationEventForObject( arguments.objectName, arguments.action ) );
+		return getCustomizationEventForObject( arguments.objectName, arguments.action ).len() > 0;
 	}
 
 	/**
@@ -73,7 +102,17 @@ component {
 		,          struct args = {}
 		,          string defaultHandler = ""
 	) {
-		var event = objectHasCustomization( arguments.objectName, arguments.action ) ? getCustomizationEventForObject( arguments.objectName, arguments.action ) : arguments.defaultHandler;
+		var event = "";
+
+		if ( arguments.objectName.len() ) {
+			event = getCustomizationEventForObject( arguments.objectName, arguments.action );
+		} else {
+			event = getGlobalCustomizationEvent( arguments.action );
+		}
+
+		if ( !event.len() ) {
+			event = defaultHandler;
+		}
 
 		if ( Len( Trim( event ) ) ) {
 			return $getColdbox().runEvent(

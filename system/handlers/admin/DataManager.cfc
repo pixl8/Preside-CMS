@@ -2018,14 +2018,14 @@ component extends="preside.system.base.AdminHandler" {
 		};
 
 
-		if ( Len( Trim( args.objectname ?: "" ) ) ) {
-			customizationService.runCustomization(
-				  objectName     = args.objectName
-				, action         = "rootBreadcrumb"
-				, defaultHandler = "admin.datamanager._rootBreadcrumb"
-				, args           = args
-			);
+		customizationService.runCustomization(
+			  objectName     = args.objectName
+			, action         = "rootBreadcrumb"
+			, defaultHandler = "admin.datamanager._rootBreadcrumb"
+			, args           = args
+		);
 
+		if ( Len( Trim( args.objectname ?: "" ) ) ) {
 			customizationService.runCustomization(
 				  objectName     = args.objectName
 				, action         = "objectBreadcrumb"
@@ -2041,12 +2041,6 @@ component extends="preside.system.base.AdminHandler" {
 					, args           = args
 				);
 			}
-		} else {
-			runEvent(
-				  event         = "admin.datamanager._rootBreadcrumb"
-				, private       = true
-				, prePostExempt = true
-			);
 		}
 	}
 }
