@@ -25,6 +25,7 @@ component displayName="Preside Object Service" {
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @coldboxController.inject      coldbox
 	 * @interceptorService.inject     coldbox:InterceptorService
+	 * @reloadDb.inject               coldbox:setting:syncDb
 	 */
 	public any function init(
 		  required array   objectDirectories
@@ -181,26 +182,18 @@ component displayName="Preside Object Service" {
 		,          boolean getSqlAndParamsOnly = false
 		,          boolean distinct            = false
 	) autodoc=true {
-		var args = _cleanupPropertyAliases( argumentCollection=arguments );
+		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
 		}
 
-		var objMeta = _getObject( args.objectName ).meta;
-		var adapter = _getAdapter( objMeta.dsn );
-
-		args.selectFields   = parseSelectFields( argumentCollection=args );
-
 		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
 		}
-		args.preparedFilter = _prepareFilter(
-			  argumentCollection = args
-			, adapter            = adapter
-			, columnDefinitions  = objMeta.properties
-		);
+
+		args.extraFilters.append( _expandSavedFilters( argumentCollection=arguments ), true );
 
 		if ( args.useCache ) {
 			args.cachekey = args.objectName & "_" & Hash( LCase( Serialize( args ) ) );
@@ -212,6 +205,17 @@ component displayName="Preside Object Service" {
 				return cachedResult;
 			}
 		}
+
+		var objMeta = _getObject( args.objectName ).meta;
+		var adapter = _getAdapter( objMeta.dsn );
+
+		args.selectFields   = parseSelectFields( argumentCollection=args );
+		args.preparedFilter = _prepareFilter(
+			  argumentCollection = args
+			, adapter            = adapter
+			, columnDefinitions  = objMeta.properties
+		);
+
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
 		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
@@ -312,7 +316,7 @@ component displayName="Preside Object Service" {
 			return interceptorResult.returnValue ?: "";
 		}
 
-		var args               = _cleanupPropertyAliases( argumentCollection=arguments );
+		var args               = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 		var obj                = _getObject( args.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var dateCreatedField   = getDateCreatedField( args.objectName );
@@ -326,7 +330,7 @@ component displayName="Preside Object Service" {
 		var rightNow           = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
 		var cleanedData        = _addDefaultValuesToDataSet( args.objectName, args.data );
 		var manyToManyData     = {};
-		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName );
+		var requiresVersioning = args.useVersioning && objectIsVersioned( args.objectName ) && versioningRequiredOnInsert( args.objectName );
 		var versionNumber      = 0;
 
 		cleanedData.append( _addGeneratedValues(
@@ -763,7 +767,7 @@ component displayName="Preside Object Service" {
 			return Val( interceptorResult.returnValue ?: 0 );
 		}
 
-		var args           = _cleanupPropertyAliases( argumentCollection=arguments );
+		var args           = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 		var obj            = _getObject( args.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
 		var sql            = "";
@@ -1144,16 +1148,19 @@ component displayName="Preside Object Service" {
 		,          array   selectFields     = []
 	) autodoc=true {
 		var props          = getObjectProperties( arguments.objectName );
+		var adapter        = getDbAdapterForObject( arguments.objectName );
+		var escapedId      = adapter.escapeEntity( "id" );
 		var manyToManyData = {};
 
 		for( var prop in props ) {
 			if ( ( !arguments.selectFields.len() || arguments.selectFields.findNoCase( prop ) ) ) {
 				if ( isManyToManyProperty( arguments.objectName, prop ) ) {
 
+					var idField = getIdField( props[ prop ].relatedTo ?: "" );
 					var records = selectData(
 						  objectName       = arguments.objectName
 						, id               = arguments.id
-						, selectFields     = [ "#prop#.id" ]
+						, selectFields     = [ adapter.escapeEntity( "#prop#.#idField#" ) & " as #escapedId#" ]
 						, fromVersionTable = arguments.fromVersionTable
 						, specificVersion  = arguments.specificVersion
 					);
@@ -1458,6 +1465,18 @@ component displayName="Preside Object Service" {
 		var obj = _getObject( objectName );
 
 		return IsBoolean( obj.meta.versioned ?: "" ) && obj.meta.versioned;
+	}
+
+	/**
+	 * Returns whether or not the given object is configured to create
+	 * versions on insert
+	 *
+	 * @objectName.hint Name of the object you wish to check
+	 */
+	public boolean function versioningRequiredOnInsert( required string objectName ) {
+		var versionOnInsert = getObjectAttribute( arguments.objectName, "versionOnInsert" );
+
+		return !IsBoolean( versionOnInsert ) || versionOnInsert;
 	}
 
 	/**
@@ -2078,11 +2097,12 @@ component displayName="Preside Object Service" {
 	private struct function _cleanupPropertyAliases() {
 		var aliasCache = _getAliasCache();
 		if ( aliasCache.isEmpty() ) {
-			return Duplicate( arguments );
+			return arguments;
 		}
 
-		var args        = Duplicate( arguments );
+		var args        = arguments;
 		var aliasRegex  = _getAlaisedAliasRegex();
+		var systemCache = _getCache();
 
 		var findAndReplace = function( plainString ) {
 			if ( Len( aliasCache[ args.objectName ][ plainString ] ?: "" ) ) {
@@ -2092,6 +2112,12 @@ component displayName="Preside Object Service" {
 					, aliasProperty = plainString
 					, realProperty  = aliasCache[ args.objectName ][ plainString ]
 				} ];
+			}
+
+			var cacheKey = "_cleanupProperyAliasesFAndR#args.objectName##arguments.plainString#";
+			var cached   = systemCache.get( cacheKey );
+			if ( !IsNull( cached ) ) {
+				return cached;
 			}
 
 			var matches = _reSearch( aliasRegex, plainString );
@@ -2115,6 +2141,8 @@ component displayName="Preside Object Service" {
 				}
 			}
 
+			systemCache.set( cacheKey, results );
+
 			return results;
 		};
 		var structKeyReplacer = function( theStruct ){
@@ -2128,6 +2156,13 @@ component displayName="Preside Object Service" {
 			}
 		}
 		var simpleReplacer = function( plainString, addAsAlias=false ) {
+			var cacheKey = "_cleanupProperyAliasesReplacer#args.objectName##arguments.plainString##arguments.addAsAlias#";
+			var cached   = systemCache.get( cacheKey );
+
+			if( !IsNull( cached ) ) {
+				return cached;
+			}
+
 			var replaced    = plainString;
 			var fAndRResult = findAndReplace( plainString );
 
@@ -2137,6 +2172,8 @@ component displayName="Preside Object Service" {
 			if ( addAsAlias && fAndRResult.len() && !plainString.findNoCase( " as " ) ) {
 				replaced &= " as " & fAndRResult[1].aliasProperty;
 			}
+
+			systemCache.set( cacheKey, replaced );
 
 			return replaced;
 		}
@@ -2588,6 +2625,23 @@ component displayName="Preside Object Service" {
 		return _relationshipPathCalcCache[ cacheKey ];
 	}
 
+	private array function _expandSavedFilters( required array savedFilters ) {
+		var expanded      = [];
+		var filterService = _getFilterService();
+
+		for( var savedFilter in arguments.savedFilters ){
+			savedFilter = filterService.getFilter( savedFilter );
+
+			expanded.append({
+				  filter       = savedFilter.filter       ?: {}
+				, filterParams = savedFilter.filterParams ?: {}
+				, having       = savedFilter.having       ?: ""
+			});
+		}
+
+		return expanded;
+	}
+
 	private struct function _prepareFilter(
 		  required string objectName
 		, required any    filter
@@ -2609,37 +2663,6 @@ component displayName="Preside Object Service" {
 		};
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
 			result.filterParams.append( Duplicate( result.filter ) );
-		}
-
-		for( var savedFilter in arguments.savedFilters ){
-			savedFilter = _getFilterService().getFilter( savedFilter );
-
-			savedFilter.filter       = savedFilter.filter       ?: {};
-			savedFilter.filterParams = savedFilter.filterParams ?: {};
-			savedFilter.having       = savedFilter.having       ?: "";
-
-			savedFilter = _cleanupPropertyAliases( argumentCollection=savedFilter, objectName=arguments.objectName );
-			savedFilter.delete( "objectName" );
-
-			result.filterParams.append( savedFilter.filterParams ?: {} );
-			if ( IsStruct( savedFilter.filter ) ) {
-				result.filterParams.append( savedFilter.filter );
-			}
-
-			result.filter = mergeFilters(
-				  filter1    = result.filter
-				, filter2    = savedFilter.filter
-				, dbAdapter  = arguments.adapter
-				, tableAlias = arguments.objectName
-			);
-			if ( Len( Trim( savedFilter.having ) ) ) {
-				result.having = mergeFilters(
-					  filter1    = result.having
-					, filter2    = savedFilter.having
-					, dbAdapter  = arguments.adapter
-					, tableAlias = arguments.objectName
-				);
-			}
 		}
 
 		for( var extraFilter in arguments.extraFilters ){

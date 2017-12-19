@@ -38,7 +38,7 @@
 
 <cffunction name="fileSizeFormat" access="public" returntype="string" output="false">
 	<cfargument name="fileSizeInBytes" type="numeric" required="true" />
-	<cfargument name="locale"          type="string"  required="false" default="#getController().getPlugin( "i18n" ).getfwLocale()#" />
+	<cfargument name="locale"          type="string"  required="false" default="#getController().getWireBox().getInstance( "i18n" ).getfwLocale()#" />
 
 	<cfscript>
 		var units   = [ "bytes", "KB", "MB", "GB", "TB", "PB" ];

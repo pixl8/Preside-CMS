@@ -427,12 +427,14 @@ component extends="testbox.system.BaseSpec" {
 				var expires     = Now();
 				var nextRunDate = DateAdd( "h", 1, expires );
 				var threadId    = CreateUUId();
+				var machineId   = CreateUUId();
 
 				tm.$( "getNextRunDate" ).$args( taskKey ).$results( nextRunDate );
+				tm.$( "_getMachineId", machineId );
 
 				tm.$( "getTaskRunExpiry" ).$args( taskKey ).$results( expires );
 				mockTaskDao.$( "updateData" ).$args(
-					  data = { is_running = true, next_run=nextRunDate, run_expires=expires, running_thread=threadId }
+					  data = { is_running = true, next_run=nextRunDate, run_expires=expires, running_thread=threadId, running_machine=machineId }
 					, filter = { task_key = taskKey }
 				).$results( 1 );
 
@@ -687,6 +689,7 @@ component extends="testbox.system.BaseSpec" {
 		mockCfThreadHelper   = mockbox.createStub();
 		mockErrorLogService  = mockbox.createStub();
 		mockSiteService      = mockbox.createStub();
+		mockTaskScheduler    = mockbox.createStub();
 		mockLogger           = _getMockLogger();
 
 		configWrapper.$( "getConfiguredTasks", arguments.dummyConfig );
@@ -707,6 +710,7 @@ component extends="testbox.system.BaseSpec" {
 			, cfThreadHelper             = mockCfThreadHelper
 			, errorLogService            = mockErrorLogService
 			, siteService                = mockSiteService
+			, taskScheduler              = mockTaskScheduler
 		);
 	}
 

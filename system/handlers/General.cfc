@@ -12,6 +12,7 @@ component {
 		prc._presideReloaded = true;
 
 		_performDbMigrations();
+		_configureVariousServices();
 		_populateDefaultLanguages();
 		_populateAutoRulesEngineExpressions();
 		announceInterception( "onApplicationStart" );
@@ -186,5 +187,9 @@ component {
 
 	private void function _populateAutoRulesEngineExpressions() {
 		expressionGenerator.generateAndRegisterAutoExpressions();
+	}
+
+	private void function _configureVariousServices() {
+		getModel( "i18n" ).configure();
 	}
 }

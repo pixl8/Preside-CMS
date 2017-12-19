@@ -2,7 +2,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="presideObjectService" inject="presideObjectService";
 	property name="loginService"         inject="loginService";
-	property name="messageBox"           inject="coldbox:plugin:messageBox";
+	property name="messageBox"           inject="messagebox@cbmessagebox";
 	property name="bCryptService"        inject="bCryptService";
 
 	function prehandler( event, rc, prc ) output=false {
@@ -69,6 +69,22 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, auditAction      = "add_user_group"
 				, auditType        = "usermanager"
 			}
+		);
+	}
+
+	function viewGroup( event, rc, prc ) {
+		_checkPermissions( event=event, key="groupmanager.read" );
+
+		prc.record = presideObjectService.selectData( objectName="security_group", filter={ id=rc.id ?: "" } );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:usermanager.groupNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.groups" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:usermanager.viewGroup.page.title", data=[ prc.record.label ] )
+			, link  = event.buildAdminLink( linkTo="usermanager.viewGroup", queryString="id=#rc.id#" )
 		);
 	}
 
@@ -184,6 +200,22 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
+	function viewUser( event, rc, prc ) {
+		_checkPermissions( event=event, key="usermanager.read" );
+
+		prc.record = presideObjectService.selectData( objectName="security_user", filter={ id=rc.id ?: "" } );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:usermanager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.users" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:usermanager.viewUser.page.title", data=[ prc.record.known_as ] )
+			, link  = event.buildAdminLink( linkTo="usermanager.viewUser", queryString="id=#(rc.id ?: '')#" )
+		);
+	}
+
 	function editUser( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="usermanager.edit" );
 
@@ -270,6 +302,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		messageBox.error( translateResource( uri="cms:usermanager.recordNotDeleted.unknown.error" ) );
 		setNextEvent( url=postActionUrl );
+	}
+
+	private string function buildUserLink( event, rc, prc, recordId="" ) {
+		return event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#arguments.recordId#" );
+	}
+
+	private string function buildGroupLink( event, rc, prc, recordId="" ) {
+		return event.buildAdminLink( linkto="usermanager.viewGroup", queryString="id=#arguments.recordId#" );
 	}
 
 // private utility
