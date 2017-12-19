@@ -1907,7 +1907,23 @@ component extends="preside.system.base.AdminHandler" {
 	private void function _loadCommonVariables( event, action, eventArguments ) {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
-		var e    = "";
+		var e   = "";
+		var useAnyWhereActions = [
+			  "getChildObjectRecordsForAjaxDataTables"
+			, "getObjectRecordsForAjaxSelectControl"
+			, "quickAddForm"
+			, "quickAddRecordAction"
+			, "quickEditForm"
+			, "quickEditRecordAction"
+			, "configuratorForm"
+			, "multiOneToManyRecordAction"
+			, "manageOneToManyRecords"
+			, "addOneToManyRecord"
+			, "editOneToManyRecord"
+			, "editOneToManyRecordAction"
+			, "dataExportConfigModal"
+			, "exportDataAction"
+		];
 
 		prc.objectName  = "";
 		prc.objectTitle = "";
@@ -1932,7 +1948,10 @@ component extends="preside.system.base.AdminHandler" {
 		if ( Len( Trim( prc.objectName ) ) ) {
 			_checkObjectExists( argumentCollection=arguments, object=prc.objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=prc.objectName );
-			_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
+
+			if ( !useAnyWhereActions.findNoCase( arguments.action ) ) {
+				_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
+			}
 
 			prc.objectTitle         = translateResource( uri=presideObjectService.getResourceBundleUriRoot( prc.objectName ) & "title.singular", defaultValue=prc.objectName );
 			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
