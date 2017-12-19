@@ -830,9 +830,8 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		var objectName = rc.object ?: "";
+		var objectName = prc.objectName ?: "";
 
-		_checkObjectExists( argumentCollection=arguments, object=objectName );
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
 		runEvent(
