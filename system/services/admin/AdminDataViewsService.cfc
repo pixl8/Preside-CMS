@@ -155,66 +155,6 @@ component {
 	}
 
 	/**
-	 * Returns the handler to use in order to build an admin view record link
-	 * for an object record
-	 *
-	 * @autodoc    true
-	 * @objectName Name of the object whose admin view record link handler you wish to get
-	 */
-	public string function getBuildAdminLinkHandlerForObject( required string objectName ) {
-		var args = arguments;
-
-		return _simpleLocalCache( "getBuildAdminLinkHandlerForObject_#arguments.objectName#", function(){
-			var definedHandler = $getPresideObjectService().getObjectAttribute(
-				  objectName    = args.objectName
-				, attributeName = "adminBuildViewLinkHandler"
-			);
-
-			if ( definedHandler.len() ) {
-				return definedHandler;
-			}
-
-			if ( _getDataManagerService().isObjectAvailableInDataManager( objectName=args.objectName ) ) {
-				return "admin.dataHelpers.getViewRecordLink";
-			}
-
-			return "";
-		} )
-	}
-
-	/**
-	 * Returns whether or not the given object has a corresponding view record link generator
-	 *
-	 * @autodoc true
-	 * @objectName Name of the object to check
-	 *
-	 */
-	public boolean function doesObjectHaveBuildAdminLinkHandler( required string objectName ) {
-		return getBuildAdminLinkHandlerForObject( objectName=arguments.objectName ).trim().len() > 0;
-	}
-
-	/**
-	 * Builds an admin view link for the given object, record ID
-	 * and any other arbitrary arguments
-	 *
-	 * @autodoc    true
-	 * @objectName Name of the object for whose record you wish to build a link
-	 * @recordId   ID of the record for whom to build a link
-	 */
-	public string function buildViewObjectRecordLink( required string objectName, required string recordId ) {
-		if ( doesObjectHaveBuildAdminLinkHandler( objectName=arguments.objectName ) ) {
-			return $getColdbox().runEvent(
-				  event          = getBuildAdminLinkHandlerForObject( objectName=arguments.objectName )
-				, eventArguments = {}.append( arguments )
-				, private        = true
-				, prePostExempt  = true
-			);
-		}
-
-		return "";
-	}
-
-	/**
 	 * Returns array of property names in expected order that
 	 * can be rendered for a given object
 	 *

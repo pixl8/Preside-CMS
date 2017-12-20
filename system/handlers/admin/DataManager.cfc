@@ -1681,7 +1681,7 @@ component extends="preside.system.base.AdminHandler" {
 			permitted = false;
 		} else if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && (!arguments.object.len() || !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) ) {
 			permitted = false;
-		} else {
+		} else if ( arguments.object.len() ) {
 			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );
 
 			if ( allowedSiteTemplates != "*" && !ListFindNoCase( allowedSiteTemplates, siteService.getActiveSiteTemplate() ) ) {

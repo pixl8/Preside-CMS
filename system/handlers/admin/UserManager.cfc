@@ -304,14 +304,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=postActionUrl );
 	}
 
-	private string function buildUserLink( event, rc, prc, recordId="" ) {
-		return event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#arguments.recordId#" );
-	}
-
-	private string function buildGroupLink( event, rc, prc, recordId="" ) {
-		return event.buildAdminLink( linkto="usermanager.viewGroup", queryString="id=#arguments.recordId#" );
-	}
-
 // private utility
 	private void function _checkPermissions( required any event, required string key ) output=false {
 		if ( !hasCmsPermission( arguments.key ) ) {

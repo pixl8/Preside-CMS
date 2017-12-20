@@ -1,7 +1,6 @@
 /**
  * The asset object represents the core data associated with any file uploaded into the Asset manager
  *
- * @adminBuildViewLinkHandler admin.assetManager.getViewAssetLink
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" {
 

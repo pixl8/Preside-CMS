@@ -1253,10 +1253,6 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/assetmanager/_locationGridActions", args=args );
 	}
 
-	private string function getViewAssetLink( event, rc, prc, recordId="" ) {
-		return event.buildAdminLink( linkTo="assetmanager.editAsset", querystring="asset=#arguments.recordId#" )
-	}
-
 // PRIVATE HELPERS
 	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permitted = "";

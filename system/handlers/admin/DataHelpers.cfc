@@ -12,23 +12,6 @@ component extends="preside.system.base.adminHandler" {
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 
 	/**
-	 * Method that is called from `adminDataViewsService.buildViewObjectRecordLink()`
-	 * for objects that are managed in the DataManager. Hint: this can also be invoked with:
-	 * `event.buildAdminLink( objectName=myObject, recordId=myRecordId )`
-	 *
-	 */
-	private string function getViewRecordLink( required string objectName, required string recordId ) {
-		if ( dataManagerService.isOperationAllowed( arguments.objectName, "read" ) ) {
-			return event.buildAdminLink(
-				  linkto      = "datamanager.viewRecord"
-				, queryString = "object=#arguments.objectName#&id=#arguments.recordId#"
-			);
-		}
-		return "";
-	}
-
-
-	/**
 	 * Method for rendering a record for an admin view
 	 *
 	 */
@@ -155,7 +138,7 @@ component extends="preside.system.base.adminHandler" {
 			} ]
 		} );
 
-		prc.viewRecordLink = adminDataViewsService.buildViewObjectRecordLink( objectName=relatedObject, recordId="{id}" );
+		prc.viewRecordLink = event.buildAdminLink( objectName=relatedObject, recordId="{id}", operation="viewRecord" );
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
