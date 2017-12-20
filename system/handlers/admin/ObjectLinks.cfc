@@ -29,4 +29,38 @@ component {
 		);
 	}
 
+	private string function buildAddRecordLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "add" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.addRecord"
+				, queryString = "object=#objectName#"
+			);
+		}
+
+		return "";
+	}
+
+	private string function buildSortRecordsLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		if ( dataManagerService.isSortable( objectName ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.sortRecords"
+				, queryString = "object=#objectName#"
+			);
+		}
+
+		return "";
+	}
+
+	private string function buildManagePermsLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.managePerms"
+			, queryString = "object=#objectName#"
+		);
+	}
 }

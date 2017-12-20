@@ -25,6 +25,7 @@ component extends="preside.system.base.AdminHandler" {
 		_loadCommonVariables( argumentCollection=arguments );
 		if ( !arguments.action.endsWith( "action" ) ) {
 			_loadCommonBreadCrumbs( argumentCollection=arguments );
+			_loadTopRightButtons( argumentCollection=arguments );
 		}
 	}
 
@@ -36,8 +37,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function object( event, rc, prc ) {
-		// all taken care of with common logic
+		var objectName        = prc.objectName        ?: "";
+		var objectTitle       = prc.objectTitlePlural ?: "";
+		var objectIcon        = prc.objectIcon        ?: "";
+		var objectDescription = prc.objectDescription ?: "";
+
+		prc.pageIcon        = objectIcon.reReplace( "^fa-", "" );
+		prc.pageTitle       = objectTitle;
+		prc.pageSubTitle    = objectDescription;
 	}
+
+	private string function objectListingExtraActions( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+
+	}
+
 
 	public void function viewRecord( event, rc, prc ) {
 		var objectName   = prc.objectName ?: "";
@@ -847,7 +862,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-<!--- VIEWLETS --->
+// VIEWLETS
 	private string function versionNavigator( event, rc, prc, args={} ) {
 		var selectedVersion = Val( args.version ?: "" );
 		var objectName      = args.object ?: "";
@@ -931,7 +946,48 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="admin/datamanager/versionNavigator", args=args );
 	}
 
-<!--- private events for sharing --->
+	private string function topRightButtons( event, rc, prc, args={} ){
+		var objectName  = args.objectName ?: "";
+		var objectTitle = prc.objectTitle ?: "";
+		var recordId    = args.recordId   ?: "";
+		var action      = args.action     ?: "";
+		var actions     = [];
+		var coreActions = {
+			  add          = { allowed=IsTrue( prc.canAdd         ?: "" ), operation="addRecord"  , btnClass="btn-success", iconClass="fa-plus"           , globalKey="a", title=translateResource( uri = "cms:datamanager.addrecord.title" , data = [ objectTitle ] ) }
+			, sort         = { allowed=IsTrue( prc.canEdit        ?: "" ), operation="sortRecords", btnClass="btn-info"   , iconClass="fa-sort-amount-asc", globalKey="o", title=translateResource( uri = "cms:datamanager.sortrecords.link", data = [ objectTitle ] ) }
+			, contextPerms = { allowed=IsTrue( prc.canManagePerms ?: "" ), operation="manageperms", btnClass="btn-default", iconClass="fa-lock"           , globalKey="p", title=translateResource( uri = "cms:datamanager.manageperms.link", data = [ objectTitle ] ) }
+		};
+
+		switch( action ) {
+			case "object":
+				actions = [ "add", "sort", "contextPerms" ];
+			break;
+		}
+
+		for( var i=actions.len(); i>0; i-- ) {
+			if ( coreActions[ actions[ i ] ].allowed ) {
+				actions[ i ] = coreActions[ actions[ i ] ];
+				actions[ i ].link = event.buildAdminLink( objectName=objectName, operation=actions[ i ].operation, recordId=recordId );
+			} else {
+				actions.deleteAt( i );
+			}
+		}
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "extraTopRightButtons"
+			, args           = { objectName=objectName, action=action, actions=actions }
+		);
+
+		var rendered = "";
+		for( var actionToRender in actions ) {
+			rendered &= renderView( view="/admin/datamanager/_topRightButton", args=actionToRender );
+		}
+
+		return rendered;
+	}
+
+// private events for sharing
 	private void function _getObjectRecordsForAjaxDataTables(
 		  required any     event
 		, required struct  rc
@@ -1822,7 +1878,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 
-<!--- private utility methods --->
+// private utility methods
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return dataManagerService.listGridFields( arguments.objectName );
 	}
@@ -1920,6 +1976,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.objectName        = "";
 		prc.objectTitle       = "";
 		prc.objectTitlePlural = "";
+		prc.objectIconClass   = "";
+		prc.objectDescription = "";
 		prc.recordId          = "";
 		prc.record            = "";
 		prc.recordLabel       = "";
@@ -1951,6 +2009,8 @@ component extends="preside.system.base.AdminHandler" {
 			prc.objectRootUri       = presideObjectService.getResourceBundleUriRoot( prc.objectName );
 			prc.objectTitle         = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
 			prc.objectTitlePlural   = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
+			prc.objectIconClass     = translateResource( uri=prc.objectRootUri & "iconClass"     , defaultValue="fa-puzzle-piece" );
+			prc.objectDescription   = translateResource( uri=prc.objectRootUri & "description"   , defaultValue="" );
 			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
 			prc.canView             = _checkPermission( argumentCollection=arguments, key="read"              , throwOnError=false );
 			prc.canAdd              = _checkPermission( argumentCollection=arguments, key="add"               , throwOnError=false );
@@ -2052,5 +2112,16 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			}
 		}
+	}
+
+	private void function _loadTopRightButtons( event, action, eventArguments ) {
+		var objectName = prc.objectName ?: "";
+
+		prc.topRightButtons = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "topRightButtons"
+			, defaultHandler = "admin.datamanager.topRightButtons"
+			, args           = { objectName=objectName, action=arguments.action }
+		);
 	}
 }
