@@ -3,20 +3,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 	function run() {
 		describe( "buildLink", function(){
 			it( "should call customization action based on operation name", function(){
-				var service    = _getService();
-				var objectName = "some_obejct";
-				var link       = "test" & CreateUUId();
-				var recordId   = CreateUUId();
-				var operation  = "someoperation";
+				var service        = _getService();
+				var objectName     = "some_obejct";
+				var link           = "test" & CreateUUId();
+				var recordId       = CreateUUId();
+				var operation      = "someoperation";
+				var additionalArgs = { test="tis" }
 
 				mockCustomizationService.$( "runCustomization" ).$args(
 					  objectName     = objectName
 					, action         = "build#operation#Link"
-					, args           = { objectName=objectName, recordId=recordId }
+					, args           = { objectName=objectName, recordId=recordId, test="tis" }
 					, defaultHandler = "admin.objectLinks.build#operation#Link"
 				).$results( link );
 
-				expect( service.buildlink( objectName=objectName, operation=operation, recordId=recordId ) ).toBe( link );
+				expect( service.buildlink( objectName=objectName, operation=operation, recordId=recordId, args=additionalArgs ) ).toBe( link );
 			} );
 
 			it( "should return an empty string when action returns null (i.e. no matching link builder found)", function(){

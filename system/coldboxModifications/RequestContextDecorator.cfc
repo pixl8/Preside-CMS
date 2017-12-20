@@ -184,8 +184,9 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		if ( arguments.keyExists( "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
-				, recordId   = arguments.recordId ?: ""
+				, recordId   = arguments.recordId  ?: ""
 				, operation  = arguments.operation ?: ( Len( Trim( arguments.recordId ?: "" ) ) ? "viewRecord" : "listing" )
+				, args       = arguments.args      ?: {}
 			};
 
 			return getModel( "adminObjectLinkBuilderService" ).buildLink( argumentCollection=args );

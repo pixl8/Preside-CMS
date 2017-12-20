@@ -28,23 +28,26 @@ component {
 	 * @objectName Name of the object
 	 * @operation  Operation to link to, e.g. listing, add, view, edit, editAction, etc.
 	 * @recordId   ID of the record to link to. Required for record based operations
+	 * @args       Any additional args to send to the link builder
 	 */
 	public string function buildLink(
 		  required string objectName
 		, required string operation
 		,          string recordId   = ""
+		,          struct args       = {}
 	) {
 		var customizationAction = "build#arguments.operation#Link";
-		var args                = { objectName=arguments.objectName };
+		var customizationArgs   = { objectName=arguments.objectName };
 
+		customizationArgs.append( arguments.args );
 		if ( Len( Trim( arguments.recordId ) ) ) {
-			args.recordId = arguments.recordId;
+			customizationArgs.recordId = arguments.recordId;
 		}
 
 		var result = _getCustomizationService().runCustomization(
 			  objectName     = arguments.objectName
 			, action         = customizationAction
-			, args           = args
+			, args           = customizationArgs
 			, defaultHandler = "admin.objectLinks.#customizationAction#"
 		);
 

@@ -64,6 +64,23 @@ component {
 		);
 	}
 
+	private string function buildAjaxListingLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var qs         = "id=#objectName#";
+		var additionalArgs = [ "useMultiActions", "gridFields", "isMultilingual", "draftsEnabled" ];
+
+		for( var arg in additionalArgs ) {
+			if ( args.keyExists( arg ) ) {
+				qs &= "&#arg#=#args[ arg ]#";
+			}
+		}
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.getObjectRecordsForAjaxDataTables"
+			, queryString = qs
+		);
+	}
+
 	private string function buildMultiRecordActionLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
@@ -72,4 +89,18 @@ component {
 			, queryString = "object=#objectName#"
 		);
 	}
+
+	private string function buildExportDataActionLink( event, rc, prc, args={} ) {
+		return event.buildAdminLink( linkTo = "datamanager.exportDataAction" );
+	}
+
+	private string function buildDataExportConfigModalLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.dataExportConfigModal"
+			, queryString = "object=#objectName#"
+		);
+	}
+
 }
