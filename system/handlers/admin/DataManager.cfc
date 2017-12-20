@@ -1077,6 +1077,12 @@ component extends="preside.system.base.AdminHandler" {
 			getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
 		}
 
+		customizationService.runCustomization(
+			  objectName = arguments.object
+			, action     = "preFetchRecordsForGridListing"
+			, args       = getRecordsArgs
+		);
+
 		var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
 		var records = Duplicate( results.records );
 
