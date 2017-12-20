@@ -64,8 +64,9 @@ component {
 					};
 				}
 				groups[ groupId ].objects.append( {
-					  id    = objectName
-					, title = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
+					  id        = objectName
+					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
+					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-puzzle-piece" )
 				} );
 			}
 		}

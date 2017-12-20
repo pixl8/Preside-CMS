@@ -19,7 +19,7 @@
 						<ul class="list-unstyled" data-nav-list="#listIndex#" data-nav-list-child-selector="li a">
 							<cfloop array="#group.objects#" index="obj">
 								<li>
-									<i class="fa fa-puzzle-piece"></i>
+									<i class="fa fa-fw #obj.iconClass#"></i>&nbsp;
 									<a href="#event.buildAdminLink( objectName=obj.id, operation="listing" )#">
 										#obj.title#
 									</a>
