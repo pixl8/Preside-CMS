@@ -1,13 +1,14 @@
 <cfscript>
 	objectName          = rc.id          ?: "";
 	gridFields          = prc.gridFields ?: ["label","datecreated","datemodified"];
-	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
-	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
+	objectTitle         = prc.objectTitlePlural ?: "";
+	objectTitleSingular = prc.objectTitle       ?: "";
+	objectIcon          = translateResource( uri = "preside-objects.#objectName#:iconClass"     , defaultValue = "" );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
 	addRecordTitle      = translateResource( uri = "cms:datamanager.addrecord.title"            , data = [  objectTitleSingular  ] );
 	managePermsTitle    = translateResource( uri = "cms:datamanager.manageperms.link"           , data = [  objectTitleSingular  ] );
 
-	prc.pageIcon        = "puzzle-piece";
+	prc.pageIcon        = objectIcon.reReplace( "^fa-", "" );
 	prc.pageTitle       = objectTitle;
 	prc.pageSubTitle    = objectDescription;
 	batchEditableFields = prc.batchEditableFields ?: {};
