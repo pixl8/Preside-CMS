@@ -45,6 +45,25 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageIcon        = objectIcon.reReplace( "^fa-", "" );
 		prc.pageTitle       = objectTitle;
 		prc.pageSubTitle    = objectDescription;
+
+		if ( customizationService.objectHasCustomization( objectName, "listingViewlet" ) ) {
+			prc.listingView = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "listingViewlet"
+				, args       = { objectName=objectName }
+			);
+		} else {
+			prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args={
+				  objectName          = objectName
+				, useMultiActions     = IsTrue( prc.canDelete      ?: "" )
+				, multiActionUrl      = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
+				, batchEditableFields = prc.batchEditableFields ?: {}
+				, gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
+				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
+				, allowDataExport     = true
+			} );
+		}
 	}
 
 	private string function objectListingExtraActions( event, rc, prc, args={} ) {
