@@ -207,7 +207,7 @@ component {
 			, "systemInformation"
 		];
 
-		settings.uploads_directory = ExpandPath( "/uploads" );
+		settings.uploads_directory = ExpandPath( settings.appBasePath & "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
 		};
@@ -298,7 +298,7 @@ component {
 		};
 
 		settings.static = {
-			  rootUrl        = ""
+			  rootUrl        = settings.appBasePath
 			, siteAssetsPath = "/assets"
 			, siteAssetsUrl  = "/assets"
 		};
