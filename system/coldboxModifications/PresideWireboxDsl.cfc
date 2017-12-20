@@ -45,14 +45,14 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" output=false {
 
 		var directories = [ "/preside/system#subDir#" ];
 
-		for( var i=extensions.len(); i > 0; i-- ){
-			directories.append( extensions[i].directory & subDir );
+		for( var extension in extensions ){
+			directories.append( extension.directory & subDir );
 		}
 
 		directories.append( appMapping & subDir );
 
-		for( var i=extensions.len(); i > 0; i-- ){
-			for( var dir in _findSiteTemplateDirectories( extensions[i].directory, subDir ) ){
+		for( var extension in extensions ){
+			for( var dir in _findSiteTemplateDirectories( extension.directory, subDir ) ){
 				directories.append( dir );
 			}
 		}

@@ -66,6 +66,9 @@
 				$cancelBtn.prop( "disabled", true );
 				$cancelBtn.addClass( "btn-disabled disabled" );
 			}
+
+			$progressBar.removeClass( "active" );
+			$progressBar.removeClass( "progress-striped" );
 		}
 	};
 

@@ -562,7 +562,7 @@ component {
 			appBasePath = ( site.path == "/" ) ? "" : site.path;
 		}
 
-		if ( ! Len(adminBasePath) ) {
+		if ( ! Len(appBasePath) ) {
 			return appBasePath;
 		}
 

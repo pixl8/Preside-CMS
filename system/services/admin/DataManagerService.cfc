@@ -295,15 +295,15 @@ component {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			args = {
-				  objectName   = arguments.objectName
-				, id           = arguments.recordId
-				, selectFields = [ "count( * ) as nRows" ]
+				  objectName      = arguments.objectName
+				, id              = arguments.recordId
+				, recordCountOnly = true
 			};
 			if ( Len( Trim( arguments.property ) ) ) {
 				args.fieldName = arguments.property;
 			}
 
-			result.totalRecords = _getPresideObjectService().getRecordVersions( argumentCollection = args ).nRows;
+			result.totalRecords = _getPresideObjectService().getRecordVersions( argumentCollection = args );
 		}
 
 		return result;
@@ -413,6 +413,9 @@ component {
 			return result;
 		};
 		var labelField         = _getPresideOBjectService().getLabelField( arguments.objectName );
+		if (args.orderBy is 'label') {
+			args.orderBy = labelField;
+		}
 		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 		if ( len( arguments.labelRenderer ) ) {
@@ -428,12 +431,16 @@ component {
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
+			var searchFields = [ labelField ];
+			if ( len( arguments.labelRenderer ) ) {
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery
 				, objectName   = arguments.objectName
 				, gridFields   = args.selectFields
 				, labelfield   = labelfield
-				, searchFields = [ labelField ]
+				, searchFields = searchFields
 			);
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
@@ -585,6 +592,9 @@ component {
 
 			if ( fieldRelationship == "many-to-one" ) {
 				var relatedLabelField = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+				var delim             = relatedLabelField.find( "$" ) ? "$" : ".";
+
+				relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
 
 				newOrderBy.append( relatedLabelField & " " & orderDirection );
 			} else {

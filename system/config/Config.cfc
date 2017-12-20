@@ -207,7 +207,7 @@ component {
 			, "systemInformation"
 		];
 
-		settings.uploads_directory = ExpandPath( "/uploads" );
+		settings.uploads_directory = ExpandPath( settings.appBasePath & "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
 		};
@@ -252,7 +252,7 @@ component {
 				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read" ]
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 				, serviceProviders = [ "manage" ]
-				, settings         = [ "navigate", "manage" ]
+				, settings         = [ "navigate", "manage", "resend" ]
 				, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
 				, logs             = [ "view" ]
 				, queue            = [ "view", "clear" ]
@@ -298,7 +298,7 @@ component {
 		};
 
 		settings.static = {
-			  rootUrl        = ""
+			  rootUrl        = settings.appBasePath
 			, siteAssetsPath = "/assets"
 			, siteAssetsUrl  = "/assets"
 		};
@@ -324,6 +324,7 @@ component {
 			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
+			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
@@ -685,7 +686,7 @@ component {
 			, "created_by"
 			, "site_url"
 		] };
-		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", parameters=[
+		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
@@ -694,7 +695,7 @@ component {
 			, { id="submission_preview"  , required=true }
 			, { id="notification_subject", required=false }
 		] };
-		templates.notification = { feature="cms", recipientType="adminUser", parameters=[
+		templates.notification = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="admin_link"          , required=true  }
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
@@ -703,7 +704,7 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", parameters=[
+		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
@@ -727,9 +728,10 @@ component {
 		serviceProviders.smtp = {};
 
 		return {
-			  templates        = templates
-			, recipientTypes   = recipientTypes
-			, serviceProviders = serviceProviders
+			  templates            = templates
+			, recipientTypes       = recipientTypes
+			, serviceProviders     = serviceProviders
+			, defaultContentExpiry = 30
 		};
 	}
 
