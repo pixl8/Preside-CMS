@@ -56,7 +56,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args={
 				  objectName          = objectName
 				, useMultiActions     = IsTrue( prc.canDelete      ?: "" )
-				, multiActionUrl      = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
+				, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
 				, batchEditableFields = prc.batchEditableFields ?: {}
 				, gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )

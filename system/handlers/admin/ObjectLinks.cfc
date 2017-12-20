@@ -63,4 +63,13 @@ component {
 			, queryString = "object=#objectName#"
 		);
 	}
+
+	private string function buildMultiRecordActionLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.multiRecordAction"
+			, queryString = "object=#objectName#"
+		);
+	}
 }
