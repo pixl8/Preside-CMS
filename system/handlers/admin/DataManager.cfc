@@ -1086,6 +1086,12 @@ component extends="preside.system.base.AdminHandler" {
 		var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
 		var records = Duplicate( results.records );
 
+		customizationService.runCustomization(
+			  objectName = arguments.object
+			, action     = "postFetchRecordsForGridListing"
+			, args       = { records=records, objectName=arguments.object }
+		);
+
 		if ( !actionsView.trim().len() ) {
 			var viewRecordLink    = event.buildAdminLink( objectName=object, recordId="{id}" );
 			var editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id={id}&resultAction=grid" );
