@@ -20,4 +20,13 @@ component {
 		return "";
 	}
 
+	private string function buildListingLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.object"
+			, queryString = "id=#objectName#"
+		);
+	}
+
 }

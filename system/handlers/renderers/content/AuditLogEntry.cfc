@@ -15,10 +15,10 @@ component {
 		var labelField   = objectName.len() ? presideObjectService.getObjectAttribute( objectName, "labelField" ) : "";
 		var userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
 		var objectTitle  = translateResource( uri="preside-objects.#objectName#:title.singular" );
-		var objectUrl    = event.buildAdminLink( linkTo="datamanager.object", queryString="id=" & objectName );
+		var objectUrl    = event.buildAdminLink( objectName=objectName, operation="listing" );
 		var objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
 		var recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
-		var recordUrl    = event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#objectName#&id=#args.record_id#" );
+		var recordUrl    = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=record_id );
 		var recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
 
 		switch( action ) {

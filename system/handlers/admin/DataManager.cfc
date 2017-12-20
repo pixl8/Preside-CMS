@@ -111,7 +111,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		switch( resultAction ) {
 			case "grid":
-				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" );
+				prc.cancelAction = event.buildAdminLink( objectName=objectName, operation="listing" );
 			break;
 			default:
 				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" );
@@ -132,7 +132,7 @@ component extends="preside.system.base.AdminHandler" {
 		var successUrl = "";
 		switch( rc.__resultAction ?: "" ) {
 			case "grid":
-				successUrl = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" );
+				successUrl = event.buildAdminLink( objectName=objectName, operation="listing" );
 			break;
 			default:
 				successUrl = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" );
@@ -180,7 +180,13 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = prc.objectName ?: "";
 		var action     = rc.multiAction ?: "";
 		var ids        = prc.recordId   ?: "";
-		var listingUrl = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.object", queryString="id=#objectName#" );
+		var listingUrl = "";
+
+		if ( Len( Trim( rc.postAction ?: "" ) ) ) {
+			listingUrl = event.buildAdminLink( linkto=rc.postAction, queryString="id=#objectName#" );
+		} else {
+			listingUrl = event.buildAdminLink( objectName=objectName, operation="listing" );
+		}
 
 		if ( not Len( Trim( ids ) ) ) {
 			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
@@ -215,7 +221,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 		if ( !recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
 		prc.fieldFormControl = formsService.renderFormControlForObjectField(
@@ -265,7 +271,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 		if ( !sourceIds.len() ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
 		var success = datamanagerService.batchEditField(
@@ -278,10 +284,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		if( success ) {
 			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		} else {
 			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 	}
 
@@ -295,7 +301,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !useVersioning ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
 		event.addAdminBreadCrumb(
@@ -325,7 +331,7 @@ component extends="preside.system.base.AdminHandler" {
 			, link  = ""
 		);
 		if( isTrue( fromDataGrid ) ) {
-			prc.cancelAction     = event.buildAdminLink( linkTo="datamanager.object", querystring='id=#objectName#' );
+			prc.cancelAction     = event.buildAdminLink( objectName=objectName, operation="listing" );
 			prc.formAction       = event.buildAdminLink( linkTo="datamanager.translateRecordAction", querystring='fromDataGrid=#fromDataGrid#' );
 			prc.translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id=#id#&fromDataGrid=#fromDataGrid#&language=" );
 		}
@@ -348,7 +354,7 @@ component extends="preside.system.base.AdminHandler" {
 		var record = presideObjectService.selectData( objectName=objectName, filter={ id=id } );
 		if ( !record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
 		var formName = "preside-objects.#translationObjectName#.admin.edit";
@@ -406,7 +412,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordTranslated.confirmation", data=[ objectTitle ] ) );
 		if( isTrue( fromDataGrid ) ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#id#" ) );
 		}
@@ -540,7 +546,7 @@ component extends="preside.system.base.AdminHandler" {
 			);
 
 			messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ prc.objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#prc.objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="listing" ) );
 		}
 
 		messageBox.error( translateResource( uri="cms:datamanager.permsSaved.error", data=[ prc.objectTitle ] ) );
@@ -560,7 +566,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !useVersioning ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
 		event.addAdminBreadCrumb(
@@ -774,7 +780,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !datamanagerService.isSortable( objectName ) ) {
 			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
 		_checkPermission( argumentCollection=arguments, key="edit" );
@@ -795,7 +801,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !datamanagerService.isSortable( objectName ) ) {
 			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
@@ -806,7 +812,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectTitle  ] ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" ) );
+		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 	}
 
 	public void function dataExportConfigModal( event, rc, prc ) {
@@ -1229,7 +1235,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  addAnotherAction        = ""
 		,          string  addAnotherUrl           = ( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )
 		,          string  successAction           = ""
-		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )
+		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( objectname=arguments.object, operation="listing" ) )
 		,          boolean redirectOnSuccess       = true
 		,          string  formName                = "preside-objects.#arguments.object#.admin.add"
 		,          string  mergeWithFormName       = ""
@@ -1419,8 +1425,8 @@ component extends="preside.system.base.AdminHandler" {
 		, required struct  rc
 		, required struct  prc
 		,          string  object            = ( rc.object ?: '' )
-		,          string  postAction        = "datamanager.object"
-		,          string  postActionUrl     = ( rc.postActionUrl ?: ( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) ) )
+		,          string  postAction        = ""
+		,          string  postActionUrl     = ( rc.postActionUrl ?: ( Len( Trim( arguments.postAction ) ) ? event.buildAdminLink( linkTo=postAction ) : event.buildAdminLink( objectName=arguments.object, operation="listing" ) ) )
 		,          string  cancelUrl         = cgi.http_referer
 		,          boolean redirectOnSuccess = true
 		,          boolean audit             = false
@@ -1509,9 +1515,9 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  recordId                = ( rc.id     ?: '' )
 		,          string  errorAction             = ""
 		,          string  errorUrl                = ( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.editRecord", querystring="object=#arguments.object#&id=#arguments.recordId#" ) )
-		,          string  missingUrl              = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" )
+		,          string  missingUrl              = event.buildAdminLink( objectname=arguments.object, operation="listing" )
 		,          string  successAction           = ""
-		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )
+		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( objectname=arguments.object, operation="listing" ) )
 		,          boolean redirectOnSuccess       = true
 		,          string  formName                = "preside-objects.#object#.admin.edit"
 		,          string  mergeWithFormName       = ""
@@ -1873,7 +1879,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = objectTitle
-			, link  = event.buildAdminLink( linkTo="datamanager.object", querystring="id=#objectName#" )
+			, link  = event.buildAdminLink( objectName=objectName, operation="listing" )
 		);
 	}
 
@@ -1979,7 +1985,7 @@ component extends="preside.system.base.AdminHandler" {
 
 					if ( !prc.record.recordCount ) {
 						messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
-						setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#prc.objectName#" ) );
+						setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="listing" ) );
 					}
 				} else {
 					prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
@@ -1991,7 +1997,7 @@ component extends="preside.system.base.AdminHandler" {
 					prc.sourceRecord  = presideObjectService.selectData( objectName=prc.objectName, filter={ id=prc.recordId }, useCache=false );
 					if ( !prc.sourceRecord.recordCount ) {
 						messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
-						setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#prc.objectName#" ) );
+						setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="listing" ) );
 					}
 					if ( prc.useVersioning && prc.version ) {
 						prc.record = multiLingualPresideObjectService.selectTranslation( objectName=prc.objectName, id=prc.recordId, languageId=prc.language.id, useCache=false, version=prc.version );

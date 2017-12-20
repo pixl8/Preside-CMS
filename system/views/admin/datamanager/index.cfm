@@ -20,7 +20,7 @@
 							<cfloop array="#group.objects#" index="obj">
 								<li>
 									<i class="fa fa-puzzle-piece"></i>
-									<a href="#event.buildAdminLink( linkTo="datamanager.object", querystring="id=#obj.id#" )#">
+									<a href="#event.buildAdminLink( objectName=obj.id, operation="listing" )#">
 										#obj.title#
 									</a>
 								</li>

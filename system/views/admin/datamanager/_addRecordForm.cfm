@@ -9,7 +9,7 @@
 	param name="args.canPublish"              type="boolean" default=false;
 	param name="args.canSaveDraft"            type="boolean" default=false;
 	param name="args.validationResult"        type="any"     default=( rc.validationResult ?: '' );
-	param name="args.cancelAction"            type="string"  default=event.buildAdminLink( linkTo="datamanager.object", querystring='id=#args.objectName#' );
+	param name="args.cancelAction"            type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="listing" );
 	param name="args.cancelLabel"             type="string"  default=translateResource( "cms:datamanager.cancel.btn" );
 	param name="args.hiddenFields"            type="struct"  default={};
 	param name="args.fieldLayout"             type="string"  default="formcontrols.layouts.field";
