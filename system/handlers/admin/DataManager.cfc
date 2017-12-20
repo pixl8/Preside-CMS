@@ -565,9 +565,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		messageBox.error( translateResource( uri="cms:datamanager.permsSaved.error", data=[ prc.objectTitle ] ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="datamanager.managePerms", queryString="object=#prc.objectName#" ) );
+		setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="managePerms" ) );
 	}
-
 
 	public void function translationRecordHistory( event, rc, prc ) {
 		var objectName    = prc.objectName  ?: "";
@@ -953,9 +952,9 @@ component extends="preside.system.base.AdminHandler" {
 		var action      = args.action     ?: "";
 		var actions     = [];
 		var coreActions = {
-			  add          = { allowed=IsTrue( prc.canAdd         ?: "" ), operation="addRecord"  , btnClass="btn-success", iconClass="fa-plus"           , globalKey="a", title=translateResource( uri = "cms:datamanager.addrecord.title" , data = [ objectTitle ] ) }
-			, sort         = { allowed=IsTrue( prc.canEdit        ?: "" ), operation="sortRecords", btnClass="btn-info"   , iconClass="fa-sort-amount-asc", globalKey="o", title=translateResource( uri = "cms:datamanager.sortrecords.link", data = [ objectTitle ] ) }
-			, contextPerms = { allowed=IsTrue( prc.canManagePerms ?: "" ), operation="manageperms", btnClass="btn-default", iconClass="fa-lock"           , globalKey="p", title=translateResource( uri = "cms:datamanager.manageperms.link", data = [ objectTitle ] ) }
+			  add          = { operation="addRecord"  , btnClass="btn-success", iconClass="fa-plus"           , globalKey="a", title=translateResource( uri = "cms:datamanager.addrecord.title" , data = [ objectTitle ] ), allowed=IsTrue( prc.canAdd         ?: "" ) }
+			, sort         = { operation="sortRecords", btnClass="btn-info"   , iconClass="fa-sort-amount-asc", globalKey="o", title=translateResource( uri = "cms:datamanager.sortrecords.link", data = [ objectTitle ] ), allowed=IsTrue( prc.canEdit        ?: "" ) && dataManagerService.isSortable( objectName ) }
+			, contextPerms = { operation="manageperms", btnClass="btn-default", iconClass="fa-lock"           , globalKey="p", title=translateResource( uri = "cms:datamanager.manageperms.link", data = [ objectTitle ] ), allowed=IsTrue( prc.canManagePerms ?: "" ) }
 		};
 
 		switch( action ) {
@@ -1285,11 +1284,11 @@ component extends="preside.system.base.AdminHandler" {
 		, required struct  prc
 		,          string  object                  = ( rc.object ?: '' )
 		,          string  errorAction             = ""
-		,          string  errorUrl                = ( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )
+		,          string  errorUrl                = ( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( objectName=arguments.object, operation="addRecord" ) )
 		,          string  viewRecordAction        = ""
 		,          string  viewRecordUrl           = event.buildAdminLink( linkTo=( viewRecordAction.len() ? viewRecordAction : "datamanager.viewRecord" ), querystring="object=#arguments.object#&id={newid}" )
 		,          string  addAnotherAction        = ""
-		,          string  addAnotherUrl           = ( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )
+		,          string  addAnotherUrl           = ( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( objectName=arguments.object, operation="addRecord" ) )
 		,          string  successAction           = ""
 		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( objectname=arguments.object, operation="listing" ) )
 		,          boolean redirectOnSuccess       = true

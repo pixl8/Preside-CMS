@@ -7,6 +7,15 @@ component {
 
 	property name="dataManagerService" inject="dataManagerService";
 
+	private string function buildListingLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.object"
+			, queryString = "id=#objectName#"
+		);
+	}
+
 	private string function buildViewRecordLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 		var recordId   = args.recordId   ?: "";
@@ -18,15 +27,6 @@ component {
 			);
 		}
 		return "";
-	}
-
-	private string function buildListingLink( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
-
-		return event.buildAdminLink(
-			  linkto      = "datamanager.object"
-			, queryString = "id=#objectName#"
-		);
 	}
 
 	private string function buildAddRecordLink( event, rc, prc, args={} ) {
