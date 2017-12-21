@@ -6,16 +6,8 @@
     rows             = args.rows         ?: [];
     columns          = args.columns      ?: [];
     questionInputIds = args.questionInputIds ?: [];
-    multiple     = IsTrue( args.multiple ?: "" );
-
-    value = event.getValue( name=inputName, defaultValue=defaultValue );
-    if ( not IsSimpleValue( value ) ) {
-        value = "";
-    }
-
-    value = HtmlEditFormat( value );
-    valueFound = false;
-    inputType = multiple ? 'checkbox' : 'radio';
+    multiple         = IsTrue( args.multiple ?: "" );
+    inputType        = multiple ? 'checkbox' : 'radio';
 </cfscript>
 
 <cfoutput>
@@ -27,7 +19,14 @@
             </cfloop>
         </tr>
         <cfloop array="#rows#" item="question" index="i">
-            <cfset questionInputId = questionInputIds[ i ] ?: question />
+            <cfscript>
+                questionInputId = questionInputIds[ i ] ?: question;
+                value           = event.getValue( name=questionInputId, defaultValue=defaultValue );
+                if ( not IsSimpleValue( value ) ) {
+                    value = "";
+                }
+                value = HtmlEditFormat( value );
+            </cfscript>
             <tr>
                 <td>
                     <label>#question#</label>
