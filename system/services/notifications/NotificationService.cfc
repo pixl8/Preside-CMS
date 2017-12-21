@@ -186,7 +186,7 @@ component autodoc=true displayName="Notification Service" {
 		}
 
 		var records = _getConsumerDao().selectData(
-			  selectFields = [ "admin_notification.id", "admin_notification.topic", "admin_notification.data", "admin_notification.type", "admin_notification.datecreated", "admin_notification_consumer.read" ]
+			  selectFields = [ "admin_notification.id", "admin_notification.topic", "admin_notification.data", "admin_notification.type", "admin_notification.datecreated", _getConsumerDao().getDbAdapter().escapeEntity( "admin_notification_consumer.read" ) ]
 			, filter       = filter
 			, extraFilters = extraFilters
 			, startRow     = arguments.startRow
