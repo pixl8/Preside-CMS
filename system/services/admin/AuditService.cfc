@@ -132,7 +132,7 @@ component displayName="Audit Service" {
 				, "audit_log.user_agent"
 				, "security_user.email_address"
 				, "security_user.known_as"
-				, "audit_log.user"
+				, _getDao().getDbAdapter().escapeEntity( "audit_log.user" )
 			 ]
 		);
 	}

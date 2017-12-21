@@ -4,7 +4,7 @@ component {
 		var controlName = args.name ?: "";
 
 		return renderFormControl(
-			  argumentCollection = arguments
+			  argumentCollection = args
 			, name               = controlName
 			, type               = "emailInput"
 			, context            = "formbuilder"
