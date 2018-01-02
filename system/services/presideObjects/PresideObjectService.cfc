@@ -218,9 +218,9 @@ component displayName="Preside Object Service" {
 		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
 		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
 			args.groupBy = _autoCalculateGroupBy( args.selectFields );
-			if( !Len( Trim( args.groupBy ) ) && !isEmpty( args.extraFilters ) ) {
-				args.groupBy = args.objectName & '.' & getIdField( args.objectName );
-			}
+		}
+		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
+			args.groupBy = args.objectName & '.' & getIdField( args.objectName );
 		}
 
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
