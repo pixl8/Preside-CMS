@@ -671,13 +671,13 @@ component displayName="Forms service" {
 	 * @createIfNotExists.hint Whether or not to create and register the form definition if it does not already exist.
 	 */
 	public string function getMergedFormName( required string formName, required any mergeWithFormName, boolean createIfNotExists=true ) {
-		var mergedName = formName;
+		var mergedName = _getSiteTemplatePrefix() & formName;
 
 		if ( !isArray( mergeWithFormName ) ) {
 			mergeWithFormName = [ mergeWithFormName ];
 		}
 		for( var formNameToMerge in mergeWithFormName ) {
-			mergedName &= ".merged.with." & formNameToMerge;
+			mergedName &= ".merged.with." & _getSiteTemplatePrefix() & formNameToMerge;
 		}
 
 		if ( createIfNotExists && !formExists( mergedName ) ) {
