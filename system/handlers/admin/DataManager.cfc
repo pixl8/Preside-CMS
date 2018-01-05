@@ -1022,18 +1022,8 @@ component extends="preside.system.base.AdminHandler" {
 		,          array   searchFields
 
 	) {
-		gridFields = ListToArray( gridFields );
-
-		var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-		var objectIsVersioned   = presideObjectService.objectIsVersioned( object );
-		var checkboxCol         = [];
-		var optionsCol          = [];
-		var statusCol           = [];
-		var translateStatusCol  = [];
-		var translations        = [];
-		var translateUrlBase    = "";
-		var getRecordsArgs      = {};
-		var excludedArguments   = [ "event", "rc", "prc", "actionsView", "useMultiActions", "isMultilingual", "object" ];
+		var getRecordsArgs    = {};
+		var excludedArguments = [ "event", "rc", "prc", "actionsView", "useMultiActions", "isMultilingual", "object" ];
 
 		for( var argument in arguments ) {
 			if ( !excludedArguments.find( argument ) ) {
@@ -1046,6 +1036,7 @@ component extends="preside.system.base.AdminHandler" {
 		getRecordsArgs.maxRows       = dtHelper.getMaxRows();
 		getRecordsArgs.orderBy       = dtHelper.getSortOrder();
 		getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
+		getRecordsArgs.gridFields    = getRecordsArgs.gridFields.listToArray();
 
 		if ( Len( Trim( rc.sFilterExpression ?: "" ) ) ) {
 			try {
@@ -1092,53 +1083,150 @@ component extends="preside.system.base.AdminHandler" {
 			, args       = { records=records, objectName=arguments.object }
 		);
 
-		if ( !actionsView.trim().len() ) {
-			var viewRecordLink    = event.buildAdminLink( objectName=object, recordId="{id}" );
-			var editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id={id}&resultAction=grid" );
-			var deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id={id}" );
-			var viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id={id}" );
+		customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "decorateRecordsForGridListing"
+			, defaultHandler = "admin.datamanager._decorateObjectRecordsForAjaxDataTables"
+			, args           = {
+				  records         = records
+				, objectName      = arguments.object
+				, gridFields      = getRecordsArgs.gridFields
+				, useMultiActions = arguments.useMultiActions
+				, isMultilingual  = arguments.isMultilingual
+				, draftsEnabled   = arguments.draftsEnabled
+			}
+		);
+
+		var optionsCol = customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "getActionsForGridListing"
+			, defaultHandler = "admin.datamanager._getActionsForAjaxDataTables"
+			, args           = {
+				  records     = records
+				, objectName  = arguments.object
+				, actionsView = actionsView
+			}
+		);
+		QueryAddColumn( records, "_options" , optionsCol );
+		ArrayAppend( getRecordsArgs.gridFields, "_options" );
+
+		event.renderData( type="json", data=dtHelper.queryToResult( records, getRecordsArgs.gridFields, results.totalRecords ) );
+	}
+
+	private array function _getActionsForAjaxDataTables( event, rc, prc, args={} ) {
+		var records                       = args.records     ?: QueryNew( '' );
+		var objectName                    = args.objectName  ?: "";
+		var actionsView                   = args.actionsView ?: "";
+		var optionsCol                    = [];
+		var objectTitleSingular           = prc.objectTitle ?: "";
+		var hasRecordActionsCustomization = !actionsView.len() && customizationService.objectHasCustomization( objectName, "getRecordActionsForGridListing" );
+
+		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
 			var canView           = IsTrue( prc.canView       ?: "" );
 			var canEdit           = IsTrue( prc.canEdit       ?: "" );
 			var canDelete         = IsTrue( prc.canDelete     ?: "" );
 			var canViewHistory    = IsTrue( prc.useVersioning ?: "" );
+			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
+			var editRecordLink    = canEdit        ? event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id={id}&resultAction=grid" ) : "";
+			var viewHistoryLink   = canViewHistory ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
+			var deleteRecordLink  = canDelete      ? event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#objectName#&id={id}" )           : "";
+			var deleteRecordTitle = canDelete      ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
 		}
 
 		for( var record in records ){
+			if ( actionsView.len() ) {
+				var actionsViewlet = Replace( ReReplace( actionsView, "^/", "" ), "/", ".", "all" );
+				var viewletArgs    = Duplicate( record );
+				viewletArgs.objectName = objectName;
+
+				ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
+			} else {
+				var actions = [];
+
+				if ( hasRecordActionsCustomization ) {
+					actions = customizationService.runCustomization(
+						  objectName     = objectName
+						, action         = "getRecordActionsForGridListing"
+						, args           = {
+							  record      = record
+							, objectName  = objectName
+						}
+					);
+				} else {
+					if ( canView ) {
+						actions.append( {
+							  link       = viewRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-eye"
+							, contextKey = "v"
+						} );
+					}
+					if ( canEdit ) {
+						actions.append( {
+							  link       = editRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-pencil"
+							, contextKey = "e"
+						} );
+					}
+					if ( canDelete ) {
+						actions.append( {
+							  link       = deleteRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-trash-o"
+							, contextKey = "d"
+							, class      = "confirmation-prompt"
+							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
+						} );
+					}
+					if ( canViewHistory ) {
+						actions.append( {
+							  link       = viewHistoryLink.replace( "{id}", record.id )
+							, icon       = "fa-history"
+							, contextKey = "h"
+						} );
+					}
+				}
+
+				customizationService.runCustomization(
+					  objectName     = objectName
+					, action         = "extraRecordActionsForGridListing"
+					, args           = {
+						  record      = record
+						, objectName  = objectName
+						, actions     = actions
+					}
+				);
+
+				ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={ actions=actions } ) );
+			}
+		}
+
+		return optionsCol;
+	}
+
+	private void function _decorateObjectRecordsForAjaxDataTables( event, rc, prc, args={} ) {
+		var records            = args.records    ?: QueryNew( '' );
+		var objectName         = args.objectName ?: "";
+		var gridFields         = args.gridFields ?: [];
+		var useMultiActions    = IsTrue( args.useMultiActions ?: "" );
+		var isMultilingual     = IsTrue( args.isMultilingual ?: "" );
+		var draftsEnabled      = IsTrue( args.draftsEnabled ?: "" );
+		var translateUrlBase   = isMultilingual ? event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id={id}&fromDataGrid=true&language=" ) : "";
+		var checkboxCol        = [];
+		var translateStatusCol = [];
+		var statusCol          = [];
+
+		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], [ "adminDataTable", "admin" ] );
+				records[ field ][ records.currentRow ] = renderField( objectName, field, record[ field ], [ "adminDataTable", "admin" ] );
 			}
 
 			if ( useMultiActions ) {
 				ArrayAppend( checkboxCol, renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
 			}
 
-			if ( actionsView.trim().len() ) {
-				var actionsViewlet = Replace( ReReplace( actionsView, "^/", "" ), "/", ".", "all" );
-				var viewletArgs    = Duplicate( record );
-				viewletArgs.objectName = object;
-
-				ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
-			} else {
-				ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
-					  viewRecordLink    = viewRecordLink.replace( "{id}", record.id )
-					, editRecordLink    = editRecordLink.replace( "{id}", record.id )
-					, deleteRecordLink  = deleteRecordLink.replace( "{id}", record.id )
-					, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
-					, viewHistoryLink   = viewHistoryLink.replace( "{id}", record.id )
-					, canView           = canView
-					, canEdit           = canEdit
-					, canDelete         = canDelete
-					, canViewHistory    = canViewHistory
-					, objectName        = object
-				} ) );
-			}
-
 			if ( isMultilingual ) {
-				translations     = multilingualPresideObjectService.getTranslationStatus( object, record.id );
-				translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#record.id#&fromDataGrid=true&language=" );
 				ArrayAppend( translateStatusCol, renderView( view="/admin/datamanager/_listingTranslations", args={
-					  translations     = translations
-					, translateUrlBase = translateUrlBase
+					  translations     = multilingualPresideObjectService.getTranslationStatus( objectName, record.id )
+					, translateUrlBase = translateUrlBase.replace( "{id}", record.id )
 				} ) );
 			}
 
@@ -1159,11 +1247,6 @@ component extends="preside.system.base.AdminHandler" {
 			QueryAddColumn( records, "_checkbox", checkboxCol );
 			ArrayPrepend( gridFields, "_checkbox" );
 		}
-
-		QueryAddColumn( records, "_options" , optionsCol );
-		ArrayAppend( gridFields, "_options" );
-
-		event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
 	}
 
 	private void function _getRecordHistoryForAjaxDataTables(
@@ -2006,6 +2089,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.objectName        = "";
 		prc.objectTitle       = "";
 		prc.objectTitlePlural = "";
+		prc.labelField        = "";
 		prc.objectIconClass   = "";
 		prc.objectDescription = "";
 		prc.recordId          = "";
@@ -2036,6 +2120,7 @@ component extends="preside.system.base.AdminHandler" {
 				_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
 			}
 
+			prc.labelField          = presideObjectService.getLabelField( prc.objectName );
 			prc.objectRootUri       = presideObjectService.getResourceBundleUriRoot( prc.objectName );
 			prc.objectTitle         = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
 			prc.objectTitlePlural   = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
