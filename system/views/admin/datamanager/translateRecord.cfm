@@ -13,9 +13,10 @@
 	deleteRecordPrompt  = translateResource( uri="cms:datamanager.deleteTranslation.prompt", data=[ currentLanguage.name, objectTitleSingular, recordLabel ] );
 	deleteRecordTitle   = translateResource( uri="cms:datamanager.deleteRecord.btn" );
 
+	fromDataGrid        = rc.fromDataGrid      ?: "";
 	canDelete           = prc.canDelete;
 	translations        = prc.translations     ?: [];
-	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
+	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( objectName=object, operation="translateRecord", recordId=id, args={ fromDataGrid=fromDataGrid, language='{language}' } );
 	cancelAction        = prc.cancelAction     ?: event.buildAdminLink( linkTo="datamanager.viewRecord", querystring='object=#object#&id=#id#' );
 	formAction          = prc.formAction       ?: event.buildAdminLink( linkTo='datamanager.translateRecordAction');
 	formId              = "translate-record-form";
@@ -40,7 +41,7 @@
 				<cfloop array="#translations#" index="i" item="language">
 					<cfif language.id != currentLanguageId>
 						<li>
-							<a href="#translateUrlBase##language.id#">
+							<a href="#translateUrlBase.replace( '{language}', language.id )#">
 								<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
 							</a>
 						</li>

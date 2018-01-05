@@ -93,14 +93,22 @@ component {
 	}
 
 	private string function buildTranslateRecordLink( event, rc, prc, args={} ) {
-		var objectName  = args.objectName ?: "";
-		var recordId    = args.recordId   ?: "";
-		var language    = args.language   ?: "";
+		var objectName = args.objectName ?: "";
 
 		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+			var recordId     = args.recordId ?: "";
+			var language     = args.language ?: "";
+			var version      = args.version  ?: "";
+			var fromDataGrid = IsTrue( args.fromDataGrid ?: "" );
+			var queryString  = "object=#objectName#&id=#recordId#&language=#language#&fromDataGrid=#fromDataGrid#";
+
+			if ( Val( version ) || version.len() ) {
+				queryString &= "&version=" & version;
+			}
+
 			return event.buildAdminLink(
 				  linkto      = "datamanager.translateRecord"
-				, queryString = "object=#objectName#&id=#recordId#&language=#language#"
+				, queryString = queryString
 			);
 		}
 		return "";

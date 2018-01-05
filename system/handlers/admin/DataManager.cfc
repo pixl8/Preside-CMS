@@ -363,7 +363,7 @@ component extends="preside.system.base.AdminHandler" {
 		if( isTrue( fromDataGrid ) ) {
 			prc.cancelAction     = event.buildAdminLink( objectName=objectName, operation="listing" );
 			prc.formAction       = event.buildAdminLink( linkTo="datamanager.translateRecordAction", querystring='fromDataGrid=#fromDataGrid#' );
-			prc.translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id=#id#&fromDataGrid=#fromDataGrid#&language=" );
+			prc.translateUrlBase = event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId=id, args={ fromDataGrid=fromDataGrid, language='{language}' } );
 		}
 		prc.pageIcon  = "pencil";
 		prc.pageTitle = translateResource( uri="cms:datamanager.translaterecord.title", data=[ objectTitle, prc.recordLabel, prc.language.name ] );
@@ -407,11 +407,8 @@ component extends="preside.system.base.AdminHandler" {
 			persist = formData;
 			persist.validationResult = validationResult;
 			persist.delete( "id" );
-			if( isTrue( fromDataGrid ) ) {
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#objectName#&fromDataGrid=true&version=#version#&language=#languageId#" ), persistStruct=persist );
-			} else {
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#objectName#&version=#version#&language=#languageId#" ), persistStruct=persist );
-			}
+
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="translateRecord", args={ fromDataGrid=true, version=version, language=languageId } ), persistStruct=persist );
 		}
 
 		multilingualPresideObjectService.saveTranslation(
@@ -600,7 +597,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
-			, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id=#recordId#&language=#languageId#" )
+			, link  = event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId=recordId, args={ language=languageId } )
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
@@ -954,7 +951,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( linkTo='datamanager.translateRecord'         , queryString='object=#args.object#&id=#args.id#&language=#language#&version=' );
+		args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( objectName=args.object, operation='translateRecord', recordId=args.id, args={ language=language, version='{version}' } );
 		args.allVersionsUrl = args.allVersionsUrl ?: event.buildAdminLink( linkTo='datamanager.translationRecordHistory', queryString='object=#args.object#&id=#args.id#&language=#language#' );
 
 		return renderView( view="admin/datamanager/versionNavigator", args=args );
@@ -1309,7 +1306,7 @@ component extends="preside.system.base.AdminHandler" {
 		var useMultiActions    = IsTrue( args.useMultiActions ?: "" );
 		var isMultilingual     = IsTrue( args.isMultilingual ?: "" );
 		var draftsEnabled      = IsTrue( args.draftsEnabled ?: "" );
-		var translateUrlBase   = isMultilingual ? event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#objectName#&id={id}&fromDataGrid=true&language=" ) : "";
+		var translateUrlBase   = isMultilingual ? event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId="{id}", args={ fromDataGrid=true, language='{language}' } ) : "";
 		var checkboxCol        = [];
 		var translateStatusCol = [];
 		var statusCol          = [];
@@ -1480,8 +1477,8 @@ component extends="preside.system.base.AdminHandler" {
 					, recordId       = recordId
 					, canEdit        = IsTrue( prc.canEdit ?: "" )
 					, canView        = IsTrue( prc.canView ?: "" )
-					, editRecordLink = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#recordId#&language=#languageId#&version=#record._version_number#" )
-					, viewRecordLink = event.buildAdminLink( objectName=object, recordId=recordId, queryString="language=#languageId#&version=#record._version_number#" )
+					, editRecordLink = event.buildAdminLink( objectName=object, recordId=recordId, operation="translateRecord", args={ language=languageId, version=record._version_number } )
+					, viewRecordLink = event.buildAdminLink( objectName=object, recordId=recordId, operation="viewRecord", args={ language=languageId, version=record._version_number } )
 				} ) );
 			}
 		}

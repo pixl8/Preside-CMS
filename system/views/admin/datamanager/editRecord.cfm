@@ -11,7 +11,7 @@
 
 	canTranslate     = prc.canTranslate;
 	translations     = prc.translations ?: [];
-	translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
+	translateUrlBase = event.buildAdminLink( objectName=object, recordId=id, operation="translateRecord", args={ language="{language}" } );
 </cfscript>
 
 <cfoutput>
@@ -25,7 +25,7 @@
 			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
 				<cfloop array="#translations#" index="i" item="language">
 					<li>
-						<a href="#translateUrlBase##language.id#">
+						<a href="#translateUrlBase.replace( '{language}', language.id )#">
 							<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
 						</a>
 					</li>
