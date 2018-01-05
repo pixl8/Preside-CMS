@@ -18,14 +18,20 @@ component {
 
 	private string function buildViewRecordLink( event, rc, prc, args={} ) {
 		var objectName  = args.objectName ?: "";
-		var recordId    = args.recordId   ?: "";
-		var queryString = "object=#objectName#&id=#recordId#";
-
-		if ( ( args.language ?: "" ).len() ) {
-			queryString &= "&language=#args.language#";
-		}
 
 		if ( dataManagerService.isOperationAllowed( objectName, "read" ) ) {
+			var recordId    = args.recordId ?: "";
+			var language    = args.language ?: "";
+			var version     = args.version  ?: "";
+			var queryString = "object=#objectName#&id=#recordId#";
+
+			if ( language.len() ) {
+				queryString &= "&language=#language#";
+			}
+			if ( Val( version ) || version.len() ) {
+				queryString &= "&version=#version#";
+			}
+
 			return event.buildAdminLink(
 				  linkto      = "datamanager.viewRecord"
 				, queryString = queryString
@@ -49,12 +55,23 @@ component {
 
 	private string function buildEditRecordLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
-		var recordId   = args.recordId   ?: "";
 
 		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+			var recordId     = args.recordId   ?: "";
+			var resultAction = args.resultAction ?: "";
+			var version      = args.version ?: "";
+			var queryString = "object=#objectName#&id=#recordId#";
+
+			if ( resultAction.len() ) {
+				queryString &= "&resultAction=#resultAction#";
+			}
+			if ( Val( version ) || version.len() ) {
+				queryString &= "&version=#version#";
+			}
+
 			return event.buildAdminLink(
 				  linkto      = "datamanager.editRecord"
-				, queryString = "object=#objectName#&id=#recordId#"
+				, queryString = queryString
 			);
 		}
 

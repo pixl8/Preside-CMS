@@ -20,7 +20,7 @@
 			, id      = id
 			, version = version
 			, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
-			, baseUrl = event.buildAdminLink( linkTo='datamanager.viewRecord', queryString='object=#object#&id=#id#&version=' )
+			, baseUrl = event.buildAdminLink( objectName=object, recordId=id, operation='viewRecord', args={ version="{version}" } )
 		} )#
 	</cfif>
 

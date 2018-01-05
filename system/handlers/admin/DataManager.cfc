@@ -444,7 +444,7 @@ component extends="preside.system.base.AdminHandler" {
 		if( isTrue( fromDataGrid ) ) {
 			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#id#" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="editRecord", recordId=id ) );
 		}
 	}
 
@@ -486,8 +486,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getRecordHistoryForAjaxDataTables( event, rc, prc ) {
-		var objectName = prc.object   ?: "";
-		var recordId   = prc.recordId ?: "";
+		var objectName = prc.objectName  ?: "";
+		var recordId   = prc.recordId    ?: "";
 
 		_checkPermission( argumentCollection=arguments, key="viewversions" );
 
@@ -1227,7 +1227,7 @@ component extends="preside.system.base.AdminHandler" {
 			var canDelete         = IsTrue( prc.canDelete     ?: "" );
 			var canViewHistory    = IsTrue( prc.useVersioning ?: "" );
 			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
-			var editRecordLink    = canEdit        ? event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id={id}&resultAction=grid" ) : "";
+			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
 			var viewHistoryLink   = canViewHistory ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
 			var deleteRecordLink  = canDelete      ? event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#objectName#&id={id}" )           : "";
 			var deleteRecordTitle = canDelete      ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
@@ -1404,8 +1404,8 @@ component extends="preside.system.base.AdminHandler" {
 					, recordId       = recordId
 					, canEdit        = canEdit
 					, canView        = canView
-					, viewRecordLink = event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
-					, editRecordLink = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
+					, viewRecordLink = event.buildAdminLink( objectName=object, recordId=record.id, operation="viewRecord", args={ version=record._version_number } )
+					, editRecordLink = event.buildAdminLink( objectName=object, recordId=record.id, operation="editRecord", args={ version=record._version_number } )
 				} ) );
 			}
 		}
@@ -2269,7 +2269,7 @@ component extends="preside.system.base.AdminHandler" {
 					prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 					if ( prc.language.isempty() ) {
 						messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
-						setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#prc.objectName#&id=#prc.recordId#" ) );
+						setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, recordId=prc.recordId, operation="editRecord" ) );
 					}
 
 					prc.sourceRecord  = presideObjectService.selectData( objectName=prc.objectName, filter={ id=prc.recordId }, useCache=false );
