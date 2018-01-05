@@ -193,7 +193,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function cascadeDeletePrompt( event, rc, prc ) {
-		var objectName = prc.object ?: "";
+		var objectName = prc.objectName ?: "";
 
 		prc.id       = prc.recordId ?: "";
 		prc.blockers = rc.blockers  ?: {};
@@ -1228,8 +1228,8 @@ component extends="preside.system.base.AdminHandler" {
 			var canViewHistory    = IsTrue( prc.useVersioning ?: "" );
 			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
 			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
+			var deleteRecordLink  = canDelete      ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
 			var viewHistoryLink   = canViewHistory ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
-			var deleteRecordLink  = canDelete      ? event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#objectName#&id={id}" )           : "";
 			var deleteRecordTitle = canDelete      ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
 		}
 
