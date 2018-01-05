@@ -980,6 +980,8 @@ component extends="preside.system.base.AdminHandler" {
 				, args           = { objectName=objectName, action=action, actions=actions }
 			);
 
+			actions = actions.reverse();
+
 			for( var actionToRender in actions ) {
 				rendered &= renderView( view="/admin/datamanager/_topRightButton", args=actionToRender );
 			}
@@ -994,13 +996,13 @@ component extends="preside.system.base.AdminHandler" {
 		var objectTitle = prc.objectTitle ?: "";
 		var actions     = [];
 
-		if ( IsTrue( prc.canAdd ?: "" ) ) {
+		if ( IsTrue( prc.canManagePerms ?: "" ) ) {
 			actions.append( {
-				  link      = event.buildAdminLink( objectName=objectName, operation="addRecord" )
-				, btnClass  = "btn-success"
-				, iconClass = "fa-plus"
-				, globalKey = "a"
-				, title     = translateResource( uri="cms:datamanager.addrecord.title" , data = [ objectTitle ] )
+				  link      = event.buildAdminLink( objectName=objectName, operation="manageperms" )
+				, btnClass  = "btn-default"
+				, iconClass = "fa-lock"
+				, globalKey = "p"
+				, title     = translateResource( uri="cms:datamanager.manageperms.link", data = [ objectTitle ] )
 			} );
 		}
 		if ( IsTrue( prc.canEdit ?: "" ) && dataManagerService.isSortable( objectName ) ) {
@@ -1012,13 +1014,13 @@ component extends="preside.system.base.AdminHandler" {
 				, title     = translateResource( uri="cms:datamanager.sortrecords.link", data = [ objectTitle ] )
 			} );
 		}
-		if ( IsTrue( prc.canManagePerms ?: "" ) ) {
+		if ( IsTrue( prc.canAdd ?: "" ) ) {
 			actions.append( {
-				  link      = event.buildAdminLink( objectName=objectName, operation="manageperms" )
-				, btnClass  = "btn-default"
-				, iconClass = "fa-lock"
-				, globalKey = "p"
-				, title     = translateResource( uri="cms:datamanager.manageperms.link", data = [ objectTitle ] )
+				  link      = event.buildAdminLink( objectName=objectName, operation="addRecord" )
+				, btnClass  = "btn-success"
+				, iconClass = "fa-plus"
+				, globalKey = "a"
+				, title     = translateResource( uri="cms:datamanager.addrecord.title" , data = [ objectTitle ] )
 			} );
 		}
 
@@ -1038,6 +1040,33 @@ component extends="preside.system.base.AdminHandler" {
 		var recordLabel  = prc.recordLabel ?: "";
 		var actions      = [];
 		var language     = rc.language ?: "";
+
+		if ( IsTrue( prc.canEdit ?: "" ) ) {
+			var link = "";
+			if ( IsTrue( prc.canTranslate ?: "" ) && language.len() ) {
+				link = event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId=recordId, args={ language=language } );
+			} else {
+				link = event.buildAdminLink( objectName=objectName, operation="editRecord", recordId=recordId );
+			}
+			actions.append( {
+				  link      = link
+				, btnClass  = "btn-success"
+				, iconClass = "fa-pencil"
+				, globalKey = "e"
+				, title     = translateResource( uri="cms:datamanager.editRecord.btn" )
+			} );
+		}
+
+		if ( IsTrue( prc.canDelete ?: "" ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
+				, btnClass  = "btn-danger"
+				, iconClass = "fa-trash"
+				, globalKey = "d"
+				, title     = translateResource( uri="cms:datamanager.deleteRecord.btn" )
+				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, recordLabel ] )
+			} );
+		}
 
 		if ( IsTrue( prc.canTranslate ?: "" ) && ( prc.translations ?: [] ).len() ) {
 			var translateUrlBase = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId, args={ language="{language}" } );
@@ -1065,31 +1094,6 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			actions.append( item );
-		}
-		if ( IsTrue( prc.canDelete ?: "" ) ) {
-			actions.append( {
-				  link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
-				, btnClass  = "btn-danger"
-				, iconClass = "fa-trash"
-				, globalKey = "d"
-				, title     = translateResource( uri="cms:datamanager.deleteRecord.btn" )
-				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, recordLabel ] )
-			} );
-		}
-		if ( IsTrue( prc.canEdit ?: "" ) ) {
-			var link = "";
-			if ( IsTrue( prc.canTranslate ?: "" ) && language.len() ) {
-				link = event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId=recordId, args={ language=language } );
-			} else {
-				link = event.buildAdminLink( objectName=objectName, operation="editRecord", recordId=recordId );
-			}
-			actions.append( {
-				  link      = link
-				, btnClass  = "btn-success"
-				, iconClass = "fa-pencil"
-				, globalKey = "e"
-				, title     = translateResource( uri="cms:datamanager.editRecord.btn" )
-			} );
 		}
 
 		customizationService.runCustomization(
