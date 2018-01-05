@@ -17,13 +17,18 @@ component {
 	}
 
 	private string function buildViewRecordLink( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
-		var recordId   = args.recordId   ?: "";
+		var objectName  = args.objectName ?: "";
+		var recordId    = args.recordId   ?: "";
+		var queryString = "object=#objectName#&id=#recordId#";
+
+		if ( ( args.language ?: "" ).len() ) {
+			queryString &= "&language=#args.language#";
+		}
 
 		if ( dataManagerService.isOperationAllowed( objectName, "read" ) ) {
 			return event.buildAdminLink(
 				  linkto      = "datamanager.viewRecord"
-				, queryString = "object=#objectName#&id=#recordId#"
+				, queryString = queryString
 			);
 		}
 		return "";
@@ -39,6 +44,48 @@ component {
 			);
 		}
 
+		return "";
+	}
+
+	private string function buildEditRecordLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.editRecord"
+				, queryString = "object=#objectName#&id=#recordId#"
+			);
+		}
+
+		return "";
+	}
+
+	private string function buildDeleteRecordActionLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "delete" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.deleteRecordAction"
+				, queryString = "object=#objectName#&id=#recordId#"
+			);
+		}
+
+		return "";
+	}
+
+	private string function buildTranslateRecordLink( event, rc, prc, args={} ) {
+		var objectName  = args.objectName ?: "";
+		var recordId    = args.recordId   ?: "";
+		var language    = args.language   ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.translateRecord"
+				, queryString = "object=#objectName#&id=#recordId#&language=#language#"
+			);
+		}
 		return "";
 	}
 

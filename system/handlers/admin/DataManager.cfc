@@ -102,10 +102,6 @@ component extends="preside.system.base.AdminHandler" {
 			, version    = version
 		);
 
-		if ( canTranslate ) {
-			prc.translations = multilingualPresideObjectService.getTranslationStatus( objectName, recordId );
-		}
-
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
 	}
@@ -965,44 +961,144 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function topRightButtons( event, rc, prc, args={} ){
-		var objectName  = args.objectName ?: "";
-		var objectTitle = prc.objectTitle ?: "";
-		var recordId    = args.recordId   ?: "";
-		var action      = args.action     ?: "";
-		var actions     = [];
-		var coreActions = {
-			  add          = { operation="addRecord"  , btnClass="btn-success", iconClass="fa-plus"           , globalKey="a", title=translateResource( uri = "cms:datamanager.addrecord.title" , data = [ objectTitle ] ), allowed=IsTrue( prc.canAdd         ?: "" ) }
-			, sort         = { operation="sortRecords", btnClass="btn-info"   , iconClass="fa-sort-amount-asc", globalKey="o", title=translateResource( uri = "cms:datamanager.sortrecords.link", data = [ objectTitle ] ), allowed=IsTrue( prc.canEdit        ?: "" ) && dataManagerService.isSortable( objectName ) }
-			, contextPerms = { operation="manageperms", btnClass="btn-default", iconClass="fa-lock"           , globalKey="p", title=translateResource( uri = "cms:datamanager.manageperms.link", data = [ objectTitle ] ), allowed=IsTrue( prc.canManagePerms ?: "" ) }
-		};
+		var objectName         = args.objectName ?: "";
+		var action             = args.action     ?: "";
+		var actionsWithButtons = [ "object", "viewrecord" ];
+		var rendered = "";
 
-		switch( action ) {
-			case "object":
-				actions = [ "add", "sort", "contextPerms" ];
-			break;
+		if ( actionsWithButtons.findNoCase( action ) ) {
+			var actions = customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "getTopRightButtonsFor#action#"
+				, defaultHandler = "admin.datamanager.getTopRightButtonsFor#action#"
+				, args           = args
+			);
+
+			customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "extraTopRightButtons"
+				, args           = { objectName=objectName, action=action, actions=actions }
+			);
+
+			for( var actionToRender in actions ) {
+				rendered &= renderView( view="/admin/datamanager/_topRightButton", args=actionToRender );
+			}
 		}
 
-		for( var i=actions.len(); i>0; i-- ) {
-			if ( coreActions[ actions[ i ] ].allowed ) {
-				actions[ i ] = coreActions[ actions[ i ] ];
-				actions[ i ].link = event.buildAdminLink( objectName=objectName, operation=actions[ i ].operation, recordId=recordId );
-			} else {
-				actions.deleteAt( i );
-			}
+
+		return rendered;
+	}
+
+	private array function getTopRightButtonsForObject() {
+		var objectName  = args.objectName ?: "";
+		var objectTitle = prc.objectTitle ?: "";
+		var actions     = [];
+
+		if ( IsTrue( prc.canAdd ?: "" ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="addRecord" )
+				, btnClass  = "btn-success"
+				, iconClass = "fa-plus"
+				, globalKey = "a"
+				, title     = translateResource( uri="cms:datamanager.addrecord.title" , data = [ objectTitle ] )
+			} );
+		}
+		if ( IsTrue( prc.canEdit ?: "" ) && dataManagerService.isSortable( objectName ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="sortRecords" )
+				, btnClass  = "btn-info"
+				, iconClass = "fa-sort-amount-asc"
+				, globalKey = "o"
+				, title     = translateResource( uri="cms:datamanager.sortrecords.link", data = [ objectTitle ] )
+			} );
+		}
+		if ( IsTrue( prc.canManagePerms ?: "" ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="manageperms" )
+				, btnClass  = "btn-default"
+				, iconClass = "fa-lock"
+				, globalKey = "p"
+				, title     = translateResource( uri="cms:datamanager.manageperms.link", data = [ objectTitle ] )
+			} );
 		}
 
 		customizationService.runCustomization(
 			  objectName     = objectName
-			, action         = "extraTopRightButtons"
-			, args           = { objectName=objectName, action=action, actions=actions }
+			, action         = "extraTopRightButtonsForObject"
+			, args           = { objectName=objectName, actions=actions }
 		);
 
-		var rendered = "";
-		for( var actionToRender in actions ) {
-			rendered &= renderView( view="/admin/datamanager/_topRightButton", args=actionToRender );
+		return actions;
+	}
+
+	private array function getTopRightButtonsForViewRecord() {
+		var objectName  = args.objectName ?: "";
+		var objectTitle  = prc.objectTitle ?: "";
+		var recordId     = prc.recordId    ?: "";
+		var recordLabel  = prc.recordLabel ?: "";
+		var actions      = [];
+		var language     = rc.language ?: "";
+
+		if ( IsTrue( prc.canTranslate ?: "" ) && ( prc.translations ?: [] ).len() ) {
+			var translateUrlBase = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId, args={ language="{language}" } );
+			var item = {
+				  link      = ""
+				, btnClass  = "btn-info"
+				, iconClass = "fa-globe"
+				, globalKey = ""
+				, title     = translateResource( uri="cms:datamanager.translate.record.btn" )
+				, children  = []
+			};
+
+			item.children.append( {
+				  link  = translateUrlBase.replace( "{language}", "" )
+				, icon  = "fa-eye"
+				, title = translateResource( 'cms:datamanager.translate.default.language' )
+			} );
+
+			for( var translation in prc.translations ) {
+				item.children.append( {
+					  link  = translateUrlBase.replace( "{language}", translation.id )
+					, icon  = "fa-eye"
+					, title = "#translation.name# (#translateResource( 'cms:multilingal.status.#translation.status#' )#)"
+				} );
+			}
+
+			actions.append( item );
+		}
+		if ( IsTrue( prc.canDelete ?: "" ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
+				, btnClass  = "btn-danger"
+				, iconClass = "fa-trash"
+				, globalKey = "d"
+				, title     = translateResource( uri="cms:datamanager.deleteRecord.btn" )
+				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, recordLabel ] )
+			} );
+		}
+		if ( IsTrue( prc.canEdit ?: "" ) ) {
+			var link = "";
+			if ( IsTrue( prc.canTranslate ?: "" ) && language.len() ) {
+				link = event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId=recordId, args={ language=language } );
+			} else {
+				link = event.buildAdminLink( objectName=objectName, operation="editRecord", recordId=recordId );
+			}
+			actions.append( {
+				  link      = link
+				, btnClass  = "btn-success"
+				, iconClass = "fa-pencil"
+				, globalKey = "e"
+				, title     = translateResource( uri="cms:datamanager.editRecord.btn" )
+			} );
 		}
 
-		return rendered;
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "extraTopRightButtonsForViewRecord"
+			, args           = { objectName=objectName, actions=actions }
+		);
+
+		return actions;
 	}
 
 // private events for sharing
@@ -2141,6 +2237,9 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canPublish          = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="publish"  , object=prc.objectName, throwOnError=false );
 			prc.canSaveDraft        = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="savedraft", object=prc.objectName, throwOnError=false );
 			prc.isTranslationAction = arguments.action.find( "translat" ) > 0;
+			if ( prc.isMultilingual && ( prc.isTranslationAction || arguments.action == "viewRecord" ) ) {
+				prc.translations = multilingualPresideObjectService.getTranslationStatus( prc.objectName, prc.recordId );
+			}
 
 			if ( Len( Trim( prc.recordId ) ) && ListLen( prc.recordId ) == 1 ) {
 				if ( prc.useVersioning ) {
