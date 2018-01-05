@@ -677,34 +677,41 @@ component {
 	}
 
 	private string function _getFullFieldName( required string field, required string objectName ) {
-		var poService = "";
+		var poService = _getPresideObjectService();
 		var fieldName = arguments.field;
 		var objName   = arguments.objectName;
+		var fullName  = "";
 
 		if ( fieldName contains "${labelfield}" ) {
-			fieldName = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" );
+			fieldName = poService.getObjectAttribute( arguments.objectName, "labelfield", "label" );
 			if ( ListLen( fieldName, "." ) == 2 ) {
 				objName = ListFirst( fieldName, "." );
 				fieldName = ListLast( fieldName, "." );
 			}
 
-			return objName & "." & fieldName;
-		}
+			fullName = objName & "." & fieldName;
+		} else {
+			var prop = poService.getObjectProperty( objectName=objName, propertyName=fieldName );
+			var relatedTo = prop.relatedTo ?: "none";
 
-		var prop = _getPresideObjectService().getObjectProperty( objectName=objName, propertyName=fieldName );
-		var relatedTo = prop.relatedTo ?: "none";
+			if(  Len( Trim( relatedTo ) ) && relatedTo != "none" ) {
+				var objectLabelField = poService.getObjectAttribute( relatedTo, "labelfield", "label" );
 
-		if(  Len( Trim( relatedTo ) ) and relatedTo neq "none" ) {
-			var objectLabelField = _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
-
-			if( Find( ".", objectLabelField ) ){
-				return arguments.field & "$" & objectLabelField;
-			} else{
-				return arguments.field & "." & objectLabelField;
+				if( Find( ".", objectLabelField ) ){
+					fullName = arguments.field & "$" & objectLabelField;
+				} else{
+					fullName = arguments.field & "." & objectLabelField;
+				}
+			} else {
+				fullName = objName & "." & fieldName;
 			}
 		}
 
-		return objName & "." & fieldName;
+		return poService.expandFormulaFields(
+			  objectName   = objName
+			, expression   = fullName
+			, includeAlias = false
+		);
 	}
 
 	private string function _propertyIsSearchable( required string field, required string objectName ) {
@@ -718,7 +725,7 @@ component {
 
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
-		return ( prop.type ?: "" ) == "string" && !( prop.formula ?: "" ).len();
+		return ( prop.type ?: "" ) == "string";
 	}
 
 // GETTERS AND SETTERS

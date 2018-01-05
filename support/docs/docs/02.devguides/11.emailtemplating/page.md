@@ -69,6 +69,15 @@ settings.features.customEmailTemplates.enabled = false;
 
 Both features are enabled by default. The `customEmailTemplates` feature is only available when the the `emailCenter` feature is also enabled; disabling just the `emailCenter` feature has the effect of disabling both features.
 
+As of 10.9.0, the ability to re-send emails sent via the email centre has been added. This is disabled by default, and can be enabled with the `emailCenterResend` feature:
+
+```luceescript
+settings.features.emailCenterResend.enabled = true;
+```
+
+See [[resendingEmail]] for a detailed guide.
+
+
 ### Permissions
 
 The email centre comes with a set of permission keys that can be used to fine tune your administrator roles. The permissions are defined as:
@@ -79,7 +88,7 @@ settings.adminPermissions.emailCenter = {
 	, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send" ]
 	, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 	, serviceProviders = [ "manage" ]
-	, settings         = [ "navigate", "manage" ]
+	, settings         = [ "navigate", "manage", "resend" ]
 	, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
 	, logs             = [ "view" ]
 	, queue            = [ "view", "clear" ]

@@ -191,4 +191,14 @@ component {
 
 		return translateResource( uri="auditlog.emaillayout:#action#.message", data=[ userLink, recordLink ] );
 	}
+
+	private string function emailResend( event, rc, prc, args={} ) {
+		var action     = args.action           ?: "";
+		var known_as   = args.known_as         ?: "";
+		var subject    = args.detail.subject   ?: "";
+		var recipient  = args.detail.recipient ?: "";
+		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+
+		return translateResource( uri="auditlog.emailresend:#action#.message", data=[ userLink, subject, recipient ] );
+	}
 }

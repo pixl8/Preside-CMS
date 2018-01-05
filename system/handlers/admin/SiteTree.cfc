@@ -280,7 +280,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.canActivate  = !IsTrue( prc.page._version_is_draft ) && !pageType.isSystemPageType() && _checkPermissions( argumentCollection=arguments, key="activate", pageId=pageId, throwOnError=false );
 
 		prc.mainFormName  = "preside-objects.page.edit";
-		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" )
+		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" );
 
 		prc.page = QueryRowToStruct( prc.page );
 		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version, allowDraftVersions=true  );

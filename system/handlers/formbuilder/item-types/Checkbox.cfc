@@ -2,8 +2,9 @@ component {
 
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
+
 		return renderFormControl(
-			  argumentCollection = arguments
+			  argumentCollection = args
 			, name               = controlName
 			, type               = "checkbox"
 			, context            = "formbuilder"

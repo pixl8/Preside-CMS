@@ -10,7 +10,7 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 		if ( areSessionsEnabled() ) {
 			return super.getVar( argumentCollection=arguments );
 		}
-		return;
+		return arguments.default ?: "";
 	}
 
 	public any function setVar() output=false {
