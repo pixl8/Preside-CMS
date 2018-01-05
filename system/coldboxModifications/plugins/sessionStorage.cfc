@@ -10,7 +10,7 @@ component extends="coldbox.system.plugins.SessionStorage" output=false {
 		if ( areSessionsEnabled() ) {
 			return super.getVar( argumentCollection=arguments );
 		}
-		return;
+		return arguments.default ?: "";
 	}
 
 	public any function setVar() output=false {
