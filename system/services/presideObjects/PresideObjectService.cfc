@@ -1787,7 +1787,7 @@ component displayName="Preside Object Service" {
 				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
 			}
 
-			fields[i] = _expandFormulaFields(
+			fields[i] = expandFormulaFields(
 				  objectName = arguments.objectName
 				, expression = fields[i]
 				, dbAdapter  = adapter
@@ -1807,6 +1807,63 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
+	}
+
+	public string function expandFormulaFields(
+		  required string  objectName
+		, required string  expression
+		,          any     dbAdapter    = getDbAdapterForObject( arguments.objectName )
+		,          boolean includeAlias = true
+	) {
+		var props                = getObjectProperties( arguments.objectName );
+		var expanded             = arguments.expression;
+		var expressionMinusAlias = ListFirst( arguments.expression, " " );
+		var propertyName         = expressionMinusAlias;
+		var alias                = ListRest( arguments.expression, " " );
+		var prefix               = "";
+		var relatedObjectName    = "";
+
+		if ( ListLen( expressionMinusAlias, "." ) == 2 ) {
+			propertyName = ListLast( expressionMinusAlias, "." );
+			if ( ListFirst( expressionMinusAlias, "." ) != arguments.objectName ) {
+				prefix            = ListFirst( expressionMinusAlias, "." );
+				relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
+
+				if ( objectExists( relatedObjectName ) ) {
+					props = getObjectProperties( relatedObjectName );
+				}
+			} else {
+				prefix = "";
+			}
+		}
+
+		var formula = props[ propertyName ].formula ?: "";
+
+		if ( Len( Trim( formula ) ) ) {
+			if ( formula.findNoCase( "${prefix}" ) ) {
+				if ( prefix.len() ) {
+					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "${prefix}$\1.", "all" );
+					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "${prefix}.\1", "all" );
+				} else {
+					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "\1.", "all" );
+					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "#arguments.objectName#.\1", "all" );
+				}
+				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
+			}
+
+			if ( arguments.includeAlias && !alias.len() ) {
+				expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
+			} else {
+				expanded = formula;
+			}
+
+			if ( alias.len() ) {
+				expanded &= " #alias#";
+			}
+		}
+
+
+		return expanded;
 	}
 
 // PRIVATE HELPERS
@@ -2595,7 +2652,7 @@ component displayName="Preside Object Service" {
 		var rebuilt = [];
 
 		for( var item in items ) {
-			var propertyName = _expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
+			var propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
 			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
 			var aliased      = _autoAliasBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
 
@@ -2842,63 +2899,6 @@ component displayName="Preside Object Service" {
 			  filter       = "#arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft"
 			, filterparams = { "#arguments.objectName#._version_is_draft" = false }
 		};
-	}
-
-	private string function _expandFormulaFields(
-		  required string  objectName
-		, required string  expression
-		, required any     dbAdapter
-		,          boolean includeAlias = true
-	) {
-		var props                = getObjectProperties( arguments.objectName );
-		var expanded             = arguments.expression;
-		var expressionMinusAlias = ListFirst( arguments.expression, " " );
-		var propertyName         = expressionMinusAlias;
-		var alias                = ListRest( arguments.expression, " " );
-		var prefix               = "";
-		var relatedObjectName    = "";
-
-		if ( ListLen( expressionMinusAlias, "." ) == 2 ) {
-			propertyName = ListLast( expressionMinusAlias, "." );
-			if ( ListFirst( expressionMinusAlias, "." ) != arguments.objectName ) {
-				prefix            = ListFirst( expressionMinusAlias, "." );
-				relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
-
-				if ( objectExists( relatedObjectName ) ) {
-					props = getObjectProperties( relatedObjectName );
-				}
-			} else {
-				prefix = "";
-			}
-		}
-
-		var formula = props[ propertyName ].formula ?: "";
-
-		if ( Len( Trim( formula ) ) ) {
-			if ( formula.findNoCase( "${prefix}" ) ) {
-				if ( prefix.len() ) {
-					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "${prefix}$\1.", "all" );
-					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "${prefix}.\1", "all" );
-				} else {
-					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "\1.", "all" );
-					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "#arguments.objectName#.\1", "all" );
-				}
-				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
-			}
-
-			if ( arguments.includeAlias && !alias.len() ) {
-				expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
-			} else {
-				expanded = formula;
-			}
-
-			if ( alias.len() ) {
-				expanded &= " #alias#";
-			}
-		}
-
-
-		return expanded;
 	}
 
 	private string function _autoAliasBareProperty(
