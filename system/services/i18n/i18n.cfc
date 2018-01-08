@@ -5,6 +5,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" output=false {
 	property name="widgetsService"        inject="widgetsService";
 	property name="presideObjectService"  inject="presideObjectService";
 	property name="controller"            inject="coldbox";
+	property name="sessionStorage"        inject="sessionStorage";
 
 	public any function init() {
 		super.init( argumentCollection=arguments );
@@ -21,9 +22,13 @@ component extends="preside.system.modules.cbi18n.models.i18n" output=false {
 		,          string defaultValue = variables.controller.getSetting( "UnknownTranslation" )
 		,          string language     = getFWLanguageCode()
 		,          string country      = getFWCountryCode()
-		,          array  data = []
+		,          array  data         = []
 
 	) output=false {
+		if ( _isDebugMode() ) {
+			return arguments.uri;
+		}
+
 		var translated = "";
 
 		try {
@@ -98,5 +103,14 @@ component extends="preside.system.modules.cbi18n.models.i18n" output=false {
 		}
 
 		return data;
+	}
+
+	private boolean function _isDebugMode() {
+		if ( !request.keyExists( "_i18nDebugMode" ) ) {
+			request._i18nDebugMode = sessionStorage.getVar( "_i18nDebugMode" );
+			request._i18nDebugMode = IsBoolean( request._i18nDebugMode ?: "" ) && request._i18nDebugMode;
+		}
+
+		return request._i18nDebugMode;
 	}
 }
