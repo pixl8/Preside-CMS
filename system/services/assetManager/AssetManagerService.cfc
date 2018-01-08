@@ -742,7 +742,7 @@ component displayName="AssetManager Service" {
 				updateData.crop_hint=data.crop_hint;
 			}
 			if ( !updateData.isEmpty() ) {
-				_getAssetVersionDao().updateData( id=asset.active_version, data=updateDate )
+				_getAssetVersionDao().updateData( id=asset.active_version, data=updateData )
 			}
 		}
 
@@ -1320,7 +1320,7 @@ component displayName="AssetManager Service" {
 			var transformationArgs = transformation.args ?: {};
 			transformationArgs.focalPoint = asset.focal_point;
 			transformationArgs.cropHint   = asset.crop_hint;
-			
+
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
 				assetBinary = _applyAssetTransformation(
 					  assetBinary          = assetBinary
