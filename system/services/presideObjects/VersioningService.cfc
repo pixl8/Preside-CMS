@@ -81,12 +81,13 @@ component {
 	) {
 		var poService         = $getPresideObjectService();
 		var existingRecords   = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=true );
+		var prevVersionsExist = existingRecords.recordCount > 0;
 		var newData           = Duplicate( arguments.data );
 		var idField           = poService.getidField( arguments.objectName );
 		var dateCreatedField  = poService.getdateCreatedField( arguments.objectName );
 		var dateModifiedField = poService.getdateModifiedField( arguments.objectName );
 
-		if ( !existingRecords.recordCount ) {
+		if ( !prevVersionsExist ) {
 			existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=false );
 		}
 
@@ -97,9 +98,20 @@ component {
 			var versionedManyToManyFields = _getVersionedManyToManyFieldsForObject( arguments.objectName );
 			var oldManyToManyData = versionedManyToManyFields.len() ? poService.getDeNormalizedManyToManyData(
 				  objectName   = arguments.objectName
-				, id           = oldData.id
+				, id           = oldData[ idField ]
 				, selectFields = versionedManyToManyFields
 			) : {};
+
+			if ( !prevVersionsExist ) {
+				saveVersionForInsert(
+					  objectName     = arguments.objectName
+					, data           = oldData
+					, manyToManyData = oldManyToManyData
+					, versionNumber  = arguments.versionNumber
+				);
+
+				arguments.versionNumber = getNextVersionNumber();
+			}
 
 			var newDataForChangedFieldsCheck = Duplicate( arguments.data );
 
@@ -561,31 +573,33 @@ component {
 	private void function _addAdditionalVersioningPropertiesToSourceObject( required struct objMeta, required string objectName ) {
 		objMeta.properties[ "_version_is_draft" ] = objMeta.properties[ "_version_is_draft" ] ?: {};
 		objMeta.properties[ "_version_is_draft" ].append( {
-			  name         = "_version_is_draft"
-			, required     = false
-			, type         = "boolean"
-			, dbtype       = "boolean"
-			, indexes      = ""
-			, control      = "none"
-			, maxLength    = 0
-			, relationship = "none"
-			, relatedto    = "none"
-			, generator    = "none"
-			, default      = false
+			  name          = "_version_is_draft"
+			, required      = false
+			, type          = "boolean"
+			, dbtype        = "boolean"
+			, indexes       = ""
+			, control       = "none"
+			, maxLength     = 0
+			, relationship  = "none"
+			, relatedto     = "none"
+			, generator     = "none"
+			, default       = false
+			, adminRenderer = "none"
 		} );
 		objMeta.properties[ "_version_has_drafts" ] = objMeta.properties[ "_version_has_drafts" ] ?: {};
 		objMeta.properties[ "_version_has_drafts" ].append( {
-			  name         = "_version_has_drafts"
-			, required     = false
-			, type         = "boolean"
-			, dbtype       = "boolean"
-			, indexes      = ""
-			, control      = "none"
-			, maxLength    = 0
-			, relationship = "none"
-			, relatedto    = "none"
-			, generator    = "none"
-			, default      = false
+			  name          = "_version_has_drafts"
+			, required      = false
+			, type          = "boolean"
+			, dbtype        = "boolean"
+			, indexes       = ""
+			, control       = "none"
+			, maxLength     = 0
+			, relationship  = "none"
+			, relatedto     = "none"
+			, generator     = "none"
+			, default       = false
+			, adminRenderer = "none"
 		} );
 
 		for( var fieldName in [ "_version_is_draft", "_version_has_drafts" ] ) {
@@ -772,5 +786,4 @@ component {
 
 		return strct;
 	}
-
 }

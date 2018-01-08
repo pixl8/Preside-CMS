@@ -42,7 +42,7 @@
 		, icon   = "fa-list-alt light-grey"
 		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.log" )
 		, active = ( args.tab == "log" )
-		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.log", queryString="template=#templateId#" )
+		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.logs", queryString="template=#templateId#" )
 	});
 </cfscript>
 

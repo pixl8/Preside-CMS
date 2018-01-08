@@ -9,11 +9,6 @@
 	prc.pageIcon  = "pencil";
 	prc.pageTitle = editRecordTitle;
 
-	deleteRecordLink = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#id#" );
-	deleteRecordPrompt = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, recordLabel ] );
-	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.btn" );
-
-	canDelete        = prc.canDelete;
 	canTranslate     = prc.canTranslate;
 	translations     = prc.translations ?: [];
 	translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
@@ -37,14 +32,6 @@
 				</cfloop>
 			</ul>
 		</cfif>
-		<cfif canDelete>
-			<a class="pull-right inline confirmation-prompt" data-context-key="d" href="#deleteRecordLink#" title="#htmleditformat(deleteRecordPrompt)#">
-				<button class="btn btn-danger btn-sm">
-					<i class="fa fa-trash-o"></i>
-					#deleteRecordTitle#
-				</button>
-			</a>
-		</cfif>
 	</div>
 
 	<cfif useVersioning>
@@ -67,5 +54,7 @@
 		, draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
 		, canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
 		, canPublish    = IsTrue( prc.canPublish    ?: "" )
+		, resultAction  = rc.resultAction  ?: ""
+		, cancelAction  = prc.cancelAction ?: ""
 	} )#
 </cfoutput>

@@ -2,6 +2,7 @@
  * Abstraction wrapper for taskmanager configuration.
  *
  * @singleton
+ * @presideService
  * @autodoc
  */
 component displayName="TaskManager Configuration Wrapper" {
@@ -38,7 +39,15 @@ component displayName="TaskManager Configuration Wrapper" {
 
 					var meta = getComponentMetaData( componentPath );
 
+					if ( len( meta.feature ?: "" ) && !$isFeatureEnabled( meta.feature ) ) {
+						continue;
+					}
+
 					for( var f in meta.functions ){
+						if ( len( f.feature ?: "" ) && !$isFeatureEnabled( f.feature ) ) {
+							continue;
+						}
+
 						var isScheduledTaskMethod = Len( Trim( f.schedule ?: "" ) );
 						if ( isScheduledTaskMethod ) {
 							tasks[ f.name ] = {

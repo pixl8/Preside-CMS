@@ -3,7 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="emailServiceProviderService" inject="emailServiceProviderService";
 	property name="siteService"                 inject="siteService";
 	property name="systemConfigurationService"  inject="systemConfigurationService";
-	property name="messagebox"                  inject="coldbox:plugin:messagebox";
+	property name="messagebox"                  inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );

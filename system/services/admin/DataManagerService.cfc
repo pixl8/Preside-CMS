@@ -11,7 +11,7 @@ component {
 	 * @presideObjectService.inject PresideObjectService
 	 * @contentRenderer.inject      ContentRendererService
 	 * @labelRendererService.inject LabelRendererService
-	 * @i18nPlugin.inject           coldbox:plugin:i18n
+	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
@@ -151,8 +151,11 @@ component {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "add,edit,delete,viewversions"
+			, defaultValue  = "read,add,edit,delete,viewversions"
 		);
+
+		operations = operations.reReplaceNoCase( "\bview\b", "read" );
+
 
 		return operations != "none" && ListFindNoCase( operations, arguments.operation );
 	}
@@ -410,6 +413,9 @@ component {
 			return result;
 		};
 		var labelField         = _getPresideOBjectService().getLabelField( arguments.objectName );
+		if (args.orderBy is 'label') {
+			args.orderBy = labelField;
+		}
 		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 		if ( len( arguments.labelRenderer ) ) {
@@ -425,12 +431,16 @@ component {
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
+			var searchFields = [ labelField ];
+			if ( len( arguments.labelRenderer ) ) {
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery
 				, objectName   = arguments.objectName
 				, gridFields   = args.selectFields
 				, labelfield   = labelfield
-				, searchFields = [ labelField ]
+				, searchFields = searchFields
 			);
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
@@ -582,6 +592,9 @@ component {
 
 			if ( fieldRelationship == "many-to-one" ) {
 				var relatedLabelField = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+				var delim             = relatedLabelField.find( "$" ) ? "$" : ".";
+
+				relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
 
 				newOrderBy.append( relatedLabelField & " " & orderDirection );
 			} else {
@@ -650,34 +663,41 @@ component {
 	}
 
 	private string function _getFullFieldName( required string field, required string objectName ) {
-		var poService = "";
+		var poService = _getPresideObjectService();
 		var fieldName = arguments.field;
 		var objName   = arguments.objectName;
+		var fullName  = "";
 
 		if ( fieldName contains "${labelfield}" ) {
-			fieldName = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" );
+			fieldName = poService.getObjectAttribute( arguments.objectName, "labelfield", "label" );
 			if ( ListLen( fieldName, "." ) == 2 ) {
 				objName = ListFirst( fieldName, "." );
 				fieldName = ListLast( fieldName, "." );
 			}
 
-			return objName & "." & fieldName;
-		}
+			fullName = objName & "." & fieldName;
+		} else {
+			var prop = poService.getObjectProperty( objectName=objName, propertyName=fieldName );
+			var relatedTo = prop.relatedTo ?: "none";
 
-		var prop = _getPresideObjectService().getObjectProperty( objectName=objName, propertyName=fieldName );
-		var relatedTo = prop.relatedTo ?: "none";
+			if(  Len( Trim( relatedTo ) ) && relatedTo != "none" ) {
+				var objectLabelField = poService.getObjectAttribute( relatedTo, "labelfield", "label" );
 
-		if(  Len( Trim( relatedTo ) ) and relatedTo neq "none" ) {
-			var objectLabelField = _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
-
-			if( Find( ".", objectLabelField ) ){
-				return arguments.field & "$" & objectLabelField;
-			} else{
-				return arguments.field & "." & objectLabelField;
+				if( Find( ".", objectLabelField ) ){
+					fullName = arguments.field & "$" & objectLabelField;
+				} else{
+					fullName = arguments.field & "." & objectLabelField;
+				}
+			} else {
+				fullName = objName & "." & fieldName;
 			}
 		}
 
-		return objName & "." & fieldName;
+		return poService.expandFormulaFields(
+			  objectName   = objName
+			, expression   = fullName
+			, includeAlias = false
+		);
 	}
 
 	private string function _propertyIsSearchable( required string field, required string objectName ) {
@@ -691,7 +711,7 @@ component {
 
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
-		return ( prop.type ?: "" ) == "string" && !( prop.formula ?: "" ).len();
+		return ( prop.type ?: "" ) == "string";
 	}
 
 // GETTERS AND SETTERS

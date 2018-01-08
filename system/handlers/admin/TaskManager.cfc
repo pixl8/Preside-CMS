@@ -3,7 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="taskManagerService"         inject="taskManagerService";
 	property name="taskHistoryDao"             inject="presidecms:object:taskmanager_task_history";
 	property name="systemConfigurationService" inject="systemConfigurationService";
-	property name="messageBox"                 inject="coldbox:plugin:messageBox";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
@@ -135,7 +135,7 @@ component extends="preside.system.base.AdminHandler" {
 		sleep( 200 );
 		var historyId = taskManagerService.getActiveHistoryIdForTask( task );
 
-		setNextEvent( url=event.buildAdminLink( linkTo="taskManager.log", querystring="id=" & historyId ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="taskManager.viewLog", querystring="id=" & historyId ) );
 	}
 
 	public void function killRunningTaskAction( event, rc, prc ) {
@@ -196,12 +196,13 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function log( event, rc, prc ) {
+	public void function viewLog( event, rc, prc ) {
 		_checkPermission( "viewlogs", event );
 
 		var log = taskHistoryDao.selectData(
 			  id           = rc.id ?: "---"
 			, selectFields = [ "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
+			, useCache     = false
 		);
 
 		if ( !log.recordCount ) {
@@ -224,7 +225,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:taskmanager.log.breadcrumb" )
-			, link  = event.buildAdminLink( linkTo="taskmanager.log", queryString="id=#rc.id#" )
+			, link  = event.buildAdminLink( linkTo="taskManager.viewLog", queryString="id=#rc.id#" )
 		);
 
 		if ( !prc.log.complete ) {
@@ -242,6 +243,7 @@ component extends="preside.system.base.AdminHandler" {
 		var log = taskHistoryDao.selectData(
 			  id           = rc.id ?: "---"
 			, selectFields = [ "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
+			, useCache     = false
 		);
 		if ( !log.recordCount ) {
 			event.notFound();

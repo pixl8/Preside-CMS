@@ -866,6 +866,20 @@ An example scenario for this might be an object whose data is synced with an ext
 property name="_last_sync_check" type="date" dbtype="datetime" ignoreChangesForVersioning=true;
 ```
 
+### Only create versions on update
+
+As of **10.9.0**, you are able to specify that a version record is **not** created on **insert**. Instead, the first version record will be created on the first update to the record. This allows you to save on unnecessary version records in your database. To do this, add the `versionOnInsert=false` attribute to you object, e.g.
+
+```luceescript
+/**
+ * @versioned       true
+ * @versionOnInsert false
+ */
+component {
+    // ...
+}
+```
+
 ## Organising data by sites
 
 You can instruct the Preside Data Objects system to organise your objects' data into your system's individual sites (see [[workingwithmultiplesites]]). Doing so will mean that any data reads and writes will be specific to the currently active site.

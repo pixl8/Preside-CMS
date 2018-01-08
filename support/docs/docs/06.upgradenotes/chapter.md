@@ -15,3 +15,4 @@ Note: If you are updating over multiple major versions, e.g. from `10.6.x` to `1
 
 * [[10-7-upgrade-notes]]
 * [[10-8-upgrade-notes]]
+* [[10-9-upgrade-notes]]
