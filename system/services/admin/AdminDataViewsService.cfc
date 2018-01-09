@@ -24,21 +24,6 @@ component {
 
 // PUBLIC API METHODS
 	/**
-	 * Renders an object record using its configured renderer
-	 *
-	 * @autodoc true
-	 * @objectName Name of the object whose record you wish to render
-	 * @recordId   ID of the record to render
-	 * @version    Version of the record to use
-	 */
-	public string function renderObjectRecord( required string objectName, required string recordId, numeric version=0 ) {
-		return $getColdbox().renderViewlet(
-			  event = getViewletForObjectRender( objectName=arguments.objectName )
-			, args  = {}.append( arguments )
-		);
-	}
-
-	/**
 	 * Renders a field in the context of an admin data view
 	 *
 	 * @autodoc true
@@ -133,26 +118,6 @@ component {
 		} );
 	}
 
-	/**
-	 * Returns the viewlet to use to render an entire view
-	 * of the given object
-	 *
-	 * @autodoc    true
-	 * @objectName Name of the object whose viewlet you wish to get
-	 */
-	public string function getViewletForObjectRender( required string objectName ) {
-		var args = arguments;
-
-		return _simpleLocalCache( "getViewletForObjectRender_#arguments.objectName#", function(){
-			var defaultViewlet  = "admin.dataHelpers.viewRecord";
-			var specificViewlet = $getPresideObjectService().getObjectAttribute(
-				  objectName    = args.objectName
-				, attributeName = "adminViewRecordViewlet"
-			);
-
-			return specificViewlet.trim().len() ? specificViewlet : defaultViewlet;
-		} );
-	}
 
 	/**
 	 * Returns array of property names in expected order that

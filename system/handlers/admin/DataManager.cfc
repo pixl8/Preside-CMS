@@ -72,7 +72,6 @@ component extends="preside.system.base.AdminHandler" {
 
 	}
 
-
 	public void function viewRecord( event, rc, prc ) {
 		var objectName   = prc.objectName ?: "";
 		var recordId     = prc.recordId   ?: ""
@@ -96,10 +95,11 @@ component extends="preside.system.base.AdminHandler" {
 			version = rc.version = prc.version = Val( url.version ?: "" );
 		}
 
-		prc.renderedRecord = adminDataViewsService.renderObjectRecord(
-			  objectName = objectName
-			, recordId   = recordId
-			, version    = version
+		prc.renderedRecord = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "renderRecord"
+			, defaultHandler = "admin.dataHelpers.viewRecord"
+			, args           = { objectName= objectName, recordId=recordId, version=version }
 		);
 
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );

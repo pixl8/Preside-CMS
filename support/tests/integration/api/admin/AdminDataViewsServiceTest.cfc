@@ -105,47 +105,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "getViewletForObjectRender()", function(){
-			it( "should return specified 'adminViewRecordViewlet' attribute on the object when object defines it", function(){
-				var service = _getService();
-				var viewlet = "test.viewlet.#CreateUUId()#";
-
-				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="adminViewRecordViewlet" ).$results( viewlet );
-
-				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( viewlet );
-			} );
-
-			it( "should return 'admin.dataHelpers.viewRecord' when no specific 'adminViewRecordViewlet' is defined on an object", function(){
-				var service = _getService();
-
-				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="adminViewRecordViewlet" ).$results( "" );
-
-				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( "admin.dataHelpers.viewRecord" );
-			} );
-		} );
-
-		describe( "renderObjectRecord()", function(){
-			it( "should use the configured viewlet for an object to render the view record view", function(){
-				var service    = _getService();
-				var rendered   = CreateUUid();
-				var handler    = "";
-				var args       = {
-					  objectName = "test_object_" & CreateUUId()
-					, recordId   = CreateUUId()
-					, artbitrary = { test=true }
-					, version    = 39
-				};
-
-				service.$( "getViewletForObjectRender" ).$args( objectName=args.objectName ).$results( handler );
-				mockColdbox.$( "renderViewlet" ).$args(
-					  event = handler
-					, args  = args
-				).$results( rendered );
-
-				expect( service.renderObjectRecord( argumentCollection=args ) ).toBe( rendered );
-			} );
-		} );
-
 		describe( "listRenderableObjectProperties()", function(){
 			it( "should return an array of property names for an object sorted by sort order and excluding those whose admin renderer is 'none'", function(){
 				var service    = _getService();
