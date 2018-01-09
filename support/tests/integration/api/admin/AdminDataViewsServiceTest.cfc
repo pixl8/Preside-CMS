@@ -201,6 +201,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, description = "Test group description"
 					, iconClass   = "fa-test-icon"
 					, sortorder   = 49
+					, column      = "left"
 				};
 
 				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
@@ -209,6 +210,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=""        ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=""        ).$results( groupDetail.iconClass   );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue=1000      ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.column"     , defaultValue="left"    ).$results( groupDetail.column      );
 
 				expect( service.getViewGroupDetail(
 					  objectName = objectName
@@ -230,6 +232,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, description = "Test group description"
 					, iconClass   = "fa-test-icon"
 					, sortorder   = 49
+					, column      = "left"
 				};
 
 				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
@@ -242,6 +245,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=objectDesc  ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=objectIcon  ).$results( groupDetail.iconClass   );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="1"         ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.column"     , defaultValue="left"      ).$results( groupDetail.column      );
 
 				expect( service.getViewGroupDetail(
 					  objectName = objectName
@@ -263,6 +267,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, description = "Test group description"
 					, iconClass   = "fa-test-icon"
 					, sortorder   = 49
+					, column      = "right"
 				};
 
 				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
@@ -275,6 +280,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=objectDesc  ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=objectIcon  ).$results( groupDetail.iconClass   );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="2"         ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.column"     , defaultValue="right"     ).$results( groupDetail.column      );
 
 				expect( service.getViewGroupDetail(
 					  objectName = objectName
@@ -284,23 +290,26 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "listViewGroupsForObject()", function(){
-			it( "should return an array of view groups configured for the object's properties, ordered by group sort order / group title", function(){
+			it( "should return an array of view groups configured for the object's properties, ordered by column + group sort order / group title", function(){
 				var service    = _getService();
 				var objectName = "test_object_" & CreateUUId();
-				var props      = [ "prop1", "prop2", "prop3", "prop4", "prop5", "prop6" ];
+				var props      = [ "prop1", "prop2", "prop3", "prop4", "prop5", "prop6", "prop7" ];
 				var groups     = {
-					  system  = { blah="blah", test=CreateUUId(), title="System" , sortOrder=300 }
-					, default = { blah="blah", test=CreateUUId(), title="Default", sortOrder=100 }
-					, group1  = { blah="blah", test=CreateUUId(), title="Group 1", sortOrder=300 }
+					  system  = { blah="blah", test=CreateUUId(), title="System" , sortOrder=300, column="left" }
+					, default = { blah="blah", test=CreateUUId(), title="Default", sortOrder=100, column="left" }
+					, group1  = { blah="blah", test=CreateUUId(), title="Group 1", sortOrder=300, column="left" }
+					, group5  = { blah="blah", test=CreateUUId(), title="Group 1", sortOrder=300, column="right" }
 				};
-				var expectedGroups = [];
+				var expectedGroups = { left=[], right=[] };
 
-				expectedGroups.append( duplicate( groups.default ) );
-				expectedGroups.append( duplicate( groups.group1 ) );
-				expectedGroups.append( duplicate( groups.system ) );
-				expectedGroups[ 1 ].properties = [ props[ 2 ] ];
-				expectedGroups[ 2 ].properties = [ props[ 1 ], props[ 4 ], props[ 5 ] ];
-				expectedGroups[ 3 ].properties = [ props[ 3 ], props[ 6 ] ];
+				expectedGroups.left.append( duplicate( groups.default ) );
+				expectedGroups.left.append( duplicate( groups.group1 ) );
+				expectedGroups.left.append( duplicate( groups.system ) );
+				expectedGroups.left[ 1 ].properties = [ props[ 2 ] ];
+				expectedGroups.left[ 2 ].properties = [ props[ 1 ], props[ 4 ], props[ 5 ] ];
+				expectedGroups.left[ 3 ].properties = [ props[ 3 ], props[ 6 ] ];
+				expectedGroups.right.append( duplicate( groups.group5 ) );
+				expectedGroups.right[ 1 ].properties = [ props[ 7 ] ];
 
 				service.$( "listRenderableObjectProperties" ).$args( objectName ).$results( props );
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 1 ] ).$results( "group1"  );
@@ -309,6 +318,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 4 ] ).$results( "group1"  );
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 5 ] ).$results( "group1"  );
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 6 ] ).$results( "system"  );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 7 ] ).$results( "group5"  );
 				for( var groupName in groups ) {
 					service.$( "getViewGroupDetail" ).$args( objectName, groupName ).$results( groups[ groupName ] );
 				}

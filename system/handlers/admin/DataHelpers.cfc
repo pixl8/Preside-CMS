@@ -19,6 +19,23 @@ component extends="preside.system.base.adminHandler" {
 		var objectName = args.objectName ?: "";
 
 		args.viewGroups = adminDataViewsService.listViewGroupsForObject( objectName );
+		args.leftCol    = args.preLeftCol  ?: "";
+		args.rightCol   = args.preRightCol ?: "";
+
+		for( var col in [ "left", "right" ] ) {
+			for( var group in args.viewGroups[ col ] ) {
+				var groupArgs = args.copy();
+				groupArgs.append( group );
+
+				args[ col & "Col" ] &= renderViewlet(
+					  event = "admin.datahelpers.displayGroup"
+					, args  = groupArgs
+				);
+			}
+		}
+
+		args.leftCol  &= args.postLeftCol  ?: "";
+		args.rightCol &= args.postRightCol ?: "";
 
 		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
 	}

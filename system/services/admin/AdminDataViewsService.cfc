@@ -218,6 +218,7 @@ component {
 			, description = ""
 			, iconClass   = ""
 			, sortOrder   = 1000
+			, column      = "left"
 		};
 
 		switch( arguments.groupName ) {
@@ -226,40 +227,48 @@ component {
 				defaults.description = $translateResource( uri=uriRoot & "description"   , defaultValue=""                   );
 				defaults.iconClass   = $translateResource( uri=uriRoot & "iconClass"     , defaultValue=""                   );
 				defaults.sortOrder   = 1;
+				defaults.column      = "left";
 			break;
 			case "system":
 				defaults.title       = $translateResource( uri="cms:admin.view.system.group.title"      , defaultValue=arguments.groupName  );
 				defaults.description = $translateResource( uri="cms:admin.view.system.group.description", defaultValue=""                   );
 				defaults.iconClass   = $translateResource( uri="cms:admin.view.system.group.iconclass"  , defaultValue=""                   );
 				defaults.sortOrder   = 2;
+				defaults.column      = "right";
 			break;
 		}
 
-		return {
+		var detail = {
 			  id          = arguments.groupName
 			, title       = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.title"      , defaultValue=defaults.title       )
 			, description = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.description", defaultValue=defaults.description )
 			, iconClass   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.iconClass"  , defaultValue=defaults.iconClass   )
 			, sortOrder   = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.sortOrder"  , defaultValue=defaults.sortOrder   )
+			, column      = $translateResource( uri=uriRoot & "viewgroup.#arguments.groupName#.column"     , defaultValue=defaults.column      )
 		};
+
+		detail.column = detail.column == "right" ? detail.column : "left";
+
+		return detail;
 	}
 
 	/**
-	 * Returns an ordered array of view groups with their renderable properties
-	 * ready for rendering an admin view of an object
+	 * Returns an struct with keys 'left' and 'right'.
+	 * Each key contains an ordered array of view groups with their
+	 * renderable properties ready for rendering an admin view of an object
 	 *
 	 * @autodoc    true
 	 * @objectName name of the object whose groups you wish to get
 	 *
 	 */
-	public array function listViewGroupsForObject( required string objectName ) {
+	public struct function listViewGroupsForObject( required string objectName ) {
 		var args     = arguments;
 		var cacheKey = "listViewGroupsForObject-" & arguments.objectName & "-" & $getI18nLocale();
 
 		return _simpleLocalCache( cacheKey, function(){
 			var properties   = listRenderableObjectProperties( args.objectName );
 			var uniqueGroups = {};
-			var listedGroups = [];
+			var listedGroups = { left=[], right=[] };
 
 			for( var propertyName in properties ) {
 				var groupName = getViewGroupForProperty( args.objectName, propertyName );
@@ -271,16 +280,20 @@ component {
 				var group = getViewGroupDetail( args.objectName, groupName ).copy();
 				group.properties = uniqueGroups[ groupName ];
 
-				listedGroups.append( group )
+				listedGroups[ group.column ].append( group );
 			}
 
-			return listedGroups.sort( function( a, b ){
-				if ( a.sortOrder == b.sortOrder ) {
-					return a.title > b.title ? 1 : -1;
-				}
+			for( var column in [ "left", "right" ] ) {
+				listedGroups[ column ] = listedGroups[ column ].sort( function( a, b ){
+					if ( a.sortOrder == b.sortOrder ) {
+						return a.title > b.title ? 1 : -1;
+					}
 
-				return a.sortOrder > b.sortOrder ? 1 : -1;
-			} );
+					return a.sortOrder > b.sortOrder ? 1 : -1;
+				} );
+			}
+
+			return listedGroups;
 		} );
 	}
 
