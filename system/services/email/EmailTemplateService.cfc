@@ -613,7 +613,8 @@ component {
 	public array function listDueOneTimeScheduleTemplates() {
 		var records = $getPresideObject( "email_template" ).selectData(
 			  selectFields       = [ "id" ]
-			, filter             = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
+			, filter             = "sending_method = :sending_method and schedule_type = :schedule_type and (schedule_sent is null or schedule_sent = :schedule_sent)"
+			, filterParams       = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
 			, extraFilters       = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=_getNow() } } ]
 			, orderBy            = "schedule_date"
 			, allowDraftVersions = false
