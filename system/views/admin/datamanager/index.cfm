@@ -31,20 +31,36 @@
 	<cfif not ArrayLen( objectGroups )>
 		<p>#translateResource( "cms:datamanager.nonetodisplay" )#</p>
 	<cfelse>
+		<div class="info-bar">
+			<label class="block clearfix" for="datamanager-search-box">
+				<span class="block input-icon">
+					<input type              = "text"
+					       id                = "datamanager-search-box"
+					       class             = "search-box form-control"
+					       placeholder       = "#translateResource( 'cms:datamanager.global.search.placeholder' )#"
+					       name              = "q"
+					       autocomplete      = "off"
+					       data-global-key   = "s">
+
+					<i class="fa fa-search"></i>
+				</span>
+			</label>
+		</div>
+
 		<div class="row">
 			<cfloop from="1" to="#groupColCounts.len()#" index="col">
-				<div class="col-sm-4">
+				<div class="col-sm-4 datamanager-group-column">
 					<cfloop from="#groupColCounts[ col ].from#" to="#groupColCounts[ col ].to#" index="listIndex">
 						<cfset group = objectGroups[ listIndex ] />
-						<div class="well">
-							<h4 class="small lighter green"><i class="fa #group.icon#"></i> &nbsp;#group.title#</h4>
+						<div class="well datamanager-group">
+							<h4 class="small lighter green"><i class="fa #group.icon#"></i> &nbsp;<span class="datamanager-group-title">#group.title#</span></h4>
 							<p>#group.description#</p>
 
 							<ul class="list-unstyled" data-nav-list="#listIndex#" data-nav-list-child-selector="li a">
 								<cfloop array="#group.objects#" index="obj">
-									<li>
+									<li class="datamanager-object">
 										<i class="fa fa-fw #obj.iconClass#"></i>&nbsp;
-										<a href="#event.buildAdminLink( objectName=obj.id, operation="listing" )#">
+										<a href="#event.buildAdminLink( objectName=obj.id, operation="listing" )#" class="datamanager-object-title">
 											#obj.title#
 										</a>
 									</li>
