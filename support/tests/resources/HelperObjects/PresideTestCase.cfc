@@ -56,12 +56,6 @@
 				var logger = _getTestLogger();
 				var mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
 				var mockRequestContext = getMockBox().createStub();
-				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
-					  dsn = application.dsn
-					, tablePrefix = arguments.defaultPrefix
-					, interceptorService = arguments.interceptorService
-					, featureService = mockFeatureService
-				);
 				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
 				var dbInfoService  = new preside.system.services.database.DbInfoService();
 				var sqlRunner      = new preside.system.services.database.sqlRunner( logger = logger );
@@ -69,6 +63,13 @@
 				var adapterFactory = new preside.system.services.database.adapters.AdapterFactory(
 					  cache         = cachebox.getCache( "PresideSystemCache" )
 					, dbInfoService = dbInfoService
+				);
+				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
+					  dsn = application.dsn
+					, tablePrefix = arguments.defaultPrefix
+					, interceptorService = arguments.interceptorService
+					, featureService = mockFeatureService
+					, adapterFactory = adapterFactory
 				);
 				var schemaVersioning = new preside.system.services.presideObjects.sqlSchemaVersioning(
 					  adapterFactory = adapterFactory
