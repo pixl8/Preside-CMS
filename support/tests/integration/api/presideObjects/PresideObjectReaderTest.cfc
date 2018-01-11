@@ -403,12 +403,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 // PRIVATE HELPERS
 	private any function getReader( string dsn="default_dsn", tablePrefix="pobj_" ) {
 		mockFeatureService = createEmptyMock( "preside.system.services.features.FeatureService" );
+		mockAdapterFactory = createEmptyMock( "preside.system.services.database.adapters.AdapterFactory" );
+		mockAdapter        = createEmptyMock( "preside.system.services.database.adapters.MySqlAdapter" );
+
+		mockAdapterFactory.$( "getAdapter", mockAdapter );
+		mockAdapter.$( "autoCreatesFkIndexes", true );
 
 		return new preside.system.services.presideObjects.PresideObjectReader(
 			  dsn                = arguments.dsn
 			, tablePrefix        = arguments.tablePrefix
 			, interceptorService = _getMockInterceptorService()
 			, featureService     = mockFeatureService
+			, adapterFactory     = mockAdapterFactory
 		);
 	}
 

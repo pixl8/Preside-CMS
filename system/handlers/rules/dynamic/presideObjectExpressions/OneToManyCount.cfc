@@ -68,6 +68,10 @@ component {
 		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} :#paramName#";
 		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
+		for( var extraFilter in subQueryExtraFilters ) {
+			params.append( extraFilter.filterParams ?: {} );
+		}
+
 		switch ( _numericOperator ) {
 			case "eq":
 				filterSql = filterSql.replace( "${operator}", "=" );
