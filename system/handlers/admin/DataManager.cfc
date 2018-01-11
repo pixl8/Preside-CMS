@@ -53,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 				, args       = { objectName=objectName }
 			);
 		} else {
-			prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args={
+			var args = {
 				  objectName          = objectName
 				, useMultiActions     = IsTrue( prc.canDelete      ?: "" )
 				, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
@@ -62,7 +62,16 @@ component extends="preside.system.base.AdminHandler" {
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
 				, allowDataExport     = true
-			} );
+			}
+
+			args.datasourceUrl = customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "getDatasourceForGridListing"
+				, args           = args
+				, defaultHandler = "admin.datamanager._getDatasourceForGridListing"
+			);
+
+			prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
 	}
 
@@ -1103,6 +1112,35 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // private events for sharing
+	private string function _getDatasourceForGridListing( event, rc, prc, args={} ) {
+		var qs         = "";
+		var objectName = args.objectName ?: "";
+
+		if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForDatasourceForGridListing" ) ) {
+			qs = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "getAdditionalQueryStringForDatasourceForGridListing"
+				, args       = args
+			);
+
+			qs = qs ?: "";
+			qs = IsSimpleValue( qs ) ? qs : "";
+		}
+
+		return event.buildAdminLink(
+			  objectName = objectName
+			, operation  = "ajaxListing"
+			, args       = {
+				  useMultiActions = IsTrue( args.useMultiActions ?: "" )
+				, gridFields      = ArrayToList( args.gridFields ?: "" )
+				, isMultilingual  = IsTrue( args.isMultilingual ?: "" )
+				, draftsEnabled   = IsTrue( args.draftsEnabled  ?: "" )
+				, queryString     = qs
+			  }
+		);
+		return
+	}
+
 	private void function _getObjectRecordsForAjaxDataTables(
 		  required any     event
 		, required struct  rc

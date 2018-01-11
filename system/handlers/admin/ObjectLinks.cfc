@@ -147,6 +147,10 @@ component {
 			}
 		}
 
+		if ( Len( Trim( args.queryString ?: "" ) ) ) {
+			qs &= "&#args.queryString#";
+		}
+
 		return event.buildAdminLink(
 			  linkto      = "datamanager.getObjectRecordsForAjaxDataTables"
 			, queryString = qs
