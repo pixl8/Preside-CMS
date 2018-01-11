@@ -10,6 +10,8 @@ component extends="preside.system.base.adminHandler" {
 	property name="presideObjectService"    inject="presideObjectService";
 	property name="dataExportService"       inject="dataExportService";
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
+	property name="customizationService"    inject="dataManagerCustomizationService";
+
 
 	/**
 	 * Method for rendering a record for an admin view
@@ -19,8 +21,13 @@ component extends="preside.system.base.adminHandler" {
 		var objectName = args.objectName ?: "";
 
 		args.viewGroups = adminDataViewsService.listViewGroupsForObject( objectName );
-		args.leftCol    = args.preLeftCol  ?: "";
-		args.rightCol   = args.preRightCol ?: "";
+
+		args.preRenderRecord         = ( customizationService.objectHasCustomization( objectName, "preRenderRecord"          ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecord"         , args=args ) : "" );
+		args.preRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "preRenderRecordLeftCol"   ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordLeftCol"  , args=args ) : "" );
+		args.preRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "preRenderRecordRightCol"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordRightCol" , args=args ) : "" );
+
+		args.leftCol  = "";
+		args.rightCol = "";
 
 		for( var col in [ "left", "right" ] ) {
 			for( var group in args.viewGroups[ col ] ) {
@@ -34,8 +41,10 @@ component extends="preside.system.base.adminHandler" {
 			}
 		}
 
-		args.leftCol  &= args.postLeftCol  ?: "";
-		args.rightCol &= args.postRightCol ?: "";
+		args.postRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "postRenderRecordLeftCol"  ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordLeftCol" , args=args ) : "" );
+		args.postRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "postRenderRecordRightCol" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordRightCol", args=args ) : "" );
+		args.postRenderRecord         = ( customizationService.objectHasCustomization( objectName, "postRenderRecord"         ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecord"        , args=args ) : "" );
+
 
 		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
 	}
