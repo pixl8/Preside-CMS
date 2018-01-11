@@ -216,4 +216,8 @@ component extends="BaseAdapter" {
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
 		return "Concat( #leftExpression#, #rightExpression# )";
 	}
+
+	public boolean function autoCreatesFkIndexes(){
+		return true;
+	}
 }
