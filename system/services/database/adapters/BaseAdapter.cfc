@@ -462,6 +462,10 @@ component {
 		return true;
 	}
 
+	public boolean function autoCreatesFkIndexes(){
+		return false;
+	}
+
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
 		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";
 	}

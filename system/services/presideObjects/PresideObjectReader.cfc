@@ -10,12 +10,14 @@ component {
 	 * @tablePrefix.inject        coldbox:setting:presideObjectsTablePrefix
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @featureService.inject     featureService
+	 * @adapterFactory.inject     adapterFactory
 	 */
-	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService ) {
+	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService, required any adapterFactory ) {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );
 		_setInterceptorService( arguments.interceptorService );
 		_setFeatureService( arguments.featureService );
+		_setDbAdapter( arguments.adapterFactory.getAdapter( arguments.dsn ) );
 
 		return this;
 	}
@@ -111,7 +113,7 @@ component {
 		autoObject = {
 			  dbFieldList = "#fieldOrder#,sort_order"
 			, dsn         = sourceObject.dsn
-			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields="#fieldOrder#" } }
+			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields=fieldOrder } }
 			, name        = pivotObjectName
 			, tableName   = LCase( sourceObject.tablePrefix & pivotObjectName )
 			, tablePrefix = sourceObject.tablePrefix
@@ -228,6 +230,7 @@ component {
 			, generator    = "none"
 			, required     = "false"
 		};
+		var dbAdapterSupportsFkIndexes = _getDbAdapter().autoCreatesFkIndexes();
 		var corePropertyNames = [
 			  arguments.meta.idField           ?: "id"
 			, arguments.meta.dateCreatedField  ?: "datecreated"
@@ -240,6 +243,7 @@ component {
 		for( var propName in arguments.meta.properties ){
 			var prop           = arguments.meta.properties[ propName ];
 			var isCoreProperty = corePropertyNames.findNoCase( propName );
+			var createFkIndex  = ( prop.createFkIndex ?: !dbAdapterSupportsFkIndexes );
 
 			if ( ( prop.type ?: "" ) == "any" ) {
 				StructDelete( prop, "type" );
@@ -259,6 +263,13 @@ component {
 
 			if ( ( prop.formula ?: "" ).len() ) {
 				prop.dbtype = "none";
+			}
+
+			if ( ( ( prop.relationship ?: "" ) == "many-to-one" ) && IsBoolean( createFkIndex ) && createFkIndex ) {
+				prop.indexes = prop.indexes ?: "";
+				if ( !prop.indexes.listFindNoCase( "fk_#propName#" ) ) {
+					prop.indexes = prop.indexes.listAppend( "fk_#propName#" );
+				}
 			}
 		}
 	}
@@ -500,5 +511,12 @@ component {
 	}
 	private void function _setFeatureService( required any featureService ) {
 		_featureService = arguments.featureService;
+	}
+
+	private any function _getDbAdapter() {
+		return _dbAdapter;
+	}
+	private void function _setDbAdapter( required any dbAdapter ) {
+		_dbAdapter = arguments.dbAdapter;
 	}
 }

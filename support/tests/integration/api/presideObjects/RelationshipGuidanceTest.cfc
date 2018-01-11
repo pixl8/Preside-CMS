@@ -491,12 +491,18 @@
 		<cfscript>
 			mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
 			mockFeatureService.$( "isFeatureEnabled", true );
+			mockAdapterFactory = createEmptyMock( "preside.system.services.database.adapters.AdapterFactory" );
+			mockAdapter        = createEmptyMock( "preside.system.services.database.adapters.MySqlAdapter" );
+
+			mockAdapterFactory.$( "getAdapter", mockAdapter );
+			mockAdapter.$( "autoCreatesFkIndexes", true );
 
 			var reader               = new preside.system.services.presideObjects.PresideObjectReader(
 				  dsn                = "default_dsn"
 				, tablePrefix        = "pobj_"
 				, interceptorService = _getMockInterceptorService()
 				, featureService     = mockFeatureService
+				, adapterFactory     = mockAdapterFactory
 			);
 
 			return new preside.system.services.presideObjects.RelationshipGuidance(
