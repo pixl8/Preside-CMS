@@ -6,6 +6,7 @@
 component {
 
 	property name="dataManagerService" inject="dataManagerService";
+	property name="customizationService" inject="dataManagerCustomizationService";
 
 	private string function buildListingLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
@@ -137,9 +138,23 @@ component {
 	}
 
 	private string function buildAjaxListingLink( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
-		var qs         = "id=#objectName#";
+		var objectName     = args.objectName ?: "";
+		var qs             = "id=#objectName#";
+		var extraQs        = "";
 		var additionalArgs = [ "useMultiActions", "gridFields", "isMultilingual", "draftsEnabled" ];
+
+		if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForDatasourceForGridListing" ) ) {
+			extraQs = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "getAdditionalQueryStringForDatasourceForGridListing"
+				, args       = args
+			);
+
+			extraQs = extraQs ?: "";
+			extraQs = IsSimpleValue( extraQs ) ? extraQs : "";
+
+		}
+
 
 		for( var arg in additionalArgs ) {
 			if ( args.keyExists( arg ) ) {
@@ -147,8 +162,8 @@ component {
 			}
 		}
 
-		if ( Len( Trim( args.queryString ?: "" ) ) ) {
-			qs &= "&#args.queryString#";
+		if ( Len( Trim( extraQs ) ) ) {
+			qs &= "&#extraQs#";
 		}
 
 		return event.buildAdminLink(
