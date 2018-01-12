@@ -2298,10 +2298,10 @@ component extends="preside.system.base.AdminHandler" {
 	private void function _loadCommonBreadCrumbs( event, action, eventArguments ) {
 		var prc = event.getCollection( private=true );
 		var args = {
-			  objectName  = prc.objectName  ?: ""
-			, objectTitle = prc.objectTitle ?: ""
-			, recordId    = prc.recordId    ?: ""
-			, recordLabel = prc.recordLabel ?: ""
+			  objectName  = prc.objectName        ?: ""
+			, objectTitle = prc.objectTitlePlural ?: ""
+			, recordId    = prc.recordId          ?: ""
+			, recordLabel = prc.recordLabel       ?: ""
 		};
 
 
