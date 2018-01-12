@@ -277,9 +277,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -300,9 +300,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -323,9 +323,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "my.perm.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -350,9 +350,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -508,9 +508,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
