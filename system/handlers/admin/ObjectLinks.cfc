@@ -143,10 +143,10 @@ component {
 		var extraQs        = "";
 		var additionalArgs = [ "useMultiActions", "gridFields", "isMultilingual", "draftsEnabled" ];
 
-		if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForDatasourceForGridListing" ) ) {
+		if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForBuildAjaxListingLink" ) ) {
 			extraQs = customizationService.runCustomization(
 				  objectName = objectName
-				, action     = "getAdditionalQueryStringForDatasourceForGridListing"
+				, action     = "getAdditionalQueryStringForBuildAjaxListingLink"
 				, args       = args
 			);
 
