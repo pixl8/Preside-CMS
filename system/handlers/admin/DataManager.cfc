@@ -41,10 +41,14 @@ component extends="preside.system.base.AdminHandler" {
 		var objectTitle       = prc.objectTitlePlural ?: "";
 		var objectIcon        = prc.objectIcon        ?: "";
 		var objectDescription = prc.objectDescription ?: "";
+		var args              = { objectName=objectName };
 
 		prc.pageIcon        = objectIcon.reReplace( "^fa-", "" );
 		prc.pageTitle       = objectTitle;
 		prc.pageSubTitle    = objectDescription;
+
+		prc.preRenderListing  = ( customizationService.objectHasCustomization( objectName, "preRenderListing"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderListing"  , args=args ) : "" );
+		prc.postRenderListing = ( customizationService.objectHasCustomization( objectName, "postRenderListing" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderListing" , args=args ) : "" );
 
 		if ( customizationService.objectHasCustomization( objectName, "listingViewlet" ) ) {
 			prc.listingView = customizationService.runCustomization(
@@ -53,16 +57,15 @@ component extends="preside.system.base.AdminHandler" {
 				, args       = { objectName=objectName }
 			);
 		} else {
-			var args = {
-				  objectName          = objectName
-				, useMultiActions     = IsTrue( prc.canDelete      ?: "" )
+			args.append( {
+				  useMultiActions     = IsTrue( prc.canDelete      ?: "" )
 				, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
 				, batchEditableFields = prc.batchEditableFields ?: {}
 				, gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
 				, allowDataExport     = true
-			};
+			} );
 
 			prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
