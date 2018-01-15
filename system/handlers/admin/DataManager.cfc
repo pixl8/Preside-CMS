@@ -114,6 +114,25 @@ component extends="preside.system.base.AdminHandler" {
 	public void function addRecord( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="add" );
 
+		var objectName          = prc.objectName ?: "";
+		var objectTitleSingular = prc.objectTitle ?: "";
+		var addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
+
+		prc.pageIcon      = "plus";
+		prc.pageTitle     = addRecordTitle;
+		prc.addRecordForm = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "addRecordForm"
+			, defaultHandler = "admin.datamanager._addRecordForm"
+			, args = {
+				  objectName      = objectName
+				, addRecordAction = event.buildAdminLink( objectName=objectName, operation="addRecordAction" )
+				, draftsEnabled   = IsTrue( prc.draftsEnabled ?: "" )
+				, canSaveDraft    = IsTrue( prc.canSaveDraft  ?: "" )
+				, canPublish      = IsTrue( prc.canPublish    ?: "" )
+			  }
+		);
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.addrecord.breadcrumb.title" )
 			, link  = ""
@@ -2092,6 +2111,11 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/datamanager/_oneToManyListingActions", args=args );
 	}
 
+	private string function _addRecordForm( event, rc, prc, args={} ) {
+		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
+
+		return renderView( view="/admin/datamanager/_addRecordForm", args=args );
+	}
 
 // private utility methods
 	private array function _getObjectFieldsForGrid( required string objectName ) {
