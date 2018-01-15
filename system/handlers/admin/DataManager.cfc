@@ -984,7 +984,7 @@ component extends="preside.system.base.AdminHandler" {
 	private string function topRightButtons( event, rc, prc, args={} ){
 		var objectName         = args.objectName ?: "";
 		var action             = args.action     ?: "";
-		var actionsWithButtons = [ "object", "viewrecord" ];
+		var actionsWithButtons = [ "object", "viewrecord", "addrecord" ];
 		var rendered = "";
 
 		if ( actionsWithButtons.findNoCase( action ) ) {
@@ -1120,6 +1120,19 @@ component extends="preside.system.base.AdminHandler" {
 		customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "extraTopRightButtonsForViewRecord"
+			, args           = { objectName=objectName, actions=actions }
+		);
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForAddRecord() {
+		var objectName  = args.objectName ?: "";
+		var actions     = [];
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "extraTopRightButtonsForAddRecord"
 			, args           = { objectName=objectName, actions=actions }
 		);
 
