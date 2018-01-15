@@ -10,7 +10,7 @@
 <cfoutput>
 	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = objectName
-		, addRecordAction       = event.buildAdminLink( linkTo='datamanager.addRecordAction', queryString="object=#objectName#" )
+		, addRecordAction       = event.buildAdminLink( objectName=objectName, operation="addRecordAction" )
 		, allowAddAnotherSwitch = true
 		, draftsEnabled         = IsTrue( prc.draftsEnabled ?: "" )
 		, canSaveDraft          = IsTrue( prc.canSaveDraft  ?: "" )

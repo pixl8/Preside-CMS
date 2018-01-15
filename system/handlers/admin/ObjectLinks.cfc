@@ -54,6 +54,25 @@ component {
 		return "";
 	}
 
+	private string function buildAddRecordActionLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "add" ) ) {
+			var queryString = "object=#objectName#";
+
+			if ( Len( Trim( args.queryString ?: "" ) ) ) {
+				queryString &= "&#args.queryString#";
+			}
+
+			return event.buildAdminLink(
+				  linkto      = "datamanager.addRecordAction"
+				, queryString = queryString
+			);
+		}
+
+		return "";
+	}
+
 	private string function buildEditRecordLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
