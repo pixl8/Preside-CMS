@@ -19,6 +19,7 @@
 	param name="args.stripPermissionedFields" type="boolean" default=true;
 	param name="args.permissionContext"       type="string"  default=args.objectName;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
+	param name="args.actionButtons"           type="string"  default="";
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
@@ -70,29 +71,33 @@
 				)#
 			</cfif>
 
-			<div class="col-md-offset-2">
-				<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
-					<i class="fa fa-reply bigger-110"></i>
-					#args.cancelLabel#
-				</a>
+			<cfif Len( Trim( args.actionButtons ) )>
+				#args.actionButtons#
+			<cfelse>
+				<div class="col-md-offset-2">
+					<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
+						<i class="fa fa-reply bigger-110"></i>
+						#args.cancelLabel#
+					</a>
 
-				<cfif args.draftsEnabled>
-					<cfif args.canSaveDraft>
-						<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
+					<cfif args.draftsEnabled>
+						<cfif args.canSaveDraft>
+							<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+								<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
+							</button>
+						</cfif>
+						<cfif args.canPublish>
+							<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+								<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
+							</button>
+						</cfif>
+					<cfelse>
+						<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-save bigger-110"></i> #args.addRecordLabel#
 						</button>
 					</cfif>
-					<cfif args.canPublish>
-						<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
-						</button>
-					</cfif>
-				<cfelse>
-					<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-						<i class="fa fa-save bigger-110"></i> #args.addRecordLabel#
-					</button>
-				</cfif>
-			</div>
+				</div>
+			</cfif>
 		</div>
 
 	</form>

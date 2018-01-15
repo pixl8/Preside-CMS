@@ -2112,6 +2112,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _addRecordForm( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		if ( customizationService.objectHasCustomization( objectName=objectName, action="addRecordActionButtons" ) ) {
+			args.actionButtons = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "addRecordActionButtons"
+				, args       = args
+			);
+		}
+
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
 		return renderView( view="/admin/datamanager/_addRecordForm", args=args );
