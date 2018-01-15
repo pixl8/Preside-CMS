@@ -19,6 +19,8 @@
 	param name="args.stripPermissionedFields" type="boolean" default=true;
 	param name="args.permissionContext"       type="string"  default=args.objectName;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
+	param name="args.preForm"                 type="string"  default="";
+	param name="args.postForm"                type="string"  default="";
 	param name="args.actionButtons"           type="string"  default="";
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
@@ -45,6 +47,8 @@
 			</cfif>
 		</cfloop>
 
+		#args.preForm#
+
 		#renderForm(
 			  formName              = args.formName
 			, mergeWithFormName     = args.mergeWithFormName
@@ -59,6 +63,8 @@
 			, permissionContext     = args.permissionContext
 			, permissionContextKeys = args.permissionContextKeys
 		)#
+
+		#args.postForm#
 
 		<div class="form-actions row">
 			<cfif args.allowAddAnotherSwitch>

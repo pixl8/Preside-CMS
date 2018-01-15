@@ -2113,13 +2113,14 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function _addRecordForm( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
-		if ( customizationService.objectHasCustomization( objectName=objectName, action="addRecordActionButtons" ) ) {
-			args.actionButtons = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "addRecordActionButtons"
-				, args       = args
-			);
-		}
+
+		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderAddRecordForm" );
+		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderAddRecordForm" );
+		var hasActionButtonsCustomization = customizationService.objectHasCustomization( objectName=objectName, action="addRecordActionButtons" );
+
+		args.preForm       = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderAddRecordForm" , args=args ) : "";
+		args.postForm      = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderAddRecordForm", args=args ) : "";
+		args.actionButtons = hasActionButtonsCustomization ? customizationService.runCustomization( objectName=objectName, action="addRecordActionButtons" , args=args ) : "";
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
