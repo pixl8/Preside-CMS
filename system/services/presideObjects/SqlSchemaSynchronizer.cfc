@@ -527,6 +527,13 @@ component {
 								relationship.on_update = cascadingSupported ? "cascade" : "no action";
 							}
 
+							if ( onDelete == "set-null-if-no-cycle-check" ) {
+								relationship.on_delete = cascadingSupported ? "set null" : "no action";
+							}
+							if ( onUpdate == "set-null-if-no-cycle-check" ) {
+								relationship.on_update = cascadingSupported ? "set null" : "no action";
+							}
+
 							shouldBeDeleted = false;
 							for( var param in dbKey ) {
 								if ( !relationship.keyExists( param ) || dbKey[ param ] != relationship[ param ] ) {
