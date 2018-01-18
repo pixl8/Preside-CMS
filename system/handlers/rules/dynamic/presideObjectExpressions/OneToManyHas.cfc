@@ -61,7 +61,7 @@ component {
 			, getSqlAndParamsOnly = true
 		);
 		var subQueryParams = {};
-		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
+		var subQueryAlias = "oneToManyHas" & CreateUUId().lCase().replace( "-", "", "all" );
 		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} 0";
 
 		for( var param in subQuery.params ) {
