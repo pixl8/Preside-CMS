@@ -2166,6 +2166,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
+		args.formName = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getAddRecordFormName"
+			, defaultHandler = "admin.datamanager._getAddRecordFormName"
+			, args           = { objectName=objectName }
+		);
+
 		return renderView( view="/admin/datamanager/_addRecordForm", args=args );
 	}
 
@@ -2241,6 +2248,18 @@ component extends="preside.system.base.AdminHandler" {
 				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
 			);
 		}
+	}
+
+	private string function _getAddRecordFormName( event, rc, prc, args={} ) {
+		var objectName = args.objectName;
+		var rootForm   = "preside-objects.#objectName#";
+		var addForm    = "preside-objects.#objectName#.admin.add";
+
+		if ( formsService.formExists( addForm ) ) {
+			return addForm;
+		}
+
+		return rootForm;
 	}
 
 	private void function _loadCommonVariables( event, action, eventArguments ) {
