@@ -62,16 +62,16 @@ component {
 		);
 		var subQueryParams = {};
 		var subQueryAlias = "oneToManyHas" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} 0";
+		var filterSql     = "";
 
 		for( var param in subQuery.params ) {
 			subQueryParams[ param.name ] = param;
 		}
 
 		if ( _is ) {
-			filterSql = filterSql.replace( "${operator}", ">" );
+			filterSql = "#subQueryAlias#.onetomany_count > 0";
 		} else {
-			filterSql = filterSql.replace( "${operator}", "=" );
+			filterSql = "( #subQueryAlias#.onetomany_count is null or #subQueryAlias#.onetomany_count = 0 )";
 		}
 
 		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
