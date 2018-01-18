@@ -16,7 +16,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="raw_text_content"  type="string"  dbtype="longtext";
 	property name="width"             type="numeric" dbtype="int"                       required=false;
 	property name="height"            type="numeric" dbtype="int"                       required=false;
-	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false onupdate="cascade-if-no-cycle-check";
+	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false ondelete="set-null-if-no-cascade-check" onupdate="cascade-if-no-cycle-check";
 
 	property name="is_trashed"        type="boolean" dbtype="boolean"                   required=false default=false;
 	property name="trashed_path"      type="string"  dbtype="varchar" maxLength=255     required=false;
@@ -27,7 +27,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="full_login_required"                  type="boolean" dbtype="boolean"               required=false default=false;
 	property name="grantaccess_to_all_logged_in_users"   type="boolean" dbtype="boolean"               required=false default=false;
 
-	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
-	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" onupdate="cascade-if-no-cycle-check";
+	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest" ondelete="set-null-if-no-cascade-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId"  ondelete="set-null-if-no-cascade-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId"  ondelete="set-null-if-no-cascade-check" onupdate="cascade-if-no-cycle-check";
 }
