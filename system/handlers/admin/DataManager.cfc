@@ -1572,6 +1572,16 @@ component extends="preside.system.base.AdminHandler" {
 		var newRecordLink    = "";
 		var persist          = "";
 		var isDraft          = false;
+		var args             = arguments;
+
+		args.formData = formData;
+		if ( customizationService.objectHasCustomization( object, "preAddRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preAddRecordAction"
+				, args       = args
+			);
+		}
 
 		validationResult = validateForm( formName=arguments.formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
@@ -1613,6 +1623,15 @@ component extends="preside.system.base.AdminHandler" {
 				, type     = arguments.auditType
 				, recordId = newId
 				, detail   = auditDetail
+			);
+		}
+
+		if ( customizationService.objectHasCustomization( object, "postAddRecordAction" ) ) {
+			args.newId = newId;
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "postAddRecordAction"
+				, args       = args
 			);
 		}
 
