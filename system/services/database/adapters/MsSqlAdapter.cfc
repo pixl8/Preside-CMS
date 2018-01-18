@@ -124,6 +124,7 @@ component extends="BaseAdapter" {
 				sql &= " on delete cascade";
 				break;
 			case 'cascade-if-no-cycle-check':
+			case 'set-null-if-no-cycle-check':
 			case 'no action':
 				sql &= " on delete no action";
 				break;
