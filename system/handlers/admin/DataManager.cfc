@@ -140,13 +140,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addRecordAction( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+
 		_checkPermission( argumentCollection=arguments, key="add" );
 
-		runEvent(
-			  event          = "admin.DataManager._addRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = { audit=true }
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "addRecordForm"
+			, defaultHandler = "admin.datamanager._addRecordAction"
+			, args = {
+				  objectName      = objectName
+				, addRecordAction = event.buildAdminLink( objectName=objectName, operation="addRecordAction" )
+				, draftsEnabled   = IsTrue( prc.draftsEnabled ?: "" )
+				, canSaveDraft    = IsTrue( prc.canSaveDraft  ?: "" )
+				, canPublish      = IsTrue( prc.canPublish    ?: "" )
+				, audit           = true
+			  }
 		);
 	}
 
