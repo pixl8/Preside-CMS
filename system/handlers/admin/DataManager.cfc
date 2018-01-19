@@ -275,15 +275,25 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function deleteRecordAction( event, rc, prc ) {
 		var objectName = prc.objectName ?: "";
+		var recordId   = prc.recordId ?: "";
+
 
 		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
-		runEvent(
-			  event          = "admin.DataManager._deleteRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = { audit=true }
-		);
+		if ( customizationService.objectHasCustomization( objectName, "deleteRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "deleteRecordAction"
+				, args       = { objectName=objectName, recordId=recordId }
+			);
+		} else {
+			runEvent(
+				  event          = "admin.DataManager._deleteRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = { audit=true }
+			);
+		}
 	}
 
 	public void function cascadeDeletePrompt( event, rc, prc ) {
