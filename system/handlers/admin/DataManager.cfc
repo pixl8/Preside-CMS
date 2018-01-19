@@ -1702,6 +1702,16 @@ component extends="preside.system.base.AdminHandler" {
 
 		validationResult = validateForm( formName=arguments.formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
+		args.formData         = formData;
+		args.validationResult = validationResult;
+		if ( customizationService.objectHasCustomization( object, "preAddRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preAddRecordAction"
+				, args       = args
+			);
+		}
+
 		if ( not validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 			persist = formData;
@@ -2003,6 +2013,20 @@ component extends="preside.system.base.AdminHandler" {
 		formData.id = id;
 		validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
+		var args = arguments;
+
+		args.formData         = formData;
+		args.existingRecord   = existingRecord;
+		args.validationResult = validationResult;
+		if ( customizationService.objectHasCustomization( object, "preEditRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preEditRecordAction"
+				, args       = args
+			);
+		}
+
+
 		if ( not validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 			persist = formData;
@@ -2054,6 +2078,14 @@ component extends="preside.system.base.AdminHandler" {
 				, type     = arguments.auditType
 				, recordId = id
 				, detail   = auditDetail
+			);
+		}
+
+		if ( customizationService.objectHasCustomization( object, "postEditRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "postEditRecordAction"
+				, args       = args
 			);
 		}
 
