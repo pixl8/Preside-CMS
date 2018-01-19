@@ -87,9 +87,19 @@ component {
 	}
 
 	public boolean function isObjectAvailableInDataManager( required string objectName ) {
+		if ( objectIsIndexedInDatamanagerUi( arguments.objectName ) ) {
+			return true;
+		}
+
+		var datamanagerEnabled = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerEnabled", defaultValue="" );
+
+		return IsBoolean( datamanagerEnabled ) && datamanagerEnabled;
+	}
+
+	public boolean function objectIsIndexedInDatamanagerUi( required string objectName ) {
 		var groupId = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerGroup", defaultValue="" );
 
-		return Len( Trim( groupId ) );
+		return Len( Trim( groupId ) ) > 0;
 	}
 
 	public array function listGridFields( required string objectName ) {

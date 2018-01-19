@@ -2502,17 +2502,18 @@ component extends="preside.system.base.AdminHandler" {
 			, "exportDataAction"
 		];
 
-		prc.objectName        = "";
-		prc.objectTitle       = "";
-		prc.objectTitlePlural = "";
-		prc.labelField        = "";
-		prc.objectIconClass   = "";
-		prc.objectDescription = "";
-		prc.recordId          = "";
-		prc.record            = "";
-		prc.recordLabel       = "";
-		prc.objectRootUri     = "";
-		prc.version           = 0;
+		prc.objectName            = "";
+		prc.objectTitle           = "";
+		prc.objectTitlePlural     = "";
+		prc.labelField            = "";
+		prc.objectIconClass       = "";
+		prc.objectDescription     = "";
+		prc.recordId              = "";
+		prc.record                = "";
+		prc.recordLabel           = "";
+		prc.objectRootUri         = "";
+		prc.version               = 0;
+		prc.objectInDatamanagerUi = false;
 
 		switch( arguments.action ) {
 			case "index":
@@ -2536,27 +2537,28 @@ component extends="preside.system.base.AdminHandler" {
 				_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
 			}
 
-			prc.labelField          = presideObjectService.getLabelField( prc.objectName );
-			prc.objectRootUri       = presideObjectService.getResourceBundleUriRoot( prc.objectName );
-			prc.objectTitle         = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
-			prc.objectTitlePlural   = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
-			prc.objectIconClass     = translateResource( uri=prc.objectRootUri & "iconClass"     , defaultValue="fa-puzzle-piece" );
-			prc.objectDescription   = translateResource( uri=prc.objectRootUri & "description"   , defaultValue="" );
-			prc.draftsEnabled       = datamanagerService.areDraftsEnabledForObject( prc.objectName );
-			prc.canView             = _checkPermission( argumentCollection=arguments, key="read"              , throwOnError=false );
-			prc.canAdd              = _checkPermission( argumentCollection=arguments, key="add"               , throwOnError=false );
-			prc.canedit             = _checkPermission( argumentCollection=arguments, key="edit"              , throwOnError=false );
-			prc.canDelete           = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
-			prc.canManagePerms      = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
-			prc.canSort             = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
-			prc.gridFields          = _getObjectFieldsForGrid( prc.objectName );
-			prc.batchEditableFields = dataManagerService.listBatchEditableFields( prc.objectName );
-			prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( prc.objectName );
-			prc.canTranslate        = prc.isMultilingual && _checkPermission( argumentCollection=arguments, key="translate", throwOnError=false );
-			prc.useVersioning       = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
-			prc.canPublish          = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="publish"  , object=prc.objectName, throwOnError=false );
-			prc.canSaveDraft        = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="savedraft", object=prc.objectName, throwOnError=false );
-			prc.isTranslationAction = arguments.action.find( "translat" ) > 0;
+			prc.objectInDatamanagerUi = dataManagerService.objectIsIndexedInDatamanagerUi( prc.objectName );
+			prc.labelField            = presideObjectService.getLabelField( prc.objectName );
+			prc.objectRootUri         = presideObjectService.getResourceBundleUriRoot( prc.objectName );
+			prc.objectTitle           = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
+			prc.objectTitlePlural     = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
+			prc.objectIconClass       = translateResource( uri=prc.objectRootUri & "iconClass"     , defaultValue="fa-puzzle-piece" );
+			prc.objectDescription     = translateResource( uri=prc.objectRootUri & "description"   , defaultValue="" );
+			prc.draftsEnabled         = datamanagerService.areDraftsEnabledForObject( prc.objectName );
+			prc.canView               = _checkPermission( argumentCollection=arguments, key="read"              , throwOnError=false );
+			prc.canAdd                = _checkPermission( argumentCollection=arguments, key="add"               , throwOnError=false );
+			prc.canedit               = _checkPermission( argumentCollection=arguments, key="edit"              , throwOnError=false );
+			prc.canDelete             = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
+			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
+			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
+			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
+			prc.batchEditableFields   = dataManagerService.listBatchEditableFields( prc.objectName );
+			prc.isMultilingual        = multilingualPresideObjectService.isMultilingual( prc.objectName );
+			prc.canTranslate          = prc.isMultilingual && _checkPermission( argumentCollection=arguments, key="translate", throwOnError=false );
+			prc.useVersioning         = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
+			prc.canPublish            = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="publish"  , object=prc.objectName, throwOnError=false );
+			prc.canSaveDraft          = prc.draftsEnabled && _checkPermission( argumentCollection=arguments, key="savedraft", object=prc.objectName, throwOnError=false );
+			prc.isTranslationAction   = arguments.action.find( "translat" ) > 0;
 			if ( prc.isMultilingual && ( prc.isTranslationAction || arguments.action == "viewRecord" ) ) {
 				prc.translations = multilingualPresideObjectService.getTranslationStatus( prc.objectName, prc.recordId );
 			}
