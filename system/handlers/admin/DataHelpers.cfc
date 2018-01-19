@@ -10,22 +10,7 @@ component extends="preside.system.base.adminHandler" {
 	property name="presideObjectService"    inject="presideObjectService";
 	property name="dataExportService"       inject="dataExportService";
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
-
-	/**
-	 * Method that is called from `adminDataViewsService.buildViewObjectRecordLink()`
-	 * for objects that are managed in the DataManager. Hint: this can also be invoked with:
-	 * `event.buildAdminLink( objectName=myObject, recordId=myRecordId )`
-	 *
-	 */
-	private string function getViewRecordLink( required string objectName, required string recordId ) {
-		if ( dataManagerService.isOperationAllowed( arguments.objectName, "read" ) ) {
-			return event.buildAdminLink(
-				  linkto      = "datamanager.viewRecord"
-				, queryString = "object=#arguments.objectName#&id=#arguments.recordId#"
-			);
-		}
-		return "";
-	}
+	property name="customizationService"    inject="dataManagerCustomizationService";
 
 
 	/**
@@ -36,6 +21,30 @@ component extends="preside.system.base.adminHandler" {
 		var objectName = args.objectName ?: "";
 
 		args.viewGroups = adminDataViewsService.listViewGroupsForObject( objectName );
+
+		args.preRenderRecord         = ( customizationService.objectHasCustomization( objectName, "preRenderRecord"          ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecord"         , args=args ) : "" );
+		args.preRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "preRenderRecordLeftCol"   ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordLeftCol"  , args=args ) : "" );
+		args.preRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "preRenderRecordRightCol"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordRightCol" , args=args ) : "" );
+
+		args.leftCol  = "";
+		args.rightCol = "";
+
+		for( var col in [ "left", "right" ] ) {
+			for( var group in args.viewGroups[ col ] ) {
+				var groupArgs = args.copy();
+				groupArgs.append( group );
+
+				args[ col & "Col" ] &= renderViewlet(
+					  event = "admin.datahelpers.displayGroup"
+					, args  = groupArgs
+				);
+			}
+		}
+
+		args.postRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "postRenderRecordLeftCol"  ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordLeftCol" , args=args ) : "" );
+		args.postRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "postRenderRecordRightCol" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordRightCol", args=args ) : "" );
+		args.postRenderRecord         = ( customizationService.objectHasCustomization( objectName, "postRenderRecord"         ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecord"        , args=args ) : "" );
+
 
 		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
 	}
@@ -155,7 +164,7 @@ component extends="preside.system.base.adminHandler" {
 			} ]
 		} );
 
-		prc.viewRecordLink = adminDataViewsService.buildViewObjectRecordLink( objectName=relatedObject, recordId="{id}" );
+		prc.viewRecordLink = event.buildAdminLink( objectName=relatedObject, recordId="{id}", operation="viewRecord" );
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"

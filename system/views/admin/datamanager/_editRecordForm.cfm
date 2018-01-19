@@ -1,7 +1,7 @@
 <cfscript>
-	param name="args.editRecordAction"        type="string" default=event.buildAdminLink( linkTo='datamanager.editRecordAction' );
 	param name="args.object"                  type="string";
 	param name="args.id"                      type="string";
+	param name="args.editRecordAction"        type="string"  default=event.buildAdminLink( objectName=args.object, operation="editRecordAction", recordId=args.id );
 	param name="args.version"                 type="string"  default="";
 	param name="args.record"                  type="struct"  default={};
 	param name="args.formName"                type="string"  default="preside-objects.#args.object#.admin.edit";
@@ -21,6 +21,9 @@
 	param name="args.permissionContext"       type="string"  default=args.object;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
 	param name="args.resultAction"            type="string"  default="";
+	param name="args.preForm"                 type="string"  default="";
+	param name="args.postForm"                type="string"  default="";
+	param name="args.actionButtons"           type="string"  default="";
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue=args.object );
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.object#:editRecord.prompt", defaultValue="" );
@@ -54,6 +57,8 @@
 			</cfif>
 		</cfloop>
 
+		#args.preForm#
+
 		#renderForm(
 			  formName                = args.formName
 			, mergeWithFormName       = args.mergeWithFormName
@@ -69,31 +74,36 @@
 			, permissionContext       = args.permissionContext
 			, permissionContextKeys   = args.permissionContextKeys
 		)#
+		#args.postForm#
 
 		<div class="form-actions row">
-			<div class="col-md-offset-2">
-				<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
-					<i class="fa fa-reply bigger-110"></i>
-					#args.cancelLabel#
-				</a>
+			<cfif Len( Trim( args.actionButtons ) )>
+				#args.actionButtons#
+			<cfelse>
+				<div class="col-md-offset-2">
+					<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
+						<i class="fa fa-reply bigger-110"></i>
+						#args.cancelLabel#
+					</a>
 
-				<cfif args.draftsEnabled>
-					<cfif args.canSaveDraft>
-						<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
+					<cfif args.draftsEnabled>
+						<cfif args.canSaveDraft>
+							<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+								<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
+							</button>
+						</cfif>
+						<cfif args.canPublish>
+							<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+								<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
+							</button>
+						</cfif>
+					<cfelse>
+						<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-save bigger-110"></i> #args.editRecordLabel#
 						</button>
 					</cfif>
-					<cfif args.canPublish>
-						<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
-						</button>
-					</cfif>
-				<cfelse>
-					<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-						<i class="fa fa-save bigger-110"></i> #args.editRecordLabel#
-					</button>
-				</cfif>
-			</div>
+				</div>
+			</cfif>
 		</div>
 	</form>
 </cfoutput>

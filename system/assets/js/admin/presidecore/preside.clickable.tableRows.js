@@ -10,7 +10,11 @@
 
 	$( "body" ).on( "click", "tr.clickable", function( e ){
 		if ( !linkWasClicked( e.target ) ) {
-			var $firstLink = $( this ).find( 'a:first' );
+			var $firstLink = $( this ).find( 'a.row-link:first' );
+
+			if ( !$firstLink.length ) {
+				$firstLink = $( this ).find( 'a:first' );
+			}
 
 			if ( $firstLink.length ) {
 				e.preventDefault();

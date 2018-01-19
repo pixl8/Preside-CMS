@@ -1,6 +1,5 @@
 component {
 
-	property name="adminDataViewsService" inject="adminDataViewsService";
 	property name="presideObjectService"  inject="presideObjectService";
 
 	public string function adminView( event, rc, prc, args={} ){
@@ -21,9 +20,7 @@ component {
 			, defaultValue  = propertyName
 		);
 
-		if ( adminDataViewsService.doesObjectHaveBuildAdminLinkHandler( fkObjectName ) ) {
-			args.recordLink = adminDataViewsService.buildViewObjectRecordLink( fkObjectName, fkId );
-		}
+		args.recordLink = event.buildAdminLink( objectName=fkObjectName, recordId=fkId, operation="viewRecord" );
 		args.recordLabel = renderLabel( fkObjectName, fkId );
 
 		return renderView( view="/renderers/content/manyToOne/adminView", args=args );

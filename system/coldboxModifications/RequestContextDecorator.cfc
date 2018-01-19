@@ -181,8 +181,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		, string queryString = ""
 		, string siteId      = this.getSiteId()
 	) output=false {
-		if ( arguments.keyExists( "objectName" ) && arguments.keyExists( "recordId" ) ) {
-			return getModel( "adminDataViewsService" ).buildViewObjectRecordLink( argumentCollection=arguments );
+		if ( arguments.keyExists( "objectName" ) ) {
+			var args = {
+				  objectName = arguments.objectName
+				, recordId   = arguments.recordId  ?: ""
+				, operation  = arguments.operation ?: ( Len( Trim( arguments.recordId ?: "" ) ) ? "viewRecord" : "listing" )
+				, args       = arguments.args      ?: {}
+			};
+
+			return getModel( "adminObjectLinkBuilderService" ).buildLink( argumentCollection=args );
 		}
 
 		arguments.linkTo = ListAppend( "admin", arguments.linkTo, "." );

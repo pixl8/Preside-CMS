@@ -50,9 +50,7 @@
 					</button>
 				</a>
 
-				<form class="inline" action="#event.buildAdminLink( linkTo='datamanager.deleteRecordAction' )#" method="post">
-					<input type="hidden" name="object" value="#objectName#" />
-					<input type="hidden" name="id" value="#id#" />
+				<form class="inline" action="#event.buildAdminLink( objectName=objectName, recordId=id, operation='deleteRecordAction' )#" method="post">
 					<input type="hidden" name="forceDelete" value="1" />
 					<cfif postActionUrl.len()>
 						<input type="hidden" name="postActionUrl" value="#HtmlEditFormat( postActionUrl )#" />

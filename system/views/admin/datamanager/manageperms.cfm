@@ -13,6 +13,6 @@
 		, context        = "datamanager"
 		, contextKey     = object
 		, saveAction     = event.buildAdminLink( linkTo="datamanager.savePermsAction", queryString="object=#object#" )
-		, cancelAction   = event.buildAdminLink( linkTo="datamanager.object"         , queryString="id=#object#"     )
+		, cancelAction   = event.buildAdminLink( objectName=object, operation="listing" )
 	} )#
 </cfoutput>
