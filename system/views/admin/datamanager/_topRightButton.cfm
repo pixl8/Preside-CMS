@@ -11,9 +11,11 @@
 
 <cfoutput>
 	<cfif !children.len()>
-		<a class="btn #btnClass# btn-sm pull-right inline<cfif prompt.len()> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif>>
-			<i class="fa fa-fw #iconClass#"></i>
-			#title#
+		<a class="pull-right inline<cfif prompt.len()> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif>>
+			<button class="btn #btnClass# btn-sm">
+				<i class="fa fa-fw #iconClass#"></i>
+				#title#
+			</button>
 		</a>
 	<cfelse>
 		<button data-toggle="dropdown" class="btn btn-sm #btnClass# pull-right inline">
@@ -21,11 +23,14 @@
 			<i class="fa fa-fw #iconClass#"></i>&nbsp; #title#
 		</button>
 
-		<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+		<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 			<cfloop array="#children#" item="child" index="i">
 				<li>
 					<a href="#( child.link ?: '' )#"<cfif ( child.target ?: "" ).len()> target="#target#"</cfif>>
-						<i class="fa fa-fw #( child.icon ?: '' )#"></i>&nbsp; #( child.title ?: "" )#
+						<cfif ( child.icon ?: '' ).len()>
+							<i class="fa fa-fw #( child.icon ?: '' )#"></i>&nbsp;
+						</cfif>
+						#( child.title ?: "" )#
 					</a>
 				</li>
 			</cfloop>

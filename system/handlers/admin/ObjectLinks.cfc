@@ -9,11 +9,17 @@ component {
 	property name="customizationService" inject="dataManagerCustomizationService";
 
 	private string function buildListingLink( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
+		var objectName = args.objectName  ?: "";
+		var extraQs    = args.queryString ?: "";
+		var qs         = "id=#objectName#";
+
+		if ( extraQs.len() ) {
+			qs &= "&#extraQs#";
+		}
 
 		return event.buildAdminLink(
 			  linkto      = "datamanager.object"
-			, queryString = "id=#objectName#"
+			, queryString = qs
 		);
 	}
 
