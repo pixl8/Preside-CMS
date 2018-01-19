@@ -94,7 +94,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( prc.language.isempty() ) {
 				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#objectName#&id=#recordId#" ) );
+				setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId ) );
 			}
 			event.setLanguage( language );
 			prc.delete( "record" );
@@ -2452,7 +2452,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( datamanagerService.isOperationAllowed( objectName, "read" ) ) {
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
-				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
+				, link  = event.buildAdminLink( objectName=objectName, recordId=recordId, operation="viewRecord" )
 			);
 		}
 	}
