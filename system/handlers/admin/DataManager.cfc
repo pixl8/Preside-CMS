@@ -1932,6 +1932,16 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=postActionUrl );
 		}
 
+		var args = arguments;
+		args.records = records;
+		if ( customizationService.objectHasCustomization( object, "preDeleteRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preDeleteRecordAction"
+				, args       = args
+			);
+		}
+
 		if ( not IsBoolean( forceDelete ) or not forceDelete ) {
 			blockers = presideObjectService.listForeignObjectsBlockingDelete( object, ids );
 
@@ -1959,6 +1969,14 @@ component extends="preside.system.base.AdminHandler" {
 						, detail   = auditDetail
 					);
 				}
+			}
+
+			if ( customizationService.objectHasCustomization( object, "postDeleteRecordAction" ) ) {
+				customizationService.runCustomization(
+					  objectName = object
+					, action     = "postDeleteRecordAction"
+					, args       = args
+				);
 			}
 
 			if ( redirectOnSuccess ) {
