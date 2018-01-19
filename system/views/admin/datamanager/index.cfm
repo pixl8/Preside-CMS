@@ -18,8 +18,8 @@
 			}
 		}
 	} else {
-		groupColCounts.append( { from=groupColCounts[1].to+1, to=groupColCounts[1].to + groupsPerCol + 1 } );
-		groupColCounts.append( { from=groupColCounts[2].to+1, to=groupColCounts[2].to + groupsPerCol + 1 } );
+		groupColCounts.append( { from=groupColCounts[1].to+1, to=groupColCounts[1].to + groupsPerCol } );
+		groupColCounts.append( { from=groupColCounts[2].to+1, to=groupColCounts[2].to + groupsPerCol } );
 	}
 	// end display logic to split groups into three equalish columns
 
