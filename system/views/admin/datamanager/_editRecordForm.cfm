@@ -42,7 +42,7 @@
 		<div class="hr"></div>
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#" enctype="multipart/form-data">
 		<input type="hidden" name="object" value="#args.object#" />
 		<input type="hidden" name="id"     value="#args.id#" />
 		<cfif args.useVersioning>

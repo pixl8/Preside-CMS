@@ -63,7 +63,7 @@
 		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "", language=currentLanguageId } )#
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#" enctype="multipart/form-data">
 		<input type="hidden" name="object"   value="#object#" />
 		<input type="hidden" name="id"       value="#id#" />
 		<input type="hidden" name="language" value="#currentLanguageId#" />
