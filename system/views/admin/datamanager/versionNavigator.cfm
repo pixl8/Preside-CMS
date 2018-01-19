@@ -9,7 +9,7 @@
 	param name="args.isLatest"               type="boolean";
 	param name="args.versions"               type="query";
 	param name="args.baseUrl"                type="string" default="#event.buildAdminLink( objectName=args.object, recordId=args.id, operation='editRecord', args={ version='{version}' } )#";
-	param name="args.allVersionsUrl"         type="string" default="#event.buildAdminLink( linkTo='datamanager.recordHistory', queryString='object=#args.object#&id=#args.id#' )#";
+	param name="args.allVersionsUrl"         type="string" default="#event.buildAdminLink( objectName=args.object, recordId=args.id, operation='recordHistory' )#";
 	param name="args.discardDraftsUrl"       type="string" default="";
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue="record" );

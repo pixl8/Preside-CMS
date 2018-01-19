@@ -78,13 +78,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function viewRecord( event, rc, prc ) {
-		var objectName   = prc.objectName ?: "";
-		var recordId     = prc.recordId   ?: ""
-		var version      = Val( prc.version ?: "" );
-		var language     = rc.language ?: "";
-		var canTranslate = IsTrue( prc.canTranslate ?: "" );
-		var objectTitle  = prc.objectTitle ?: "";
-		var recordLabel  = prc.recordLabel ?: "";
+		var objectName    = prc.objectName ?: "";
+		var recordId      = prc.recordId   ?: ""
+		var version       = Val( prc.version ?: "" );
+		var language      = rc.language ?: "";
+		var canTranslate  = IsTrue( prc.canTranslate ?: "" );
+		var objectTitle   = prc.objectTitle ?: "";
+		var recordLabel   = prc.recordLabel ?: "";
+		var useVersioning = IsTrue( prc.useVersioning ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
@@ -98,6 +99,21 @@ component extends="preside.system.base.AdminHandler" {
 			event.setLanguage( language );
 			prc.delete( "record" );
 			version = rc.version = prc.version = Val( url.version ?: "" );
+		}
+
+		if ( useVersioning ) {
+			prc.versionNavigator = customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "versionNavigator"
+				, defaultHandler = "admin.datamanager.versionNavigator"
+				, args = {
+					  object  = objectName
+					, id      = recordId
+					, version = rc.version ?: ""
+					, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
+					, baseUrl = event.buildAdminLink( objectName=objectName, recordId=id, operation='viewRecord', args={ version="{version}" } )
+				  }
+			);
 		}
 
 		prc.renderedRecord = customizationService.runCustomization(
@@ -178,9 +194,45 @@ component extends="preside.system.base.AdminHandler" {
 				prc.cancelAction = event.buildAdminLink( objectName=objectName, operation="listing" );
 			break;
 			default:
-				prc.cancelAction = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" );
+				prc.cancelAction = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId );
 		}
 
+		prc.versionNavigator = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "versionNavigator"
+			, defaultHandler = "admin.datamanager.versionNavigator"
+			, args = {
+				  object  = objectName
+				, id      = recordId
+				, version = rc.version ?: ""
+				, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
+			  }
+		);
+
+		prc.editRecordForm = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "editRecordForm"
+			, defaultHandler = "admin.datamanager._editRecordForm"
+			, args = {
+				  objectName       = objectName
+				, editRecordAction = event.buildAdminLink( objectName=objectName, operation="editRecordAction" )
+				, recordId         = prc.recordId ?: ""
+				, useVersioning    = IsTrue( prc.useVersioning ?: "" )
+				, draftsEnabled    = IsTrue( prc.draftsEnabled ?: "" )
+				, canSaveDraft     = IsTrue( prc.canSaveDraft  ?: "" )
+				, canPublish       = IsTrue( prc.canPublish    ?: "" )
+				, cancelAction     = prc.cancelAction ?: ""
+				, version          = ( rc.version ?: "" )
+				, record           = prc.record
+			  }
+		);
+
+		var recordLabel         = prc.recordLabel ?: "";
+		var objectTitleSingular = prc.objectTitle ?: ""
+		var editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[  objectTitleSingular , recordLabel ] );
+
+		prc.pageIcon  = "pencil";
+		prc.pageTitle = editRecordTitle;
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
 			, link  = ""
@@ -994,7 +1046,7 @@ component extends="preside.system.base.AdminHandler" {
 	private string function topRightButtons( event, rc, prc, args={} ){
 		var objectName         = args.objectName ?: "";
 		var action             = args.action     ?: "";
-		var actionsWithButtons = [ "object", "viewrecord", "addrecord" ];
+		var actionsWithButtons = [ "object", "viewrecord", "addrecord", "editrecord" ];
 		var rendered = "";
 
 		if ( actionsWithButtons.findNoCase( action ) ) {
@@ -1099,32 +1151,21 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
-		if ( IsTrue( prc.canTranslate ?: "" ) && ( prc.translations ?: [] ).len() ) {
-			var translateUrlBase = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId, args={ language="{language}" } );
-			var item = {
-				  link      = ""
-				, btnClass  = "btn-info"
-				, iconClass = "fa-globe"
-				, globalKey = ""
-				, title     = translateResource( uri="cms:datamanager.translate.record.btn" )
-				, children  = []
-			};
+		if ( IsTrue( prc.canTranslate ?: "" ) ) {
+			var translationActions = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "getTranslationsActionButton"
+				, defaultHandler = "admin.datamanager.getTranslationsActionButton"
+				, args       = {
+					  objectName = objectName
+					, recordId   = recordId
+					, operation  = "viewRecord"
+				}
+			);
 
-			item.children.append( {
-				  link  = translateUrlBase.replace( "{language}", "" )
-				, icon  = "fa-eye"
-				, title = translateResource( 'cms:datamanager.translate.default.language' )
-			} );
-
-			for( var translation in prc.translations ) {
-				item.children.append( {
-					  link  = translateUrlBase.replace( "{language}", translation.id )
-					, icon  = "fa-eye"
-					, title = "#translation.name# (#translateResource( 'cms:multilingal.status.#translation.status#' )#)"
-				} );
+			if ( StructCount( translationActions ?: {} ) ) {
+				actions.append( translationActions );
 			}
-
-			actions.append( item );
 		}
 
 		customizationService.runCustomization(
@@ -1147,6 +1188,74 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		return actions;
+	}
+
+	private array function getTopRightButtonsForEditRecord() {
+		var objectName = args.objectName ?: "";
+		var recordId   = prc.recordId    ?: "";
+		var actions    = [];
+
+		if ( IsTrue( prc.canTranslate ?: "" ) ) {
+			var translationActions = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "getTranslationsActionButton"
+				, defaultHandler = "admin.datamanager.getTranslationsActionButton"
+				, args       = {
+					  objectName = objectName
+					, recordId   = recordId
+					, operation  = "translateRecord"
+				}
+			);
+
+			if ( StructCount( translationActions ?: {} ) ) {
+				actions.append( translationActions );
+			}
+		}
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "extraTopRightButtonsForEditRecord"
+			, args           = { objectName=objectName, actions=actions }
+		);
+
+		return actions;
+	}
+
+	private struct function getTranslationsActionButton( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+		var operation  = args.operation  ?: "translateRecord";
+
+		prc.translations = prc.translations ?: multilingualPresideObjectService.getTranslationStatus( objectName, recordId );
+		if ( !prc.translations.len() ) {
+			return {};
+		}
+
+		var translateUrlBase = event.buildAdminLink( objectName=objectName, operation=operation, recordId=recordId, args={ language="{language}" } );
+		var item = {
+			  link      = ""
+			, btnClass  = "btn-info"
+			, iconClass = "fa-globe"
+			, globalKey = ""
+			, title     = translateResource( uri="cms:datamanager.translate.record.btn" )
+			, children  = []
+		};
+
+		item.children.append( {
+			  link  = translateUrlBase.replace( "{language}", "" )
+			, icon  = "fa-eye"
+			, title = translateResource( 'cms:datamanager.translate.default.language' )
+		} );
+
+		for( var translation in prc.translations ) {
+			item.children.append( {
+				  link  = translateUrlBase.replace( "{language}", translation.id )
+				, icon  = "fa-eye"
+				, title = "#translation.name# (#translateResource( 'cms:multilingal.status.#translation.status#' )#)"
+			} );
+		}
+
+		return item;
 	}
 
 // private events for sharing
@@ -2176,6 +2285,36 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/datamanager/_addRecordForm", args=args );
 	}
 
+	private string function _editRecordForm( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+
+		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderEditRecordForm" );
+		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderEditRecordForm" );
+		var hasActionButtonsCustomization = customizationService.objectHasCustomization( objectName=objectName, action="editRecordActionButtons" );
+
+		args.preForm       = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderEditRecordForm" , args=args ) : "";
+		args.postForm      = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderEditRecordForm", args=args ) : "";
+		args.actionButtons = hasActionButtonsCustomization ? customizationService.runCustomization( objectName=objectName, action="editRecordActionButtons" , args=args ) : "";
+
+		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
+
+		args.formName = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getEditRecordFormName"
+			, defaultHandler = "admin.datamanager._getEditRecordFormName"
+			, args           = { objectName=objectName }
+		);
+
+		args.append({
+			  object        = ( args.objectName  ?: "" )
+			, id            = ( args.recordId      ?: "" )
+			, resultAction  = args.editRecordAction ?: ""
+		});
+
+		return renderView( view="/admin/datamanager/_editRecordForm", args=args );
+	}
+
 // private utility methods
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return dataManagerService.listGridFields( arguments.objectName );
@@ -2251,12 +2390,24 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _getAddRecordFormName( event, rc, prc, args={} ) {
-		var objectName = args.objectName;
+		var objectName = args.objectName ?: "";
 		var rootForm   = "preside-objects.#objectName#";
 		var addForm    = "preside-objects.#objectName#.admin.add";
 
 		if ( formsService.formExists( addForm ) ) {
 			return addForm;
+		}
+
+		return rootForm;
+	}
+
+	private string function _getEditRecordFormName( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var rootForm   = "preside-objects.#objectName#";
+		var editForm   = "preside-objects.#objectName#.admin.edit";
+
+		if ( formsService.formExists( editForm ) ) {
+			return editForm;
 		}
 
 		return rootForm;

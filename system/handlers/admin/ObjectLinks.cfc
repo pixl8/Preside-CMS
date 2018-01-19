@@ -98,6 +98,26 @@ component {
 		return "";
 	}
 
+	private string function buildEditRecordActionLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+			var qs       = "object=#objectName#";
+			var extraQs  = args.queryString ?: "";
+
+			if ( extraQs.len() ) {
+				qs &= "&" & extraQs;
+			}
+
+			return event.buildAdminLink(
+				  linkto      = "datamanager.editRecordAction"
+				, queryString = qs
+			);
+		}
+
+		return "";
+	}
+
 	private string function buildDeleteRecordActionLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 		var recordId   = args.recordId   ?: "";
@@ -210,6 +230,22 @@ component {
 		return event.buildAdminLink(
 			  linkTo      = "datamanager.dataExportConfigModal"
 			, queryString = "object=#objectName#"
+		);
+	}
+
+	private string function buildRecordHistoryLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId ?: "";
+		var extraQs    = args.queryString ?: "";
+		var qs         = "object=#objectName#&id=#recordId#";
+
+		if ( extraQs.len() ) {
+			qs &= "&" & extraQs;
+		}
+
+		return event.buildAdminLink(
+			  linkTo      = "admin.datamanager.recordHistory"
+			, queryString = qs
 		);
 	}
 
