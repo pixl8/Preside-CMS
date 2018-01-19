@@ -251,18 +251,26 @@ component extends="preside.system.base.AdminHandler" {
 				successUrl = event.buildAdminLink( objectName=objectName, operation="listing" );
 			break;
 			default:
-				successUrl = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" );
+				successUrl = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId );
 		}
 
-		runEvent(
-			  event          = "admin.DataManager._editRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  audit         = true
-				, successUrl    = successUrl
-			  }
-		);
+		if ( customizationService.objectHasCustomization( objectName, "editRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "editRecordAction"
+				, args       = { objectName=objectName, recordId=recordId }
+			);
+		} else {
+			runEvent(
+				  event          = "admin.DataManager._editRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  audit         = true
+					, successUrl    = successUrl
+				  }
+			);
+		}
 	}
 
 	public void function deleteRecordAction( event, rc, prc ) {
