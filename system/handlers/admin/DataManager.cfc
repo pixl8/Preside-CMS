@@ -94,7 +94,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( prc.language.isempty() ) {
 				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#objectName#&id=#recordId#" ) );
+				setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId ) );
 			}
 			event.setLanguage( language );
 			prc.delete( "record" );
@@ -181,6 +181,7 @@ component extends="preside.system.base.AdminHandler" {
 		var recordId      = prc.recordId   ?: "";
 		var canTranslate  = IsTrue( prc.canTranslate  ?: "" );
 		var resultAction  = rc.resultAction ?: "";
+		var useVersioning = IsTrue( prc.useVersioning ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
@@ -197,17 +198,19 @@ component extends="preside.system.base.AdminHandler" {
 				prc.cancelAction = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId );
 		}
 
-		prc.versionNavigator = customizationService.runCustomization(
-			  objectName     = objectName
-			, action         = "versionNavigator"
-			, defaultHandler = "admin.datamanager.versionNavigator"
-			, args = {
-				  object  = objectName
-				, id      = recordId
-				, version = rc.version ?: ""
-				, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
-			  }
-		);
+		if ( useVersioning ) {
+			prc.versionNavigator = customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "versionNavigator"
+				, defaultHandler = "admin.datamanager.versionNavigator"
+				, args = {
+					  object  = objectName
+					, id      = recordId
+					, version = rc.version ?: ""
+					, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
+				  }
+			);
+		}
 
 		prc.editRecordForm = customizationService.runCustomization(
 			  objectName     = objectName
@@ -217,7 +220,7 @@ component extends="preside.system.base.AdminHandler" {
 				  objectName       = objectName
 				, editRecordAction = event.buildAdminLink( objectName=objectName, operation="editRecordAction" )
 				, recordId         = prc.recordId ?: ""
-				, useVersioning    = IsTrue( prc.useVersioning ?: "" )
+				, useVersioning    = useVersioning
 				, draftsEnabled    = IsTrue( prc.draftsEnabled ?: "" )
 				, canSaveDraft     = IsTrue( prc.canSaveDraft  ?: "" )
 				, canPublish       = IsTrue( prc.canPublish    ?: "" )
@@ -2452,7 +2455,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( datamanagerService.isOperationAllowed( objectName, "read" ) ) {
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
-				, link  = event.buildAdminLink( linkTo="datamanager.viewRecord", querystring="object=#objectName#&id=#recordId#" )
+				, link  = event.buildAdminLink( objectName=objectName, recordId=recordId, operation="viewRecord" )
 			);
 		}
 	}

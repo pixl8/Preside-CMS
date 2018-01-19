@@ -10,7 +10,7 @@
 	param name="args.draftsEnabled"           type="boolean" default=false;
 	param name="args.canPublish"              type="boolean" default=false;
 	param name="args.canSaveDraft"            type="boolean" default=false;
-	param name="args.cancelAction"            type="string"  default=event.buildAdminLink( linkTo="datamanager.viewRecord", querystring='object=#args.object#&id=#args.id#' );
+	param name="args.cancelAction"            type="string"  default=event.buildAdminLink( objectName=args.object, recordId=args.id, operation="viewRecord" );
 	param name="args.cancelLabel"             type="string"  default=translateResource( "cms:datamanager.cancel.btn" );
 	param name="args.hiddenFields"            type="struct"  default={};
 	param name="args.fieldLayout"             type="string"  default="formcontrols.layouts.field";
@@ -42,7 +42,7 @@
 		<div class="hr"></div>
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#" enctype="multipart/form-data">
 		<input type="hidden" name="object" value="#args.object#" />
 		<input type="hidden" name="id"     value="#args.id#" />
 		<cfif args.useVersioning>

@@ -11,7 +11,7 @@
 	prc.pageIcon  = "trash";
 	prc.pageTitle = deleteTitle;
 
-	cancelLink = cancelUrl.len() ? cancelUrl : event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#objectName#&id=#id#" );
+	cancelLink = cancelUrl.len() ? cancelUrl : event.buildAdminLink( objectName=objectName, recordId=id, operation="viewRecord" );
 </cfscript>
 
 <cfoutput>

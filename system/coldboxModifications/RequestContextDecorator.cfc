@@ -189,6 +189,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 				, args       = arguments.args      ?: {}
 			};
 
+			args.args.append( arguments );
+
 			return getModel( "adminObjectLinkBuilderService" ).buildLink( argumentCollection=args );
 		}
 

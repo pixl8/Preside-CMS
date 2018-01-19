@@ -40,7 +40,7 @@
 		<div class="hr"></div>
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#args.addRecordAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#args.addRecordAction#" enctype="multipart/form-data">
 		<cfloop collection="#args.hiddenFields#" item="hiddenField">
 			<cfif !listFindNoCase( "object,id,version", hiddenField )>
 				<input type="hidden" name="#hiddenField#" value="#HTMLEditFormat( args.hiddenFields[ hiddenField ] )#" />
