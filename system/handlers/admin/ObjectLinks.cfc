@@ -10,16 +10,10 @@ component {
 
 	private string function buildListingLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName  ?: "";
-		var extraQs    = args.queryString ?: "";
-		var qs         = "id=#objectName#";
-
-		if ( extraQs.len() ) {
-			qs &= "&#extraQs#";
-		}
 
 		return event.buildAdminLink(
 			  linkto      = "datamanager.object"
-			, queryString = qs
+			, queryString = _queryString( "id=#objectName#", args )
 		);
 	}
 
@@ -41,7 +35,7 @@ component {
 
 			return event.buildAdminLink(
 				  linkto      = "datamanager.viewRecord"
-				, queryString = queryString
+				, queryString = _queryString( queryString, args )
 			);
 		}
 		return "";
@@ -53,7 +47,7 @@ component {
 		if ( dataManagerService.isOperationAllowed( objectName, "add" ) ) {
 			return event.buildAdminLink(
 				  linkto      = "datamanager.addRecord"
-				, queryString = "object=#objectName#"
+				, queryString = _queryString( "object=#objectName#", args )
 			);
 		}
 
@@ -64,15 +58,9 @@ component {
 		var objectName = args.objectName ?: "";
 
 		if ( dataManagerService.isOperationAllowed( objectName, "add" ) ) {
-			var queryString = "object=#objectName#";
-
-			if ( Len( Trim( args.queryString ?: "" ) ) ) {
-				queryString &= "&#args.queryString#";
-			}
-
 			return event.buildAdminLink(
 				  linkto      = "datamanager.addRecordAction"
-				, queryString = queryString
+				, queryString = _queryString( "object=#objectName#", args )
 			);
 		}
 
@@ -97,7 +85,7 @@ component {
 
 			return event.buildAdminLink(
 				  linkto      = "datamanager.editRecord"
-				, queryString = queryString
+				, queryString = _queryString( queryString, args )
 			);
 		}
 
@@ -108,16 +96,9 @@ component {
 		var objectName = args.objectName ?: "";
 
 		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
-			var qs       = "object=#objectName#";
-			var extraQs  = args.queryString ?: "";
-
-			if ( extraQs.len() ) {
-				qs &= "&" & extraQs;
-			}
-
 			return event.buildAdminLink(
 				  linkto      = "datamanager.editRecordAction"
-				, queryString = qs
+				, queryString = _queryString( "object=#objectName#", args )
 			);
 		}
 
@@ -131,7 +112,7 @@ component {
 		if ( dataManagerService.isOperationAllowed( objectName, "delete" ) ) {
 			return event.buildAdminLink(
 				  linkto      = "datamanager.deleteRecordAction"
-				, queryString = "object=#objectName#&id=#recordId#"
+				, queryString = _queryString( "object=#objectName#&id=#recordId#", args )
 			);
 		}
 
@@ -154,7 +135,7 @@ component {
 
 			return event.buildAdminLink(
 				  linkto      = "datamanager.translateRecord"
-				, queryString = queryString
+				, queryString = _queryString( queryString, args )
 			);
 		}
 		return "";
@@ -166,7 +147,7 @@ component {
 		if ( dataManagerService.isSortable( objectName ) ) {
 			return event.buildAdminLink(
 				  linkto      = "datamanager.sortRecords"
-				, queryString = "object=#objectName#"
+				, queryString = _queryString( "object=#objectName#", args )
 			);
 		}
 
@@ -178,7 +159,7 @@ component {
 
 		return event.buildAdminLink(
 			  linkto      = "datamanager.managePerms"
-			, queryString = "object=#objectName#"
+			, queryString = _queryString( "object=#objectName#", args )
 		);
 	}
 
@@ -213,7 +194,7 @@ component {
 
 		return event.buildAdminLink(
 			  linkto      = "datamanager.getObjectRecordsForAjaxDataTables"
-			, queryString = qs
+			, queryString = _queryString( qs, args )
 		);
 	}
 
@@ -222,12 +203,12 @@ component {
 
 		return event.buildAdminLink(
 			  linkto      = "datamanager.multiRecordAction"
-			, queryString = "object=#objectName#"
+			, queryString = _queryString( "object=#objectName#", args )
 		);
 	}
 
 	private string function buildExportDataActionLink( event, rc, prc, args={} ) {
-		return event.buildAdminLink( linkTo = "datamanager.exportDataAction" );
+		return event.buildAdminLink( linkTo = "datamanager.exportDataAction", queryString=args.queryString ?: "" );
 	}
 
 	private string function buildDataExportConfigModalLink( event, rc, prc, args={} ) {
@@ -235,24 +216,28 @@ component {
 
 		return event.buildAdminLink(
 			  linkTo      = "datamanager.dataExportConfigModal"
-			, queryString = "object=#objectName#"
+			, queryString = _queryString( "object=#objectName#", args )
 		);
 	}
 
 	private string function buildRecordHistoryLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 		var recordId   = args.recordId ?: "";
-		var extraQs    = args.queryString ?: "";
-		var qs         = "object=#objectName#&id=#recordId#";
-
-		if ( extraQs.len() ) {
-			qs &= "&" & extraQs;
-		}
 
 		return event.buildAdminLink(
 			  linkTo      = "admin.datamanager.recordHistory"
-			, queryString = qs
+			, queryString = _queryString( "object=#objectName#&id=#recordId#", args )
 		);
 	}
 
+// helpers
+	private string function _queryString( required string querystring, struct args={} ) {
+		var extraQs = args.queryString ?: "";
+
+		if ( extraQs.len() ) {
+			return arguments.queryString & "&" & extraQs;
+		}
+
+		return arguments.queryString;
+	}
 }
