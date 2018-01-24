@@ -1680,7 +1680,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  successAction           = ""
 		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( objectname=arguments.object, operation="listing" ) )
 		,          boolean redirectOnSuccess       = true
-		,          string  formName                = "preside-objects.#arguments.object#.admin.add"
+		,          string  formName                = _getDefaultAddFormName( arguments.object )
 		,          string  mergeWithFormName       = ""
 		,          boolean audit                   = false
 		,          string  auditAction             = ""
@@ -2009,7 +2009,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  successAction           = ""
 		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( objectname=arguments.object, operation="listing" ) )
 		,          boolean redirectOnSuccess       = true
-		,          string  formName                = "preside-objects.#object#.admin.edit"
+		,          string  formName                = _getDefaultEditFormName( arguments.object )
 		,          string  mergeWithFormName       = ""
 		,          boolean audit                   = false
 		,          string  auditAction             = ""
@@ -2346,12 +2346,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
-		args.formName = customizationService.runCustomization(
-			  objectName     = objectName
-			, action         = "getAddRecordFormName"
-			, defaultHandler = "admin.datamanager._getAddRecordFormName"
-			, args           = { objectName=objectName }
-		);
+		args.formName = _getDefaultAddFormName( objectName );
 
 		return renderView( view="/admin/datamanager/_addRecordForm", args=args );
 	}
@@ -2370,12 +2365,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
-		args.formName = customizationService.runCustomization(
-			  objectName     = objectName
-			, action         = "getEditRecordFormName"
-			, defaultHandler = "admin.datamanager._getEditRecordFormName"
-			, args           = { objectName=objectName }
-		);
+		args.formName = _getDefaultEditFormName( objectName );
 
 		args.append({
 			  object        = ( args.objectName  ?: "" )
@@ -2661,6 +2651,24 @@ component extends="preside.system.base.AdminHandler" {
 			, action         = "topRightButtons"
 			, defaultHandler = "admin.datamanager.topRightButtons"
 			, args           = { objectName=objectName, action=arguments.action }
+		);
+	}
+
+	private string function _getDefaultEditFormName( required string objectName ) {
+		return customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getEditRecordFormName"
+			, defaultHandler = "admin.datamanager._getEditRecordFormName"
+			, args           = { objectName=objectName }
+		);
+	}
+
+	private string function _getDefaultAddFormName( required string objectName ) {
+		return customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getAddRecordFormName"
+			, defaultHandler = "admin.datamanager._getAddRecordFormName"
+			, args           = { objectName=objectName }
 		);
 	}
 }
