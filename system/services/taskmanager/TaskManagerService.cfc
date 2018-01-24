@@ -77,12 +77,16 @@ component displayName="Task Manager Service" {
 		var task        = getTask( arguments.taskKey );
 		var taskDetails = _getTaskDao().selectData(
 			  filter       = { task_key=arguments.taskKey }
-			, selectFields = [ "crontab_definition", "enabled" ]
+			, selectFields = [ "crontab_definition", "enabled", "timeout" ]
 		);
 
 		for( var t in taskDetails ) {
 			if ( !Len( Trim( t.crontab_definition ) ) ) {
 				t.crontab_definition = task.schedule;
+			}
+
+			if ( !Len( Trim( t.timeout ) ) ) {
+				t.timeout = task.timeout;
 			}
 
 			return t;
@@ -229,10 +233,12 @@ component displayName="Task Manager Service" {
 	 *
 	 */
 	public void function runTask( required string taskKey, struct args={} ) {
-		var task        = getTask( arguments.taskKey );
-		var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
-		var newLogId    = createTaskHistoryLog( arguments.taskKey, newThreadId );
-		var lockName    = "runtask-#taskKey#" & Hash( ExpandPath( "/" ) );
+		var task         = getTask( arguments.taskKey );
+		var taskConfig   = getTaskConfiguration( arguments.taskKey );
+			task.timeout = taskConfig.timeout;
+		var newThreadId  = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
+		var newLogId     = createTaskHistoryLog( arguments.taskKey, newThreadId );
+		var lockName     = "runtask-#taskKey#" & Hash( ExpandPath( "/" ) );
 
 		lock name=lockName type="exclusive" timeout="1" {
 			transaction {
@@ -451,6 +457,7 @@ component displayName="Task Manager Service" {
 			, is_running         = false
 			, priority           = configuredTask.priority
 			, crontab_definition = configuredTask.schedule
+			, timeout            = configuredTask.timeout
 		} );
 	}
 
@@ -585,9 +592,9 @@ component displayName="Task Manager Service" {
 	}
 
 	public date function getTaskRunExpiry( required string taskKey ) {
-		var task = getTask( arguments.taskKey );
+		var taskConfig = getTaskConfiguration( arguments.taskKey );
 
-		return DateAdd( "s", task.timeout, _getOperationDate() );
+		return DateAdd( "s", taskConfig.timeout, _getOperationDate() );
 	}
 
 	public string function createLogHtml( required string log, numeric fetchAfterLines=0 ) {
