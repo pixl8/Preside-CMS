@@ -89,6 +89,9 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
+		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
+
 		if ( language.len() ) {
 			prc.language = multilingualPresideObjectService.getLanguage( language );
 
@@ -122,9 +125,6 @@ component extends="preside.system.base.AdminHandler" {
 			, defaultHandler = "admin.dataHelpers.viewRecord"
 			, args           = { objectName= objectName, recordId=recordId, version=version }
 		);
-
-		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
-		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
 	}
 
 	public void function addRecord( event, rc, prc ) {
