@@ -468,7 +468,7 @@ component {
 	 * @id.hint ID of the log record
 	 */
 	public struct function getLog( required string id ) {
-		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=[
+		var selectFields = [
 			  "email_template_send_log.id"
 			, "email_template_send_log.recipient"
 			, "email_template_send_log.sender"
@@ -492,9 +492,13 @@ component {
 			, "email_template_send_log.resend_of"
 			, "email_template.name"
 			, "email_template.recipient_type"
-			, "content.html_body"
-			, "content.text_body"
-		] );
+		];
+		if ( $isFeatureEnabled( "emailCenterResend" ) ) {
+			selectFields.append( "content.html_body" );
+			selectFields.append( "content.text_body" );
+		}
+
+		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=selectFields );
 
 		for( var l in logRecord ) {
 			return l;
