@@ -131,6 +131,31 @@ component extends="preside.system.base.adminHandler" {
 	}
 
 	/**
+	 * Viewlet for rendering a simple list of related records, i.e.
+	 * a many-to-many or one-to-many relationship
+	 *
+	 */
+	private string function relatedRecordsList( event, rc, prc, args={} ) {
+		var objectName    = args.objectName   ?: "";
+		var propertyName  = args.propertyName ?: "";
+		var recordId      = args.recordId     ?: "";
+		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
+		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=[ "#propertyName#.id", "#propertyName#.${labelfield} as label" ] );
+		var baseLink      = event.buildadminLink( objectName=relatedObject, recordId="{recordId}" );
+		var list          = [];
+
+		for( var record in records ) {
+			if ( baseLink.len() ) {
+				list.append( '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#record.label#</a>' );
+			} else {
+				list.append( '#record.label#' );
+			}
+		}
+
+		return list.toList( ", " );
+	}
+
+	/**
 	 * Ajax event for returning records to populate the relatedRecordsDatatable
 	 *
 	 */
