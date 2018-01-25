@@ -290,7 +290,7 @@ component {
 				, width       = "auto"
 				, minHeight   = 0
 				, maxHeight   = 300
-				, configFile  = "/ckeditorExtensions/config.js"
+				, configFile  = "/ckeditorExtensions/config.js?v10.9.0"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		};
