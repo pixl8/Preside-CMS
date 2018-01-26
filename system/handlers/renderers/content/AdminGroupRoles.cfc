@@ -15,4 +15,15 @@ component output=false {
 		return output;
 	}
 
+	private string function adminView( event, rc, prc, args={} ) {
+		var roles = ListToArray( args.data ?: "" );
+		var output = [];
+
+		for( var role in roles ) {
+			output.append( translateResource( uri="roles:#role#.title" ) );
+		}
+
+		return output.toList( ", " );
+	}
+
 }
