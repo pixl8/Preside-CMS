@@ -95,6 +95,10 @@ component {
 					return "objectRelatedRecords";
 			}
 
+			if ( Len( Trim( prop.enum ?: "" ) ) ) {
+				return "enumLabel";
+			}
+
 			switch( dbtype ) {
 				case "text":
 				case "mediumtext":
