@@ -39,11 +39,9 @@ component extends="preside.system.base.AdminHandler" {
 	public void function object( event, rc, prc ) {
 		var objectName        = prc.objectName        ?: "";
 		var objectTitle       = prc.objectTitlePlural ?: "";
-		var objectIcon        = prc.objectIcon        ?: "";
 		var objectDescription = prc.objectDescription ?: "";
 		var args              = { objectName=objectName };
 
-		prc.pageIcon        = objectIcon.reReplace( "^fa-", "" );
 		prc.pageTitle       = objectTitle;
 		prc.pageSubTitle    = objectDescription;
 
@@ -2554,6 +2552,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.isTranslationAction   = arguments.action.find( "translat" ) > 0;
 			if ( prc.isMultilingual && ( prc.isTranslationAction || arguments.action == "viewRecord" ) ) {
 				prc.translations = multilingualPresideObjectService.getTranslationStatus( prc.objectName, prc.recordId );
+			}
+
+			if ( prc.objectIconClass.len() ) {
+				prc.pageIcon = prc.objectIconClass.reReplace( "^fa-", "" );
 			}
 
 			if ( Len( Trim( prc.recordId ) ) && ListLen( prc.recordId ) == 1 ) {
