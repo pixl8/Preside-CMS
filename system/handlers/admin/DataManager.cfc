@@ -55,17 +55,31 @@ component extends="preside.system.base.AdminHandler" {
 				, args       = { objectName=objectName }
 			);
 		} else {
+			args.usesTreeView = dataManagerService.usesTreeView( objectName );
+			args.treeView     = args.usesTreeView && IsFalse( rc.gridView ?: "" );
 			args.append( {
-				  useMultiActions     = IsTrue( prc.canDelete      ?: "" )
-				, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-				, batchEditableFields = prc.batchEditableFields ?: {}
-				, gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+				  gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
-				, allowDataExport     = true
 			} );
 
-			prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args=args );
+			if ( args.treeView ) {
+				prc.listingView = renderViewlet( event="admin.datamanager._treeView", args=args );
+			} else {
+				args.append( {
+					  useMultiActions     = IsTrue( prc.canDelete      ?: "" )
+					, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
+					, batchEditableFields = prc.batchEditableFields ?: {}
+					, allowDataExport     = true
+				} );
+
+				prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args=args );
+			}
+
+			if ( args.usesTreeView  ) {
+				args.content = prc.listingView;
+				prc.listingView = renderView( view="/admin/datamanager/_treeGridSwitcher", args=args );
+			}
 		}
 	}
 
@@ -2374,6 +2388,10 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/datamanager/_editRecordForm", args=args );
 	}
 
+	private string function _treeView( event, rc, prc, args={} ) {
+		return "TODO";
+	}
+
 // private utility methods
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return dataManagerService.listGridFields( arguments.objectName );
@@ -2606,7 +2624,6 @@ component extends="preside.system.base.AdminHandler" {
 				}
 			}
 		}
-
 	}
 
 	private void function _loadCommonBreadCrumbs( event, action, eventArguments ) {

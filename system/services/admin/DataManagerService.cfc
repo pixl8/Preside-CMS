@@ -201,6 +201,31 @@ component {
 		);
 	}
 
+	public boolean function usesTreeView( required string objectName ) {
+		var treeView = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeView"
+		);
+
+		return IsBoolean( treeView ) && treeView;
+	}
+
+	public string function getTreeParentProperty( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeParentProperty"
+			, defaultValue  = "parent"
+		);
+	}
+
+	public string function getTreeParentProperty( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeSortOrder"
+			, defaultValue  = _getPresideObjectService().getLabelField( arguments.objectName )
+		);
+	}
+
 	public string function getDefaultSortOrderForDataGrid( required string objectName ) output=false {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
