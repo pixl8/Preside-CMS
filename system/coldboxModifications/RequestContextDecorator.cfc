@@ -185,7 +185,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			var args = {
 				  objectName = arguments.objectName
 				, recordId   = arguments.recordId  ?: ""
-				, operation  = arguments.operation ?: ( Len( Trim( arguments.recordId ?: "" ) ) ? "viewRecord" : "listing" )
+				, operation  = arguments.operation ?: ""
 				, args       = arguments.args      ?: {}
 			};
 
