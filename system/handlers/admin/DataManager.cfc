@@ -65,6 +65,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( args.treeView ) {
 				prc.listingView = renderViewlet( event="admin.datamanager._treeView", args=args );
+
 			} else {
 				args.append( {
 					  useMultiActions     = IsTrue( prc.canDelete      ?: "" )
@@ -2394,8 +2395,10 @@ component extends="preside.system.base.AdminHandler" {
 		args.parent   = "";
 		args.currentLevel = 0;
 		args.topLevel = runEvent(
-			  event = "admin.datamanager._getRecordsForTreeView"
+			  event          = "admin.datamanager._getRecordsForTreeView"
 			, eventArguments = { args=args }
+			, private        = true
+			, prepostExempt  = true
 		);
 		args.baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" );
 
@@ -2415,8 +2418,10 @@ component extends="preside.system.base.AdminHandler" {
 		};
 
 		var nodes = runEvent(
-			  event = "admin.datamanager._getRecordsForTreeView"
+			  event          = "admin.datamanager._getRecordsForTreeView"
 			, eventArguments = { args=args }
+			, private        = true
+			, prepostExempt  = true
 		);
 
 		var rendered = "";
