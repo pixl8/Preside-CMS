@@ -55,17 +55,32 @@ component extends="preside.system.base.AdminHandler" {
 				, args       = { objectName=objectName }
 			);
 		} else {
+			args.usesTreeView = dataManagerService.usesTreeView( objectName );
+			args.treeView     = args.usesTreeView && IsFalse( rc.gridView ?: "" );
 			args.append( {
-				  useMultiActions     = IsTrue( prc.canDelete      ?: "" )
-				, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-				, batchEditableFields = prc.batchEditableFields ?: {}
-				, gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+				  gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
-				, allowDataExport     = true
 			} );
 
-			prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args=args );
+			if ( args.treeView ) {
+				prc.listingView = renderViewlet( event="admin.datamanager._treeView", args=args );
+
+			} else {
+				args.append( {
+					  useMultiActions     = IsTrue( prc.canDelete      ?: "" )
+					, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
+					, batchEditableFields = prc.batchEditableFields ?: {}
+					, allowDataExport     = true
+				} );
+
+				prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args=args );
+			}
+
+			if ( args.usesTreeView  ) {
+				args.content = prc.listingView;
+				prc.listingView = renderView( view="/admin/datamanager/_treeGridSwitcher", args=args );
+			}
 		}
 	}
 
@@ -2374,6 +2389,111 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/datamanager/_editRecordForm", args=args );
 	}
 
+	private string function _treeView( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		args.parent   = "";
+		args.currentLevel = 0;
+		args.topLevel = runEvent(
+			  event          = "admin.datamanager._getRecordsForTreeView"
+			, eventArguments = { args=args }
+			, private        = true
+			, prepostExempt  = true
+		);
+		args.baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" );
+
+		return renderView( view="/admin/datamanager/_treeView", args=args );
+	}
+
+	public void function getNodesForTreeView( event, rc, prc ) {
+		var objectName = rc.object ?: "";
+		var args = {
+			  parent             = rc.parentId ?: ""
+			, objectName         = objectName
+			, currentLevel       = Val( rc.parentLevel ?: "" ) + 1
+			, gridFields         = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+			, isMultilingual     = IsTrue( prc.isMultilingual ?: "" )
+			, draftsEnabled      = IsTrue( prc.draftsEnabled  ?: "" )
+			, baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" )
+		};
+
+		var nodes = runEvent(
+			  event          = "admin.datamanager._getRecordsForTreeView"
+			, eventArguments = { args=args }
+			, private        = true
+			, prepostExempt  = true
+		);
+
+		var rendered = "";
+
+		for( var node in nodes ) {
+			args.record = node;
+			rendered &= renderView( view="/admin/datamanager/_treeNode", args=args );
+		}
+
+		event.renderData( data=rendered );
+	}
+
+	private query function _getRecordsForTreeView( event, rc, prc, args={} ) {
+		var objectName     = args.objectName ?: "";
+		var parent         = args.parent     ?: "";
+		var filterField    = dataManagerService.getTreeParentProperty( objectName );
+		var getRecordsArgs = {
+			  objectName   = objectName
+			, filter       = { "#filterField#"=parent }
+			, extraFilters = []
+			, gridFields   = args.gridFields ?: []
+			, orderby      = dataManagerService.getTreeSortOrder( objectName )
+			, autoGroupBy  = true
+			, maxRows      = 0
+		};
+
+		customizationService.runCustomization(
+			  objectName = objectName
+			, action     = "preFetchRecordsForGridListing"
+			, args       = getRecordsArgs
+		);
+
+		var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
+		var records = Duplicate( results.records );
+
+		customizationService.runCustomization(
+			  objectName = objectName
+			, action     = "postFetchRecordsForGridListing"
+			, args       = { records=records, objectName=objectName }
+		);
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "decorateRecordsForGridListing"
+			, defaultHandler = "admin.datamanager._decorateObjectRecordsForAjaxDataTables"
+			, args           = {
+				  records         = records
+				, objectName      = objectName
+				, gridFields      = getRecordsArgs.gridFields
+				, useMultiActions = false
+				, isMultilingual  = args.isMultilingual
+				, draftsEnabled   = args.draftsEnabled
+			}
+		);
+
+		getRecordsArgs.gridFields.delete( "_status" );
+		getRecordsArgs.gridFields.delete( "_translateStatus" );
+
+		var optionsCol = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getActionsForGridListing"
+			, defaultHandler = "admin.datamanager._getActionsForAjaxDataTables"
+			, args           = {
+				  records     = records
+				, objectName  = objectName
+			}
+		);
+		QueryAddColumn( records, "_options" , optionsCol );
+
+		return records;
+	}
+
 // private utility methods
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return dataManagerService.listGridFields( arguments.objectName );
@@ -2606,7 +2726,6 @@ component extends="preside.system.base.AdminHandler" {
 				}
 			}
 		}
-
 	}
 
 	private void function _loadCommonBreadCrumbs( event, action, eventArguments ) {
