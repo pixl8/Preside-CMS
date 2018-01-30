@@ -2368,7 +2368,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.append({
 			  object        = ( args.objectName  ?: "" )
 			, id            = ( args.recordId      ?: "" )
-			, resultAction  = args.editRecordAction ?: ""
+			, resultAction  = rc.resultAction ?: ""
 		});
 
 		return renderView( view="/admin/datamanager/_editRecordForm", args=args );
