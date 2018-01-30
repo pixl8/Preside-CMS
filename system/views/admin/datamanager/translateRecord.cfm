@@ -13,10 +13,11 @@
 	deleteRecordPrompt  = translateResource( uri="cms:datamanager.deleteTranslation.prompt", data=[ currentLanguage.name, objectTitleSingular, recordLabel ] );
 	deleteRecordTitle   = translateResource( uri="cms:datamanager.deleteRecord.btn" );
 
+	fromDataGrid        = rc.fromDataGrid      ?: "";
 	canDelete           = prc.canDelete;
 	translations        = prc.translations     ?: [];
-	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
-	cancelAction        = prc.cancelAction     ?: event.buildAdminLink( linkTo="datamanager.viewRecord", querystring='object=#object#&id=#id#' );
+	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( objectName=object, operation="translateRecord", recordId=id, args={ fromDataGrid=fromDataGrid, language='{language}' } );
+	cancelAction        = prc.cancelAction     ?: event.buildAdminLink( objectName=object, opetation="viewRecord"     , recordId=id );
 	formAction          = prc.formAction       ?: event.buildAdminLink( linkTo='datamanager.translateRecordAction');
 	formId              = "translate-record-form";
 
@@ -40,7 +41,7 @@
 				<cfloop array="#translations#" index="i" item="language">
 					<cfif language.id != currentLanguageId>
 						<li>
-							<a href="#translateUrlBase##language.id#">
+							<a href="#translateUrlBase.replace( '{language}', language.id )#">
 								<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
 							</a>
 						</li>
@@ -62,7 +63,7 @@
 		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "", language=currentLanguageId } )#
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#" enctype="multipart/form-data">
 		<input type="hidden" name="object"   value="#object#" />
 		<input type="hidden" name="id"       value="#id#" />
 		<input type="hidden" name="language" value="#currentLanguageId#" />

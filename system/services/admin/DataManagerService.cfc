@@ -15,6 +15,7 @@ component {
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
+	 * @customizationService.inject datamanagerCustomizationService
 	 */
 	public any function init(
 		  required any presideObjectService
@@ -24,6 +25,7 @@ component {
 		, required any permissionService
 		, required any siteService
 		, required any relationshipGuidance
+		, required any customizationService
 	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
@@ -32,6 +34,7 @@ component {
 		_setPermissionService( arguments.permissionService );
 		_setSiteService( arguments.siteService );
 		_setRelationshipGuidance( arguments.relationshipGuidance );
+		_setCustomizationService( arguments.customizationService );
 
 		return this;
 	}
@@ -61,8 +64,9 @@ component {
 					};
 				}
 				groups[ groupId ].objects.append( {
-					  id    = objectName
-					, title = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
+					  id        = objectName
+					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
+					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-puzzle-piece" )
 				} );
 			}
 		}
@@ -83,9 +87,19 @@ component {
 	}
 
 	public boolean function isObjectAvailableInDataManager( required string objectName ) {
+		if ( objectIsIndexedInDatamanagerUi( arguments.objectName ) ) {
+			return true;
+		}
+
+		var datamanagerEnabled = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerEnabled", defaultValue="" );
+
+		return IsBoolean( datamanagerEnabled ) && datamanagerEnabled;
+	}
+
+	public boolean function objectIsIndexedInDatamanagerUi( required string objectName ) {
 		var groupId = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerGroup", defaultValue="" );
 
-		return Len( Trim( groupId ) );
+		return Len( Trim( groupId ) ) > 0;
 	}
 
 	public array function listGridFields( required string objectName ) {
@@ -148,6 +162,16 @@ component {
 	}
 
 	public boolean function isOperationAllowed( required string objectName, required string operation ) {
+		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, "isOperationAllowed" ) ) {
+			var result = _getCustomizationService().runCustomization(
+				  objectName = arguments.objectName
+				, action     = "isOperationAllowed"
+				, args       = arguments
+			);
+
+			return IsBoolean( result ?: "" ) && result;
+		}
+
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
@@ -174,6 +198,31 @@ component {
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerSortField"
 			, defaultValue  = "sortorder"
+		);
+	}
+
+	public boolean function usesTreeView( required string objectName ) {
+		var treeView = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeView"
+		);
+
+		return IsBoolean( treeView ) && treeView;
+	}
+
+	public string function getTreeParentProperty( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeParentProperty"
+			, defaultValue  = "parent"
+		);
+	}
+
+	public string function getTreeSortOrder( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeSortOrder"
+			, defaultValue  = _getPresideObjectService().getLabelField( arguments.objectName )
 		);
 	}
 
@@ -762,6 +811,13 @@ component {
 	}
 	private void function _setRelationshipGuidance( required any RelationshipGuidance ) {
 		_RelationshipGuidance = arguments.RelationshipGuidance;
+	}
+
+	private any function _getCustomizationService() {
+		return _customizationService;
+	}
+	private void function _setCustomizationService( required any customizationService ) {
+		_customizationService = arguments.customizationService;
 	}
 
 }

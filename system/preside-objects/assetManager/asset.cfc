@@ -1,7 +1,6 @@
 /**
  * The asset object represents the core data associated with any file uploaded into the Asset manager
  *
- * @adminBuildViewLinkHandler admin.assetManager.getViewAssetLink
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" {
 
@@ -19,7 +18,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="height"            type="numeric" dbtype="int"                       required=false;
 	property name="focal_point"       type="string"  dbtype="varchar" maxLength=15      required=false;
 	property name="crop_hint"         type="string"  dbtype="varchar" maxLength=30      required=false;
-	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
 	property name="is_trashed"        type="boolean" dbtype="boolean"                   required=false default=false;
 	property name="trashed_path"      type="string"  dbtype="varchar" maxLength=255     required=false;
@@ -30,7 +29,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="full_login_required"                  type="boolean" dbtype="boolean"               required=false default=false;
 	property name="grantaccess_to_all_logged_in_users"   type="boolean" dbtype="boolean"               required=false default=false;
 
-	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId"  ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId"  ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 }

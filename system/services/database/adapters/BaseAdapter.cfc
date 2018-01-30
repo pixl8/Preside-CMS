@@ -96,6 +96,9 @@ component {
 			case 'no action':
 				sql &= " on delete no action";
 				break;
+			case 'set-null-if-no-cycle-check':
+				sql &= " on delete set null";
+				break;
 			default:
 				sql &= " on delete set null";
 		}
@@ -108,6 +111,9 @@ component {
 				break;
 			case 'no action':
 				sql &= " on update no action";
+				break;
+			case 'set-null-if-no-cycle-check':
+				sql &= " on update set null";
 				break;
 			default:
 				sql &= " on update set null";
@@ -460,6 +466,10 @@ component {
 
 	public boolean function supportsCascadeUpdateDelete() {
 		return true;
+	}
+
+	public boolean function autoCreatesFkIndexes(){
+		return false;
 	}
 
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {

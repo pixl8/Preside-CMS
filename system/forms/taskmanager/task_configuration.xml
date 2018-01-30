@@ -9,6 +9,7 @@ This form is used for configuring indivual tasks in the task manager
 		<fieldset id="default">
 			<field binding="taskmanager_task.enabled" />
 			<field binding="taskmanager_task.crontab_definition" control="textinput" required="true" />
+			<field binding="taskmanager_task.timeout"            control="spinner"   />
 		</fieldset>
 	</tab>
 </form>

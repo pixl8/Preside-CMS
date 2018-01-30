@@ -233,10 +233,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	private string function buildUserLink( event, rc, prc, recordId="" ) {
-		return event.buildAdminLink( linkto="websiteUserManager.viewUser", queryString="id=" & arguments.recordId );
-	}
-
 // private utility
 	private void function _checkPermissions( required any event, required string key ) {
 		if ( !hasCmsPermission( arguments.key ) ) {

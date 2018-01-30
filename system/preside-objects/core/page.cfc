@@ -17,10 +17,10 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="trashed"      type="boolean" dbtype="boolean"                  required=false default=false control="none";
 	property name="old_slug"     type="string"  dbtype="varchar" maxLength="50"   required=false;
 
-	property name="main_image"       relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="main_image"       relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 	property name="parent_page"      relationship="many-to-one" relatedTo="page"                    required=false                     uniqueindexes="slug|1" control="none"  ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="created_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" onupdate="cascade-if-no-cycle-check";
 	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition"  required=false control="conditionPicker" ruleContext="webrequest";
 
 	property name="internal_search_access"                  type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" enum="internalSearchAccess";

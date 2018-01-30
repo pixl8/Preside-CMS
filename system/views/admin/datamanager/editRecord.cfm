@@ -1,4 +1,20 @@
 <cfscript>
+	topRightButtons  = prc.topRightButtons  ?: "";
+	editRecordForm   = prc.editRecordForm   ?: "";
+	versionNavigator = prc.versionNavigator ?: "";
+</cfscript>
+
+<cfoutput>
+	<cfif topRightButtons.len()>
+		<div class="top-right-button-group">#topRightButtons#</div>
+	</cfif>
+
+	#versionNavigator#
+
+	#editRecordForm#
+</cfoutput>
+
+<!--- <cfscript>
 	object              = rc.object ?: "";
 	id                  = rc.id ?: "";
 	recordLabel         = prc.recordLabel;
@@ -11,7 +27,7 @@
 
 	canTranslate     = prc.canTranslate;
 	translations     = prc.translations ?: [];
-	translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
+	translateUrlBase = event.buildAdminLink( objectName=object, recordId=id, operation="translateRecord", args={ language="{language}" } );
 </cfscript>
 
 <cfoutput>
@@ -25,7 +41,7 @@
 			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
 				<cfloop array="#translations#" index="i" item="language">
 					<li>
-						<a href="#translateUrlBase##language.id#">
+						<a href="#translateUrlBase.replace( '{language}', language.id )#">
 							<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
 						</a>
 					</li>
@@ -33,28 +49,4 @@
 			</ul>
 		</cfif>
 	</div>
-
-	<cfif useVersioning>
-		#renderViewlet( event='admin.datamanager.versionNavigator', args={
-			  object  = rc.object ?: ""
-			, id      = rc.id ?: ""
-			, version = rc.version ?: ""
-			, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
-		} )#
-	</cfif>
-
-
-
-	#renderView( view="/admin/datamanager/_editRecordForm", args={
-		  object        = ( rc.object  ?: "" )
-		, id            = ( rc.id      ?: "" )
-		, version       = ( rc.version ?: "" )
-		, record        = ( prc.record ?: {} )
-		, useVersioning = IsTrue( prc.useVersioning ?: "" )
-		, draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
-		, canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
-		, canPublish    = IsTrue( prc.canPublish    ?: "" )
-		, resultAction  = rc.resultAction  ?: ""
-		, cancelAction  = prc.cancelAction ?: ""
-	} )#
-</cfoutput>
+</cfoutput> --->

@@ -3,7 +3,6 @@
  *
  * See [[cmspermissioning]] for more information on users and permissioning.
  *
- * @adminBuildViewLinkHandler admin.userManager.buildUserLink
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="known_as" output="false" displayName="User" {
 	property name="active"                          type="boolean"  dbtype="boolean"                 required=false default=true sortorder=10;

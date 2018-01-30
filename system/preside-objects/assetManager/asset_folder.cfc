@@ -20,6 +20,6 @@ component output="false" extends="preside.system.base.SystemPresideObject" displ
 	property name="storage_location" relationship="many-to-one" relatedTo="asset_storage_location" required=false;
 	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
 
-	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 }

@@ -147,7 +147,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 							},{
 								name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", generate="never", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder", sortorder=20
 							},{
-								name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", generate="never", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder", sortorder=30, renderer="adminGroupRoles"
+								name="users", adminrenderer="objectRelatedRecordsList", control="default", dbtype="none", generate="never", generator="none", help="preside-objects.security_group:field.users.help", label="preside-objects.security_group:field.users.title", maxlength="0", placeholder="preside-objects.security_group:field.users.placeholder", relatedto="security_user", relatedvia="security_group__join__security_user", relatedviasourcefk="security_group", relatedviatargetfk="security_user", relationship="many-to-many", relationshipissource=true , required=false , sortorder=30 , sourceobject="security_group", type="string"
+							},{
+								name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", generate="never", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder", sortorder=40, renderer="adminGroupRoles"
 							}]
 						}]
 					}]
@@ -488,7 +490,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 							},{
 								name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", generate="never", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder", sortorder=20
 							},{
-								name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", generate="never", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder", sortorder=30, renderer="adminGroupRoles"
+								name="users", adminrenderer="objectRelatedRecordsList", control="default", dbtype="none", generate="never", generator="none", help="preside-objects.security_group:field.users.help", label="preside-objects.security_group:field.users.title", maxlength="0", placeholder="preside-objects.security_group:field.users.placeholder", relatedto="security_user", relatedvia="security_group__join__security_user", relatedviasourcefk="security_group", relatedviatargetfk="security_user", relationship="many-to-many", relationshipissource=true , required=false , sortorder=30 , sourceobject="security_group", type="string"
+							},{
+								name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", generate="never", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder", sortorder=40, renderer="adminGroupRoles"
 							}]
 						}]
 					}]

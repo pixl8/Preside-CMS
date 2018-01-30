@@ -105,144 +105,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "getViewletForObjectRender()", function(){
-			it( "should return specified 'adminViewRecordViewlet' attribute on the object when object defines it", function(){
-				var service = _getService();
-				var viewlet = "test.viewlet.#CreateUUId()#";
-
-				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="adminViewRecordViewlet" ).$results( viewlet );
-
-				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( viewlet );
-			} );
-
-			it( "should return 'admin.dataHelpers.viewRecord' when no specific 'adminViewRecordViewlet' is defined on an object", function(){
-				var service = _getService();
-
-				mockPoService.$( "getObjectAttribute" ).$args( objectName="dummyobj", attributeName="adminViewRecordViewlet" ).$results( "" );
-
-				expect( service.getViewletForObjectRender( "dummyobj" ) ).toBe( "admin.dataHelpers.viewRecord" );
-			} );
-		} );
-
-		describe( "renderObjectRecord()", function(){
-			it( "should use the configured viewlet for an object to render the view record view", function(){
-				var service    = _getService();
-				var rendered   = CreateUUid();
-				var handler    = "";
-				var args       = {
-					  objectName = "test_object_" & CreateUUId()
-					, recordId   = CreateUUId()
-					, artbitrary = { test=true }
-					, version    = 39
-				};
-
-				service.$( "getViewletForObjectRender" ).$args( objectName=args.objectName ).$results( handler );
-				mockColdbox.$( "renderViewlet" ).$args(
-					  event = handler
-					, args  = args
-				).$results( rendered );
-
-				expect( service.renderObjectRecord( argumentCollection=args ) ).toBe( rendered );
-			} );
-		} );
-
-		describe( "getBuildAdminLinkHandlerForObject()", function(){
-			it( "should return the handler configured by the @adminBuildViewLinkHandler attribute on the object", function(){
-				var service = _getService();
-				var object  = "TestObject" & CreateUUId();
-				var handler = "test." & CreateUUId();
-
-				mockPoService.$( "getObjectAttribute" ).$args(
-					  objectName    = object
-					, attributeName = "adminBuildViewLinkHandler"
-				).$results( handler );
-
-				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( handler );
-
-			} );
-
-			it( "should return a default admin handler for objects that do not define an @adminBuildViewLinkHandler attribute and that are managed by datamanager", function(){
-				var service = _getService();
-				var object  = "TestObject" & CreateUUId();
-				var handler = "admin.dataHelpers.getViewRecordLink";
-
-				mockPoService.$( "getObjectAttribute" ).$args(
-					  objectName    = object
-					, attributeName = "adminBuildViewLinkHandler"
-				).$results( "" );
-				mockDataManagerService.$( "isObjectAvailableInDataManager" ).$args( objectName=object ).$results( true );
-
-				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( handler );
-			} );
-
-			it( "should return an empty string (no handler) when object is not managed in datamanager and does not define the @adminBuildViewLinkHandler attribte", function(){
-				var service = _getService();
-				var object  = "TestObject" & CreateUUId();
-
-				mockPoService.$( "getObjectAttribute" ).$args(
-					  objectName    = object
-					, attributeName = "adminBuildViewLinkHandler"
-				).$results( "" );
-				mockDataManagerService.$( "isObjectAvailableInDataManager" ).$args( objectName=object ).$results( false );
-
-				expect( service.getBuildAdminLinkHandlerForObject( object ) ).toBe( "" );
-			} );
-		} );
-
-		describe( "doesObjectHaveBuildAdminLinkHandler()", function() {
-			it( "should return true when getBuildAdminLinkHandlerForObject() returns non-empty", function(){
-				var service    = _getService();
-				var objectName = "my_object_#CreateUUId()#";
-
-				service.$( "getBuildAdminLinkHandlerForObject" ).$args( objectName=objectName ).$results( "some.handler" );
-
-				expect( service.doesObjectHaveBuildAdminLinkHandler( objectName ) ).toBe( true );
-			} );
-
-			it( "should return false when getBuildAdminLinkHandlerForObject() returns non-empty", function(){
-				var service    = _getService();
-				var objectName = "my_object_#CreateUUId()#";
-
-				service.$( "getBuildAdminLinkHandlerForObject" ).$args( objectName=objectName ).$results( "" );
-
-				expect( service.doesObjectHaveBuildAdminLinkHandler( objectName ) ).toBe( false );
-			} );
-		} );
-
-		describe( "buildViewObjectRecordLink()", function(){
-			it( "should return empty string when object does not have a build link handler", function(){
-				var service    = _getService();
-				var objectName = "test_object_" & CreateUUId();
-
-				service.$( "doesObjectHaveBuildAdminLinkHandler" ).$args( objectName=objectName ).$results( false );
-
-				expect( service.buildViewObjectRecordLink( objectName=objectName, recordId=CreateUUId() ) ).toBe( "" );
-			} );
-
-			it( "should return the result of calling the object's build admin link handler, passing through the supplied arguments", function(){
-				var service    = _getService();
-				var objectName = "test_object_" & CreateUUId();
-				var builtLink  = CreateUUid();
-				var handler    = "";
-				var args       = {
-					  objectName = "some_object_" & CreateUUId()
-					, recordId   = CreateUUId()
-					, artbitrary = { test=true }
-				};
-
-				service.$( "doesObjectHaveBuildAdminLinkHandler" ).$args( objectName=args.objectName ).$results( true );
-				service.$( "getBuildAdminLinkHandlerForObject" ).$args( objectName=args.objectName ).$results( handler );
-				mockColdbox.$( "runEvent" ).$args(
-					  event          = handler
-					, eventArguments = args
-					, private        = true
-					, prePostExempt  = true
-				).$results( builtLink );
-
-				expect( service.buildViewObjectRecordLink( argumentCollection=args ) ).toBe( builtLink );
-			} );
-		} );
-
 		describe( "listRenderableObjectProperties()", function(){
 			it( "should return an array of property names for an object sorted by sort order and excluding those whose admin renderer is 'none'", function(){
 				var service    = _getService();
@@ -339,6 +201,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, description = "Test group description"
 					, iconClass   = "fa-test-icon"
 					, sortorder   = 49
+					, column      = "left"
 				};
 
 				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
@@ -347,6 +210,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=""        ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=""        ).$results( groupDetail.iconClass   );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue=1000      ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.column"     , defaultValue="left"    ).$results( groupDetail.column      );
 
 				expect( service.getViewGroupDetail(
 					  objectName = objectName
@@ -368,6 +232,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, description = "Test group description"
 					, iconClass   = "fa-test-icon"
 					, sortorder   = 49
+					, column      = "left"
 				};
 
 				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
@@ -380,6 +245,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=objectDesc  ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=objectIcon  ).$results( groupDetail.iconClass   );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="1"         ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.column"     , defaultValue="left"      ).$results( groupDetail.column      );
 
 				expect( service.getViewGroupDetail(
 					  objectName = objectName
@@ -401,6 +267,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, description = "Test group description"
 					, iconClass   = "fa-test-icon"
 					, sortorder   = 49
+					, column      = "right"
 				};
 
 				mockPoService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( rootUri );
@@ -413,6 +280,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=objectDesc  ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=objectIcon  ).$results( groupDetail.iconClass   );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="2"         ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.column"     , defaultValue="right"     ).$results( groupDetail.column      );
 
 				expect( service.getViewGroupDetail(
 					  objectName = objectName
@@ -422,23 +290,26 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "listViewGroupsForObject()", function(){
-			it( "should return an array of view groups configured for the object's properties, ordered by group sort order / group title", function(){
+			it( "should return an array of view groups configured for the object's properties, ordered by column + group sort order / group title", function(){
 				var service    = _getService();
 				var objectName = "test_object_" & CreateUUId();
-				var props      = [ "prop1", "prop2", "prop3", "prop4", "prop5", "prop6" ];
+				var props      = [ "prop1", "prop2", "prop3", "prop4", "prop5", "prop6", "prop7" ];
 				var groups     = {
-					  system  = { blah="blah", test=CreateUUId(), title="System" , sortOrder=300 }
-					, default = { blah="blah", test=CreateUUId(), title="Default", sortOrder=100 }
-					, group1  = { blah="blah", test=CreateUUId(), title="Group 1", sortOrder=300 }
+					  system  = { blah="blah", test=CreateUUId(), title="System" , sortOrder=300, column="left" }
+					, default = { blah="blah", test=CreateUUId(), title="Default", sortOrder=100, column="left" }
+					, group1  = { blah="blah", test=CreateUUId(), title="Group 1", sortOrder=300, column="left" }
+					, group5  = { blah="blah", test=CreateUUId(), title="Group 1", sortOrder=300, column="right" }
 				};
-				var expectedGroups = [];
+				var expectedGroups = { left=[], right=[] };
 
-				expectedGroups.append( duplicate( groups.default ) );
-				expectedGroups.append( duplicate( groups.group1 ) );
-				expectedGroups.append( duplicate( groups.system ) );
-				expectedGroups[ 1 ].properties = [ props[ 2 ] ];
-				expectedGroups[ 2 ].properties = [ props[ 1 ], props[ 4 ], props[ 5 ] ];
-				expectedGroups[ 3 ].properties = [ props[ 3 ], props[ 6 ] ];
+				expectedGroups.left.append( duplicate( groups.default ) );
+				expectedGroups.left.append( duplicate( groups.group1 ) );
+				expectedGroups.left.append( duplicate( groups.system ) );
+				expectedGroups.left[ 1 ].properties = [ props[ 2 ] ];
+				expectedGroups.left[ 2 ].properties = [ props[ 1 ], props[ 4 ], props[ 5 ] ];
+				expectedGroups.left[ 3 ].properties = [ props[ 3 ], props[ 6 ] ];
+				expectedGroups.right.append( duplicate( groups.group5 ) );
+				expectedGroups.right[ 1 ].properties = [ props[ 7 ] ];
 
 				service.$( "listRenderableObjectProperties" ).$args( objectName ).$results( props );
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 1 ] ).$results( "group1"  );
@@ -447,6 +318,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 4 ] ).$results( "group1"  );
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 5 ] ).$results( "group1"  );
 				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 6 ] ).$results( "system"  );
+				service.$( "getViewGroupForProperty" ).$args( objectName, props[ 7 ] ).$results( "group5"  );
 				for( var groupName in groups ) {
 					service.$( "getViewGroupDetail" ).$args( objectName, groupName ).$results( groups[ groupName ] );
 				}
