@@ -188,12 +188,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( objectName, recordId );
 		}
 
-		switch( resultAction ) {
-			case "grid":
-				prc.cancelAction = event.buildAdminLink( objectName=objectName, operation="listing" );
-			break;
-			default:
-				prc.cancelAction = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId );
+		if ( resultAction == "grid" || !datamanagerService.isOperationAllowed( objectName, "read" ) ) {
+			prc.cancelAction = event.buildAdminLink( objectName=objectName );
+		} else {
+			prc.cancelAction = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId );
 		}
 
 		if ( useVersioning ) {
@@ -247,12 +245,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
 		var successUrl = "";
-		switch( rc.__resultAction ?: "" ) {
-			case "grid":
-				successUrl = event.buildAdminLink( objectName=objectName, operation="listing" );
-			break;
-			default:
-				successUrl = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId );
+		var resultAction = rc.__resultAction ?: "";
+
+		if ( resultAction == "grid" || !datamanagerService.isOperationAllowed( objectName, "read" ) ) {
+			successUrl = event.buildAdminLink( objectName=objectName );
+		} else {
+			successUrl = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId );
 		}
 
 		if ( customizationService.objectHasCustomization( objectName, "editRecordAction" ) ) {
