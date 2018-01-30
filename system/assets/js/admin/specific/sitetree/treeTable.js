@@ -55,9 +55,10 @@
 			};
 
 			ajaxCompleteHandler = function(){
+				$loadingRow.remove();
+
 				var $children = calculateChildren( $parent );
 
-				$loadingRow.remove();
 				$parent.data( "childrenLoaded", true );
 				$parent.data( "childrenLoading", false );
 
@@ -75,7 +76,7 @@
 
 			$.ajax( fetchNodesUrl, {
 				  method   : "GET"
-				, data     : { parentId : $parent.data( "id" ), selected : selectedNode  }
+				, data     : { parentId : $parent.data( "id" ), selected : selectedNode, parentLevel : parseInt( $parent.data( 'depth' ) ) }
 				, cache    : false
 				, success  : ajaxSuccessHandler
 				, error    : ajaxErrorHandler
@@ -86,7 +87,7 @@
 		calculateChildren = function( $parent ) {
 			var $table = $parent.closest( "table" );
 
-			return $table.find( "tr[data-parent='" + $parent.data( "id" ) + "']" )
+			return $table.find( "tr[data-parent='" + $parent.data( "id" ) + "']" );
 		};
 
 		closeChildren = function( $parent ){

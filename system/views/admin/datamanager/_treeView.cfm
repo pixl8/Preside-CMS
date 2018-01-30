@@ -6,6 +6,7 @@
 	isMultilingual = IsTrue( args.isMultilingual ?: "" );
 
 	event.include( "/js/admin/specific/sitetree/" )
+	     .include( "/css/admin/specific/sitetree/" )
 	     .includeData( { treeFetchUrl=event.buildAdminLink( objectName=objectName, operation="getNodesForTreeView" ) } );
 </cfscript>
 <cfoutput>

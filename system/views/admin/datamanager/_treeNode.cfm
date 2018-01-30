@@ -3,12 +3,14 @@
 	gridFields         = args.gridFields ?: [];
 	objectName         = args.objectName;
 	record             = args.record ?: {};
+	parent             = args.parent ?: "";
 	draftsEnabled      = IsTrue( args.draftsEnabled  ?: "" );
 	isMultilingual     = IsTrue( args.isMultilingual ?: "" );
 	baseViewRecordLink = args.baseViewRecordLink ?: "";
+	currentLevel       = Val( args.currentLevel ?: 0 );
 </cfscript>
 <cfoutput>
-	<tr>
+	<tr class="depth-#currentLevel#" data-depth="#currentLevel#" data-id="#record.id#" data-parent="#parent#" data-context-container="#record.id#">
 		<cfloop array="#gridFields#" index="i" item="fieldName">
 			<cfif i == 1 and ( record._options ?: "" ).len()>
 				<td class="page-title-cell">

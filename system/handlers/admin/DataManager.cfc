@@ -2392,6 +2392,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = args.objectName ?: "";
 
 		args.parent   = "";
+		args.currentLevel = 0;
 		args.topLevel = runEvent(
 			  event = "admin.datamanager._getRecordsForTreeView"
 			, eventArguments = { args=args }
@@ -2402,8 +2403,30 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getNodesForTreeView( event, rc, prc ) {
-		// todo
-		event.renderData( data="" );
+		var objectName = rc.object ?: "";
+		var args = {
+			  parent             = rc.parentId ?: ""
+			, objectName         = objectName
+			, currentLevel       = Val( rc.parentLevel ?: "" ) + 1
+			, gridFields         = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+			, isMultilingual     = IsTrue( prc.isMultilingual ?: "" )
+			, draftsEnabled      = IsTrue( prc.draftsEnabled  ?: "" )
+			, baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" )
+		};
+
+		var nodes = runEvent(
+			  event = "admin.datamanager._getRecordsForTreeView"
+			, eventArguments = { args=args }
+		);
+
+		var rendered = "";
+
+		for( var node in nodes ) {
+			args.record = node;
+			rendered &= renderView( view="/admin/datamanager/_treeNode", args=args );
+		}
+
+		event.renderData( data=rendered );
 	}
 
 	private query function _getRecordsForTreeView( event, rc, prc, args={} ) {
@@ -2448,6 +2471,9 @@ component extends="preside.system.base.AdminHandler" {
 				, draftsEnabled   = args.draftsEnabled
 			}
 		);
+
+		getRecordsArgs.gridFields.delete( "_status" );
+		getRecordsArgs.gridFields.delete( "_translateStatus" );
 
 		var optionsCol = customizationService.runCustomization(
 			  objectName     = objectName
