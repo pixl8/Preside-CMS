@@ -44,7 +44,7 @@ component {
 		var renderedViewlet  = "";
 
 		do {
-			match        = ReFind( processed, dvPattern, 1, true );
+			match        = ReFind( dvPattern, processed, 1, true );
 			patternFound = ( match.pos[ 1 ] ?: 0 ) > 0;
 
 			if ( patternFound ) {
