@@ -2389,7 +2389,78 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _treeView( event, rc, prc, args={} ) {
-		return "TODO";
+		var objectName = args.objectName ?: "";
+
+		args.parent   = "";
+		args.topLevel = runEvent(
+			  event = "admin.datamanager._getRecordsForTreeView"
+			, eventArguments = { args=args }
+		);
+		args.baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" );
+
+		return renderView( view="/admin/datamanager/_treeView", args=args );
+	}
+
+	public void function getNodesForTreeView( event, rc, prc ) {
+		// todo
+		event.renderData( data="" );
+	}
+
+	private query function _getRecordsForTreeView( event, rc, prc, args={} ) {
+		var objectName     = args.objectName ?: "";
+		var parent         = args.parent     ?: "";
+		var filterField    = dataManagerService.getTreeParentProperty( objectName );
+		var getRecordsArgs = {
+			  objectName   = objectName
+			, filter       = { "#filterField#"=parent }
+			, extraFilters = []
+			, gridFields   = args.gridFields ?: []
+			, orderby      = dataManagerService.getTreeSortOrder( objectName )
+			, autoGroupBy  = true
+			, maxRows      = 0
+		};
+
+		customizationService.runCustomization(
+			  objectName = objectName
+			, action     = "preFetchRecordsForGridListing"
+			, args       = getRecordsArgs
+		);
+
+		var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
+		var records = Duplicate( results.records );
+
+		customizationService.runCustomization(
+			  objectName = objectName
+			, action     = "postFetchRecordsForGridListing"
+			, args       = { records=records, objectName=objectName }
+		);
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "decorateRecordsForGridListing"
+			, defaultHandler = "admin.datamanager._decorateObjectRecordsForAjaxDataTables"
+			, args           = {
+				  records         = records
+				, objectName      = objectName
+				, gridFields      = getRecordsArgs.gridFields
+				, useMultiActions = false
+				, isMultilingual  = args.isMultilingual
+				, draftsEnabled   = args.draftsEnabled
+			}
+		);
+
+		var optionsCol = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getActionsForGridListing"
+			, defaultHandler = "admin.datamanager._getActionsForAjaxDataTables"
+			, args           = {
+				  records     = records
+				, objectName  = objectName
+			}
+		);
+		QueryAddColumn( records, "_options" , optionsCol );
+
+		return records;
 	}
 
 // private utility methods

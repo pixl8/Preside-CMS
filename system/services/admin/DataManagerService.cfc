@@ -218,7 +218,7 @@ component {
 		);
 	}
 
-	public string function getTreeParentProperty( required string objectName ) {
+	public string function getTreeSortOrder( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerTreeSortOrder"
