@@ -13,6 +13,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="adminDataViewsService"            inject="adminDataViewsService";
 	property name="dtHelper"                         inject="jqueryDatatablesHelpers";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
+	property name="sessionStorage"                   inject="sessionStorage";
 
 
 	public void function preHandler( event, action, eventArguments ) {
@@ -56,7 +57,17 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		} else {
 			args.usesTreeView = dataManagerService.usesTreeView( objectName );
-			args.treeView     = args.usesTreeView && IsFalse( rc.gridView ?: "" );
+
+			if ( args.usesTreeView ) {
+				var defaultTab = sessionStorage.getVar( name="_datamanagerTabForObject#objectName#", default="tree" );
+				var actualTab  = rc.tab ?: defaultTab;
+
+				args.treeView = actualTab != "grid";
+				sessionStorage.setVar( "_datamanagerTabForObject#objectName#", actualTab );
+			} else {
+				args.treeView = false;
+			}
+
 			args.append( {
 				  gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )

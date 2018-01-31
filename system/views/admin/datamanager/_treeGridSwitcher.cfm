@@ -2,8 +2,8 @@
 	content    = args.content ?: "";
 	activeTab  = IsTrue( args.treeView ?: "" ) ? "tree" : "grid";
 	objectName = args.objectName ?: "";
-	treeLink   = event.buildAdminLink( objectName=objectName );
-	gridLink   = event.buildAdminLink( objectName=objectName, queryString="gridView=true" );
+	treeLink   = event.buildAdminLink( objectName=objectName, queryString="tab=tree" );
+	gridLink   = event.buildAdminLink( objectName=objectName, queryString="tab=grid" );
 </cfscript>
 
 <cfoutput>
