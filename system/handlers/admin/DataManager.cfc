@@ -1574,8 +1574,8 @@ component extends="preside.system.base.AdminHandler" {
 					, recordId       = recordId
 					, canEdit        = canEdit
 					, canView        = canView
-					, viewRecordLink = event.buildAdminLink( objectName=object, recordId=record.id, operation="viewRecord", args={ version=record._version_number } )
-					, editRecordLink = event.buildAdminLink( objectName=object, recordId=record.id, operation="editRecord", args={ version=record._version_number } )
+					, viewRecordLink = canView ? event.buildAdminLink( objectName=object, recordId=record.id, operation="viewRecord", args={ version=record._version_number } ) : ""
+					, editRecordLink = canEdit ? event.buildAdminLink( objectName=object, recordId=record.id, operation="editRecord", args={ version=record._version_number } ) : ""
 				} ) );
 			}
 		}
@@ -1618,8 +1618,10 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = dtHelper.getSearchQuery()
 			, filter      = { _translation_language = languageId }
 		);
-		var records = Duplicate( results.records );
+		var records    = Duplicate( results.records );
 		var gridFields = [ "published", "datemodified", "_version_author", "_version_changed_fields" ];
+		var canEdit    = IsTrue( prc.canEdit ?: "" )
+		var canView    = IsTrue( prc.canView ?: "" )
 
 		for( var record in records ){
 			for( var field in gridFields ){
@@ -1648,10 +1650,10 @@ component extends="preside.system.base.AdminHandler" {
 				ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_historyActions", args={
 					  objectName     = object
 					, recordId       = recordId
-					, canEdit        = IsTrue( prc.canEdit ?: "" )
-					, canView        = IsTrue( prc.canView ?: "" )
-					, editRecordLink = event.buildAdminLink( objectName=object, recordId=recordId, operation="translateRecord", args={ language=languageId, version=record._version_number } )
-					, viewRecordLink = event.buildAdminLink( objectName=object, recordId=recordId, operation="viewRecord", args={ language=languageId, version=record._version_number } )
+					, canEdit        = canEdit
+					, canView        = canView
+					, editRecordLink = canEdit ? event.buildAdminLink( objectName=object, recordId=recordId, operation="translateRecord", args={ language=languageId, version=record._version_number } ) : ""
+					, viewRecordLink = canView ? event.buildAdminLink( objectName=object, recordId=recordId, operation="viewRecord", args={ language=languageId, version=record._version_number } )      : ""
 				} ) );
 			}
 		}

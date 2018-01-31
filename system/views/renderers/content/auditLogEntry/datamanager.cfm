@@ -11,7 +11,7 @@
 	objectUrl    = event.buildAdminLink( objectName=args.detail.objectName, operation="listing" );
 	objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
 	recordLabel  = Len( Trim( args.detail.objectName ) ) ? renderLabel( args.detail.objectName, args.record_id ) : "unknown";
-	recordUrl    = event.buildAdminLink( objectName=args.detail.objectName, operation="viewRecord", recordId=args.record_id );
+	recordUrl    = event.buildAdminLink( objectName=args.detail.objectName, recordId=args.record_id );
 	recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
 
 	message      = translateResource( uri="auditlog.datamanager:#args.action#.message", data=[ userLink, objectLink, recordLink ] );
