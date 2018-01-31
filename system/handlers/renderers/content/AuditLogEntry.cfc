@@ -18,7 +18,7 @@ component {
 		var objectUrl    = event.buildAdminLink( objectName=objectName, operation="listing" );
 		var objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
 		var recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
-		var recordUrl    = event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=record_id );
+		var recordUrl    = event.buildAdminLink( objectName=objectName, recordId=record_id );
 		var recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
 
 		switch( action ) {

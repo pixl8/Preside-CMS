@@ -189,7 +189,7 @@ component extends="preside.system.base.adminHandler" {
 			} ]
 		} );
 
-		prc.viewRecordLink = event.buildAdminLink( objectName=relatedObject, recordId="{id}", operation="viewRecord" );
+		prc.viewRecordLink = event.buildAdminLink( objectName=relatedObject, recordId="{id}" );
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
