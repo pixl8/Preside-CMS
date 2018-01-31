@@ -47,7 +47,7 @@ component {
 
 	public string function renderLabel( required string labelRenderer, struct args={} ) {
 		var renderLabelHandler   = _getRenderLabelHandler( labelRenderer );
-		
+
 		if ( len( labelRenderer ) && $getColdbox().handlerExists( renderLabelHandler ) ) {
 			return $getColdbox().runEvent(
 				  event          = renderLabelHandler
@@ -56,7 +56,7 @@ component {
 				, eventArguments = args
 			);
 		} else {
-			return HTMLEditFormat( args.label ?: "" );
+			return args.label ?: "";
 		}
 	}
 
