@@ -11,10 +11,15 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @customizationService.inject datamanagerCustomizationService
+	 * @dataManagerService.inject   datamanagerService
 	 *
 	 */
-	public any function init( required any customizationService ) {
+	public any function init(
+		  required any customizationService
+		, required any datamanagerService
+	) {
 		_setCustomizationService( arguments.customizationService );
+		_setDataManagerService( arguments.datamanagerService );
 
 		return this;
 	}
@@ -32,10 +37,18 @@ component {
 	 */
 	public string function buildLink(
 		  required string objectName
-		, required string operation
+		,          string operation  = ""
 		,          string recordId   = ""
 		,          struct args       = {}
 	) {
+		if ( !arguments.operation.len() ) {
+			if ( !arguments.recordId.len() ) {
+				arguments.operation = "listing";
+			} else {
+				arguments.operation = getDefaultRecordOperation( arguments.objectName );
+			}
+		}
+
 		var customizationAction = "build#arguments.operation#Link";
 		var customizationArgs   = { objectName=arguments.objectName };
 
@@ -58,6 +71,43 @@ component {
 		return result;
 	}
 
+	/**
+	 * Returns the default operation for a record.
+	 *
+	 * @autodoc true
+	 * @objectname The name of the object whose default operation you wish to get
+	 *
+	 */
+	public string function getDefaultRecordOperation( required string objectName ) {
+		var definedOperation = $getPresideObjectService().getObjectAttribute(
+			  objectName = arguments.objectName
+			, attributeName = "datamanagerDefaultRecordOperation"
+		);
+
+		if ( Len( Trim( definedOperation ) ) ) {
+			return Trim( definedOperation );
+		}
+
+		var canRead = _getDataManagerService().isOperationAllowed(
+			  objectName = arguments.objectName
+			, operation  = "read"
+		);
+
+		if ( canRead ) {
+			return "viewRecord";
+		}
+
+		var canEdit = _getDataManagerService().isOperationAllowed(
+			  objectName = arguments.objectName
+			, operation  = "edit"
+		);
+
+		if ( canEdit ) {
+			return "editRecord";
+		}
+
+		return "listing";
+	}
 
 // GETTERS AND SETTERS
 	private any function _getCustomizationService() {
@@ -65,5 +115,12 @@ component {
 	}
 	private void function _setCustomizationService( required any customizationService ) {
 		_customizationService = arguments.customizationService;
+	}
+
+	private any function _getDataManagerService() {
+		return _dataManagerService;
+	}
+	private void function _setDataManagerService( required any dataManagerService ) {
+		_dataManagerService = arguments.dataManagerService;
 	}
 }

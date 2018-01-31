@@ -20,7 +20,7 @@ component {
 			, defaultValue  = propertyName
 		);
 
-		args.recordLink = event.buildAdminLink( objectName=fkObjectName, recordId=fkId, operation="viewRecord" );
+		args.recordLink = event.buildAdminLink( objectName=fkObjectName, recordId=fkId );
 		args.renderedAsset = renderAsset( assetId=fkId, args={ derivative="icon" } );
 
 		return renderView( view="/renderers/content/asset/adminView", args=args );
