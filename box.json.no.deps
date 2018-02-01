@@ -5,7 +5,7 @@
     "createPackageDirectory":true,
     "packageDirectory":"preside",
     "homepage":"https://www.presidecms.com",
-    "documentation":"https://docs.presidecms.com",
+    "documentation":"https://docs.preside.org",
     "repository":{
         "type":"github",
         "URL":"https://github.com/pixl8/Preside-CMS"
@@ -14,7 +14,7 @@
     "slug":"presidecms",
     "shortDescription":"The PresideCMS platform by Pixl8 Interactive",
     "description":"",
-    "instructions":"https://docs.presidecms.com/quickstart.html",
+    "instructions":"https://docs.preside.org/quickstart.html",
     "changelog":"https://www.presidecms.com/release-notes.html",
     "keywords":"CMS,ColdBox,FOSS",
     "private":false,
