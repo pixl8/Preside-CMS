@@ -1066,6 +1066,41 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test027b_selectData_shouldIncludeAllFormulaColumnsAndData_whenIncludeAllFormulaFieldsIsTrue" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds           = [];
+			var bId            = "";
+			var cId            = "";
+			var expectedFields = ["id", "label", "obj_b", "a_count", "compound_label" ];
+			var expectedLabel  = "object_c label object_b label";
+			var field          = "";
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bId = poService.insertData( objectName="object_b", data={ label="object_b label", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true );
+			cId = poService.insertData( objectName="object_c", data={ label="object_c label", obj_b=bId } );
+
+			var result = poService.selectData(
+				  objectName              = "object_c"
+				, includeAllFormulaFields = true
+			);
+
+			for( field in expectedFields ){
+				super.assert( ListFindNoCase( result.columnList, field ), "[#field#] column missing from results" );
+			}
+
+			super.assertEquals( result.recordCount   , 1            , "Expected record count mismatch" );
+			super.assertEquals( result.id            , cId          , "Expected record ID mismatch" );
+			super.assertEquals( result.a_count       , 3            , "Formula field not calculated correctly" );
+			super.assertEquals( result.compound_label, expectedLabel, "Formula field not calculated correctly" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test028_selectData_shouldSelectAllDataAndSpecifiedColumns_whenColumnListIsSupplied" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
