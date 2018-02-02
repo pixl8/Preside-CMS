@@ -131,58 +131,60 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint          Name of the object from which to select data
-	 * @id.hint                  ID of a record to select
-	 * @selectFields.hint        Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
-	 * @extraSelectFields.hint   Array of field names to select in addition to `selectFields`. Can include relationships, e.g. ['tags.label as tag']. Use this if you want specific extra fields (e.g. formula fields) in addition to selecting all physical fields
-	 * @filter.hint              Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @extraFilters.hint        An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
-	 * @orderBy.hint             Plain SQL order by string
-	 * @groupBy.hint             Plain SQL group by string
-	 * @autoGroupBy.hint         Whether or not to try to automatically calculate group by fields for the query
-	 * @having.hint              Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
-	 * @maxRows.hint             Maximum number of rows to select
-	 * @startRow.hint            Offset the recordset when using maxRows
-	 * @useCache.hint            Whether or not to automatically cache the result internally
-	 * @fromVersionTable.hint    Whether or not to select the data from the version history table for the object
-	 * @specificVersion.hint     Can be used to select a specific version when selecting from the version table
-	 * @allowDraftVersions.hint  Choose whether or not to allow selecting from draft records and/or versions
-	 * @forceJoins.hint          Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
-	 * @extraJoins.hint          An array of explicit joins to add to the query (can define subquery joins this way)
-	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
-	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
-	 * @distinct.hint           Whether or not the record set should be a 'distinct' select
-	 * @selectFields.docdefault  []
-	 * @filter.docdefault        {}
-	 * @filterParams.docdefault  {}
-	 * @extraFilters.docdefault  []
-	 * @extraJoins.docdefault    []
+	 * @objectName.hint              Name of the object from which to select data
+	 * @id.hint                      ID of a record to select
+	 * @selectFields.hint            Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
+	 * @extraSelectFields.hint       Array of field names to select in addition to `selectFields`. Can include relationships, e.g. ['tags.label as tag']. Use this if you want specific extra fields (e.g. formula fields) in addition to selecting all physical fields
+	 * @includeAllFormulaFields.hint If true, all formula fields for the object will be added into the query
+	 * @filter.hint                  Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint            An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
+	 * @orderBy.hint                 Plain SQL order by string
+	 * @groupBy.hint                 Plain SQL group by string
+	 * @autoGroupBy.hint             Whether or not to try to automatically calculate group by fields for the query
+	 * @having.hint                  Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
+	 * @maxRows.hint                 Maximum number of rows to select
+	 * @startRow.hint                Offset the recordset when using maxRows
+	 * @useCache.hint                Whether or not to automatically cache the result internally
+	 * @fromVersionTable.hint        Whether or not to select the data from the version history table for the object
+	 * @specificVersion.hint         Can be used to select a specific version when selecting from the version table
+	 * @allowDraftVersions.hint      Choose whether or not to allow selecting from draft records and/or versions
+	 * @forceJoins.hint              Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @extraJoins.hint              An array of explicit joins to add to the query (can define subquery joins this way)
+	 * @recordCountOnly.hint         If set to true, the method will just return the number of records that the select statement would return
+	 * @getSqlAndParamsOnly.hint     If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
+	 * @selectFields.docdefault      []
+	 * @filter.docdefault            {}
+	 * @filterParams.docdefault      {}
+	 * @extraFilters.docdefault      []
+	 * @extraJoins.docdefault        []
 	 */
 	public any function selectData(
 		  required string  objectName
 		,          string  id
-		,          array   selectFields        = []
-		,          array   extraselectFields   = []
-		,          any     filter              = {}
-		,          struct  filterParams        = {}
-		,          array   extraFilters        = []
-		,          array   savedFilters        = []
-		,          string  orderBy             = ""
-		,          string  groupBy             = ""
-		,          boolean autoGroupBy         = false
-		,          string  having              = ""
-		,          numeric maxRows             = 0
-		,          numeric startRow            = 1
-		,          boolean useCache            = true
-		,          boolean fromVersionTable    = false
-		,          numeric specificVersion     = 0
-		,          boolean allowDraftVersions  = $getRequestContext().showNonLiveContent()
-		,          string  forceJoins          = ""
-		,          array   extraJoins          = []
-		,          boolean recordCountOnly     = false
-		,          boolean getSqlAndParamsOnly = false
-		,          boolean distinct            = false
+		,          array   selectFields            = []
+		,          array   extraselectFields       = []
+		,          boolean includeAllFormulaFields = false
+		,          any     filter                  = {}
+		,          struct  filterParams            = {}
+		,          array   extraFilters            = []
+		,          array   savedFilters            = []
+		,          string  orderBy                 = ""
+		,          string  groupBy                 = ""
+		,          boolean autoGroupBy             = false
+		,          string  having                  = ""
+		,          numeric maxRows                 = 0
+		,          numeric startRow                = 1
+		,          boolean useCache                = true
+		,          boolean fromVersionTable        = false
+		,          numeric specificVersion         = 0
+		,          boolean allowDraftVersions      = $getRequestContext().showNonLiveContent()
+		,          string  forceJoins              = ""
+		,          array   extraJoins              = []
+		,          boolean recordCountOnly         = false
+		,          boolean getSqlAndParamsOnly     = false
+		,          boolean distinct                = false
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 
@@ -1753,7 +1755,13 @@ component displayName="Preside Object Service" {
 		return IsBoolean( configurator ) && configurator;
 	}
 
-	public array function parseSelectFields( required string objectName, required array selectFields, boolean includeAlias=true, array extraSelectFields=[] ) {
+	public array function parseSelectFields(
+		  required string  objectName
+		, required array   selectFields
+		,          array   extraSelectFields       = []
+		,          boolean includeAlias            = true
+		,          boolean includeAllFormulaFields = false
+	) {
 		_announceInterception( "preParseSelectFields", arguments );
 		var fields  = arguments.selectFields;
 		var obj     = _getObject( arguments.objectName ).meta;
@@ -1807,6 +1815,9 @@ component displayName="Preside Object Service" {
 
 		arguments.selectFields = fields;
 
+		if ( arguments.includeAllFormulaFields ) {
+			arguments.extraSelectFields.append( listToArray( obj.formulaFieldList ?: "" ), true );
+		}
 		if ( arguments.extraSelectFields.len() ) {
 			var extraFields = parseSelectFields(
 				  objectName   = arguments.objectName
