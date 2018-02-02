@@ -134,6 +134,7 @@ component displayName="Preside Object Service" {
 	 * @objectName.hint          Name of the object from which to select data
 	 * @id.hint                  ID of a record to select
 	 * @selectFields.hint        Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
+	 * @extraSelectFields.hint   Array of field names to select in addition to `selectFields`. Can include relationships, e.g. ['tags.label as tag']. Use this if you want specific extra fields (e.g. formula fields) in addition to selecting all physical fields
 	 * @filter.hint              Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @filterParams.hint        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @extraFilters.hint        An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
@@ -162,6 +163,7 @@ component displayName="Preside Object Service" {
 		  required string  objectName
 		,          string  id
 		,          array   selectFields        = []
+		,          array   extraselectFields   = []
 		,          any     filter              = {}
 		,          struct  filterParams        = {}
 		,          array   extraFilters        = []
@@ -1751,7 +1753,7 @@ component displayName="Preside Object Service" {
 		return IsBoolean( configurator ) && configurator;
 	}
 
-	public array function parseSelectFields( required string objectName, required array selectFields, boolean includeAlias=true ) {
+	public array function parseSelectFields( required string objectName, required array selectFields, boolean includeAlias=true, array extraSelectFields=[] ) {
 		_announceInterception( "preParseSelectFields", arguments );
 		var fields  = arguments.selectFields;
 		var obj     = _getObject( arguments.objectName ).meta;
@@ -1804,6 +1806,15 @@ component displayName="Preside Object Service" {
 		}
 
 		arguments.selectFields = fields;
+
+		if ( arguments.extraSelectFields.len() ) {
+			var extraFields = parseSelectFields(
+				  objectName   = arguments.objectName
+				, selectFields = arguments.extraSelectFields
+				, includeAlias = arguments.includeAlias
+			);
+			arguments.selectFields.append( extraFields, true);
+		}
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
