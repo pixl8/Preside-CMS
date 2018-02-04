@@ -117,6 +117,15 @@ component {
 		return ListToArray( fields );
 	}
 
+	public array function listHiddenGridFields( required string objectName ) {
+		var fields = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerHiddenGridFields"
+		);
+
+		return ListToArray( fields );
+	}
+
 	public array function listSearchFields( required string objectName ) {
 		var fields = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
