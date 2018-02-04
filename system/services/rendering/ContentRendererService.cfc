@@ -27,20 +27,21 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
+	public string function render( required string renderer, required any data, any context="default", struct args={}, struct record={} ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context );
+				rendered = this.render( renderer=r, data=rendered, context=arguments.context, record=arguments.record );
 			}
 
 			return rendered;
 		} else {
 			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
-			viewletArgs.append( arguments.args, false );
+			viewletArgs.append( arguments.args             , false );
+			viewletArgs.append( { record=arguments.record }, false );
 			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
 	}
@@ -67,6 +68,7 @@ component {
 		,          any     context  = "default"
 		,          boolean editable = false
 		,          string  recordId = ""
+		,          struct  record   = {}
 
 	) {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
@@ -75,6 +77,7 @@ component {
 			rendered = this.render(
 				  renderer = renderer
 				, data     = arguments.data
+				, record   = arguments.record
 				, context  = arguments.context
 			);
 		} else {
