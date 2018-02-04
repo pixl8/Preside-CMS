@@ -27,7 +27,7 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default", struct args={}, struct record={} ) {
+	public string function render( required string renderer, required any data, any context="default", struct args={}, struct record ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
@@ -40,8 +40,10 @@ component {
 			return rendered;
 		} else {
 			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
-			viewletArgs.append( arguments.args             , false );
-			viewletArgs.append( { record=arguments.record }, false );
+			viewletArgs.append( arguments.args, false );
+			if ( arguments.keyExists( "record" ) ) {
+				viewletArgs.append( { record=arguments.record }, false );
+			}
 			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
 	}
