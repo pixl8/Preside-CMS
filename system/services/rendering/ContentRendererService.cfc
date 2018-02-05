@@ -34,7 +34,7 @@ component {
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context, record=arguments.record );
+				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
 			}
 
 			return rendered;
