@@ -225,8 +225,17 @@ component {
 		var recordId   = args.recordId ?: "";
 
 		return event.buildAdminLink(
-			  linkTo      = "admin.datamanager.recordHistory"
+			  linkTo      = "datamanager.recordHistory"
 			, queryString = _queryString( "object=#objectName#&id=#recordId#", args )
+		);
+	}
+
+	private string function buildGetNodesForTreeViewLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.getNodesForTreeView"
+			, queryString = _queryString( "object=#objectName#", args )
 		);
 	}
 

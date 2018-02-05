@@ -92,9 +92,10 @@ component {
 		_fixOrderOfProperties( meta );
 
 
-		meta.dbFieldList = _calculateDbFieldList( meta.properties );
-		meta.tableName   = LCase( meta.tablePrefix & meta.tableName );
-		meta.indexes     = _discoverIndexes( meta.properties, componentName );
+		meta.dbFieldList      = _calculateDbFieldList( meta.properties );
+		meta.formulaFieldList = _calculateFormulaFieldList( meta.properties );
+		meta.tableName        = LCase( meta.tablePrefix & meta.tableName );
+		meta.indexes          = _discoverIndexes( meta.properties, componentName );
 
 		_ensureAllPropertiesHaveName( meta.properties );
 	}
@@ -278,6 +279,17 @@ component {
 		var list = [];
 		for( var propName in arguments.properties ){
 			if ( ( arguments.properties[ propName ].dbtype ?: "" ) != "none" ) {
+				list.append( propName );
+			}
+		}
+
+		return list.toList();
+	}
+
+	private string function _calculateFormulaFieldList( required struct properties ) {
+		var list = [];
+		for( var propName in arguments.properties ){
+			if ( len ( arguments.properties[ propName ].formula ?: "" ) ) {
 				list.append( propName );
 			}
 		}

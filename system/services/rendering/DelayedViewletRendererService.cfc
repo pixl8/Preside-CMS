@@ -44,16 +44,16 @@ component {
 		var renderedViewlet  = "";
 
 		do {
-			match        = processed.reFind( dvPattern, 1, true );
+			match        = ReFind( dvPattern, processed, 1, true );
 			patternFound = ( match.pos[ 1 ] ?: 0 ) > 0;
 
 			if ( patternFound ) {
-				wholeMatch  = processed.mid( match.pos[ 1 ], match.len[ 1 ] );
+				wholeMatch  = Mid( processed, match.pos[ 1 ], match.len[ 1 ] );
 
-				viewlet        = processed.mid( match.pos[ 2 ], match.len[ 2 ] );
-				argsString     = processed.mid( match.pos[ 3 ], match.len[ 3 ] );
-				privateViewlet = processed.mid( match.pos[ 4 ], match.len[ 4 ] );
-				prePostExempt  = processed.mid( match.pos[ 5 ], match.len[ 5 ] );
+				viewlet        = Mid( processed, match.pos[ 2 ], match.len[ 2 ] );
+				argsString     = Mid( processed, match.pos[ 3 ], match.len[ 3 ] );
+				privateViewlet = Mid( processed, match.pos[ 4 ], match.len[ 4 ] );
+				prePostExempt  = Mid( processed, match.pos[ 5 ], match.len[ 5 ] );
 
 				renderedViewlet = cb.renderViewlet(
 					  event         = viewlet
@@ -68,7 +68,7 @@ component {
 					, data     = renderedViewlet
 				);
 
-				processed = processed.replace( wholeMatch, renderedViewlet ?: "", "all" );
+				processed = Replace( processed, wholeMatch, renderedViewlet ?: "", "all" );
 			}
 		} while( patternFound )
 

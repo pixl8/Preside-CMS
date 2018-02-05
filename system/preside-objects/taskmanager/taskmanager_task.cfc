@@ -19,4 +19,5 @@ component extends="preside.system.base.SystemPresideObject" displayname="Taskman
 	property name="last_run_time_taken"  type="numeric" dbtype="int"                   required=false;
 	property name="priority"             type="numeric" dbtype="int"                   required=false default=0;
 	property name="crontab_definition"   type="string"  dbtype="varchar" maxlength=100 required=false;
+	property name="timeout"              type="numeric" dbtype="int"                   required=false;
 }

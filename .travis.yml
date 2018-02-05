@@ -6,7 +6,6 @@ jdk:
 node_js:
   - "4.2.6"
 services:
-  - docker
   - mysql
 before_install:
   - mkdir /tmp/bin

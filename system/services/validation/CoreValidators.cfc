@@ -173,7 +173,7 @@ component validationProvider=true {
 		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) > 0 );
 	}
 	public string function laterThanField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || $field.val().length || value > $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value > $field.val(); }";
 	}
 
 	public boolean function laterThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanOrSameAsField.default" {
@@ -184,7 +184,7 @@ component validationProvider=true {
 		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) >= 0 );
 	}
 	public string function laterThanOrSameAsField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || $field.val().length || value >= $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value >= $field.val(); }";
 	}
 
 	public boolean function earlierThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanField.default" {
@@ -195,7 +195,7 @@ component validationProvider=true {
 		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) < 0 );
 	}
 	public string function earlierThanField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || $field.val().length || value < $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value < $field.val(); }";
 	}
 
 	public boolean function earlierThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanOrSameAsField.default" {
@@ -206,6 +206,6 @@ component validationProvider=true {
 		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) <= 0 );
 	}
 	public string function earlierThanOrSameAsField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || $field.val().length || value <= $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
 	}
 }
