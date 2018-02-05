@@ -203,7 +203,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function viewUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="usermanager.read" );
 
-		prc.record = presideObjectService.selectData( objectName="security_user", filter={ id=rc.id ?: "" } );
+		prc.record = presideObjectService.selectData(
+			  objectName              = "security_user"
+			, filter                  = { id=rc.id ?: "" }
+			, includeAllFormulaFields = true );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:usermanager.userNotFound.error" ) );
