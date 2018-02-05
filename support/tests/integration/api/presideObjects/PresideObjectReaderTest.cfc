@@ -374,16 +374,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should ensure fields with 'formula' attributes are not added to dbfieldlist and have default attributes set to blank/none", function(){
 				var reader = getReader();
 				var dummyObj = {
-					meta = { name="mytestobject", propertyNames=["myforumlafield"], properties={
-						  myforumlafield = { name="myforumlafield", formula="Sum( ${prefix}comments.id )" }
+					meta = { name="mytestobject", propertyNames=["myformulafield"], properties={
+						  myformulafield = { name="myformulafield", formula="Sum( ${prefix}comments.id )" }
 					} }
 				};
 
 				reader.finalizeMergedObject( dummyObj );
 
 				expect( dummyObj.meta.dbFieldList ?: "" ).toBe( "id,label,datecreated,datemodified" );
-				expect( dummyObj.meta.properties.myforumlafield ).toBe( {
-					  name         = "myforumlafield"
+				expect( dummyObj.meta.properties.myformulafield ).toBe( {
+					  name         = "myformulafield"
 					, formula      = "Sum( ${prefix}comments.id )"
 					, control      = "default"
 					, dbtype       = "none"
@@ -395,6 +395,20 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, required     = false
 					, type         = "string"
 				} );
+			} );
+
+			it( "should ensure fields with 'formula' attributes are added to formulafieldlist", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", propertyNames=["myformulafield"], properties={
+						  myformulafield = { name="myformulafield", formula="Sum( ${prefix}comments.id )" }
+					} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.dbFieldList      ?: "" ).toBe( "id,label,datecreated,datemodified" );
+				expect( dummyObj.meta.formulaFieldList ?: "" ).toBe( "myformulafield" );
 			} );
 
 		} );
