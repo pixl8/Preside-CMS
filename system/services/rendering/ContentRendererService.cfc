@@ -27,7 +27,7 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default", struct args={}, struct record ) {
+	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
@@ -41,9 +41,6 @@ component {
 		} else {
 			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
 			viewletArgs.append( arguments.args, false );
-			if ( arguments.keyExists( "record" ) ) {
-				viewletArgs.append( { record=arguments.record }, false );
-			}
 			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
 	}
@@ -79,7 +76,7 @@ component {
 			rendered = this.render(
 				  renderer = renderer
 				, data     = arguments.data
-				, record   = arguments.record
+				, args     = { objectName=arguments.object, recordId=arguments.recordId, record=arguments.record }
 				, context  = arguments.context
 			);
 		} else {
