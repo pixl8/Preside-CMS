@@ -76,8 +76,13 @@ component {
 			rendered = this.render(
 				  renderer = renderer
 				, data     = arguments.data
-				, args     = { objectName=arguments.object, recordId=arguments.recordId, record=arguments.record }
 				, context  = arguments.context
+				, args     = {
+					  objectName   = arguments.object
+					, propertyName = arguments.property
+					, recordId     = arguments.recordId
+					, record       = arguments.record
+				  }
 			);
 		} else {
 			rendered = arguments.data;
@@ -196,6 +201,11 @@ component {
 		// easy, the field has explicitly defined a renderer
 		if ( Len( Trim( fieldAttributes.renderer ?: "" ) ) ) {
 			return Trim( fieldAttributes.renderer );
+		}
+
+		// enum...
+		if ( Len( Trim( fieldAttributes.enum ?: "" ) ) ) {
+			return "enumLabel";
 		}
 
 		// just the plain old type?!
