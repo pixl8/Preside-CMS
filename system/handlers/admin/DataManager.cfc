@@ -69,7 +69,8 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			args.append( {
-				  gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+				  gridFields          = prc.gridFields       ?: [ "label","datecreated","datemodified" ]
+				, hiddenGridFields    = prc.hiddenGridFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
 			} );
@@ -1512,7 +1513,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( objectName, field, record[ field ], [ "adminDataTable", "admin" ] );
+				records[ field ][ records.currentRow ] = renderField( object=objectName, property=field, data=record[ field ], record=record, context=[ "adminDataTable", "admin" ] );
 			}
 
 			if ( useMultiActions ) {
@@ -2510,6 +2511,10 @@ component extends="preside.system.base.AdminHandler" {
 		return dataManagerService.listGridFields( arguments.objectName );
 	}
 
+	private array function _getObjectHiddenFieldsForGrid( required string objectName ) {
+		return dataManagerService.listHiddenGridFields( arguments.objectName );
+	}
+
 	private boolean function _objectCanBeViewedInDataManager( required any event, required string objectName, boolean relocateIfNoAccess=false ) {
 		if ( dataManagerService.isObjectAvailableInDataManager( arguments.objectName ) ) {
 			return true;
@@ -2675,6 +2680,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
 			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
+			prc.hiddenGridFields      = _getObjectHiddenFieldsForGrid( prc.objectName );
 			prc.batchEditableFields   = dataManagerService.listBatchEditableFields( prc.objectName );
 			prc.isMultilingual        = multilingualPresideObjectService.isMultilingual( prc.objectName );
 			prc.canTranslate          = prc.isMultilingual && _checkPermission( argumentCollection=arguments, key="translate", throwOnError=false );
