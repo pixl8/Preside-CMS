@@ -2,7 +2,7 @@ component {
 
 	property name="presideObjectService" inject="presideObjectService";
 
-	public string function adminView( event, rc, prc, args={} ){
+	private string function adminView( event, rc, prc, args={} ){
 		var objectName    = args.objectName   ?: "";
 		var propertyName  = args.propertyName ?: "";
 		var recordId      = args.recordId     ?: "";
@@ -19,6 +19,10 @@ component {
 		}
 
 		return rendered.toList( ", " );
+	}
+
+	private string function adminDatatable( event, rc, prc, args={} ){
+		return adminView( argumentCollection=arguments );
 	}
 
 }
