@@ -34,7 +34,7 @@ component {
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context );
+				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
 			}
 
 			return rendered;
@@ -67,6 +67,7 @@ component {
 		,          any     context  = "default"
 		,          boolean editable = false
 		,          string  recordId = ""
+		,          struct  record   = {}
 
 	) {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
@@ -75,6 +76,7 @@ component {
 			rendered = this.render(
 				  renderer = renderer
 				, data     = arguments.data
+				, args     = { objectName=arguments.object, recordId=arguments.recordId, record=arguments.record }
 				, context  = arguments.context
 			);
 		} else {
