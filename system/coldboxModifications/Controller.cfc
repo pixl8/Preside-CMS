@@ -17,7 +17,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var cacheKey   = "handler exists: " & arguments.event;
 		var exists     = cache.get( cacheKey );
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
@@ -58,7 +58,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var exists     = cache.get( cacheKey );
 		var targetView = "";
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
@@ -108,7 +108,7 @@ component extends="coldbox.system.web.Controller" output=false {
 			var missingCheckedKey = "doublecheckmissing" & arguments.event;
 			var checkedAlready    = cache.get( missingCheckedKey );
 
-			if ( IsNull( checkedAlready ) ) {
+			if ( IsNull( local.checkedAlready ) ) {
 				cache.clearAll();
 				cache.set( missingCheckedKey, true );
 				return renderViewlet( argumentCollection=arguments );

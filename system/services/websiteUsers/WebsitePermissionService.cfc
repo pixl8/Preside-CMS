@@ -93,7 +93,7 @@ component displayName="Website permissions service" {
 
 		if ( Trim( arguments.context ).len() && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
-			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {
+			if ( !IsNull( local.contextPerm ) && IsBoolean( contextPerm ) ) {
 				return contextPerm;
 			}
 		}

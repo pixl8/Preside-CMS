@@ -208,7 +208,7 @@ component displayName="Preside Object Service" {
 			_announceInterception( "onCreateSelectDataCacheKey", args );
 
 			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
-			if ( !IsNull( cachedResult ) ) {
+			if ( !IsNull( local.cachedResult ) ) {
 				return cachedResult;
 			}
 		}
@@ -1894,7 +1894,7 @@ component displayName="Preside Object Service" {
 			paramName = arguments.prefix & ReReplace( key, "[\.\$]", "__", "all" );
 			dataType  = arguments.dbAdapter.sqlDataTypeToCfSqlDatatype( cols[ ListLast( key, "." ) ].dbType );
 
-			if ( not StructKeyExists( arguments.data, key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
+			if ( !StructKeyExists( arguments.data, key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
 				param = {
 					  name  = paramName
 					, value = NullValue()
@@ -1992,7 +1992,7 @@ component displayName="Preside Object Service" {
 		var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
 		var objects    = cache.get( cacheKey );
 
-		if ( not IsNull( objects ) ) {
+		if ( !IsNull( local.objects ) ) {
 			return objects;
 		}
 
@@ -2192,7 +2192,7 @@ component displayName="Preside Object Service" {
 
 			joins = joinsCache.get( joinsCacheKey );
 
-			if ( IsNull( joins ) ) {
+			if ( IsNull( local.joins ) ) {
 				joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
 
 				joinsCache.set( joinsCacheKey, joins );
@@ -2773,7 +2773,7 @@ component displayName="Preside Object Service" {
 				}
 
 				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop );
-				if ( !IsNull( generatedValue ) ) {
+				if ( !IsNull( local.generatedValue ) ) {
 					generated[ propName ] = newData[ propName ] = generatedValue;
 				}
 			}

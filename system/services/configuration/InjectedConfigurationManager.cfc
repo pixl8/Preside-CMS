@@ -92,7 +92,7 @@ component {
 	private string function _getEnvironmentVariable( required string variableName ) {
 		var result = CreateObject("java", "java.lang.System").getenv().get( arguments.variableName );
 
-		return IsNull( result ) ? "" : result;
+		return IsNull( local.result ) ? "" : result;
 	}
 
 // getters and setters
