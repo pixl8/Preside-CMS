@@ -1,7 +1,9 @@
 /**
+ * Service to provide business logic for the [[datamanager]].
+ *
  * @singleton
  * @presideservice
- *
+ * @autodoc
  */
 component {
 
@@ -266,6 +268,27 @@ component {
 		}
 	}
 
+	/**
+	 * Gets raw results from the database for the data manager
+	 * grid listing. Results are returned as a struct with keys:
+	 * `records` (query) and `totalRecords` (numeric count).
+	 * \n
+	 * Note: any additional arguments passed will be passed on to
+	 * the [[presideobjectservice-selectdata]] call.
+	 *
+	 * @autodoc       true
+	 * @objectName    Name of the object whose records we are to get
+	 * @gridFields    Array of "grid fields", these will be converted to a selectFields array for the [[presideobjectservice-selectdata]] call
+	 * @startRow      For pagination, first row number to fetch
+	 * @maxRows       For pagination, maximum number of rows to fetch
+	 * @orderBy       Order by string for sorting records
+	 * @searchQuery   Optional search query
+	 * @filter        Optional filter for the [[presideobjectservice-selectdata]] call
+	 * @filterParams  Optional params for the `filter`
+	 * @draftsEnabled Whether or not drafts are enabled (if so, the method will additionally fetch the draft status of each record)
+	 * @extraFilters  Optional array of extraFilters to send to the [[presideobjectservice-selectdata]] call
+	 * @searchFields  Optional array of fields that will be used to search against with the `searchQuery` argument
+	 */
 	public struct function getRecordsForGridListing(
 		  required string  objectName
 		, required array   gridFields
