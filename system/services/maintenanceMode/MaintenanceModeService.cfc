@@ -40,7 +40,7 @@ component {
 	public struct function getMaintenanceModeSettings() {
 		var settings = _getApplicationVariable();
 
-		if ( IsNull( settings ) ) {
+		if ( IsNull( local.settings ) ) {
 			settings = _readMaintenanceModeFromFile();
 			_setApplicationVariable( settings );
 		}
