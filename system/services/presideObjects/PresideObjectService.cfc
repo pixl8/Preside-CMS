@@ -2195,7 +2195,7 @@ component displayName="Preside Object Service" {
 
 			var cacheKey = "_cleanupProperyAliasesFAndR#args.objectName##arguments.plainString#";
 			var cached   = systemCache.get( cacheKey );
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				return cached;
 			}
 
@@ -2238,7 +2238,7 @@ component displayName="Preside Object Service" {
 			var cacheKey = "_cleanupProperyAliasesReplacer#args.objectName##arguments.plainString##arguments.addAsAlias#";
 			var cached   = systemCache.get( cacheKey );
 
-			if( !IsNull( cached ) ) {
+			if( !IsNull( local.cached ) ) {
 				return cached;
 			}
 
