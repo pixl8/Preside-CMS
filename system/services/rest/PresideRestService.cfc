@@ -327,7 +327,7 @@ component {
 	public string function getEtag( required any restResponse ) {
 		var data = restResponse.getData();
 
-		if ( !IsNull( data ) ) {
+		if ( !IsNull( local.data ) ) {
 			return LCase( Hash( Serialize( restResponse.getData() ) ) );
 		}
 
