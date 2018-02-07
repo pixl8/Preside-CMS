@@ -979,7 +979,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( asset.recordCount ) {
 			asset = QueryRowToStruct( asset );
 
-			if ( !IsNull( binary ) ) {
+			if ( !IsNull( local.binary ) ) {
 				asset.append( imageManipulationService.getImageInformation( binary ) );
 				StructDelete( asset, "metadata" );
 				StructDelete( asset, "colormodel" );

@@ -236,7 +236,7 @@ component {
 		var value          = "";
 		var poService      = _getPresideObjectService();
 		var collectedValue = [];
-		var __valueExists  = function( v ) { return !IsNull( v ) && (!IsSimpleValue( v ) || Len( Trim( v ) ) ); };
+		var __valueExists  = function( v ) { return !IsNull( arguments.v ) && (!IsSimpleValue( arguments.v ) || Len( Trim( arguments.v ) ) ); };
 
 		if ( StructKeyExists( arguments.page, arguments.propertyName ) ) {
 			value = arguments.page[ arguments.propertyName ];

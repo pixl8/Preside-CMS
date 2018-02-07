@@ -23,7 +23,7 @@ component output=false hint="I am a base handler for any handlers implementing J
 
 		try {
 			var result = arguments.targetAction( argumentCollection = args );
-			if ( not IsNull( result ) ) {
+			if ( !IsNull( local.result ) ) {
 				jsonRpc2Plugin.success( result );
 			}
 		} catch ( any e ) {

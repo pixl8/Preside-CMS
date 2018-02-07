@@ -68,7 +68,7 @@ component {
 		if ( rendererExists ) {
 			var cached = cache.get( labelRenderer );
 
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				cacheDate = cached;
 			} else {
 				cacheDate = now();

@@ -53,7 +53,7 @@ component displayName="RulesEngine Expression Service" {
 		var cachekey        = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context;
 		var cachedResult    = _getRulesEngineExpressionCache().get( cacheKey );
 
-		if ( !IsNull( cachedResult ) ) {
+		if ( !IsNull( local.cachedResult ) ) {
 			return cachedResult;
 		}
 

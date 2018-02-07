@@ -141,7 +141,7 @@ component {
 			contexts.append( "default" );
 		}
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
@@ -423,7 +423,7 @@ component {
 		var poService = _getPresideObjectService();
 		var fieldName = arguments.property;
 
-		if ( not IsNull( renderer ) ) {
+		if ( !IsNull( local.renderer ) ) {
 			return renderer;
 		}
 
@@ -447,7 +447,7 @@ component {
 		var cache    = _getCache();
 		var control  = cache.get( cacheKey );
 
-		if ( not IsNull( control ) ) {
+		if ( !IsNull( local.control ) ) {
 			return control;
 		}
 

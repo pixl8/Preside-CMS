@@ -23,7 +23,7 @@ component {
 // PUBLIC API METHODS
 	public any function get() {
 		var instance = _getInstance();
-		if ( IsNull( instance ) ) {
+		if ( IsNull( local.instance ) ) {
 			instance = _getInjector().getInstance( argumentCollection=_getInjectorArgs() );
 			_setInstance( instance );
 		}

@@ -193,7 +193,7 @@ component displayName="Tenancy service" {
 					  }
 				);
 
-				if ( IsNull( filter ) ) {
+				if ( IsNull( local.filter ) ) {
 					return defaultFilter;
 				}
 
@@ -220,7 +220,7 @@ component displayName="Tenancy service" {
 					, prePostExempt = true
 				);
 
-				if ( !IsNull( id ) ) {
+				if ( !IsNull( local.id ) ) {
 					setTenantId( tenant, id );
 				}
 			}
