@@ -406,7 +406,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		if( arguments.cacheProvider neq "template" ){ cbox_cacheProvider = getCache( arguments.cacheProvider ); }
 		// Try to get from cache
 		cbox_renderedView 	= cbox_cacheProvider.get( cbox_cacheKey );
-		if( !isNull( cbox_renderedView ) ){
+		if( !isNull( local.cbox_renderedView ) ){
 			return cbox_renderedView;
 		}
 		// Not in cache, render it
