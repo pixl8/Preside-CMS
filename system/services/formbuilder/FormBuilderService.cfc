@@ -565,7 +565,7 @@ component {
 					, itemConfiguration = item.configuration
 				);
 
-				if ( !IsNull( itemValue ) ) {
+				if ( !IsNull( local.itemValue ) ) {
 					formData[ itemName ] = itemValue;
 				}
 			}
