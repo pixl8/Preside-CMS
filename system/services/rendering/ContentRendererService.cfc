@@ -27,20 +27,21 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default" ) {
+	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context );
+				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
 			}
 
 			return rendered;
 		} else {
-			var args = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
-			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=args );
+			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
+			viewletArgs.append( arguments.args, false );
+			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
 	}
 
@@ -66,6 +67,7 @@ component {
 		,          any     context  = "default"
 		,          boolean editable = false
 		,          string  recordId = ""
+		,          struct  record   = {}
 
 	) {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
@@ -75,6 +77,12 @@ component {
 				  renderer = renderer
 				, data     = arguments.data
 				, context  = arguments.context
+				, args     = {
+					  objectName   = arguments.object
+					, propertyName = arguments.property
+					, recordId     = arguments.recordId
+					, record       = arguments.record
+				  }
 			);
 		} else {
 			rendered = arguments.data;
@@ -193,6 +201,11 @@ component {
 		// easy, the field has explicitly defined a renderer
 		if ( Len( Trim( fieldAttributes.renderer ?: "" ) ) ) {
 			return Trim( fieldAttributes.renderer );
+		}
+
+		// enum...
+		if ( Len( Trim( fieldAttributes.enum ?: "" ) ) ) {
+			return "enumLabel";
 		}
 
 		// just the plain old type?!

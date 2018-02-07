@@ -2,7 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="passwordPolicyService"    inject="passwordPolicyService";
 	property name="passwordStrengthAnalyzer" inject="passwordStrengthAnalyzer";
-	property name="messagebox"               inject="coldbox:plugin:messagebox";
+	property name="messagebox"               inject="messagebox@cbmessagebox";
 
 // LIFECYCLE EVENTS
 	function preHandler( event, rc, prc ) {

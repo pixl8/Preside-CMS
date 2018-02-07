@@ -6,15 +6,17 @@
 	param name="args.isMultilingual"      type="boolean" default=false;
 	param name="args.draftsEnabled"       type="boolean" default=false;
 	param name="args.gridFields"          type="array";
+	param name="args.hiddenGridFields"    type="array"   default=[];
 	param name="args.filterContextData"   type="struct"  default={};
 	param name="args.allowSearch"         type="boolean" default=true;
 	param name="args.allowFilter"         type="boolean" default=true;
 	param name="args.allowDataExport"     type="boolean" default=false;
 	param name="args.clickableRows"       type="boolean" default=true;
+	param name="args.compact"             type="boolean" default=false;
 	param name="args.batchEditableFields" type="array"   default=[];
-	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#&draftsEnabled=#args.draftsEnabled#" );
-	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( linkTo="dataManager.exportDataAction" );
-	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( linkTo="dataManager.dataExportConfigModal", queryString="id=#args.objectName#" );
+	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled } );
+	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
+	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
 
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
@@ -40,7 +42,7 @@
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
 </cfscript>
 <cfoutput>
-	<div class="table-responsive">
+	<div class="table-responsive<cfif args.compact> table-compact</cfif>">
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
@@ -132,6 +134,7 @@
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
 		    data-allow-filter="#args.allowFilter#"
+		    data-compact="#args.compact#"
 		>
 			<thead>
 				<tr>

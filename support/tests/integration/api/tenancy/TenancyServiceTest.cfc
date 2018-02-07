@@ -34,7 +34,7 @@ component extends="testbox.system.BaseSpec"{
 				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
-				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="_site", ondelete="cascade", onupdate="cascade", control="none" };
+				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=false, indexes="_site", ondelete="cascade", onupdate="cascade", control="none", adminViewGroup="system" };
 
 				service.injectObjectTenancyProperties( meta, objectName );
 
@@ -50,7 +50,7 @@ component extends="testbox.system.BaseSpec"{
 				var objectName = "test";
 				var decorated  = Duplicate( meta );
 
-				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=true, indexes="_site", test=meta.properties.site.test, ondelete="cascade", onupdate="cascade", control="none" };
+				decorated.properties.site = { name="site", relationship="many-to-one", relatedTo="site", required=true, indexes="_site", test=meta.properties.site.test, ondelete="cascade", onupdate="cascade", control="none", adminViewGroup="system" };
 
 				service.injectObjectTenancyProperties( meta, objectName );
 
@@ -120,15 +120,16 @@ component extends="testbox.system.BaseSpec"{
 				decorated.properties.prop4.uniqueindexes = "ux2|2";
 
 				decorated.properties.site = {
-					  name          = "site"
-					, relationship  = "many-to-one"
-					, relatedTo     = "site"
-					, required      = false
-					, indexes       = "_site,ix1|1,ix2|1,ix3|1"
-					, uniqueindexes = "ux1|1,ux2|1"
-					, ondelete      = "cascade"
-					, onupdate      = "cascade"
-					, control       = "none"
+					  name           = "site"
+					, relationship   = "many-to-one"
+					, relatedTo      = "site"
+					, required       = false
+					, indexes        = "_site,ix1|1,ix2|1,ix3|1"
+					, uniqueindexes  = "ux1|1,ux2|1"
+					, ondelete       = "cascade"
+					, onupdate       = "cascade"
+					, control        = "none"
+					, adminViewGroup = "system"
 				};
 
 				service.injectObjectTenancyProperties( meta, objectName );

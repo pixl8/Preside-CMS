@@ -31,8 +31,8 @@
 
 
 	appMapping = getSetting( "appMapping" );
-	if ( FileExists( "#appMapping#/config/Routes.cfm" ) ) {
-		include template="#appMapping#/config/Routes.cfm";
+	if ( FileExists( "/#appMapping#/config/Routes.cfm" ) ) {
+		include template="/#appMapping#/config/Routes.cfm";
 	}
 
 	getSetting( "activeExtensions" ).each( function( ext ){
