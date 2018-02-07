@@ -586,7 +586,7 @@ component {
 			var binary = assetManagerService.getAssetBinary( id=asset.id, throwOnMissing=false );
 			var type   = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=false );
 
-			if ( !IsNull( binary ?: NullValue() ) ) {
+			if ( !IsNull( local.binary ) ) {
 				attachments.append({
 					  binary          = binary
 					, name            = asset.title & "." & ( type.extension ?: "" )

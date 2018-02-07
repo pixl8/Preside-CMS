@@ -71,7 +71,7 @@ component displayName="Preside Object View Service" {
 			var cacheKey = _generateCacheKey( argumentCollection=arguments );
 			var cached   = _getFromCache( cacheProvider=arguments.cacheProvider, cacheKey=cacheKey );
 
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				return cached;
 			}
 		}

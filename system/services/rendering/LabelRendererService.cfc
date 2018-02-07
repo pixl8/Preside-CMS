@@ -47,7 +47,7 @@ component {
 
 	public string function renderLabel( required string labelRenderer, struct args={} ) {
 		var renderLabelHandler   = _getRenderLabelHandler( labelRenderer );
-		
+
 		if ( len( labelRenderer ) && $getColdbox().handlerExists( renderLabelHandler ) ) {
 			return $getColdbox().runEvent(
 				  event          = renderLabelHandler
@@ -68,7 +68,7 @@ component {
 		if ( rendererExists ) {
 			var cached = cache.get( labelRenderer );
 
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				cacheDate = cached;
 			} else {
 				cacheDate = now();

@@ -228,13 +228,13 @@ component {
 		var properties           = poService.getObjectProperties( arguments.objectName );
 		var ignoredFields        = _getIgnoredFieldsForVersioning( arguments.objectName );
 
-		if ( IsNull( oldManyToManyData ) ) {
+		if ( IsNull( local.oldManyToManyData ) ) {
 			oldManyToManyData = poService.getDeNormalizedManyToManyData(
 				  objectName = arguments.objectName
 				, id         = arguments.recordId
 			);
 		}
-		if ( IsNull( oldData ) ) {
+		if ( IsNull( local.oldData ) ) {
 			oldData = poService.selectData( objectName = arguments.objectName, id=arguments.recordId, allowDraftVersions=true );
 			for( var d in oldData ) { oldData = d; } // query to struct hack
 		}
