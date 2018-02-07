@@ -134,7 +134,7 @@ component {
 		var cacheKey = "UpdateManagerService.listAvailableVersions";
 		var cached   = cache.get( cacheKey );
 
-		if ( !IsNull( cached ) ) {
+		if ( !IsNull( local.cached ) ) {
 			return cached;
 		}
 
