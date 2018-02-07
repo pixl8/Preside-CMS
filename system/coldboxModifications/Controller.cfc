@@ -17,7 +17,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var cacheKey   = "handler exists: " & arguments.event;
 		var exists     = cache.get( cacheKey );
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
