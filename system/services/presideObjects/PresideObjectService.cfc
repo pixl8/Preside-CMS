@@ -23,7 +23,6 @@ component displayName="Preside Object Service" {
 	 * @filterService.inject          presideObjectSavedFilterService
 	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
-	 * @coldboxController.inject      coldbox
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 */
 	public any function init(
@@ -39,7 +38,6 @@ component displayName="Preside Object Service" {
 		, required any     filterService
 		, required any     cache
 		, required any     defaultQueryCache
-		, required any     coldboxController
 		, required any     interceptorService
 		,          boolean reloadDb = true
 	) {
@@ -171,7 +169,7 @@ component displayName="Preside Object Service" {
 		,          string  having              = ""
 		,          numeric maxRows             = 0
 		,          numeric startRow            = 1
-		,          boolean useCache            = true
+		,          boolean useCache            = _getUseCacheDefault()
 		,          boolean fromVersionTable    = false
 		,          numeric specificVersion     = 0
 		,          boolean allowDraftVersions  = $getRequestContext().showNonLiveContent()
@@ -3064,5 +3062,9 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setAliasCache( required struct aliasCache ) {
 		_aliasCache = arguments.aliasCache;
+	}
+
+	private boolean function _getUseCacheDefault() {
+		return $getRequestContext().getUseQueryCache();
 	}
 }
