@@ -291,6 +291,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
 	}
 
+// Query caching
+	public boolean function getUseQueryCache() {
+		var event = getRequestContext();
+		var useCache = event.getValue( name="__presideQueryCacheDefault", private=true, defaultValue="" );
+
+		if ( !IsBoolean( useCache ) ) {
+			useCache = getController().getSetting( "useQueryCacheDefault" );
+			useCache = IsBoolean( useCache ) && useCache;
+
+			setUseQueryCache( useCache );
+		}
+
+		return useCache;
+	}
+	public void function setUseQueryCache( required boolean useQueryCache ) {
+		getRequestContext().setValue( name="__presideQueryCacheDefault", private=true, value=arguments.useQueryCache );
+	}
+
 // private helpers
 	private any function _simpleRequestCache( required string key, required any generator ) output=false {
 		request._simpleRequestCache = request._simpleRequestCache ?: {};
