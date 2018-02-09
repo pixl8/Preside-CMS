@@ -1025,7 +1025,7 @@
 
 				this.hidden_field.trigger("change");
 				this.form_field_jq.trigger("change", {
-					deselected: item.value
+					deselected: item.__value || item.value
 				});
 
 				if ( this.isSearchable() ) {
@@ -1128,7 +1128,7 @@
 				return false;
 			}
 
-			this.add_to_hidden_field( item.value );
+			this.add_to_hidden_field( item.__value || item.value );
 
 			if ( this.is_multiple ) {
 				this.choice_build( item );
@@ -1183,7 +1183,7 @@
 				values = this.hidden_field.val();
 				if ( values.length ) {
 					values    = values.split( ',' );
-					itemIndex = values.indexOf( item.value );
+					itemIndex = values.indexOf( item.__value || item.value );
 					if ( itemIndex !== -1 ){
 						values.splice( itemIndex, 1 );
 					}
@@ -1191,7 +1191,7 @@
 				}
 
 				for( itemIndex=0; itemIndex<this.selected.length; itemIndex++ ){
-					if ( this.selected[itemIndex].value == item.value ) {
+					if ( this.selected[itemIndex].value == item.__value || item.value ) {
 						this.selected.splice( itemIndex, 1 );
 						break;
 					}
@@ -1376,7 +1376,7 @@
 					var $li = $(this)
 					  , item = $li.data( "item" );
 
-					newVal.push( item.value );
+					newVal.push( item.__value || item.value );
 				} );
 
 				$uberSelect.hidden_field.val( newVal.length ? newVal.join( "," ) : "" );
