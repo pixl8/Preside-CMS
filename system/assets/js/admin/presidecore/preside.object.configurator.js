@@ -270,9 +270,7 @@
 			var presideObjectConfigurator = this, labelData = {};
 
 			for( var key in recordData ) {
-				// if ( key != 'value' ) {
-					labelData[ key ] = recordData[ key ];
-				// }
+				labelData[ key ] = recordData[ key ];
 			}
 
 			$.get( this.labelRenderer, labelData, function( data ) {
