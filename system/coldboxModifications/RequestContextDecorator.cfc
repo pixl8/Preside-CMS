@@ -294,7 +294,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 // Query caching
 	public boolean function getUseQueryCache() {
 		var event = getRequestContext();
-		var useCache = event.getValue( name="__presideQueryCacheDefault", private=true );
+		var useCache = event.getValue( name="__presideQueryCacheDefault", private=true, defaultValue="" );
 
 		if ( !IsBoolean( useCache ) ) {
 			useCache = getController().getSetting( "useQueryCacheDefault" );
@@ -306,7 +306,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return useCache;
 	}
 	public void function setUseQueryCache( required boolean useQueryCache ) {
-		event.setValue( name="__presideQueryCacheDefault", private=true, value=arguments.useQueryCache );
+		getRequestContext().setValue( name="__presideQueryCacheDefault", private=true, value=arguments.useQueryCache );
 	}
 
 // private helpers
