@@ -167,6 +167,7 @@ component {
 		settings.syncDb                      = IsBoolean( settings.injectedConfig.syncDb ?: ""  ) ? settings.injectedConfig.syncDb : true;
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
+		settings.useQueryCacheDefault        = true;
 		settings.devConsoleToggleKeyCode     = 96;
 		settings.adminLanguages              = [];
 		settings.showNonLiveContentByDefault = true;
