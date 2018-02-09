@@ -250,6 +250,7 @@ component displayName="Task Manager Service" {
 				var success = false;
 
 				try {
+					$getRequestContext().setUseQueryCache( false );
 					success = _getController().runEvent(
 						  event          = attributes.event
 						, private        = true

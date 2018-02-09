@@ -101,12 +101,11 @@
 				mockFilterService.$( "getFilter", {} );
 				mockFeatureService.$( "isFeatureEnabled", true );
 
+				mockRequestContext.$( "isAdminUser", true );
+				mockRequestContext.$( "getAdminUserId", "" );
+				mockRequestContext.$( "getUseQueryCache", true );
 				if ( !StructKeyExists( arguments, "coldbox" ) ) {
-					var event   = getMockbox().createStub();
-
-					event.$( "isAdminUser", true );
-					event.$( "getAdminUserId", "" );
-					coldbox.$( "getRequestContext", event );
+					coldbox.$( "getRequestContext", mockRequestContext );
 				}
 
 				request[ key ] = new preside.system.services.presideObjects.PresideObjectService(
