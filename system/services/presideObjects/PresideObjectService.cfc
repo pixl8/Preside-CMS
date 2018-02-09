@@ -939,6 +939,7 @@ component displayName="Preside Object Service" {
 					  objectName   = pivotTable
 					, selectFields = currentSelect
 					, filter       = { "#sourceFk#" = arguments.sourceId }
+					, useCache     = false
 				);
 
 				for( var record in currentRecords ) {
