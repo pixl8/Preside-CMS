@@ -182,10 +182,11 @@ component displayName="Task Manager Service" {
 			return false;
 		}
 
-		var runningStatuses = [ "RUNNING", "NOT_STARTED" ];
-		var threads         = _getCfThreadHelper().getRunningThreads();
+		var threads      = _getCfThreadHelper().getRunningThreads();
+		var threadStatus = threads[ task.running_thread ].status ?: "";
+		var isRunning    = Len( Trim( threadStatus ) ) && threadStatus != "TERMINATED";
 
-		return runningStatuses.find( threads[ task.running_thread ].status ?: "" );
+		return isRunning;
 	}
 
 	public array function getRunnableTasks() {
