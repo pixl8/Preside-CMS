@@ -2649,7 +2649,6 @@ component extends="preside.system.base.AdminHandler" {
 			break;
 			case "object":
 			case "getObjectRecordsForAjaxDataTables":
-			case "dataExportConfigModal":
 				prc.objectName = rc.id ?: "";
 			break;
 			default:
