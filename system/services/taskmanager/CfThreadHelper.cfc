@@ -34,17 +34,18 @@ component displayName="CFThread Helper" {
 		for( var thread in javaThreads ) {
 			if ( thread.getName() contains "cfthread" ) {
 				try {
-					var cfThreadScope = thread.getThreadScope();
-					cfthreads[ cfThreadScope.name ] = {
-						  elapsedtime = cfThreadScope.elapsedtime ?: ""
-						, name        = cfThreadScope.name        ?: ""
-						, output      = cfThreadScope.output      ?: ""
-						, priority    = cfThreadScope.priority    ?: ""
-						, starttime   = cfThreadScope.starttime   ?: ""
-						, status      = cfThreadScope.status      ?: ""
-						, stacktrace  = cfThreadScope.stacktrace  ?: ""
+					cfthreads[ thread.getTagName() ] = {
+						  elapsedtime = GetTickCount() - thread.getStartTime()
+						, name        = thread.getTagName()
+						, priority    = thread.getPriority()
+						, starttime   = thread.getStartTime()
+						, status      = thread.getState().name()
+						, output      = ""
+						, stacktrace  = ""
 					};
-				} catch( any e ) {}
+				} catch( any e ) {
+					$raiseError( e );
+				}
 			}
 		}
 
