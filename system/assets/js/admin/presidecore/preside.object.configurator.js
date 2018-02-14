@@ -244,7 +244,7 @@
 				item.configurator__index = $li.index();
 
 				for( var field in item ) {
-					if ( field != '__value' ) {
+					if ( field != '__value' && field != '__label' ) {
 						configuratorArgs[ field ] = item[ field ];
 					}
 				}
