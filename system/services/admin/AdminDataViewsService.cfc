@@ -237,7 +237,7 @@ component {
 				defaults.title       = $translateResource( uri="cms:admin.view.system.group.title"      , defaultValue=arguments.groupName  );
 				defaults.description = $translateResource( uri="cms:admin.view.system.group.description", defaultValue=""                   );
 				defaults.iconClass   = $translateResource( uri="cms:admin.view.system.group.iconclass"  , defaultValue=""                   );
-				defaults.sortOrder   = 2;
+				defaults.sortOrder   = 1;
 				defaults.column      = "right";
 			break;
 		}
