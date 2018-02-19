@@ -41,8 +41,8 @@ component {
 		,          string recordId   = ""
 		,          struct args       = {}
 	) {
-		if ( !arguments.operation.len() ) {
-			if ( !arguments.recordId.len() ) {
+		if ( !Len( Trim( arguments.operation ) ) ) {
+			if ( !Len( Trim( arguments.recordId ) ) ) {
 				arguments.operation = "listing";
 			} else {
 				arguments.operation = getDefaultRecordOperation( arguments.objectName );
