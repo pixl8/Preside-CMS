@@ -2653,6 +2653,10 @@ component extends="preside.system.base.AdminHandler" {
 			case "getObjectRecordsForAjaxDataTables":
 				prc.objectName = rc.id ?: "";
 			break;
+			case "__custom":
+				prc.objectName = arguments.objectName ?: "";
+				prc.recordId   = arguments.recordId   ?: "";
+			break;
 			default:
 				prc.objectName = rc.object ?: "";
 				prc.recordId   = rc.id     ?: "";
