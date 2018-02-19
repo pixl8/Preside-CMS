@@ -273,6 +273,32 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return request.http.body ?: ToString( getHTTPRequestData().content );
 	}
 
+	public void function initializeDatamanagerPage(
+		  required string objectName
+		,          string recordId   = ""
+	) output=false {
+		var args = StructCopy( arguments );
+
+		args.append({
+			  eventArguments = {}
+			, action         = "__custom"
+		});
+
+		getController().runEvent(
+			  event          = "admin.datamanager._loadCommonVariables"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = args
+		);
+
+		getController().runEvent(
+			  event          = "admin.datamanager._loadCommonBreadCrumbs"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = args
+		);
+	}
+
 // Sticker
 	public any function include() output=false {
 		return _getSticker().include( argumentCollection = arguments );
