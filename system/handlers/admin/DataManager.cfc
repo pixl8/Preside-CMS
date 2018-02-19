@@ -2555,7 +2555,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _rootBreadCrumb( event, rc, prc, args={} ) {
-		if ( dataManagerService.objectIsIndexedInDatamanagerUi( args.objectName ?: "" ) ) {
+		if ( !Len( Trim( args.objectName ?: "" ) ) || dataManagerService.objectIsIndexedInDatamanagerUi( args.objectName ?: "" ) ) {
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:datamanager" )
 				, link  = event.buildAdminLink( linkTo="datamanager" )
