@@ -188,7 +188,7 @@ component {
 
 		return _getPresideObjectService().selectData(
 			  objectName   = arguments.objectName
-			, selectFields = [ "#idField# as id", "${labelfield} as label", sortField ]
+			, selectFields = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", sortField ]
 			, orderby      = sortField
 		);
 	}

@@ -1008,10 +1008,11 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getManagedPagesForAjaxDataTables( event, rc, prc ) {
-		var parentId        = rc.parent   ?: "";
-		var pageType        = rc.pageType ?: "";
-		var gridFields      = ListToArray( rc.gridFields );
-		var cleanGridFields = _cleanGridFields( gridFields );
+		var parentId         = rc.parent   ?: "";
+		var pageType         = rc.pageType ?: "";
+		var gridFields       = ListToArray( rc.gridFields );
+		var cleanGridFields  = _cleanGridFields( gridFields );
+		var defaultSortOrder = _getSortOrderForGrid( pageType );
 
 		prc.parentPage = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
 
@@ -1023,6 +1024,7 @@ component extends="preside.system.base.AdminHandler" {
 		var optionsCol = [];
 		var statusCol  = [];
 		var dtHelper   = getMyPlugin( "JQueryDatatablesHelpers" );
+		var sortOrder  = dtHelper.getSortOrder();
 		var results    = siteTreeService.getManagedChildrenForDataTable(
 			  objectName   = pageType
 			, parentId     = parentId
@@ -1030,7 +1032,7 @@ component extends="preside.system.base.AdminHandler" {
 			, selectFields = gridFields
 			, startRow     = dtHelper.getStartRow()
 			, maxRows      = dtHelper.getMaxRows()
-			, orderBy      = dtHelper.getSortOrder()
+			, orderBy      = sortOrder.len() ? sortOrder : defaultSortOrder
 			, searchQuery  = dtHelper.getSearchQuery()
 		);
 
@@ -1195,6 +1197,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return siteTreeService.listGridFields( arguments.objectName );
+	}
+
+	private string function _getSortOrderForGrid( required string objectName ) {
+		return siteTreeService.getDefaultSortOrderForDataGrid( arguments.objectName );
 	}
 
 	private array function _cleanGridFields( required array gridFields ) {
