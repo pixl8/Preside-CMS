@@ -1384,6 +1384,14 @@ component {
 		return ListToArray( fields );
 	}
 
+	public string function getDefaultSortOrderForDataGrid( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "sitetreeDefaultSortOrder"
+			, defaultValue  = ""
+		);
+	}
+
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
 		var sqlFields          = Duplicate( arguments.gridFields );
 		var field              = "";
