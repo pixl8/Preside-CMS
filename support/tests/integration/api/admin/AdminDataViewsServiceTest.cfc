@@ -279,7 +279,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.title"      , defaultValue=objectTitle ).$results( groupDetail.title       );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.description", defaultValue=objectDesc  ).$results( groupDetail.description );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.iconClass"  , defaultValue=objectIcon  ).$results( groupDetail.iconClass   );
-				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="2"         ).$results( groupDetail.sortOrder   );
+				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.sortOrder"  , defaultValue="1"         ).$results( groupDetail.sortOrder   );
 				service.$( "$translateResource" ).$args( uri=rootUri & "viewgroup.#groupName#.column"     , defaultValue="right"     ).$results( groupDetail.column      );
 
 				expect( service.getViewGroupDetail(
