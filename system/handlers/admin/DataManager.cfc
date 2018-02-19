@@ -2555,10 +2555,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _rootBreadCrumb( event, rc, prc, args={} ) {
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:datamanager" )
-			, link  = event.buildAdminLink( linkTo="datamanager" )
-		);
+		if ( dataManagerService.objectIsIndexedInDatamanagerUi( args.objectName ?: "" ) ) {
+			event.addAdminBreadCrumb(
+				  title = translateResource( "cms:datamanager" )
+				, link  = event.buildAdminLink( linkTo="datamanager" )
+			);
+		}
 	}
 
 	private void function _objectBreadCrumb( event, rc, prc, args={} ) {
