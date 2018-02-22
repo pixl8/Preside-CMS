@@ -2622,6 +2622,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "quickAddRecordAction"
 			, "quickEditForm"
 			, "quickEditRecordAction"
+			, "cascadeDeletePrompt"
 			, "configuratorForm"
 			, "multiOneToManyRecordAction"
 			, "manageOneToManyRecords"
