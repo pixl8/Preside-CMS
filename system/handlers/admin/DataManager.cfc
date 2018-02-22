@@ -2630,6 +2630,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "addOneToManyRecordAction"
 			, "editOneToManyRecord"
 			, "editOneToManyRecordAction"
+			, "deleteOneToManyRecordAction"
 			, "dataExportConfigModal"
 			, "exportDataAction"
 		];
