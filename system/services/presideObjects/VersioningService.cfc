@@ -122,6 +122,13 @@ component {
 
 			mergedData.delete( dateCreatedField  );
 			mergedData.delete( dateModifiedField );
+			if ( dateCreatedField != "datecreated" ) {
+				mergedData.delete( "datecreated" );
+			}
+			if ( dateModifiedField != "datemodified" ) {
+				mergedData.delete( "datemodified" );
+			}
+
 			mergedData.append( arguments.data );
 			mergedManyToManyData.append( arguments.manyToManyData );
 
