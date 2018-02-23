@@ -2442,15 +2442,15 @@ component extends="preside.system.base.AdminHandler" {
 	private query function _getRecordsForTreeView( event, rc, prc, args={} ) {
 		var objectName     = args.objectName ?: "";
 		var parent         = args.parent     ?: "";
-		var filterField    = dataManagerService.getTreeParentProperty( objectName );
 		var getRecordsArgs = {
-			  objectName   = objectName
-			, filter       = { "#filterField#"=parent }
-			, extraFilters = []
-			, gridFields   = args.gridFields ?: []
-			, orderby      = dataManagerService.getTreeSortOrder( objectName )
-			, autoGroupBy  = true
-			, maxRows      = 0
+			  objectName     = objectName
+			, treeViewParent = parent
+			, treeView       = true
+			, extraFilters   = []
+			, gridFields     = args.gridFields ?: []
+			, orderby        = dataManagerService.getTreeSortOrder( objectName )
+			, autoGroupBy    = true
+			, maxRows        = 0
 		};
 
 		customizationService.runCustomization(

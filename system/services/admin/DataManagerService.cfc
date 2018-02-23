@@ -295,15 +295,17 @@ component {
 	public struct function getRecordsForGridListing(
 		  required string  objectName
 		, required array   gridFields
-		,          numeric startRow      = 1
-		,          numeric maxRows       = 10
-		,          string  orderBy       = ""
-		,          string  searchQuery   = ""
-		,          any     filter        = {}
-		,          struct  filterParams  = {}
-		,          boolean draftsEnabled = areDraftsEnabledForObject( arguments.objectName )
-		,          array   extraFilters  = []
-		,          array   searchFields  = listSearchFields( arguments.objectName )
+		,          numeric startRow       = 1
+		,          numeric maxRows        = 10
+		,          string  orderBy        = ""
+		,          string  searchQuery    = ""
+		,          any     filter         = {}
+		,          struct  filterParams   = {}
+		,          boolean draftsEnabled  = areDraftsEnabledForObject( arguments.objectName )
+		,          array   extraFilters   = []
+		,          array   searchFields   = listSearchFields( arguments.objectName )
+		,          boolean treeView       = false
+		,          string  treeViewParent = ""
 	) {
 
 		var result = { totalRecords = 0, records = "" };
@@ -328,6 +330,32 @@ component {
 				  )
 				, filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } }
 			});
+		}
+
+		if ( arguments.treeView ) {
+			var parentField  = getTreeParentProperty( arguments.objectName );
+			var treeSubQuery = _getPresideObjectService().selectData(
+				  objectName          = arguments.objectName
+				, selectFields        = [ parentField ]
+				, filter              = "#parentField# is not null"
+				, getSqlAndParamsOnly = true
+			);
+			args.extraJoins = args.extraJoins ?: [];
+			args.extraJoins.append( {
+				  type           = "left"
+				, subQuery       = treeSubQuery.sql
+				, subQueryAlias  = "childRecords"
+				, subQueryColumn = parentField
+				, joinToTable    = arguments.objectName
+				, joinToColumn   = "id"
+			} );
+			args.extraFilters.append( { filter={ "#parentField#"=arguments.treeViewParent } } );
+			args.selectFields.append( "Count( childRecords.#parentField# ) as child_count" );
+
+			args.filterParams = args.filterParams ?: {};
+			for( var param in treeSubQuery.params ) {
+				args.filterParams[ param.name ] = args.filterParams[ param.name ] ?: param;
+			}
 		}
 
 		result.records = _getPresideObjectService().selectData( argumentCollection=args );

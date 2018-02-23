@@ -14,7 +14,9 @@
 		<cfloop array="#gridFields#" index="i" item="fieldName">
 			<cfif i == 1 and ( record._options ?: "" ).len()>
 				<td class="page-title-cell">
-					<i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i>
+					<cfif IsTrue( record.child_count ?: "" )>
+						<i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i>
+					</cfif>
 
 					<a class="page-title" href="#baseViewRecordLink.replace( '{recordId}', record.id ?: '' )#">#( record[ fieldName ] ?: "" )#</a>
 
