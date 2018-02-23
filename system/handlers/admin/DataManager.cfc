@@ -1730,13 +1730,6 @@ component extends="preside.system.base.AdminHandler" {
 		var args             = arguments;
 
 		args.formData = formData;
-		if ( customizationService.objectHasCustomization( object, "preAddRecordAction" ) ) {
-			customizationService.runCustomization(
-				  objectName = object
-				, action     = "preAddRecordAction"
-				, args       = args
-			);
-		}
 
 		validationResult = validateForm( formName=arguments.formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
