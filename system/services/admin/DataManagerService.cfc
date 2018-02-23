@@ -153,6 +153,9 @@ component {
 			if ( Len( Trim( attributes.uniqueindexes ?: "" ) ) ) {
 				return false;
 			}
+			if ( Len( Trim( attributes.formula ?: "" ) ) ) {
+				return false;
+			}
 			if ( propertyName.startsWith( "_" ) ) {
 				return false;
 			}
