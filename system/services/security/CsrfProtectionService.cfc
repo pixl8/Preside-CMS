@@ -17,10 +17,16 @@ component {
 	}
 
 // PUBLIC API
-	public string function generateToken() {
-		var token      = _getToken();
+	public string function generateToken( boolean force=false ) {
+		var generate = arguments.force;
+		var token    = "";
 
-		if ( StructIsEmpty( token ) or not validateToken( token.value ?: "" ) ) {
+		if ( !generate ) {
+			token = _getToken();
+			generate = StructIsEmpty( token ) || !validateToken( token.value ?: "" );
+		}
+
+		if ( generate ) {
 			token = { value = Hash( CreateUUId() ), lastActive=Now() };
 			_setToken( token );
 		}
@@ -29,15 +35,26 @@ component {
 	}
 
 	public boolean function validateToken( required string token ) {
+		if ( !Len( Trim( arguments.token ) ) ) {
+			return false;
+		}
+
 		var t = _getToken();
 
-		if ( ( t.value ?: "" ) eq arguments.token ) {
-			var expired = DateDiff( "s", t.lastActive, Now() ) gte _getTokenExpiryInSeconds();
+		if ( !Len( Trim( t.value ?: "" ) ) || !IsDate( t.lastActive ?: "" ) ) {
+			generateToken( force=true );
+
+			return false;
+		}
+
+		if ( t.value == arguments.token ) {
+			var expired = DateDiff( "s", t.lastActive, Now() ) >= _getTokenExpiryInSeconds();
 
 			t.lastActive = Now();
 
-			return not expired;
+			return !expired;
 		}
+
 		return false;
 	}
 

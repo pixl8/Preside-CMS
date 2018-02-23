@@ -40,7 +40,7 @@ component displayName="Tenancy service" {
 
 			var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
 			var tenancyObject = config[ tenant ].object;
-			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade", control="none" };
+			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade", control="none", adminViewGroup="system" };
 			var indexNames    = [];
 
 			objectMeta.propertyNames    = objectMeta.propertyNames ?: [];
@@ -193,7 +193,7 @@ component displayName="Tenancy service" {
 					  }
 				);
 
-				if ( IsNull( filter ) ) {
+				if ( IsNull( local.filter ) ) {
 					return defaultFilter;
 				}
 
@@ -220,7 +220,7 @@ component displayName="Tenancy service" {
 					, prePostExempt = true
 				);
 
-				if ( !IsNull( id ) ) {
+				if ( !IsNull( local.id ) ) {
 					setTenantId( tenant, id );
 				}
 			}

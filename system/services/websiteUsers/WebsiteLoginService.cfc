@@ -204,7 +204,7 @@ component displayName="Website login service" {
 	public struct function getLoggedInUserDetails() autodoc=true {
 		var userDetails = _getSessionStorage().getVar( name=_getSessionKey(), default={} );
 
-		return !IsNull( userDetails ) && IsStruct( userDetails ) ? userDetails : {};
+		return !IsNull( local.userDetails ) && IsStruct( userDetails ) ? userDetails : {};
 	}
 
 	/**

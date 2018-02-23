@@ -236,7 +236,7 @@ component {
 		var value          = "";
 		var poService      = _getPresideObjectService();
 		var collectedValue = [];
-		var __valueExists  = function( v ) { return !IsNull( v ) && (!IsSimpleValue( v ) || Len( Trim( v ) ) ); };
+		var __valueExists  = function( v ) { return !IsNull( arguments.v ) && (!IsSimpleValue( arguments.v ) || Len( Trim( arguments.v ) ) ); };
 
 		if ( StructKeyExists( arguments.page, arguments.propertyName ) ) {
 			value = arguments.page[ arguments.propertyName ];
@@ -1382,6 +1382,14 @@ component {
 		);
 
 		return ListToArray( fields );
+	}
+
+	public string function getDefaultSortOrderForDataGrid( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "sitetreeDefaultSortOrder"
+			, defaultValue  = ""
+		);
 	}
 
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {

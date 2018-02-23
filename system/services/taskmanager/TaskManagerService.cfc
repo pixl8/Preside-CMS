@@ -194,10 +194,11 @@ component displayName="Task Manager Service" {
 			return true;
 		}
 
-		var runningStatuses = [ "RUNNING", "NOT_STARTED" ];
-		var threads         = _getCfThreadHelper().getRunningThreads();
+		var threads      = _getCfThreadHelper().getRunningThreads();
+		var threadStatus = threads[ task.running_thread ].status ?: "";
+		var isRunning    = Len( Trim( threadStatus ) ) && threadStatus != "TERMINATED";
 
-		return runningStatuses.find( threads[ task.running_thread ].status ?: "" );
+		return isRunning;
 	}
 
 	public array function getRunnableTasks() {
@@ -264,6 +265,7 @@ component displayName="Task Manager Service" {
 				var success = false;
 
 				try {
+					$getRequestContext().setUseQueryCache( false );
 					success = _getController().runEvent(
 						  event          = attributes.event
 						, private        = true

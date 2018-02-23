@@ -69,7 +69,8 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			args.append( {
-				  gridFields          = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+				  gridFields          = prc.gridFields       ?: [ "label","datecreated","datemodified" ]
+				, hiddenGridFields    = prc.hiddenGridFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
 			} );
@@ -1512,7 +1513,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( objectName, field, record[ field ], [ "adminDataTable", "admin" ] );
+				records[ field ][ records.currentRow ] = renderField( object=objectName, property=field, data=record[ field ], record=record, context=[ "adminDataTable", "admin" ] );
 			}
 
 			if ( useMultiActions ) {
@@ -1729,13 +1730,6 @@ component extends="preside.system.base.AdminHandler" {
 		var args             = arguments;
 
 		args.formData = formData;
-		if ( customizationService.objectHasCustomization( object, "preAddRecordAction" ) ) {
-			customizationService.runCustomization(
-				  objectName = object
-				, action     = "preAddRecordAction"
-				, args       = args
-			);
-		}
 
 		validationResult = validateForm( formName=arguments.formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
@@ -1772,7 +1766,7 @@ component extends="preside.system.base.AdminHandler" {
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true, isDraft=isDraft );
 
 		if ( arguments.audit ) {
-			var auditDetail = Duplicate( formData );
+			var auditDetail = _getAuditDataFromFormData( formData );
 			auditDetail.id = newId;
 			auditDetail.objectName = arguments.object;
 			if ( arguments.auditAction == "" ) {
@@ -2115,7 +2109,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( arguments.audit ) {
-			var auditDetail = Duplicate( formData );
+			var auditDetail = _getAuditDataFromFormData( formData );
 			auditDetail.objectName = arguments.object;
 			if ( !Len( Trim( arguments.auditAction ) ) ) {
 				if ( arguments.draftsEnabled ) {
@@ -2510,6 +2504,10 @@ component extends="preside.system.base.AdminHandler" {
 		return dataManagerService.listGridFields( arguments.objectName );
 	}
 
+	private array function _getObjectHiddenFieldsForGrid( required string objectName ) {
+		return dataManagerService.listHiddenGridFields( arguments.objectName );
+	}
+
 	private boolean function _objectCanBeViewedInDataManager( required any event, required string objectName, boolean relocateIfNoAccess=false ) {
 		if ( dataManagerService.isObjectAvailableInDataManager( arguments.objectName ) ) {
 			return true;
@@ -2550,10 +2548,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _rootBreadCrumb( event, rc, prc, args={} ) {
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:datamanager" )
-			, link  = event.buildAdminLink( linkTo="datamanager" )
-		);
+		if ( !Len( Trim( args.objectName ?: "" ) ) || dataManagerService.objectIsIndexedInDatamanagerUi( args.objectName ?: "" ) ) {
+			event.addAdminBreadCrumb(
+				  title = translateResource( "cms:datamanager" )
+				, link  = event.buildAdminLink( linkTo="datamanager" )
+			);
+		}
 	}
 
 	private void function _objectBreadCrumb( event, rc, prc, args={} ) {
@@ -2607,19 +2607,23 @@ component extends="preside.system.base.AdminHandler" {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
 		var e   = "";
-		var useAnyWhereActions = [
+		var includeAllFormulaFields = ( arguments.action == "viewRecord" );
+		var useAnyWhereActions      = [
 			  "getChildObjectRecordsForAjaxDataTables"
 			, "getObjectRecordsForAjaxSelectControl"
 			, "quickAddForm"
 			, "quickAddRecordAction"
 			, "quickEditForm"
 			, "quickEditRecordAction"
+			, "cascadeDeletePrompt"
 			, "configuratorForm"
 			, "multiOneToManyRecordAction"
 			, "manageOneToManyRecords"
 			, "addOneToManyRecord"
+			, "addOneToManyRecordAction"
 			, "editOneToManyRecord"
 			, "editOneToManyRecordAction"
+			, "deleteOneToManyRecordAction"
 			, "dataExportConfigModal"
 			, "exportDataAction"
 		];
@@ -2643,8 +2647,11 @@ component extends="preside.system.base.AdminHandler" {
 			break;
 			case "object":
 			case "getObjectRecordsForAjaxDataTables":
-			case "dataExportConfigModal":
 				prc.objectName = rc.id ?: "";
+			break;
+			case "__custom":
+				prc.objectName = arguments.objectName ?: "";
+				prc.recordId   = arguments.recordId   ?: "";
 			break;
 			default:
 				prc.objectName = rc.object ?: "";
@@ -2674,6 +2681,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
 			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
+			prc.hiddenGridFields      = _getObjectHiddenFieldsForGrid( prc.objectName );
 			prc.batchEditableFields   = dataManagerService.listBatchEditableFields( prc.objectName );
 			prc.isMultilingual        = multilingualPresideObjectService.isMultilingual( prc.objectName );
 			prc.canTranslate          = prc.isMultilingual && _checkPermission( argumentCollection=arguments, key="translate", throwOnError=false );
@@ -2700,9 +2708,9 @@ component extends="preside.system.base.AdminHandler" {
 
 				if ( !prc.isTranslationAction ) {
 					if ( prc.useVersioning && prc.version ) {
-						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true );
+						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true );
 					} else {
-						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, allowDraftVersions=true );
+						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, allowDraftVersions=true );
 					}
 
 					if ( !prc.record.recordCount ) {
@@ -2802,5 +2810,24 @@ component extends="preside.system.base.AdminHandler" {
 			, defaultHandler = "admin.datamanager._getAddRecordFormName"
 			, args           = { objectName=objectName }
 		);
+	}
+
+	private struct function _getAuditDataFromFormData( required struct formData ) {
+		var auditDetail = {};
+		var item        = "";
+
+		for( var key in arguments.formData ) {
+			item = formData[ key ];
+			if ( isStruct( item ) && item.keyExists( "tempFileInfo" ) ) {
+				auditDetail[ key ] = {
+					  fileName = item.fileName ?: ""
+					, size     = item.size     ?: ""
+				};
+			} else {
+				auditDetail[ key ] = formData[ key ];
+			}
+		}
+
+		return auditDetail;
 	}
 }

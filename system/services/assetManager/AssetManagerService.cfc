@@ -715,7 +715,7 @@ component displayName="AssetManager Service" {
 
 		if ( _autoExtractDocumentMeta() ) {
 			var fileBinary = getAssetBinary( arguments.assetId );
-			if ( !IsNull( fileBinary ) ) {
+			if ( !IsNull( local.fileBinary ) ) {
 				var rawText = _getDocumentMetadataService().getText( fileBinary );
 				if ( Len( Trim( rawText ) ) ) {
 					_getAssetDao().updateData( id=arguments.assetId, data={ raw_text_content=rawText } );

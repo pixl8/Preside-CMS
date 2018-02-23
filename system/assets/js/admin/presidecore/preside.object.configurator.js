@@ -71,15 +71,15 @@
 
 			this.uberSelect.select_item = function( item ){
 				var index = item.configurator__index;
-				
+
 				if ( this.is_multiple && this.max_selected_options <= this.choices_count() ) {
 					this.form_field_jq.trigger("chosen:maxselected", {
 						userSelect: this
 					} );
 					return false;
 				}
-				
-				item.value = JSON.stringify( item );
+
+				item.__value = JSON.stringify( item );
 
 				if ( typeof index !== 'undefined' ) {
 					delete item.configurator__index;
@@ -90,11 +90,11 @@
 
 				if ( this.is_multiple ) {
 					this.choice_build( item, index );
-					this.hidden_field.val( this.selected.map( function( item ){ return item.value } ).join() );
+					this.hidden_field.val( this.selected.map( function( item ){ return item.__value } ).join() );
 				} else {
 					this.selected = [];
 					this.single_set_selected_text( item.__label );
-					this.hidden_field.val( item.value );
+					this.hidden_field.val( item.__value );
 				}
 			}
 
@@ -244,7 +244,7 @@
 				item.configurator__index = $li.index();
 
 				for( var field in item ) {
-					if ( field != 'value' ) {
+					if ( field != '__value' && field != '__label' ) {
 						configuratorArgs[ field ] = item[ field ];
 					}
 				}
@@ -270,9 +270,7 @@
 			var presideObjectConfigurator = this, labelData = {};
 
 			for( var key in recordData ) {
-				if ( key != 'value' ) {
-					labelData[ key ] = recordData[ key ];
-				}
+				labelData[ key ] = recordData[ key ];
 			}
 
 			$.get( this.labelRenderer, labelData, function( data ) {

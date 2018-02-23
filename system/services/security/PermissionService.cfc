@@ -111,7 +111,7 @@ component displayName="Admin permissions service" {
 
 		if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
-			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {
+			if ( !IsNull( local.contextPerm ) && IsBoolean( contextPerm ) ) {
 				return contextPerm;
 			}
 		}

@@ -273,6 +273,32 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return request.http.body ?: ToString( getHTTPRequestData().content );
 	}
 
+	public void function initializeDatamanagerPage(
+		  required string objectName
+		,          string recordId   = ""
+	) output=false {
+		var args = StructCopy( arguments );
+
+		args.append({
+			  eventArguments = {}
+			, action         = "__custom"
+		});
+
+		getController().runEvent(
+			  event          = "admin.datamanager._loadCommonVariables"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = args
+		);
+
+		getController().runEvent(
+			  event          = "admin.datamanager._loadCommonBreadCrumbs"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = args
+		);
+	}
+
 // Sticker
 	public any function include() output=false {
 		return _getSticker().include( argumentCollection = arguments );
@@ -306,6 +332,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		inlineJs[ arguments.group ].append( "<script type=""text/javascript"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
 
 		getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
+	}
+
+// Query caching
+	public boolean function getUseQueryCache() {
+		var event = getRequestContext();
+		var useCache = event.getValue( name="__presideQueryCacheDefault", private=true, defaultValue="" );
+
+		if ( !IsBoolean( useCache ) ) {
+			useCache = getController().getSetting( "useQueryCacheDefault" );
+			useCache = IsBoolean( useCache ) && useCache;
+
+			setUseQueryCache( useCache );
+		}
+
+		return useCache;
+	}
+	public void function setUseQueryCache( required boolean useQueryCache ) {
+		getRequestContext().setValue( name="__presideQueryCacheDefault", private=true, value=arguments.useQueryCache );
 	}
 
 // private helpers

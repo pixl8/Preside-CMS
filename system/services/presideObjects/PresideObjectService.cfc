@@ -23,7 +23,6 @@ component displayName="Preside Object Service" {
 	 * @filterService.inject          presideObjectSavedFilterService
 	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
-	 * @coldboxController.inject      coldbox
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 * @reloadDb.inject               coldbox:setting:syncDb
 	 */
@@ -40,7 +39,6 @@ component displayName="Preside Object Service" {
 		, required any     filterService
 		, required any     cache
 		, required any     defaultQueryCache
-		, required any     coldboxController
 		, required any     interceptorService
 		,          boolean reloadDb = true
 	) {
@@ -131,56 +129,60 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint          Name of the object from which to select data
-	 * @id.hint                  ID of a record to select
-	 * @selectFields.hint        Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
-	 * @filter.hint              Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @extraFilters.hint        An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
-	 * @orderBy.hint             Plain SQL order by string
-	 * @groupBy.hint             Plain SQL group by string
-	 * @autoGroupBy.hint         Whether or not to try to automatically calculate group by fields for the query
-	 * @having.hint              Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
-	 * @maxRows.hint             Maximum number of rows to select
-	 * @startRow.hint            Offset the recordset when using maxRows
-	 * @useCache.hint            Whether or not to automatically cache the result internally
-	 * @fromVersionTable.hint    Whether or not to select the data from the version history table for the object
-	 * @specificVersion.hint     Can be used to select a specific version when selecting from the version table
-	 * @allowDraftVersions.hint  Choose whether or not to allow selecting from draft records and/or versions
-	 * @forceJoins.hint          Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
-	 * @extraJoins.hint          An array of explicit joins to add to the query (can define subquery joins this way)
-	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
-	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
-	 * @distinct.hint           Whether or not the record set should be a 'distinct' select
-	 * @selectFields.docdefault  []
-	 * @filter.docdefault        {}
-	 * @filterParams.docdefault  {}
-	 * @extraFilters.docdefault  []
-	 * @extraJoins.docdefault    []
+	 * @objectName.hint              Name of the object from which to select data
+	 * @id.hint                      ID of a record to select
+	 * @selectFields.hint            Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
+	 * @extraSelectFields.hint       Array of field names to select in addition to `selectFields`. Can include relationships, e.g. ['tags.label as tag']. Use this if you want specific extra fields (e.g. formula fields) in addition to selecting all physical fields
+	 * @includeAllFormulaFields.hint If true, all formula fields for the object will be added into the query
+	 * @filter.hint                  Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint            An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
+	 * @orderBy.hint                 Plain SQL order by string
+	 * @groupBy.hint                 Plain SQL group by string
+	 * @autoGroupBy.hint             Whether or not to try to automatically calculate group by fields for the query
+	 * @having.hint                  Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
+	 * @maxRows.hint                 Maximum number of rows to select
+	 * @startRow.hint                Offset the recordset when using maxRows
+	 * @useCache.hint                Whether or not to automatically cache the result internally
+	 * @fromVersionTable.hint        Whether or not to select the data from the version history table for the object
+	 * @specificVersion.hint         Can be used to select a specific version when selecting from the version table
+	 * @allowDraftVersions.hint      Choose whether or not to allow selecting from draft records and/or versions
+	 * @forceJoins.hint              Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @extraJoins.hint              An array of explicit joins to add to the query (can define subquery joins this way)
+	 * @recordCountOnly.hint         If set to true, the method will just return the number of records that the select statement would return
+	 * @getSqlAndParamsOnly.hint     If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
+	 * @selectFields.docdefault      []
+	 * @filter.docdefault            {}
+	 * @filterParams.docdefault      {}
+	 * @extraFilters.docdefault      []
+	 * @extraJoins.docdefault        []
 	 */
 	public any function selectData(
 		  required string  objectName
 		,          string  id
-		,          array   selectFields        = []
-		,          any     filter              = {}
-		,          struct  filterParams        = {}
-		,          array   extraFilters        = []
-		,          array   savedFilters        = []
-		,          string  orderBy             = ""
-		,          string  groupBy             = ""
-		,          boolean autoGroupBy         = false
-		,          string  having              = ""
-		,          numeric maxRows             = 0
-		,          numeric startRow            = 1
-		,          boolean useCache            = true
-		,          boolean fromVersionTable    = false
-		,          numeric specificVersion     = 0
-		,          boolean allowDraftVersions  = $getRequestContext().showNonLiveContent()
-		,          string  forceJoins          = ""
-		,          array   extraJoins          = []
-		,          boolean recordCountOnly     = false
-		,          boolean getSqlAndParamsOnly = false
-		,          boolean distinct            = false
+		,          array   selectFields            = []
+		,          array   extraselectFields       = []
+		,          boolean includeAllFormulaFields = false
+		,          any     filter                  = {}
+		,          struct  filterParams            = {}
+		,          array   extraFilters            = []
+		,          array   savedFilters            = []
+		,          string  orderBy                 = ""
+		,          string  groupBy                 = ""
+		,          boolean autoGroupBy             = false
+		,          string  having                  = ""
+		,          numeric maxRows                 = 0
+		,          numeric startRow                = 1
+		,          boolean useCache                = _getUseCacheDefault()
+		,          boolean fromVersionTable        = false
+		,          numeric specificVersion         = 0
+		,          boolean allowDraftVersions      = $getRequestContext().showNonLiveContent()
+		,          string  forceJoins              = ""
+		,          array   extraJoins              = []
+		,          boolean recordCountOnly         = false
+		,          boolean getSqlAndParamsOnly     = false
+		,          boolean distinct                = false
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 
@@ -201,7 +203,7 @@ component displayName="Preside Object Service" {
 			_announceInterception( "onCreateSelectDataCacheKey", args );
 
 			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
-			if ( !IsNull( cachedResult ) ) {
+			if ( !IsNull( local.cachedResult ) ) {
 				return cachedResult;
 			}
 		}
@@ -945,6 +947,7 @@ component displayName="Preside Object Service" {
 					  objectName   = pivotTable
 					, selectFields = currentSelect
 					, filter       = { "#sourceFk#" = arguments.sourceId }
+					, useCache     = false
 				);
 
 				for( var record in currentRecords ) {
@@ -1237,7 +1240,7 @@ component displayName="Preside Object Service" {
 	 * @fieldName.hint  Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
 	 *
 	 */
-	public query function getRecordVersions( required string objectName, required string id, string fieldName ) autodoc=true {
+	public any function getRecordVersions( required string objectName, required string id, string fieldName ) autodoc=true {
 		var args = {};
 		var idField = getIdField( arguments.objectName );
 
@@ -1751,7 +1754,13 @@ component displayName="Preside Object Service" {
 		return IsBoolean( configurator ) && configurator;
 	}
 
-	public array function parseSelectFields( required string objectName, required array selectFields, boolean includeAlias=true ) {
+	public array function parseSelectFields(
+		  required string  objectName
+		, required array   selectFields
+		,          array   extraSelectFields       = []
+		,          boolean includeAlias            = true
+		,          boolean includeAllFormulaFields = false
+	) {
 		_announceInterception( "preParseSelectFields", arguments );
 		var fields  = arguments.selectFields;
 		var obj     = _getObject( arguments.objectName ).meta;
@@ -1804,6 +1813,18 @@ component displayName="Preside Object Service" {
 		}
 
 		arguments.selectFields = fields;
+
+		if ( arguments.includeAllFormulaFields ) {
+			arguments.extraSelectFields.append( listToArray( obj.formulaFieldList ?: "" ), true );
+		}
+		if ( arguments.extraSelectFields.len() ) {
+			var extraFields = parseSelectFields(
+				  objectName   = arguments.objectName
+				, selectFields = arguments.extraSelectFields
+				, includeAlias = arguments.includeAlias
+			);
+			arguments.selectFields.append( extraFields, true);
+		}
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
@@ -1970,7 +1991,7 @@ component displayName="Preside Object Service" {
 			paramName = arguments.prefix & ReReplace( key, "[\.\$]", "__", "all" );
 			dataType  = arguments.dbAdapter.sqlDataTypeToCfSqlDatatype( cols[ ListLast( key, "." ) ].dbType );
 
-			if ( not StructKeyExists( arguments.data, key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
+			if ( !StructKeyExists( arguments.data, key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
 				param = {
 					  name  = paramName
 					, value = NullValue()
@@ -2068,7 +2089,7 @@ component displayName="Preside Object Service" {
 		var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
 		var objects    = cache.get( cacheKey );
 
-		if ( not IsNull( objects ) ) {
+		if ( !IsNull( local.objects ) ) {
 			return objects;
 		}
 
@@ -2173,7 +2194,7 @@ component displayName="Preside Object Service" {
 
 			var cacheKey = "_cleanupProperyAliasesFAndR#args.objectName##arguments.plainString#";
 			var cached   = systemCache.get( cacheKey );
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				return cached;
 			}
 
@@ -2216,7 +2237,7 @@ component displayName="Preside Object Service" {
 			var cacheKey = "_cleanupProperyAliasesReplacer#args.objectName##arguments.plainString##arguments.addAsAlias#";
 			var cached   = systemCache.get( cacheKey );
 
-			if( !IsNull( cached ) ) {
+			if( !IsNull( local.cached ) ) {
 				return cached;
 			}
 
@@ -2286,7 +2307,7 @@ component displayName="Preside Object Service" {
 
 			joins = joinsCache.get( joinsCacheKey );
 
-			if ( IsNull( joins ) ) {
+			if ( IsNull( local.joins ) ) {
 				joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
 
 				joinsCache.set( joinsCacheKey, joins );
@@ -2853,7 +2874,7 @@ component displayName="Preside Object Service" {
 				}
 
 				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop );
-				if ( !IsNull( generatedValue ) ) {
+				if ( !IsNull( local.generatedValue ) ) {
 					generated[ propName ] = newData[ propName ] = generatedValue;
 				}
 			}
@@ -3087,5 +3108,9 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setAliasCache( required struct aliasCache ) {
 		_aliasCache = arguments.aliasCache;
+	}
+
+	private boolean function _getUseCacheDefault() {
+		return $getRequestContext().getUseQueryCache();
 	}
 }

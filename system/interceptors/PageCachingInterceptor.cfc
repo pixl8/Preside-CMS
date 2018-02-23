@@ -12,7 +12,7 @@ component extends="coldbox.system.Interceptor" {
 			var cacheKey = _getCacheKey( event );
 			var cached   = cache.get( cacheKey );
 
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				event.restoreCachedData( cached.data ?: {} );
 				event.checkPageAccess();
 				content reset=true;

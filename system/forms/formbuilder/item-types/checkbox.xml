@@ -3,6 +3,7 @@
 	<tab id="default">
 		<fieldset id="default">
 			<field name="checkboxLabel"  control="textInput"   required="false"  sortorder="34" defaultvalue="" />
+			<field name="defaultChecked" control="yesnoswitch"                  required="false" sortorder="35" />
 		</fieldset>
 	</tab>
 </form>

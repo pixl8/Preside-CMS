@@ -34,7 +34,7 @@ component {
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context );
+				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
 			}
 
 			return rendered;
@@ -67,6 +67,7 @@ component {
 		,          any     context  = "default"
 		,          boolean editable = false
 		,          string  recordId = ""
+		,          struct  record   = {}
 
 	) {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
@@ -76,6 +77,12 @@ component {
 				  renderer = renderer
 				, data     = arguments.data
 				, context  = arguments.context
+				, args     = {
+					  objectName   = arguments.object
+					, propertyName = arguments.property
+					, recordId     = arguments.recordId
+					, record       = arguments.record
+				  }
 			);
 		} else {
 			rendered = arguments.data;
@@ -134,7 +141,7 @@ component {
 			contexts.append( "default" );
 		}
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
@@ -194,6 +201,11 @@ component {
 		// easy, the field has explicitly defined a renderer
 		if ( Len( Trim( fieldAttributes.renderer ?: "" ) ) ) {
 			return Trim( fieldAttributes.renderer );
+		}
+
+		// enum...
+		if ( Len( Trim( fieldAttributes.enum ?: "" ) ) ) {
+			return "enumLabel";
 		}
 
 		// just the plain old type?!
@@ -331,6 +343,9 @@ component {
 			if ( Len( Trim( embeddedLink.page ?: "" ) ) ) {
 				renderedLink = _getColdbox().getRequestContext().buildLink( page=embeddedLink.page );
 			}
+			if ( Len( Trim( embeddedLink.asset ?: "" ) ) ) {
+				renderedLink = _getColdbox().getRequestContext().buildLink( assetId=embeddedLink.asset );
+			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
 				renderedContent = Replace( renderedContent, embeddedLink.placeholder, renderedLink, "all" );
@@ -411,7 +426,7 @@ component {
 		var poService = _getPresideObjectService();
 		var fieldName = arguments.property;
 
-		if ( not IsNull( renderer ) ) {
+		if ( !IsNull( local.renderer ) ) {
 			return renderer;
 		}
 
@@ -435,7 +450,7 @@ component {
 		var cache    = _getCache();
 		var control  = cache.get( cacheKey );
 
-		if ( not IsNull( control ) ) {
+		if ( !IsNull( local.control ) ) {
 			return control;
 		}
 
@@ -521,17 +536,21 @@ component {
 	}
 
 	private struct function _findNextEmbeddedLink( required string richContent ) {
-		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+		// The following regex is designed to match the following patterns that would be embedded in rich editor content:
 		// {{link:pageid:link}}
+		// {{asset:assetid:asset}}
 
 
-		var regex  = "{{link:(.*?):link}}";
-		var match  = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var link   = {};
+		var regex = "{{(link|asset):(.*?):(link|asset)}}";
+		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var link  = {};
+		var type  = "";
 
-		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
+		if ( ArrayLen( match.len ) eq 4 and match.len[1] and match.len[3] ) {
+			type             = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			type             = type == "link" ? "page" : type;
 			link.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-			link.page        = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			link[ type ]     = Mid( arguments.richContent, match.pos[3], match.len[3] );
 		}
 
 		return link;

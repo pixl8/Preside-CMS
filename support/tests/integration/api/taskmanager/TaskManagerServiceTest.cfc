@@ -697,6 +697,7 @@ component extends="testbox.system.BaseSpec" {
 		var mockBox = getMockBox();
 
 		mockColdbox          = mockbox.createStub();
+		mockRc               = mockbox.createStub();
 		mockTaskDao          = mockbox.createStub();
 		mockTaskHistoryDao   = mockbox.createStub();
 		configWrapper        = mockbox.createStub();
@@ -714,6 +715,8 @@ component extends="testbox.system.BaseSpec" {
 		var tm = mockBox.createMock( object=CreateObject( "preside.system.services.taskmanager.TaskManagerService" ) );
 
 		tm.$( "_initialiseDb" );
+		tm.$( "$getRequestContext", mockRc );
+		mockRc.$( "setUseQueryCache" );
 
 		return tm.init(
 			  configWrapper              = configWrapper

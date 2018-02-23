@@ -134,6 +134,13 @@ component {
 
 			mergedData.delete( dateCreatedField  );
 			mergedData.delete( dateModifiedField );
+			if ( dateCreatedField != "datecreated" ) {
+				mergedData.delete( "datecreated" );
+			}
+			if ( dateModifiedField != "datemodified" ) {
+				mergedData.delete( "datemodified" );
+			}
+
 			mergedData.append( arguments.data );
 			mergedManyToManyData.append( arguments.manyToManyData );
 
@@ -233,20 +240,22 @@ component {
 	}
 
 	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
-		var poService            = $getPresideObjectService();
-		var changedFields        = [];
-		var oldData              = arguments.existingData ?: NullValue();
-		var oldManyToManyData    = arguments.existingManyToManyData ?: NullValue();
-		var properties           = poService.getObjectProperties( arguments.objectName );
-		var ignoredFields        = _getIgnoredFieldsForVersioning( arguments.objectName );
+		var poService         = $getPresideObjectService();
+		var changedFields     = [];
+		var oldData           = arguments.existingData ?: NullValue();
+		var oldManyToManyData = arguments.existingManyToManyData ?: NullValue();
+		var properties        = poService.getObjectProperties( arguments.objectName );
+		var ignoredFields     = _getIgnoredFieldsForVersioning( arguments.objectName );
+		var oldIsTrue         = false;
+		var newIsTrue         = false;
 
-		if ( IsNull( oldManyToManyData ) ) {
+		if ( IsNull( local.oldManyToManyData ) ) {
 			oldManyToManyData = poService.getDeNormalizedManyToManyData(
 				  objectName = arguments.objectName
 				, id         = arguments.recordId
 			);
 		}
-		if ( IsNull( oldData ) ) {
+		if ( IsNull( local.oldData ) ) {
 			oldData = poService.selectData( objectName = arguments.objectName, id=arguments.recordId, allowDraftVersions=true );
 			for( var d in oldData ) { oldData = d; } // query to struct hack
 		}
@@ -269,8 +278,10 @@ component {
 
 				var propDbType = ( properties[ field ].dbtype ?: "" );
 
-				if ( propDbType == "boolean" && IsBoolean( arguments.newData[ field ] ) && IsBoolean( oldData[ field ] ) ) {
-					if ( arguments.newData[ field ] != oldData[ field ] ) {
+				if ( propDbType == "boolean" && IsBoolean( oldData[ field ] ) ) {
+					oldIsTrue = IsBoolean( oldData[ field ] ) && oldData[ field ];
+					newIsTrue = IsBoolean( arguments.newData[ field ] ) && arguments.newData[ field ];
+					if ( oldIsTrue != newIsTrue ) {
 						changedFields.append( field );
 					}
 				} else if ( ( propDbType == "datetime" || propDbType == "date" ) && isDate( arguments.newData[ field ] ?: "" ) && isDate( oldData[ field ] ) ) {
