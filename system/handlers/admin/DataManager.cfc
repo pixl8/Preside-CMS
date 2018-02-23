@@ -1766,7 +1766,7 @@ component extends="preside.system.base.AdminHandler" {
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true, isDraft=isDraft );
 
 		if ( arguments.audit ) {
-			var auditDetail = Duplicate( formData );
+			var auditDetail = _getAuditDataFromFormData( formData );
 			auditDetail.id = newId;
 			auditDetail.objectName = arguments.object;
 			if ( arguments.auditAction == "" ) {
@@ -2109,7 +2109,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( arguments.audit ) {
-			var auditDetail = Duplicate( formData );
+			var auditDetail = _getAuditDataFromFormData( formData );
 			auditDetail.objectName = arguments.object;
 			if ( !Len( Trim( arguments.auditAction ) ) ) {
 				if ( arguments.draftsEnabled ) {
@@ -2810,5 +2810,24 @@ component extends="preside.system.base.AdminHandler" {
 			, defaultHandler = "admin.datamanager._getAddRecordFormName"
 			, args           = { objectName=objectName }
 		);
+	}
+
+	private struct function _getAuditDataFromFormData( required struct formData ) {
+		var auditDetail = {};
+		var item        = "";
+
+		for( var key in arguments.formData ) {
+			item = formData[ key ];
+			if ( isStruct( item ) && item.keyExists( "tempFileInfo" ) ) {
+				auditDetail[ key ] = {
+					  fileName = item.fileName ?: ""
+					, size     = item.size     ?: ""
+				};
+			} else {
+				auditDetail[ key ] = formData[ key ];
+			}
+		}
+
+		return auditDetail;
 	}
 }
