@@ -1380,6 +1380,17 @@ component extends="preside.system.base.AdminHandler" {
 			, args       = { records=records, objectName=arguments.object }
 		);
 
+		var optionsCol = customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "getActionsForGridListing"
+			, defaultHandler = "admin.datamanager._getActionsForAjaxDataTables"
+			, args           = {
+				  records     = records
+				, objectName  = arguments.object
+				, actionsView = actionsView
+			}
+		);
+
 		customizationService.runCustomization(
 			  objectName     = arguments.object
 			, action         = "decorateRecordsForGridListing"
@@ -1394,16 +1405,6 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		);
 
-		var optionsCol = customizationService.runCustomization(
-			  objectName     = arguments.object
-			, action         = "getActionsForGridListing"
-			, defaultHandler = "admin.datamanager._getActionsForAjaxDataTables"
-			, args           = {
-				  records     = records
-				, objectName  = arguments.object
-				, actionsView = actionsView
-			}
-		);
 		QueryAddColumn( records, "_options" , optionsCol );
 		ArrayAppend( getRecordsArgs.gridFields, "_options" );
 
