@@ -53,6 +53,7 @@ component displayName="Email service" {
 		, string subject     = ""
 		, array  cc          = []
 		, array  bcc         = []
+		, array  replyto     = []
 		, string htmlBody    = ""
 		, string textBody    = ""
 		, struct params      = {}
