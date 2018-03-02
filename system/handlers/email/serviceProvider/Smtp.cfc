@@ -24,8 +24,11 @@ component {
 		if ( sendArgs.bcc.len() ) {
 			m.setBCc( sendArgs.bcc.toList( ";" ) );
 		}
-		if ( sendArgs.replyto.len() ) {
-			m.setReplyTo( sendArgs.replyto.toList( ";" ) );
+		if ( sendArgs.replyTo.len() ) {
+			m.setReplyTo( sendArgs.replyTo.toList( ";" ) );
+		}
+		if ( sendArgs.failTo.len() ) {
+			m.setFailTo( sendArgs.failTo.toList( ";" ) );
 		}
 		if ( Len( Trim( sendArgs.textBody ) ) ) {
 			m.addPart( type='text', body=Trim( sendArgs.textBody ) );

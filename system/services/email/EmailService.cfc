@@ -40,6 +40,8 @@ component displayName="Email service" {
 	 * @subject.hint     Optional email subject. If not supplied, the template handler should supply it
 	 * @cc.hint          Optional array of CC addresses
 	 * @bcc.hint         Optional array of BCC addresses
+	 * @replyTo.hint     Optional array of email addresses that replies should go to
+	 * @failTo.hint      Optional array of email addresses that failure notifications should go to
 	 * @htmlBody.hint    Optional HTML body
 	 * @textBody.hint    Optional plain text body
 	 * @params.hint      Optional struct of cfmail params (headers, attachments, etc.)
@@ -53,7 +55,8 @@ component displayName="Email service" {
 		, string subject     = ""
 		, array  cc          = []
 		, array  bcc         = []
-		, array  replyto     = []
+		, array  replyTo     = []
+		, array  failTo      = []
 		, string htmlBody    = ""
 		, string textBody    = ""
 		, struct params      = {}
