@@ -347,7 +347,7 @@ component {
 				, subQueryAlias  = "childRecords"
 				, subQueryColumn = parentField
 				, joinToTable    = arguments.objectName
-				, joinToColumn   = "id"
+				, joinToColumn   = _getPresideObjectService().getIdField( arguments.objectName )
 			} );
 			args.extraFilters.append( { filter={ "#parentField#"=arguments.treeViewParent } } );
 			args.selectFields.append( "Count( childRecords.#parentField# ) as child_count" );
