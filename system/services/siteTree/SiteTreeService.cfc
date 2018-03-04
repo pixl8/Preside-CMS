@@ -1484,6 +1484,11 @@ component {
 		return page.id ?: "";
 	}
 
+	private boolean function _isAutoRedirectEnabled() {
+		var site = $getRequestContext().getSite();
+		return isBoolean( site.auto_redirect ) && site.auto_redirect;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLoginService() {
 		return _loginService;
