@@ -1195,6 +1195,10 @@ component {
 			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
 		);
 
+		if ( !page.recordcount && _isAutoRedirectEnabled() ) {
+			_checkPageHistoryForSlug( arguments.slug );
+		}
+
 		return page.id ?: "";
 	}
 
@@ -1482,6 +1486,29 @@ component {
 		}
 
 		return page.id ?: "";
+	}
+
+	private void function _checkPageHistoryForSlug( required string slug ) {
+		var versionObjectName = _getPresideObjectService().getVersionObjectName( "page" );
+		var pageFromHistory   = _getPresideObjectService().selectData(
+			  objectName   = versionObjectName
+			, selectFields = [ "#versionObjectName#.id" ]
+			, filter       = "#versionObjectName#.slug = :slug and #versionObjectName#._hierarchy_slug = :_hierarchy_slug"
+			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
+			, orderBy      = "#versionObjectName#._version_number desc"
+			, maxRows      = 1
+		);
+
+		if ( pageFromHistory.recordcount ) {
+			var currentPage = _getPObj().selectData(
+				  filter       = { id=pageFromHistory.id, trashed=false }
+				, selectFields = [ "id" ]
+			);
+			if ( currentPage.recordCount ) {
+				var redirectUrl = $getRequestContext().buildLink( page=pageFromHistory.id );
+				location addtoken=false url=redirectUrl statusCode=301;
+			}
+		}
 	}
 
 	private boolean function _isAutoRedirectEnabled() {
