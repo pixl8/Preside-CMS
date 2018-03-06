@@ -21,6 +21,7 @@ component {
 	public any function getAssetUrl()    { return _getSticker().getAssetUrl   ( argumentCollection=arguments ); }
 	public any function include()        { return _getSticker().include       ( argumentCollection=arguments ); }
 	public any function includeData()    { return _getSticker().includeData   ( argumentCollection=arguments ); }
+	public any function includeUrl()     { return _getSticker().includeUrl    ( argumentCollection=arguments ); }
 	public any function renderIncludes() { return _getSticker().renderIncludes( argumentCollection=arguments ); }
 
 // PRIVATE HELPERS
