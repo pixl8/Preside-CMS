@@ -308,6 +308,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return _getSticker().includeData( argumentCollection = arguments );
 	}
 
+	public any function includeUrl() output=false {
+		return _getSticker().includeUrl( argumentCollection = arguments );
+	}
+
 	public string function renderIncludes( string type, string group="default" ) output=false {
 		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
 
