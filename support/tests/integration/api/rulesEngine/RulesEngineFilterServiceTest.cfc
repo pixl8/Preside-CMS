@@ -159,6 +159,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, someArgument = randomArgs.someArgument
 					, anotherArg   = randomArgs.anotherArg
 					, autoGroupBy  = true
+					, distinct     = true
 				} );
 			} );
 		} );
