@@ -1360,6 +1360,7 @@
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
 		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
 		<cfargument name="extraFilters"        type="array"   required="false" default="#ArrayNew()#" />
+		<cfargument name="distinct"            type="boolean" required="false" default="true" />
 		<cfargument name="searchFields"        type="array"   required="false" />
 
 		<cfscript>
