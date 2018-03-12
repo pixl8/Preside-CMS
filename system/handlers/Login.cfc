@@ -102,7 +102,7 @@ component output=false {
 
 // page type viewlets
 	private string function loginPage( event, rc, prc, args={} ) output=false {
-		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
+		if ( websiteLoginService.isLoggedIn() && ( !websiteLoginService.isAutoLoggedIn() || _isDirectLoginPageRequest( event ) ) ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 
@@ -171,6 +171,13 @@ component output=false {
 
 	private boolean function _getRememberMeExpiry() output=false {
 		return getSystemSetting( "website_users", "remember_me_expiry", 90 );
+	}
+
+	private boolean function _isDirectLoginPageRequest( event ) {
+		var currentUrl = event.getSiteUrl() & event.getCurrentUrl( includeQueryString=false );
+		var loginPage  = event.buildLink( page="login" );
+
+		return currentUrl == loginPage;
 	}
 
 }
