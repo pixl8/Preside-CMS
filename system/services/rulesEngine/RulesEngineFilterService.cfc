@@ -144,6 +144,7 @@ component displayName="Rules Engine Filter Service" {
 			, expressionArray = arguments.expressionArray
 		) );
 		args.autoGroupBy = true;
+		args.distinct    = true;
 
 		args.delete( "expressionArray" );
 

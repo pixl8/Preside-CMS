@@ -514,6 +514,7 @@ component extends="preside.system.base.AdminHandler" {
 			} catch ( any e ) {
 
 				if ( ReFindNoCase( "^PresideCMS\.AssetManager", e.type ?: "" ) ) {
+					result.success = false;
 					result.message = translateResource( ReReplace( e.type, "^PresideCMS\.", "cms:" ) );
 				} else {
 					logError( e );
