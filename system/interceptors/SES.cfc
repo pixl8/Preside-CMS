@@ -232,7 +232,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		}
 
 		var path    = event.getCurrentUrl( includeQueryString=true );
-		var fullUrl = event.getBaseUrl() & path;
+		var fullUrl = event.getSiteUrl() & path;
 
 		urlRedirectsService.redirectOnMatch(
 			  path    = path
