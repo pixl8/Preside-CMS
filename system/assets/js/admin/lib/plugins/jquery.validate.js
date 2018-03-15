@@ -1397,7 +1397,7 @@ $.extend( $.validator, {
 
 		// http://jqueryvalidation.org/min-method/
 		min: function( value, element, param ) {
-			return this.optional( element ) || value >= param;
+			return this.optional(element) || value >= ( ( typeof(param) == "object" ) ? param.param : param );
 		},
 
 		// http://jqueryvalidation.org/max-method/
