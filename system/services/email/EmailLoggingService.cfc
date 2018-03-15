@@ -343,6 +343,7 @@ component {
 		var resentMessageId        = $sendEmail(
 		      template    = message.email_template
 		    , recipientId = message[ recipientIdLogProperty ]
+		    , to          = !len( message[ recipientIdLogProperty ] ) ? [ message.recipient ] : []
 		    , args        = sendArgs
 		    , resendOf    = message.id
 		    , returnLogId = true
