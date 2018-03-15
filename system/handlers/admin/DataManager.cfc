@@ -80,9 +80,9 @@ component extends="preside.system.base.AdminHandler" {
 
 			} else {
 				args.append( {
-					  useMultiActions     = IsTrue( prc.canDelete      ?: "" )
+					  useMultiActions     = IsTrue( prc.canDelete ?: "" ) || ArrayLen( prc.batchEditableFields ?: [] )
 					, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-					, batchEditableFields = prc.batchEditableFields ?: {}
+					, batchEditableFields = prc.batchEditableFields ?: []
 					, allowDataExport     = true
 				} );
 
@@ -585,7 +585,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object              = prc.objectName
-				, useMultiActions     = prc.canDelete
+				, useMultiActions     = IsTrue( rc.useMultiActions ?: "" )
 				, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
 				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
 				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
@@ -604,7 +604,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object          = objectName
-				, useMultiActions = _checkPermission( argumentCollection=arguments, key="delete", throwOnError=false )
+				, useMultiActions = IsTrue( prc.canDelete ?: "" ) || ArrayLen( prc.batchEditableFields ?: [] )
 				, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
 				, actionsView     = "/admin/datamanager/_oneToManyListingActions"
 				, filter          = { "#relationshipKey#" : parentId }
