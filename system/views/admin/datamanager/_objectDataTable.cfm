@@ -5,6 +5,7 @@
 	param name="args.multiActionUrl"      type="string"  default="";
 	param name="args.isMultilingual"      type="boolean" default=false;
 	param name="args.draftsEnabled"       type="boolean" default=false;
+	param name="args.noActions"           type="boolean" default=false;
 	param name="args.gridFields"          type="array";
 	param name="args.hiddenGridFields"    type="array"   default=[];
 	param name="args.filterContextData"   type="struct"  default={};
@@ -14,7 +15,7 @@
 	param name="args.clickableRows"       type="boolean" default=true;
 	param name="args.compact"             type="boolean" default=false;
 	param name="args.batchEditableFields" type="array"   default=[];
-	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled } );
+	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
 	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
 
@@ -133,6 +134,7 @@
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
+		    data-no-actions="#args.noActions#"
 		    data-allow-filter="#args.allowFilter#"
 		    data-compact="#args.compact#"
 		>
@@ -155,7 +157,9 @@
 					<cfif args.isMultilingual>
 						<th>#translateResource( uri="cms:datamanager.translate.column.status" )#</th>
 					</cfif>
-					<th>&nbsp;</th>
+					<cfif !args.noActions>
+						<th>&nbsp;</th>
+					</cfif>
 				</tr>
 			</thead>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
