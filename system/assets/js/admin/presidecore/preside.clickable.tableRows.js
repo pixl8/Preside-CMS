@@ -16,6 +16,10 @@
 				$firstLink = $( this ).find( 'a:first' );
 			}
 
+			if ( !$firstLink.length ) {
+				$firstLink = $( this ).find( 'input:first' );
+			}
+
 			if ( $firstLink.length ) {
 				e.preventDefault();
 				$firstLink.get(0).click();

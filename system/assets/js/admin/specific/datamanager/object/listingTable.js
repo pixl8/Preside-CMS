@@ -35,6 +35,7 @@
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , compact             = tableSettings.compact         || cfrequest.compact
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
+			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? true : cfrequest.noActions       ) : tableSettings.noActions
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
@@ -59,6 +60,7 @@
 
 				if ( draftsEnabled  ) { dynamicHeadersOffset++; }
 				if ( isMultilingual ) { dynamicHeadersOffset++; }
+				if ( noActions ) { dynamicHeadersOffset--; }
 
 				for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
 					$header = $( $tableHeaders.get(i) );
@@ -83,12 +85,14 @@
 					} );
 				}
 
-				colConfig.push( {
-					sClass    : "center",
-					bSortable : false,
-					mData     : "_options",
-					sWidth    : "9em"
-				} );
+				if ( !noActions ) {
+					colConfig.push( {
+						sClass    : "center",
+						bSortable : false,
+						mData     : "_options",
+						sWidth    : "9em"
+					} );
+				}
 				$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );
 
 				for( i=0; i < $tableHeaders.length; i++ ){
