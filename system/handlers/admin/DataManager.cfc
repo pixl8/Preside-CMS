@@ -69,7 +69,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			args.append( {
-				  gridFields          = prc.gridFields       ?: [ "label","datecreated","datemodified" ]
+				  gridFields          = prc.gridFields       ?: _getObjectFieldsForGrid( objectName )
 				, hiddenGridFields    = prc.hiddenGridFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
@@ -586,7 +586,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object              = prc.objectName
 				, useMultiActions     = IsTrue( rc.useMultiActions ?: "" )
-				, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
+				, gridFields          = ( rc.gridFields          ?: _getObjectFieldsForGrid( objectName ).toList() )
 				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
 				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
 				, includeActions      = !IsTrue( rc.noActions ?: "" )
@@ -606,7 +606,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object          = objectName
 				, useMultiActions = IsTrue( prc.canDelete ?: "" ) || ArrayLen( prc.batchEditableFields ?: [] )
-				, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+				, gridFields      = ( rc.gridFields ?: _getObjectFieldsForGrid( objectName ).toList() )
 				, actionsView     = "/admin/datamanager/_oneToManyListingActions"
 				, filter          = { "#relationshipKey#" : parentId }
 			}
@@ -2424,7 +2424,7 @@ component extends="preside.system.base.AdminHandler" {
 			  parent             = rc.parentId ?: ""
 			, objectName         = objectName
 			, currentLevel       = Val( rc.parentLevel ?: "" ) + 1
-			, gridFields         = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+			, gridFields         = prc.gridFields ?: _getObjectFieldsForGrid( objectName )
 			, isMultilingual     = IsTrue( prc.isMultilingual ?: "" )
 			, draftsEnabled      = IsTrue( prc.draftsEnabled  ?: "" )
 			, baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" )

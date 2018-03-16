@@ -349,10 +349,10 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( StructKeyExists( obj.properties, dateCreatedField ) and not StructKeyExists( cleanedData, dateCreatedField ) ) {
+		if ( dateCreatedField.len() && obj.properties.keyExists( dateCreatedField ) && !cleanedData.keyExists( dateCreatedField ) ) {
 			cleanedData[ dateCreatedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, dateModifiedField ) and not StructKeyExists( cleanedData, dateModifiedField ) ) {
+		if ( dateModifiedField.len() && obj.properties.keyExists( dateModifiedField ) && !cleanedData.keyExists( dateModifiedField ) ) {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
 		if ( StructKeyExists( obj.properties, idField ) ) {
@@ -1379,6 +1379,12 @@ component displayName="Preside Object Service" {
 	 * @objectName Name of the object whose dateCreated field you wish to get
 	 */
 	public string function getDateCreatedField( required string objectName ) {
+		var noDateCreated = getObjectAttribute( arguments.objectName, "noDateCreated", "" );
+
+		if ( IsBoolean( noDateCreated ) && noDateCreated ) {
+			return "";
+		}
+
 		return getObjectAttribute( arguments.objectName, "dateCreatedField", "dateCreated" );
 	}
 
@@ -1389,6 +1395,12 @@ component displayName="Preside Object Service" {
 	 * @objectName Name of the object whose dateModified field you wish to get
 	 */
 	public string function getDateModifiedField( required string objectName ) {
+		var noDateModified = getObjectAttribute( arguments.objectName, "noDateModified", "" );
+
+		if ( IsBoolean( noDateModified ) && noDateModified ) {
+			return "";
+		}
+
 		return getObjectAttribute( arguments.objectName, "dateModifiedField", "dateModified" );
 	}
 

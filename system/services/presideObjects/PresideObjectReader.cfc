@@ -234,9 +234,13 @@ component {
 		var dbAdapterSupportsFkIndexes = _getDbAdapter().autoCreatesFkIndexes();
 		var corePropertyNames = [
 			  arguments.meta.idField           ?: "id"
-			, arguments.meta.dateCreatedField  ?: "datecreated"
-			, arguments.meta.dateModifiedField ?: "datemodified"
 		];
+		if ( !arguments.meta.noDateCreated ) {
+			corePropertyNames.append( "datecreated" );
+		}
+		if ( !arguments.meta.noDateModified ) {
+			corePropertyNames.append( "datemodified" );
+		}
 		if ( ( arguments.meta.labelField ?: "label" ) == "label" ) {
 			corePropertyNames.append( "label" );
 		}
@@ -331,24 +335,28 @@ component {
 			arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
 		}
 
-		if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
-			StructAppend( arguments.meta.properties[ dateCreatedField ], defaults.dateCreated, false );
-		} else {
-			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
-			ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
-		}
-		if ( dateCreatedField.len() && dateCreatedField != "dateCreated" && !arguments.meta.propertyNames.findNoCase( "dateCreated" ) ) {
-			arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
+		if ( !arguments.meta.noDateCreated ) {
+			if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
+				StructAppend( arguments.meta.properties[ dateCreatedField ], defaults.dateCreated, false );
+			} else {
+				arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
+				ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
+			}
+			if ( dateCreatedField.len() && dateCreatedField != "dateCreated" && !arguments.meta.propertyNames.findNoCase( "dateCreated" ) ) {
+				arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
+			}
 		}
 
-		if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
-			StructAppend( arguments.meta.properties[ dateModifiedField ], defaults.datemodified, false );
-		} else {
-			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
-			ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
-		}
-		if ( dateModifiedField.len() && dateModifiedField != "dateModified" && !arguments.meta.propertyNames.findNoCase( "dateModified" ) ) {
-			arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
+		if ( !arguments.meta.noDateModified ) {
+			if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
+				StructAppend( arguments.meta.properties[ dateModifiedField ], defaults.datemodified, false );
+			} else {
+				arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
+				ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
+			}
+			if ( dateModifiedField.len() && dateModifiedField != "dateModified" && !arguments.meta.propertyNames.findNoCase( "dateModified" ) ) {
+				arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
+			}
 		}
 
 	}
@@ -457,11 +465,23 @@ component {
 	}
 
 	private void function _defineCreatedField( required struct objectMeta ) {
-		arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "datecreated";
+		if ( IsBoolean ( arguments.objectMeta.noDateCreated ?: "" ) && arguments.objectMeta.noDateCreated ) {
+			arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "";
+		} else {
+			arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "datecreated";
+		}
+		arguments.objectMeta.noDateCreated = arguments.objectMeta.noDateCreated ?: arguments.objectMeta.dateCreatedField == "";
+		arguments.objectMeta.noDateCreated = IsBoolean ( arguments.objectMeta.noDateCreated ?: "" ) && arguments.objectMeta.noDateCreated;
 	}
 
 	private void function _defineModifiedField( required struct objectMeta ) {
-		arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "datemodified";
+		if ( IsBoolean ( arguments.objectMeta.noDateModified ?: "" ) && arguments.objectMeta.noDateModified ) {
+			arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "";
+		} else {
+			arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "datemodified";
+		}
+		arguments.objectMeta.noDateModified = arguments.objectMeta.noDateModified ?: arguments.objectMeta.dateModifiedField == "";
+		arguments.objectMeta.noDateModified = IsBoolean ( arguments.objectMeta.noDateModified ?: "" ) && arguments.objectMeta.noDateModified;
 	}
 
 	private void function _defineLabelField( required struct objectMeta ) {
