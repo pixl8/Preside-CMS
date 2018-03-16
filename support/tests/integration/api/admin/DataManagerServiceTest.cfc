@@ -135,8 +135,58 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, attributeName = "datamanagerGridFields"
 					, defaultValue  = "testlabelfield,datecreated,datemodified"
 				).$results( "field1,field2,field3" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateCreated"
+				).$results( false );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateModified"
+				).$results( false );
 
 				expect( dataManagerService.listGridFields( "object4" ) ).toBe( ["field1","field2","field3"] );
+			} );
+		} );
+
+		describe( "defaultGridFields()", function(){
+			it( "should return default grid fields for object", function(){
+				var dataManagerService = _getService();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "labelfield"
+					, defaultValue  = "label"
+				).$results( "testlabelfield" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateCreated"
+				).$results( false );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateModified"
+				).$results( false );
+
+				expect( dataManagerService.defaultGridFields( "object4" ) ).toBe( ["testlabelfield","datecreated","datemodified"] );
+			} );
+
+			it( "should return default grid fields for object without modified and created dates if excluded", function(){
+				var dataManagerService = _getService();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "labelfield"
+					, defaultValue  = "label"
+				).$results( "testlabelfield" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateCreated"
+				).$results( true );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateModified"
+				).$results( true );
+
+				expect( dataManagerService.defaultGridFields( "object4" ) ).toBe( ["testlabelfield"] );
 			} );
 		} );
 
