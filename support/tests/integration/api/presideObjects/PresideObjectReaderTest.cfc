@@ -247,6 +247,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dummyObj.meta.properties.keyExists( "datemodified" ) ).toBeFalse( "DateModified field was created when it should not have been!" );
 			} );
 
+			it( "should NOT add a DateModified field to an object that specifies noDateModified", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noDateModified=true, properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datemodified" ) ).toBeFalse( "DateModified field was created when it should not have been!" );
+			} );
+
 			it( "should create DateModified field with system defaults when DateModifiedField is not 'DateModified' and the alternative does not already exist", function(){
 				var reader = getReader();
 				var dummyObj = {
@@ -317,7 +328,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dummyObj.meta.properties.keyExists( "datecreated" ) ).toBeFalse( "dateCreated field was created when it should not have been!" );
 			} );
 
-			it( "should create dateCreated field with system defaults when DateModifiedField is not 'dateCreated' and the alternative does not already exist", function(){
+			it( "should NOT add a dateCreated field to an object that specifies noDateCreated", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noDateCreated=true, properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datecreated" ) ).toBeFalse( "dateCreated field was created when it should not have been!" );
+			} );
+
+			it( "should create dateCreated field with system defaults when DateCreatedField is not 'dateCreated' and the alternative does not already exist", function(){
 				var reader = getReader();
 				var dummyObj = {
 					meta = { name="mytestobject", dateCreatedField="creation_date", properties={} }

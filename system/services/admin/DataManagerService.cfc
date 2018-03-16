@@ -105,18 +105,39 @@ component {
 	}
 
 	public array function listGridFields( required string objectName ) {
-		var labelfield = _getPresideObjectService().getObjectAttribute(
+		var fields = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerGridFields"
+			, defaultValue  = arrayToList( defaultGridFields( arguments.objectName ) )
+		);
+
+		return ListToArray( fields );
+	}
+
+	public array function defaultGridFields( required string objectName ) {
+		var labelfield     = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "labelfield"
 			, defaultValue  = "label"
 		);
-		var fields = _getPresideObjectService().getObjectAttribute(
+		var noDateCreated  = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
-			, attributeName = "datamanagerGridFields"
-			, defaultValue  = "#labelfield#,datecreated,datemodified"
+			, attributeName = "noDateCreated"
 		);
+		var noDateModified = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "noDateModified"
+		);
+		var fields     = [ labelfield ];
 
-		return ListToArray( fields );
+		if ( !noDateCreated ) {
+			fields.append( "datecreated" );
+		}
+		if ( !noDateModified ) {
+			fields.append( "datemodified" );
+		}
+
+		return fields;
 	}
 
 	public array function listHiddenGridFields( required string objectName ) {
