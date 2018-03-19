@@ -355,7 +355,7 @@ component displayName="Preside Object Service" {
 		if ( dateModifiedField.len() && obj.properties.keyExists( dateModifiedField ) && !cleanedData.keyExists( dateModifiedField ) ) {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, idField ) ) {
+		if ( ListFindNoCase( obj.dbFieldList, idField ) && StructKeyExists( obj.properties, idField ) ) {
 			if ( not StructKeyExists( cleanedData, idField ) or not Len( Trim( cleanedData[idField] ) ) ) {
 				newId = _generateNewIdWhenNecessary( generator=( obj.properties[idField].generator ?: "UUID" ) );
 				if ( Len( Trim( newId ) ) ) {

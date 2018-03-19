@@ -232,9 +232,11 @@ component {
 			, required     = "false"
 		};
 		var dbAdapterSupportsFkIndexes = _getDbAdapter().autoCreatesFkIndexes();
-		var corePropertyNames = [
-			  arguments.meta.idField           ?: "id"
-		];
+		var corePropertyNames = [];
+
+		if ( !arguments.meta.noId ) {
+			corePropertyNames.append( arguments.meta.idField ?: "id" );
+		}
 		if ( !arguments.meta.noDateCreated ) {
 			corePropertyNames.append( "datecreated" );
 		}
@@ -325,14 +327,16 @@ component {
 			}
 		}
 
-		if ( arguments.meta.propertyNames.find( idField ) ) {
-			StructAppend( arguments.meta.properties[ idField ], defaults.id, false );
-		} else {
-			arguments.meta.properties[ idField ] = defaults[ "id" ];
-			ArrayPrepend( arguments.meta.propertyNames, idField );
-		}
-		if ( idField.len() && idField != "id" && !arguments.meta.propertyNames.findNoCase( "id" ) ) {
-			arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
+		if ( !arguments.meta.noId ) {
+			if ( arguments.meta.propertyNames.find( idField ) ) {
+				StructAppend( arguments.meta.properties[ idField ], defaults.id, false );
+			} else {
+				arguments.meta.properties[ idField ] = defaults[ "id" ];
+				ArrayPrepend( arguments.meta.propertyNames, idField );
+			}
+			if ( idField.len() && idField != "id" && !arguments.meta.propertyNames.findNoCase( "id" ) ) {
+				arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
+			}
 		}
 
 		if ( !arguments.meta.noDateCreated ) {
@@ -461,7 +465,12 @@ component {
 	}
 
 	private void function _defineIdField( required struct objectMeta ) {
-		arguments.objectMeta.idField = arguments.objectMeta.idField ?: "id";
+		if ( IsBoolean ( arguments.objectMeta.noId ?: "" ) && arguments.objectMeta.noId ) {
+			arguments.objectMeta.idField = "";
+		} else {
+			arguments.objectMeta.idField = arguments.objectMeta.idField ?: "id";
+		}
+		arguments.objectMeta.noId = !Len( Trim( arguments.objectMeta.idField ) );
 	}
 
 	private void function _defineCreatedField( required struct objectMeta ) {
