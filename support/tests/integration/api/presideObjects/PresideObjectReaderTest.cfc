@@ -213,6 +213,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dummyObj.meta.properties.mytestobject_id.generator ?: "" ).toBe( "none" );
 			} );
 
+			it( "should NOT add an ID field to an object that specifies @noid", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noid=true, properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "id" ) ).toBeFalse( "ID field was created when it should not have been!" );
+			} );
+
+			it( "should NOT add a DateModified field to an object that specifies noDateModified", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noDateModified=true, properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datemodified" ) ).toBeFalse( "DateModified field was created when it should not have been!" );
+			} );
+
 			it( "should add a DateModified field to an object that does not have one", function(){
 				var reader = getReader();
 				var dummyObj = {
