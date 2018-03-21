@@ -405,7 +405,7 @@ component {
 			, autoGroupBy  = true
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
-			result.text = _getLabelRendererService().renderLabel( labelRenderer, result );
+			result.text  = DecodeForHTML(_getLabelRendererService().renderLabel( labelRenderer, result ));
 			result.value = result.id;
 			result.delete( "label" );
 			result.delete( "id" );
