@@ -288,6 +288,10 @@ component {
 					if ( dateCompare( oldData[ field ], arguments.newData[ field ] ) ) {
 						changedFields.append( field );
 					}
+				} else if ( propDbType == "varchar" || propDbType == "text" ){
+					if ( trim( oldData[ field ] ?: "" ) != trim( arguments.newData[ field ] ?: "" ) ){
+						changedFields.append( field );
+					}
 				} else if ( Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
 					changedFields.append( field );
 				}
