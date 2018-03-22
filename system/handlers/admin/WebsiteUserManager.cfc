@@ -101,7 +101,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function editUserAction( event, rc, prc ) {
-		_checkPermissions( event=event, key="usermanager.edit" );
+		_checkPermissions( event=event, key="websiteUserManager.edit" );
 
 		runEvent(
 			  event          = "admin.dataManager._editRecordAction"
