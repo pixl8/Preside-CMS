@@ -408,12 +408,13 @@ component {
 	) {
 		arguments.type = arguments.type == "text" ? "text" : "html";
 		var replaced = JavaCast( "String", arguments.text );
+		var Matcher  = CreateObject( "java", "java.util.regex.Matcher" );
 
 		for( var paramName in arguments.params ) {
 			var token = "(?i)\Q${#paramName#}\E";
 			var value = IsSimpleValue( arguments.params[ paramName ] ) ? arguments.params[ paramName ] : ( arguments.params[ paramName ][ arguments.type ] ?: "" );
 
-			replaced = replaced.replaceAll( token, value );
+			replaced = replaced.replaceAll( token, Matcher.quoteReplacement( value ) );
 		}
 
 		return replaced;
