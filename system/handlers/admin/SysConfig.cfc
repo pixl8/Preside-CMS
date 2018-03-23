@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="siteService"                inject="siteService";
 	property name="messageBox"                 inject="coldbox:plugin:messageBox";
+	property name="presideObjectService"         inject="presideObjectService";
 
 
 // LIFECYCLE EVENTS
@@ -33,8 +34,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public any function category( event, rc, prc ) {
-		var categoryId = Trim( rc.id   ?: "" );
-		var siteId     = Trim( rc.site ?: "" );
+		var categoryId       = Trim( rc.id   ?: "" );
+		var siteId           = Trim( rc.site ?: "" );
+		var versionId        = Val( rc.version ?: "" );
+		var fromVersionTable = Val( versionId ) ? true : false
 
 		try {
 			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
@@ -46,14 +49,22 @@ component extends="preside.system.base.AdminHandler" {
 		var isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
 		if ( isSiteConfig ) {
 			prc.savedData = systemConfigurationService.getCategorySettings(
-				  category        = categoryId
-				, includeDefaults = false
-				, siteId          = siteId
+				  category           = categoryId
+				, includeDefaults    = false
+				, siteId             = siteId
+				, fromVersionTable   = fromVersionTable
+				, maxVersionNumber   = versionId
+				, maxRows            = 2
+				, orderBy            = "dateCreated DESC"
 			);
 		} else {
 			prc.savedData = systemConfigurationService.getCategorySettings(
 				  category           = categoryId
 				, globalDefaultsOnly = true
+				, fromVersionTable   = fromVersionTable
+				, maxVersionNumber   = versionId
+				, maxRows            = 2
+				, orderBy            = "dateCreated DESC"
 			);
 		}
 
@@ -147,6 +158,44 @@ component extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:sysconfig.saved" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#" ) );
+	}
+
+	public void function configHistory( event, rc, prc ) {
+		var categoryId = Trim( rc.id   ?: "" );
+		var siteId     = Trim( rc.site ?: "" );
+
+		try {
+			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
+		} catch( "SystemConfigurationService.category.notFound" e ) {
+			event.notFound();
+		}
+		// prc.sites = siteService.listSites();
+	}
+
+	public void function getConfigHistoryForAjaxDataTables( event, rc, prc ) {
+		rc.id="recaptcha";
+		rc.setting = "site_key,secret_key";
+
+		var nextVersionNumber = presideObjectService.getNextVersionNumber();
+		var allFieldsData = presideObjectService.selectData(
+			objectName       = "system_config",
+			filter           = "category = :category AND setting IN ( :setting )",
+			filterParams     = { "category"=rc.id, "setting"={ value=rc.setting, list="yes" } },
+			fromVersionTable = true,
+			maxVersionNumber = nextVersionNumber
+		);
+		var configIds = listRemoveDuplicates(valueList(allFieldsData.id));
+
+		runEvent(
+			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = "system_config"
+				, recordId   = configIds
+				, actionsView = "admin/SysConfig/_historyActions"
+			}
+		);
 	}
 
 // VIEWLETS

@@ -84,6 +84,9 @@ component displayName="System configuration service" {
 		  required string  category
 		,          boolean includeDefaults    = true
 		,          boolean globalDefaultsOnly = false
+		,          boolean fromVersionTable   = false
+		,          numeric maxVersionNumber   = 0
+		,          string  orderBy            = ""
 		,          string  siteId             = _getSiteService().getActiveSiteId()
 	) {
 		_reloadCheck();
@@ -92,8 +95,11 @@ component displayName="System configuration service" {
 
 		if ( !arguments.globalDefaultsOnly ) {
 			var rawSiteResult = _getDao().selectData(
-				  selectFields = [ "setting", "value" ]
-				, filter       = { category = arguments.category, site=arguments.siteId }
+				  selectFields     = [ "setting", "value" ]
+				, filter           = { category = arguments.category, site=arguments.siteId }
+				, fromVersionTable = arguments.fromVersionTable
+				, maxVersionNumber = arguments.maxVersionNumber
+				, orderBy          = arguments.orderBy
 			);
 
 			for( var record in rawSiteResult ){
@@ -104,9 +110,12 @@ component displayName="System configuration service" {
 		if ( arguments.includeDefaults ) {
 			var injectedStartsWith = "#arguments.category#.";
 			var rawGlobalResult    = _getDao().selectData(
-				  selectFields = [ "setting", "value" ]
-				, filter       = "category = :category and site is null"
-				, filterParams = { category = arguments.category }
+				  selectFields     = [ "setting", "value" ]
+				, filter           = "category = :category and site is null"
+				, filterParams     = { category = arguments.category }
+				, fromVersionTable = arguments.fromVersionTable
+				, maxVersionNumber = arguments.maxVersionNumber
+				, orderBy          = arguments.orderBy
 			);
 
 			for( var record in rawGlobalResult ){
