@@ -261,10 +261,10 @@ component extends="preside.system.base.AdminHandler" {
 		var pageType         = "";
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
-		prc.page              = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
-		prc.canPublish        = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
-		prc.canSaveDraft      = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
-		rc._backToEdit = cookie.sitetree_editPage_backToEdit ?: false;
+		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+		rc._backToEdit   = cookie.sitetree_editPage_backToEdit ?: false;
 
 		var version = Val ( rc.version    ?: "" );
 
