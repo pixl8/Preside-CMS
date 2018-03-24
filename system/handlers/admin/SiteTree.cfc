@@ -8,6 +8,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
+	property name="cookieService"                    inject="cookieService";
 	property name="messageBox"                       inject="coldbox:plugin:messageBox";
 
 	public void function preHandler( event, rc, prc ) {
@@ -264,7 +265,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
-		rc._backToEdit   = cookie.sitetree_editPage_backToEdit ?: false;
+		rc._backToEdit   = IsTrue( cookieService.getVar( "sitetree_editPage_backToEdit", "" ) );
 
 		var version = Val ( rc.version    ?: "" );
 
@@ -383,9 +384,9 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-		cookie.sitetree_editPage_backToEdit = false;
-		if ( Val( event.getValue( name="_backToEdit", defaultValue=0 ) ) ) {
-			cookie.sitetree_editPage_backToEdit = true;
+		cookieService.setVar( name="sitetree_editPage_backToEdit", value=false );
+		if ( IsTrue( rc._backToEdit ?: "" ) ) {
+			cookieService.setVar( name="sitetree_editPage_backToEdit", value=true );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persist="_backToEdit" );
 		} else {
 			if ( _isManagedPage( page.parent_page, page.page_type ) ) {
