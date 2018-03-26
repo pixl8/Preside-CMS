@@ -28,7 +28,7 @@
 			  , isMultilingual      = tableSettings.isMultilingual  || cfrequest.isMultilingual || false
 			  , draftsEnabled       = tableSettings.draftsEnabled   || cfrequest.draftsEnabled  || false
 			  , object              = tableSettings.objectName      || cfrequest.objectName     || ""
-			  , objectTitle         = tableSettings.objectTitle     || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
+			  , objectTitle         = tableSettings.objectTitle     || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" )
 			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
 			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
 			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
