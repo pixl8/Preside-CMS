@@ -10,6 +10,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="pageCache"                        inject="cachebox:PresidePageCache";
+	property name="cookieService"                    inject="cookieService";
 
 	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -265,6 +266,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+		rc._backToEdit   = IsTrue( cookieService.getVar( "sitetree_editPage_backToEdit", "" ) );
 
 		var version = Val ( rc.version    ?: "" );
 
@@ -383,11 +385,16 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-
-		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
-			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		cookieService.setVar( name="sitetree_editPage_backToEdit", value=false );
+		if ( IsTrue( rc._backToEdit ?: "" ) ) {
+			cookieService.setVar( name="sitetree_editPage_backToEdit", value=true );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persist="_backToEdit" );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			}
 		}
 	}
 
