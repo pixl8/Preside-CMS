@@ -8,6 +8,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
+	property name="cookieService"                    inject="cookieService";
 	property name="messageBox"                       inject="coldbox:plugin:messageBox";
 
 	public void function preHandler( event, rc, prc ) {
@@ -264,6 +265,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+		rc._backToEdit   = IsTrue( cookieService.getVar( "sitetree_editPage_backToEdit", "" ) );
 
 		var version = Val ( rc.version    ?: "" );
 
@@ -382,11 +384,16 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-
-		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
-			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		cookieService.setVar( name="sitetree_editPage_backToEdit", value=false );
+		if ( IsTrue( rc._backToEdit ?: "" ) ) {
+			cookieService.setVar( name="sitetree_editPage_backToEdit", value=true );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persist="_backToEdit" );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			}
 		}
 	}
 
