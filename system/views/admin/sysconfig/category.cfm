@@ -21,6 +21,7 @@
 		, isDraft          = IsTrue( page._version_is_draft ?: "" )
 		, baseUrl          = event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#&version=" )
 		, allVersionsUrl   = event.buildAdminLink( linkTo="sysconfig.configHistory", queryString="id=#categoryId#" )
+		<!--- sysconfig.discardDraftsAction event will not be available, but that is not needed here as we don't support drafts for settings --->
 		, discardDraftsUrl = ( canSaveDraft ? event.buildAdminlink( linkTo="sysconfig.discardDraftsAction", queryString="id=#categoryId#" ) : "" )
 	} )#
 	<cfif sites.recordcount gt 1>

@@ -1,8 +1,7 @@
 <cfscript>
-	prc.pageIcon  = "history";
-	prc.pageTitle = "Config history";
-	prc.pageSubTitle = "Config history";
-	// prc.pageSubTitle = translateResource( uri="cms:sitetree.configHistory.subtitle", data=[ prc.page.title ] );
+	prc.pageIcon     = "history";
+	prc.pageTitle    = translateResource( uri="cms:sysconfig.history.title", data=[ rc.id ] );
+	prc.pageSubTitle = translateResource( uri="cms:sysconfig.history.subTitle" );
 
 	id = rc.id ?: "";
 </cfscript>

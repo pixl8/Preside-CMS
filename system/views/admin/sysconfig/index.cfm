@@ -17,7 +17,7 @@
 				</div>
 				<a href="#versionHistoryUrl#" class="pull-right">
 					<i class="fa fa-fw fa-history"></i>
-					#translateResource( "cms:sitetree.page.history.dropdown" )#
+					#translateResource( "cms:sysconfig.viewHistory.label" )#
 				</a>&nbsp; 
 			</li>
 		</cfloop>
