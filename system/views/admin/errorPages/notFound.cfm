@@ -7,7 +7,7 @@
 <cfoutput>
 	<p class="alert alert-danger">
 		<i class="fa fa-fw fa-exclamation-triangle"></i>
-		#translateresource(" cms:notfound.page.description" )#
+		#translateresource( "cms:notfound.page.description" )#
 	</p>
 </cfoutput>
 

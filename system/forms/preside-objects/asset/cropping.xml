@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset: cropping form
+
+This form is used when editing image assets in the asset manager section of the
+administrator, and adds focal point controls.
+-->
+<form>
+
+	<tab id="cropping" sortorder="15" title="preside-objects.asset:cropping.tab.title">
+		<fieldset id="focal_point" sortorder="10">
+			<field sortorder="10" binding="asset.focal_point" control="focalPointPicker" />
+		</fieldset>
+		<fieldset id="crop_hint" sortorder="20">
+			<field sortorder="10" binding="asset.crop_hint"   control="cropHintPicker" />
+		</fieldset>
+	</tab>
+
+</form>

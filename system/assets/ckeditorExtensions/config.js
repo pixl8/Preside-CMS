@@ -12,7 +12,7 @@
 
 CKEDITOR.editorConfig = function( config ) {
 	// activate our plugins
-	config.extraPlugins = "widgets,imagepicker,attachmentpicker,stylesheetparser,presidelink";
+	config.extraPlugins = "autogrow,widgets,imagepicker,attachmentpicker,stylesheetparser,presidelink";
 
 	// the skin we are using
 	config.skin = "bootstrapck";

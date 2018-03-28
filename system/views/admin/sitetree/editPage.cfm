@@ -38,7 +38,7 @@
 		, id               = pageId
 		, version          = version
 		, isDraft          = IsTrue( page._version_is_draft ?: "" )
-		, baseUrl          = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version=" )
+		, baseUrl          = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version={version}" )
 		, allVersionsUrl   = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
 		, discardDraftsUrl = ( canSaveDraft ? event.buildAdminlink( linkTo="sitetree.discardDraftsAction", queryString="id=#pageId#" ) : "" )
 	} )#
@@ -170,7 +170,13 @@
 		)#
 
 
-
+		#renderFormControl(
+			  type    = "yesNoSwitch"
+			, context = "admin"
+			, name    = "_backToEdit"
+			, id      = "_backToEdit"
+			, label   = translateResource( uri="cms:sitetree.editPage.backToEdit" )
+		)#
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
 				<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">

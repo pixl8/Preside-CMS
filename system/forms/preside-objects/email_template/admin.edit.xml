@@ -6,7 +6,11 @@
 			<field binding="email_template.email_blueprint" required="true"  sortorder="20" />
 			<field binding="email_template.from_address"    required="false" sortorder="30" control="textinput" />
 			<field binding="email_template.track_clicks"    required="false" sortorder="40" />
-			<field binding="email_template.view_online"     required="false" sortorder="50" />
+		</fieldset>
+		<fieldset id="save_content" sortorder="15">
+			<field binding="email_template.view_online"         required="false" sortorder="10" />
+			<field binding="email_template.save_content"        required="false" sortorder="20" />
+			<field binding="email_template.save_content_expiry" required="false" sortorder="30" />
 		</fieldset>
 		<fieldset id="body" sortorder="20">
 			<field binding="email_template.subject"     control="textinput"   sortorder="10" />

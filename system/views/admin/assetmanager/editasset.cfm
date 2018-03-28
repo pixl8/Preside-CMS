@@ -1,8 +1,9 @@
 <cfscript>
-	assetId   = rc.asset      ?: "";
-	asset     = prc.asset     ?: StructNew();
-	assetType = prc.assetType ?: QueryNew( "" );
-	versions  = prc.versions  ?: QueryNew( "" );
+	assetId      = rc.asset         ?: "";
+	asset        = prc.asset        ?: StructNew();
+	assetType    = prc.assetType    ?: QueryNew( "" );
+	versions     = prc.versions     ?: QueryNew( "" );
+	isImageAsset = prc.isImageAsset ?: false;
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -76,11 +77,12 @@
 				<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
 
 				#renderForm(
-					  formName         = "preside-objects.asset.admin.edit"
-					, formId           = "edit-asset-form"
-					, context          = "admin"
-					, savedData        = asset
-					, validationResult = rc.validationResult ?: ""
+					  formName          = "preside-objects.asset.admin.edit"
+					, mergeWithFormName = isImageAsset ? "preside-objects.asset.cropping" : ""
+					, formId            = "edit-asset-form"
+					, context           = "admin"
+					, savedData         = asset
+					, validationResult  = rc.validationResult ?: ""
 				)#
 
 				<br>

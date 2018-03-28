@@ -2,7 +2,7 @@
 <form i18nBaseUri="formbuilder.item-types.starRating:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="starCount"      control="spinner"     required="true"  sortorder="34" defaultvalue="5" />
+			<field name="starCount"      control="spinner"     required="true"  sortorder="34" minvalue="1"  maxvalue="10" defaultvalue="5" />
 			<field name="allowHalfStars" control="yesnoswitch" required="false" sortorder="37" />
 		</fieldset>
 	</tab>

@@ -20,6 +20,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipient      = args.recipient
 					, sender         = args.sender
 					, subject        = args.subject
+					, resend_of      = ""
 					, send_args      = Serializejson( args.sendArgs )
 				}).$results( dummyId );
 
@@ -47,6 +48,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipient      = args.recipient
 					, sender         = args.sender
 					, subject        = args.subject
+					, resend_of      = ""
 					, dummyFk        = dummyFkId
 					, send_args      = Serializejson( args.sendArgs )
 				}).$results( dummyId );
@@ -418,11 +420,13 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 
 	private any function _getService(){
 		mockRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
+		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
 		mockLogDao               = CreateStub();
 		mockLogActivityDao       = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
-			recipientTypeService = mockRecipientTypeService
+			  recipientTypeService = mockRecipientTypeService
+			, emailTemplateService = mockEmailTemplateService
 		) );
 
 		mockRecipientTypeService.$( "getRecipientId", "" );

@@ -255,6 +255,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, indexes         = ""
 					, generator       = "none"
 					, control         = "none"
+					, adminRenderer   = "none"
 				} );
 			} );
 		} );
