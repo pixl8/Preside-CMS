@@ -150,7 +150,7 @@ component {
 		settings.widgets                     = {};
 		settings.templates                   = [];
 		settings.adminDefaultEvent           = "sitetree";
-		settings.preside_admin_base_path     = "";
+		settings.preside_admin_base_path     = settings.appBasePath ?: "";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
 		settings.dsn                         = "preside";
