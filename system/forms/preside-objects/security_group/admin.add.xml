@@ -7,9 +7,10 @@ This form is used for the "add user group" form in the user admin section of the
 <form>
 	<tab id="basic" sortorder="10">
 		<fieldset id="basic" sortorder="10">
-			<field binding="security_group.label" />
-			<field binding="security_group.description" />
-			<field binding="security_group.roles"  />
+			<field binding="security_group.label"       sortorder="10" />
+			<field binding="security_group.description" sortorder="20" />
+			<field binding="security_group.users"       sortorder="30" />
+			<field binding="security_group.roles"       sortorder="40" />
 		</fieldset>
 	</tab>
 </form>

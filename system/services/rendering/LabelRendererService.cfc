@@ -56,7 +56,7 @@ component {
 				, eventArguments = args
 			);
 		} else {
-			return HTMLEditFormat( args.label ?: "" );
+			return args.label ?: "";
 		}
 	}
 

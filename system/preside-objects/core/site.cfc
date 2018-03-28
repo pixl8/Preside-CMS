@@ -10,6 +10,7 @@ component output=false extends="preside.system.base.SystemPresideObject" labelfi
 	property name="protocol" type="string" dbtype="varchar" maxlength="5"   required=false enum="siteProtocol";
 	property name="template" type="string" dbtype="varchar" maxlength="50"  required=false;
 
+	property name="auto_redirect"        type="boolean" dbtype="boolean"                  required=false default=true;
 	property name="hide_from_search"     type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="author"               type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title_prefix" type="string"  dbtype="varchar" maxLength="100"  required=false;

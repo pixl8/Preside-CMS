@@ -7,11 +7,23 @@
 	sites      = prc.sites ?: QueryNew('');
 	categoryId = Trim( rc.id   ?: "" );
 	site       = Trim( rc.site ?: "" );
+	version    = Trim( rc.version ?: "" );
+	canSaveDraft = false;
 
 	isSiteConfig = sites.recordCount > 1 && site.len();
 </cfscript>
 
 <cfoutput>
+	#renderViewlet( event='admin.datamanager.groupVersionNavigator', args={
+		  object           = "system_config"
+		, id               = categoryId
+		, version          = version
+		, isDraft          = IsTrue( page._version_is_draft ?: "" )
+		, baseUrl          = event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#&version=" )
+		, allVersionsUrl   = event.buildAdminLink( linkTo="sysconfig.configHistory", queryString="id=#categoryId#" )
+		<!--- sysconfig.discardDraftsAction event will not be available, but that is not needed here as we don't support drafts for settings --->
+		, discardDraftsUrl = ( canSaveDraft ? event.buildAdminlink( linkTo="sysconfig.discardDraftsAction", queryString="id=#categoryId#" ) : "" )
+	} )#
 	<cfif sites.recordcount gt 1>
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">
