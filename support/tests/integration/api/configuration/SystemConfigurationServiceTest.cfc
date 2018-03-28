@@ -190,11 +190,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var configService = _getConfigSvc();
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 				expect( configService.getCategorySettings( category="mycategory" ) ).toBe( {
@@ -212,11 +212,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				} );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
@@ -236,11 +236,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				} );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
@@ -258,11 +258,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				} );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ], [ "setting5", "value5" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" }, fromVersionTable=false, maxVersionNumber=0, orderBy="" )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
