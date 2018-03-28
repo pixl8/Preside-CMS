@@ -169,18 +169,16 @@ component extends="preside.system.base.AdminHandler" {
 		} catch( "SystemConfigurationService.category.notFound" e ) {
 			event.notFound();
 		}
-		// prc.sites = siteService.listSites();
 	}
 
 	public void function getConfigHistoryForAjaxDataTables( event, rc, prc ) {
-		rc.id="recaptcha";
-		rc.setting = "site_key,secret_key";
+		prc.setting = structKeyList( event.getCollectionForForm( "system-config.#rc.id#" ) );
 
 		var nextVersionNumber = presideObjectService.getNextVersionNumber();
 		var allFieldsData = presideObjectService.selectData(
 			objectName       = "system_config",
 			filter           = "category = :category AND setting IN ( :setting )",
-			filterParams     = { "category"=rc.id, "setting"={ value=rc.setting, list="yes" } },
+			filterParams     = { "category"=rc.id, "setting"={ value=prc.setting, list="yes" } },
 			fromVersionTable = true,
 			maxVersionNumber = nextVersionNumber
 		);

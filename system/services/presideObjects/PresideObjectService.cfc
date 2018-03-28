@@ -1230,7 +1230,7 @@ component displayName="Preside Object Service" {
 	 * @fieldName.hint  Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
 	 *
 	 */
-	public query function getRecordVersions( required string objectName, required string id, string fieldName ) autodoc=true {
+	public any function getRecordVersions( required string objectName, required string id, string fieldName ) autodoc=true {
 		var args = {};
 		var idField = getIdField( arguments.objectName );
 
