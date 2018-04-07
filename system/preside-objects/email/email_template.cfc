@@ -13,6 +13,8 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="is_system_email"  type="boolean" dbtype="boolean"               required=false default=false;
 	property name="track_clicks"     type="boolean" dbtype="boolean"               required=false default=false;
 	property name="view_online"      type="boolean" dbtype="boolean"               required=false default=false;
+	property name="datecreated"      type="date"    dbtype="datetime"              required=false ignoreChangesForVersioning=true;
+	property name="datemodified"     type="date"    dbtype="datetime"              required=false ignoreChangesForVersioning=true;
 
 	property name="html_body" type="string" dbtype="longtext";
 	property name="text_body" type="string" dbtype="longtext";
