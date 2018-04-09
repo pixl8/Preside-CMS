@@ -17,6 +17,8 @@ component {
 	 * @validationEngine.inject             validationEngine
 	 * @recaptchaService.inject             recaptchaService
 	 * @spreadsheetLib.inject               spreadsheetLib
+	 * @presideObjectService.inject         presideObjectService
+	 * @rulesEngineFilterService.inject     rulesEngineFilterService
 	 *
 	 */
 	public any function init(
@@ -28,6 +30,8 @@ component {
 		, required any validationEngine
 		, required any recaptchaService
 		, required any spreadsheetLib
+		, required any presideObjectService
+		, required any rulesEngineFilterService
 	) {
 		_setItemTypesService( arguments.itemTypesService );
 		_setActionsService( arguments.actionsService );
@@ -37,6 +41,8 @@ component {
 		_setValidationEngine( arguments.validationEngine );
 		_setRecaptchaService( arguments.recaptchaService );
 		_setSpreadsheetLib( arguments.spreadsheetLib );
+		_setPresideObjectService( arguments.presideObjectService );
+		_setRulesEngineFilterService( arguments.rulesEngineFilterService );
 
 		return this;
 	}
@@ -733,10 +739,11 @@ component {
 	 */
 	public struct function getSubmissionsForGridListing(
 		  required string  formId
-		,          numeric startRow     = 1
-		,          numeric maxRows      = 10
-		,          string  orderBy      = ""
-		,          string  searchQuery  = ""
+		,          numeric startRow              = 1
+		,          numeric maxRows               = 10
+		,          string  orderBy               = ""
+		,          string  searchQuery           = ""
+		,          string  savedFilterExpIdLists = ""
 	) {
 		var submissionsDao = $getPresideObject( "formbuilder_formsubmission" );
 		var result         = { totalRecords=0, records="" };
@@ -769,6 +776,21 @@ component {
 				  filter       = "submitted_by.display_name like :q or formbuilder_formsubmission.form_instance like :q or formbuilder_formsubmission.submitted_data like :q"
 				, filterParams = { q = { type="cf_sql_varchar", value="%#arguments.searchQuery#%" } }
 			});
+		}
+
+		if ( Len( Trim( arguments.savedFilterExpIdLists ?: "" ) ) ) {
+			var savedFilters = _getPresideObjectService().selectData(
+				  objectName   = "rules_engine_condition"
+				, selectFields = [ "expressions" ]
+				, filter       = { id=ListToArray( arguments.savedFilterExpIdLists ?: "" ) }
+			);
+
+			for( var filter in savedFilters ) {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName      = 'formbuilder_formsubmission'
+					, expressionArray = DeSerializeJson( filter.expressions )
+				) );
+			}
 		}
 
 		result.records = submissionsDao.selectData(
@@ -1070,5 +1092,19 @@ component {
 	}
 	private void function _setSpreadsheetLib( required any spreadsheetLib ) {
 		_spreadsheetLib = arguments.spreadsheetLib;
+	}
+
+	private any function _getPresideObjectService() {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) {
+		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getRulesEngineFilterService() {
+		return _rulesEngineFilterService;
+	}
+	private void function _setRulesEngineFilterService( required any rulesEngineFilterService ) {
+		_rulesEngineFilterService = arguments.rulesEngineFilterService;
 	}
 }
