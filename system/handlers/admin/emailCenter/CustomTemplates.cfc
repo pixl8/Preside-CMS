@@ -361,7 +361,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function log( event, rc, prc ) {
+	public void function logs( event, rc, prc ) {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var id = rc.id ?: "";
