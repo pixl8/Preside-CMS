@@ -26,6 +26,12 @@ component {
 			, tasksEnabled   = arguments.tasksEnabled
 		};
 
+		_setApplicationVariable( settings );
+		_writeMaintenanceModeToFile( settings );
+
+		return true;
+	}
+
 	public boolean function clearMaintenanceMode() {
 		var filePath = _getConfigPath();
 
