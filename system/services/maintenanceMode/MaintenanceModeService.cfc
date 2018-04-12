@@ -13,11 +13,17 @@ component {
 	}
 
 // public api
-	public boolean function setMaintenanceMode( required string maintenanceHtml, required array allowedIps, required string bypassPassword ) {
+	public boolean function setMaintenanceMode(
+		  required string  maintenanceHtml
+		, required array   allowedIps
+		, required string  bypassPassword
+		, required boolean tasksEnabled
+	) {
 		var settings = {
 			  html           = arguments.maintenanceHtml
 			, allowedIps     = arguments.allowedIps
 			, bypassPassword = arguments.bypassPassword
+			, tasksEnabled   = arguments.tasksEnabled
 		};
 
 		_setApplicationVariable( settings );
