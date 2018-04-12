@@ -8,7 +8,7 @@ component displayName="Error Log Service" {
 
 // CONSTRUCTOR
 	public any function init(
-		  string appMapping     = "/app"
+		  string appMapping     = "app"
 		, string appMappingPath = "app"
 		, string logsMapping    = "/logs"
 		, string logDirectory   = ExpandPath( "#arguments.logsMapping#/rte-logs" )
@@ -183,14 +183,14 @@ component displayName="Error Log Service" {
 		return _appMapping;
 	}
 	private void function _setAppMapping( required string appMapping ) {
-		_appMapping = arguments.appMapping;
+		_appMapping = "/" & arguments.appMapping.reReplace( "^/", "" );
 	}
 
 	private string function _getAppMappingPath() {
 		return _appMappingPath;
 	}
 	private void function _setAppMappingPath( required string appMappingPath ) {
-		_appMappingPath = arguments.appMappingPath;
+		_appMappingPath = "/" & arguments.appMappingPath.reReplace( "^/", "" );
 	}
 
 	private array function _getListeners() {

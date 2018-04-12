@@ -22,6 +22,8 @@ component displayname="Native Image Manipulation Service" {
 	 * @height.hint              New height, in pixels
 	 * @quality.hint             Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
 	 * @maintainAspectRatio.hint Whether or not maintain the aspect ratio of the native image (if true, an autocrop may be applied if the aspect ratio of the resize differs from the source native image)
+	 * @focalPoint.hint          Comma-separated list (x,y) defining coordinates of the image's focal point. When cropped, this point will be kept as close as possible to the centre of the resulting image.
+	 * @cropHintArea.hint        Struct (x,y,width,height) defining a crop hint area of the image. Image will be cropped to this area before resizing.
 	 *
 	 */
 	public binary function resize(
@@ -30,6 +32,8 @@ component displayname="Native Image Manipulation Service" {
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
+		,          string  focalPoint          = ""
+		,          struct  cropHintArea        = {}
 	) {
 		var image              = "";
 		var interpolation      = arguments.quality;
@@ -50,6 +54,9 @@ component displayname="Native Image Manipulation Service" {
 			ImageScaleToFit( image, arguments.width, "", interpolation );
 		} else if ( !arguments.width ) {
 			ImageScaleToFit( image, "", arguments.height, interpolation );
+		} else if ( !arguments.cropHintArea.isEmpty() ) {
+			ImageCrop( image, arguments.cropHintArea.x, arguments.cropHintArea.y, arguments.cropHintArea.width, arguments.cropHintArea.height );
+			ImageResize( image, arguments.width, arguments.height, interpolation );
 		} else {
 			if ( maintainAspectRatio ) {
 				currentAspectRatio = currentImageInfo.width / currentImageInfo.height;
@@ -61,13 +68,10 @@ component displayname="Native Image Manipulation Service" {
 			} else {
 				if ( currentAspectRatio gt targetAspectRatio ) {
 					ImageScaleToFit( image, "", arguments.height, interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, Int( ( scaledImgInfo.width - arguments.width ) / 2 ), 0, arguments.width, arguments.height );
 				} else {
 					ImageScaleToFit( image, arguments.width, "", interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, 0, Int( ( scaledImgInfo.height - arguments.height ) / 2 ), arguments.width, arguments.height );
 				}
+				cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
 			}
 		}
 
@@ -112,6 +116,46 @@ component displayname="Native Image Manipulation Service" {
 
 		return ImageGetBlob( image );
 	}
+
+	/**
+	 * Crops an image to new dimensions, while ensuring that the asset's focal point
+	 * (if defined) is as close to the centre of the image as possible.
+	 *
+	 * @autodoc
+	 * @image.hint      Image object (generally already scaled)
+	 * @width.hint      Width of the crop area, in pixels
+	 * @height.hint     Height of the crop area, in pixels
+	 * @focalPoint.hint Coordinates of the image's focal point. Comma-separated x,y - where each coordinate is a value between 0 and 1, the offset of the point from the top left corner of the image. So "0.5,0.5" would place the focal point in the centre of the image.
+	 *
+	 */
+	public binary function cropAroundFocalPoint(
+		  required any     image
+		, required numeric width
+		, required numeric height
+		, required string  focalPoint
+	) {
+		var image       = arguments.image;
+		var originX     = 0;
+		var originY     = 0;
+		var cropCentreX = originX + int( arguments.width  / 2 );
+		var cropCentreY = originY + int( arguments.height / 2 );
+		var imageInfo   = ImageInfo( image );
+		var focalPoint  = len( arguments.focalPoint ) ? arguments.focalPoint : "0.5,0.5";
+		var focalPointX = int( listFirst( focalPoint ) * imageInfo.width  );
+		var focalPointY = int( listLast(  focalPoint ) * imageInfo.height );
+
+		if ( focalPointX > cropCentreX ) {
+			originX = min( originX + ( focalPointX - cropCentreX ), imageInfo.width - arguments.width );
+		}
+		if ( focalPointY > cropCentreY ) {
+			originY = min( originY + ( focalPointY - cropCentreY ), imageInfo.height - arguments.height );
+		}
+
+		ImageCrop( image, originX, originY, arguments.width, arguments.height );
+
+		return ImageGetBlob( image );
+	}
+
 
 	/**
 	 * Generates an native image from the first page of the provided PDF binary

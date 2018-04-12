@@ -28,12 +28,14 @@
 			  , isMultilingual      = tableSettings.isMultilingual  || cfrequest.isMultilingual || false
 			  , draftsEnabled       = tableSettings.draftsEnabled   || cfrequest.draftsEnabled  || false
 			  , object              = tableSettings.objectName      || cfrequest.objectName     || ""
-			  , objectTitle         = tableSettings.objectTitle     || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
+			  , objectTitle         = tableSettings.objectTitle     || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" )
 			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
 			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
 			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
+			  , compact             = tableSettings.compact         || cfrequest.compact
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
+			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
@@ -58,6 +60,7 @@
 
 				if ( draftsEnabled  ) { dynamicHeadersOffset++; }
 				if ( isMultilingual ) { dynamicHeadersOffset++; }
+				if ( noActions ) { dynamicHeadersOffset--; }
 
 				for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
 					$header = $( $tableHeaders.get(i) );
@@ -82,12 +85,14 @@
 					} );
 				}
 
-				colConfig.push( {
-					sClass    : "center",
-					bSortable : false,
-					mData     : "_options",
-					sWidth    : "9em"
-				} );
+				if ( !noActions ) {
+					colConfig.push( {
+						sClass    : "center",
+						bSortable : false,
+						mData     : "_options",
+						sWidth    : "9em"
+					} );
+				}
 				$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );
 
 				for( i=0; i < $tableHeaders.length; i++ ){
@@ -108,6 +113,8 @@
 
 				if ( allowFilter ) {
 					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
+				} else if ( compact ) {
+					sDom = "frt<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				} else {
 					sDom = "fr<'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				}

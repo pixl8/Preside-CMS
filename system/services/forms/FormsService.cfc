@@ -11,7 +11,7 @@ component displayName="Forms service" {
 	 * @presideObjectService.inject      PresideObjectService
 	 * @siteService.inject               SiteService
 	 * @validationEngine.inject          ValidationEngine
-	 * @i18n.inject                      coldbox:plugin:i18n
+	 * @i18n.inject                      i18n
 	 * @coldbox.inject                   coldbox
 	 * @presideFieldRuleGenerator.inject PresideFieldRuleGenerator
 	 * @featureService.inject            featureService

@@ -3,7 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dao"                       inject="presidecms:object:email_blueprint";
 	property name="emailLayoutService"        inject="emailLayoutService";
 	property name="emailRecipientTypeService" inject="emailRecipientTypeService";
-	property name="messageBox"                inject="coldbox:plugin:messageBox";
+	property name="messageBox"                inject="messagebox@cbmessagebox";
 
 
 	function prehandler( event, rc, prc ) {

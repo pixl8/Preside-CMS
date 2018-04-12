@@ -454,7 +454,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private helpers
 	private any function _getUserService() output=false {
-		mockSessionStorage    = getMockbox().createEmptyMock( "coldbox.system.plugins.SessionStorage" );
+		mockSessionStorage    = getMockbox().createEmptyMock( "preside.system.modules.cbstorages.models.SessionStorage" );
 		mockCookieService     = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
 		mockUserDao           = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();
