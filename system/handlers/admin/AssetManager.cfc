@@ -358,7 +358,7 @@ component extends="preside.system.base.AdminHandler" {
 			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
 		);
 
-		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ formData.label ?: '' ] ) );
+		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ prc.folder.label ?: '' ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 	}
 
@@ -412,7 +412,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.setfolderlocation", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
 		}
 
-		messageBox.info( translateResource( uri="cms:assetmanager.folder.location.set.confirmation", data=[ formData.label ?: '' ] ) );
+		messageBox.info( translateResource( uri="cms:assetmanager.folder.location.set.confirmation", data=[ prc.folder.label ?: '' ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 	}
 

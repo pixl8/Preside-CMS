@@ -318,7 +318,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template"
-				, gridFields    = "name,email_blueprint"
+				, gridFields    = "name,email_blueprint,datecreated,datemodified"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
 				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
