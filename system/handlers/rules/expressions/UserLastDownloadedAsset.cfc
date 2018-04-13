@@ -1,8 +1,9 @@
 /**
- * Expression handler for "User's has performed some action within the last x days"
+ * Expression handler for "User has performed some action within the last x days"
  *
  * @feature websiteUsers
  * @expressionContexts user
+ * @expressionCategory website_user
  */
 component {
 
@@ -39,6 +40,27 @@ component {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  asset
+		,          struct  _pastTime
+		,          string  filterPrefix
+		,          string  parentPropertyName
+	) {
+		return websiteUserActionService.getUserLastPerformedActionFilter(
+			  action             = "download"
+			, type               = "asset"
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, identifier         = arguments.asset
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
 	}
 
 }

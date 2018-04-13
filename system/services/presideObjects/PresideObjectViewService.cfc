@@ -57,6 +57,7 @@ component displayName="Preside Object View Service" {
 	public any function renderView(
 		  required string  presideObject
 		, required string  view
+		,          boolean autoGroupBy  = true
 		,          string  returntype   = "string"
 		,          struct  args         = {}
 		,          boolean cache        = false
@@ -70,7 +71,7 @@ component displayName="Preside Object View Service" {
 			var cacheKey = _generateCacheKey( argumentCollection=arguments );
 			var cached   = _getFromCache( cacheProvider=arguments.cacheProvider, cacheKey=cacheKey );
 
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				return cached;
 			}
 		}
@@ -93,8 +94,8 @@ component displayName="Preside Object View Service" {
 		StructDelete( selectDataArgs, "cacheSuffix"            );
 		StructDelete( selectDataArgs, "cacheTimeout"           );
 
-		selectDataArgs.objectName         = arguments.presideObject
-		selectDataArgs.selectFields       = viewDetails.selectFields
+		selectDataArgs.objectName         = arguments.presideObject;
+		selectDataArgs.selectFields       = viewDetails.selectFields;
 		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $getRequestContext().showNonLiveContent();
 
 		if ( selectDataArgs.allowDraftVersions ) {
@@ -121,7 +122,7 @@ component displayName="Preside Object View Service" {
 				, rendered    = rendered.toString()
 				, data        = data
 				, columnlist  = data.getColumnlist(false)
-			}
+			};
 		} else {
 			result = rendered.toString();
 		}
@@ -223,7 +224,7 @@ component displayName="Preside Object View Service" {
 							, rawContent      = record[field]
 						);
 					}
-				} elseif ( !StructIsEmpty( property ) ) {
+				} else if ( !StructIsEmpty( property ) ) {
 					rendered = rendererSvc.renderField(
 						  object   = property._object
 						, property = property.name

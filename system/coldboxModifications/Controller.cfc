@@ -17,17 +17,25 @@ component extends="coldbox.system.web.Controller" output=false {
 		var cacheKey   = "handler exists: " & arguments.event;
 		var exists     = cache.get( cacheKey );
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
 		try {
 			handlerSvc = getHandlerService();
 			handler = handlerSvc.getRegisteredHandler( event=arguments.event );
+
 			if ( handler.getViewDispatch() ) {
 				cache.set( cacheKey, false );
 				return false;
 			}
+
+			var fullEvent = handler.getFullEvent();
+			if ( fullEvent != arguments.event && fullEvent != ( arguments.event & ".index" ) ) {
+				cache.set( cacheKey, false );
+				return false;
+			}
+
 			handler = handlerSvc.getHandler( handler, getRequestContext() );
 			handler = GetMetaData( handler );
 			if ( Right( handler.fullname ?: "", Len( arguments.event ) ) eq arguments.event ) {
@@ -50,7 +58,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var exists     = cache.get( cacheKey );
 		var targetView = "";
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
@@ -73,7 +81,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		var defaultAction = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
 
 		if ( not handlerExists( handler ) ) {
-			handler = ListAppend( handler, defaultAction, "." )
+			handler = ListAppend( handler, defaultAction, "." );
 		}
 
 		if ( handlerExists( handler ) ) {
@@ -100,7 +108,7 @@ component extends="coldbox.system.web.Controller" output=false {
 			var missingCheckedKey = "doublecheckmissing" & arguments.event;
 			var checkedAlready    = cache.get( missingCheckedKey );
 
-			if ( IsNull( checkedAlready ) ) {
+			if ( IsNull( local.checkedAlready ) ) {
 				cache.clearAll();
 				cache.set( missingCheckedKey, true );
 				return renderViewlet( argumentCollection=arguments );

@@ -9,6 +9,7 @@ component {
 		, hasHasNot      = { truthy="cms:rulesEngine.boolean.has"     , falsey="cms:rulesEngine.boolean.hasNot"  }
 		, hasDoesNotHave = { truthy="cms:rulesEngine.boolean.posesses", falsey="cms:rulesEngine.boolean.doesNotPosess"  }
 		, didDidNot      = { truthy="cms:rulesEngine.boolean.did"     , falsey="cms:rulesEngine.boolean.didNot"  }
+		, doesDoesNot    = { truthy="cms:rulesEngine.boolean.does"    , falsey="cms:rulesEngine.boolean.doesNot" }
 		, wasWasNot      = { truthy="cms:rulesEngine.boolean.was"     , falsey="cms:rulesEngine.boolean.wasNot"  }
 		, willWillNot    = { truthy="cms:rulesEngine.boolean.will"    , falsey="cms:rulesEngine.boolean.willNot" }
 		, areAreNot      = { truthy="cms:rulesEngine.boolean.are"     , falsey="cms:rulesEngine.boolean.areNot"  }
@@ -22,6 +23,11 @@ component {
 
 		if ( _booleanVarietyMappings.keyExists( config.variety ?: "" ) ) {
 			variety = config.variety;
+		} else if ( Len( Trim( config.variety ?: "" ) ) ) {
+			var translated = translateResource( uri=config.variety & "." & varietyKey, defaultValue="" );
+			if ( translated.len() ) {
+				return translated;
+			}
 		}
 
 		return translateResource( uri=_booleanVarietyMappings[ variety ][ varietyKey ] );

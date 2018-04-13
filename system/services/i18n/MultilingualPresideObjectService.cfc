@@ -89,6 +89,7 @@ component displayName="Multilingual Preside Object Service" {
 		translationObject.tableName    = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
 		translationObject.derivedFrom  = arguments.objectName;
 		translationObject.siteFiltered = false;
+		translationObject.tenant       = "";
 		translationObject.isPageType   = false;
 
 		for( var propertyName in translationProperties ) {
@@ -363,7 +364,7 @@ component displayName="Multilingual Preside Object Service" {
 			if ( mappedRecords.keyExists( language.id ) ) {
 				language.status = mappedRecords[ language.id ] ? "active" : "inprogress";
 			} else {
-				language.status = "notstarted"
+				language.status = "notstarted";
 			}
 		}
 
@@ -393,7 +394,7 @@ component displayName="Multilingual Preside Object Service" {
 	/**
 	 * Returns the name of the given object's corresponding translation object
 	 *
-	 * @objectName.hint Name of the object who's corresponding translation object name we wish to get
+	 * @objectName.hint Name of the object whose corresponding translation object name we wish to get
 	 * @autodoc         true
 	 *
 	 */
@@ -437,7 +438,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * and record ID
 	 *
 	 * @autodoc
-	 * @objectName.hint Name of the object who's record we are to save the translation for
+	 * @objectName.hint Name of the object whose record we are to save the translation for
 	 * @id.hint         ID of the record we are to save the translation for
 	 * @languageId.hint ID of the language that the translation is for
 	 * @data.hint       Structure of data containing to save in the translation record
@@ -745,42 +746,49 @@ component displayName="Multilingual Preside Object Service" {
 	}
 
 	private struct function _resolveSelectField( required string sourceObject, required string selectField ) {
-		var fieldMinusSqlEscapes = ReReplace( arguments.selectField, "[`\[\]]", "", "all" );
-		var bareFieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*$";
+		var cacheKey = arguments.sourceObject & "|" & arguments.selectField;
 
-		if ( ReFind( bareFieldRegex, fieldMinusSqlEscapes ) ) {
-			return {
-				  objectName   = arguments.sourceObject
-				, propertyName = fieldMinusSqlEscapes
-				, selector     = "#arguments.sourceObject#.#fieldMinusSqlEscapes#"
-				, alias        = fieldMinusSqlEscapes
-			};
+		_resolveSelectFieldCache = variables._resolveSelectFieldCache ?: {};
+
+		if ( !_resolveSelectFieldCache.keyExists( cacheKey ) ) {
+			var fieldMinusSqlEscapes = ReReplace( arguments.selectField, "[`\[\]]", "", "all" );
+			var bareFieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*$";
+
+			if ( ReFind( bareFieldRegex, fieldMinusSqlEscapes ) ) {
+				_resolveSelectFieldCache[ cacheKey ] = {
+					  objectName   = arguments.sourceObject
+					, propertyName = fieldMinusSqlEscapes
+					, selector     = "#arguments.sourceObject#.#fieldMinusSqlEscapes#"
+					, alias        = fieldMinusSqlEscapes
+				};
+			} else {
+				var fieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*\.[_a-zA-Z][_a-zA-Z0-9]*$";
+				var selectFieldParts = ListToArray( fieldMinusSqlEscapes, " " );
+
+				if ( !selectFieldParts.len() || !ReFind( fieldRegex, selectFieldParts[ 1 ] ) || selectFieldParts.len() > 3 || ( selectFieldParts.len() == 3 && selectFieldParts[ 2 ] != "as" ) ) {
+					_resolveSelectFieldCache[ cacheKey ] = {};
+				} else {
+					var selector     = selectFieldParts[ 1 ];
+					var propertyName = ListLast( selector, "." );
+					var objectPath   = ListFirst( selector, "." );
+					var objectName   = _getRelationshipGuidance().resolveRelationshipPathToTargetObject( arguments.sourceObject, objectPath );
+
+
+					if ( !objectName.len() ) {
+						_resolveSelectFieldCache[ cacheKey ] = {};
+					}
+
+					_resolveSelectFieldCache[ cacheKey ] = {
+						  objectName   = objectName
+						, propertyName = propertyName
+						, selector     = selector
+						, alias        = selectFieldParts.len() == 1 ? propertyName : selectFieldParts[ selectFieldParts.len() ]
+					}
+				}
+			}
 		}
 
-
-		var fieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*\.[_a-zA-Z][_a-zA-Z0-9]*$";
-		var selectFieldParts = ListToArray( fieldMinusSqlEscapes, " " );
-
-		if ( !selectFieldParts.len() || !ReFind( fieldRegex, selectFieldParts[ 1 ] ) || selectFieldParts.len() > 3 || ( selectFieldParts.len() == 3 && selectFieldParts[ 2 ] != "as" ) ) {
-			return {};
-		}
-
-		var selector     = selectFieldParts[ 1 ];
-		var propertyName = ListLast( selector, "." );
-		var objectPath   = ListFirst( selector, "." );
-		var objectName   = _getRelationshipGuidance().resolveRelationshipPathToTargetObject( arguments.sourceObject, objectPath );
-
-
-		if ( !objectName.len() ) {
-			return {};
-		}
-
-		return {
-			  objectName   = objectName
-			, propertyName = propertyName
-			, selector     = selector
-			, alias        = selectFieldParts.len() == 1 ? propertyName : selectFieldParts[ selectFieldParts.len() ]
-		}
+		return _resolveSelectFieldCache[ cacheKey ];
 	}
 
 	private string function _transformSelectFieldToGetTranslationIfExists( required string objectName, required string selector, required string alias, required any dbAdapter ) {

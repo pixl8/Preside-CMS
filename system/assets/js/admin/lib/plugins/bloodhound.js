@@ -124,6 +124,7 @@
     var tokenizers = function(root) {
         return {
             nonword: nonword,
+            nonwordandunderscore: nonwordandunderscore,
             whitespace: whitespace,
             obj: {
                 nonword: getObjTokenizer(nonword),
@@ -135,6 +136,9 @@
         }
         function nonword(s) {
             return s.split(/\W+/);
+        }
+        function nonwordandunderscore(s) {
+            return s.split(/[\W_]+/);
         }
         function getObjTokenizer(tokenizer) {
             return function setKey(key) {
@@ -574,7 +578,7 @@
             if (!o || !o.local && !o.prefetch && !o.remote) {
                 $.error("one of local, prefetch, or remote is required");
             }
-            this.limit = o.limit || 5;
+            this.limit = _.isUndefined( o.limit ) ? 5 : o.limit;
             this.sorter = getSorter(o.sorter);
             this.dupDetector = o.dupDetector || ignoreDuplicates;
             this.local = oParser.local(o);
@@ -659,11 +663,13 @@
                 } else {
                     matches = this.index.get(query);
 
-                    if (matches.length < this.limit && this.transport) {
+                    if ( ( this.limit == 0 || matches.length < this.limit ) && this.transport) {
                       cacheHit = this._getFromRemote(query, returnRemoteMatches);
                     }
                 }
-                matches = this.sorter(matches).slice(0, this.limit);
+                if ( this.limit > 0 ) {
+                    matches = this.sorter(matches).slice(0, this.limit);
+                }
 
                 if (!cacheHit) {
                     cb && cb(matches);
@@ -676,7 +682,7 @@
                             return that.dupDetector(remoteMatch, match);
                         });
                         !isDuplicate && matchesWithBackfill.push(remoteMatch);
-                        return matchesWithBackfill.length < that.limit;
+                        return that.limit == 0 || matchesWithBackfill.length < that.limit;
                     });
                     cb && cb(that.sorter(matchesWithBackfill));
                 }

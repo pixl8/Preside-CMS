@@ -400,6 +400,21 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test23a_getInsertSql_shouldReturnInsertSqlWithSelectData_whenSelectStatementProvided" returntype="void">
+		<cfscript>
+			var adapter   = _getAdapter();
+			var selectSql = "select col_a, col_b, col_c from blah where foo = :bar";
+			var expected  = [ "insert into `event_category` ( `col_a`, `col_b`, `col_c` ) #selectSql#" ];
+			var result    = adapter.getInsertSql(
+				  tableName     = "event_category"
+				, insertColumns = [ "col_a", "col_b", "col_c" ]
+				, selectStatement = selectSql
+			);
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test24_getSelectSql_shouldReturnSimpleSelectSql" returntype="void">
 		<cfscript>
 			var adapter = _getAdapter();
@@ -638,6 +653,34 @@
 			var adapter = _getAdapter();
 			var expected = " where ( this.that = :that__this or test.fubar = :whatever__test )"
 			var result = adapter.getClauseSql( filter="( this.that = :that.this or test.fubar = :whatever.test )" );
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test33_getCountSql_shouldReturnTheGivenCompleteSqlQueryWrappedInACountStatement" returntype="void">
+		<cfscript>
+			var adapter     = _getAdapter();
+			var originalSql = "select id from sometable";
+			var expected    = "select count(1) as `record_count` from ( select id from sometable ) `original_statement`"
+			var result      = adapter.getCountSql( originalStatement=originalSql );
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test34_getSelectSql_shouldAllowHavingSpecification" returntype="void">
+		<cfscript>
+			var adapter = _getAdapter();
+			var expected = "select `id`, label, Count(*) as counts from `event` where `event_category`.`test` = :event_category__test and `event_date` = :event_date group by `id` having count(1) > 4 order by event_category, sort_order desc";
+			var result = adapter.getSelectSql(
+				  tableName     = "event"
+				, selectColumns = [ "`id`", "label", "Count(*) as counts" ]
+				, filter        = { "event_category.test" = "test", event_date="2012-09-21" }
+				, orderBy       = "event_category, sort_order desc"
+				, groupBy       = "`id`"
+				, having        = "Count(1) > 4"
+			);
 
 			super.assertEquals( expected, result );
 		</cfscript>

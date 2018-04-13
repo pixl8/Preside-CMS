@@ -162,6 +162,17 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="websiteBenefitsManager" ) );
 	}
 
+	function exportAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteBenefitsManager.read" );
+
+		runEvent(
+			  event          = "admin.DataManager._exportDataAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = { objectName="website_benefit" }
+		);
+	}
+
 // private utility
 	private void function _checkPermissions( required any event, required string key ) output=false {
 		if ( !hasCmsPermission( arguments.key ) ) {

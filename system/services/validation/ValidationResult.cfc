@@ -67,7 +67,7 @@ component accessors=true displayname="Validation result" {
 	 * Returns the error message for a given field.
 	 *
 	 * @autodoc
-	 * @fieldName.hint The name of the field who's error you wish to get.
+	 * @fieldName.hint The name of the field whose error you wish to get.
 	 */
 	public string function getError( required string fieldName ) {
 		var messages = getMessages();
@@ -94,7 +94,7 @@ component accessors=true displayname="Validation result" {
 	 * field's error
 	 *
 	 * @autodoc
-	 * @fieldname.hint The name of the field who's parameters you wish to get.
+	 * @fieldname.hint The name of the field whose parameters you wish to get.
 	 *
 	 */
 	public array function listErrorParameterValues( required string fieldName ) {

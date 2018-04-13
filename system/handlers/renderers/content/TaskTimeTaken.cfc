@@ -11,17 +11,17 @@ component output=false {
 			return "< 1s"
 		}
 
-		data = data / 1000;
+		data = data \ 1000;
 		if ( data < 60 ) {
 			return NumberFormat( data ) & "s";
 		}
 
-		data = data / 60;
+		data = data \ 60;
 		if ( data < 60 ) {
 			return NumberFormat( data ) & "m";
 		}
 
-		data = data / 60;
+		data = data \ 60;
 		if ( data < 24 ) {
 			return NumberFormat( data ) & "h";
 		}
@@ -30,8 +30,9 @@ component output=false {
 	}
 
 	public string function accurate( event, rc, prc, args={} ){
-		var data      = Val( args.data ?: "" );
-		var remainder = 0;
+		var data    = Val( args.data ?: "" );
+		var minutes = 0;
+		var seconds = 0;
 
 		if ( data < 0 ) {
 			return '<em class="unknown">unknown</em>';
@@ -41,21 +42,21 @@ component output=false {
 			return "< 1s"
 		}
 
-		data = data / 1000;
+		data = data \ 1000;
 		if ( data < 60 ) {
 			return NumberFormat( data ) & "s";
 		}
 
-		remainder = data mod 60;
-		data = data / 60;
+		seconds = data mod 60;
+		data    = data \ 60;
 		if ( data < 60 ) {
-			return NumberFormat( data ) & "m " & NumberFormat( remainder ) & "s";
+			return NumberFormat( data ) & "m " & NumberFormat( seconds ) & "s";
 		}
 
-		remainder = data mod 60;
-		data = data / 60;
+		minutes = data mod 60;
+		data    = data \ 60;
 		if ( data < 24 ) {
-			return NumberFormat( data ) & "h " & NumberFormat( data ) & "m " & NumberFormat( remainder mod 60 ) & "s";
+			return NumberFormat( data ) & "h " & NumberFormat( minutes ) & "m " & NumberFormat( seconds ) & "s";
 		}
 	}
 

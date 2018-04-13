@@ -133,7 +133,7 @@ component displayName="Task Manager Service" {
 				var logger = _getLogger( taskKey=arguments.taskKey );
 
 				if ( logger.canError() ) {
-					logger.error( "Task run has expired for task [#arguments.taskKey#]." )
+					logger.error( "Task run has expired for task [#arguments.taskKey#]." );
 				}
 
 				markTaskAsCompleted(
@@ -182,10 +182,11 @@ component displayName="Task Manager Service" {
 			return false;
 		}
 
-		var runningStatuses = [ "RUNNING", "NOT_STARTED" ];
-		var threads         = _getCfThreadHelper().getRunningThreads();
+		var threads      = _getCfThreadHelper().getRunningThreads();
+		var threadStatus = threads[ task.running_thread ].status ?: "";
+		var isRunning    = Len( Trim( threadStatus ) ) && threadStatus != "TERMINATED";
 
-		return runningStatuses.find( threads[ task.running_thread ].status ?: "" );
+		return isRunning;
 	}
 
 	public array function getRunnableTasks() {
@@ -230,7 +231,6 @@ component displayName="Task Manager Service" {
 	 */
 	public void function runTask( required string taskKey, struct args={} ) {
 		var task        = getTask( arguments.taskKey );
-		var success     = true;
 		var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
 		var newLogId    = createTaskHistoryLog( arguments.taskKey, newThreadId );
 		var lockName    = "runtask-#taskKey#" & Hash( ExpandPath( "/" ) );
@@ -247,9 +247,11 @@ component displayName="Task Manager Service" {
 			thread name=newThreadId priority="low" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
 				setting requesttimeout = attributes.processTimeout;
 
-				var start = getTickCount();
+				var start   = getTickCount();
+				var success = false;
 
 				try {
+					$getRequestContext().setUseQueryCache( false );
 					success = _getController().runEvent(
 						  event          = attributes.event
 						, private        = true
@@ -282,7 +284,6 @@ component displayName="Task Manager Service" {
 
 						_getErrorLogService().raiseError( e );
 
-						success = false;
 						rethrow;
 					}
 				}
@@ -612,42 +613,46 @@ component displayName="Task Manager Service" {
 	public struct function getStats() {
 		var scheduleEnabled   = _getSystemConfigurationService().getSetting( "taskmanager", "scheduledtasks_enabled" );
 		var tasks             = _getTaskDao().selectData();
-		var taskHistory       = _getTaskHistoryDao().selectData();
+		var historyDao        = _getTaskHistoryDao();
 		var failureCount      = 0;
 		var successCount      = 0;
-		var totalTime         = 0;
-		var historicSuccesses = 0;
-		var historicFailures  = 0;
+		var disabledCount     = 0;
+		var neverRunCount     = 0;
 
 		for( var task in tasks ) {
 			if ( IsBoolean( task.was_last_run_success ?: "" ) ) {
 				if ( task.was_last_run_success ) {
 					successCount++;
+				} else if ( !task.enabled ) {
+					disabledCount++;
+				} else if ( !IsDate( task.last_ran ) ){
+					neverRunCount++;
 				} else {
 					failureCount++;
 				}
 			}
 		}
 
-		for( var log in taskHistory ) {
-			totalTime += Val( log.time_taken );
-			if ( IsBoolean( log.success ?: "" ) ) {
-				if ( log.success ) {
-					historicSuccesses++;
-				} else {
-					historicFailures++;
-				}
-			}
-		}
+		var history = historyDao.selectData( selectFields=[
+			  "Sum( time_taken ) as total_time_taken"
+			, "Avg( time_taken ) as avg_time_taken"
+			, "Count( id ) as total_count"
+		] );
+		var historySuccesses = historyDao.selectData(
+			  filter = { success = true }
+			, selectFields = [ "Count(*) as total" ]
+		);
 
 		return {
 			  "taskmanager.schedule.enabled" = ( IsBoolean( scheduleEnabled ) && scheduleEnabled ) ? 1 : 0
 			, "taskmanager.failure.count"    = failureCount
 			, "taskmanager.success.count"    = successCount
-			, "taskmanager.failure.perc"     = ( taskHistory.recordCount ? ( ( historicFailures  / taskHistory.recordCount ) * 100 ) : 0 )
-			, "taskmanager.success.perc"     = ( taskHistory.recordCount ? ( ( historicSuccesses / taskHistory.recordCount ) * 100 ) : 0 )
-			, "taskmanager.total.time"       = totalTime
-			, "taskmanager.avg.time"         = ( taskHistory.recordCount ? ( totalTime / taskHistory.recordCount ) : 0 )
+			, "taskmanager.disabled.count"   = disabledCount
+			, "taskmanager.neverrun.count"   = neverRunCount
+			, "taskmanager.failure.perc"     = ( history.total_count ? ( ( ( history.total_count-historySuccesses.total ) / history.total_count ) * 100 ) : 0 )
+			, "taskmanager.success.perc"     = ( history.total_count ? ( ( historySuccesses.total / history.total_count ) * 100 ) : 0 )
+			, "taskmanager.total.time"       = Val( history.total_time_taken )
+			, "taskmanager.avg.time"         = Val( history.avg_time_taken )
 		};
 	}
 

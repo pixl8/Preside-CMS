@@ -30,7 +30,7 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 		if ( !request[ _requestKey ].keyExists( arguments.objectKey ) ) {
 			var fromSharedCache = super.get( argumentCollection=arguments );
 
-			if ( !IsNull( fromSharedCache ) ) {
+			if ( !IsNull( local.fromSharedCache ) ) {
 				request[ _requestKey ][ arguments.objectKey ] = fromSharedCache;
 			}
 		}

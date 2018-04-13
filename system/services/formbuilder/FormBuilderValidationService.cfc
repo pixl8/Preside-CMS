@@ -93,8 +93,8 @@ component {
 	 * item type, if present.
 	 *
 	 * @autodoc
-	 * @itemType.hint      The type of item who's rules you wish to generate
-	 * @configuration.hint The saved configuration for the item who's rules you wish to generate
+	 * @itemType.hint      The type of item whose rules you wish to generate
+	 * @configuration.hint The saved configuration for the item whose rules you wish to generate
 	 *
 	 */
 	public array function getItemTypeSpecificRulesForFormField( required string itemType, required struct configuration ) {

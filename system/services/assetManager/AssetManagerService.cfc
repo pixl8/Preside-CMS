@@ -184,11 +184,12 @@ component displayName="AssetManager Service" {
 		  required array   assetIds
 		, required string  folderId
 		,          boolean throwIfNot = false
+		,          boolean restore    = false
 	) {
 		var restrictions = getFolderRestrictions( arguments.folderId );
 		var assets       = _getAssetDao().selectData(
 			  filter       = { id = arguments.assetIds }
-			, selectFields = [ "asset_type", "size", "asset_folder" ]
+			, selectFields = [ "asset_type", "size", "asset_folder", "title", "original_title" ]
 		);
 
 		for( var asset in assets ) {
@@ -197,7 +198,9 @@ component displayName="AssetManager Service" {
 				, size            = asset.size
 				, currentFolderId = asset.asset_folder
 				, folderId        = arguments.folderId
+				, title           = asset.title
 				, throwIfNot      = arguments.throwIfNot
+				, restore         = arguments.restore
 				, restrictions    = restrictions
 			);
 
@@ -214,12 +217,15 @@ component displayName="AssetManager Service" {
 		, required string  size
 		, required string  folderId
 		,          string  currentFolderId = ""
-		,          boolean throwIfNot   = false
-		,          struct  restrictions = getFolderRestrictions( arguments.folderId )
+		,          string  title           = ""
+		,          boolean throwIfNot      = false
+		,          boolean restore         = false
+		,          struct  restrictions    = getFolderRestrictions( arguments.folderId )
 	) {
-		var typeDisallowed = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
-		var sizeInMb       = arguments.size / 1048576;
-		var tooBig         = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+		var typeDisallowed  = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
+		var sizeInMb        = arguments.size / 1048576;
+		var tooBig          = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+		var fileExist       = _getAssetDao().dataExists( filter={ title=arguments.title, asset_folder=arguments.folderId } );
 
 		if ( typeDisallowed  ) {
 			if ( arguments.throwIfNot ) {
@@ -259,6 +265,17 @@ component displayName="AssetManager Service" {
 			}
 		}
 
+		if ( fileExist && !arguments.restore ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.AssetManager.asset.file.exist.in.folder"
+					, message = "Cannot add file to asset folder due file already existing in the folder."
+				);
+			}
+
+			return false;
+		}
+
 		return true;
 	}
 
@@ -292,6 +309,7 @@ component displayName="AssetManager Service" {
 			, filter       = {
 				  parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
 				, is_trashed    = false
+				, hidden        = false
 			  }
 		);
 
@@ -342,9 +360,8 @@ component displayName="AssetManager Service" {
 			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "storage_location.name as storage_location" ]
 			, filter       = filter
 			, extraFilters = [ _getExcludeHiddenFilter() ]
-			, groupBy      = "asset_folder.id"
+			, autoGroupBy  = true
 			, orderBy      = "label"
-
 		);
 
 		for ( var folder in folders ) {
@@ -441,25 +458,25 @@ component displayName="AssetManager Service" {
 		return result;
 	}
 
-	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
+	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100, string savedFilters="" ) {
 		var assetDao    = _getAssetDao();
-		var filter      = "( asset.is_trashed = :is_trashed )";
-		var params      = { is_trashed = false };
+		var filter      = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
+		var params      = { is_trashed=false, "asset_folder.hidden"=false };
 		var types       = _getTypes();
 		var records     = "";
 		var result      = [];
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
-			params.id = { value=ArrayToList( arguments.ids ), list=true };
+			params.id = arguments.ids;
 		}
 		if ( arguments.allowedTypes.len() ) {
-			params.asset_type = { value="", list=true };
+			params.asset_type = [];
 
 			for( var typeName in expandTypeList( arguments.allowedTypes ) ){
-				params.asset_type.value = ListAppend( params.asset_type.value, typeName );
+				params.asset_type.append( typeName );
 			}
-			if ( Len( Trim( params.asset_type.value ) ) ){
+			if ( params.asset_type.len() ){
 				filter &= " and ( asset.asset_type in (:asset_type) )";
 			} else {
 				params.delete( "asset_type" );
@@ -471,9 +488,10 @@ component displayName="AssetManager Service" {
 		}
 
 		records = assetDao.selectData(
-			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder" ]
+			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder", "asset.width", "asset.height" ]
 			, filter       = filter
 			, filterParams = params
+			, savedFilters = ListToArray( arguments.savedFilters )
 			, maxRows      = arguments.maxRows
 			, orderBy      = "asset.datemodified desc"
 		);
@@ -695,7 +713,7 @@ component displayName="AssetManager Service" {
 
 		if ( _autoExtractDocumentMeta() ) {
 			var fileBinary = getAssetBinary( arguments.assetId );
-			if ( !IsNull( fileBinary ) ) {
+			if ( !IsNull( local.fileBinary ) ) {
 				var rawText = _getDocumentMetadataService().getText( fileBinary );
 				if ( Len( Trim( rawText ) ) ) {
 					_getAssetDao().updateData( id=arguments.assetId, data={ raw_text_content=rawText } );
@@ -709,13 +727,15 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editAsset( required string id, required struct data ) {
-		var asset  = getAsset( id=arguments.id );
+		var asset       = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
 
 		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
 			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
 		}
+
+		flushAssetUrlCache( arguments.id );
 
 		auditDetail.id = arguments.id;
 		$audit(
@@ -726,6 +746,12 @@ component displayName="AssetManager Service" {
 		);
 
 		return result;
+	}
+
+	public void function flushAssetUrlCache( required string assetId ) {
+		_getAssetDao().updateData( id=arguments.assetId, data={ asset_url="" } );
+		_getAssetVersionDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="" } );
+		_getDerivativeDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="" } );
 	}
 
 	public boolean function moveAssets( required array assetIds, required string folderId ) {
@@ -765,6 +791,7 @@ component displayName="AssetManager Service" {
 				  assetIds   = arguments.assetIds
 				, folderId   = arguments.folderId
 				, throwIfNot = true
+				, restore    = true
 			);
 
 			for( var assetId in arguments.assetIds ) {
@@ -788,7 +815,7 @@ component displayName="AssetManager Service" {
 
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
-						, title          = asset.original_title
+						, title          = _ensureUniqueTitle( asset.original_title, arguments.folderId )
 						, is_trashed     = false
 						, storage_path   = newPath
 						, original_title = ""
@@ -1121,6 +1148,7 @@ component displayName="AssetManager Service" {
 		var derivativeDao      = _getDerivativeDao();
 		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
 		var derivative         = "";
+		var derivativeId       = "";
 		var lockName           = "getAssetDerivative( #arguments.assetId#, #arguments.derivativeName#, #arguments.versionId# )";
 		var selectFilter       = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
 		var selectFilterParams = {
@@ -1135,19 +1163,32 @@ component displayName="AssetManager Service" {
 			selectFilter &= " and asset_derivative.asset_version is null";
 		}
 
-		lock type="readonly" name=lockName timeout=5 {
-			derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
-			if ( derivative.recordCount ) {
-				return derivative;
+		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+		if ( derivative.recordCount ) {
+			if ( ( derivative.asset_type ?: "" ) == "PENDING"  ) {
+				return QueryNew( '' );
 			}
+
+			return derivative;
 		}
 
 		if ( arguments.createIfNotExists ) {
-			lock type="exclusive" name=lockName timeout=120 {
-				createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+			lock type="exclusive" name=lockName timeout=1 {
+				derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
+				if ( derivative.recordCount ) {
+					if ( ( derivative.asset_type ?: "" ) == "PENDING"  ) {
+						return QueryNew( '' );
+					}
 
-				return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+					return derivative;
+				}
+
+				derivativeId = createAssetDerivativeRecord(  assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName  );
 			}
+
+			createAssetDerivative( derivativeId=derivativeId, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+
+			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
 		}
 
 		return QueryNew( '' );
@@ -1192,11 +1233,28 @@ component displayName="AssetManager Service" {
 		}
 	}
 
+	public string function createAssetDerivativeRecord(
+		  required string assetId
+		, required string derivativeName
+		,          string versionId       = ""
+	) {
+		var signature = getDerivativeConfigSignature( arguments.derivativeName );
+
+		return _getDerivativeDao().insertData( {
+			  asset         = arguments.assetId
+			, asset_version = arguments.versionId
+			, label         = arguments.derivativeName & signature
+			, asset_type    = "PENDING"
+			, storage_path  = "PENDING-" & CreateUUId()
+		} );
+	}
+
 	public string function createAssetDerivative(
 		  required string assetId
 		, required string derivativeName
-		,          string versionId = ""
+		,          string versionId       = ""
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
+		,          string derivativeId    = ""
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
@@ -1208,6 +1266,21 @@ component displayName="AssetManager Service" {
 		var filename        = arguments.assetId & ( Len( Trim( arguments.versionId ) ) ? ".#arguments.versionId#" : "" ) & ".#fileext#";
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
 		var storagePath     = "/derivatives/#derivativeSlug#/#filename#";
+
+		if( fileext == 'pdf' ){
+			var pdfAttributes = {
+				  action      = "getinfo"
+				, source      = assetBinary
+				, name        = 'result'
+			};
+			try{
+				pdf attributeCollection=pdfAttributes;
+			} catch( e ) {
+				if( e.detail == 'Bad user Password' ){
+					throw( type = "AssetManager.Password error" );
+				}
+			}
+		}
 
 		for( var transformation in transformations ) {
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
@@ -1232,13 +1305,22 @@ component displayName="AssetManager Service" {
 			, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
 		);
 
-		return _getDerivativeDao().insertData( {
-			  asset_type    = assetType.typeName
-			, asset         = arguments.assetId
-			, asset_version = arguments.versionId
-			, label         = arguments.derivativeName & signature
-			, storage_path  = storagePath
-		} );
+		if ( Len( Trim( arguments.derivativeId ) ) ) {
+			_getDerivativeDao().updateData( id=arguments.derivativeId, data={
+				  asset_type    = assetType.typeName
+				, storage_path  = storagePath
+			} );
+
+			return arguments.derivativeId;
+		} else {
+			return _getDerivativeDao().insertData( {
+				  asset_type    = assetType.typeName
+				, asset         = arguments.assetId
+				, asset_version = arguments.versionId
+				, label         = arguments.derivativeName & signature
+				, storage_path  = storagePath
+			} );
+		}
 	}
 
 	public struct function getAssetPermissioningSettings( required string assetId ) {
@@ -1874,10 +1956,10 @@ component displayName="AssetManager Service" {
 		}
 
 		while( assetDao.dataExists( filter=filter, filterParams=params ) ) {
-			params.title = originalTitle & ++counter;
+			params.title = originalTitle & " " & ++counter;
 
 			if ( Len( params.title ) > maxLength ) {
-				params.title = Left( originalTitle, maxLength-Len( counter ) ) & counter;
+				params.title = Left( originalTitle, maxLength-Len( counter )-1 ) & " " & counter;
 			}
 		}
 

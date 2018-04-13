@@ -15,6 +15,7 @@ component {
 	 * @presideObjectService.inject     presideObjectService
 	 * @versioningService.inject        versioningService
 	 * @websitePermissionService.inject websitePermissionService
+	 * @rulesEngineConditionService.inject rulesEngineConditionService
 	 */
 	public any function init(
 		  required any loginService
@@ -25,6 +26,7 @@ component {
 		, required any i18nService
 		, required any versioningService
 		, required any websitePermissionService
+		, required any rulesEngineConditionService
 	) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
@@ -34,6 +36,7 @@ component {
 		_setI18nService( arguments.i18nService );
 		_setVersioningService( arguments.versioningService );
 		_setWebsitePermissionService( arguments.websitePermissionService );
+		_setRulesEngineConditionService( arguments.rulesEngineConditionService );
 		_setPageSlugsAreMultilingual();
 
 		_ensureSystemPagesExistInTree();
@@ -58,7 +61,7 @@ component {
 
 		var filter           = "page.trashed = :trashed";
 		if( !arguments.trash ){
-			filter &= " and page.page_type in (:page_type)"
+			filter &= " and page.page_type in (:page_type)";
 		}
 
 		var maxDepth = arguments.maxDepth;
@@ -67,7 +70,7 @@ component {
 			, filter             = filter
 			, filterParams       = { trashed = arguments.trash, page_type = allowedPageTypes }
 			, useCache           = arguments.useCache
-			, groupBy            = "page.id"
+			, autoGroupBy        = true
 			, allowDraftVersions = arguments.allowDrafts
 		};
 
@@ -152,10 +155,10 @@ component {
 		}
 
 		if ( arguments.version ) {
-			args.fromVersionTable = true
-			args.specificVersion  = arguments.version
+			args.fromVersionTable = true;
+			args.specificVersion  = arguments.version;
 		} else if ( arguments.getLatest ) {
-			args.fromVersionTable = true
+			args.fromVersionTable = true;
 		}
 
 		return _getPObj().selectData( argumentCollection = args );
@@ -204,7 +207,7 @@ component {
 		var pobj   = _getPresideObject( pt.getPresideObject() );
 		var args  = { filter={ page=arguments.id }, allowDraftVersions=arguments.allowDrafts };
 		if ( arguments.getLatest ) {
-			args.fromVersionTable = true
+			args.fromVersionTable = true;
 		}
 		var record = pobj.selectData( argumentCollection=args );
 
@@ -212,7 +215,7 @@ component {
 			return {};
 		}
 
-		for( var r in record ) { record = r }; // query to struct hack
+		for( var r in record ) { record = r; } // query to struct hack
 		StructDelete( record, "id" );
 		StructDelete( record, "datecreated" );
 		StructDelete( record, "datemodified" );
@@ -233,7 +236,7 @@ component {
 		var value          = "";
 		var poService      = _getPresideObjectService();
 		var collectedValue = [];
-		var __valueExists  = function( v ) { return !IsNull( v ) && (!IsSimpleValue( v ) || Len( Trim( v ) ) ); };
+		var __valueExists  = function( v ) { return !IsNull( arguments.v ) && (!IsSimpleValue( arguments.v ) || Len( Trim( arguments.v ) ) ); };
 
 		if ( StructKeyExists( arguments.page, arguments.propertyName ) ) {
 			value = arguments.page[ arguments.propertyName ];
@@ -379,7 +382,7 @@ component {
 		} else {
 			args.maxRows = 0;
 			args.startRow = 1;
-			args.selectFields = [ "count( * ) as nRows" ]
+			args.selectFields = [ "count( * ) as nRows" ];
 			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args ).nRows;
 		}
 
@@ -446,7 +449,7 @@ component {
 				, active           = true
 				, trashed          = false
 			  }
-		}
+		};
 
 		if ( arguments.version ) {
 			homepageArgs.fromVersionTable = true;
@@ -484,7 +487,7 @@ component {
 		, boolean allowDrafts       = $getRequestContext().showNonLiveContent()
 	) {
 		var args = arguments;
-		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ]
+		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ];
 		for( var field in requiredSelectFields) {
 			if ( !args.selectFields.find( field ) && !args.selectFields.find( "page." & field ) ) {
 				args.selectFields.append( "page." & field );
@@ -562,7 +565,7 @@ component {
 		);
 
 		var isManagedType   = Len( Trim( page.parent_type ) ) && getManagedChildTypesForParentType( page.parent_type ).findNoCase( page.page_type );
-		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_from_sub_navigation ) : ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) )
+		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_from_sub_navigation ) : ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) );
 		if ( isManagedType || excludedFromNav ) {
 			return [];
 		}
@@ -660,6 +663,8 @@ component {
 			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft, skipTrivialInterceptors=pageType.isSystemPageType() );
 		}
 
+		$announceInterception( "postAddSiteTreePage", pageTypeObjData );
+
 		if ( Len( Trim( pageId ) ) && arguments.audit ) {
 			var auditDetail = Duplicate( arguments );
 			auditDetail.id = pageId;
@@ -734,7 +739,7 @@ component {
 						data._hierarchy_sort_order     = newParent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
 						data._hierarchy_slug           = newParent._hierarchy_slug & ( slugChanged ? data : existingPage ).slug & "/";
 
-					} elseif ( IsBoolean( arguments.trashed ?: "" ) && arguments.trashed ) {
+					} else if ( IsBoolean( arguments.trashed ?: "" ) && arguments.trashed ) {
 						data.sort_order                = _calculateSortOrder();
 						data.parent_page               = "";
 						data._hierarchy_lineage        = "/";
@@ -818,6 +823,11 @@ component {
 			_getPresideObjectService().clearRelatedCaches( "page" );
 			_getPresideObjectService().clearRelatedCaches( existingPage.page_type );
 		}
+
+		var interceptionArgs              = arguments;
+		    interceptionArgs.existingPage = existingPage;
+
+		$announceInterception( "postEditSiteTreePage", interceptionArgs );
 
 		if ( updated && !arguments.skipAudit ) {
 			for( var p in existingPage ) { existingPage = p };
@@ -1032,12 +1042,19 @@ component {
 			return true;
 		}
 
-		return _getWebsitePermissionService().hasPermission(
-			  permissionKey = "pages.access"
-			, context       = "page"
-			, contextKeys   = [ restrictionRules.access_defining_page ]
-			, forceGrantByDefault = IsBoolean( restrictionRules.grantaccess_to_all_logged_in_users ) && restrictionRules.grantaccess_to_all_logged_in_users
-		);
+		if ( Len( Trim( restrictionRules.access_condition ) ) ) {
+			return _getRulesEngineConditionService().evaluateCondition(
+				  conditionId = restrictionRules.access_condition
+				, context     = "webrequest"
+			);
+		} else {
+			return _getWebsitePermissionService().hasPermission(
+				  permissionKey = "pages.access"
+				, context       = "page"
+				, contextKeys   = [ restrictionRules.access_defining_page ]
+				, forceGrantByDefault = IsBoolean( restrictionRules.grantaccess_to_all_logged_in_users ) && restrictionRules.grantaccess_to_all_logged_in_users
+			);
+		}
 	}
 
 	public numeric function getTrashCount() {
@@ -1364,6 +1381,14 @@ component {
 		return ListToArray( fields );
 	}
 
+	public string function getDefaultSortOrderForDataGrid( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "sitetreeDefaultSortOrder"
+			, defaultValue  = ""
+		);
+	}
+
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
 		var sqlFields          = Duplicate( arguments.gridFields );
 		var field              = "";
@@ -1519,6 +1544,13 @@ component {
 	}
 	private void function _setWebsitePermissionService( required any websitePermissionService ) {
 		_websitePermissionService = arguments.websitePermissionService;
+	}
+
+	private any function _getRulesEngineConditionService() {
+		return _rulesEngineConditionService;
+	}
+	private void function _setRulesEngineConditionService( required any rulesEngineConditionService ) {
+		_rulesEngineConditionService = arguments.rulesEngineConditionService;
 	}
 
 	private void function _setPageSlugsAreMultilingual() {

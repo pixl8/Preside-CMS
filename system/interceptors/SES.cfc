@@ -4,6 +4,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 	property name="systemConfigurationService"       inject="delayedInjector:systemConfigurationService";
 	property name="urlRedirectsService"              inject="delayedInjector:urlRedirectsService";
 	property name="siteService"                      inject="delayedInjector:siteService";
+	property name="tenancyService"                   inject="delayedInjector:tenancyService";
 	property name="adminRouteHandler"                inject="delayedInjector:adminRouteHandler";
 	property name="assetRouteHandler"                inject="delayedInjector:assetRouteHandler";
 	property name="plainStoredFileRouteHandler"      inject="delayedInjector:plainStoredFileRouteHandler";
@@ -22,6 +23,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 	public void function onRequestCapture( event, interceptData ) output=false {
 		_checkRedirectDomains( argumentCollection=arguments );
 		_detectIncomingSite  ( argumentCollection=arguments );
+		_setCustomTenants    ( argumentCollection=arguments );
 		_checkUrlRedirects   ( argumentCollection=arguments );
 		_detectLanguage      ( argumentCollection=arguments );
 		_setPresideUrlPath   ( argumentCollection=arguments );
@@ -105,16 +107,16 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			}
 
 			if ( site.isEmpty() ) {
-				throw(
-					  type      = "presidecms.site.not.found"
-					, message   = "There is no PresideCMS site configured with the current domain, [#super.getCGIElement( 'server_name', event )#]"
-					, detail    = "If you are the system administrator, and expect the domain to work, please update the site's main domain either in the database or through the administrator if accessible."
-					, errorCode = 404
-				);
+				header statuscode="404" statustext="Not Found";
+				abort;
 			}
 		}
 
 		event.setSite( site );
+	}
+
+	private void function _setCustomTenants() {
+		tenancyService.setRequestTenantIds();
 	}
 
 	private void function _detectLanguage( event, interceptor ) output=false {
@@ -226,7 +228,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		}
 
 		var path    = event.getCurrentUrl( includeQueryString=true );
-		var fullUrl = event.getBaseUrl() & path;
+		var fullUrl = event.getSiteUrl() & path;
 
 		urlRedirectsService.redirectOnMatch(
 			  path    = path

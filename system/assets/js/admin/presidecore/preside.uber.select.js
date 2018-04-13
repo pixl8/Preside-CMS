@@ -55,6 +55,7 @@
 			this.options = options != null ? options : {};
 			this.is_multiple = this.form_field.multiple;
 			this.selected = [];
+			this.fieldPopulatedDeferred = $.Deferred();
 			this.setup_preselected_value();
 			this.set_sortable_options();
 			this.set_rendering_templates();
@@ -277,10 +278,12 @@
 			}
 			this.selected_option_count = 0;
 			_ref = this.form_field.options;
-			for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-				option = _ref[_i];
-				if (option.selected) {
-					this.selected_option_count += 1;
+			if ( _ref ){
+				for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+					option = _ref[_i];
+					if (option.selected) {
+						this.selected_option_count += 1;
+					}
 				}
 			}
 			return this.selected_option_count;
@@ -354,11 +357,18 @@
 		UberSelect.prototype.setup_search_engine = function(){
 			var uberSelect = this
 			  , i
-			  , prefetch_url = this.form_field.getAttribute( "data-prefetch-url" )
-			  , remote_url   = this.form_field.getAttribute( "data-remote-url" );
+			  , prefetch_url  = this.form_field.getAttribute( "data-prefetch-url" )
+			  , remote_url    = this.form_field.getAttribute( "data-remote-url" )
+			  , display_limit = this.form_field.getAttribute( "data-display-limit" );
 
 			if ( isNaN( this.prefetch_ttl ) ) {
 				this.prefetch_ttl = 0;
+			}
+
+			if ( display_limit === null || isNaN( display_limit ) ) {
+				this.display_limit = 200;
+			} else {
+				this.display_limit = parseInt( display_limit );
 			}
 
 			this.local_options = SelectParser.select_to_array( this.form_field );
@@ -379,9 +389,9 @@
 				  local          : this.local_options
 				, prefetch       : this.prefetch_url
 				, remote         : this.remote_url
-				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
-			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
-			 	, limit          : 100 // a sensible limit, should probably be configurable, right?!
+				, datumTokenizer : function(d) { return Bloodhound.tokenizers.nonwordandunderscore( d.text ); }
+			 	, queryTokenizer : Bloodhound.tokenizers.nonwordandunderscore
+			 	, limit          : this.display_limit
 			 	, dupDetector    : function( remote, local ){ return remote.value == local.value }
 			} );
 
@@ -400,6 +410,7 @@
 						chosen: uberSelect
 					});
 				}
+				uberSelect.fieldPopulatedDeferred.resolve();
 			} );
 		};
 
@@ -478,6 +489,7 @@
 			}
 
 			this.container.append( '<input type="hidden" class="chosen-hidden-field" />');
+			this.disabled_if_unfiltered = this.form_field_jq.data( 'disabledIfUnfiltered' ) == true;
 			this.hidden_field = this.container.find( 'input.chosen-hidden-field' ).first();
 			this.hidden_field.attr( 'name', this.form_field_jq.attr( 'name' ) );
 			this.hidden_field.data( "uberSelect", this );
@@ -512,30 +524,61 @@
 
 			this.setup_filter();
 			this.setup_search_engine();
+			this.disable_if_unfiltered();
 
 			if ( typeof this.filter_field !== "undefined" ) {
 				this.filter_field.on('change',function(){
 					$uberSelect.setup_filter();
 					$uberSelect.setup_search_engine();
+					$uberSelect.disable_if_unfiltered();
 				});
 			}
 		};
 
 		UberSelect.prototype.setup_filter = function() {
+			var filterBy      = this.form_field.getAttribute( "data-filter-by" )
+			  , filterByField = this.form_field.getAttribute( "data-filter-by-field" )
+			  , filters       = []
+			  , filterInput, filterByValue, i;
 
-			var filterBy        = this.form_field.getAttribute( "data-filter-by" )
-			  , filterByField   = this.form_field.getAttribute( "data-filter-by-field" )
-			  , filterByValue;
+			if ( filterBy !== null && filterBy.length ) {
+				filterBy      = filterBy.split( ',' );
+				filterByField = filterByField.split( ',' );
 
-			this.filter_field = $( "input[name='" + filterBy + "']" );
+				for( i=0; i<filterBy.length; i++ ) {
+					filterInput = $( "input[name='" + filterBy[ i ] + "']" );
 
-			filterByValue = this.filter_field.val();
+					if ( filterInput.length ) {
+						this.filter_field = filterInput;
+						filterByValue = this.filter_field.val();
+					} else {
+						filterByValue = cfrequest[ filterBy[ i ] ] || null;
+					}
 
-			if ( typeof filterByValue !== "undefined" ) {
-				this.filter = '&' + filterByField + '='+ filterByValue + '&filterByFields=' + filterByField;
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+						filters.push ( '&', filterByField[ i ], '=', filterByValue, '&filterByFields=', filterByField[ i ] );
+					}
+				}
+
+				if ( filters.length ) {
+					this.filter = filters.join( '' );
+				}
 			}
 
 		};
+
+		UberSelect.prototype.disable_if_unfiltered = function() {
+			if ( this.disabled_if_unfiltered ) {
+				if ( this.filter_field.val().length ) {
+					this.form_field_jq.removeAttr( 'disabled' );
+					this.container.siblings( '.quick-add-btn' ).removeClass( 'disabled' );
+				} else {
+					this.form_field_jq.attr( 'disabled', 'disabled' );
+					this.container.siblings( '.quick-add-btn' ).addClass( 'disabled' );
+				}
+				this.search_field_disabled();
+			}
+		}
 
 		UberSelect.prototype.register_observers = function() {
 			var _this = this;
@@ -964,6 +1007,15 @@
 			}
 		};
 
+		UberSelect.prototype.clear = function() {
+			var uberSelect = this;
+
+			uberSelect.clear_suggestions();
+			uberSelect.search_choices.find( ".search-choice" ).each( function(){
+				uberSelect.choice_destroy( $( this ) );
+			} );
+		};
+
 		UberSelect.prototype.choice_destroy = function(link) {
 			var $li = link.closest( "li.search-choice" )
 			  , item = $li.data( "item" );
@@ -973,7 +1025,7 @@
 
 				this.hidden_field.trigger("change");
 				this.form_field_jq.trigger("change", {
-					deselected: item.value
+					deselected: item.__value || item.value
 				});
 
 				if ( this.isSearchable() ) {
@@ -1076,7 +1128,7 @@
 				return false;
 			}
 
-			this.add_to_hidden_field( item.value );
+			this.add_to_hidden_field( item.__value || item.value );
 
 			if ( this.is_multiple ) {
 				this.choice_build( item );
@@ -1131,7 +1183,7 @@
 				values = this.hidden_field.val();
 				if ( values.length ) {
 					values    = values.split( ',' );
-					itemIndex = values.indexOf( item.value );
+					itemIndex = values.indexOf( item.__value || item.value );
 					if ( itemIndex !== -1 ){
 						values.splice( itemIndex, 1 );
 					}
@@ -1139,7 +1191,7 @@
 				}
 
 				for( itemIndex=0; itemIndex<this.selected.length; itemIndex++ ){
-					if ( this.selected[itemIndex].value == item.value ) {
+					if ( this.selected[itemIndex].value == item.__value || item.value ) {
 						this.selected.splice( itemIndex, 1 );
 						break;
 					}
@@ -1324,7 +1376,7 @@
 					var $li = $(this)
 					  , item = $li.data( "item" );
 
-					newVal.push( item.value );
+					newVal.push( item.__value || item.value );
 				} );
 
 				$uberSelect.hidden_field.val( newVal.length ? newVal.join( "," ) : "" );

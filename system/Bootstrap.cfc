@@ -17,14 +17,14 @@ component {
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
 		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
 		this.COLDBOX_RELOAD_PASSWORD                 = arguments.reloadPassword;
-		this.name                                    = arguments.name
+		this.name                                    = arguments.name;
 		this.scriptProtect                           = arguments.scriptProtect;
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
 		this.statelessRequest                        = isStatelessRequest( _getUrl() );
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
-		this.showDbSyncScripts                       = arguments.showDbSyncScripts
+		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -33,7 +33,7 @@ component {
 // APPLICATION LIFECYCLE EVENTS
 	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
-		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
+		_readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
 			_initEveryEverything();
@@ -155,7 +155,6 @@ component {
 				if ( _reloadRequired() ) {
 					_announceInterception( "prePresideReload" );
 
-
 					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
 
 					_clearExistingApplication();
@@ -181,6 +180,7 @@ component {
 	private void function _clearExistingApplication() {
 		onApplicationEnd( application );
 		application.clear();
+		request.delete( "cb_requestcontext" );
 		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
@@ -284,7 +284,7 @@ component {
 		return "preside.system.config.Config";
 	}
 
-	private void function _readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
+	private void function _readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
 		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 
@@ -563,12 +563,15 @@ component {
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
 		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			new preside.system.services.errors.ErrorLogService(
-				  appMapping     = attributes.appMapping
-				, appMappingPath = attributes.appMappingPath
-				, logsMapping    = attributes.logsMapping
-				, logDirectory   = attributes.logsMapping & "/rte-logs"
-			).raiseError( attributes.e );
+			if ( !application.keyExists( "errorLogService" ) ) {
+				application.errorLogService = new preside.system.services.errors.ErrorLogService(
+					  appMapping     = attributes.appMapping
+					, appMappingPath = attributes.appMappingPath
+					, logsMapping    = attributes.logsMapping
+					, logDirectory   = attributes.logsMapping & "/rte-logs"
+				);
+			}
+			application.errorLogService.raiseError( attributes.e );
 		}
 
 		content reset=true;

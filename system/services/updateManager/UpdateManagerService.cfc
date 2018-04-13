@@ -134,7 +134,7 @@ component {
 		var cacheKey = "UpdateManagerService.listAvailableVersions";
 		var cached   = cache.get( cacheKey );
 
-		if ( !IsNull( cached ) ) {
+		if ( !IsNull( local.cached ) ) {
 			return cached;
 		}
 
@@ -435,7 +435,7 @@ component {
 
 			pagePoolClear();
 		} catch( "security" e ) {
-			throw( type="UpdateManagerService.railo.admin.secured", message=e.message );
+			throw( type="UpdateManagerService.lucee.admin.secured", message=e.message );
 		}
 	}
 

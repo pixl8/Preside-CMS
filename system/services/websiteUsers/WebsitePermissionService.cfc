@@ -27,7 +27,7 @@ component displayName="Website permissions service" {
 		, required any    appliedPermDao
 	) {
 		_setWebsiteLoginService( arguments.websiteLoginService );
-		_setCacheProvider( arguments.cacheProvider )
+		_setCacheProvider( arguments.cacheProvider );
 		_setBenefitsDao( arguments.benefitsDao );
 		_setUserDao( arguments.userDao );
 		_setAppliedPermDao( arguments.appliedPermDao );
@@ -55,10 +55,10 @@ component displayName="Website permissions service" {
 		if ( Len( Trim( arguments.benefit ) ) ) {
 			return _getBenefitPermissions( arguments.benefit );
 
-		} elseif ( Len( Trim( arguments.user ) ) ) {
+		} else if ( Len( Trim( arguments.user ) ) ) {
 			return _getUserPermissions( arguments.user );
 
-		} elseif ( arguments.filter.len() ) {
+		} else if ( arguments.filter.len() ) {
 			return _filterPermissions( arguments.filter );
 		}
 
@@ -75,7 +75,7 @@ component displayName="Website permissions service" {
 	 * @permissionKey.hint       The permission key as defined in `Config.cfc`
 	 * @context.hint             Optional named context
 	 * @contextKeys.hint         Array of keys for the given context (required if context supplied)
-	 * @userId.hint              ID of the user who's permissions we wish to check
+	 * @userId.hint              ID of the user whose permissions we wish to check
 	 * @userId.docdefault        ID of logged in user
 	 * @forceGrantByDefault.hint Whether or not to force a granted permission by default, unless a specific context permission overrides that grant
 	 *
@@ -93,7 +93,7 @@ component displayName="Website permissions service" {
 
 		if ( Trim( arguments.context ).len() && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
-			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {
+			if ( !IsNull( local.contextPerm ) && IsBoolean( contextPerm ) ) {
 				return contextPerm;
 			}
 		}
@@ -107,7 +107,7 @@ component displayName="Website permissions service" {
 	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
 	 *
 	 * @autodoc
-	 * @userId  ID of the user who's benefits we wish to get
+	 * @userId  ID of the user whose benefits we wish to get
 	 *
 	 */
 	public array function listUserBenefits( required string userId ) {
@@ -166,7 +166,7 @@ component displayName="Website permissions service" {
 	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
 	 *
 	 * @autodoc
-	 * @userId  ID of the user who's permissions we wish to get
+	 * @userId  ID of the user whose permissions we wish to get
 	 *
 	 */
 	public array function listUserPermissions( required string userId ) {
@@ -385,13 +385,13 @@ component displayName="Website permissions service" {
 				if ( Left( permissionKey, 1 ) == "!" ) {
 					exclusions.append( ReReplace( permissionKey, "^!(.*)$", "\1" ) );
 
-				} elseif ( permissionKey contains "*" ) {
+				} else if ( permissionKey contains "*" ) {
 					( _expandWildCardPermissionKey( permissionKey ) ).each( function( expandedKey ){
 						if ( !filtered.findNoCase( expandedKey ) ) {
 							filtered.append( expandedKey );
 						}
 					} );
-				} elseif ( allPerms.findNoCase( permissionKey ) && !filtered.findNoCase( permissionKey ) ) {
+				} else if ( allPerms.findNoCase( permissionKey ) && !filtered.findNoCase( permissionKey ) ) {
 					filtered.append( permissionKey );
 				}
 			}
@@ -467,7 +467,7 @@ component displayName="Website permissions service" {
 				for( var childPerm in childPerms ){
 					expanded.append( childPerm );
 				}
-			} elseif ( IsArray( permissions[ perm ] ) ) {
+			} else if ( IsArray( permissions[ perm ] ) ) {
 				for( var key in permissions[ perm ] ) {
 					if ( IsSimpleValue( key ) ) {
 						expanded.append( ListAppend( newPrefix, key, "." ) );
@@ -536,7 +536,7 @@ component displayName="Website permissions service" {
 		if ( $isFeatureEnabled( "websiteBenefits" ) ) {
 			return _getBenefitsDao().selectData(
 				  selectFields = [ "website_benefit.id", "website_benefit.combined_benefits_are_inclusive", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
-				, groupBy      = "website_benefit.id"
+				, groupBy      = "website_benefit.id,website_benefit.combined_benefits_are_inclusive"
 				, forceJoins   = "inner"
 			);
 		}

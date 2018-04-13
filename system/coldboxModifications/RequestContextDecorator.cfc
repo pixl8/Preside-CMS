@@ -14,10 +14,9 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
  *
  */
 
-
-
 // URL related
 	public void function setSite( required struct site ) output=false {
+		getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
 		getRequestContext().setValue(
 			  name    = "_site"
 			, value   =  arguments.site
@@ -36,12 +35,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true ) output=false {
-		var fetchSite = Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId();
+		var prc       = getRequestContext().getCollection( private=true );
+		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
 
-		if ( cgi.server_port != 80 ) {
-			siteUrl &= ":#cgi.server_port#";
+		prc.delete( "_forceDomainLookup" );
+
+		if ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ) {
+			siteUrl &= ":#cgi.SERVER_PORT#";
 		}
 
 		if ( arguments.includePath ) {
@@ -110,7 +112,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public string function getBaseUrl() output=false {
-		return getProtocol() & "://" & getServerName();
+		return getProtocol() & "://" & getServerName() & ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ":" & cgi.SERVER_PORT : "" );
 	}
 
 	public string function getCurrentUrl( boolean includeQueryString=true ) output=false {
@@ -143,16 +145,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return collection;
 	}
 
-	public struct function getCollectionForForm( string formName="" ) output=false {
+	public struct function getCollectionForForm(
+		  string  formName                = ""
+		, boolean stripPermissionedFields = true
+		, string  permissionContext       = ""
+		, array   permissionContextKeys   = []
+		, string  fieldNamePrefix         = ""
+		, string  fieldNameSuffix         = ""
+	) output=false {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
 		var rc           = getRequestContext().getCollection();
 		var collection   = {};
 
 		for( var name in formNames ) {
-			var formFields = formsService.listFields( name );
+			var formFields = formsService.listFields( argumentCollection=arguments, formName=name );
 			for( var field in formFields ){
-				collection[ field ] = ( rc[ field ] ?: "" );
+				var fieldName = arguments.fieldNamePrefix & field & arguments.fieldNameSuffix;
+				collection[ field ] = ( rc[ fieldName ] ?: "" );
 			}
 		}
 
@@ -281,6 +291,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
 	}
 
+// Query caching
+	public boolean function getUseQueryCache() {
+		var event = getRequestContext();
+		var useCache = event.getValue( name="__presideQueryCacheDefault", private=true, defaultValue="" );
+
+		if ( !IsBoolean( useCache ) ) {
+			useCache = getController().getSetting( "useQueryCacheDefault" );
+			useCache = IsBoolean( useCache ) && useCache;
+
+			setUseQueryCache( useCache );
+		}
+
+		return useCache;
+	}
+	public void function setUseQueryCache( required boolean useQueryCache ) {
+		getRequestContext().setValue( name="__presideQueryCacheDefault", private=true, value=arguments.useQueryCache );
+	}
+
 // private helpers
 	private any function _simpleRequestCache( required string key, required any generator ) output=false {
 		request._simpleRequestCache = request._simpleRequestCache ?: {};
@@ -300,7 +328,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
@@ -383,7 +411,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		} else {
 			if ( Len( Trim( arguments.pageId ?: "" ) ) ) {
 				getPageArgs.id = arguments.pageId;
-			} elseif ( Len( Trim( arguments.systemPage ?: "" ) ) ) {
+			} else if ( Len( Trim( arguments.systemPage ?: "" ) ) ) {
 				getPageArgs.systemPage = arguments.systemPage;
 			} else {
 				getPageArgs.slug = arguments.slug;
@@ -409,10 +437,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		clearBreadCrumbs();
 		for( var ancestor in ancestors ) {
-			addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
+			addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ), menuTitle=ancestor.navigation_title ?: "" );
 			page.ancestors.append( ancestor );
 		}
-		addBreadCrumb( title=page.title, link=buildLink( page=page.id ) );
+		addBreadCrumb( title=page.title, link=buildLink( page=page.id ), menuTitle=page.navigation_title ?: "" );
 
 		page.isInDateAndActive = isActive( argumentCollection = page );
 		if ( page.isInDateAndActive ) {
@@ -455,17 +483,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			}
 
 			for( var ancestor in ancestors ) {
-				addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
+				addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ), menuTitle=ancestor.navigation_title ?: "" );
 				page.ancestors.append( ancestor );
 			}
 
 			for( var p in arguments.parentPage ){
-				addBreadCrumb( title=p.title, link=buildLink( page=p.id ) );
+				addBreadCrumb( title=p.title, link=buildLink( page=p.id ), menuTitle=p.navigation_title ?: "" );
 				page.ancestors.append( p );
 			}
 		}
 
-		addBreadCrumb( title=page.title ?: "", link=getCurrentUrl() );
+		addBreadCrumb( title=page.title ?: "", link=getCurrentUrl(), menuTitle=page.navigation_title ?: "" );
 
 		prc.presidePage = page;
 	}
@@ -615,10 +643,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getPageProperty( "permissionContext", [] );
 	}
 
-	public void function addBreadCrumb( required string title, required string link ) output=false {
+	public void function addBreadCrumb( required string title, required string link, string menuTitle="" ) output=false {
 		var crumbs = getBreadCrumbs();
 
-		ArrayAppend( crumbs, { title=arguments.title, link=arguments.link } );
+		ArrayAppend( crumbs, {
+			  title     = arguments.title
+			, link      = arguments.link
+			, menuTitle = arguments.menuTitle.len() ? arguments.menuTitle : arguments.title
+		} );
 
 		getRequestContext().setValue( name="_breadCrumbs", value=crumbs, private=true );
 	}

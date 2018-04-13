@@ -1,0 +1,345 @@
+component extends="preside.system.base.AdminHandler" {
+
+	property name="dao"        inject="presidecms:object:${objectId}";
+	property name="messageBox" inject="coldbox:plugin:messageBox";
+// BEGIN BATCHEDIT
+	property name="dataManagerService" inject="dataManagerService";
+// END BATCHEDIT
+
+	function prehandler( event, rc, prc ) {
+		super.preHandler( argumentCollection = arguments );
+
+		_checkPermissions( event=event, key="read" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "${translationFile}:breadcrumb" )
+			, link  = event.buildAdminLink( linkTo="${handlerRoot}" )
+		);
+
+		prc.pageIcon = "${pageIcon}";
+	}
+
+	function index( event, rc, prc ) {
+		prc.pageTitle    = translateResource( "${translationFile}:page.title" );
+		prc.pageSubtitle = translateResource( "${translationFile}:page.subtitle" );
+
+		prc.canAdd    = hasCmsPermission( "${permissionKey}.add"    );
+		prc.canDelete = hasCmsPermission( "${permissionKey}.delete" );
+
+// BEGIN BATCHEDIT
+		prc.batchEditableFields = dataManagerService.listBatchEditableFields( "${objectId}" );
+// END BATCHEDIT
+	}
+
+	function add( event, rc, prc ) {
+		_checkPermissions( event=event, key="add" );
+
+		prc.pageTitle    = translateResource( "${translationFile}:add.page.title" );
+		prc.pageSubtitle = translateResource( "${translationFile}:add.page.subtitle" );
+// BEGIN DRAFTS
+		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish" );
+		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft"   );
+		if ( !prc.canPublish && !prc.canSaveDraft ) {
+			event.adminAccessDenied();
+		}
+// END DRAFTS
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "${translationFile}:add.page.breadcrumb" )
+			, link  = event.buildAdminLink( linkTo="${handlerRoot}.add" )
+		);
+	}
+	function addAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="add" );
+
+// BEGIN DRAFTS
+		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
+		_checkPermissions( event=event, key=saveAction );
+
+		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish" );
+		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft" );
+// END DRAFTS
+		runEvent(
+			  event          = "admin.DataManager._addRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object            = "${objectId}"
+				, errorAction       = "${handlerRoot}.add"
+				, addAnotherAction  = "${handlerRoot}.add"
+				, successAction     = "${handlerRoot}"
+				, redirectOnSuccess = true
+				, audit             = true
+				, auditType         = "${auditCategory}"
+// BEGIN DRAFTS
+				, auditAction       = saveAction == "publish" ? "add_record" : "add_draft_record"
+				, draftsEnabled     = true
+				, canPublish        = prc.canPublish
+				, canSaveDraft      = prc.canSaveDraft
+// END DRAFTS
+// BEGIN NO DRAFTS
+				, auditAction       = "add_record"
+				, draftsEnabled     = false
+// END NO DRAFTS
+			}
+		);
+	}
+
+	function edit( event, rc, prc ) {
+		_checkPermissions( event=event, key="edit" );
+
+// BEGIN DRAFTS
+		prc.canSaveDraft = hasCmsPermission( "${permissionKey}.saveDraft" );
+		prc.canPublish   = hasCmsPermission( "${permissionKey}.publish"   );
+		if ( !prc.canSaveDraft && !prc.canPublish ) {
+			event.adminAccessDenied()
+		}
+// END DRAFTS
+
+		var id      = rc.id ?: "";
+		var version = Val( rc.version ?: "" );
+
+		prc.record = dao.selectData(
+			  filter             = { id=id }
+			, fromVersionTable   = true
+// BEGIN DRAFTS
+			, allowDraftVersions = true
+// END DRAFTS
+			, specificVersion    = version
+		);
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="${translationFile}:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+		prc.pageTitle    = translateResource( uri="${translationFile}:edit.page.title", data=[ prc.record.${labelfield} ] );
+		prc.pageSubtitle = translateResource( uri="${translationFile}:edit.page.subtitle", data=[ prc.record.${labelfield} ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="${translationFile}:edit.page.breadcrumb", data=[ prc.record.${labelfield} ] )
+			, link  = event.buildAdminLink( linkTo="${handlerRoot}.edit", queryString="id=#id#" )
+		);
+	}
+	function editAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="edit" );
+
+		var id = rc.id ?: "";
+// BEGIN DRAFTS
+		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
+		_checkPermissions( event=event, key=saveAction );
+// END DRAFTS
+
+		prc.record = dao.selectData( filter={ id=id } );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="${translationFile}:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+		}
+
+		runEvent(
+			  event          = "admin.DataManager._editRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object            = "${objectId}"
+				, errorAction       = "${handlerRoot}.edit"
+				, successUrl        = event.buildAdminLink( linkto="${handlerRoot}" )
+				, redirectOnSuccess = true
+				, audit             = true
+				, auditType         = "${auditCategory}"
+// BEGIN DRAFTS
+				, auditAction       = ( saveAction == "publish" ? "publish_record" : "save_draft" )
+				, draftsEnabled     = true
+				, canPublish        = hasCmsPermission( "${permissionKey}.publish" )
+				, canSaveDraft      = hasCmsPermission( "${permissionKey}.saveDraft"   )
+// END DRAFTS
+// BEGIN NO DRAFTS
+				, auditAction       = "edit"
+				, draftsEnabled     = false
+// END NO DRAFTS
+			}
+		);
+	}
+
+	function deleteAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="delete" );
+
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object       = "${objectId}"
+				, postAction   = "${handlerRoot}"
+				, audit        = true
+				, auditType    = "${auditCategory}"
+				, auditAction  = "delete_record"
+			}
+		);
+	}
+
+	function multiAction( event, rc, prc ) {
+		var action = rc.multiAction ?: "";
+		var ids    = rc.id          ?: "";
+
+		switch( action ){
+// BEGIN BATCHEDIT
+			case "batchUpdate":
+				setNextEvent(
+					  url           = event.buildAdminLink( linkTo="${handlerRoot}.batchEditField", queryString="field=#( rc.field ?: '' )#" )
+					, persistStruct = { id = ids }
+				);
+			break;
+// END BATCHEDIT
+			case "delete":
+				return deleteAction( argumentCollection = arguments );
+			break;
+		}
+		messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+	}
+
+// BEGIN BATCHEDIT
+	function batchEditField( event, rc, prc ) {
+		var ids         = Trim( rc.id    ?: "" );
+		var field       = Trim( rc.field ?: "" );
+		var fieldName   = translateResource( uri="preside-objects.${objectId}:field.#field#.title", defaultValue=field );
+		var recordCount = ids.listLen();
+
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+		if ( !field.len() || !ids.len() ) {
+			messageBox.error( translateResource( uri="${translationFile}:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+		}
+
+		prc.pageTitle    = translateResource( uri="${translationFile}:batchedit.page.title", data=[ fieldName, recordCount ] );
+		prc.pageSubtitle = translateResource( uri="${translationFile}:batchedit.page.subtitle", data=[ fieldName, recordCount ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="${translationFile}:batchedit.page.breadcrumb", data=[ fieldName ] )
+			, link  = ""
+		);
+	}
+
+	function batchEditFieldAction( event, rc, prc ) {
+		var updateField = rc.updateField ?: "";
+		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
+
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+		if ( !sourceIds.len() ) {
+			messageBox.error( translateResource( uri="${translationFile}:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+		}
+
+		var success = datamanagerService.batchEditField(
+			  objectName         = "${objectId}"
+			, fieldName          = updateField
+			, sourceIds          = sourceIds
+			, value              = rc[ updateField ]      ?: ""
+			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+			, auditCategory      = "${auditCategory}"
+			, auditAction        = "batch_edit_record"
+		);
+
+		if( success ) {
+			messageBox.info( translateResource( uri="${translationFile}:batchedit.confirmation" ) );
+		} else {
+			messageBox.error( translateResource( uri="${translationFile}:batchedit.error" ) );
+		}
+		setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+	}
+// END BATCHEDIT
+
+	public void function versionHistory( event, rc, prc ) {
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData( id=id, selectFields=[ "${labelfield}" ] );
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="${translationFile}:record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="${handlerRoot}" ) );
+		}
+		prc.pageTitle    = translateResource( uri="${translationFile}:versionHistory.page.title"   , data=[ prc.record.${labelfield} ] );
+		prc.pageSubTitle = translateResource( uri="${translationFile}:versionHistory.page.subTitle", data=[ prc.record.${labelfield} ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="${translationFile}:versionHistory.breadcrumb"  , data=[ prc.record.${labelfield} ] )
+			, link  = event.buildAdminLink( linkTo="${handlerRoot}.versionHistory", queryString="id=" & id )
+		);
+	}
+
+	public void function getRecordsForAjaxDataTables( event, rc, prc ) {
+		_checkPermissions( event=event, key="read" );
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object        = "${objectId}"
+				, gridFields    = "${gridFields}"
+				, actionsView   = "admin.${handlerFolder}._gridActions"
+// BEGIN DRAFTS
+				, draftsEnabled = true
+// END DRAFTS
+			}
+		);
+	}
+
+	private string function _gridActions( event, rc, prc, args={} ) {
+		args.id                = args.id ?: "";
+		args.deleteRecordLink  = event.buildAdminLink( linkTo="${handlerRoot}.deleteAction"  , queryString="id=" & args.id );
+		args.editRecordLink    = event.buildAdminLink( linkTo="${handlerRoot}.edit"          , queryString="id=" & args.id );
+		args.viewHistoryLink   = event.buildAdminLink( linkTo="${handlerRoot}.versionHistory", queryString="id=" & args.id );
+		args.deleteRecordTitle = translateResource( "${translationFile}:delete.record.link.title" );
+		args.objectName        = "${objectId}";
+		args.canEdit           = hasCmsPermission( "${permissionKey}.edit"   );
+		args.canDelete         = hasCmsPermission( "${permissionKey}.delete" );
+		args.canViewHistory    = hasCmsPermission( "${permissionKey}.view"   );
+
+		return renderView( view="/admin/${handlerFolder}/_gridActions", args=args );
+	}
+
+	public void function getHistoryForAjaxDatatables( event, rc, prc ) {
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData( id=id, selectFields=[ "${labelfield} as label" ] );
+		if ( !prc.record.recordCount ) {
+			event.notFound();
+		}
+
+		runEvent(
+			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = "${objectId}"
+				, recordId   = id
+				, actionsView = "admin/${handlerFolder}/_historyActions"
+			}
+		);
+	}
+
+// BEGIN DATAEXPORT
+	public void function exportDataAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="read" );
+
+		runEvent(
+			  event          = "admin.DataManager._exportDataAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = { objectName="${objectId}" }
+		);
+	}
+// END DATAEXPORT
+
+
+// private utility
+	private void function _checkPermissions( required any event, required string key ) {
+		if ( !hasCmsPermission( "${permissionKey}." & arguments.key ) ) {
+			event.adminAccessDenied();
+		}
+	}
+
+}

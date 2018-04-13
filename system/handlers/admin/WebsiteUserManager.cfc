@@ -101,7 +101,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function editUserAction( event, rc, prc ) {
-		_checkPermissions( event=event, key="usermanager.edit" );
+		_checkPermissions( event=event, key="websiteUserManager.edit" );
 
 		runEvent(
 			  event          = "admin.dataManager._editRecordAction"
@@ -202,6 +202,17 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		setNextEvent( url=event.buildAdminLink( "websiteUserManager.index" ) );
+	}
+
+	function exportAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.read" );
+
+		runEvent(
+			  event          = "admin.DataManager._exportDataAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = { objectName="website_user" }
+		);
 	}
 
 // private utility

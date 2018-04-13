@@ -124,6 +124,7 @@ component extends="BaseAdapter" {
 				sql &= " on delete cascade";
 				break;
 			case 'cascade-if-no-cycle-check':
+			case 'set-null-if-no-cycle-check':
 			case 'no action':
 				sql &= " on delete no action";
 				break;
@@ -226,10 +227,11 @@ component extends="BaseAdapter" {
 		,          array   joins         = []
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
+		,          boolean distinct      = false
 
 	) {
 		var newGroupBy  = "";
-		var sql         = "select";
+		var sql         = arguments.distinct ? "select distinct" : "select";
 		var delim       = " ";
 		var col         = "";
 
@@ -279,6 +281,10 @@ component extends="BaseAdapter" {
 			} else {
 				sql = reCompileGroupByForMsSql( sql, arguments.selectColumns, arguments.groupBy, arguments.tableAlias );
 			}
+		}
+
+		if ( Len( Trim ( arguments.having ) ) ) {
+			sql &= " having " & arguments.having;
 		}
 
 		if ( Len( Trim ( arguments.orderBy ) )  && !arguments.maxRows ) {

@@ -3,10 +3,12 @@
 	<cfproperty name="presideObjectService"             inject="presideObjectService"             />
 	<cfproperty name="multilingualPresideObjectService" inject="multilingualPresideObjectService" />
 	<cfproperty name="dataManagerService"               inject="dataManagerService"               />
+	<cfproperty name="dataExportService"                inject="dataExportService"                />
 	<cfproperty name="formsService"                     inject="formsService"                     />
 	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
 	<cfproperty name="siteService"                      inject="siteService"                      />
 	<cfproperty name="versioningService"                inject="versioningService"                />
+	<cfproperty name="rulesEngineFilterService"         inject="rulesEngineFilterService"         />
 	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
@@ -193,25 +195,28 @@
 			var objectName     = rc.object ?: "";
 			var extraFilters   = [];
 			var filterByFields = ListToArray( rc.filterByFields ?: "" );
+			var filterValue    = "";
+			var orderBy        = rc.orderBy       ?: "label";
+			var labelRenderer  = rc.labelRenderer ?: "";
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 			for( var filterByField in filterByFields ) {
-				if( !isEmpty( rc[filterByField] ?: "" ) ){
-					extraFilters.append({
-						  filter       = "#filterByField# = :#filterByField#"
-						, filterParams = { "#filterByField#" = rc[filterByField] }
-					})
+				filterValue = rc[filterByField] ?: "";
+				if( !isEmpty( filterValue ) ){
+					extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
 				}
 			}
 
 			var records = dataManagerService.getRecordsForAjaxSelect(
-				  objectName   = rc.object  ?: ""
-				, maxRows      = rc.maxRows ?: 1000
-				, searchQuery  = rc.q       ?: ""
-				, savedFilters = ListToArray( rc.savedFilters ?: "" )
-				, extraFilters = extraFilters
-				, ids          = ListToArray( rc.values ?: "" )
+				  objectName    = rc.object  ?: ""
+				, maxRows       = rc.maxRows ?: 1000
+				, searchQuery   = rc.q       ?: ""
+				, savedFilters  = ListToArray( rc.savedFilters ?: "" )
+				, extraFilters  = extraFilters
+				, orderBy       = orderBy
+				, ids           = ListToArray( rc.values ?: "" )
+				, labelRenderer = labelRenderer
 			);
 
 			event.renderData( type="json", data=records );
@@ -302,13 +307,13 @@
 			_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
 
 			if ( !presideObjectService.objectIsVersioned( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
 			if ( !prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -345,13 +350,13 @@
 			_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
 
 			if ( !presideObjectService.objectIsVersioned( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 			if ( not prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
@@ -386,7 +391,7 @@
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_checkPermission( argumentCollection=arguments, key="edit", object=object );
 			if ( !recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -443,7 +448,7 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 			if ( !sourceIds.len() ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -704,6 +709,35 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="configuratorForm" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object     = rc.object   ?: "";
+			var id         = rc.id       ?: "";
+			var fromDb     = rc.__fromDb ?: false;
+			var args       = {};
+			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var record     = "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="add", object=object );
+
+			if ( fromDb ) {
+				record = presideObjectService.selectData( objectName=object, id=id, useCache=false );
+				if ( record.recordCount ) {
+					args.savedData = queryRowToStruct( record );
+				}
+			}
+			args.sourceIdField = rc.sourceIdField ?: "";
+			args.sourceId      = rc.sourceId      ?: "";
+
+			event.setView( view="/admin/datamanager/configuratorForm", layout="adminModalDialog", args=args );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="editRecord" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -738,7 +772,7 @@
 			}
 
 			if ( not prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -746,7 +780,7 @@
 			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
 			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
-			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
+			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 
 			if ( prc.canTranslate ) {
@@ -842,7 +876,7 @@
 			}
 
 			if ( not prc.sourceRecord.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -903,13 +937,13 @@
 
 			var record = presideObjectService.selectData( objectName=object, filter={ id=id } );
 			if ( !record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
 			var formName         = "preside-objects.#translationObjectName#.admin.edit";
 			var version          = rc.version ?: "";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext=object, permissionContextKeys=[] );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
 			var obj              = "";
@@ -922,7 +956,7 @@
 				, languageId   = languageId
 			);
 
-			var validationResult = validateForm( formName=formName, formData=formData );
+			var validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext=object, permissionContextKeys=[] );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1106,7 +1140,7 @@
 
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 			if ( not prc.record.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", querystring="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" ) );
 			}
 			prc.record = queryRowToStruct( prc.record );
@@ -1164,7 +1198,7 @@
 			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
 
 			if ( ! datamanagerService.isSortable( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -1195,7 +1229,7 @@
 			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
 
 			if ( ! datamanagerService.isSortable( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectName  ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
@@ -1208,7 +1242,7 @@
 				, sortedIds  = ListToArray( rc.ordered ?: "" )
 			);
 
-			messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ LCase( objectName ) ] ) );
+			messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectName  ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 		</cfscript>
 	</cffunction>
@@ -1305,8 +1339,8 @@
 				}
 			}
 
-			args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( linkTo='datamanager.translateRecord'         , queryString='object=#args.object#&id=#args.id#&language=#language#&version=' )
-			args.allVersionsUrl = args.allVersionsUrl ?: event.buildAdminLink( linkTo='datamanager.translationRecordHistory', queryString='object=#args.object#&id=#args.id#&language=#language#' )
+			args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( linkTo='datamanager.translateRecord'         , queryString='object=#args.object#&id=#args.id#&language=#language#&version=' );
+			args.allVersionsUrl = args.allVersionsUrl ?: event.buildAdminLink( linkTo='datamanager.translationRecordHistory', queryString='object=#args.object#&id=#args.id#&language=#language#' );
 
 			return renderView( view="admin/datamanager/versionNavigator", args=args );
 		</cfscript>
@@ -1320,38 +1354,85 @@
 		<cfargument name="object"              type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="gridFields"          type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
 		<cfargument name="actionsView"         type="string"  required="false" default="" />
+		<cfargument name="orderBy"             type="string"  required="false" default="" />
 		<cfargument name="filter"              type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
 		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
+		<cfargument name="extraFilters"        type="array"   required="false" default="#ArrayNew()#" />
+		<cfargument name="distinct"            type="boolean" required="false" default="true" />
+		<cfargument name="searchFields"        type="array"   required="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
 
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var objectIsVersioned   = presideObjectService.objectIsVersioned( object );
 			var checkboxCol         = [];
 			var optionsCol          = [];
 			var statusCol           = [];
 			var translateStatusCol  = [];
 			var translations        = [];
 			var translateUrlBase    = "";
+			var getRecordsArgs      = {};
+			var excludedArguments   = [ "event", "rc", "prc", "actionsView", "useMultiActions", "isMultilingual", "object" ];
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
-			var sortOrder           = dtHelper.getSortOrder();
 
-			if ( IsEmpty( sortOrder ) ) {
-				sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( object );
+			for( var argument in arguments ) {
+				if ( !excludedArguments.find( argument ) ) {
+					getRecordsArgs[ argument ] = duplicate( arguments[ argument ] );
+				}
 			}
 
-			var results             = dataManagerService.getRecordsForGridListing(
-				  objectName  = object
-				, gridFields  = gridFields
-				, filter      = arguments.filter
-				, startRow    = dtHelper.getStartRow()
-				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = sortOrder
-				, searchQuery = dtHelper.getSearchQuery()
-			);
+			getRecordsArgs.objectName    = arguments.object;
+			getRecordsArgs.startRow      = dtHelper.getStartRow();
+			getRecordsArgs.maxRows       = dtHelper.getMaxRows();
+			getRecordsArgs.orderBy       = dtHelper.getSortOrder();
+			getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
+
+			if ( Len( Trim( rc.sFilterExpression ?: "" ) ) ) {
+				try {
+					getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName = object
+						, expressionArray = DeSerializeJson( rc.sFilterExpression ?: "" )
+					) );
+				} catch( any e ){}
+			}
+
+			if ( Len( Trim( rc.sSavedFilterExpressions ?: "" ) ) ) {
+				var savedFilters = presideObjectService.selectData(
+					  objectName   = "rules_engine_condition"
+					, selectFields = [ "expressions" ]
+					, filter       = { id=ListToArray( rc.sSavedFilterExpressions ?: "" ) }
+				);
+
+				for( var filter in savedFilters ) {
+					try {
+						getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
+							  objectName      = object
+							, expressionArray = DeSerializeJson( filter.expressions )
+						) );
+					} catch( any e ){}
+				}
+			}
+
+			if ( IsEmpty( getRecordsArgs.orderBy ) ) {
+				getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
+			}
+
+			var results = dataManagerService.getRecordsForGridListing( argumentCollection=getRecordsArgs );
 			var records = Duplicate( results.records );
+
+			if ( !actionsView.trim().len() ) {
+				var viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="object=#object#&id={id}" )
+				var editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id={id}" )
+				var deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id={id}" )
+				var viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id={id}" )
+				var canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] );
+				var canDelete         = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
+				var canViewHistory    = objectIsVersioned && datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] )
+			}
+
 			for( var record in records ){
 				for( var field in gridFields ){
 					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], [ "adminDataTable", "admin" ] );
@@ -1361,7 +1442,7 @@
 					ArrayAppend( checkboxCol, renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
 				}
 
-				if ( Len( Trim( actionsView ) ) ) {
+				if ( actionsView.trim().len() ) {
 					var actionsViewlet = Replace( ReReplace( actionsView, "^/", "" ), "/", ".", "all" );
 					var viewletArgs    = Duplicate( record );
 					viewletArgs.objectName = object;
@@ -1369,14 +1450,14 @@
 					ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
 				} else {
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
-						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#object#" )
-						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
-						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
+						  viewRecordLink    = viewRecordLink.replace( "{id}", record.id )
+						, editRecordLink    = editRecordLink.replace( "{id}", record.id )
+						, deleteRecordLink  = deleteRecordLink.replace( "{id}", record.id )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
-						, viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id=#record.id#" )
-						, canEdit           = datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] )
-						, canDelete         = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
-						, canViewHistory    = datamanagerService.isOperationAllowed( object, "viewversions" ) && hasCmsPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ object ] )
+						, viewHistoryLink   = viewHistoryLink.replace( "{id}", record.id )
+						, canEdit           = canEdit
+						, canDelete         = canDelete
+						, canViewHistory    = canViewHistory
 						, objectName        = object
 					} ) );
 				}
@@ -1557,25 +1638,35 @@
 	</cffunction>
 
 	<cffunction name="_addRecordAction" access="private" returntype="any" output="false">
-		<cfargument name="event"             type="any"     required="true"  />
-		<cfargument name="rc"                type="struct"  required="true"  />
-		<cfargument name="prc"               type="struct"  required="true"  />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default=""     />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
-		<cfargument name="successAction"     type="string"  required="false" default=""     />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
-		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="" />
-		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
-		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
-		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
-		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
+		<cfargument name="event"                   type="any"     required="true"  />
+		<cfargument name="rc"                      type="struct"  required="true"  />
+		<cfargument name="prc"                     type="struct"  required="true"  />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="errorAction"             type="string"  required="false" default="" />
+		<cfargument name="errorUrl"                type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="viewRecordAction"        type="string"  required="false" default="" />
+		<cfargument name="viewRecordUrl"           type="string"  required="false" default="#event.buildAdminLink( linkTo=( viewRecordAction.len() ? viewRecordAction : "datamanager.viewRecord" ), querystring="object=#arguments.object#&id={newid}" )#" />
+		<cfargument name="addAnotherAction"        type="string"  required="false" default="" />
+		<cfargument name="addAnotherUrl"           type="string"  required="false" default="#( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#arguments.object#" ) )#" />
+		<cfargument name="successAction"           type="string"  required="false" default="" />
+		<cfargument name="successUrl"              type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={newid}' ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
+		<cfargument name="redirectOnSuccess"       type="boolean" required="false" default="true" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="mergeWithFormName"       type="string"  required="false" default="" />
+		<cfargument name="audit"                   type="boolean" required="false" default="false" />
+		<cfargument name="auditAction"             type="string"  required="false" default="" />
+		<cfargument name="auditType"               type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"           type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"              type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"            type="boolean" required="false" default="false" />
+		<cfargument name="validationResult"        type="any"     required="false" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionContextKeys"   type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			var formData         = event.getCollectionForForm( arguments.formName );
+			arguments.formName = Len( Trim( arguments.mergeWithFormName ) ) ? formsService.getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
 			var validationResult = "";
@@ -1584,17 +1675,14 @@
 			var persist          = "";
 			var isDraft          = false;
 
-			validationResult = validateForm( formName=arguments.formName, formData=formData );
+			validationResult = validateForm( formName=arguments.formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 				persist = formData;
 				persist.validationResult = validationResult;
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#object#" ), persistStruct=persist );
-				}
+
+				setNextEvent( url=errorUrl, persistStruct=persist );
 			}
 
 			if ( arguments.draftsEnabled ) {
@@ -1634,7 +1722,7 @@
 				return newId;
 			}
 
-			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+			newRecordLink = replaceNoCase( viewRecordUrl, "{newid}", newId, "all" );
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
@@ -1642,37 +1730,32 @@
 			] ) );
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				if ( Len( addAnotherAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
-				}
+				setNextEvent( url=addAnotherUrl, persist="_addAnother" );
 			} else {
-				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#newId#" ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
-				}
+				setNextEvent( url=replaceNoCase( successUrl, "{newid}", newId, "all" ) );
 			}
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="_addOneToManyRecordAction" access="private" returntype="any" output="false">
-		<cfargument name="event"             type="any"     required="true"  />
-		<cfargument name="rc"                type="struct"  required="true"  />
-		<cfargument name="prc"               type="struct"  required="true"  />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object          ?: '' )#" />
-		<cfargument name="parentId"          type="string"  required="false" default="#( rc.parentId        ?: '' )#" />
-		<cfargument name="relationshipKey"   type="string"  required="false" default="#( rc.relationshipKey ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default=""     />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
-		<cfargument name="successAction"     type="string"  required="false" default=""     />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="event"                   type="any"     required="true"  />
+		<cfargument name="rc"                      type="struct"  required="true"  />
+		<cfargument name="prc"                     type="struct"  required="true"  />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object          ?: '' )#" />
+		<cfargument name="parentId"                type="string"  required="false" default="#( rc.parentId        ?: '' )#" />
+		<cfargument name="relationshipKey"         type="string"  required="false" default="#( rc.relationshipKey ?: '' )#" />
+		<cfargument name="errorAction"             type="string"  required="false" default=""     />
+		<cfargument name="viewRecordAction"        type="string"  required="false" default=""     />
+		<cfargument name="addAnotherAction"        type="string"  required="false" default=""     />
+		<cfargument name="successAction"           type="string"  required="false" default=""     />
+		<cfargument name="redirectOnSuccess"       type="boolean" required="false" default="true" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionContextKeys"   type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			var formData         = event.getCollectionForForm( arguments.formName );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
 			var validationResult = "";
@@ -1682,7 +1765,7 @@
 
 			formData[ arguments.relationshipKey ] = arguments.parentId;
 
-			validationResult = validateForm( formName=arguments.formName, formData=formData );
+			validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1726,15 +1809,18 @@
 	</cffunction>
 
 	<cffunction name="_quickAddRecordAction" access="public" returntype="void" output="false">
-		<cfargument name="event"    type="any"    required="true" />
-		<cfargument name="rc"       type="struct" required="true" />
-		<cfargument name="prc"      type="struct" required="true" />
-		<cfargument name="object"   type="string" required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="formName" type="string" required="false" default="preside-objects.#arguments.object#.admin.quickadd" />
+		<cfargument name="event"                   type="any"    required="true" />
+		<cfargument name="rc"                      type="struct" required="true" />
+		<cfargument name="prc"                     type="struct" required="true" />
+		<cfargument name="object"                  type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName"                type="string" required="false" default="preside-objects.#arguments.object#.admin.quickadd" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionContextKeys"   type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			var formData         = event.getCollectionForForm( arguments.formName );
-			var validationResult = validateForm( formName=arguments.formName, formData=formData );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+			var validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
 			if ( validationResult.validated() ) {
 				var obj = presideObjectService.getObject( object );
@@ -1779,7 +1865,17 @@
 
 			obj = presideObjectService.getObject( object );
 
-			records = obj.selectData( selectField=[labelField], filter={ id = ids }, useCache=false );
+			if ( !Len( labelField ) ) {
+				labelField = "id";
+			} else {
+				try {
+					presideObjectService.getObjectProperty( object, labelField );
+				} catch ( any e ) {
+					labelField = "id";
+				}
+			}
+
+			records = obj.selectData( selectFields=[ "id", labelField ], filter={ id = ids }, useCache=false );
 
 			if ( records.recordCount neq ids.len() ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[objectName] ) );
@@ -1832,32 +1928,36 @@
 	</cffunction>
 
 	<cffunction name="_editRecordAction" access="private" returntype="void" output="false">
-		<cfargument name="event"             type="any"     required="true" />
-		<cfargument name="rc"                type="struct"  required="true" />
-		<cfargument name="prc"               type="struct"  required="true" />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="recordId"          type="string"  required="false" default="#( rc.id     ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.editRecord", querystring="object=#arguments.object#&id=#arguments.recordId#" ) )#" />
-		<cfargument name="missingUrl"        type="string"  required="false" default="#event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" )#" />
-		<cfargument name="successAction"     type="string"  required="false" default="" />
-		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
-		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
-		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="" />
-		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
-		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
-		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
-		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
+		<cfargument name="event"                   type="any"     required="true" />
+		<cfargument name="rc"                      type="struct"  required="true" />
+		<cfargument name="prc"                     type="struct"  required="true" />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="recordId"                type="string"  required="false" default="#( rc.id     ?: '' )#" />
+		<cfargument name="errorAction"             type="string"  required="false" default="" />
+		<cfargument name="errorUrl"                type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.editRecord", querystring="object=#arguments.object#&id=#arguments.recordId#" ) )#" />
+		<cfargument name="missingUrl"              type="string"  required="false" default="#event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" )#" />
+		<cfargument name="successAction"           type="string"  required="false" default="" />
+		<cfargument name="successUrl"              type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#arguments.object#" ) )#" />
+		<cfargument name="redirectOnSuccess"       type="boolean" required="false" default="true" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#object#.admin.edit" />
+		<cfargument name="mergeWithFormName"       type="string"  required="false" default="" />
+		<cfargument name="audit"                   type="boolean" required="false" default="false" />
+		<cfargument name="auditAction"             type="string"  required="false" default="" />
+		<cfargument name="auditType"               type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"           type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"              type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"            type="boolean" required="false" default="false" />
+		<cfargument name="validationResult"        type="any"     required="false" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionContextKeys"   type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
+			arguments.formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
 
 			var id               = rc.id      ?: "";
 			var version          = rc.version ?: "";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var obj              = "";
 			var validationResult = "";
@@ -1867,13 +1967,13 @@
 			var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
 
 			if ( !existingRecord.recordCount ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 
 				setNextEvent( url=missingUrl );
 			}
 
 			formData.id = id;
-			validationResult = validateForm( formName=formName, formData=formData );
+			validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -1940,20 +2040,23 @@
 	</cffunction>
 
 	<cffunction name="_quickEditRecordAction" access="private" returntype="void" output="false">
-		<cfargument name="event"             type="any"     required="true" />
-		<cfargument name="rc"                type="struct"  required="true" />
-		<cfargument name="prc"               type="struct"  required="true" />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="event"                   type="any"     required="true" />
+		<cfargument name="rc"                      type="struct"  required="true" />
+		<cfargument name="prc"                     type="struct"  required="true" />
+		<cfargument name="object"                  type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName"                type="string"  required="false" default="preside-objects.#arguments.object#.admin.quickedit" />
+		<cfargument name="stripPermissionedFields" type="boolean" required="false" default="true" />
+		<cfargument name="permissionContext"       type="string"  required="false" default="#arguments.object#" />
+		<cfargument name="permissionContextKeys"   type="array"   required="false" default="#ArrayNew(1)#" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.quickedit";
 			var id               = rc.id      ?: "";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 			var validationResult = "";
 
-			if ( presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+			if ( presideObjectService.dataExists( objectName=arguments.object, filter={ id=id } ) ) {
 				formData.id = id;
-				validationResult = validateForm( formName=formName, formData=formData );
+				validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
 				if ( validationResult.validated() ) {
 					presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
@@ -2029,6 +2132,94 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_batchEditForm" access="private" returntype="string" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+		<cfargument name="args"  type="struct"  required="true" />
+
+		<cfscript>
+			var object      = args.object ?: "";
+			var field       = args.field  ?: "";
+			var ids         = args.ids    ?: "";
+			var recordCount = ListLen( ids );
+			var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
+			var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
+
+			args.fieldFormControl = formsService.renderFormControlForObjectField(
+			      objectName = object
+			    , fieldName  = field
+			);
+
+			if ( presideObjectService.isManyToManyProperty( object, field ) ) {
+				args.multiEditBehaviourControl = renderFormControl(
+					  type   = "select"
+					, name   = "multiValueBehaviour"
+					, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
+					, values = [ "append", "overwrite", "delete" ]
+					, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+				);
+
+				args.batchEditWarning = args.batchEditWarning ?: translateResource(
+					  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+					, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				);
+			} else {
+				args.batchEditWarning = args.batchEditWarning ?: translateResource(
+					  uri  = "cms:datamanager.batch.edit.warning"
+					, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				);
+			}
+
+			return renderView( view="/admin/datamanager/_batchEditForm", args=args );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="dataExportConfigModal" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			if ( !isFeatureEnabled( "dataexport" ) ) {
+				event.notFound();
+			}
+			var args   = {};
+
+			args.objectName = rc.id ?: "";
+			args.objectTitle = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
+			args.defaultExportFilename = translateresource(
+				  uri  = "cms:dataexport.config.form.field.title.default"
+				, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
+			);
+
+			event.setView( view="/admin/datamanager/dataExportConfigModal", layout="adminModalDialog", args=args );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="exportDataAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			if ( !isFeatureEnabled( "dataexport" ) ) {
+				event.notFound();
+			}
+
+			var objectName = rc.object ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
+			runEvent(
+				  event          = "admin.DataManager._exportDataAction"
+				, prePostExempt  = true
+				, private        = true
+			);
+		</cfscript>
+	</cffunction>
+
 <!--- private utility methods --->
 	<cffunction name="_getObjectFieldsForGrid" access="private" returntype="array" output="false">
 		<cfargument name="objectName" type="string" required="true" />
@@ -2096,6 +2287,56 @@
 				, parentRecordLabel = parentRecord.label ?: ""
 				, parentObjectTitle = parentObjectTitle
 			};
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_exportDataAction" access="private" returntype="any" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+		<cfargument name="exporter"   type="string" required="false" default="#( rc.exporter ?: 'CSV' )#" />
+		<cfargument name="objectName"   type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="exportFields" type="string" required="false" default="#( rc.exportFields ?: '' )#" />
+		<cfargument name="filename" type="string" required="false" default="#( rc.fileName ?: '' )#" />
+		<cfargument name="filterExpressions" type="string" required="false" default="#( rc.filterExpressions ?: '' )#" />
+		<cfargument name="savedFilters" type="string" required="false" default="#( rc.savedFilters ?: '' )#" />
+		<cfargument name="extraFilters" type="array" required="false" default="#ArrayNew( 1 )#" />
+
+		<cfsetting requesttimeout="6000" />
+
+		<cfscript>
+			var exporterDetail = dataExportService.getExporterDetails( arguments.exporter );
+			var selectFields   = arguments.exportFields.listToArray();
+			var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
+			var args           = {
+				  exporter     = exporter
+				, objectName   = objectName
+				, selectFields = selectFields
+				, extraFilters = arguments.extraFilters
+				, autoGroupBy  = true
+			};
+
+			try {
+				args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+					  objectName      = objectName
+					, expressionArray = DeSerializeJson( arguments.filterExpressions )
+				) );
+			} catch( any e ){}
+
+			for( var filter in arguments.savedFilters.listToArray() ) {
+				try {
+					args.extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName = objectName
+						, filterId   = filter
+					) );
+				} catch( any e ){}
+			}
+
+			var exportedFile = dataExportService.exportData( argumentCollection=args );
+
+			header name="Content-Disposition" value="attachment; filename=""#fullFileName#""";
+			content reset=true file=exportedFile deletefile=true type=exporterDetail.mimeType;
+			abort;
 		</cfscript>
 	</cffunction>
 

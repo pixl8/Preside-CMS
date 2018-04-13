@@ -13,11 +13,17 @@ component {
 	}
 
 // public api
-	public boolean function setMaintenanceMode( required string maintenanceHtml, required array allowedIps, required string bypassPassword ) {
+	public boolean function setMaintenanceMode(
+		  required string  maintenanceHtml
+		, required array   allowedIps
+		, required string  bypassPassword
+		, required boolean tasksEnabled
+	) {
 		var settings = {
 			  html           = arguments.maintenanceHtml
 			, allowedIps     = arguments.allowedIps
 			, bypassPassword = arguments.bypassPassword
+			, tasksEnabled   = arguments.tasksEnabled
 		};
 
 		_setApplicationVariable( settings );
@@ -40,7 +46,7 @@ component {
 	public struct function getMaintenanceModeSettings() {
 		var settings = _getApplicationVariable();
 
-		if ( IsNull( settings ) ) {
+		if ( IsNull( local.settings ) ) {
 			settings = _readMaintenanceModeFromFile();
 			_setApplicationVariable( settings );
 		}
@@ -53,6 +59,10 @@ component {
 	}
 
 	public boolean function canRequestBypassMaintenanceMode() {
+		if ( !_areSessionsEnabled() ) {
+			return false;
+		}
+
 		var settings       = getMaintenanceModeSettings();
 		var safeIps        = settings.allowedIps ?: [];
 		var bypassPassword = settings.bypassPassword;
@@ -96,7 +106,7 @@ component {
 			return {};
 		}
 	}
-	private void function _writeMaintenanceModeToFile( required struct maintenanceModeSettings ) ouptut=false {
+	private void function _writeMaintenanceModeToFile( required struct maintenanceModeSettings ) {
 		var filePath = _getConfigPath();
 
 		FileWrite( filePath, SerializeJson( arguments.maintenanceModeSettings ) );
@@ -107,6 +117,12 @@ component {
 	}
 	private void function _setApplicationVariable( required struct maintenanceModeSettings ) {
 		application.presideMaintenanceMode = arguments.maintenanceModeSettings;
+	}
+
+	private boolean function _areSessionsEnabled() {
+		var appSettings = getApplicationSettings( true );
+
+		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
 	}
 
 // getters and setters

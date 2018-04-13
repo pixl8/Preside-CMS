@@ -3,6 +3,7 @@
  *
  * @feature websiteUsers
  * @expressionContexts user
+ * @expressionCategory website_user
  */
 component {
 
@@ -49,6 +50,31 @@ component {
 		}
 
 		return _has ? result : !result;
+	}
+
+	/**
+	 * @objects website_user
+	 *
+	 */
+	private array function prepareFilters(
+		  required string  pages
+		,          boolean _has               = true
+		,          boolean _all               = false
+		,          struct  _pastTime          = {}
+		,          string  filterPrefix       = ""
+		,          string  parentPropertyName = ""
+	) {
+		return websiteUserActionService.getUserPerformedActionFilter(
+			  action             = "pagevisit"
+			, type               = "request"
+			, has                = arguments._has
+			, datefrom           = arguments._pastTime.from ?: ""
+			, dateto             = arguments._pastTime.to   ?: ""
+			, identifiers        = arguments.pages.listToArray()
+			, allIdentifiers     = arguments._all
+			, filterPrefix       = arguments.filterPrefix
+			, parentPropertyName = arguments.parentPropertyName
+		);
 	}
 
 }

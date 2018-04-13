@@ -307,7 +307,7 @@ component extends="testbox.system.BaseSpec"{
 
 				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
 				mockController.$( "runEvent" );
-				mockRequestContext.$( "getCollection", rc );
+				mockRequestContext.$( "getCollectionWithoutSystemVars", rc );
 
 				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
 
@@ -340,7 +340,7 @@ component extends="testbox.system.BaseSpec"{
 
 				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
 				mockController.$( "runEvent" );
-				mockRequestContext.$( "getCollection", rc );
+				mockRequestContext.$( "getCollectionWithoutSystemVars", rc );
 
 				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
 
@@ -1026,7 +1026,7 @@ component extends="testbox.system.BaseSpec"{
 				makePublic( restService, "_validateRestParameters" );
 
 				restService._validateRestParameters( restRequest, restResponse, {param1="xxx"} );
-				
+
 				expect( restRequest.getFinished() ).toBeTrue();
 				expect( restResponse.getStatusCode() ).toBe(400);
 				expect( restResponse.getStatusText() ).toBe("REST Parameter Validation Error");
@@ -1133,7 +1133,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( responseData.title ).toBe( "REST Parameter Validation Error" );
 				expect( responseData.x ).toBe( "Parameter 'x' needs to be a numeric value" );
 				expect( responseData.y ).toBe( "Parameter 'y' needs to be a date value" );
-				expect( responseData.z ).toBe( "Parameter 'z' needs to be a UUID" );				
+				expect( responseData.z ).toBe( "Parameter 'z' needs to be a UUID" );
 			} );
 		} );
 	}
@@ -1141,6 +1141,7 @@ component extends="testbox.system.BaseSpec"{
 	private any function getService( ) {
 		variables.mockController    = createStub();
 		variables.mockConfigWrapper = createEmptyMock( "preside.system.services.rest.PresideRestConfigurationWrapper" );
+		variables.mockAuthService   = createEmptyMock( "preside.system.services.rest.PresideRestAuthService" );
 		variables.mockValidationEngine = createMock( "preside.system.services.validation.ValidationEngine" ).init();
 		variables.mockI18n = createMock( "preside.system.coldboxModifications.plugins.i18n" );
 
@@ -1148,12 +1149,14 @@ component extends="testbox.system.BaseSpec"{
 			  controller           = mockController
 			, resourceDirectories  = [ "/resources/rest/dir1", "/resources/rest/dir2" ]
 			, configurationWrapper = mockConfigWrapper
+			, authService          = mockAuthService
 			, validationEngine 	   = mockValidationEngine
 			, i18n 				   = mockI18n
 		) );
 
 		restService.$( "_announceInterception" );
 		restService.$( "$raiseError" );
+		restService.$( "authenticateRequest" );
 
 		return restService;
 	}

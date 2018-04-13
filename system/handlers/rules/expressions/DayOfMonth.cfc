@@ -1,6 +1,7 @@
 /**
  * Expression handler for "Day of the month is any of the following:"
  *
+ * @expressionCategory currentdate
  */
 component {
 

@@ -11,11 +11,15 @@
 	remoteUrl               = args.remoteUrl        ?: "";
 	prefetchUrl             = args.prefetchUrl      ?: "";
 	records                 = args.records          ?: QueryNew('');
+	displayLimit            = args.displayLimit     ?: 200;
 	searchable              = args.searchable       ?: true;
+	deselectable            = args.deselectable     ?: true;
 	multiple                = args.multiple         ?: false;
 	extraClasses            = args.extraClasses     ?: "";
-	resultTemplate          = args.resultTemplate   ?: "{{text}}";
-	selectedTemplate        = args.selectedTemplate ?: "{{text}}";
+	labelRenderer           = args.labelRenderer    ?: "";
+	defaultTemplate         = len( labelRenderer ) ? "{{{text}}}" : "{{text}}";
+	resultTemplate          = args.resultTemplate   ?: defaultTemplate;
+	selectedTemplate        = args.selectedTemplate ?: defaultTemplate;
 	disabled                = isBoolean( args.disabled ?: "" ) && args.disabled;
 	disabledValues          = args.disabledValues   ?: "";
 	quickAdd                = args.quickAdd         ?: false;
@@ -31,6 +35,10 @@
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
+	}
+
+	if ( !IsBoolean( ajax ) || !ajax ) {
+		displayLimit = 0;
 	}
 
 	if ( quickAdd ) {
@@ -55,34 +63,42 @@
 	if ( !searchable ) {
 		extraClasses = ListAppend( extraClasses, "non-searchable", " " );
 	}
+	if ( !deselectable ) {
+		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
+	}
 
-	filterBy      = args.filterBy      ?: "";
-	filterByField = args.filterByField ?: filterBy;
+	filterBy             = args.filterBy             ?: "";
+	filterByField        = args.filterByField        ?: filterBy;
+	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
 </cfscript>
 
 <cfoutput>
-	<cfif !disabled>
-		<cfif Len( Trim( resultTemplate ) ) >
-			<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
-		</cfif>
-		<cfif Len( Trim( selectedTemplate ) ) >
-			<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-		</cfif>
+	<cfif Len( Trim( resultTemplate ) ) >
+		<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
+	</cfif>
+	<cfif Len( Trim( selectedTemplate ) ) >
+		<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
 	</cfif>
 	<select class = "#inputClass# #objectPickerClass# #extraClasses#"
 			name  = "#inputName#"
 			id    = "#inputId#"
-			<cfif !isEmpty( filterBy )>
-				data-filter-by='#filterBy#'
-			</cfif>
-			<cfif !isEmpty( filterByField )>
-				data-filter-by-field='#filterByField#'
+			<cfif isBoolean( ajax ) && ajax>
+				<cfif !isEmpty( filterBy )>
+					data-filter-by='#filterBy#'
+				</cfif>
+				<cfif !isEmpty( filterByField )>
+					data-filter-by-field='#filterByField#'
+				</cfif>
+				<cfif !isEmpty( disabledIfUnfiltered )>
+					data-disabled-if-unfiltered='#disabledIfUnfiltered#'
+				</cfif>
 			</cfif>
 			<cfif disabled>disabled</cfif>
-			tabindex         = "#getNextTabIndex()#"
-			data-placeholder = "#placeholder#"
-			data-sortable    = "#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-			data-value       = "#HtmlEditFormat( value )#"
+			tabindex           = "#getNextTabIndex()#"
+			data-placeholder   = "#placeholder#"
+			data-sortable      = "#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
+			data-value         = "#HtmlEditFormat( value )#"
+			data-display-limit = "#displayLimit#"
 			<cfif IsBoolean( multiple ) && multiple>
 				multiple="multiple"
 			</cfif>
@@ -110,7 +126,9 @@
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<option>#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
 			<cfloop query="records">
-				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#HtmlEditFormat( records.label )#</option>
+				<cfset labelArgs=queryRowToStruct( records, records.currentRow ) />
+				<cfset labelArgs.labelRenderer = labelRenderer />
+				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#renderViewlet( event="admin.Labels.render", args=labelArgs )#</option>
 			</cfloop>
 		</cfif>
 	</select>

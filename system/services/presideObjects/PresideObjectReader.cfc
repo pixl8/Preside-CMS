@@ -10,12 +10,14 @@ component {
 	 * @tablePrefix.inject        coldbox:setting:presideObjectsTablePrefix
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @featureService.inject     featureService
+	 * @adapterFactory.inject     adapterFactory
 	 */
-	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService ) {
+	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService, required any adapterFactory ) {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );
 		_setInterceptorService( arguments.interceptorService );
 		_setFeatureService( arguments.featureService );
+		_setDbAdapter( arguments.adapterFactory.getAdapter( arguments.dsn ) );
 
 		return this;
 	}
@@ -29,6 +31,11 @@ component {
 			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
 
 			var objName = ListLast( objPath, "/" );
+
+			if( !isValid( "regex", objName, "[a-zA-Z_][a-zA-Z0-9_]*" ) ) {
+				throw( type="PresideObjectService.invalidObjectName", message="The filename, [#objName#], is not a valid preside object filename. Filenames should start with either a letter or underscrore (_) and contain only letters, underscores and numbers" );
+			}
+
 			var obj     = {};
 
 			obj.instance = CreateObject( "component", objPath );
@@ -75,12 +82,15 @@ component {
 		meta.propertyNames = meta.propertyNames ?: [];
 		meta.properties    = meta.properties    ?: {};
 
-
+		_defineIdField( meta );
+		_defineCreatedField( meta );
+		_defineModifiedField( meta );
 		_defineLabelField( meta );
-		_addDefaultsToProperties( meta.properties );
+		_addDefaultsToProperties( meta );
 		_mergeSystemPropertyDefaults( meta );
-		_deletePropertiesMarkedForDeletion( meta );
+		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
 		_fixOrderOfProperties( meta );
+
 
 		meta.dbFieldList = _calculateDbFieldList( meta.properties );
 		meta.tableName   = LCase( meta.tablePrefix & meta.tableName );
@@ -95,19 +105,23 @@ component {
 		var objAName = LCase( ListLast( sourceObject.name, "." ) );
 		var objBName = LCase( ListLast( targetObject.name, "." ) );
 		var fieldOrder = ( sourcePropertyName < targetPropertyName ) ? "#sourcePropertyName#,#targetPropertyName#" : "#targetPropertyName#,#sourcePropertyName#";
+		var sourceObjectIdField = sourceObject.idField ?: "id";
+		var sourceObjectPk      = sourceObject.properties[ sourceObjectIdField ];
+		var targetObjectIdField = targetObject.idField ?: "id";
+		var targetObjectPk      = targetObject.properties[ targetObjectIdField ];
 
 		autoObject = {
 			  dbFieldList = "#fieldOrder#,sort_order"
 			, dsn         = sourceObject.dsn
-			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields="#fieldOrder#" } }
+			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields=fieldOrder } }
 			, name        = pivotObjectName
 			, tableName   = LCase( sourceObject.tablePrefix & pivotObjectName )
 			, tablePrefix = sourceObject.tablePrefix
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
 			, properties  = {
-				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObject.properties.id.type, dbtype=sourceObject.properties.id.dbtype, maxLength=sourceObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
-				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObject.properties.id.type, dbtype=targetObject.properties.id.dbtype, maxLength=targetObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
-				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"                      , dbtype="int"                            , maxLength=0                                   , generator="none", relationship="none"                           , required=false }
+				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
+				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
+				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"          , dbtype="int"                , maxLength=0                       , generator="none", generate="never", relationship="none"                           , required=false }
 			  }
 		};
 
@@ -156,22 +170,22 @@ component {
 	private void function _mergeProperties( required struct meta, required array properties, required string pathToCfc ) {
 		var prop         = "";
 		var propName     = "";
-		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
+		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
-		param name="arguments.meta.properties"    default=StructNew( "linked" );
+		param name="arguments.meta.properties"    default=StructNew();
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
-				if ( prop.name eq propName ) {
-					if ( not StructKeyExists( arguments.meta.properties, prop.name ) ) {
+				if ( prop.name == propName ) {
+					if ( !arguments.meta.properties.keyExists( prop.name ) ) {
 						arguments.meta.properties[ prop.name ] = {};
 					}
 
 					arguments.meta.properties[ prop.name ] = _readProperty( prop, arguments.meta.properties[ prop.name ] );
 
-					if ( not arguments.meta.propertyNames.find( prop.name ) ) {
-						ArrayAppend( arguments.meta.propertyNames, prop.name );
+					if ( !arguments.meta.propertyNames.find( prop.name ) ) {
+						arguments.meta.propertyNames.append( prop.name );
 					}
 				}
 			}
@@ -205,7 +219,7 @@ component {
 		return prop;
 	}
 
-	private void function _addDefaultsToProperties( required struct properties ) {
+	private void function _addDefaultsToProperties( required struct meta ) {
 		var defaultAttributes = {
 			  type         = "string"
 			, dbtype       = "varchar"
@@ -216,24 +230,46 @@ component {
 			, generator    = "none"
 			, required     = "false"
 		};
+		var dbAdapterSupportsFkIndexes = _getDbAdapter().autoCreatesFkIndexes();
+		var corePropertyNames = [
+			  arguments.meta.idField           ?: "id"
+			, arguments.meta.dateCreatedField  ?: "datecreated"
+			, arguments.meta.dateModifiedField ?: "datemodified"
+		];
+		if ( ( arguments.meta.labelField ?: "label" ) == "label" ) {
+			corePropertyNames.append( "label" );
+		}
 
-		for( var propName in properties ){
-			var prop           = properties[ propName ];
-			var isCoreProperty = ListFindNoCase( "id,label,datecreated,datemodified", propName );
+		for( var propName in arguments.meta.properties ){
+			var prop           = arguments.meta.properties[ propName ];
+			var isCoreProperty = corePropertyNames.findNoCase( propName );
+			var createFkIndex  = ( prop.createFkIndex ?: !dbAdapterSupportsFkIndexes );
 
 			if ( ( prop.type ?: "" ) == "any" ) {
 				StructDelete( prop, "type" );
 			}
-			if ( not isCoreProperty ) {
+			if ( !isCoreProperty ) {
+				defaultAttributes.generate = ( prop.generator ?: "none" ) == "none" ? "never" : "always";
 				StructAppend( prop, defaultAttributes, false );
 			}
 
-			if ( StructKeyExists( prop, "relationship" ) and prop.relationship neq "none" and prop.relatedTo eq "none" ) {
+			if ( StructKeyExists( prop, "relationship" ) && prop.relationship != "none" && ( prop.relatedTo ?: "none" ) == "none" ) {
 				prop.relatedTo = propName;
 			}
 
 			if ( [ "many-to-many", "one-to-many" ].find( prop.relationship ?: "" ) ) {
 				prop.dbtype = "none";
+			}
+
+			if ( ( prop.formula ?: "" ).len() ) {
+				prop.dbtype = "none";
+			}
+
+			if ( ( ( prop.relationship ?: "" ) == "many-to-one" ) && IsBoolean( createFkIndex ) && createFkIndex ) {
+				prop.indexes = prop.indexes ?: "";
+				if ( !prop.indexes.listFindNoCase( "fk_#propName#" ) ) {
+					prop.indexes = prop.indexes.listAppend( "fk_#propName#" );
+				}
 			}
 		}
 	}
@@ -252,48 +288,67 @@ component {
 	private void function _mergeSystemPropertyDefaults( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
+		var labelField        = arguments.meta.labelField        ?: "label";
+		var idField           = arguments.meta.idField           ?: "id";
+		var dateCreatedField  = arguments.meta.dateCreatedField  ?: "datecreated";
+		var dateModifiedField = arguments.meta.dateModifiedField ?: "datemodified";
+
 		var defaults = {
-			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
-			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
-			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
-			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
+			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
+			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
 		};
 
-		if ( arguments.meta.propertyNames.find( "label" ) ) {
-			StructAppend( arguments.meta.properties.label, defaults.label, false );
-		} elseif ( !arguments.meta.noLabel ) {
-			arguments.meta.properties[ "label" ] = defaults[ "label" ];
-			ArrayPrepend( arguments.meta.propertyNames, "label" );
+		if ( labelField == "label" ) {
+			if ( arguments.meta.propertyNames.find( "label" ) ) {
+				StructAppend( arguments.meta.properties.label, defaults.label, false );
+			} else if ( !arguments.meta.noLabel ) {
+				arguments.meta.properties[ "label" ] = defaults[ "label" ];
+				ArrayPrepend( arguments.meta.propertyNames, "label" );
+			}
 		}
 
-		if ( arguments.meta.propertyNames.find( "id" ) ) {
-			StructAppend( arguments.meta.properties.id, defaults.id, false );
+		if ( arguments.meta.propertyNames.find( idField ) ) {
+			StructAppend( arguments.meta.properties[ idField ], defaults.id, false );
 		} else {
-			arguments.meta.properties[ "id" ] = defaults[ "id" ];
-			ArrayPrepend( arguments.meta.propertyNames, "id" );
+			arguments.meta.properties[ idField ] = defaults[ "id" ];
+			ArrayPrepend( arguments.meta.propertyNames, idField );
+		}
+		if ( idField.len() && idField != "id" && !arguments.meta.propertyNames.findNoCase( "id" ) ) {
+			arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
 		}
 
-		if ( arguments.meta.propertyNames.find( "datecreated" ) ) {
-			StructAppend( arguments.meta.properties.datecreated, defaults.datecreated, false );
+		if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
+			StructAppend( arguments.meta.properties[ dateCreatedField ], defaults.dateCreated, false );
 		} else {
-			arguments.meta.properties[ "datecreated" ] = defaults[ "datecreated" ];
-			ArrayAppend( arguments.meta.propertyNames, "datecreated" );
+			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
+			ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
+		}
+		if ( dateCreatedField.len() && dateCreatedField != "dateCreated" && !arguments.meta.propertyNames.findNoCase( "dateCreated" ) ) {
+			arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
 		}
 
-		if ( arguments.meta.propertyNames.find( "datemodified" ) ) {
-			StructAppend( arguments.meta.properties.datemodified, defaults.datemodified, false );
+		if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
+			StructAppend( arguments.meta.properties[ dateModifiedField ], defaults.datemodified, false );
 		} else {
-			arguments.meta.properties[ "datemodified" ] = defaults[ "datemodified" ];
-			ArrayAppend( arguments.meta.propertyNames, "datemodified" );
+			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
+			ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
 		}
+		if ( dateModifiedField.len() && dateModifiedField != "dateModified" && !arguments.meta.propertyNames.findNoCase( "dateModified" ) ) {
+			arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
+		}
+
 	}
 
-	private void function _deletePropertiesMarkedForDeletion( required struct meta ) {
+	private void function _deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( required struct meta ) {
 		for( var propertyName in meta.properties ) {
-			var prop = meta.properties[ propertyName ];
+			var prop              = meta.properties[ propertyName ];
+			var featureService    = _getFeatureService();
 			var markedForDeletion = IsBoolean( prop.deleted ?: "" ) && prop.deleted;
+			var inDisabledFeature = Len( Trim( prop.feature ?: "" ) ) && !featureService.isFeatureEnabled( prop.feature );
 
-			if ( markedForDeletion ) {
+			if ( markedForDeletion || inDisabledFeature ) {
 				meta.properties.delete( propertyName );
 				meta.propertyNames.delete( propertyName );
 			}
@@ -354,7 +409,7 @@ component {
 		arguments.meta.properties = orderedProps;
 	}
 
-	private array function _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( required string pathToCfc ) {
+	private array function _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( required string pathToCfc ) {
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 
@@ -385,16 +440,26 @@ component {
 		return final;
 	}
 
+	private void function _defineIdField( required struct objectMeta ) {
+		arguments.objectMeta.idField = arguments.objectMeta.idField ?: "id";
+	}
+
+	private void function _defineCreatedField( required struct objectMeta ) {
+		arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "datecreated";
+	}
+
+	private void function _defineModifiedField( required struct objectMeta ) {
+		arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "datemodified";
+	}
+
 	private void function _defineLabelField( required struct objectMeta ) {
-		// if ( arguments.objectMeta.isPageType ) {
-		// 	arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.title";
-		// }
 		if ( IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel ) {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "";
 		} else {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "label";
 		}
-		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield !== "label";
+		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield == "";
+		arguments.objectMeta.noLabel = IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel;
 	}
 
 	private void function _removeObjectsUsedInDisabledFeatures( required struct objects ) {
@@ -446,5 +511,12 @@ component {
 	}
 	private void function _setFeatureService( required any featureService ) {
 		_featureService = arguments.featureService;
+	}
+
+	private any function _getDbAdapter() {
+		return _dbAdapter;
+	}
+	private void function _setDbAdapter( required any dbAdapter ) {
+		_dbAdapter = arguments.dbAdapter;
 	}
 }

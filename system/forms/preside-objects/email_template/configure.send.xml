@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="default">
+		<fieldset id="limit" sortorder="70">
+			<field binding="email_template.sending_limit" control="enumRadioList" sortorder="10" label="" layout="" />
+		</fieldset>
+		<fieldset id="limit_details" sortorder="80" class="sub-fieldset col-sm-offset-1">
+			<field binding="email_template.sending_limit_measure" sortorder="10" layout="formcontrols.layouts.timeUnitAndMeasureField" measure="true" label="preside-objects.email_template:field.sending_limit_measure.formtitle"/>
+			<field binding="email_template.sending_limit_unit"    sortorder="20" layout="formcontrols.layouts.timeUnitAndMeasureField" unit="true" />
+		</fieldset>
+	</tab>
+</form>

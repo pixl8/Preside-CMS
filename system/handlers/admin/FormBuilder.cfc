@@ -77,10 +77,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
+		var clone = rc.clone ?: false;
 		_permissionsCheck( "editform", event );
 
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
+			item.configuration.name  = isTrue( clone ) ? "" : ( item.configuration.name  ?: "" );
+			item.configuration.label = isTrue( clone ) ? "" : ( item.configuration.label ?: "" );
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
 			}
@@ -174,13 +177,15 @@ component extends="preside.system.base.AdminHandler" {
 			var action = actionsService.getFormAction( rc.actionId );
 			if ( action.count() ) {
 				prc.savedData = action.configuration;
+				prc.savedData.condition = action.condition;
+				rc.formId = action.formId;
 			}
 		}
 
 		prc.actionConfig = actionsService.getActionConfig( rc.action ?: "" );
 
 		if ( !prc.actionConfig.count() ) {
-			event.adminNotFound();
+			event.adminFound();
 		}
 
 		prc.pageTitle    = translateResource( uri="formbuilder:action.config.dialog.title"   , data=[ prc.actionConfig.title ] );
@@ -411,7 +416,7 @@ component extends="preside.system.base.AdminHandler" {
 			messagebox.info( translateResource( "formbuilder:deactivated.confirmation" ) );
 		}
 
-		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) )
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) );
 	}
 
 	public void function lockAction( event, rc, prc ) {
@@ -428,7 +433,7 @@ component extends="preside.system.base.AdminHandler" {
 			messagebox.info( translateResource( "formbuilder:unlocked.confirmation" ) );
 		}
 
-		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) )
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) );
 
 	}
 
@@ -527,7 +532,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function listSubmissionsForAjaxDataTable( event, rc, prc ) {
-		var formId   = ( rc.formId ?: "" );
+		var formId                = ( rc.formId ?: "" );
+		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
 
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
@@ -539,11 +545,12 @@ component extends="preside.system.base.AdminHandler" {
 		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
 		var dtHelper        = getMyPlugin( "JQueryDatatablesHelpers" );
 		var results         = formbuilderService.getSubmissionsForGridListing(
-			  formId      = formId
-			, startRow    = dtHelper.getStartRow()
-			, maxRows     = dtHelper.getMaxRows()
-			, orderBy     = dtHelper.getSortOrder()
-			, searchQuery = dtHelper.getSearchQuery()
+			  formId                = formId
+			, startRow              = dtHelper.getStartRow()
+			, maxRows               = dtHelper.getMaxRows()
+			, orderBy               = dtHelper.getSortOrder()
+			, searchQuery           = dtHelper.getSearchQuery()
+			, savedFilterExpIdLists = savedFilterExpIdLists
 		);
 		var records = Duplicate( results.records );
 		var viewSubmissionTitle   = translateResource( "formbuilder:view.submission.modal.title" );
@@ -579,6 +586,36 @@ component extends="preside.system.base.AdminHandler" {
 			  type = "json"
 			, data = dtHelper.queryToResult( records, gridFields, results.totalRecords )
 		);
+	}
+
+	public void function cloneForm( event, rc, prc, args ) {
+		prc.pageTitle    = translateResource( "formbuilder:cloneForm.page.title" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "formbuilder:cloneForm.page.title" )
+			, link  = ''
+		);
+	}
+
+	public void function cloneFormAction( event, rc, prc ) {
+		_permissionsCheck( "addform", event );
+
+		var basedOnFormId    = rc.basedOnFormId ?: "";
+		var formData         = event.getCollectionForForm( "preside-objects.formbuilder_form.admin.cloneForm" );
+		var validationResult = validateForm( formName="preside-objects.formbuilder_form.admin.cloneForm", formData=formData );
+		var persist          = "";
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist                  = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.cloneForm", queryString="id=#basedOnFormId#" ), persistStruct=persist );
+		} else {
+			// Here cloning a form with items and actions from original form, except submission data
+			var newFormId    = formBuilderService.cloneForm( argumentCollection = rc );
+			messagebox.info( translateResource( "formbuilder:cloned.success.message" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=#newFormId#" ) );
+		}
 	}
 
 // VIEWLETS

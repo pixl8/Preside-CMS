@@ -3,9 +3,10 @@
 	inputId      = args.id           ?: "";
 	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
-	placeholder = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue = args.defaultValue ?: "";
-	maxLength    = Val( args.maxLength ?: 0 );
+	maxlength    = args.maxlength    ?: "";
+	minlength    = args.minlength    ?: "";
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -16,5 +17,5 @@
 </cfscript>
 
 <cfoutput>
-	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="#inputClass# form-control autosize-transition<cfif maxLength> limited</cfif>"<cfif maxLength> data-maxlength="#maxLength#"</cfif> tabindex="#getNextTabIndex()#">#value#</textarea>
+	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="#inputClass# form-control autosize-transition<cfif isNumeric( maxlength ) and maxlength gt 0> limited</cfif>"<cfif isNumeric( maxlength ) and maxlength gt 0> data-maxlength="#maxLength#"</cfif> <cfif isNumeric( minlength ) and minlength gt 0> minlength="#minlength#"</cfif> tabindex="#getNextTabIndex()#">#value#</textarea>
 </cfoutput>

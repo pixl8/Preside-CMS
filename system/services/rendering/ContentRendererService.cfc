@@ -133,7 +133,7 @@ component {
 			contexts.append( "default" );
 		}
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
@@ -201,6 +201,9 @@ component {
 				case "date":
 					if ( StructKeyExists( fieldAttributes, "dbType" ) and ListFindNoCase( "timestamp,datetime", fieldAttributes.dbType ) ) {
 						return "datetime";
+					}
+					if ( StructKeyExists( fieldAttributes, "dbType" ) and fieldAttributes.dbType == "date" ) {
+						return "date";
 					}
 				break;
 			}
@@ -407,7 +410,7 @@ component {
 		var poService = _getPresideObjectService();
 		var fieldName = arguments.property;
 
-		if ( not IsNull( renderer ) ) {
+		if ( !IsNull( local.renderer ) ) {
 			return renderer;
 		}
 
@@ -431,7 +434,7 @@ component {
 		var cache    = _getCache();
 		var control  = cache.get( cacheKey );
 
-		if ( not IsNull( control ) ) {
+		if ( !IsNull( local.control ) ) {
 			return control;
 		}
 

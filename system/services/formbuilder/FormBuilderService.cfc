@@ -17,6 +17,8 @@ component {
 	 * @validationEngine.inject             validationEngine
 	 * @recaptchaService.inject             recaptchaService
 	 * @spreadsheetLib.inject               spreadsheetLib
+	 * @presideObjectService.inject         presideObjectService
+	 * @rulesEngineFilterService.inject     rulesEngineFilterService
 	 *
 	 */
 	public any function init(
@@ -28,6 +30,8 @@ component {
 		, required any validationEngine
 		, required any recaptchaService
 		, required any spreadsheetLib
+		, required any presideObjectService
+		, required any rulesEngineFilterService
 	) {
 		_setItemTypesService( arguments.itemTypesService );
 		_setActionsService( arguments.actionsService );
@@ -37,6 +41,8 @@ component {
 		_setValidationEngine( arguments.validationEngine );
 		_setRecaptchaService( arguments.recaptchaService );
 		_setSpreadsheetLib( arguments.spreadsheetLib );
+		_setPresideObjectService( arguments.presideObjectService );
+		_setRulesEngineFilterService( arguments.rulesEngineFilterService );
 
 		return this;
 	}
@@ -56,10 +62,11 @@ component {
 	/**
 	 * Retuns a form's items in an ordered array
 	 *
-	 * @autodoc
-	 * @id.hint ID of the form who's sections and items you wish to get
+	 * @autodoc        true
+	 * @id.hint        ID of the form whose sections and items you wish to get
+	 * @itemTypes.hint Optional array of item types with which to filter the returned form items
 	 */
-	public array function getFormItems( required string id ) {
+	public array function getFormItems( required string id, array itemTypes=[] ) {
 		var result = [];
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { form=arguments.id }
@@ -72,11 +79,13 @@ component {
 		);
 
 		for( var item in items ) {
-			result.append( {
-				  id            = item.id
-				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
-				, configuration = DeSerializeJson( item.configuration )
-			} );
+			if ( !itemTypes.len() || itemTypes.findNoCase( item.item_type ) ) {
+				result.append( {
+					  id            = item.id
+					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
+					, configuration = DeSerializeJson( item.configuration )
+				} );
+			}
 		}
 
 		return result;
@@ -116,7 +125,7 @@ component {
 	 * Retuns a form's item that matches the given input name.
 	 *
 	 * @autodoc
-	 * @formId.hint    ID of the form who's item you wish to get
+	 * @formId.hint    ID of the form whose item you wish to get
 	 * @inputName.hint Name of the input
 	 */
 	public struct function getItemByInputName( required string formId, required string inputName ) {
@@ -229,7 +238,7 @@ component {
 
 	/**
 	 * Sets the sort order of items within a form. Returns the number
-	 * of items who's order has been set.
+	 * of items whose order has been set.
 	 *
 	 * @autodoc
 	 * @items.hint Array of item ids in the order they should be set
@@ -523,7 +532,7 @@ component {
 	 * against the form for the given form ID
 	 *
 	 * @autodoc
-	 * @formId.hint ID of the form who's message you wish to get
+	 * @formId.hint ID of the form whose message you wish to get
 	 *
 	 */
 	public string function getSubmissionSuccessMessage( required string formId ) {
@@ -562,7 +571,7 @@ component {
 					, itemConfiguration = item.configuration
 				);
 
-				if ( !IsNull( itemValue ) ) {
+				if ( !IsNull( local.itemValue ) ) {
 					formData[ itemName ] = itemValue;
 				}
 			}
@@ -623,6 +632,8 @@ component {
 		,          string ipAddress   = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string userAgent   = ( cgi.http_user_agent ?: "" )
 	) {
+		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
+
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
@@ -690,7 +701,7 @@ component {
 	 * a given form
 	 *
 	 * @autodoc
-	 * @formid.hint The ID of the form who's submissions you want to count
+	 * @formid.hint The ID of the form whose submissions you want to count
 	 *
 	 */
 	public numeric function getSubmissionCount( required string formId ) {
@@ -719,7 +730,7 @@ component {
 	 * for display in grid table
 	 *
 	 * @autodoc
-	 * @formid.hint      ID of the form who's submissions you wish to get
+	 * @formid.hint      ID of the form whose submissions you wish to get
 	 * @startRow.hint    Start row of recordset (for pagination)
 	 * @maxRows.hint     Max rows to fetch (for pagination)
 	 * @orderBy.hint     Order by field
@@ -728,10 +739,11 @@ component {
 	 */
 	public struct function getSubmissionsForGridListing(
 		  required string  formId
-		,          numeric startRow     = 1
-		,          numeric maxRows      = 10
-		,          string  orderBy      = ""
-		,          string  searchQuery  = ""
+		,          numeric startRow              = 1
+		,          numeric maxRows               = 10
+		,          string  orderBy               = ""
+		,          string  searchQuery           = ""
+		,          string  savedFilterExpIdLists = ""
 	) {
 		var submissionsDao = $getPresideObject( "formbuilder_formsubmission" );
 		var result         = { totalRecords=0, records="" };
@@ -764,6 +776,21 @@ component {
 				  filter       = "submitted_by.display_name like :q or formbuilder_formsubmission.form_instance like :q or formbuilder_formsubmission.submitted_data like :q"
 				, filterParams = { q = { type="cf_sql_varchar", value="%#arguments.searchQuery#%" } }
 			});
+		}
+
+		if ( Len( Trim( arguments.savedFilterExpIdLists ?: "" ) ) ) {
+			var savedFilters = _getPresideObjectService().selectData(
+				  objectName   = "rules_engine_condition"
+				, selectFields = [ "expressions" ]
+				, filter       = { id=ListToArray( arguments.savedFilterExpIdLists ?: "" ) }
+			);
+
+			for( var filter in savedFilters ) {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName      = 'formbuilder_formsubmission'
+					, expressionArray = DeSerializeJson( filter.expressions )
+				) );
+			}
 		}
 
 		result.records = submissionsDao.selectData(
@@ -851,17 +878,17 @@ component {
 
 		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ formDefinition.name ] ), 1 );
 		for( var i=1; i <= headers.len(); i++ ){
-			spreadsheetLib.setCellValue( workbook, headers[i], 1, i );
+			spreadsheetLib.setCellValue( workbook, headers[i], 1, i, "string" );
 		}
 
 		var row = 1;
 		for( var submission in submissions ) {
 			var column = 4;
 			row++;
-			spreadsheetLib.setCellValue( workbook, submission.id, row, 1 );
-			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2 );
-			spreadsheetLib.setCellValue( workbook, submission.submitted_by, row, 3 );
-			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4 );
+			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
+			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.submitted_by, row, 3, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4, "string" );
 
 			if ( itemsToRender.len() ) {
 				var data   = DeSerializeJson( submission.submitted_data );
@@ -878,7 +905,7 @@ component {
 
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
 						if ( itemColumns.len() >= i ) {
-							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column );
+							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column, "string" );
 						} else {
 							spreadsheetLib.setCellValue( workbook, "", row, ++column );
 						}
@@ -886,8 +913,8 @@ component {
 				}
 			}
 
-			spreadsheetLib.setCellValue( workbook, submission.ip_address, row, ++column );
-			spreadsheetLib.setCellValue( workbook, submission.user_agent, row, ++column );
+			spreadsheetLib.setCellValue( workbook, submission.ip_address, row, ++column, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.user_agent, row, ++column, "string" );
 		}
 
 		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
@@ -926,6 +953,17 @@ component {
 		return arguments.formData;
 	}
 
+	public struct function getFormBuilderSubmissionContextData() {
+		return $getRequestContext().getValue( name="_formBuilderContext", private=true, defaultValue={} );
+	}
+	public void function setFormBuilderSubmissionContextData( required string formId, required struct data ) {
+		$getRequestContext().setValue(
+			  name    = "_formBuilderContext"
+			, value   = { id=arguments.formId, data=arguments.data }
+			, private = true
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
@@ -949,7 +987,7 @@ component {
 
 		for( var item in existingItems ) {
 			try {
-				item = DeserializeJson( item.configuration )
+				item = DeserializeJson( item.configuration );
 			} catch ( any e ) {
 				item = {};
 			}
@@ -957,6 +995,42 @@ component {
 				validationResult.addError( fieldName="name", message="formbuilder:validation.non.unique.field.name" );
 			}
 		}
+	}
+
+	public string function cloneForm(
+		  required string basedOnFormId
+		, required string name
+		, required string description
+	) {
+		var originalFormData = getForm( id=arguments.basedOnFormId );
+		var cloneFormData    = { name=arguments.name, description=arguments.description };
+
+		for( var column in originalFormData.columnList ) {
+			if( !listFindNoCase( "id,name,description,datecreated,datemodified,_version_is_draft,_version_has_drafts", column ) ) {
+				cloneFormData[ column ] = originalFormData[ column ];
+			}
+		}
+
+		// for cloning form details
+		var newFormId = $getPresideObject( "formbuilder_form" ).insertData( data=cloneFormData );
+
+		// for cloning form items
+		var originalFormItems = getFormItems( id=arguments.basedOnFormId );
+		if( arrayLen( originalFormItems ) ) {
+			for( var formItem in originalFormItems ) {
+				addItem( formId=newFormId, itemType=formItem.type.id, configuration=formItem.configuration );
+			}
+		}
+
+		// for cloning form actions
+		var originalFormActions = _getActionsService().getFormActions( id=arguments.basedOnFormId );
+		if( arrayLen( originalFormActions ) ) {
+			for( var formAction in originalFormActions ) {
+				_getActionsService().addAction( formId=newFormId, action=formAction.action.id, configuration=formAction.configuration );
+			}
+		}
+
+		return newFormId;
 	}
 
 	private string function _createIdPrefix() {
@@ -1018,5 +1092,19 @@ component {
 	}
 	private void function _setSpreadsheetLib( required any spreadsheetLib ) {
 		_spreadsheetLib = arguments.spreadsheetLib;
+	}
+
+	private any function _getPresideObjectService() {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) {
+		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getRulesEngineFilterService() {
+		return _rulesEngineFilterService;
+	}
+	private void function _setRulesEngineFilterService( required any rulesEngineFilterService ) {
+		_rulesEngineFilterService = arguments.rulesEngineFilterService;
 	}
 }

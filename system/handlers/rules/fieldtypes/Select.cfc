@@ -18,6 +18,10 @@ component {
 			}
 		}
 
+		if( items.isEmpty() ) {
+			return config.defaultLabel ?: translateResource( "cms:rulesEngine.fieldtype.select.default.label" )
+		}
+
 		return items.toList( ", " );
 	}
 
@@ -26,6 +30,8 @@ component {
 		var labels        = _getLabels( config );
 		var multiple      = IsTrue( config.multiple ?: true );
 		var sortable      = IsTrue( config.sortable ?: true );
+
+		rc.delete( "value" );
 
 		return renderFormControl(
 			  name         = "value"
