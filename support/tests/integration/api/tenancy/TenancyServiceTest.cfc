@@ -272,6 +272,16 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( service.getTenancyCacheKey( objectName ) ).toBe( "-" & tenantId );
 			} );
+
+			it( "should return empty string when the object is using tenancy but the tenant is included in bypass list", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = "blah";
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+
+				expect( service.getTenancyCacheKey( objectName=objectName, bypassTenants=[ tenant ] ) ).toBe( "" );
+			} );
 		} );
 
 		describe( "getTenantFkForObject()", function(){
@@ -364,6 +374,16 @@ component extends="testbox.system.BaseSpec"{
 				).$results( filter );
 
 				expect( service.getTenancyFilter( objectName ) ).toBe( filter );
+			} );
+
+			it( "should return empty struct when the passed object is using tenancy but the tenant is included in bypass list", function(){
+				var service    = _getService();
+				var tenant     = "test";
+				var objectName = "test";
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+
+				expect( service.getTenancyFilter( objectName=objectName, bypassTenants=[ tenant ] ) ).toBe( {} );
 			} );
 		} );
 

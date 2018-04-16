@@ -145,10 +145,10 @@ component displayName="Tenancy service" {
 		return request.__presideTenancy[ arguments.tenant ] ?: "";
 	}
 
-	public string function getTenancyCacheKey( required string objectName ) {
+	public string function getTenancyCacheKey( required string objectName, array bypassTenants=[] ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
-		if ( tenant.len() ) {
+		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
 			return "-" & getTenantId( tenant );
 		}
 
@@ -169,10 +169,10 @@ component displayName="Tenancy service" {
 		return fields;
 	}
 
-	public struct function getTenancyFilter( required string objectName ) {
+	public struct function getTenancyFilter( required string objectName, array bypassTenants=[] ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
-		if ( tenant.len() ) {
+		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
 			var fk            = getTenantFkForObject( arguments.objectName );
 			var tenantId      = getTenantId( tenant );
 			var config        = _getTenancyConfig();

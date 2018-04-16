@@ -152,11 +152,13 @@ component displayName="Preside Object Service" {
 	 * @recordCountOnly.hint         If set to true, the method will just return the number of records that the select statement would return
 	 * @getSqlAndParamsOnly.hint     If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
+	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
 	 * @filterParams.docdefault      {}
 	 * @extraFilters.docdefault      []
 	 * @extraJoins.docdefault        []
+	 * @bypassTenants.docdefault     []
 	 */
 	public any function selectData(
 		  required string  objectName
@@ -183,6 +185,7 @@ component displayName="Preside Object Service" {
 		,          boolean recordCountOnly         = false
 		,          boolean getSqlAndParamsOnly     = false
 		,          boolean distinct                = false
+		,          array   bypassTenants           = []
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 
