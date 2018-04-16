@@ -525,17 +525,19 @@ component {
 		,          numeric maxRows       = 1000
 		,          string  orderBy       = "label"
 		,          string  labelRenderer = ""
+		,          array   bypassTenants = []
 	) {
 		var result = [];
 		var records = "";
 		var args   = {
-			  objectName   = arguments.objectName
-			, selectFields = arguments.selectFields
-			, savedFilters = arguments.savedFilters
-			, extraFilters = arguments.extraFilters
-			, maxRows      = arguments.maxRows
-			, orderBy      = arguments.orderBy
-			, autoGroupBy  = true
+			  objectName    = arguments.objectName
+			, selectFields  = arguments.selectFields
+			, savedFilters  = arguments.savedFilters
+			, extraFilters  = arguments.extraFilters
+			, bypassTenants = arguments.bypassTenants
+			, maxRows       = arguments.maxRows
+			, orderBy       = arguments.orderBy
+			, autoGroupBy   = true
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
 			result.text = replaceList(_getLabelRendererService().renderLabel( labelRenderer, result ), "&lt;,&gt;,&amp;,&quot;", '<,>,&,"');
