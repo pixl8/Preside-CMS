@@ -25,7 +25,7 @@ component {
 	public any function includeUrl()     { return _getSticker().includeUrl    ( argumentCollection=arguments ); }
 
 	public any function renderIncludes( boolean delayed=true ) {
-		if ( $getColdbox().getRequestContext().cachePage() && delayed ) {
+		if ( delayed ) {
 			return _getDelayedStickerRendererService().renderDelayedStickerTag( argumentCollection=arguments, memento=_getSticker().getMemento() );
 		} else {
 			return _getSticker().renderIncludes( argumentCollection=arguments );
