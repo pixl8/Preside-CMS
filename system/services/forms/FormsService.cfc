@@ -893,8 +893,8 @@ component displayName="Forms service" {
 		var formAttributes = {};
 
 		try {
-			xmlContent = fileread( arguments.filePath, "utf-8" );
-			xml = XmlParse( xmlContent );
+			var xmlContent = fileread( arguments.filePath, "utf-8" );
+			xml            = XmlParse( xmlContent );
 		} catch ( any e ) {
 			throw(
 				  type = "FormsService.BadFormXml"
