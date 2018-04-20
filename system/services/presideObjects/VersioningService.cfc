@@ -453,8 +453,8 @@ component {
 	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string versionedObjectName, required string originalObjectName ) {
 		var idField = objMeta.idField ?: "id";
 		if ( StructKeyExists( objMeta.properties, idField ) ) {
-			if ( ( objMeta.properties[ idField ].generator ?: "" ) == "increment" ) {
-				throw( type="VersioningService.pkLimitiation", message="We currently cannot version objects with a an auto incrementing id.", detail="Please either use the default UUID generator for the id or turn versioning off on the object with versioned=false" );
+			if ( ( objMeta.properties[ idField ].generator ?: "" ) == "increment" && ( objMeta.versionOnInsert ?: true ) ) {
+				throw( type="VersioningService.pkLimitiation", message="We currently cannot version objects with an auto incrementing id UNLESS you set @versionOnInsert to false on the object CFC definition.", detail="Please either use the default UUID generator for the id, set versionOnInsert=false or turn versioning off on the object with versioned=false" );
 			}
 			objMeta.properties[ idField ].pk = false;
 			objMeta.properties[ idField ].generator = "none";
