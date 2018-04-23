@@ -22,7 +22,7 @@
 	param name="args.parent_restriction"          type="string" default="none";
 
 	param name="args.editPageBaseLink"            type="string" default=event.buildAdminLink( linkTo="sitetree.editPage", queryString="id={id}" );
-	param name="args.pageTypeDialogBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage={id}" );
+	param name="args.pageTypeDialogBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage={id}&child_count={type}" );
 	param name="args.addPageBaseLink"             type="string" default=event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page={id}&page_type={type}' );
 	param name="args.trashPageBaseLink"           type="string" default=event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id={id}" );
 	param name="args.activatePageBaseLink"        type="string" default=event.buildAdminLink( linkTo="sitetree.activatePageAction", queryString="id={id}" );
@@ -93,14 +93,14 @@
 				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
-					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#" #dataImage#> #args.title#</a>
+					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id, type=args.child_count} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#" #dataImage#> #args.title#</a>
 				<cfelse>
 					<span class="page-title" #dataImage#>#args.title#</span>
 				</cfif>
 
 				<div class="actions pull-right btn-group">
 					<cfif hasEditPagePermission>
-						<a data-context-key="e" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
+						<a data-context-key="e" href="#quickBuildLink( args.editPageBaseLink, {id=args.id, type=args.child_count} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
 					<cfelse>
 						<i class="fa fa-pencil disabled"></i>
 					</cfif>
@@ -140,7 +140,7 @@
 							</cfif>
 							<cfif hasDeletePagePermission>
 								<li>
-									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#" data-has-children="#args.child_count#">
 										<i class="fa fa-fw fa-trash-o"></i>
 										#translateResource( "cms:sitetree.trash.page.dropdown" )#
 									</a>
