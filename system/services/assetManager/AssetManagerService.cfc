@@ -165,18 +165,26 @@ component displayName="AssetManager Service" {
 	}
 
 	public struct function getFolderRestrictions( required string id ) {
-		var folderSettings = getCascadingFolderSettings( id=arguments.id, settings=[ "allowed_filetypes", "max_filesize_in_mb" ] );
+		var folderSettings = getCascadingFolderSettings( id=arguments.id, settings=[ "allowed_filetypes", "max_filesize_in_mb", "min_width_in_px", "max_width_in_px", "min_height_in_px", "max_height_in_px" ] );
 
-		folderSettings.allowed_filetypes = ListToArray( folderSettings.allowed_filetypes ?: "" );
+		folderSettings.allowed_filetypes  = ListToArray( folderSettings.allowed_filetypes ?: "" );
 		folderSettings.max_filesize_in_mb = folderSettings.max_filesize_in_mb ?: "";
+		folderSettings.min_width_in_px    = folderSettings.min_width_in_px    ?: "";
+		folderSettings.max_width_in_px    = folderSettings.max_width_in_px    ?: "";
+		folderSettings.min_height_in_px   = folderSettings.min_height_in_px   ?: "";
+		folderSettings.max_height_in_px   = folderSettings.max_height_in_px   ?: "";
 
 		if ( folderSettings.allowed_filetypes.len() ) {
 			folderSettings.allowed_filetypes = expandTypeList( folderSettings.allowed_filetypes, true );
 		}
 
 		return {
-			  maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? folderSettings.max_filesize_in_mb : 10
-			, allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
+			  allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
+			, maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? folderSettings.max_filesize_in_mb : 10
+			, minImageWidth     = IsNumeric( folderSettings.min_width_in_px )    ? folderSettings.min_width_in_px    : 0
+			, maxImageWidth     = IsNumeric( folderSettings.max_width_in_px )    ? folderSettings.max_width_in_px    : 0
+			, minImageHeight    = IsNumeric( folderSettings.min_height_in_px )   ? folderSettings.min_height_in_px   : 0
+			, maxImageHeight    = IsNumeric( folderSettings.max_height_in_px )   ? folderSettings.max_height_in_px   : 0
 		};
 	}
 
@@ -220,11 +228,17 @@ component displayName="AssetManager Service" {
 		,          string  title           = ""
 		,          boolean throwIfNot      = false
 		,          boolean restore         = false
+		,          string  fileWidth       = 0
+		,          string  fileHeight      = 0
 		,          struct  restrictions    = getFolderRestrictions( arguments.folderId )
 	) {
 		var typeDisallowed  = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
 		var sizeInMb        = arguments.size / 1048576;
 		var tooBig          = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+		var tooSmallWidth   = restrictions.minImageWidth  && val( arguments.fileWidth  ) && val( restrictions.minImageWidth  ) && arguments.fileWidth  < restrictions.minImageWidth;
+		var tooBigWidth     = restrictions.maxImageWidth  && val( arguments.fileWidth  ) && val( restrictions.maxImageWidth  ) && arguments.fileWidth  > restrictions.maxImageWidth;
+		var tooSmallHeight  = restrictions.minImageHeight && val( arguments.fileHeight ) && val( restrictions.minImageHeight ) && arguments.fileHeight < restrictions.minImageHeight;
+		var tooBigHeight    = restrictions.maxImageHeight && val( arguments.fileHeight ) && val( restrictions.maxImageHeight ) && arguments.fileHeight > restrictions.maxImageHeight;
 		var fileExist       = _getAssetDao().dataExists( filter={ title=arguments.title, asset_folder=arguments.folderId } );
 
 		if ( typeDisallowed  ) {
@@ -243,6 +257,28 @@ component displayName="AssetManager Service" {
 				throw(
 					  type    = "PresideCMS.AssetManager.asset.too.big.for.folder"
 					, message = "Cannot add file to asset folder due to size restriction. Size of file: [#NumberFormat( sizeInMb, '0.00' )#Mb]. Maximum size: [#restrictions.maxFileSize#Mb]."
+				);
+			}
+
+			return false;
+		}
+
+		if ( tooSmallWidth ||  tooSmallHeight ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.Assetmanager.asset.too.small.resolution.for.folder"
+					, message = "Cannot add file to asset folder due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Minimum resolution: [#restrictions.minImageWidth#X#restrictions.minImageHeight# pixels]."
+				);
+			}
+
+			return false;
+		}
+
+		if ( tooBigWidth ||  tooBigHeight ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.Assetmanager.asset.too.big.resolution.for.folder"
+					, message = "Cannot add file to asset folder due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Maximum resolution: [#restrictions.maxImageWidth#X#restrictions.maxImageHeight# pixels]."
 				);
 			}
 
@@ -585,6 +621,9 @@ component displayName="AssetManager Service" {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
+		var fileMetaInfo = _getDocumentMetadataService().getMetaData( arguments.fileBinary );
+		var fileWidth    = fileMetaInfo.width  ?: 0;
+		var fileHeight   = fileMetaInfo.height ?: 0;
 
 		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
@@ -597,6 +636,8 @@ component displayName="AssetManager Service" {
 			, size       = asset.size
 			, folderId   = asset.asset_folder
 			, throwIfNot = true
+			, fileWidth  = fileWidth
+			, fileHeight = fileHeight
 		);
 
 		if ( arguments.ensureUniqueTitle ) {
@@ -628,7 +669,7 @@ component displayName="AssetManager Service" {
 		var newId = _getAssetDao().insertData( data=asset, insertManyToManyRecords=true );
 
 		if ( _autoExtractDocumentMeta() ) {
-			_saveAssetMetaData( assetId=newId, metaData=_getDocumentMetadataService().getMetaData( arguments.fileBinary ) );
+			_saveAssetMetaData( assetId=newId, metaData=fileMetaInfo );
 		}
 
 		asset.id = newId;
