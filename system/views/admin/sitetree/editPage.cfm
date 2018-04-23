@@ -85,7 +85,7 @@
 
 				<cfif canDeletePage>
 					<li>
-						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#" data-has-children="#child_Count#">
 							<i class="fa fa-fw fa-trash-o"></i>&nbsp;
 							#translateResource( "cms:sitetree.trash.page.dropdown" )#
 						</a>

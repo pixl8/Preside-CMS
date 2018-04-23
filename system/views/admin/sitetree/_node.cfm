@@ -142,7 +142,7 @@
 							</cfif>
 							<cfif hasDeletePagePermission>
 								<li>
-									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#htmlEditFormat( translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] ) )#">
+									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#htmlEditFormat( translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] ) )#" data-has-children="#args.child_count#">
 										<i class="fa fa-fw fa-trash-o"></i>
 										#translateResource( "cms:sitetree.trash.page.dropdown" )#
 									</a>
