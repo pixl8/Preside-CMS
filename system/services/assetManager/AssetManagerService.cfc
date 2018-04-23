@@ -169,22 +169,22 @@ component displayName="AssetManager Service" {
 
 		folderSettings.allowed_filetypes  = ListToArray( folderSettings.allowed_filetypes ?: "" );
 		folderSettings.max_filesize_in_mb = folderSettings.max_filesize_in_mb ?: "";
-		folderSettings.min_width_in_px    = folderSettings.min_width_in_px ?: "";
-		folderSettings.max_width_in_px    = folderSettings.max_width_in_px ?: "";
-		folderSettings.min_height_in_px   = folderSettings.min_height_in_px ?: "";
-		folderSettings.max_height_in_px   = folderSettings.max_height_in_px ?: "";
+		folderSettings.min_width_in_px    = folderSettings.min_width_in_px    ?: "";
+		folderSettings.max_width_in_px    = folderSettings.max_width_in_px    ?: "";
+		folderSettings.min_height_in_px   = folderSettings.min_height_in_px   ?: "";
+		folderSettings.max_height_in_px   = folderSettings.max_height_in_px   ?: "";
 
 		if ( folderSettings.allowed_filetypes.len() ) {
 			folderSettings.allowed_filetypes = expandTypeList( folderSettings.allowed_filetypes, true );
 		}
 
 		return {
-			  maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? folderSettings.max_filesize_in_mb : 10
-			, allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
-			, minImageWidth     = IsNumeric( folderSettings.min_width_in_px ) ? folderSettings.min_width_in_px : 0
-			, maxImageWidth     = IsNumeric( folderSettings.max_width_in_px ) ? folderSettings.max_width_in_px : 0
-			, minImageHeight    = IsNumeric( folderSettings.min_height_in_px ) ? folderSettings.min_height_in_px : 0
-			, maxImageHeight    = IsNumeric( folderSettings.max_height_in_px ) ? folderSettings.max_height_in_px : 0
+			  allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
+			, maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? folderSettings.max_filesize_in_mb : 10
+			, minImageWidth     = IsNumeric( folderSettings.min_width_in_px )    ? folderSettings.min_width_in_px    : 0
+			, maxImageWidth     = IsNumeric( folderSettings.max_width_in_px )    ? folderSettings.max_width_in_px    : 0
+			, minImageHeight    = IsNumeric( folderSettings.min_height_in_px )   ? folderSettings.min_height_in_px   : 0
+			, maxImageHeight    = IsNumeric( folderSettings.max_height_in_px )   ? folderSettings.max_height_in_px   : 0
 		};
 	}
 
@@ -235,10 +235,10 @@ component displayName="AssetManager Service" {
 		var typeDisallowed  = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
 		var sizeInMb        = arguments.size / 1048576;
 		var tooBig          = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
-		var tooSmallWidth   = (restrictions.minImageWidth && arguments.fileWidth < restrictions.minImageWidth) && val(arguments.fileWidth) && val(restrictions.minImageWidth);
-		var tooBigWidth     = (restrictions.maxImageWidth && arguments.fileWidth > restrictions.maxImageWidth) && val(arguments.fileWidth) && val(restrictions.maxImageWidth);
-		var tooSmallHeight  = (restrictions.minImageHeight && arguments.fileHeight < restrictions.minImageHeight) && val(arguments.fileHeight) && val(restrictions.minImageHeight);
-		var tooBigHeight    = (restrictions.maxImageHeight && arguments.fileHeight > restrictions.maxImageHeight) && val(arguments.fileHeight) && val(restrictions.maxImageHeight);
+		var tooSmallWidth   = restrictions.minImageWidth  && val( arguments.fileWidth  ) && val( restrictions.minImageWidth  ) && arguments.fileWidth  < restrictions.minImageWidth;
+		var tooBigWidth     = restrictions.maxImageWidth  && val( arguments.fileWidth  ) && val( restrictions.maxImageWidth  ) && arguments.fileWidth  > restrictions.maxImageWidth;
+		var tooSmallHeight  = restrictions.minImageHeight && val( arguments.fileHeight ) && val( restrictions.minImageHeight ) && arguments.fileHeight < restrictions.minImageHeight;
+		var tooBigHeight    = restrictions.maxImageHeight && val( arguments.fileHeight ) && val( restrictions.maxImageHeight ) && arguments.fileHeight > restrictions.maxImageHeight;
 		var fileExist       = _getAssetDao().dataExists( filter={ title=arguments.title, asset_folder=arguments.folderId } );
 
 		if ( typeDisallowed  ) {
@@ -622,7 +622,7 @@ component displayName="AssetManager Service" {
 		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
 		var fileMetaInfo = _getDocumentMetadataService().getMetaData( arguments.fileBinary );
-		var fileWidth    = fileMetaInfo.width ?: 0;
+		var fileWidth    = fileMetaInfo.width  ?: 0;
 		var fileHeight   = fileMetaInfo.height ?: 0;
 
 		asset.asset_folder     = resolveFolderId( arguments.folder );
