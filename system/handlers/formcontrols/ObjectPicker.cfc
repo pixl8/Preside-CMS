@@ -14,6 +14,7 @@ component {
 		var filterBy      = args.filterBy      ?: "";
 		var filterByField = args.filterByField ?: filterBy;
 		var savedData     = args.savedData     ?: {};
+		var bypassTenants = args.bypassTenants ?: "";
 		var labelRenderer = args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
 		var labelFields   = labelRendererService.getSelectFieldsForLabel( labelRenderer );
 
@@ -22,12 +23,12 @@ component {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#"
+					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&q=%QUERY"
+				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&q=%QUERY"
 			);
 		} else {
 			var filter = {};
@@ -48,6 +49,7 @@ component {
 				, orderBy      = orderBy
 				, filter       = filter
 				, savedFilters = ListToArray( savedFilters )
+				, bypassTenants = ListToArray( bypassTenants )
 			);
 		}
 

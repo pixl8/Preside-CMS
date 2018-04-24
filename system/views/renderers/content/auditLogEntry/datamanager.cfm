@@ -8,10 +8,10 @@
 <cfscript>
 	userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
 	objectTitle  = translateResource( uri="preside-objects.#args.detail.objectName#:title.singular" );
-	objectUrl    = event.buildAdminLink( linkTo="datamanager.object", queryString="id=" & args.detail.objectName );
+	objectUrl    = event.buildAdminLink( objectName=args.detail.objectName, operation="listing" );
 	objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
 	recordLabel  = Len( Trim( args.detail.objectName ) ) ? renderLabel( args.detail.objectName, args.record_id ) : "unknown";
-	recordUrl    = event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#args.detail.objectName#&id=#args.record_id#" );
+	recordUrl    = event.buildAdminLink( objectName=args.detail.objectName, recordId=args.record_id );
 	recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
 
 	message      = translateResource( uri="auditlog.datamanager:#args.action#.message", data=[ userLink, objectLink, recordLink ] );

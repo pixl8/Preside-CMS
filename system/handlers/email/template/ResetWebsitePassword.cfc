@@ -1,5 +1,9 @@
 component {
 
+	property name="websiteLoginService" inject="websiteLoginService";
+	property name="sendLogDao"          inject="presidecms:object:email_template_send_log";
+	property name="userDao"             inject="presidecms:object:website_user";
+
 	private struct function prepareParameters(
 		required string resetToken
 	) {
@@ -29,6 +33,19 @@ component {
 
 	private string function defaultTextBody() {
 		return renderView( view="/email/template/resetWebsitePassword/defaultTextBody" );
+	}
+
+	private struct function rebuildArgsForResend( required string logId ) {
+		var userId    = sendLogDao.selectData( id=logId, selectFields=[ "website_user_recipient" ] ).website_user_recipient;
+		var tokenInfo = websiteLoginService.createPasswordResetToken();
+
+		userDao.updateData( id=userId, data={
+			  reset_password_token        = tokenInfo.resetToken
+			, reset_password_key          = tokenInfo.hashedResetKey
+			, reset_password_token_expiry = tokenInfo.resetTokenExpiry
+		} );
+
+		return { resetToken="#tokenInfo.resetToken#-#tokenInfo.resetKey#" };
 	}
 
 
