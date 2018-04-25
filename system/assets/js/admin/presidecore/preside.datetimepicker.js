@@ -11,18 +11,18 @@
 			  minDate   : pickerConfig.startDate || false
 			, maxDate   : pickerConfig.endDate   || false
 			, icons     : {
-                  time:     'fa fa-clock-o'
-                , date:     'fa fa-calendar'
-                , up:       'fa fa-chevron-up'
-                , down:     'fa fa-chevron-down'
-                , previous: 'fa fa-chevron-left'
-                , next:     'fa fa-chevron-right'
-                , today:    'fa fa-screenshot'
-                , clear:    'fa fa-trash'
-            }
-            , format     : 'YYYY-MM-DD HH:mm'
-            , sideBySide : true
-            , locale     : $thisPicker.data( "language" ) || "en"
+				  time:     'fa fa-clock-o'
+				, date:     'fa fa-calendar'
+				, up:       'fa fa-chevron-up'
+				, down:     'fa fa-chevron-down'
+				, previous: 'fa fa-chevron-left'
+				, next:     'fa fa-chevron-right'
+				, today:    'fa fa-screenshot'
+				, clear:    'fa fa-trash'
+			}
+			, format     : 'YYYY-MM-DD HH:mm'
+			, sideBySide : true
+			, locale     : $thisPicker.data( "language" ) || "en"
 		};
 
 		$thisPicker.datetimepicker( conf ).next().on( "click", function(){
