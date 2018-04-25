@@ -9,16 +9,24 @@
 </cfscript>
 
 <cfoutput>
-	<cfif hasCmsPermission( permissionKey="sites.manage" )>
-		<div class="top-right-button-group">
+	<div class="top-right-button-group">
+		<cfif hasCmsPermission( permissionKey="sites.manage" )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sites.editSite", queryString="id=" & site.id )#">
 				<button class="btn btn-sm">
 					<i class="fa fa-cogs"></i>
 					#translateResource( 'cms:sitetree.edit.site.settings.btn' )#
 				</button>
 			</a>
-		</div>
-	</cfif>
+		</cfif>
+		<cfif isFeatureEnabled( "fullPageCaching" ) && hasCmsPermission( permissionkey="sitetree.clearcaches" )>
+			<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="sitetree.clearPageCacheAction" )#" title="#HtmlEditFormat( translateResource( "cms:sitetree.flush.cache.prompt" ) )#">
+				<button class="btn btn-sm btn-warning">
+					<i class="fa fa-refresh"></i>
+					#translateResource( 'cms:sitetree.flush.cache.btn' )#
+				</button>
+			</a>
+		</cfif>
+	</div>
 
 	<div class="info-bar">#renderViewlet( event='admin.sitetree.searchBox' )#</div>
 

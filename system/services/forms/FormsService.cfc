@@ -11,7 +11,7 @@ component displayName="Forms service" {
 	 * @presideObjectService.inject      PresideObjectService
 	 * @siteService.inject               SiteService
 	 * @validationEngine.inject          ValidationEngine
-	 * @i18n.inject                      coldbox:plugin:i18n
+	 * @i18n.inject                      i18n
 	 * @coldbox.inject                   coldbox
 	 * @presideFieldRuleGenerator.inject PresideFieldRuleGenerator
 	 * @featureService.inject            featureService
@@ -893,7 +893,8 @@ component displayName="Forms service" {
 		var formAttributes = {};
 
 		try {
-			xml = XmlParse( arguments.filePath );
+			var xmlContent = fileread( arguments.filePath, "utf-8" );
+			xml            = XmlParse( xmlContent );
 		} catch ( any e ) {
 			throw(
 				  type = "FormsService.BadFormXml"

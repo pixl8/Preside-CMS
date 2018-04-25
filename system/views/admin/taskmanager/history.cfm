@@ -45,7 +45,7 @@
 						</cfif>
 					</td>
 					<td>
-						<a href="#event.buildAdminLink( linkTo='taskmanager.log', queryString='id=#history.id#' )#" data-context-key="l">
+						<a href="#event.buildAdminLink( linkTo="taskManager.viewLog", queryString='id=#history.id#' )#" data-context-key="l">
 							<i class="fa fa-file-text-o fa-fw"></i>
 							#translateResource( "cms:taskmanager.history.viewlog.link" )#
 						</a>

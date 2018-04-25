@@ -11,7 +11,7 @@ component displayName="Admin login service" {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject      coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject      sessionStorage
 	 * @bCryptService.inject       BCryptService
 	 * @systemUserList.inject      coldbox:setting:system_users
 	 * @userDao.inject             presidecms:object:security_user

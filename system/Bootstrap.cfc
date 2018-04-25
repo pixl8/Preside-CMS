@@ -112,17 +112,14 @@ component {
 		var presideroot = _getPresideRoot();
 
 		this.mappings[ "/preside"        ] = presideroot;
-		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox";
+		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox";
 		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
 		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
-		this.mappings[ "/javaloader"     ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox/system/core/javaloader"
+		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
-
-		DirectoryCreate( presideroot & "/tmp", false, true );
-		this.mappings[ "/aoptmp" ] = presideroot & "/tmp";
 
 		variables.COLDBOX_APP_ROOT_PATH = arguments.appPath;
 		variables.COLDBOX_APP_KEY       = arguments.appPath;
@@ -241,28 +238,43 @@ component {
 		var dsnInjected = Len( Trim( config[ "datasource.user" ] ?: "" ) ) && Len( Trim( config[ "datasource.database_name" ] ?: "" ) ) && Len( Trim( config[ "datasource.host" ] ?: "" ) );
 
 		if ( dsnInjected ) {
-			var dsn                = config[ "datasource.name" ] ?: "preside";
-			var host               = config[ "datasource.host" ];
-			var port               = config[ "datasource.port" ] ?: 3306;
-			var dbName             = config[ "datasource.database_name" ];
-			var encoding           = config[ "datasource.character_encoding" ] ?: "UTF-8";
-			var username           = config[ "datasource.user"     ];
-			var password           = config[ "datasource.password" ] ?: "";
-			var luceeAdminPassword = config[ "lucee.admin.password" ] ?: "";
-
-			// use cfadmin tag here; using this.datasources proving to be unreliable
-			admin action     = "updateDatasource"
-			      type       = "web"
-			      classname  = "org.gjt.mm.mysql.Driver"
-			      dsn        = "jdbc:mysql://#host#:#port#/#dbName#?useUnicode=true&characterEncoding=#encoding#&useLegacyDatetimeCode=true"
-			      name       = dsn
-			      newName    = dsn
-			      host       = host
-			      database   = dbname
-			      port       = port
-			      dbusername = username
-			      dbpassword = password
-			      password   = luceeAdminPassword;
+			new preside.system.services.database.DatasourceManager().updateDatasource(
+				  host                              = config[ "datasource.host"                        ] ?: ""
+				, database                          = config[ "datasource.database_name"               ] ?: ""
+				, username                          = config[ "datasource.user"                        ] ?: ""
+				, name                              = config[ "datasource.name"                        ] ?: "preside"
+				, type                              = config[ "datasource.type"                        ] ?: "MySQL"
+				, port                              = config[ "datasource.port"                        ] ?: 3306
+				, password                          = config[ "datasource.password"                    ] ?: ""
+				, timezone                          = config[ "datasource.timezone"                    ] ?: ""
+				, ConnectionLimit                   = config[ "datasource.ConnectionLimit"             ] ?: -1
+				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 0
+				, metaCacheTimeout                  = config[ "datasource.metaCacheTimeout"            ] ?: 60000
+				, blob                              = config[ "datasource.blob"                        ] ?: false
+				, clob                              = config[ "datasource.clob"                        ] ?: false
+				, validate                          = config[ "datasource.validate"                    ] ?: false
+				, storage                           = config[ "datasource.storage"                     ] ?: false
+				, verify                            = config[ "datasource.verify"                      ] ?: false
+				, allowedSelect                     = config[ "datasource.allowedSelect"               ] ?: true
+				, allowedInsert                     = config[ "datasource.allowedInsert"               ] ?: true
+				, allowedUpdate                     = config[ "datasource.allowedUpdate"               ] ?: true
+				, allowedDelete                     = config[ "datasource.allowedDelete"               ] ?: true
+				, allowedAlter                      = config[ "datasource.allowedAlter"                ] ?: true
+				, allowedDrop                       = config[ "datasource.allowedDrop"                 ] ?: true
+				, allowedRevoke                     = config[ "datasource.allowedRevoke"               ] ?: false
+				, allowedCreate                     = config[ "datasource.allowedCreate"               ] ?: true
+				, allowedGrant                      = config[ "datasource.allowedGrant"                ] ?: false
+				, customUseUnicode                  = config[ "datasource.useUnicode"                  ] ?: false
+				, customCharacterEncoding           = config[ "datasource.character_encoding"          ] ?: "UTF-8"
+				, customUseOldAliasMetadataBehavior = config[ "datasource.useOldAliasMetadataBehavior" ] ?: false
+				, customAllowMultiQueries           = config[ "datasource.allowMultiQueries"           ] ?: false
+				, customZeroDateTimeBehavior        = config[ "datasource.zeroDateTimeBehavior"        ] ?: "convertToNull"
+				, customAutoReconnect               = config[ "datasource.autoReconnect"               ] ?: false
+				, customJdbcCompliantTruncation     = config[ "datasource.jdbcCompliantTruncation"     ] ?: false
+				, customTinyInt1isBit               = config[ "datasource.tinyInt1isBit"               ] ?: false
+				, customUseLegacyDatetimeCode       = config[ "datasource.useLegacyDatetimeCode"       ] ?: false
+				, luceeAdminPassword                = config[ "lucee.admin.password"                   ] ?: ""
+			);
 		}
 	}
 

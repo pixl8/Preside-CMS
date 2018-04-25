@@ -53,7 +53,7 @@
 		, icon   = "fa-list-alt light-grey"
 		, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.log" )
 		, active = ( args.tab == "log" )
-		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.log", queryString="id=#templateId#" )
+		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.logs", queryString="id=#templateId#" )
 	});
 
 	if ( args.tab == "send" ) {
