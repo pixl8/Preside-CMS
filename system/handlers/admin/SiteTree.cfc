@@ -84,7 +84,7 @@ component extends="preside.system.base.AdminHandler" {
 		] );
 
 		var additionalNodeArgs = {
-			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}&child_count={type}"      )
+			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}&child_count={type}"        )
 			, pageTypeDialogBaseLink      = event.buildAdminLink( linkTo="sitetree.pageTypeDialog"     , queryString="parentPage={id}"                   )
 			, addPageBaseLink             = event.buildAdminLink( linkTo='sitetree.addPage'            , querystring='parent_page={id}&page_type={type}' )
 			, trashPageBaseLink           = event.buildAdminLink( linkTo="sitetree.trashPageAction"    , queryString="id={id}"                           )
@@ -259,12 +259,16 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId           = rc.id               ?: "";
 		var validationResult = rc.validationResult ?: "";
 		var pageType         = "";
-		var childCount       = rc.child_count      ?: 0;
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+		prc.childCount   = rc.child_count ?: "";
+
+		if( !len( prc.childCount ) ) {
+			prc.childCount = siteTreeService.getTree( rootPageId=pageId, maxDepth=0 ).recordCount ?: 0;
+		}
 
 		var version = Val ( rc.version    ?: "" );
 
@@ -302,7 +306,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.canAddChildren     = _checkPermissions( argumentCollection=arguments, key="add"               , pageId=pageId, throwOnError=false ) && prc.allowableChildPageTypes != "none";
 		prc.canDeletePage      = _checkPermissions( argumentCollection=arguments, key="trash"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
-		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false ) && prc.managedChildPageTypes.len() || childCount;
+		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false ) && prc.managedChildPageTypes.len() || prc.childCount;
 		prc.canManagePagePerms = _checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId, throwOnError=false );
 
 		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );

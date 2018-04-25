@@ -21,8 +21,8 @@
 	param name="args.permission_context"          type="array" default=[];
 	param name="args.parent_restriction"          type="string" default="none";
 
-	param name="args.editPageBaseLink"            type="string" default=event.buildAdminLink( linkTo="sitetree.editPage", queryString="id={id}" );
-	param name="args.pageTypeDialogBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage={id}&child_count={type}" );
+	param name="args.editPageBaseLink"            type="string" default=event.buildAdminLink( linkTo="sitetree.editPage", queryString="id={id}&child_count={type}" );
+	param name="args.pageTypeDialogBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage={id}" );
 	param name="args.addPageBaseLink"             type="string" default=event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page={id}&page_type={type}' );
 	param name="args.trashPageBaseLink"           type="string" default=event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id={id}" );
 	param name="args.activatePageBaseLink"        type="string" default=event.buildAdminLink( linkTo="sitetree.activatePageAction", queryString="id={id}" );
