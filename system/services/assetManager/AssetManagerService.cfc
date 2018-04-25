@@ -339,14 +339,24 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		var folders = _getFolderDao().selectData(
+		var noPermissionFolder = _userNoPermissionAssetFolders();
+		var filter             = "( asset_folder.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden and asset_folder.parent_folder = :parent_folder)";
+		var params             = {
+			  is_trashed            = false
+			, "asset_folder.hidden" = false
+			, parent_folder         = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
+		}
+
+		if( arrayLen( noPermissionFolder ) ){
+			filter &= " and ( asset_folder.id not in (:asset_folder.id) )";
+			params[ "asset_folder.id" ] = noPermissionFolder;
+		}
+
+		var folders            = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
 			, orderBy      = "label"
-			, filter       = {
-				  parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
-				, is_trashed    = false
-				, hidden        = false
-			  }
+			, filter       = filter
+			, filterParams = params
 		);
 
 		for ( var folder in folders ) {
@@ -495,12 +505,13 @@ component displayName="AssetManager Service" {
 	}
 
 	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100, string savedFilters="" ) {
-		var assetDao    = _getAssetDao();
-		var filter      = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
-		var params      = { is_trashed=false, "asset_folder.hidden"=false };
-		var types       = _getTypes();
-		var records     = "";
-		var result      = [];
+		var assetDao           = _getAssetDao();
+		var filter             = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
+		var params             = { is_trashed=false, "asset_folder.hidden"=false };
+		var types              = _getTypes();
+		var records            = "";
+		var result             = [];
+		var noPermissionFolder = _userNoPermissionAssetFolders();
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
@@ -521,6 +532,10 @@ component displayName="AssetManager Service" {
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			filter &= " and ( asset.title like (:title) or asset_folder.label like (:title) )";
 			params.title = "%#arguments.searchQuery#%";
+		}
+		if( arrayLen( noPermissionFolder ) ){
+			filter &= " and ( asset.asset_folder not in (:asset_folder.id) )";
+			params[ "asset_folder.id" ] = noPermissionFolder;
 		}
 
 		records = assetDao.selectData(
@@ -2097,6 +2112,20 @@ component displayName="AssetManager Service" {
 		}
 
 		return params.title;
+	}
+
+	private array function _userNoPermissionAssetFolders(){
+
+		var assetFolders       = _getFolderDao().selectData( selectFields=[ "id" ] );
+		var noPermissionFolder = [];
+
+		for( var folder in assetFolders ){
+			if( !$getAdminPermissionService().hasPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ folder.id ] ) ){
+				arrayAppend( noPermissionFolder, folder.id );
+			}
+		}
+
+		return noPermissionFolder;
 	}
 
 // GETTERS AND SETTERS
