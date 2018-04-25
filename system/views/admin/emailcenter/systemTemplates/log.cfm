@@ -15,6 +15,7 @@
 			, useMultiActions     = false
 			, datasourceUrl       = ajaxUrl
 			, gridFields          = gridFields
+			, noRecordMessage     = translateResource( uri="cms:datatables.emailTemplate.emptyTable" )
 		} )#
 	</cfsavecontent>
 

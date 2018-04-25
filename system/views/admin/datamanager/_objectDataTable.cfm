@@ -15,6 +15,7 @@
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#&draftsEnabled=#args.draftsEnabled#" );
 	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( linkTo="dataManager.exportDataAction" );
 	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( linkTo="dataManager.dataExportConfigModal", queryString="id=#args.objectName#" );
+	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" ); //To display the custom text in dataTable when there is no records. By default 'No records found'
 
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
@@ -132,6 +133,7 @@
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
 		    data-allow-filter="#args.allowFilter#"
+		    data-no-record-message="#args.noRecordMessage#"
 		>
 			<thead>
 				<tr>
