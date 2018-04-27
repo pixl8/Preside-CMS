@@ -1,5 +1,5 @@
 /**
- * The Server Manager API Client is an API wrapper for calling the Centralized Server Managerment system for PresideCMS
+ * The Server Manager API Client is an API wrapper for calling the Centralized Server Managerment system for Preside
  *
  */
 component output=false singleton=true {

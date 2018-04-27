@@ -1,5 +1,5 @@
 /**
- * The core API for PresideCMS's Validation Engine. See [[validation-framework]] for full usage documentation.
+ * The core API for Preside's Validation Engine. See [[validation-framework]] for full usage documentation.
  *
  * @singleton
  * @presideservice
@@ -86,7 +86,7 @@ component displayName="Validation Engine" {
 	 *
 	 * @autodoc
 	 * @ruleset.hint         The name of the registered ruleset
-	 * @jQueryReference.hint Name of the global jQuery reference variable (for PresideCMS admin, this is "presideJQuery")
+	 * @jQueryReference.hint Name of the global jQuery reference variable (for Preside admin, this is "presideJQuery")
 	 * @fieldNamePrefix.hint Prefix string to place before all field names (useful when outputting multiple instances of the same form in a single page)
 	 * @fieldNameSuffix.hint Suffix string to place after all field names (useful when outputting multiple instances of the same form in a single page)
 	 *

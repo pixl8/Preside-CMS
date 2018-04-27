@@ -1,5 +1,5 @@
 /**
- * This class is used to provide common PresideCMS functionality to your service layer.
+ * This class is used to provide common Preside functionality to your service layer.
  * See [[presidesuperclass]] for a full guide on how to make use of this class.
  *
  * @autodoc
@@ -713,7 +713,7 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
-	 * Proxy to the core PresideCMS 'renderViewlet' method.
+	 * Proxy to the core Preside 'renderViewlet' method.
 	 * \n
 	 * ## Example
 	 * \n

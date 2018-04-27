@@ -23,7 +23,7 @@ component displayName="Error Log Service" {
 
 // PUBLIC API METHODS
 	/**
-	 * Records an error in the PresideCMS internal error log
+	 * Records an error in the Preside internal error log
 	 *
 	 * @autodoc
 	 * @error.hint Structure of the error (this would normally be a caught error object)

@@ -348,13 +348,13 @@ component {
 	private struct function _fetchVersionInfo( required string versionFilePath ) ouptut=false {
 		var result = "";
 		var versionFileUrl = ListAppend( _getRepositoryUrl(), arguments.versionFilePath, "/" );
-		var noteURL = 'https://www.presidecms.com/release-notes/release-notes-for-';
+		var noteURL = 'https://www.preside.org/release-notes/release-notes-for-';
 
 		try {
 			http url=versionFileUrl result="result" throwOnError=true;
 			resultData = DeSerializeJson(result.fileContent);
 			resultData.date = result.responseheader['Last-Modified'];
-			// Release notes only available after 10.1.1 in https://www.presidecms.com/release-notes/release-notes-for-10-1-1.html
+			// Release notes only available after 10.1.1 in https://www.preside.org/release-notes/release-notes-for-10-1-1.html
 			if ( compareVersions( resultData.version, '10.1.1' ) > 0 ){
 				resultData.noteURL = noteURL & ListChangeDelims(ListDeleteAt( resultData.Version, ListFind(resultData.Version,listlast(resultData.Version,'.'),"."), "."),'-','.') & '.html';
 			} else {

@@ -4,9 +4,9 @@ cd `dirname $0`
 CWD="`pwd`"
 
 echo "";
-echo "--------------------------------------------------------";
-echo "Welcome to the PresideCMS Test runner and build suite :)";
-echo "--------------------------------------------------------";
+echo "-----------------------------------------------------";
+echo "Welcome to the Preside Test runner and build suite :)";
+echo "-----------------------------------------------------";
 echo "";
 echo "This script will install dependencies, run tests, and conditionally package preside into a ZIP file.";
 echo "Each of these operations can be run independently with the following commands:";
@@ -14,7 +14,7 @@ echo "";
 echo "box install                                   - installs dependencies";
 echo "cd system/assets/ && npm install && grunt all - builds static assets";
 echo "./test.sh                                     - runs tests";
-echo "ant -f ./support/build/build.xml              - packages PresideCMS into a zip file";
+echo "ant -f ./support/build/build.xml              - packages Preside into a zip file";
 echo "";
 echo "The script has dependencies on CommandBox, ant + an accessible database for running the test suite.";
 echo "";

@@ -221,7 +221,7 @@ component {
 				      nullSupport          = luceeCompilerSettings.nullSupport
 				      templateCharset      = luceeCompilerSettings.templateCharset;
 			} catch( security e ) {
-				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
+				throw( type="security", message="Preside could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
 			}
 		}
 	}
