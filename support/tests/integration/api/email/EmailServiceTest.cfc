@@ -182,7 +182,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					emailService.send( to=[ "test@test.com" ], subject="Test subject", htmlBody="not really html" );
 				} catch( "EmailService.missingSender" e ) {
 					expect( e.message ?: "" ).toBe( "Missing from email address when sending message with subject [Test subject]"                  );
-					expect( e.detail  ?: "" ).toBe( "Ensure that a default from email address is configured through your PresideCMS administrator" );
+					expect( e.detail  ?: "" ).toBe( "Ensure that a default from email address is configured through your Preside administrator" );
 					errorThrown = true;
 				} catch( any e ){
 					fail( "Incorrect error thrown. Expected type [EmailService.missingSender] but error of type [#e.type#] was thrown instead with message [#e.message#]." );

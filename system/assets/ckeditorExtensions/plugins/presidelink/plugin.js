@@ -2,7 +2,7 @@
  * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  *
- * May 2014: This file has been lightly modified for the purposes of integrating with PresideCMS
+ * May 2014: This file has been lightly modified for the purposes of integrating with Preside
  */
 
 'use strict';
