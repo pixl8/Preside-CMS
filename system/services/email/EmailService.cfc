@@ -1,5 +1,5 @@
 /**
- * The email service takes care of sending emails through the PresideCMS's email templating system (see [[emailtemplating]]).
+ * The email service takes care of sending emails through Preside's email templating system (see [[emailtemplating]]).
  *
  * @autodoc        true
  * @singleton      true
@@ -200,10 +200,10 @@ component displayName="Email service" {
 			throw(
 				  type   = "EmailService.missingSender"
 				, message= "Missing from email address when sending message with subject [#sendArgs.subject ?: ''#]"
-				, detail = "Ensure that a default from email address is configured through your PresideCMS administrator"
+				, detail = "Ensure that a default from email address is configured through your Preside administrator"
 			);
 		}
-		
+
 		if ( !( sendArgs.to ?: [] ).len() || !Len( sendArgs.to[ 1 ] ) ) {
 			throw(
 				  type   = "EmailService.missingToAddress"
