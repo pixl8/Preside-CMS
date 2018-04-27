@@ -1,5 +1,7 @@
 @sidebar-menu-min-text-height: (@nav-item-height + 2);
-
+.nav-list > li > a,.nav-list > li:before {
+	height: 100% !important;
+}
 .menu_min() {
 	& , &.compact, &.navbar-collapse {
 		width: @sidebar-min-width;
