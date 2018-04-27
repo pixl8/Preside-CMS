@@ -111,7 +111,7 @@ component {
 			, defaultValue  = arrayToList( defaultGridFields( arguments.objectName ) )
 		);
 
-		return listToArray( fields, ", " );
+		return ListToArray( fields, ", " );
 	}
 
 	public array function defaultGridFields( required string objectName ) {
