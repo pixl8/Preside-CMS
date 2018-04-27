@@ -18,6 +18,7 @@
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
 	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
+	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
 
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
@@ -137,6 +138,7 @@
 		    data-no-actions="#args.noActions#"
 		    data-allow-filter="#args.allowFilter#"
 		    data-compact="#args.compact#"
+		    data-no-record-message="#args.noRecordMessage#"
 		>
 			<thead>
 				<tr>
