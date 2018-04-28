@@ -14,6 +14,7 @@ PresideRichEditor = ( function( $ ){
 		  , customConfig      = $elementToReplace.data( "customConfig" )     || cfrequest.ckeditorConfig
 		  , widgetCategories  = $elementToReplace.data( "widgetCategories" ) || cfrequest.widgetCategories || ""
 		  , stylesheets       = $elementToReplace.data( "stylesheets" )
+		  , enterMode         = $elementToReplace.data( "enterMode" )
 		  , autoParagraph     = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
 		  , editor;
 
@@ -34,6 +35,18 @@ PresideRichEditor = ( function( $ ){
 		}
 		if ( maxHeight ) {
 			config.autoGrow_maxHeight = isNaN( parseInt( maxHeight ) ) ? 0 : parseInt( maxHeight );
+		}
+		if ( enterMode && enterMode.length ) {
+			switch( enterMode.toLowerCase() ){
+				case "br":
+					config.enterMode = CKEDITOR.ENTER_BR;
+					break;
+				case "div":
+					config.enterMode = CKEDITOR.ENTER_DIV;
+					break;
+				default:
+					config.enterMode = CKEDITOR.ENTER_P;
+			}
 		}
 		config.autoParagraph    = autoParagraph;
 		config.widgetCategories = widgetCategories;
