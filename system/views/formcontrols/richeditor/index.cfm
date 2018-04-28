@@ -29,6 +29,9 @@
 	          <cfif Len( Trim( args.customConfig ?: "" ) )>
 	              data-custom-config="#Trim( args.customConfig )#"
 	          </cfif>
+	          <cfif Len( Trim( args.autoParagraph ?: "" ) )>
+	              data-auto-paragraph="#isTrue( args.autoParagraph )#"
+	          </cfif>
 	          <cfif Len( Trim( args.stylesheets ?: "" ) )>
 	              data-stylesheets="#Trim( args.stylesheets )#"
 	          </cfif>
