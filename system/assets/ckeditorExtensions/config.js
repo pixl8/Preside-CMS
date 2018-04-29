@@ -27,9 +27,6 @@ CKEDITOR.editorConfig = function( config ) {
 	// auto grow config
 	config.autoGrow_onStartup = true;
 
-	// turn that damned auto P tag feature off!
-	config.autoParagraph = false;
-
 	// email obfuscation for link plugin
 	config.emailProtection = 'encode';
 
