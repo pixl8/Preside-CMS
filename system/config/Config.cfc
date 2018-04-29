@@ -287,11 +287,12 @@ component {
 
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets = [ "/css/admin/specific/richeditor/" ]
-				, width       = "auto"
-				, minHeight   = 0
-				, maxHeight   = 300
-				, configFile  = "/ckeditorExtensions/config.js?v10.9.0"
+				  stylesheets   = [ "/css/admin/specific/richeditor/" ]
+				, width         = "auto"
+				, minHeight     = 0
+				, maxHeight     = 300
+				, autoParagraph = true
+				, configFile    = "/ckeditorExtensions/config.js?v10.9.0a"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		};
