@@ -192,7 +192,6 @@ component displayname="ImageMagick"  {
 		args &= " -interlace #interlace#";
 		args &= " " & '"#arguments.destinationFile#"';
 
-writedump( var=args, output="/Developer/args.txt", format="text" );
 		_exec( command="convert", args=args );
 
 		_checkResize( argumentCollection=arguments );
