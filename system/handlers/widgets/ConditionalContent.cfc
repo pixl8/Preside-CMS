@@ -1,6 +1,10 @@
 component {
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 
+	/**
+	 * @cacheable false
+	 *
+	 */
 	private function index( event, rc, prc, args={} ) {
 		var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( args.condition ?: "" );
 

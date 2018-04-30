@@ -31,24 +31,6 @@
 
 	$('[data-rel=popover]').popover({container:'body'});
 
-	$('.datetimepicker').each( function(){
-        $( this ).datetimepicker({
-    		icons: {
-                time:     'fa fa-clock-o',
-                date:     'fa fa-calendar',
-                up:       'fa fa-chevron-up',
-                down:     'fa fa-chevron-down',
-                previous: 'fa fa-chevron-left',
-                next:     'fa fa-chevron-right',
-                today:    'fa fa-screenshot',
-                clear:    'fa fa-trash'
-            },
-            format: 'YYYY-MM-DD HH:mm',
-            sideBySide:true,
-            locale: ( $(this).data( "language" ) || "en" )
-        });
-	});
-
 	$('.timepicker').each( function(){
         $( this ).datetimepicker({
     		icons: {

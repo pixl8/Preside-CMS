@@ -115,7 +115,7 @@ component {
 				var newLine = Chr( 10 );
 				var sql = "/**
  * The following commands are to make alterations to the database schema
- * in order to synchronize it with the PresideCMS codebase.
+ * in order to synchronize it with the Preside codebase.
  *
  * Generated on: #Now()#
  *
@@ -124,7 +124,7 @@ component {
 				for( var script in scriptsToRun ) {
 					sql &= script.sql & ";" & newline;
 				}
-				sql &= newline & "/* The commands below ensure that PresideCMS's internal DB versioning tracking is up to date */" & newline & newline;
+				sql &= newline & "/* The commands below ensure that Preside's internal DB versioning tracking is up to date */" & newline & newline;
 				for( var script in versionScriptsToRun ) {
 					sql &= script.sql & ";" & newline;
 				}

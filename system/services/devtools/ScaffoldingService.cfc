@@ -457,7 +457,7 @@ component singleton=true {
 		var filePath     = root & "handlers/admin/devtools/terminalCommands/#arguments.name#.cfc";
 		var fileContent  = 'component hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
 		                 & _nl()
-		                 & '	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";' & _nl()
+		                 & '	property name="jsonRpc2Plugin" inject="JsonRpc2";' & _nl()
 		                 & _nl()
 		                 & '	private any function index( event, rc, prc ) {' & _nl()
 		                 & '		var params  = jsonRpc2Plugin.getRequestParams();' & _nl()
@@ -730,7 +730,7 @@ component singleton=true {
 		return _appMapping;
 	}
 	private void function _setAppMapping( required string appMapping ) {
-		_appMapping = arguments.appMapping;
+		_appMapping = "/" & arguments.appMapping.reReplace( "^/", "" );
 	}
 
 	private any function _getNotificationDao() {

@@ -6,9 +6,10 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject       sessionStorage
+	 * @tokenExpiryInSeconds.inject coldbox:setting:csrf.tokenExpiryInSeconds
 	 */
-	public any function init( required any sessionStorage, numeric tokenExpiryInSeconds=1200 ) {
+	public any function init( required any sessionStorage, required numeric tokenExpiryInSeconds ) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setTokenExpiryInSeconds( arguments.tokenExpiryInSeconds );
 

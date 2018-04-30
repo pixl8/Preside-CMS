@@ -2,7 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="siteService"                inject="siteService";
-	property name="messageBox"                 inject="coldbox:plugin:messageBox";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 
 // LIFECYCLE EVENTS

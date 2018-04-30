@@ -4,15 +4,17 @@
  * @labelfield name
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template"  {
-	property name="name"             type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename";
-	property name="layout"           type="string"  dbtype="varchar" maxlength=200 required=false;
-	property name="recipient_type"   type="string"  dbtype="varchar" maxlength=200 required=false;
-	property name="subject"          type="string"  dbtype="varchar" maxlength=255 required=true;
-	property name="from_address"     type="string"  dbtype="varchar" maxlength=255 required=false;
-	property name="service_provider" type="string"  dbtype="varchar" maxlength=200 required=false;
-	property name="is_system_email"  type="boolean" dbtype="boolean"               required=false default=false;
-	property name="track_clicks"     type="boolean" dbtype="boolean"               required=false default=false;
-	property name="view_online"      type="boolean" dbtype="boolean"               required=false default=false;
+	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename";
+	property name="layout"              type="string"  dbtype="varchar" maxlength=200 required=false;
+	property name="recipient_type"      type="string"  dbtype="varchar" maxlength=200 required=false;
+	property name="subject"             type="string"  dbtype="varchar" maxlength=255 required=true;
+	property name="from_address"        type="string"  dbtype="varchar" maxlength=255 required=false;
+	property name="service_provider"    type="string"  dbtype="varchar" maxlength=200 required=false;
+	property name="is_system_email"     type="boolean" dbtype="boolean"               required=false default=false;
+	property name="track_clicks"        type="boolean" dbtype="boolean"               required=false default=false;
+	property name="view_online"         type="boolean" dbtype="boolean"               required=false default=false;
+	property name="save_content"        type="boolean" dbtype="boolean"               required=false default=false;
+	property name="save_content_expiry" type="numeric" dbtype="int"                   required=false;
 
 	property name="html_body" type="string" dbtype="longtext";
 	property name="text_body" type="string" dbtype="longtext";

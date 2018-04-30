@@ -12,4 +12,8 @@ component output=false {
 		return content;
 	}
 
+	public string function adminView( event, rc, prc, args={} ) {
+		return renderView( view="renderers/content/richeditor/adminView", args=args );
+	}
+
 }

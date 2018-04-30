@@ -8,8 +8,8 @@
 	param name="args.isDraft"                type="boolean" default=false;
 	param name="args.isLatest"               type="boolean";
 	param name="args.versions"               type="query";
-	param name="args.baseUrl"                type="string" default="#event.buildAdminLink( linkTo='datamanager.editRecord'   , queryString='object=#args.object#&id=#args.id#&version=' )#";
-	param name="args.allVersionsUrl"         type="string" default="#event.buildAdminLink( linkTo='datamanager.recordHistory', queryString='object=#args.object#&id=#args.id#' )#";
+	param name="args.baseUrl"                type="string" default="#event.buildAdminLink( objectName=args.object, recordId=args.id, operation='editRecord', args={ version='{version}' } )#";
+	param name="args.allVersionsUrl"         type="string" default="#event.buildAdminLink( objectName=args.object, recordId=args.id, operation='recordHistory' )#";
 	param name="args.discardDraftsUrl"       type="string" default="";
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue="record" );
@@ -44,7 +44,7 @@
 
 			<div class="pull-right">
 				<cfif args.prevVersion>
-					<a href="#args.baseUrl##args.prevVersion#" title="#HtmlEditFormat( translateResource( 'cms:version.navigator.prev.title' ) )#"><i class="fa fa-lg fa-arrow-circle-o-left"></i></a>
+					<a href="#args.baseUrl.replace( '{version}', args.prevVersion )#" title="#HtmlEditFormat( translateResource( 'cms:version.navigator.prev.title' ) )#"><i class="fa fa-lg fa-arrow-circle-o-left"></i></a>
 				<cfelse>
 					<i class="fa fa-lg fa-arrow-circle-o-left disabled"></i>
 				</cfif>
@@ -52,7 +52,7 @@
 				<a href="#args.allVersionsUrl#" title="#HtmlEditFormat( translateResource( 'cms:version.navigator.viewall.title' ) )#"><i class="fa fa-lg fa-ellipsis-h"></i></a>
 
 				<cfif args.nextVersion>
-					<a href="#args.baseUrl##args.nextVersion#" title="#HtmlEditFormat( translateResource( 'cms:version.navigator.next.title' ) )#"><i class="fa fa-lg fa-arrow-circle-o-right"></i></a>
+					<a href="#args.baseUrl.replace( '{version}', args.nextVersion )#" title="#HtmlEditFormat( translateResource( 'cms:version.navigator.next.title' ) )#"><i class="fa fa-lg fa-arrow-circle-o-right"></i></a>
 				<cfelse>
 					<i class="fa fa-lg fa-arrow-circle-o-right disabled"></i>
 				</cfif>

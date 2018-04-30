@@ -92,9 +92,10 @@ component {
 		_fixOrderOfProperties( meta );
 
 
-		meta.dbFieldList = _calculateDbFieldList( meta.properties );
-		meta.tableName   = LCase( meta.tablePrefix & meta.tableName );
-		meta.indexes     = _discoverIndexes( meta.properties, componentName );
+		meta.dbFieldList      = _calculateDbFieldList( meta.properties );
+		meta.formulaFieldList = _calculateFormulaFieldList( meta.properties );
+		meta.tableName        = LCase( meta.tablePrefix & meta.tableName );
+		meta.indexes          = _discoverIndexes( meta.properties, componentName );
 
 		_ensureAllPropertiesHaveName( meta.properties );
 	}
@@ -231,11 +232,17 @@ component {
 			, required     = "false"
 		};
 		var dbAdapterSupportsFkIndexes = _getDbAdapter().autoCreatesFkIndexes();
-		var corePropertyNames = [
-			  arguments.meta.idField           ?: "id"
-			, arguments.meta.dateCreatedField  ?: "datecreated"
-			, arguments.meta.dateModifiedField ?: "datemodified"
-		];
+		var corePropertyNames = [];
+
+		if ( !arguments.meta.noId ) {
+			corePropertyNames.append( arguments.meta.idField ?: "id" );
+		}
+		if ( !arguments.meta.noDateCreated ) {
+			corePropertyNames.append( "datecreated" );
+		}
+		if ( !arguments.meta.noDateModified ) {
+			corePropertyNames.append( "datemodified" );
+		}
 		if ( ( arguments.meta.labelField ?: "label" ) == "label" ) {
 			corePropertyNames.append( "label" );
 		}
@@ -285,6 +292,17 @@ component {
 		return list.toList();
 	}
 
+	private string function _calculateFormulaFieldList( required struct properties ) {
+		var list = [];
+		for( var propName in arguments.properties ){
+			if ( len ( arguments.properties[ propName ].formula ?: "" ) ) {
+				list.append( propName );
+			}
+		}
+
+		return list.toList();
+	}
+
 	private void function _mergeSystemPropertyDefaults( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
@@ -309,34 +327,40 @@ component {
 			}
 		}
 
-		if ( arguments.meta.propertyNames.find( idField ) ) {
-			StructAppend( arguments.meta.properties[ idField ], defaults.id, false );
-		} else {
-			arguments.meta.properties[ idField ] = defaults[ "id" ];
-			ArrayPrepend( arguments.meta.propertyNames, idField );
-		}
-		if ( idField.len() && idField != "id" && !arguments.meta.propertyNames.findNoCase( "id" ) ) {
-			arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
-		}
-
-		if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
-			StructAppend( arguments.meta.properties[ dateCreatedField ], defaults.dateCreated, false );
-		} else {
-			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
-			ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
-		}
-		if ( dateCreatedField.len() && dateCreatedField != "dateCreated" && !arguments.meta.propertyNames.findNoCase( "dateCreated" ) ) {
-			arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
+		if ( !arguments.meta.noId ) {
+			if ( arguments.meta.propertyNames.find( idField ) ) {
+				StructAppend( arguments.meta.properties[ idField ], defaults.id, false );
+			} else {
+				arguments.meta.properties[ idField ] = defaults[ "id" ];
+				ArrayPrepend( arguments.meta.propertyNames, idField );
+			}
+			if ( idField.len() && idField != "id" && !arguments.meta.propertyNames.findNoCase( "id" ) ) {
+				arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
+			}
 		}
 
-		if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
-			StructAppend( arguments.meta.properties[ dateModifiedField ], defaults.datemodified, false );
-		} else {
-			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
-			ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
+		if ( !arguments.meta.noDateCreated ) {
+			if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
+				StructAppend( arguments.meta.properties[ dateCreatedField ], defaults.dateCreated, false );
+			} else {
+				arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
+				ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
+			}
+			if ( dateCreatedField.len() && dateCreatedField != "dateCreated" && !arguments.meta.propertyNames.findNoCase( "dateCreated" ) ) {
+				arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
+			}
 		}
-		if ( dateModifiedField.len() && dateModifiedField != "dateModified" && !arguments.meta.propertyNames.findNoCase( "dateModified" ) ) {
-			arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
+
+		if ( !arguments.meta.noDateModified ) {
+			if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
+				StructAppend( arguments.meta.properties[ dateModifiedField ], defaults.datemodified, false );
+			} else {
+				arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
+				ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
+			}
+			if ( dateModifiedField.len() && dateModifiedField != "dateModified" && !arguments.meta.propertyNames.findNoCase( "dateModified" ) ) {
+				arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
+			}
 		}
 
 	}
@@ -441,15 +465,32 @@ component {
 	}
 
 	private void function _defineIdField( required struct objectMeta ) {
-		arguments.objectMeta.idField = arguments.objectMeta.idField ?: "id";
+		if ( IsBoolean ( arguments.objectMeta.noId ?: "" ) && arguments.objectMeta.noId ) {
+			arguments.objectMeta.idField = "";
+		} else {
+			arguments.objectMeta.idField = arguments.objectMeta.idField ?: "id";
+		}
+		arguments.objectMeta.noId = !Len( Trim( arguments.objectMeta.idField ) );
 	}
 
 	private void function _defineCreatedField( required struct objectMeta ) {
-		arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "datecreated";
+		if ( IsBoolean ( arguments.objectMeta.noDateCreated ?: "" ) && arguments.objectMeta.noDateCreated ) {
+			arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "";
+		} else {
+			arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "datecreated";
+		}
+		arguments.objectMeta.noDateCreated = arguments.objectMeta.noDateCreated ?: arguments.objectMeta.dateCreatedField == "";
+		arguments.objectMeta.noDateCreated = IsBoolean ( arguments.objectMeta.noDateCreated ?: "" ) && arguments.objectMeta.noDateCreated;
 	}
 
 	private void function _defineModifiedField( required struct objectMeta ) {
-		arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "datemodified";
+		if ( IsBoolean ( arguments.objectMeta.noDateModified ?: "" ) && arguments.objectMeta.noDateModified ) {
+			arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "";
+		} else {
+			arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "datemodified";
+		}
+		arguments.objectMeta.noDateModified = arguments.objectMeta.noDateModified ?: arguments.objectMeta.dateModifiedField == "";
+		arguments.objectMeta.noDateModified = IsBoolean ( arguments.objectMeta.noDateModified ?: "" ) && arguments.objectMeta.noDateModified;
 	}
 
 	private void function _defineLabelField( required struct objectMeta ) {
