@@ -11,14 +11,6 @@
 
 ( function( $ ){
 
-	var beforeUnload = function( e ){
-		for( var i in CKEDITOR.instances ) {
-			if ( CKEDITOR.instances[i].checkDirty() ){
-				return e.returnValue = "Changes you made may not be saved.";
-			}
-		}
-	}
-
 	$.fn.dirtyForm = function( callback ){
 		return this.each( function(){
 			var $form     = $( this )
@@ -61,18 +53,22 @@
 	$.fn.dirtyFormProtect = function(){
 		return this.each( function( i ){
 			var $form = $( this )
-			  , protectionListener;
+			  , protectionListener
+			  , dirtyRichEditors;
+
+			dirtyRichEditors = function() {
+				for( var i in CKEDITOR.instances ) {
+					if ( CKEDITOR.instances[i].checkDirty() ){
+						return true;
+					}
+				}
+				return false;
+			};
 
 			protectionListener = function( e ){
 				var message;
 
-				if ( window.addEventListener ) {
-					window.addEventListener( 'beforeunload', beforeUnload, false );
-				} else {
-					window.attachEvent( 'onbeforeunload', beforeUnload );
-				}
-
-				if ( $form.data( "_isDirty" ) ) {
+				if ( $form.data( "_isDirty" ) || dirtyRichEditors() ) {
 					message = i18n.translateResource( "cms:dirty.form.warning" );
 					e.returnValue = message;
 
@@ -80,7 +76,6 @@
 				}
 			};
 			window.addEventListener( "beforeunload", protectionListener, false );
-
 
 			$form.dirtyForm( function( dirty ){
 				$form.data( "_isDirty", dirty );
