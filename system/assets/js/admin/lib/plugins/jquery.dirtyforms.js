@@ -53,12 +53,22 @@
 	$.fn.dirtyFormProtect = function(){
 		return this.each( function( i ){
 			var $form = $( this )
-			  , protectionListener;
+			  , protectionListener
+			  , dirtyRichEditors;
+
+			dirtyRichEditors = function() {
+				for( var i in CKEDITOR.instances ) {
+					if ( CKEDITOR.instances[i].checkDirty() ){
+						return true;
+					}
+				}
+				return false;
+			};
 
 			protectionListener = function( e ){
 				var message;
 
-				if ( $form.data( "_isDirty" ) ) {
+				if ( $form.data( "_isDirty" ) || dirtyRichEditors() ) {
 					message = i18n.translateResource( "cms:dirty.form.warning" );
 					e.returnValue = message;
 
@@ -66,7 +76,6 @@
 				}
 			};
 			window.addEventListener( "beforeunload", protectionListener, false );
-
 
 			$form.dirtyForm( function( dirty ){
 				$form.data( "_isDirty", dirty );
