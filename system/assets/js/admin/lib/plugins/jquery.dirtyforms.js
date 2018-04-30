@@ -11,6 +11,14 @@
 
 ( function( $ ){
 
+	var beforeUnload = function( e ){
+		for( var i in CKEDITOR.instances ) {
+			if ( CKEDITOR.instances[i].checkDirty() ){
+				return e.returnValue = "Changes you made may not be saved.";
+			}
+		}
+	}
+
 	$.fn.dirtyForm = function( callback ){
 		return this.each( function(){
 			var $form     = $( this )
@@ -57,6 +65,12 @@
 
 			protectionListener = function( e ){
 				var message;
+
+				if ( window.addEventListener ) {
+					window.addEventListener( 'beforeunload', beforeUnload, false );
+				} else {
+					window.attachEvent( 'onbeforeunload', beforeUnload );
+				}
 
 				if ( $form.data( "_isDirty" ) ) {
 					message = i18n.translateResource( "cms:dirty.form.warning" );
