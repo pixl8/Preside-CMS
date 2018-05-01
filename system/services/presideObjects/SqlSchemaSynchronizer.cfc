@@ -39,7 +39,7 @@ component {
 		var objName            = "";
 		var obj                = "";
 		var table              = "";
-		var dbVersion          = "";
+		var dbVersion          = [];
 		var tableExists        = "";
 		var tableVersionExists = "";
 
@@ -47,9 +47,10 @@ component {
 		for( objName in objects ) {
 			obj       = objects[ objName ];
 			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
-			dbVersion &= obj.sql.table.version;
+			dbVersion.append( obj.sql.table.version );
 		}
-		dbVersion = Hash( dbVersion );
+		dbVersion.sort( "text" );
+		dbVersion = Hash( dbVersion.toList() );
 		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
 			for( objName in objects ) {
 				obj                = objects[ objName ];
