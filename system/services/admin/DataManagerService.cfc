@@ -189,7 +189,7 @@ component {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "read,add,edit,delete,viewversions"
+			, defaultValue  = "read,add,edit,delete,viewversions,translate"
 		);
 
 		operations = operations.reReplaceNoCase( "\bview\b", "read" );
