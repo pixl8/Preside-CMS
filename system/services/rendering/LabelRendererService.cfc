@@ -17,18 +17,27 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public array function getSelectFieldsForLabel( required string labelRenderer ) {
+	public array function getSelectFieldsForLabel( required string labelRenderer, boolean includeAlias=true ) {
 		var selectFieldsHandler = _getSelectFieldsHandler( labelRenderer );
+		var selectFields        = [];
 
 		if ( len( labelRenderer ) && $getColdbox().handlerExists( selectFieldsHandler ) ) {
-			return $getColdbox().runEvent(
+			selectFields = $getColdbox().runEvent(
 				  event          = selectFieldsHandler
 				, prePostExempt  = true
 				, private        = true
 			);
 		} else {
-			return [ "${labelfield} as label" ];
+			selectFields = [ "${labelfield} as label" ];
 		}
+
+		if ( !arguments.includeAlias ) {
+			selectFields = selectFields.map( function( item, index, arr ){
+				return listFirst( item, " " );
+			} );
+		}
+
+		return selectFields;
 	}
 
 	public string function getOrderByForLabels( required string labelRenderer, struct args={} ) {
