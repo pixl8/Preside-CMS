@@ -568,7 +568,7 @@ component {
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
 			var searchFields = [ labelField ];
 			if ( len( arguments.labelRenderer ) ) {
-				searchFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery
