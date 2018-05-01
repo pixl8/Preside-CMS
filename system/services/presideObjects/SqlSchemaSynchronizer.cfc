@@ -110,6 +110,7 @@ component {
 
 		if ( !_getAutoRunScripts() ) {
 			var scriptsToRun = _getBuiltSqlScriptArray();
+			var scriptsOutput = [];
 			var versionScriptsToRun = _getVersionTableScriptArray();
 			if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
 				var newLine = Chr( 10 );
@@ -122,7 +123,10 @@ component {
  * Please review the scripts before running.
  */" & newline & newline;
 				for( var script in scriptsToRun ) {
-					sql &= script.sql & ";" & newline;
+					if ( !scriptsOutput.findNoCase( script.sql ) ) {
+						sql &= script.sql & ";" & newline;
+						scriptsOutput.append( script.sql );
+					}
 				}
 				sql &= newline & "/* The commands below ensure that PresideCMS's internal DB versioning tracking is up to date */" & newline & newline;
 				for( var script in versionScriptsToRun ) {
