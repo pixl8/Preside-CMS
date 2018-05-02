@@ -210,7 +210,7 @@ component {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "read,add,edit,delete,viewversions"
+			, defaultValue  = "read,add,edit,delete,viewversions,translate"
 		);
 
 		operations = operations.reReplaceNoCase( "\bview\b", "read" );
@@ -568,7 +568,7 @@ component {
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
 			var searchFields = [ labelField ];
 			if ( len( arguments.labelRenderer ) ) {
-				searchFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery

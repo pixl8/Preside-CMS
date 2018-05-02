@@ -2217,7 +2217,7 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
-		var operations      = [ "read", "add", "edit", "delete", "viewversions" ];
+		var operations      = [ "read", "add", "edit", "delete", "viewversions", "translate" ];
 		var draftOperations = [ "addRecord", "addRecordAction", "editRecord", "editRecordAction", "translateRecord", "translateRecordAction" ];
 		var permitted       = true;
 

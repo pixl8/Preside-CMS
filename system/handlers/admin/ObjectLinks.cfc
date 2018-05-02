@@ -122,7 +122,7 @@ component {
 	private string function buildTranslateRecordLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
-		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+		if ( dataManagerService.isOperationAllowed( objectName, "translate" ) ) {
 			var recordId     = args.recordId ?: "";
 			var language     = args.language ?: "";
 			var version      = args.version  ?: "";
