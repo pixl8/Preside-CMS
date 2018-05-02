@@ -11,6 +11,14 @@
 
 ( function( $ ){
 
+	var dirtyRichEditors = function(){
+		for( var i in CKEDITOR.instances ) {
+			if ( CKEDITOR.instances[i].checkDirty() ){
+				return true;
+			}
+		}
+	}
+
 	$.fn.dirtyForm = function( callback ){
 		return this.each( function(){
 			var $form     = $( this )
