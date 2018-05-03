@@ -2364,17 +2364,89 @@ component extends="preside.system.base.AdminHandler" {
 
 		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderAddRecordForm" );
 		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderAddRecordForm" );
-		var hasActionButtonsCustomization = customizationService.objectHasCustomization( objectName=objectName, action="addRecordActionButtons" );
 
 		args.preForm       = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderAddRecordForm" , args=args ) : "";
 		args.postForm      = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderAddRecordForm", args=args ) : "";
-		args.actionButtons = hasActionButtonsCustomization ? customizationService.runCustomization( objectName=objectName, action="addRecordActionButtons" , args=args ) : "";
+		args.actionButtons = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "addRecordActionButtons"
+			, args           = args
+			, defaultHandler = "admin.datamanager._addRecordActionButtons"
+		);
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
 		args.formName = _getDefaultAddFormName( objectName );
 
 		return renderView( view="/admin/datamanager/_addRecordForm", args=args );
+	}
+
+	private string function _addRecordActionButtons( event, rc, prc, args={} ) {
+		args.actionButtons = customizationService.runCustomization(
+			  objectName     = args.objectName ?: ""
+			, args           = args
+			, action         = "getAddRecordActionButtons"
+			, defaultHandler = "admin.datamanager._getAddRecordActionButtons"
+		);
+
+		return renderView( view="/admin/datamanager/_addOrEditRecordActionButtons", args=args );
+	}
+
+	private array function _getAddRecordActionButtons( event, rc, prc, args={} ) {
+		args.draftsEnabled = args.draftsEnabled   ?: false;
+		args.canPublish    = args.canPublish      ?: false;
+		args.canSaveDraft  = args.canSaveDraft    ?: false;
+		args.cancelAction  = args.cancelAction    ?: event.buildAdminLink( objectName=args.objectName );
+		args.cancelLabel   = args.cancelLabel     ?: translateResource( "cms:datamanager.cancel.btn" );
+
+		args.actions = [{
+			  type      = "link"
+			, href      = args.cancelAction
+			, class     = "btn-default"
+			, globalKey = "c"
+			, iconClass = "fa-reply"
+			, label     = args.cancelLabel
+		}];
+
+		if ( args.draftsEnabled ) {
+			if ( args.canSaveDraft ) {
+				args.actions.append({
+					  type      = "button"
+					, class     = "btn-info"
+					, iconClass = "fa-save"
+					, name      = "_saveAction"
+					, value     = "savedraft"
+					, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.add.record.draft.btn", data=[ prc.objectTitle ?: "" ] )
+				});
+			}
+			if ( args.canPublish ) {
+				args.actions.append({
+					  type      = "button"
+					, class     = "btn-warning"
+					, iconClass = "fa-globe"
+					, name      = "_saveAction"
+					, value     = "publish"
+					, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ prc.objectTitle ?: "" ] )
+				});
+			}
+		} else {
+			args.actions.append({
+				  type      = "button"
+				, class     = "btn-info"
+				, iconClass = "fa-save"
+				, name      = "_saveAction"
+				, value     = "publish"
+				, label     = args.addRecordLabel ?: translateResource( uri="cms:datamanager.addrecord.btn", data=[ prc.objectTitle ?: "" ] )
+			});
+		}
+
+		customizationService.runCustomization(
+			  objectName = args.objectName ?: ""
+			, args       = args
+			, action     = "getExtraAddRecordActionButtons"
+		);
+
+		return args.actions;
 	}
 
 	private string function _editRecordForm( event, rc, prc, args={} ) {
@@ -2414,7 +2486,7 @@ component extends="preside.system.base.AdminHandler" {
 			, defaultHandler = "admin.datamanager._getEditRecordActionButtons"
 		);
 
-		return renderView( view="/admin/datamanager/_editRecordActionButtons", args=args );
+		return renderView( view="/admin/datamanager/_addOrEditRecordActionButtons", args=args );
 	}
 
 	private array function _getEditRecordActionButtons( event, rc, prc, args={} ) {
