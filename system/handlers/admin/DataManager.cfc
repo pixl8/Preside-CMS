@@ -198,7 +198,7 @@
 			var filterValue    = "";
 			var orderBy        = rc.orderBy       ?: "label";
 			var labelRenderer  = rc.labelRenderer ?: "";
-			var useCache	   = structKeyExists(rc, 'useCache') ? rc.useCache : true;
+			var useCache	   = IsTrue( rc.useCache ?: "" );
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
@@ -218,7 +218,7 @@
 				, orderBy       = orderBy
 				, ids           = ListToArray( rc.values ?: "" )
 				, labelRenderer = labelRenderer
-				, useCache		= useCache
+				, useCache      = useCache
 			);
 
 			event.renderData( type="json", data=records );

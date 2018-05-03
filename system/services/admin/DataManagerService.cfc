@@ -392,7 +392,7 @@ component {
 		,          numeric maxRows       = 1000
 		,          string  orderBy       = "label"
 		,          string  labelRenderer = ""
-		,	   boolean useCache	 = false
+		,          boolean useCache      = false
 	) {
 		var result = [];
 		var records = "";

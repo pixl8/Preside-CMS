@@ -16,7 +16,7 @@ component {
 		var savedData     = args.savedData     ?: {};
 		var labelRenderer = args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
 		var labelFields   = labelRendererService.getSelectFieldsForLabel( labelRenderer );
-		var useCache	  = structKeyExists(args, 'useCache') ? args.useCache : true;
+		var useCache	  = IsTrue( args.useCache ?: "" );
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
@@ -49,7 +49,7 @@ component {
 				, orderBy      = orderBy
 				, filter       = filter
 				, savedFilters = ListToArray( savedFilters )
-				, useCache	   = useCache
+				, useCache     = useCache
 			);
 		}
 
