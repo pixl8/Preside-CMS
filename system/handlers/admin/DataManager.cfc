@@ -660,8 +660,6 @@ component extends="preside.system.base.AdminHandler" {
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
 
-		_checkPermission( argumentCollection=arguments, key="read", checkOperations=false );
-
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
 			if( !isEmpty( filterValue ) ){
@@ -2615,8 +2613,9 @@ component extends="preside.system.base.AdminHandler" {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
 		var e   = "";
-		var includeAllFormulaFields = ( arguments.action == "viewRecord" );
-		var useAnyWhereActions      = [
+		var includeAllFormulaFields  = ( arguments.action == "viewRecord" );
+		var onlyCheckForLoginActions = [ "getObjectRecordsForAjaxSelectControl" ];
+		var useAnyWhereActions       = [
 			  "getChildObjectRecordsForAjaxDataTables"
 			, "getObjectRecordsForAjaxSelectControl"
 			, "quickAddForm"
@@ -2635,6 +2634,10 @@ component extends="preside.system.base.AdminHandler" {
 			, "dataExportConfigModal"
 			, "exportDataAction"
 		];
+
+		if( onlyCheckForLoginActions.findNoCase( arguments.action ) ){
+			return;
+		}
 
 		prc.objectName            = "";
 		prc.objectTitle           = "";
