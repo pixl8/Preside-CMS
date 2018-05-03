@@ -348,7 +348,7 @@ if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
                     }
                 },
                 getStars: function () {
-                    var self = this, numStars = self.stars, stars = '', i;
+                    var self = this, numStars = self.max, stars = '', i;
                     for (i = 1; i <= numStars; i++) {
                         stars += self.symbol;
                     }
@@ -382,11 +382,14 @@ if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
                 },
                 fetchCaption: function (rating) {
                     var self = this, val = parseFloat(rating), css, cap, capVal, cssVal,
-                        vCap = self.starCaptions, vCss = self.starCaptionClasses, caption;
-                    cssVal = typeof vCss === "function" ? vCss(val) : vCss[val];
+                        vCap = self.starCaptions, caption, stars = self.max;
+                    var bootClass = [ 'label label-danger', 'label label-warning', 'label label-info', 'label label-primary', 'label label-success' ];
+                    var classIndex = Math.round((val/stars)*bootClass.length)-1;
+                    if(classIndex < 0 && rating > 0) classIndex = 0;
+                    var vCss = bootClass[classIndex];
                     capVal = typeof vCap === "function" ? vCap(val) : vCap[val];
                     cap = isEmpty(capVal) ? self.defaultCaption.replace(/\{rating}/g, val) : capVal;
-                    css = isEmpty(cssVal) ? self.clearCaptionClass : cssVal;
+                    css = typeof(vCss) == "undefined" ? self.clearCaptionClass : vCss;
                     caption = (val === self.clearValue) ? self.clearCaption : cap;
                     return '<span class="' + css + '">' + caption + '</span>';
                 },
@@ -567,7 +570,17 @@ if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
                     3.5: 'Three & Half Stars',
                     4: 'Four Stars',
                     4.5: 'Four & Half Stars',
-                    5: 'Five Stars'
+                    5: 'Five Stars',
+                    5.5: 'Five & Half Stars',
+                    6: 'Six Stars',
+                    6.5: 'Six & Half Stars',
+                    7: 'Seven Stars',
+                    7.5: 'Seven & Half Stars',
+                    8: 'Eight Stars',
+                    8.5: 'Eight & Half Stars',
+                    9: 'Nine Stars',
+                    9.5: 'Nine & Half Stars',
+                    10: 'Ten Stars',
                 },
                 clearButtonTitle: 'Clear',
                 clearCaption: 'Not Rated'

@@ -204,11 +204,13 @@ component {
 	 * @provider.hint ID of the provider through which to send the email
 	 * @sendArgs.hint Structure of arguments to send to the provider's send handler action
 	 */
-	public boolean function sendWithProvider( required string provider, required struct sendArgs ) {
-		var sendAction = getProviderSendAction( arguments.provider );
-		var settings   = getProviderSettings( arguments.provider );
-		var logService = _getEmailLoggingService();
-		var result     = false;
+	public any function sendWithProvider( required string provider, required struct sendArgs ) {
+		var sendAction  = getProviderSendAction( arguments.provider );
+		var settings    = getProviderSettings( arguments.provider );
+		var logService  = _getEmailLoggingService();
+		var sent        = false;
+		var returnLogId = arguments.sendArgs.returnLogId ?: false;
+		var htmlBody    = sendArgs.htmlBody ?: "";
 
 		if ( !$getColdbox().handlerExists( sendAction ) ) {
 			throw(
@@ -231,14 +233,14 @@ component {
 		}
 
 		try {
-			result = $getColdbox().runEvent(
+			sent = $getColdbox().runEvent(
 				  event          = sendAction
 				, eventArguments = { sendArgs=arguments.sendArgs, settings=settings }
 				, private        = true
 				, prePostExempt  = true
 			);
 
-			if ( !IsBoolean( result ) ) {
+			if ( !IsBoolean( sent ) ) {
 				throw(
 					  type    = "preside.emailservice.provider.invalid.send.action.return.value"
 					, message = "The email service provider send action, [#sendAction#], for the provider, [#arguments.provider#], did not return a boolean value to indicate success/failure of email sending."
@@ -248,15 +250,21 @@ component {
 
 		} catch ( any e ) {
 			$raiseError( e );
-			result = false;
+			sent = false;
 			logService.markAsFailed( id=sendArgs.messageId, reason="An error occurred while sending the email. Error message: [#e.message#]. See error logs for details" );
 		}
 
-		if ( result ) {
+		if ( sent ) {
 			logService.markAsSent( sendArgs.messageId );
+			logService.logEmailContent(
+				  template = sendArgs.args.template ?: ""
+				, id       = sendArgs.messageId
+				, htmlBody = htmlBody
+				, textBody = sendArgs.textBody ?: ""
+			);
 		}
 
-		return result;
+		return returnLogId ? sendArgs.messageId : sent;
 	}
 
 	/**
@@ -335,10 +343,11 @@ component {
 			  template      = templateId
 			, recipientType = recipientType
 			, recipientId   = sendArgs.recipientId ?: ""
-			, recipient     = ( sendArgs.to[ 1 ] ?: "" )
-			, sender        = ( sendArgs.from    ?: "" )
-			, subject       = ( sendArgs.subject ?: "" )
-			, sendArgs      = ( sendArgs.args    ?: {} )
+			, recipient     = ( sendArgs.to[ 1 ]   ?: "" )
+			, sender        = ( sendArgs.from      ?: "" )
+			, subject       = ( sendArgs.subject   ?: "" )
+			, resendOf      = ( sendArgs.resendOf  ?: "" )
+			, sendArgs      = ( sendArgs.args      ?: {} )
 		);
 	}
 

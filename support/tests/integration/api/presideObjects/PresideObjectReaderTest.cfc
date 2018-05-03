@@ -213,6 +213,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dummyObj.meta.properties.mytestobject_id.generator ?: "" ).toBe( "none" );
 			} );
 
+			it( "should NOT add an ID field to an object that specifies @noid", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noid=true, properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "id" ) ).toBeFalse( "ID field was created when it should not have been!" );
+			} );
+
+			it( "should NOT add a DateModified field to an object that specifies noDateModified", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noDateModified=true, properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datemodified" ) ).toBeFalse( "DateModified field was created when it should not have been!" );
+			} );
+
 			it( "should add a DateModified field to an object that does not have one", function(){
 				var reader = getReader();
 				var dummyObj = {
@@ -240,6 +262,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var reader = getReader();
 				var dummyObj = {
 					meta = { name="mytestobject", datemodifiedField="lastDateModified", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datemodified" ) ).toBeFalse( "DateModified field was created when it should not have been!" );
+			} );
+
+			it( "should NOT add a DateModified field to an object that specifies noDateModified", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noDateModified=true, properties={} }
 				};
 
 				reader.finalizeMergedObject( dummyObj );
@@ -317,7 +350,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dummyObj.meta.properties.keyExists( "datecreated" ) ).toBeFalse( "dateCreated field was created when it should not have been!" );
 			} );
 
-			it( "should create dateCreated field with system defaults when DateModifiedField is not 'dateCreated' and the alternative does not already exist", function(){
+			it( "should NOT add a dateCreated field to an object that specifies noDateCreated", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", noDateCreated=true, properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datecreated" ) ).toBeFalse( "dateCreated field was created when it should not have been!" );
+			} );
+
+			it( "should create dateCreated field with system defaults when DateCreatedField is not 'dateCreated' and the alternative does not already exist", function(){
 				var reader = getReader();
 				var dummyObj = {
 					meta = { name="mytestobject", dateCreatedField="creation_date", properties={} }
@@ -374,16 +418,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should ensure fields with 'formula' attributes are not added to dbfieldlist and have default attributes set to blank/none", function(){
 				var reader = getReader();
 				var dummyObj = {
-					meta = { name="mytestobject", propertyNames=["myforumlafield"], properties={
-						  myforumlafield = { name="myforumlafield", formula="Sum( ${prefix}comments.id )" }
+					meta = { name="mytestobject", propertyNames=["myformulafield"], properties={
+						  myformulafield = { name="myformulafield", formula="Sum( ${prefix}comments.id )" }
 					} }
 				};
 
 				reader.finalizeMergedObject( dummyObj );
 
 				expect( dummyObj.meta.dbFieldList ?: "" ).toBe( "id,label,datecreated,datemodified" );
-				expect( dummyObj.meta.properties.myforumlafield ).toBe( {
-					  name         = "myforumlafield"
+				expect( dummyObj.meta.properties.myformulafield ).toBe( {
+					  name         = "myformulafield"
 					, formula      = "Sum( ${prefix}comments.id )"
 					, control      = "default"
 					, dbtype       = "none"
@@ -395,6 +439,20 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, required     = false
 					, type         = "string"
 				} );
+			} );
+
+			it( "should ensure fields with 'formula' attributes are added to formulafieldlist", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", propertyNames=["myformulafield"], properties={
+						  myformulafield = { name="myformulafield", formula="Sum( ${prefix}comments.id )" }
+					} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.dbFieldList      ?: "" ).toBe( "id,label,datecreated,datemodified" );
+				expect( dummyObj.meta.formulaFieldList ?: "" ).toBe( "myformulafield" );
 			} );
 
 		} );

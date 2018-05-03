@@ -12,7 +12,7 @@
 
 CKEDITOR.editorConfig = function( config ) {
 	// activate our plugins
-	config.extraPlugins = "widgets,imagepicker,attachmentpicker,stylesheetparser,presidelink";
+	config.extraPlugins = "autogrow,widgets,imagepicker,attachmentpicker,stylesheetparser,presidelink";
 
 	// the skin we are using
 	config.skin = "bootstrapck";
@@ -26,9 +26,6 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// auto grow config
 	config.autoGrow_onStartup = true;
-
-	// turn that damned auto P tag feature off!
-	config.autoParagraph = false;
 
 	// email obfuscation for link plugin
 	config.emailProtection = 'encode';
