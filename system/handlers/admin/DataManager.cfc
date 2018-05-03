@@ -79,8 +79,14 @@ component extends="preside.system.base.AdminHandler" {
 				prc.listingView = renderViewlet( event="admin.datamanager._treeView", args=args );
 
 			} else {
+				args.multiActions = customizationService.runCustomization(
+					  objectName     = objectName
+					, action         = "listingMultiActions"
+					, defaultHandler = "admin.datamanager._listingMultiActions"
+					, args           = args
+				);
 				args.append( {
-					  useMultiActions     = IsTrue( prc.canDelete ?: "" ) || ArrayLen( prc.batchEditableFields ?: [] )
+					  useMultiActions     = args.multiActions.len()
 					, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
 					, batchEditableFields = prc.batchEditableFields ?: []
 					, allowDataExport     = true
@@ -96,10 +102,47 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	private string function objectListingExtraActions( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
+	private string function _listingMultiActions( event, rc, prc, args={} ) {
+		var actions = customizationService.runCustomization(
+			  objectName     = args.objectName ?: ""
+			, action         = "getListingMultiActions"
+			, defaultHandler = "admin.datamanager._getListingMultiActions"
+			, args           = args
+		);
 
+		if ( actions.len() ) {
+			return renderView( view="/admin/datamanager/_listingMultiActions", args=args );
+		}
 
+		return "";
+	}
+
+	private array function _getListingMultiActions( event, rc, prc, args={} ) {
+		args.actions = [];
+
+		if ( ArrayLen( prc.batchEditableFields ?: [] ) ) {
+			args.batchEditableFields = prc.batchEditableFields;
+			args.actions.append( renderView( view="/admin/datamanager/_batchEditMultiActionButton", args=args ) );
+		}
+
+		if ( IsTrue( prc.canDelete ) ) {
+			args.actions.append({
+				  class     = "btn-danger"
+				, label     = translateResource( uri="cms:datamanager.deleteSelected.title" )
+				, prompt    = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ prc.objectTitle ?: "" ] )
+				, iconClass = "fa-trash-o"
+				, name      = "delete"
+				, globalKey = "d"
+			});
+		}
+
+		customizationService.runCustomization(
+			  objectName     = args.objectName ?: ""
+			, action         = "getExtraListingMultiActions"
+			, args           = args
+		);
+
+		return args.actions;
 	}
 
 	public void function viewRecord( event, rc, prc ) {
