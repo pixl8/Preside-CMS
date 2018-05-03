@@ -180,7 +180,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function configureLayout( event, rc, prc ) {
 		_checkPermissions( event=event, key="configurelayout" );
-		_getTemplate( argumentCollection=arguments );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var templateId = rc.id ?: "";
 
@@ -204,7 +204,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		rc.id = rc.template ?: "";
 
-		_getTemplate( argumentCollection=arguments );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var templateId = rc.template ?: "";
 
@@ -318,7 +318,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template"
-				, gridFields    = "name,email_blueprint"
+				, gridFields    = "name,email_blueprint,datecreated,datemodified"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
 				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
@@ -362,7 +362,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function log( event, rc, prc ) {
-		_getTemplate( argumentCollection=arguments );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var id = rc.id ?: "";
 

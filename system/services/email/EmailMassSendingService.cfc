@@ -70,10 +70,18 @@ component {
 
 			if ( canInfo ) { logger.info( "Sending email template, [#queuedEmail.template#], to recipient, [#queuedEmail.recipient#]" ); }
 
-			var result = emailService.send(
-				  template    = queuedEmail.template
-				, recipientId = queuedEmail.recipient
-			);
+			try {
+				var result = emailService.send(
+					  template    = queuedEmail.template
+					, recipientId = queuedEmail.recipient
+				);
+			} catch ( Any e ) {
+				if ( e.type contains "EmailService.missing" ) {
+					result = false;
+				} else {
+					rethrow;
+				}
+			}
 
 			if ( !result && canError ) {
 				logger.error( "Sending failed. See email sending logs and error logs for detail." );

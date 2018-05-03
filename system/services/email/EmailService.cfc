@@ -192,8 +192,8 @@ component displayName="Email service" {
 				, detail = "Ensure that a default from email address is configured through your PresideCMS administrator"
 			);
 		}
-
-		if ( !( sendArgs.to ?: [] ).len() ) {
+		
+		if ( !( sendArgs.to ?: [] ).len() || !Len( sendArgs.to[ 1 ] ) ) {
 			throw(
 				  type   = "EmailService.missingToAddress"
 				, message= "Missing to email address(es) when sending message with subject [#sendArgs.subject ?: ''#]"
