@@ -659,6 +659,7 @@ component extends="preside.system.base.AdminHandler" {
 		var filterValue    = "";
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
+		var useCache       = IsTrue( rc.useCache ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="read", checkOperations=false );
 
@@ -678,6 +679,7 @@ component extends="preside.system.base.AdminHandler" {
 			, orderBy       = orderBy
 			, ids           = ListToArray( rc.values ?: "" )
 			, labelRenderer = labelRenderer
+			, useCache      = useCache
 		);
 
 		event.renderData( type="json", data=records );
