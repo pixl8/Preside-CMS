@@ -1160,7 +1160,11 @@ component extends="preside.system.base.AdminHandler" {
 			actions = actions.reverse();
 
 			for( var actionToRender in actions ) {
-				rendered &= renderView( view="/admin/datamanager/_topRightButton", args=actionToRender );
+				if ( IsSimpleValue( actionToRender ) ) {
+					rendered &= actionToRender;
+				} else {
+					rendered &= renderView( view="/admin/datamanager/_topRightButton", args=actionToRender );
+				}
 			}
 		}
 
