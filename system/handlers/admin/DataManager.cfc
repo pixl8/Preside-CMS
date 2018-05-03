@@ -2383,11 +2383,15 @@ component extends="preside.system.base.AdminHandler" {
 
 		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderEditRecordForm" );
 		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderEditRecordForm" );
-		var hasActionButtonsCustomization = customizationService.objectHasCustomization( objectName=objectName, action="editRecordActionButtons" );
 
 		args.preForm       = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderEditRecordForm" , args=args ) : "";
 		args.postForm      = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderEditRecordForm", args=args ) : "";
-		args.actionButtons = hasActionButtonsCustomization ? customizationService.runCustomization( objectName=objectName, action="editRecordActionButtons" , args=args ) : "";
+		args.actionButtons = customizationService.runCustomization(
+			  objectName     = objectName
+			, args           = args
+			, action         = "editRecordActionButtons"
+			, defaultHandler = "admin.datamanager._editRecordActionButtons"
+		);
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
@@ -2400,6 +2404,74 @@ component extends="preside.system.base.AdminHandler" {
 		});
 
 		return renderView( view="/admin/datamanager/_editRecordForm", args=args );
+	}
+
+	private string function _editRecordActionButtons( event, rc, prc, args={} ) {
+		args.actionButtons = customizationService.runCustomization(
+			  objectName     = args.objectName ?: ""
+			, args           = args
+			, action         = "getEditRecordActionButtons"
+			, defaultHandler = "admin.datamanager._getEditRecordActionButtons"
+		);
+
+		return renderView( view="/admin/datamanager/_editRecordActionButtons", args=args );
+	}
+
+	private array function _getEditRecordActionButtons( event, rc, prc, args={} ) {
+		args.draftsEnabled = args.draftsEnabled   ?: false;
+		args.canPublish    = args.canPublish      ?: false;
+		args.canSaveDraft  = args.canSaveDraft    ?: false;
+		args.cancelAction  = args.cancelAction    ?: event.buildAdminLink( objectName=args.object, recordId=args.id, operation="viewRecord" );
+		args.cancelLabel   = args.cancelLabel     ?: translateResource( "cms:datamanager.cancel.btn" );
+
+		args.actions = [{
+			  type      = "link"
+			, href      = args.cancelAction
+			, class     = "btn-default"
+			, globalKey = "c"
+			, iconClass = "fa-reply"
+			, label     = args.cancelLabel
+		}];
+
+		if ( args.draftsEnabled ) {
+			if ( args.canSaveDraft ) {
+				args.actions.append({
+					  type      = "button"
+					, class     = "btn-info"
+					, iconClass = "fa-save"
+					, name      = "_saveAction"
+					, value     = "savedraft"
+					, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.edit.record.draft.btn"  , data=[ prc.objectTitle ?: "" ] )
+				});
+			}
+			if ( args.canPublish ) {
+				args.actions.append({
+					  type      = "button"
+					, class     = "btn-warning"
+					, iconClass = "fa-globe"
+					, name      = "_saveAction"
+					, value     = "publish"
+					, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ prc.objectTitle ?: "" ] )
+				});
+			}
+		} else {
+			args.actions.append({
+				  type      = "button"
+				, class     = "btn-info"
+				, iconClass = "fa-save"
+				, name      = "_saveAction"
+				, value     = "publish"
+				, label     = args.editRecordLabel ?: translateResource( uri="cms:datamanager.savechanges.btn", data=[ prc.objectTitle ?: "" ] )
+			});
+		}
+
+		customizationService.runCustomization(
+			  objectName = args.objectName ?: ""
+			, args       = args
+			, action     = "getExtraEditRecordActionButtons"
+		);
+
+		return args.actions;
 	}
 
 	private string function _treeView( event, rc, prc, args={} ) {

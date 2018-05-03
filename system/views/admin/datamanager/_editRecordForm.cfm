@@ -77,33 +77,7 @@
 		#args.postForm#
 
 		<div class="form-actions row">
-			<cfif Len( Trim( args.actionButtons ) )>
-				#args.actionButtons#
-			<cfelse>
-				<div class="col-md-offset-2">
-					<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
-						<i class="fa fa-reply bigger-110"></i>
-						#args.cancelLabel#
-					</a>
-
-					<cfif args.draftsEnabled>
-						<cfif args.canSaveDraft>
-							<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-								<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
-							</button>
-						</cfif>
-						<cfif args.canPublish>
-							<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-								<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
-							</button>
-						</cfif>
-					<cfelse>
-						<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i> #args.editRecordLabel#
-						</button>
-					</cfif>
-				</div>
-			</cfif>
+			#args.actionButtons#
 		</div>
 	</form>
 </cfoutput>
