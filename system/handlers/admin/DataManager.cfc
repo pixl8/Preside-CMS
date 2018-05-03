@@ -388,13 +388,19 @@ component extends="preside.system.base.AdminHandler" {
 		if ( Len( Trim( rc.postAction ?: "" ) ) ) {
 			listingUrl = event.buildAdminLink( linkto=rc.postAction, queryString="id=#objectName#" );
 		} else {
-			listingUrl = event.buildAdminLink( objectName=objectName, operation="listing" );
+			listingUrl = event.buildAdminLink( objectName=objectName );
 		}
 
 		if ( not Len( Trim( ids ) ) ) {
 			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
 			setNextEvent( url=listingUrl );
 		}
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "multiRecordAction"
+			, args           = { action=action, ids=ListToArray( ids ), objectName=objectName }
+		);
 
 		switch( action ){
 			case "batchUpdate":
