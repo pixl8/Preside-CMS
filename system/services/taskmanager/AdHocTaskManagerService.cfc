@@ -400,11 +400,15 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 
 	public string function getTaskRunnerUrl( required string taskId, required string siteContext ) {
-		var siteSvc    = _getSiteService();
-		var site       = siteSvc.getSite( Len( Trim( arguments.siteContext ) ) ? arguments.siteContext : siteSvc.getActiveSiteId() );
-		var serverName = ( site.domain ?: cgi.server_name );
+		var event                  = $getRequestContext();
+		var currentSite            = event.getSite();
+		var isDifferentSiteContext = StructIsEmpty( currentSite ) && Len( Trim( arguments.siteContext ) );
 
-		return "http://" & serverName & "/taskmanager/runadhoctask/?taskId=" & arguments.taskId;
+		if ( isDifferentSiteContext ) {
+			event.setSite( _getSiteService().getSite( arguments.siteContext ) );
+		}
+
+		return event.buildLink( linkto="taskmanager.runAdhocTask", queryString="taskId=" & arguments.taskId );
 	}
 
 // PRIVATE HELPERS
@@ -461,7 +465,7 @@ component displayName="Ad-hoc Task Manager Service" {
 
 		_getTaskScheduler().createTask(
 			  task          = "PresideAdHocTask-" & arguments.taskId
-			, url           = getTaskRunnerUrl( taskId=taskId, siteContext=scheduleSettings.site_context )
+			, url           = getTaskRunnerUrl( taskId=taskId, siteContext=scheduleSettings.site_context ?: "" )
 			, port          = Val( scheduleSettings.http_port ?: "" ) ? scheduleSettings.http_port : 80
 			, username      = scheduleSettings.http_username  ?: ""
 			, password      = scheduleSettings.http_password  ?: ""
