@@ -10,7 +10,7 @@ component {
 	 * @formsService.inject            FormsService
 	 * @coldbox.inject                 coldbox
 	 * @autoDiscoverDirectories.inject presidecms:directories
-	 * @i18nPlugin.inject              coldbox:plugin:i18n
+	 * @i18nPlugin.inject              i18n
 	 * @featureService.inject          featureService
 	 * @siteService.inject             siteService
 	 */

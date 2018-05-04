@@ -26,6 +26,10 @@ This form is used for the add/edit link screen in the richeditor.
 			<field sortorder="50" name="title"         control="textinput"   required="false" maxlength="200" label="cms:ckeditor.linkpicker.title.label"        placeholder="cms:ckeditor.linkpicker.title.placeholder" />
 		</fieldset>
 
+		<fieldset id="asset" sortorder="35">
+			<field sortorder="10" name="asset"  control="assetPicker" required="true" label="cms:ckeditor.linkpicker.asset.label" />
+		</fieldset>
+
 		<fieldset id="anchor" sortorder="40">
 			<field sortorder="10" name="anchor" control="select"    required="true"  label="cms:ckeditor.linkpicker.anchor.label" placeholder="cms:ckeditor.linkpicker.anchor.placeholder" values="" />
 			<field sortorder="20" name="title"  control="textinput" required="false" label="cms:ckeditor.linkpicker.title.label"  placeholder="cms:ckeditor.linkpicker.title.placeholder" maxlength="200" />

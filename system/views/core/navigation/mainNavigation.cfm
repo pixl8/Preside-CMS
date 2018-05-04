@@ -1,5 +1,6 @@
 <cfscript>
-	menuItems = args.menuItems ?: [];
+	menuItems       = args.menuItems ?: [];
+	delayRestricted = IsTrue( args.delayRestricted ?: true );
 
 	ulNestedClass           = args.ulNestedClass           ?: 'dropdown-menu';
 	liCurrentClass          = args.liCurrentClass          ?: 'active';
@@ -12,6 +13,14 @@
 
 <cfoutput>
 	<cfloop array="#menuItems#" index="i" item="item">
+		<cfif IsTrue( item.hasRestrictions ?: "" )>
+			#renderViewlet(
+				  event   = "core.navigation.restrictedMenuItem"
+				, args    = { menuItem=item, view="/core/navigation/mainNavigation" }
+				, delayed = delayRestricted
+			)#
+			<cfcontinue />
+		</cfif>
 		<cfset hasChildren = item.children.len() />
 		<li class="<cfif item.active>#liCurrentClass#</cfif><cfif hasChildren> #liHasChildrenClass#</cfif>"<cfif hasChildren> #liHasChildrenAttributes#</cfif>>
 			<a class="<cfif item.active>#aCurrentClass#</cfif><cfif hasChildren> #aHasChildrenClass#</cfif>" href="#event.buildLink( page=item.id )#" <cfif hasChildren>#aHasChildrenAttributes#</cfif>>#item.title#<cfif hasChildren> <span class="caret"></span></cfif></a>

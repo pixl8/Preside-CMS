@@ -1,6 +1,6 @@
 component hint="Interact with and report on system caches" {
 
-	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";
+	property name="jsonRpc2Plugin" inject="JsonRpc2";
 	property name="cachebox"       inject="cachebox";
 
 	private function index( event, rc, prc ) {
@@ -12,7 +12,7 @@ component hint="Interact with and report on system caches" {
 		if ( !params.len() || !ArrayFindNoCase( validOperations, params[1] ) ) {
 			return Chr(10) & "[[b;white;]Usage:] cache [operation]" & Chr(10) & Chr(10)
 			               & "Valid operations:" & Chr(10) & Chr(10)
-			               & "    [[b;white;]stats]      : Displays summary statistics of the PresideCMS caches." & Chr(10)
+			               & "    [[b;white;]stats]      : Displays summary statistics of the Preside caches." & Chr(10)
 			               & "    [[b;white;]resetstats] : Resets hit, miss and other agreggated statistics to zero." & Chr(10)
 		}
 

@@ -3,7 +3,7 @@
  * property value is null
  *
  */
-component {
+component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
 
@@ -50,7 +50,7 @@ component {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 			return translateResource( uri="rules.dynamicExpressions:related.propertyIsNull.#variety#.label", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
@@ -67,7 +67,7 @@ component {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 
 			return translateResource( uri="rules.dynamicExpressions:related.propertyIsNull.#variety#.text", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}

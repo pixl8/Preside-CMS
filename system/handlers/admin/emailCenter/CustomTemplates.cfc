@@ -8,7 +8,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formsService"               inject="formsService";
 	property name="dao"                        inject="presidecms:object:email_template";
 	property name="blueprintDao"               inject="presidecms:object:email_blueprint";
-	property name="messageBox"                 inject="coldbox:plugin:messageBox";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 
 	function prehandler( event, rc, prc ) {
@@ -361,7 +361,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function log( event, rc, prc ) {
+	public void function logs( event, rc, prc ) {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var id = rc.id ?: "";
@@ -372,7 +372,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.log.page.breadcrumb", data=[ prc.record.name ] )
-			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.log", queryString="id=#id#" )
+			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.logs", queryString="id=#id#" )
 		);
 	}
 

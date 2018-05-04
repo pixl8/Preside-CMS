@@ -22,7 +22,12 @@ component {
 			return "";
 		}
 
-		return authService.getUserIdByToken( token );
+		var userId = authService.getUserIdByToken( token );
+		if ( userId.len() && authService.userHasAccessToApi( userId, restRequest.getApi() ) ) {
+			return userId;
+		}
+
+		return "";
 	}
 
 }

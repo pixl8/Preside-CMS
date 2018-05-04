@@ -12,8 +12,8 @@ component {
 			, layout             = ""
 			, labels		 	 = args.labels            ?: ""
 			, checkboxLabel		 = args.checkboxLabel     ?: ""
-			, defaultValue		 = 1
-			, required           = IsTrue( args.mandatory ?: "" )
+			, defaultValue		 = IsTrue( args.defaultChecked ?: "" )
+			, required           = IsTrue( args.mandatory      ?: "" )
 		);
 	}
 }

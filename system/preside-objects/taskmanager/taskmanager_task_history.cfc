@@ -9,6 +9,7 @@
 component extends="preside.system.base.SystemPresideObject"  {
 	property name="task_key"   type="string"  dbtype="varchar" maxlength=100 required=true indexes="taskhistory|1,taskkey";
 	property name="thread_id"  type="string"  dbtype="varchar" maxlength=100 required=true indexes="thread";
+	property name="machine_id" type="string"  dbtype="varchar" maxlength=100 required=true indexes="machine";
 	property name="datecreated"                                                            indexes="taskhistory|2";
 	property name="complete"   type="boolean" dbtype="boolean"               required=false default=false;
 	property name="success"    type="boolean" dbtype="boolean"               required=false default=false;

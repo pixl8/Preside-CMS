@@ -1,6 +1,6 @@
 /**
  * The Feature Service provides an API to preside's configured features.
- * This allows other systems within PresideCMS to check the enabled status
+ * This allows other systems within Preside to check the enabled status
  * of features before proceeding to provide a page or perform some action.
  *
  */

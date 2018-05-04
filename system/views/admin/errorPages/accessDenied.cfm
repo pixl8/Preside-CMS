@@ -7,7 +7,7 @@
 <cfoutput>
 	<p class="alert alert-danger">
 		<i class="fa fa-fw fa-exclamation-triangle"></i>
-		#translateresource(" cms:accessdenied.page.description" )#
+		#translateresource( "cms:accessdenied.page.description" )#
 	</p>
 </cfoutput>
 
