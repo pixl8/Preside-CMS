@@ -15,4 +15,6 @@ component output=false extends="preside.system.base.SystemPresideObject" labelfi
 	property name="author"               type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title_prefix" type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title_suffix" type="string"  dbtype="varchar" maxLength="100"  required=false;
+
+	property name="main_image"       relationship="many-to-one" relatedTo="asset"         required=false allowedTypes="image" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 }

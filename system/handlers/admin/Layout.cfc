@@ -5,11 +5,20 @@ component {
 	property name="adminLanguages"         inject="coldbox:setting:adminLanguages";
 	property name="applicationsService"    inject="applicationsService";
 	property name="i18n"                   inject="i18n";
+	property name="siteService"            inject="siteService";
 
 	private string function siteAlerts( event, rc, prc, args={} ) {
 		args.inMaintenanceMode = maintenanceModeService.isMaintenanceModeActive();
 
 		return renderView( view="/admin/layout/siteAlerts", args=args );
+	}
+
+	private string function siteFavicon( event, rc, prc, args={} ) {
+		var siteID         = siteService.getActiveSiteId();
+		var getSiteDetails = siteService.getSite( id = siteID );
+		var faviconImage   = Len( Trim( getSiteDetails.main_image ) ) ? '#event.buildLink( assetId = getSiteDetails.main_image  )#' : "#event.buildLink( systemStaticAsset='/images/logos/favicon.png' )#";
+
+		return faviconImage;
 	}
 
 	private string function localePicker( event, rc, prc, args={} ) {
