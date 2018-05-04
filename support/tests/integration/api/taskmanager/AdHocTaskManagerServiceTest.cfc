@@ -731,10 +731,14 @@ component extends="testbox.system.BaseSpec" {
 				var taskId      = CreateUUId();
 				var siteContext = CreateUUId();
 				var domain      = "my.#CreateUUId()#.com";
+				var mockUrl     = CreateUUId();
 
-				mockSiteService.$( "getSite" ).$args( siteContext ).$results( { domain=domain } );
+				mockRequestContext.$( "getSite" ).$results( {} );
+				mockRequestContext.$( "setSite" );
+				mockSiteService.$( "getSite", {} );
+				mockRequestContext.$( "buildLink" ).$args( linkto="taskmanager.runadhoctask", queryString="taskId=#taskId#" ).$results( mockUrl );
 
-				expect( service.getTaskRunnerUrl( taskId, siteContext) ).toBe( "http://#domain#/taskmanager/runadhoctask/?taskId=" & taskId );
+				expect( service.getTaskRunnerUrl( taskId, siteContext) ).toBe( mockUrl );
 			} );
 		} );
 	}
@@ -742,12 +746,13 @@ component extends="testbox.system.BaseSpec" {
 
 // private helpers
 	private any function _getService() {
-		mockTaskDao       = CreateStub();
-		mockColdbox       = CreateStub();
-		mockTaskScheduler = CreateStub();
-		mockSiteService   = CreateStub();
-		mockLogboxLogger  = CreateStub();
-		nowish            = DateAdd( 'd', 1, Now() );
+		mockTaskDao        = CreateStub();
+		mockColdbox        = CreateStub();
+		mockRequestContext = CreateStub();
+		mockTaskScheduler  = CreateStub();
+		mockSiteService    = CreateStub();
+		mockLogboxLogger   = CreateStub();
+		nowish             = DateAdd( 'd', 1, Now() );
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
 			  taskScheduler = mockTaskScheduler
@@ -757,6 +762,7 @@ component extends="testbox.system.BaseSpec" {
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$getRequestContext", mockRequestContext );
 		service.$( "_now", nowish );
 
 		return service;
