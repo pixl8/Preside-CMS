@@ -17,18 +17,19 @@ component {
 		var bypassTenants = args.bypassTenants ?: "";
 		var labelRenderer = args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
 		var labelFields   = labelRendererService.getSelectFieldsForLabel( labelRenderer );
+		var useCache	  = IsTrue( args.useCache ?: "" );
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#"
+					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&q=%QUERY"
+				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&q=%QUERY"
 			);
 		} else {
 			var filter = {};
@@ -44,12 +45,13 @@ component {
 			}
 
 			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
-				  objectName   = targetObject
-				, selectFields = labelFields.append( "#targetObject#.#targetIdField# as id" )
-				, orderBy      = orderBy
-				, filter       = filter
-				, savedFilters = ListToArray( savedFilters )
+				  objectName    = targetObject
+				, selectFields  = labelFields.append( "#targetObject#.#targetIdField# as id" )
+				, orderBy       = orderBy
+				, filter        = filter
+				, savedFilters  = ListToArray( savedFilters )
 				, bypassTenants = ListToArray( bypassTenants )
+				, useCache      = useCache
 			);
 		}
 

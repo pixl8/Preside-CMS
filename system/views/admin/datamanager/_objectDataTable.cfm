@@ -1,5 +1,6 @@
 <cfscript>
 	param name="args.objectName"          type="string";
+	param name="args.multiActions"        type="string"  default="";
 	param name="args.useMultiActions"     type="boolean" default=false;
 	param name="args.multiActionViewlet"  type="string"  default="admin.datamanager._multiActions";
 	param name="args.multiActionUrl"      type="string"  default="";
@@ -169,7 +170,11 @@
 		</table>
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
-					#renderViewlet( event=args.multiActionViewlet, args=args )#
+					<cfif Len( Trim( args.multiActions ) )>
+						#args.multiActions#
+					<cfelse>
+						#renderViewlet( event=args.multiActionViewlet, args=args )#
+					</cfif>
 				</div>
 			</form>
 		</cfif>
