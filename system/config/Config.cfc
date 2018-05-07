@@ -193,6 +193,7 @@ component {
 
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
+			, "notification"
 			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
