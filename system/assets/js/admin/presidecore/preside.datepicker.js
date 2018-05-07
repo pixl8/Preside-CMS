@@ -53,7 +53,7 @@
 					currentDate = new Date( currentDate );
 					switch( relativeOperator ) {
 						case "lt":
-							currentDate.setDate( currentDate - 1 );
+							currentDate.setDate( currentDate.getDate() - 1 );
 						case "lte":
 							datePicker.setEndDate( currentDate );
 						break;

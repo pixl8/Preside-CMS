@@ -1,6 +1,6 @@
 component output=false hint="I am a base handler for any handlers implementing JSON-RPC 2.0" {
 
-	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";
+	property name="jsonRpc2Plugin" inject="JsonRpc2";
 
 	function aroundIndex( event, targetAction, eventArguments ) output=false {
 		event.noLayout();

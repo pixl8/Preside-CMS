@@ -1,5 +1,5 @@
 /**
- * This class is used to provide common PresideCMS functionality to your service layer.
+ * This class is used to provide common Preside functionality to your service layer.
  * See [[presidesuperclass]] for a full guide on how to make use of this class.
  *
  * @autodoc
@@ -23,7 +23,9 @@ component displayName="Preside Super Class" {
 	 * @contentRendererService.inject     delayedInjector:contentRendererService
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
 	 * @validationEngine.inject           delayedInjector:validationEngine
+	 * @adHocTaskManagerService.inject    delayedInjector:adHocTaskManagerService
 	 * @coldbox.inject                    delayedInjector:coldbox
+	 * @i18n.inject                       delayedInjector:i18n
 	 *
 	 */
 	public any function init(
@@ -42,7 +44,9 @@ component displayName="Preside Super Class" {
 		, required any contentRendererService
 		, required any taskmanagerService
 		, required any validationEngine
+		, required any adHocTaskManagerService
 		, required any coldbox
+		, required any i18n
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -59,7 +63,9 @@ component displayName="Preside Super Class" {
 		$contentRendererService     = arguments.contentRendererService;
 		$taskmanagerService         = arguments.taskmanagerService;
 		$validationEngine           = arguments.validationEngine;
+		$adHocTaskManagerService    = arguments.adHocTaskManagerService;
 		$coldbox                    = arguments.coldbox;
+		$i18n                       = arguments.i18n;
 
 		return this;
 	}
@@ -689,11 +695,25 @@ component displayName="Preside Super Class" {
 	 * @autodoc
 	 */
 	public any function $translateResource() {
-		return $getColdbox().getPlugin( "i18n" ).translateResource( argumentCollection=arguments );
+		return $i18n.translateResource( argumentCollection=arguments );
 	}
 
 	/**
-	 * Proxy to the core PresideCMS 'renderViewlet' method.
+	 * Proxy to i18n service's getFWCountryCode() and getFWLanguageCode()
+	 * methods to provide the locale of the current request
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * currentLocale = $getI18nLocale()
+	 * ```
+	 */
+	public string function $getI18nLocale() {
+		return $i18n.getFWLanguageCode() & "-" & $i18n.getFWCountryCode();
+	}
+
+	/**
+	 * Proxy to the core Preside 'renderViewlet' method.
 	 * \n
 	 * ## Example
 	 * \n
@@ -723,4 +743,34 @@ component displayName="Preside Super Class" {
 	public any function $announceInterception() {
 		return $getColdbox().getInterceptorService().processState( argumentCollection=arguments )
 	}
+
+	/**
+	 * Gets the adhoc taskmanager service
+	 *
+	 * @autodoc
+	 */
+	public any function $getAdhocTaskManagerService() {
+		return $adHocTaskManagerService;
+	}
+
+	/**
+	 * Proxy to the [[adhoctaskmanagerservice-createtask]] method of the [[api-adhoctaskmanagerservice]]
+	 * service.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var taskId = $createTask(
+	 * \t  event  = "generate.invoice"
+	 * \t, args   = { salesref=salesref }
+	 * \t, runNow = true
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $createTask() {
+		return $getAdhocTaskManagerService().createTask( argumentCollection=arguments );
+	}
+
 }

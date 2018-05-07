@@ -39,7 +39,7 @@ component {
 		var objName            = "";
 		var obj                = "";
 		var table              = "";
-		var dbVersion          = "";
+		var dbVersion          = [];
 		var tableExists        = "";
 		var tableVersionExists = "";
 
@@ -47,9 +47,10 @@ component {
 		for( objName in objects ) {
 			obj       = objects[ objName ];
 			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
-			dbVersion &= obj.sql.table.version;
+			dbVersion.append( obj.sql.table.version );
 		}
-		dbVersion = Hash( dbVersion );
+		dbVersion.sort( "text" );
+		dbVersion = Hash( dbVersion.toList() );
 		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
 			for( objName in objects ) {
 				obj                = objects[ objName ];
@@ -110,21 +111,25 @@ component {
 
 		if ( !_getAutoRunScripts() ) {
 			var scriptsToRun = _getBuiltSqlScriptArray();
+			var scriptsOutput = [];
 			var versionScriptsToRun = _getVersionTableScriptArray();
 			if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
 				var newLine = Chr( 10 );
 				var sql = "/**
  * The following commands are to make alterations to the database schema
- * in order to synchronize it with the PresideCMS codebase.
+ * in order to synchronize it with the Preside codebase.
  *
  * Generated on: #Now()#
  *
  * Please review the scripts before running.
  */" & newline & newline;
 				for( var script in scriptsToRun ) {
-					sql &= script.sql & ";" & newline;
+					if ( !scriptsOutput.findNoCase( script.sql ) ) {
+						sql &= script.sql & ";" & newline;
+						scriptsOutput.append( script.sql );
+					}
 				}
-				sql &= newline & "/* The commands below ensure that PresideCMS's internal DB versioning tracking is up to date */" & newline & newline;
+				sql &= newline & "/* The commands below ensure that Preside's internal DB versioning tracking is up to date */" & newline & newline;
 				for( var script in versionScriptsToRun ) {
 					sql &= script.sql & ";" & newline;
 				}

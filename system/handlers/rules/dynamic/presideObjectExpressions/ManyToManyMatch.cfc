@@ -3,7 +3,7 @@
  * many-to-many relationships match the selected related records
  *
  */
-component {
+component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
 
@@ -97,7 +97,7 @@ component {
 		);
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 			return translateResource( uri="rules.dynamicExpressions:related.manyToManyMatch.label", data=[ objectNameTranslated, relatedToTranslated, parentPropNameTranslated, possesses ] );
 		}
 
@@ -118,7 +118,7 @@ component {
 
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
-			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 			return translateResource( uri="rules.dynamicExpressions:related.manyToManyMatch.text", data=[ objectNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
 		}
 

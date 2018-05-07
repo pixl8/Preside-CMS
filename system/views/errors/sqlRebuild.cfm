@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>PresideCMS: SQL Schema Synchronisation Required</title>
+		<title>Preside: SQL Schema Synchronisation Required</title>
 		<meta charset="utf-8">
 		<meta name="robots" content="noindex,nofollow" />
 		<style type="text/css">

@@ -110,13 +110,14 @@ component singleton=true {
 	) {
 		var sql          = "";
 		var existingHash = _getCurrentVersionHash( argumentCollection=arguments );
+		var nowFn        = _getAdapter( dsn=arguments.dsn ).getNowFunctionSql();
 
 		if ( existingHash == arguments.version ) {
 			return [];
 		}
 
 		if ( existingHash.len() ) {
-			sql = "update _preside_generated_entity_versions set version_hash = '#arguments.version#', date_modified = Now() where entity_type = '#arguments.entityType#' and entity_name = '#arguments.entityName#' and parent_entity_name ";
+			sql = "update _preside_generated_entity_versions set version_hash = '#arguments.version#', date_modified = #nowFn# where entity_type = '#arguments.entityType#' and entity_name = '#arguments.entityName#' and parent_entity_name ";
 
 			if ( StructKeyExists( arguments, "parentEntity" ) ) {
 				sql &= "= '#arguments.parentEntity#'";
@@ -125,7 +126,7 @@ component singleton=true {
 			}
 		} else {
 			sql = "insert into _preside_generated_entity_versions( entity_type, entity_name, version_hash, date_modified";
-			var insertValues = "'#arguments.entityType#', '#arguments.entityName#', '#arguments.version#', Now()";
+			var insertValues = "'#arguments.entityType#', '#arguments.entityName#', '#arguments.version#', #nowFn#";
 
 			if ( StructKeyExists( arguments, "parentEntity" ) ) {
 				sql &= ", parent_entity_name";
