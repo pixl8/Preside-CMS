@@ -86,7 +86,7 @@ component displayName="AssetManager Service" {
 				, adminOwner        = $getAdminLoggedInUserId()
 				, discardOnComplete = false
 				, title             = "cms:assetmanager.edit.folder.task.title"
-			)
+			);
 		}
 
 		var auditDetail = Duplicate( arguments.data );
