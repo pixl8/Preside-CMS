@@ -340,17 +340,13 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editFolder", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=persist );
 		}
 
-		var taskId = createTask(
-			  event             = "admin.AssetManager._editFolderInBackgroundThread"
-			, args              = {
-				  folderId = folderId
-				, formData = formData
-			}
-			, runNow            = true
-			, adminOwner        = event.getAdminUserId()
-			, discardOnComplete = false
-			, title             = "cms:assetmanager.edit.folder.task.title"
-		);
+		try {
+			assetManagerService.editFolder( id=folderId, data=formData );
+		} catch ( any e ) {
+			logError( e );
+			messageBox.error( translateResource( "cms:assetmanager.edit.folder.unexpected.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editFolder", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
+		}
 
 		websitePermissionService.syncContextPermissions(
 			  context       = "asset"
@@ -1275,11 +1271,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	private void function _editFolderInBackgroundThread( event, rc, prc, args={} ){
-		try {
-			assetManagerService.editFolder( id=args.folderId ?: "", data=args.formData ?: {} );
-		} catch ( any e ) {
-			logError( e );
-		}
+	private void function _editAssetLocationInBackgroundThread( event, rc, prc, args={} ){
+		assetManagerService.ensureAssetsAreInCorrectLocation( folderId=args.id ?: "" );
 	}
 }
