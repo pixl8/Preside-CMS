@@ -287,6 +287,81 @@ component displayName="Website login service" {
 	}
 
 	/**
+	* Resends new token to expired token and reminds them the token is expired
+	*/
+	public boolean function resendToken( any logger ) autodoc=true {
+		var processedCount = 0;
+		var canLog         = arguments.keyExists( "logger" );
+		var canInfo        = canLog && logger.canInfo();
+		var canError       = canLog && logger.canError();
+		var userRecords    = _getExpiredTokenUsers();
+
+		if ( userRecords.recordcount EQ 0 ) {
+			if ( canInfo ) { logger.info( "The is no expired token!" ); }
+			return false;
+		}
+
+		for( record in userRecords ){
+
+			if ( canInfo ) {
+				logger.info( "Sending email template, expiredToken, to recipient, #record.email_address#" );
+			}
+
+			try {
+				var token = createPasswordResetToken();
+
+				_getUserDao().updateData( id=record.id, data={
+					  reset_password_token        = token.resetToken
+					, reset_password_key          = token.hashedResetKey
+					, reset_password_token_expiry = token.resetTokenExpiry
+				} );
+
+				var result = _getEmailService().send(
+					  template    = "tokenExpired"
+					, recipientId = record.id
+					, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
+				);
+
+				$recordWebsiteUserAction(
+					  userId = record.id
+					, action = "resendPasswordResetInstructions"
+					, type   = "tokenExpired"
+				);
+
+				processedCount+=1;
+			} catch ( Any e ) {
+				if ( e.type contains "EmailService.missing" ) {
+					result = false;
+				} else {
+					rethrow;
+				}
+			}
+
+			if ( !result && canError ) {
+				logger.error( "Sending failed. See email sending logs and error logs for detail." );
+			}
+
+		}
+
+		if ( canInfo ) { logger.info( "Done. Resent [#NumberFormat( processedCount )#] emails with new reset token." ); }
+
+		return true;
+	}
+
+	/**
+	 * Creates a password reset token.
+	 */
+	public struct function createPasswordResetToken() autodoc=true {
+		var token              = {};
+		token.resetToken       = _createTemporaryResetToken();
+		token.resetKey         = _createTemporaryResetKey();
+		token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
+		token.resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		return token;
+	}
+
+	/**
 	 * Validates a password reset token that has been passed through the URL after
 	 * a user has followed 'reset password' link in instructional email.
 	 *
@@ -501,6 +576,14 @@ component displayName="Website login service" {
 		}
 
 		return {};
+	}
+
+	private query function _getExpiredTokenUsers(){
+		return _getUserDao().selectData(
+			  filter       = "reset_password_token is not null and reset_password_key is not null and reset_password_token_expiry is not null and reset_password_token_expiry < :reset_password_token_expiry"
+			, filterParams = { reset_password_token_expiry = NOW() }
+			, useCache     = false
+		);
 	}
 
 	private boolean function _validatePassword( required string plainText, required string hashed ) {

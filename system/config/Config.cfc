@@ -691,6 +691,10 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
+		templates.tokenExpired = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
 
 		recipientTypes.anonymous   = {};
 		recipientTypes.adminUser   = {
