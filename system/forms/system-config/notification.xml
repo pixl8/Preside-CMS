@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+System config form: notification settings
+
+This form is used for managing settings for auto removal of old notifications
+-->
+<form i18nBaseUri="system-config.notification:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="keep_notifications_for_months"   control="spinner"      default="12" />
+		</fieldset>
+	</tab>
+</form>

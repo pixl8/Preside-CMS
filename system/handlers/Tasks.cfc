@@ -34,4 +34,17 @@ component {
 	private boolean function deleteExpiredEmailContent( logger ) {
 		return emailLoggingService.deleteExpiredContent( arguments.logger ?: NullValue() );
 	}
+
+	/**
+	 * Delete old notifications
+	 *
+	 * @priority     5
+	 * @schedule     0 0 3 * * *
+	 * @timeout      1200
+	 * @displayName  Delete old notifications
+	 * @displayGroup Notification
+	 */
+	private boolean function deleteOldNotifications( logger ) {
+		return notificationService.deleteOldNotifications( arguments.logger ?: NullValue() );
+	}
 }

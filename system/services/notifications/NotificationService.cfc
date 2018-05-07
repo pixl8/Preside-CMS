@@ -527,6 +527,37 @@ component autodoc=true displayName="Notification Service" {
 		);
 	}
 
+	public boolean function deleteOldNotifications( any logger ) {
+
+		var keepNotificationsFor = Val( $getPresideSetting( "notification", "keep_notifications_for_months", 12 ) );
+		var canLog               = arguments.keyExists( "logger" );
+		var canInfo              = canLog && logger.canInfo();
+		var canError             = canLog && logger.canError();
+
+		var oldNotifications = $getPresideObject( "admin_notification" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = "datecreated < :datecreated"
+			, filterParams = { datecreated = dateAdd( "m", -keepNotificationsFor, DateFormat( now(), "dd-mmm-yyyy" ) ) }
+		);
+		var totalOldNotification = oldNotifications.recordCount()
+
+		if ( !totalOldNotification ) {
+			if ( canInfo ) { logger.info( "No notification to delete." ); }
+			return true;
+		} else {
+
+			if ( canInfo ) { logger.info( "Deleting old notifications..." ); }
+
+			var notificationIds = ValueArray( oldNotifications.id );
+			$getPresideObject( "admin_notification"          ).deleteData( filter={ id=notificationIds } );
+			$getPresideObject( "admin_notification_consumer" ).deleteData( filter={ admin_notification=notificationIds } );
+		}
+
+		if ( canInfo ) { logger.info( "Done. Deleted [#NumberFormat( totalOldNotification )#] notifications." ); }
+
+		return true;
+	}
+
 // PRIVATE HELPERS
 	private any function _announceInterception( required string state, struct interceptData={} ) {
 		_getInterceptorService().processState( argumentCollection=arguments );
