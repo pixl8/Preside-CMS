@@ -18,7 +18,8 @@
 	param name="args.resultAction"            type="string"  default="";
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
-	param name="args.actionButtons"           type="string"  default="";
+	param name="args.objectName"              type="string"  default=args.object;
+	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._editRecordActionButtons", args=args );
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue=args.object );
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.object#:editRecord.prompt", defaultValue="" );
@@ -72,7 +73,7 @@
 		#args.postForm#
 
 		<div class="form-actions row">
-			#args.actionButtons#
+			#args.renderedActionButtons#
 		</div>
 	</form>
 </cfoutput>
