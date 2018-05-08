@@ -8,6 +8,9 @@
 		<cfargument name="eventArguments" type="struct" required="true" />
 
 		<cfscript>
+			if( isBot() ){
+				event.adminAccessDenied();
+			}
 			_checkLogin( event );
 			var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
 
