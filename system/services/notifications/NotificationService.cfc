@@ -1,6 +1,8 @@
 /**
  * The notifications service provides an API to the Preside administrator [[notifications|notifications system]].
  *
+ * @singleton
+ * @presideService
  */
 component autodoc=true displayName="Notification Service" {
 
@@ -118,6 +120,7 @@ component autodoc=true displayName="Notification Service" {
 		var queryResult = _getConsumerDao().selectData(
 			  selectFields = [ "Count(*) as notification_count" ]
 			, filter       = { security_user = arguments.userId, read = false }
+			, useCache     = false
 		);
 
 		return Val( queryResult.notification_count ?: "" );
@@ -239,6 +242,7 @@ component autodoc=true displayName="Notification Service" {
 		var result = _getConsumerDao().selectData(
 			  selectFields = [ "Count( * ) as notification_count" ]
 			, filter       = filter
+			, useCache     = false
 		);
 
 		return Val( result.notification_count ?: "" );
@@ -529,33 +533,26 @@ component autodoc=true displayName="Notification Service" {
 
 	public boolean function deleteOldNotifications( any logger ) {
 
-		var keepNotificationsFor = Val( $getPresideSetting( "notification", "keep_notifications_for_months", 12 ) );
+		var keepNotificationsFor = Val( $getPresideSetting( "notification", "keep_notifications_for_days", 0 ) );
 		var canLog               = arguments.keyExists( "logger" );
 		var canInfo              = canLog && logger.canInfo();
 		var canError             = canLog && logger.canError();
 
-		var oldNotifications = $getPresideObject( "admin_notification" ).selectData(
-			  selectFields = [ "id" ]
-			, filter       = "datecreated < :datecreated"
-			, filterParams = { datecreated = dateAdd( "m", -keepNotificationsFor, DateFormat( now(), "dd-mmm-yyyy" ) ) }
-		);
-		var totalOldNotification = oldNotifications.recordCount()
-
-		if ( !totalOldNotification ) {
-			if ( canInfo ) { logger.info( "No notification to delete." ); }
+		if( keepNotificationsFor == 0 ){
+			if ( canInfo ) { logger.info( "Old notifications deletion have been turned off." ); }
 			return true;
 		} else {
-
 			if ( canInfo ) { logger.info( "Deleting old notifications..." ); }
 
-			var notificationIds = ValueArray( oldNotifications.id );
-			$getPresideObject( "admin_notification"          ).deleteData( filter={ id=notificationIds } );
-			$getPresideObject( "admin_notification_consumer" ).deleteData( filter={ admin_notification=notificationIds } );
+			var notificationsDeleted = $getPresideObject( "admin_notification" ).deleteData(
+				  filter       = "datecreated < :datecreated"
+				, filterParams = { datecreated = dateAdd( "d", -keepNotificationsFor, DateFormat( now(), "dd-mmm-yyyy" ) ) }
+			);
+
+			if ( canInfo ) { logger.info( "Done. Deleted [#NumberFormat( notificationsDeleted )#] notifications." ); }
+
+			return true;
 		}
-
-		if ( canInfo ) { logger.info( "Done. Deleted [#NumberFormat( totalOldNotification )#] notifications." ); }
-
-		return true;
 	}
 
 // PRIVATE HELPERS

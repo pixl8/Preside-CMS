@@ -6,6 +6,7 @@ component {
 
 	property name="emailMassSendingService" inject="emailMassSendingService";
 	property name="emailLoggingService"     inject="emailLoggingService";
+	property name="notificationService"     inject="notificationService";
 
 	/**
 	 * Process batched emails
