@@ -291,7 +291,7 @@ component {
 				, width         = "auto"
 				, minHeight     = 0
 				, maxHeight     = 300
-				, autoParagraph = true
+				, autoParagraph = false
 				, configFile    = "/ckeditorExtensions/config.js?v10.9.0a"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
