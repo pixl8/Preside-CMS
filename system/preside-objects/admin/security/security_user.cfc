@@ -21,7 +21,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="known_as
 	property name="last_logged_in"                  type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true sortorder=140;
 	property name="last_logged_out"                 type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true sortorder=150;
 	property name="last_request_made"               type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true sortorder=160;
-	property name="subscribed_to_all_notifications" type="boolean"  dbtype="boolean"                 required=false default=true sortorder=170;
+	property name="subscribed_to_all_notifications" type="boolean"  dbtype="boolean"                 required=false default=false sortorder=170;
 
 	property name="groups" relationship="many-to-many" relatedTo="security_group" sortOrder=1000;
 }
