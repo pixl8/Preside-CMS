@@ -16,7 +16,7 @@
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
-	param name="args.actionButtons"           type="string"  default="";
+	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._addRecordActionButtons", args=args );
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
@@ -68,7 +68,7 @@
 				)#
 			</cfif>
 
-			#args.actionButtons#
+			#args.renderedActionButtons#
 		</div>
 	</form>
 </cfoutput>

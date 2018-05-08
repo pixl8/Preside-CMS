@@ -2418,9 +2418,9 @@ component extends="preside.system.base.AdminHandler" {
 		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderAddRecordForm" );
 		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderAddRecordForm" );
 
-		args.preForm       = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderAddRecordForm" , args=args ) : "";
-		args.postForm      = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderAddRecordForm", args=args ) : "";
-		args.actionButtons = customizationService.runCustomization(
+		args.preForm               = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderAddRecordForm" , args=args ) : "";
+		args.postForm              = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderAddRecordForm", args=args ) : "";
+		args.renderedActionButtons = customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "addRecordActionButtons"
 			, args           = args
@@ -2451,6 +2451,11 @@ component extends="preside.system.base.AdminHandler" {
 		args.canSaveDraft  = args.canSaveDraft    ?: false;
 		args.cancelAction  = args.cancelAction    ?: event.buildAdminLink( objectName=args.objectName );
 		args.cancelLabel   = args.cancelLabel     ?: translateResource( "cms:datamanager.cancel.btn" );
+
+		if ( !Len( Trim( prc.objectTitle ?: "" ) ) ) {
+			prc.objectRootUri = presideObjectService.getResourceBundleUriRoot( args.objectName ?: "" );
+			prc.objectTitle   = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=args.objectName ?: "" );
+		}
 
 		args.actions = [{
 			  type      = "link"
@@ -2509,9 +2514,9 @@ component extends="preside.system.base.AdminHandler" {
 		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderEditRecordForm" );
 		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderEditRecordForm" );
 
-		args.preForm       = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderEditRecordForm" , args=args ) : "";
-		args.postForm      = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderEditRecordForm", args=args ) : "";
-		args.actionButtons = customizationService.runCustomization(
+		args.preForm               = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderEditRecordForm" , args=args ) : "";
+		args.postForm              = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderEditRecordForm", args=args ) : "";
+		args.renderedActionButtons = customizationService.runCustomization(
 			  objectName     = objectName
 			, args           = args
 			, action         = "editRecordActionButtons"
@@ -2548,6 +2553,11 @@ component extends="preside.system.base.AdminHandler" {
 		args.canSaveDraft  = args.canSaveDraft    ?: false;
 		args.cancelAction  = args.cancelAction    ?: event.buildAdminLink( objectName=args.object, recordId=args.id, operation="viewRecord" );
 		args.cancelLabel   = args.cancelLabel     ?: translateResource( "cms:datamanager.cancel.btn" );
+
+		if ( !Len( Trim( prc.objectTitle ?: "" ) ) ) {
+			prc.objectRootUri = presideObjectService.getResourceBundleUriRoot( args.objectName ?: "" );
+			prc.objectTitle   = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=args.objectName ?: "" );
+		}
 
 		args.actions = [{
 			  type      = "link"
