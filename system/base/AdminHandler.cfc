@@ -8,6 +8,9 @@
 		<cfargument name="eventArguments" type="struct" required="true" />
 
 		<cfscript>
+			if( event.isStatelessRequest() ){
+				event.adminAccessDenied();
+			}
 			_checkLogin( event );
 			var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
 
