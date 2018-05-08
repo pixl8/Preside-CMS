@@ -79,7 +79,14 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
-			ensureAssetsAreInCorrectLocation( folderId=arguments.id );
+			$createTask(
+				  event             = "admin.AssetManager._editAssetLocationInBackgroundThread"
+				, args              = { id = arguments.id }
+				, runNow            = true
+				, adminOwner        = $getAdminLoggedInUserId()
+				, discardOnComplete = false
+				, title             = "cms:assetmanager.edit.folder.task.title"
+			);
 		}
 
 		var auditDetail = Duplicate( arguments.data );
