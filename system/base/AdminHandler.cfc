@@ -8,7 +8,7 @@
 		<cfargument name="eventArguments" type="struct" required="true" />
 
 		<cfscript>
-			if( isBot() ){
+			if( event.isStatelessRequest() ){
 				event.adminAccessDenied();
 			}
 			_checkLogin( event );
