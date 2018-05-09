@@ -22,9 +22,6 @@
 		groupColCounts.append( { from=groupColCounts[2].to+1, to=groupColCounts[2].to + groupsPerCol } );
 	}
 	// end display logic to split groups into three equalish columns
-
-	prc.pageIcon  = "puzzle-piece";
-	prc.pageTitle = translateResource( "cms:datamanager" );
 </cfscript>
 
 <cfoutput>

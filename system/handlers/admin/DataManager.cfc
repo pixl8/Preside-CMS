@@ -33,8 +33,10 @@ component extends="preside.system.base.AdminHandler" {
 	public void function index( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="navigate" );
 
-
 		prc.objectGroups = dataManagerService.getGroupedObjects();
+
+		prc.pageIcon  = "puzzle-piece";
+		prc.pageTitle = translateResource( "cms:datamanager" );
 	}
 
 	public void function object( event, rc, prc ) {
@@ -377,6 +379,9 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.cascadeDelete.breadcrumb.title" )
 			, link  = ""
 		);
+
+		prc.pageIcon  = "trash";
+		prc.pageTitle = translateResource( uri="cms:datamanager.cascadeDelete.title" );
 	}
 
 	public void function multiRecordAction( event, rc, prc ) {
@@ -517,6 +522,9 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
 			, link  = ""
 		);
+
+		prc.pageIcon  = "history";
+		prc.pageTitle = translateResource( uri="cms:datamanager.recordhistory.title", data=[ prc.recordLabel ?: "", prc.objectTitle ?: "" ] );
 	}
 
 	public void function translateRecord( event, rc, prc ) {
@@ -739,6 +747,10 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.managePerms.breadcrumb.title" )
 			, link  = ""
 		);
+
+		prc.pageIcon     = "lock";
+		prc.pageTitle    = translateResource( uri="cms:datamanager.manageperms.title", data=[  prc.objectTitle ?: ""  ] );;
+		prc.pageSubTitle = translateResource( uri="cms:datamanager.manageperms.subtitle", data=[  prc.objectTitle ?: ""  ] );;
 	}
 
 	public void function savePermsAction( event, rc, prc ) {
@@ -783,6 +795,9 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
 			, link  = ""
 		);
+
+		prc.pageIcon  = "history";
+		prc.pageTitle = translateResource( uri="cms:datamanager.translationRecordhistory.title", data=[ prc.recordLabel ?: "",  prc.objectTitle ?: "", prc.language.name ?: "" ] );
 	}
 
 	public void function deleteOneToManyRecordAction( event, rc, prc ) {
