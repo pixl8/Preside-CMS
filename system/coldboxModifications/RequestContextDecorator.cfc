@@ -216,6 +216,25 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return currentUrl.startsWith( adminPath );
 	}
 
+	public boolean function setIsDataManagerRequest() output=false {
+		getRequestContext().setValue(
+			  name    = "_isDataManagerRequest"
+			, value   = true
+			, private = true
+		);
+	}
+
+	public boolean function isDataManagerRequest() output=false {
+		var isDmHandler = getRequestContext().getCurrentEvent().startsWith( "admin.datamanager." );
+		var isDmRequest = getRequestContext().getValue(
+			  name         = "_isDataManagerRequest"
+			, defaultValue = false
+			, private      = true
+		);
+
+		return isDmHandler || isDmRequest;
+	}
+
 	public boolean function isAdminUser() output=false {
 		var loginSvc = getModel( "loginService" );
 
@@ -297,6 +316,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			, prePostExempt  = true
 			, eventArguments = args
 		);
+
+		setIsDataManagerRequest();
 	}
 
 // Sticker
