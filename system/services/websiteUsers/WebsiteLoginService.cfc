@@ -287,6 +287,52 @@ component displayName="Website login service" {
 	}
 
 	/**
+	* Resends new token to expired token and reminds them the token is expired
+	*/
+	public boolean function sendNewTokenEmail( required string loginId ) autodoc=true {
+		var userRecord = _getUserByLoginId( arguments.loginId );
+
+		if ( userRecord.count() ){
+			var token      = createPasswordResetToken();
+
+			_getUserDao().updateData( id=userRecord.id, data={
+				  reset_password_token        = token.resetToken
+				, reset_password_key          = token.hashedResetKey
+				, reset_password_token_expiry = token.resetTokenExpiry
+			} );
+
+			var result = _getEmailService().send(
+				  template    = "tokenExpired"
+				, recipientId = userRecord.id
+				, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
+			);
+
+			$recordWebsiteUserAction(
+				  userId = userRecord.id
+				, action = "resendPasswordResetInstructions"
+				, type   = "tokenExpired"
+			);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Creates a password reset token.
+	 */
+	public struct function createPasswordResetToken() autodoc=true {
+		var token              = {};
+		token.resetToken       = _createTemporaryResetToken();
+		token.resetKey         = _createTemporaryResetKey();
+		token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
+		token.resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		return token;
+	}
+
+	/**
 	 * Validates a password reset token that has been passed through the URL after
 	 * a user has followed 'reset password' link in instructional email.
 	 *
@@ -682,6 +728,8 @@ component displayName="Website login service" {
 				  id     = record.id
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			sendNewTokenEmail(record.id);
 
 			return QueryNew('');
 		}
