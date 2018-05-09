@@ -7,11 +7,12 @@ This form is used for the "add site" form in the site manager
 <form>
 	<tab id="basic" sortorder="10" title="preside-objects.site:basic.tab.title">
 		<fieldset id="basic" sortorder="10">
-			<field binding="site.name"     sortorder="10" control="textinput" />
-			<field binding="site.protocol" sortorder="20" required="true"   />
-			<field binding="site.domain"   sortorder="30" control="textinput" />
-			<field binding="site.path"     sortorder="40" control="textinput" />
-			<field binding="site.template" sortorder="50" control="sitetemplatepicker"  />
+			<field binding="site.name"       sortorder="10" control="textinput" />
+			<field binding="site.protocol"   sortorder="20" required="true"   />
+			<field binding="site.domain"     sortorder="30" control="textinput" />
+			<field binding="site.path"       sortorder="40" control="textinput" />
+			<field binding="site.template"   sortorder="50" control="sitetemplatepicker"  />
+			<field binding="site.main_image" sortorder="60" />
 		</fieldset>
 	</tab>
 	<tab id="seo" sortorder="20" title="preside-objects.site:seo.tab.title">

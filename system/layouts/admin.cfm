@@ -2,6 +2,7 @@
 	body             = renderView();
 	navbar           = renderView( 'admin/layout/navbar' );
 	siteAlerts       = renderViewlet( 'admin.layout.siteAlerts' );
+	siteFavicon      = renderViewlet( 'admin.layout.siteFavicon' );
 	breadcrumbs      = renderView( 'admin/layout/breadcrumbs' );
 	sideBarNav       = renderView( 'admin/layout/sideBarNavigation' );
 	notifications    = renderView( 'admin/general/notifications' );
@@ -54,7 +55,7 @@
 		<meta name="description" content="" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-		<link rel="shortcut icon" type="image/x-icon" href="#event.buildLink( systemStaticAsset='/images/logos/favicon.png' )#">
+		<link rel="shortcut icon" type="image/x-icon" href="#siteFavicon#">
 
 		#css#
 		#topJs#
