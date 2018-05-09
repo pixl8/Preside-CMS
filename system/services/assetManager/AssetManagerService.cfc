@@ -79,7 +79,14 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
-			ensureAssetsAreInCorrectLocation( folderId=arguments.id );
+			$createTask(
+				  event             = "admin.AssetManager._editAssetLocationInBackgroundThread"
+				, args              = { id = arguments.id }
+				, runNow            = true
+				, adminOwner        = $getAdminLoggedInUserId()
+				, discardOnComplete = false
+				, title             = "cms:assetmanager.edit.folder.task.title"
+			);
 		}
 
 		var auditDetail = Duplicate( arguments.data );
@@ -322,6 +329,7 @@ component displayName="AssetManager Service" {
 		, string  parentString         = "/ "
 		, string  parentFolder         = ""
 		, array   foldersForSelectList = []
+		, array   noPermissionFolders
 	) {
 		var folderPassesCriteria = function( id, label ){
 			return ( !ids.len() || ids.findNoCase( arguments.id ) ) && ( !Len( Trim( searchQuery ) ) || arguments.label.findNoCase( searchQuery ) );
@@ -339,20 +347,20 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		var noPermissionFolder = _userNoPermissionAssetFolders();
-		var filter             = "( asset_folder.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden and asset_folder.parent_folder = :parent_folder)";
-		var params             = {
+		var noPermissionFolders = arguments.noPermissionFolders ?: _userNoPermissionAssetFolders();
+		var filter              = "( asset_folder.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden and asset_folder.parent_folder = :parent_folder)";
+		var params              = {
 			  is_trashed            = false
 			, "asset_folder.hidden" = false
 			, parent_folder         = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
 		}
 
-		if( arrayLen( noPermissionFolder ) ){
+		if( arrayLen( noPermissionFolders ) ){
 			filter &= " and ( asset_folder.id not in (:asset_folder.id) )";
-			params[ "asset_folder.id" ] = noPermissionFolder;
+			params[ "asset_folder.id" ] = noPermissionFolders;
 		}
 
-		var folders            = _getFolderDao().selectData(
+		var folders             = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
 			, orderBy      = "label"
 			, filter       = filter
@@ -378,6 +386,7 @@ component displayName="AssetManager Service" {
 				, parentString         = parentString & folder.label & " / "
 				, parentFolder         = folder.id
 				, foldersForSelectList = foldersForSelectList
+				, noPermissionFolders  = noPermissionFolders
 			);
 		}
 
@@ -385,11 +394,19 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function getAssetFolderPrefetchCachebusterForAjaxSelect() {
-		var records = _getFolderDao().selectData(
+		var folders     = _getFolderDao().selectData(
 			selectFields = [ "Max( datemodified ) as lastmodified" ]
 		);
+		var permissions = $getPresideObject( "security_context_permission" ).selectData(
+			  filter       = { context="assetmanagerfolder" }
+			, selectFields = [ "Max( datemodified ) as lastmodified" ]
+		);
+		var lastUpdate  = IsDate( folders.lastmodified ) ? folders.lastmodified : now();
+		if ( IsDate( permissions.lastmodified ) ) {
+			lastUpdate = max( lastUpdate, permissions.lastmodified );
+		}
 
-		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
+		return Hash( lastUpdate );
 	}
 
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
@@ -505,13 +522,13 @@ component displayName="AssetManager Service" {
 	}
 
 	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100, string savedFilters="" ) {
-		var assetDao           = _getAssetDao();
-		var filter             = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
-		var params             = { is_trashed=false, "asset_folder.hidden"=false };
-		var types              = _getTypes();
-		var records            = "";
-		var result             = [];
-		var noPermissionFolder = _userNoPermissionAssetFolders();
+		var assetDao            = _getAssetDao();
+		var filter              = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
+		var params              = { is_trashed=false, "asset_folder.hidden"=false };
+		var types               = _getTypes();
+		var records             = "";
+		var result              = [];
+		var noPermissionFolders = _userNoPermissionAssetFolders();
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
@@ -533,9 +550,9 @@ component displayName="AssetManager Service" {
 			filter &= " and ( asset.title like (:title) or asset_folder.label like (:title) )";
 			params.title = "%#arguments.searchQuery#%";
 		}
-		if( arrayLen( noPermissionFolder ) ){
+		if( arrayLen( noPermissionFolders ) ){
 			filter &= " and ( asset.asset_folder not in (:asset_folder.id) )";
-			params[ "asset_folder.id" ] = noPermissionFolder;
+			params[ "asset_folder.id" ] = noPermissionFolders;
 		}
 
 		records = assetDao.selectData(
@@ -2115,17 +2132,20 @@ component displayName="AssetManager Service" {
 	}
 
 	private array function _userNoPermissionAssetFolders(){
+		var noPermissionFolders    = [];
+		var restrictedAssetFolders = $getPresideObject( "security_context_permission" ).selectData(
+			  filter       = { context="assetmanagerfolder" }
+			, selectFields = [ "context_key as folderId" ]
+			, distinct     = true
+		);
 
-		var assetFolders       = _getFolderDao().selectData( selectFields=[ "id" ] );
-		var noPermissionFolder = [];
-
-		for( var folder in assetFolders ){
-			if( !$getAdminPermissionService().hasPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ folder.id ] ) ){
-				arrayAppend( noPermissionFolder, folder.id );
+		for( var folder in restrictedAssetFolders ){
+			if( !$getAdminPermissionService().hasPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ restrictedAssetFolders.folderId ] ) ){
+				arrayAppend( noPermissionFolders, restrictedAssetFolders.folderId );
 			}
 		}
 
-		return noPermissionFolder;
+		return noPermissionFolders;
 	}
 
 // GETTERS AND SETTERS

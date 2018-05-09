@@ -5,6 +5,9 @@ component {
 	property name="messageBox"          inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
+		if( event.isStatelessRequest() ){
+			event.adminAccessDenied();
+		}
 		_checkLogin( event );
 		var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
 
@@ -41,6 +44,7 @@ component {
 						if ( event.getHttpMethod() eq "POST" ) {
 							sessionStorage.setVar( "_unsavedFormData", Duplicate( form ) );
 							messageBox.warn( translateResource( uri="cms:loggedout.saveddata.warning" ) );
+
 						} else {
 							messageBox.warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
 						}

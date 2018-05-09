@@ -1270,4 +1270,8 @@ component extends="preside.system.base.AdminHandler" {
 			event.adminAccessDenied();
 		}
 	}
+
+	private void function _editAssetLocationInBackgroundThread( event, rc, prc, args={} ){
+		assetManagerService.ensureAssetsAreInCorrectLocation( folderId=args.id ?: "" );
+	}
 }
