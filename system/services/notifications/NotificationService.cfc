@@ -539,7 +539,7 @@ component autodoc=true displayName="Notification Service" {
 		var canError             = canLog && logger.canError();
 
 		if( keepNotificationsFor == 0 ){
-			if ( canInfo ) { logger.info( "Old notifications deletion have been turned off." ); }
+			if ( canInfo ) { logger.info( "Notification cleanup is disabled, no notifications have been deleted." ); }
 			return true;
 		} else {
 			if ( canInfo ) { logger.info( "Deleting old notifications..." ); }
@@ -549,7 +549,13 @@ component autodoc=true displayName="Notification Service" {
 				, filterParams = { datecreated = dateAdd( "d", -keepNotificationsFor, DateFormat( now(), "dd-mmm-yyyy" ) ) }
 			);
 
-			if ( canInfo ) { logger.info( "Done. Deleted [#NumberFormat( notificationsDeleted )#] notifications." ); }
+			if ( canInfo ) {
+				if ( notificationsDeleted ) {
+					logger.info( "Done. Deleted [#NumberFormat( notificationsDeleted )#] notifications." );
+				} else {
+					logger.info( "Done. No notifications found to delete." );
+				}
+			}
 
 			return true;
 		}

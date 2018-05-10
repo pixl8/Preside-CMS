@@ -43,7 +43,7 @@ component {
 	 * @schedule     0 0 3 * * *
 	 * @timeout      1200
 	 * @displayName  Delete old notifications
-	 * @displayGroup Notification
+	 * @displayGroup Cleanup
 	 */
 	private boolean function deleteOldNotifications( logger ) {
 		return notificationService.deleteOldNotifications( arguments.logger ?: NullValue() );
