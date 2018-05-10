@@ -627,7 +627,7 @@ component {
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.#idField# as id" );
-		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
+		if ( !labelFieldIsRelationship && ListLen( labelField, "." ) < 2 && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
 		}
@@ -659,10 +659,10 @@ component {
 			if ( ignore.findNoCase( field ) ) {
 				continue;
 			}
-			if ( not StructKeyExists( props, field ) ) {
+			if ( !StructKeyExists( props, field ) ) {
 				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
-				} else {
+				} else if ( field != labelField ) {
 					sqlFields[i] = "'' as " & field;
 				}
 				continue;

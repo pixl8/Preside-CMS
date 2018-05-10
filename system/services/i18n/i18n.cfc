@@ -47,6 +47,27 @@ component extends="preside.system.modules.cbi18n.models.i18n" output=false {
 		return translated;
 	}
 
+	public string function translateObjectName( required string objectName, boolean plural=false ) {
+		var baseUri    = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
+		var isPageType = presideObjectService.isPageType( arguments.objectName );
+		var uri        = baseUri & ( isPageType ? "name" : "title" );
+
+		if ( !isPageType && !arguments.plural ) {
+			uri &= ".singular";
+		}
+
+		return translateResource( uri=uri, defaultValue=arguments.objectName );
+	}
+
+	public string function translatePropertyName( required string objectName, required string propertyName ) {
+		var baseUri = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
+
+		return translateResource(
+			  uri          = baseUri & "field.#arguments.propertyName#.title"
+			, defaultValue = translateResource( uri="cms:preside-objects.default.field.#arguments.propertyName#.title", defaultValue=arguments.propertyName )
+		);
+	}
+
 	public string function getI18nJsForAdmin(){
 		var data    = {};
 		var bundles = [ "cms" ];
