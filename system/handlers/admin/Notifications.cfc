@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="notificationService" inject="notificationService";
-	property name="messageBox"          inject="messagebox@cbmessagebox";
+	property name="notificationService"        inject="notificationService";
+	property name="systemConfigurationService" inject="systemConfigurationService";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
@@ -111,7 +112,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function preferences( event, rc, prc ) {
-
 		prc.pageTitle    = translateResource( uri="cms:notifications.preferences.title" );
 		prc.pageSubTitle = translateResource( uri="cms:notifications.preferences.subtitle" );
 
@@ -130,6 +130,8 @@ component extends="preside.system.base.AdminHandler" {
 				setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences" ) );
 			}
 		}
+
+		runEvent( event="admin.editProfile._setupEditProfileTabs", private=true, prePostExempt=true );
 	}
 
 	public void function savePreferencesAction( event, rc, prc ) {
@@ -178,8 +180,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.topics = notificationService.listTopics();
 		if ( prc.topics.len() ) {
-			prc.selectedTopic = rc.topic ?: prc.topics[1];
-			prc.topicConfiguration = notificationService.getGlobalTopicConfiguration( prc.selectedTopic );
+			prc.selectedTopic = rc.topic ?: "";
+			if ( Len( Trim( prc.selectedTopic ) ) ) {
+				prc.topicConfiguration = notificationService.getGlobalTopicConfiguration( prc.selectedTopic );
+			}
 		}
 	}
 
@@ -201,6 +205,33 @@ component extends="preside.system.base.AdminHandler" {
 		var persist = formData;
 		    persist.validationResult = validationResult;
 		setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure", queryString="topic=#topic#" ), persistStruct=persist );
+	}
+
+	public void function saveGeneralConfigurationAction( event, rc, prc ) {
+		_checkPermission( "configure", event );
+
+		var topic            = rc.topic ?: "";
+		var formName         = "notifications.general-config";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			for( var setting in formData ){
+				systemConfigurationService.saveSetting(
+					  category = "notification"
+					, setting  = setting
+					, value    = formData[ setting ]
+				);
+			}
+
+			messageBox.info( translateResource( uri="cms:notifications.configuration.saved.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure", queryString="topic=#topic#" ) );
+		}
+
+		messageBox.error( translateResource( uri="cms:notifications.configuration.saving.error" ) );
+		var persist = formData;
+		    persist.validationResult = validationResult;
+		setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure" ), persistStruct=persist );
 	}
 
 // VIEWLETS
