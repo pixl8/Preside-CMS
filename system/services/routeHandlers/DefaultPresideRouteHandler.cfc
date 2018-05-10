@@ -89,14 +89,15 @@ component implements="iRouteHandler" output=false singleton=true {
 
 	public string function build( required struct buildArgs, required any event ) output=false {
 		var treeSvc  = _getSiteTreeService();
-		var homepage = treeSvc.getSiteHomepage();
-		var page     = _getPageByIdOrPageType( page=arguments.buildArgs.page, site=arguments.buildArgs.site ?: "" );
+		var site     = arguments.buildArgs.site ?: "";
+		var homepage = treeSvc.getSiteHomepage( site=site );
+		var page     = _getPageByIdOrPageType( page=arguments.buildArgs.page, site=site );
 		var link     = "";
 		var root     = event.getSiteUrl( page.site );
 
 		if ( page.recordCount ) {
 			if ( page.id eq homepage.id ) {
-				return root;
+				return ReReplace( root, "([^/])$", "\1/" ); // ensures trailing slash
 			}
 
 			link &= ReReplace( page.slug, "/$", "" );

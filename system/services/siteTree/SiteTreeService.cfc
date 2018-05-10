@@ -447,6 +447,7 @@ component {
 		, boolean getLatest         = false
 		, boolean allowDrafts       = false
 		, numeric version           = 0
+		, string  site              = ""
 	) {
 		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
@@ -460,6 +461,10 @@ component {
 				, trashed          = false
 			  }
 		};
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			homepageArgs.tenantIds = { site=arguments.site };
+		}
 
 		if ( arguments.version ) {
 			homepageArgs.fromVersionTable = true;
