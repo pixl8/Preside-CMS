@@ -90,7 +90,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	public string function build( required struct buildArgs, required any event ) output=false {
 		var treeSvc  = _getSiteTreeService();
 		var homepage = treeSvc.getSiteHomepage();
-		var page     = _getPageByIdOrPageType( arguments.buildArgs.page );
+		var page     = _getPageByIdOrPageType( page=arguments.buildArgs.page, site=arguments.buildArgs.site ?: "" );
 		var link     = "";
 		var root     = event.getSiteUrl( page.site );
 
@@ -128,7 +128,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		return root & link;
 	}
 
-	private query function _getPageByIdOrPageType( required string page ) output=false {
+	private query function _getPageByIdOrPageType( required string page, string site="" ) output=false {
 		var ptService       = _getPageTypesService();
 		var siteTreeService = _getSiteTreeService();
 		var getPageArgs     = {
@@ -136,6 +136,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			, version      = 0
 			, getLatest    = false
 			, allowDrafts  = true
+			, site         = arguments.site
 		};
 
 		if ( ptService.pageTypeExists( arguments.page ) && ptService.isSystemPageType( arguments.page ) ) {
@@ -149,7 +150,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			var page = Duplicate( siteTreeService.getPage( argumentCollection=getPageArgs ) );
 
 			if ( page.recordCount ) {
-				var ancestors = siteTreeService.getAncestors( id=page.id, selectFields=[ "slug" ] );
+				var ancestors = siteTreeService.getAncestors( id=page.id, selectFields=[ "slug" ], site=arguments.site );
 
 				if ( ancestors.recordCount ) {
 					var newSlug = "/" & ValueList( ancestors.slug, "/" ) & "/" & page.slug & "/";
