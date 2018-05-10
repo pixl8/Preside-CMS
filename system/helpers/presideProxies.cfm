@@ -149,6 +149,28 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="translateObjectName" access="public" returntype="any" output="false">
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translateObjectName" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getSingleton( "i18n" ).translateObjectName( argumentCollection = args )
+			} );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translatePropertyName" access="public" returntype="any" output="false">
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translatePropertyName" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getSingleton( "i18n" ).translatePropertyName( argumentCollection = args )
+			} );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="translateValidationMessages" access="public" returntype="struct" output="false">
 		<cfargument name="validationResult" type="any" required="true" />
 

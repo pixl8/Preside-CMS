@@ -1526,6 +1526,13 @@ component displayName="Preside Object Service" {
 			}
 		}
 
+		if ( ListLen( arguments.propertyName, "." ) > 1 ) {
+			return getObjectProperty( propertyName=ListRest( arguments.propertyName, "." ), objectName=_resolveObjectNameFromColumnJoinSyntax(
+				  startObject      = arguments.objectName
+				, relationshipPath = ListFirst( arguments.propertyName, "." )
+			) );
+		}
+
 		throw(
 			  type    = "preside.object.property.not.found"
 			, message = "The property, [#arguments.propertyName#], is not defined on the [#arguments.objectName#] object"

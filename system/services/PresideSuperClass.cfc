@@ -699,6 +699,37 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
+	 * Proxy to the i18n `translateObjectName()` method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * translated = $translateObjectName( objectName="my_object", plural=false );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $translateObjectName() {
+		return $i18n.translateObjectName( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to the i18n `translatePropertyName()` method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * translated = $translatePropertyName( objectName="my_object", propertyName="my_property" );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $translatePropertyName() {
+		return $i18n.translatePropertyName( argumentCollection=arguments );
+	}
+
+
+	/**
 	 * Proxy to i18n service's getFWCountryCode() and getFWLanguageCode()
 	 * methods to provide the locale of the current request
 	 * \n

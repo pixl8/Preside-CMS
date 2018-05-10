@@ -24,7 +24,7 @@ component {
 		for( row in arguments.qry ){
 			record = {};
 			for( col in arguments.columns ){
-				record[ col ] = row[ col ];
+				record[ ListLast( col, "." ) ] = row[ ListLast( col, "." ) ];
 			}
 			ArrayAppend( result.aaData, record );
 		}

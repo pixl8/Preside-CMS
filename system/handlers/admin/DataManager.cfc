@@ -1589,7 +1589,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( object=objectName, property=field, data=record[ field ], record=record, context=[ "adminDataTable", "admin" ] );
+				records[ ListLast( field, "." ) ][ records.currentRow ] = renderField(
+					  object  = objectName
+					, property= field
+					, data    = record[ ListLast( field, "." ) ]
+					, record  = record
+					, context = [ "adminDataTable", "admin" ]
+				);
 			}
 
 			if ( useMultiActions ) {
