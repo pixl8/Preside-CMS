@@ -121,6 +121,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, recordId   = recordId
 				) ).toBe( "" );
 			} );
+
+			it( "should build link for 'page' object when object is a page type", function(){
+				var service          = _getService();
+				var objectName       = "some_obejct";
+				var recordId         = CreateUUId();
+				var defaultOperation = "whatever";
+				var result           = CreateUUId();
+
+				mockPresideObjectService.$( "isPageType" ).$args( objectName ).$results( true );
+				service.$( "getDefaultRecordOperation" ).$args( "page" ).$results( defaultOperation );
+				mockCustomizationService.$( "objectHasCustomization" ).$args( "page", "build#defaultOperation#Link" ).$results( true );
+				mockCustomizationService.$( "runCustomization" ).$args(
+					  objectName     = "page"
+					, action         = "build#defaultOperation#Link"
+					, args           = { objectName="page", recordId=recordId }
+				).$results( result );
+
+				expect( service.buildlink(
+					  objectName = objectName
+					, recordId   = recordId
+				) ).toBe( result );
+			} );
 		} );
 
 		describe( "getDefaultRecordOperation()", function(){
@@ -218,6 +240,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockCustomizationService.$( "objectHasCustomization", false );
 		mockDataManagerService.$( "isObjectAvailableInDataManager", true );
 		mockColdbox.$( "runEvent", CreateUUId() );
+		mockPresideObjectService.$( "isPageType", false );
 
 		return service;
 	}

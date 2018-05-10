@@ -1513,8 +1513,8 @@ component displayName="Preside Object Service" {
 
 		if ( ListLen( arguments.propertyName, "." ) > 1 ) {
 			return getObjectProperty( propertyName=ListRest( arguments.propertyName, "." ), objectName=_resolveObjectNameFromColumnJoinSyntax(
-				  startObject      = arguments.objectName
-				, relationshipPath = ListFirst( arguments.propertyName, "." )
+				  startObject = arguments.objectName
+				, joinSyntax  = ListFirst( arguments.propertyName, "." )
 			) );
 		}
 
