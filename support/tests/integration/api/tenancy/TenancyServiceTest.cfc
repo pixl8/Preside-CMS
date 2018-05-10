@@ -282,6 +282,19 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( service.getTenancyCacheKey( objectName=objectName, bypassTenants=[ tenant ] ) ).toBe( "" );
 			} );
+
+			it( "should add the tenant value from passed tenancyIds struct on to the end of the cache key when the object has the tenant", function(){
+				var service    = _getService();
+				var objectName = CreateUUId();
+				var tenant     = "mytenant";
+				var tenantId   = CreateUUId();
+				var tenantIds  = { mytenant=tenantId };
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+				service.$( "getTenantId" ).$args( tenant ).$results( CreateUUId() );
+
+				expect( service.getTenancyCacheKey( objectName=objectName, tenantIds=tenantIds ) ).toBe( "-" & tenantId );
+			} );
 		} );
 
 		describe( "getTenantFkForObject()", function(){
@@ -384,6 +397,22 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
 
 				expect( service.getTenancyFilter( objectName=objectName, bypassTenants=[ tenant ] ) ).toBe( {} );
+			} );
+
+			it( "should use tenant ID from passed struct if present", function(){
+				var service    = _getService();
+				var objectName = "testthis";
+				var tenant     = "test";
+				var tenantId   = CreateUUId();
+				var tenantIds  = { test=tenantId };
+				var fk         = "some_fk";
+				var filter     = { filter = { "testthis.some_fk"=tenantId } };
+
+				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
+				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
+				mockColdbox.$( "handlerExists" ).$args( "tenancy.test.getFilter" ).$results( false );
+
+				expect( service.getTenancyFilter( objectName=objectName, tenantIds=tenantIds ) ).toBe( filter );
 			} );
 		} );
 

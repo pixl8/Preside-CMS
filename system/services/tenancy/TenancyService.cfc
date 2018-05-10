@@ -145,11 +145,11 @@ component displayName="Tenancy service" {
 		return request.__presideTenancy[ arguments.tenant ] ?: "";
 	}
 
-	public string function getTenancyCacheKey( required string objectName, array bypassTenants=[] ) {
+	public string function getTenancyCacheKey( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
 		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
-			return "-" & getTenantId( tenant );
+			return "-" & ( arguments.tenantIds[ tenant ] ?: getTenantId( tenant ) );
 		}
 
 		return "";
@@ -169,12 +169,12 @@ component displayName="Tenancy service" {
 		return fields;
 	}
 
-	public struct function getTenancyFilter( required string objectName, array bypassTenants=[] ) {
+	public struct function getTenancyFilter( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
 		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
 			var fk            = getTenantFkForObject( arguments.objectName );
-			var tenantId      = getTenantId( tenant );
+			var tenantId      = arguments.tenantIds[ tenant ] ?: getTenantId( tenant );
 			var config        = _getTenancyConfig();
 			var filterHandler = config[ tenant ].getFilterHandler ?: "tenancy.#tenant#.getFilter";
 			var coldbox       = $getColdbox();
