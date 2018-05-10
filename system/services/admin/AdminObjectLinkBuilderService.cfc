@@ -41,6 +41,10 @@ component {
 		,          string recordId   = ""
 		,          struct args       = {}
 	) {
+		if ( $getPresideObjectService().isPageType( arguments.objectName ) ) {
+			arguments.objectName = "page";
+		}
+
 		if ( !Len( Trim( arguments.operation ) ) ) {
 			if ( !Len( Trim( arguments.recordId ) ) ) {
 				arguments.operation = "listing";
