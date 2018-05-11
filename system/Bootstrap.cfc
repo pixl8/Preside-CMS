@@ -158,6 +158,7 @@ component {
 					_ensureCaseSensitiveStructSettingsAreActive();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
+					_preserveLocaleCookieIfPresent();
 					_initColdBox();
 
 					_announceInterception( "postPresideReload" );
@@ -669,5 +670,9 @@ component {
 		}
 
 		return stripped;
+	}
+
+	private void function _preserveLocaleCookieIfPresent() {
+		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
 	}
 }
