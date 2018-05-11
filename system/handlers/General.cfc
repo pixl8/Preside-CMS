@@ -15,6 +15,7 @@ component {
 		_configureVariousServices();
 		_populateDefaultLanguages();
 		_populateAutoRulesEngineExpressions();
+
 		announceInterception( "onApplicationStart" );
 	}
 
@@ -190,6 +191,12 @@ component {
 	}
 
 	private void function _configureVariousServices() {
-		getModel( "i18n" ).configure();
+		var i18n = getModel( "i18n" );
+
+		i18n.configure();
+
+		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
+			i18n.setFwLocale( request.DefaultLocaleFromCookie );
+		}
 	}
 }
