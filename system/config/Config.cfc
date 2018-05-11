@@ -692,6 +692,10 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
+		templates.resetCmsPasswordForTokenExpiry = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
 		templates.formbuilderSubmissionNotification = { feature="formbuilder", recipientType="anonymous", parameters=[
 			  { id="admin_link"          , required=true }
 			, { id="submission_preview"  , required=true }

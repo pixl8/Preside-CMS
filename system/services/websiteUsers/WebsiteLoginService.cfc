@@ -720,7 +720,10 @@ component displayName="Website login service" {
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
 
-			resendPasswordResetInstructions( record.id );
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( resendToken ) {
+				resendPasswordResetInstructions( record.id );
+			}
 
 			return QueryNew('');
 		}
