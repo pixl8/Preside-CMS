@@ -928,7 +928,7 @@ component displayName="Admin login service" {
 			);
 
 			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
-			if ( resendToken ){
+			if ( IsBoolean( resendToken ) && resendToken ){
 				resendPasswordResetInstructions( record.id );
 			}
 
