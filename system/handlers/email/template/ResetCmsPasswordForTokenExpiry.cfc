@@ -8,8 +8,8 @@ component {
 	) {
 		return {
 			  site_url            = event.getSite().domain
-			, reset_password_link = event.buildLink(
-				  page        = "reset_password"
+			, reset_password_link = event.buildAdminLink(
+				  linkto      = "login.resetpassword"
 				, querystring = "token=" & ( arguments.resetToken ?: "" )
 			  )
 		};
