@@ -174,7 +174,12 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getConfigHistoryForAjaxDataTables( event, rc, prc ) {
 		prc.setting = structKeyList( event.getCollectionForForm( "system-config.#rc.id#" ) );
 
-		var nextVersionNumber = presideObjectService.getNextVersionNumber();
+		var nextVersionNumber = val(presideObjectService.selectData(
+			objectName      = "system_config",
+			fromVersionTable = true,
+			selectFields    = [ "Max( _version_number ) as max_version_number" ]
+			, filter = { category = id }
+		).max_version_number);
 		var allFieldsData = presideObjectService.selectData(
 			objectName       = "system_config",
 			filter           = "category = :category AND setting IN ( :setting )",
@@ -208,7 +213,12 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName      = args.object ?: "";
 		var id              = args.id     ?: "";
 		var setting         = structKeyList( event.getCollectionForForm( "system-config.#args.id#" ) );
-		var maxVersion      = presideObjectService.getNextVersionNumber();
+		var maxVersion      = val(presideObjectService.selectData(
+			objectName      = "system_config",
+			fromVersionTable = true,
+			selectFields    = [ "Max( _version_number ) as max_version_number" ]
+			, filter = { category = id }
+		).max_version_number);
 
 		args.versions        = presideObjectService.selectData(
 			objectName       = "system_config",
@@ -224,13 +234,13 @@ component extends="preside.system.base.AdminHandler" {
 			sql     = "select top 1 _version_number as latestVersion from args.versions order by _version_number DESC"
 			, options = { dbtype="query" }
 		).latestVersion[1];
-		if(args.latestVersion EQ "") args.latestVersion = maxVersion;
+		if(args.latestVersion == "") args.latestVersion = maxVersion;
 
 		args.latestPublishedVersion = queryExecute(
 			sql     = "select top 1 _version_number as latestVersion from args.versions where _version_is_draft = 0 order by _version_number DESC"
 			, options = { dbtype="query" }
 		).latestVersion[1];
-		if(args.latestPublishedVersion EQ "") args.latestPublishedVersion = maxVersion;
+		if(args.latestPublishedVersion == "") args.latestPublishedVersion = maxVersion;
 
 		if ( !selectedVersion ) {
 			selectedVersion = args.latestVersion;
@@ -247,7 +257,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		return renderView( view="admin/datamanager/groupVersionNavigator", args=args );
+		return renderView( view="admin/sysconfig/groupVersionNavigator", args=args );
 	}
 
 }

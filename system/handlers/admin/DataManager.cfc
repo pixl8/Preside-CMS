@@ -2978,6 +2978,7 @@ component extends="preside.system.base.AdminHandler" {
 
 				}
 
+
 				try {
 					prc.recordLabel = renderLabel( prc.objectName, prc.recordId );
 				} catch ( "PresideObjectService.no.label.field" e ) {
