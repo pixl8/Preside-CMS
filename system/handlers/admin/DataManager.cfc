@@ -1035,53 +1035,6 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="admin/datamanager/versionNavigator", args=args );
 	}
 
-	private string function groupVersionNavigator( event, rc, prc, args={} ) {
-		var selectedVersion = Val( args.version ?: "" );
-		var objectName      = args.object ?: "";
-		var id              = args.id     ?: "";
-		var setting         = structKeyList( event.getCollectionForForm( "system-config.#args.id#" ) );
-		var maxVersion      = presideObjectService.getNextVersionNumber();
-
-		args.versions        = presideObjectService.selectData(
-			objectName       = "system_config",
-			selectFields     = ["system_config.id", "system_config.site", "system_config.category", "system_config.setting", "system_config.value", "system_config.datecreated", "system_config.datemodified", "system_config._version_is_draft", "system_config._version_has_drafts", "system_config._version_number"],
-			filter           = "category = :category AND setting IN ( :setting )",
-			filterParams     = { "category"=id, "setting"={ value=setting, list="yes" } },
-			fromVersionTable = true,
-			maxVersionNumber = maxVersion,
-			orderBy          = "system_config._version_number DESC"
-		);
-
-		args.latestVersion   = queryExecute(
-			sql     = "select top 1 _version_number as latestVersion from args.versions order by _version_number DESC"
-			, options = { dbtype="query" }
-		).latestVersion[1];
-		if(args.latestVersion EQ "") args.latestVersion = maxVersion;
-
-		args.latestPublishedVersion = queryExecute(
-			sql     = "select top 1 _version_number as latestVersion from args.versions where _version_is_draft = 0 order by _version_number DESC"
-			, options = { dbtype="query" }
-		).latestVersion[1];
-		if(args.latestPublishedVersion EQ "") args.latestPublishedVersion = maxVersion;
-
-		if ( !selectedVersion ) {
-			selectedVersion = args.latestVersion;
-		}
-
-		args.isLatest    = args.latestVersion == selectedVersion;
-		args.nextVersion = 0;
-		args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
-
-		for( var i=1; i <= args.versions.recordCount; i++ ){
-			if ( args.versions._version_number[i] == selectedVersion ) {
-				args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
-				args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
-			}
-		}
-
-		return renderView( view="admin/datamanager/groupVersionNavigator", args=args );
-	}
-
 	private string function translationVersionNavigator( event, rc, prc, args={} ) {
 		var recordId              = args.id       ?: "";
 		var language              = args.language ?: "";

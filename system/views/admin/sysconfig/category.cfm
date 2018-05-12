@@ -14,7 +14,7 @@
 </cfscript>
 
 <cfoutput>
-	#renderViewlet( event='admin.datamanager.groupVersionNavigator', args={
+	#renderViewlet( event='admin.sysconfig.groupVersionNavigator', args={
 		  object           = "system_config"
 		, id               = categoryId
 		, version          = version

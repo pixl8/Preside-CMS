@@ -1261,7 +1261,7 @@ component displayName="Preside Object Service" {
 			args.filterParams = { "#idField#" = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
 			args.delete( "fieldName" );
 			args.delete( "id" );
-		} else if ( listLen( arguments.id ) GT 1 ){
+		} else if ( listLen( arguments.id ) > 1 ){
 			args.filter       = "#idField# IN ( :#idField# )";
 			args.filterParams = { "#idField#" = { value = arguments.id, list="yes"} };
 			args.delete( "id" );
