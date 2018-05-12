@@ -41,6 +41,10 @@ component {
 		,          string recordId   = ""
 		,          struct args       = {}
 	) {
+		if ( $getPresideObjectService().isPageType( arguments.objectName ) ) {
+			arguments.objectName = "page";
+		}
+
 		if ( !Len( Trim( arguments.operation ) ) ) {
 			if ( !Len( Trim( arguments.recordId ) ) ) {
 				arguments.operation = "listing";
@@ -57,16 +61,24 @@ component {
 			customizationArgs.recordId = arguments.recordId;
 		}
 
-		var result = _getCustomizationService().runCustomization(
-			  objectName     = arguments.objectName
-			, action         = customizationAction
-			, args           = customizationArgs
-			, defaultHandler = "admin.objectLinks.#customizationAction#"
-		);
+		var result = "";
+		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, customizationAction ) ) {
+			result = _getCustomizationService().runCustomization(
+				  objectName = arguments.objectName
+				, action     = customizationAction
+				, args       = customizationArgs
+			);
+		} else if ( _getDataManagerService().isObjectAvailableInDataManager( arguments.objectName ) ) {
+			result = $getColdbox().runEvent(
+				  event          = "admin.objectLinks.#customizationAction#"
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args=customizationArgs }
+			);
+		}
 
 		result = result ?: "";
 		result = IsSimpleValue( result ) ? result : "";
-
 
 		return result;
 	}

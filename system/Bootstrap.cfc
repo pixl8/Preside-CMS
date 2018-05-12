@@ -4,7 +4,7 @@ component {
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
 		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
-		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|baiduspider|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
+		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
@@ -158,6 +158,7 @@ component {
 					_ensureCaseSensitiveStructSettingsAreActive();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
+					_preserveLocaleCookieIfPresent();
 					_initColdBox();
 
 					_announceInterception( "postPresideReload" );
@@ -221,7 +222,7 @@ component {
 				      nullSupport          = luceeCompilerSettings.nullSupport
 				      templateCharset      = luceeCompilerSettings.templateCharset;
 			} catch( security e ) {
-				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
+				throw( type="security", message="Preside could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
 			}
 		}
 	}
@@ -669,5 +670,9 @@ component {
 		}
 
 		return stripped;
+	}
+
+	private void function _preserveLocaleCookieIfPresent() {
+		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
 	}
 }

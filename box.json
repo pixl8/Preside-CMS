@@ -4,7 +4,7 @@
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
     "packageDirectory":"preside",
-    "homepage":"https://www.presidecms.com",
+    "homepage":"https://www.preside.org",
     "documentation":"https://docs.preside.org",
     "repository":{
         "type":"github",
@@ -12,13 +12,13 @@
     },
     "bugs":"https://presidecms.atlassian.net",
     "slug":"presidecms",
-    "shortDescription":"The PresideCMS platform by Pixl8 Interactive",
+    "shortDescription":"The Preside platform by Pixl8 Interactive",
     "description":"",
     "instructions":"https://docs.preside.org/quickstart.html",
-    "changelog":"https://www.presidecms.com/release-notes.html",
+    "changelog":"https://www.preside.org/release-notes.html",
     "keywords":"CMS,ColdBox,FOSS",
     "private":false,
-    "projectURL":"https://www.presidecms.com",
+    "projectURL":"https://www.preside.org",
     "license":[
         {
             "type":"LGPLv2",
@@ -26,10 +26,10 @@
         }
     ],
     "dependencies":{
-        "sticker":"1.2.1",
+        "sticker":"1.2.2",
         "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v1.3.0",
         "coldbox":"4.3.0+188",
-        "presidecmseditor":"github:pixl8/Preside-Editor#4.8.0",
+        "presidecmseditor":"github:pixl8/Preside-Editor#4.8.2",
         "cbi18n":"1.3.1+56",
         "cbmessagebox":"2.2.0+10",
         "cbstorages":"1.3.0+14",

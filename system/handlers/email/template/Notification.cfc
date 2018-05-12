@@ -25,7 +25,7 @@ component {
 		params.notification_subject = Trim( notificationService.renderNotification( arguments.topic, arguments.data, "emailSubject" ) );
 
 		if ( !params.notification_subject.len() ) {
-			params.notification_subject = "PresideCMS: You have received a notification from the CMS";
+			params.notification_subject = "Preside: You have received a notification from the CMS";
 		}
 
 		return params;

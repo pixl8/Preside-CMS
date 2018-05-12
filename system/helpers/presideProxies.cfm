@@ -13,6 +13,10 @@
 		<cfreturn getSingleton( "systemConfigurationService" ).getSetting( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="getSystemCategorySettings" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "systemConfigurationService" ).getCategorySettings( argumentCollection = arguments ) />
+	</cffunction>
+
 <!--- preside objects --->
 	<cffunction name="getPresideObject" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "PresideObjectService" ).getObject( argumentCollection = arguments ) />
@@ -145,6 +149,28 @@
 
 			return simpleRequestCache( cacheKey, function(){
 				return getSingleton( "i18n" ).translateResource( argumentCollection = args )
+			} );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translateObjectName" access="public" returntype="any" output="false">
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translateObjectName" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getSingleton( "i18n" ).translateObjectName( argumentCollection = args )
+			} );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translatePropertyName" access="public" returntype="any" output="false">
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translatePropertyName" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getSingleton( "i18n" ).translatePropertyName( argumentCollection = args )
 			} );
 		</cfscript>
 	</cffunction>

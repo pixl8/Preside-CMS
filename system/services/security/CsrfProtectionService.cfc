@@ -60,7 +60,7 @@ component {
 
 // PRIVATE HELPERS
 	private struct function _getToken() {
-		return _getSessionStorage().getVar( "_csrfToken", {} );
+		return _getSessionStorage().getVar( name="_csrfToken", default={} );
 	}
 
 	private void function _setToken( required struct token ) {

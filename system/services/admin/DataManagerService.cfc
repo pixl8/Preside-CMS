@@ -111,7 +111,7 @@ component {
 			, defaultValue  = arrayToList( defaultGridFields( arguments.objectName ) )
 		);
 
-		return ListToArray( fields );
+		return ListToArray( fields, ", " );
 	}
 
 	public array function defaultGridFields( required string objectName ) {
@@ -210,7 +210,7 @@ component {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "read,add,edit,delete,viewversions"
+			, defaultValue  = "read,add,edit,delete,viewversions,translate"
 		);
 
 		operations = operations.reReplaceNoCase( "\bview\b", "read" );
@@ -525,17 +525,21 @@ component {
 		,          numeric maxRows       = 1000
 		,          string  orderBy       = "label"
 		,          string  labelRenderer = ""
+		,          array   bypassTenants = []
+		,          boolean useCache      = false
 	) {
 		var result = [];
 		var records = "";
 		var args   = {
-			  objectName   = arguments.objectName
-			, selectFields = arguments.selectFields
-			, savedFilters = arguments.savedFilters
-			, extraFilters = arguments.extraFilters
-			, maxRows      = arguments.maxRows
-			, orderBy      = arguments.orderBy
-			, autoGroupBy  = true
+			  objectName    = arguments.objectName
+			, selectFields  = arguments.selectFields
+			, savedFilters  = arguments.savedFilters
+			, extraFilters  = arguments.extraFilters
+			, bypassTenants = arguments.bypassTenants
+			, maxRows       = arguments.maxRows
+			, orderBy       = arguments.orderBy
+			, autoGroupBy   = true
+			, useCache      = arguments.useCache
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
 			result.text = replaceList(_getLabelRendererService().renderLabel( labelRenderer, result ), "&lt;,&gt;,&amp;,&quot;", '<,>,&,"');
@@ -566,7 +570,7 @@ component {
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
 			var searchFields = [ labelField ];
 			if ( len( arguments.labelRenderer ) ) {
-				searchFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery
@@ -648,7 +652,7 @@ component {
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.#idField# as id" );
-		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
+		if ( !labelFieldIsRelationship && ListLen( labelField, "." ) < 2 && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
 		}
@@ -680,10 +684,10 @@ component {
 			if ( ignore.findNoCase( field ) ) {
 				continue;
 			}
-			if ( not StructKeyExists( props, field ) ) {
+			if ( !StructKeyExists( props, field ) ) {
 				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
-				} else {
+				} else if ( field != labelField ) {
 					sqlFields[i] = "'' as " & field;
 				}
 				continue;

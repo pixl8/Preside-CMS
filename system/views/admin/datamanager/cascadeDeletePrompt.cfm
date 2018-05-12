@@ -6,10 +6,6 @@
 	cancelUrl           = Trim( rc.cancelUrl ?: "" );
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	objectTitlePural    = translateResource( uri="preside-objects.#objectName#:title", defaultValue=objectName );
-	deleteTitle         = translateResource( uri="cms:datamanager.cascadeDelete.title" );
-
-	prc.pageIcon  = "trash";
-	prc.pageTitle = deleteTitle;
 
 	cancelLink = cancelUrl.len() ? cancelUrl : event.buildAdminLink( objectName=objectName, recordId=id, operation="viewRecord" );
 </cfscript>

@@ -123,6 +123,7 @@ component {
 		, numeric version      = 0
 		, boolean getLatest    = false
 		, boolean allowDrafts  = $getRequestContext().showNonLiveContent()
+		, string  site         = ""
 
 	) {
 		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
@@ -144,6 +145,10 @@ component {
 				  type    = "SiteTreeService.GetPage.MissingArgument"
 				, message = "Neither [id], [system_key] nor [slug] was passed to the getPage() method. You must specify one of either argument"
 			);
+		}
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			args.tenantIds = { site=arguments.site };
 		}
 
 		if ( not arguments.includeTrash ) {
@@ -395,8 +400,9 @@ component {
 		,          array   selectFields    = []
 		,          boolean includeSiblings = false
 		,          boolean allowDrafts     = $getRequestContext().showNonLiveContent()
+		,          string  site            = ""
 	) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts );
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts, site=arguments.site );
 		var args = "";
 
 		if ( page.recordCount and page._hierarchy_lineage neq "/" ) {
@@ -425,6 +431,10 @@ component {
 				args.selectFields = arguments.selectFields;
 			}
 
+			if ( Len( Trim( arguments.site ) ) ) {
+				args.tenantIds = { site=arguments.site };
+			}
+
 			return _getPObj().selectData( argumentCollection = args );
 		}
 
@@ -437,6 +447,7 @@ component {
 		, boolean getLatest         = false
 		, boolean allowDrafts       = false
 		, numeric version           = 0
+		, string  site              = ""
 	) {
 		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
@@ -450,6 +461,10 @@ component {
 				, trashed          = false
 			  }
 		};
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			homepageArgs.tenantIds = { site=arguments.site };
+		}
 
 		if ( arguments.version ) {
 			homepageArgs.fromVersionTable = true;

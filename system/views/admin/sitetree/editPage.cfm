@@ -9,8 +9,9 @@
 	prc.pageIcon     = "pencil";
 	prc.pageTitle    = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.page.title ] );
 
-	pageId  = rc.id      ?: "";
-	version = rc.version ?: "";
+	pageId     = rc.id      ?: "";
+	version    = rc.version ?: "";
+	childCount = prc.childCount ?: 0;
 
 	safeTitle = HtmlEditFormat( page.title );
 
@@ -85,7 +86,7 @@
 
 				<cfif canDeletePage>
 					<li>
-						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#" data-has-children="#childCount#">
 							<i class="fa fa-fw fa-trash-o"></i>&nbsp;
 							#translateResource( "cms:sitetree.trash.page.dropdown" )#
 						</a>

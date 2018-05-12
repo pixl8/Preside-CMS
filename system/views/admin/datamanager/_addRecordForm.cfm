@@ -5,12 +5,7 @@
 	param name="args.formName"                type="string"  default="preside-objects.#args.objectName#.admin.add";
 	param name="args.mergeWithFormName"       type="string"  default="";
 	param name="args.allowAddAnotherSwitch"   type="boolean";
-	param name="args.draftsEnabled"           type="boolean" default=false;
-	param name="args.canPublish"              type="boolean" default=false;
-	param name="args.canSaveDraft"            type="boolean" default=false;
 	param name="args.validationResult"        type="any"     default=( rc.validationResult ?: '' );
-	param name="args.cancelAction"            type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="listing" );
-	param name="args.cancelLabel"             type="string"  default=translateResource( "cms:datamanager.cancel.btn" );
 	param name="args.hiddenFields"            type="struct"  default={};
 	param name="args.fieldLayout"             type="string"  default="formcontrols.layouts.field";
 	param name="args.fieldsetLayout"          type="string"  default="formcontrols.layouts.fieldset";
@@ -21,15 +16,11 @@
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
-	param name="args.actionButtons"           type="string"  default="";
+	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._addRecordActionButtons", args=args );
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
 	formId              = "addForm-" & CreateUUId();
-
-	param name="args.addRecordLabel"        type="string"  default=translateResource( uri="cms:datamanager.addrecord.btn"         , data=[ objectTitleSingular ] );
-	param name="args.publishLabel"          type="string"  default=translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ objectTitleSingular ] );
-	param name="args.saveDraftLabel"        type="string"  default=translateResource( uri="cms:datamanager.add.record.draft.btn"  , data=[ objectTitleSingular ] );
 
 	args.record.append( args.hiddenFields, false );
 </cfscript>
@@ -77,34 +68,7 @@
 				)#
 			</cfif>
 
-			<cfif Len( Trim( args.actionButtons ) )>
-				#args.actionButtons#
-			<cfelse>
-				<div class="col-md-offset-2">
-					<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
-						<i class="fa fa-reply bigger-110"></i>
-						#args.cancelLabel#
-					</a>
-
-					<cfif args.draftsEnabled>
-						<cfif args.canSaveDraft>
-							<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-								<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
-							</button>
-						</cfif>
-						<cfif args.canPublish>
-							<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-								<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
-							</button>
-						</cfif>
-					<cfelse>
-						<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i> #args.addRecordLabel#
-						</button>
-					</cfif>
-				</div>
-			</cfif>
+			#args.renderedActionButtons#
 		</div>
-
 	</form>
 </cfoutput>

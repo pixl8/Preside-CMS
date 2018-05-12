@@ -1,5 +1,5 @@
 /**
- * An object to provide the PresideCMS REST platform's
+ * An object to provide the Preside REST platform's
  * business logic.
  *
  * @autodoc

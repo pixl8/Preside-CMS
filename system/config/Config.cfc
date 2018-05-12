@@ -52,7 +52,8 @@ component {
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } },
-			{ class="preside.system.interceptors.PageCachingInterceptor"              , properties={} }
+			{ class="preside.system.interceptors.PageCachingInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -193,6 +194,7 @@ component {
 
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
+			, "notification"
 			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
@@ -287,11 +289,12 @@ component {
 
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets = [ "/css/admin/specific/richeditor/" ]
-				, width       = "auto"
-				, minHeight   = 0
-				, maxHeight   = 300
-				, configFile  = "/ckeditorExtensions/config.js?v10.9.0"
+				  stylesheets   = [ "/css/admin/specific/richeditor/" ]
+				, width         = "auto"
+				, minHeight     = 0
+				, maxHeight     = 300
+				, autoParagraph = false
+				, configFile    = "/ckeditorExtensions/config.js?v10.9.0a"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		};
@@ -689,6 +692,10 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
+		templates.resetCmsPasswordForTokenExpiry = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
 		templates.formbuilderSubmissionNotification = { feature="formbuilder", recipientType="anonymous", parameters=[
 			  { id="admin_link"          , required=true }
 			, { id="submission_preview"  , required=true }
@@ -704,6 +711,10 @@ component {
 			, "site_url"
 		] };
 		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.resetWebsitePasswordForTokenExpiry = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };

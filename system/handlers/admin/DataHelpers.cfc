@@ -116,17 +116,18 @@ component extends="preside.system.base.adminHandler" {
 		var gridFields    = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
 
 		return renderView( view="/admin/datamanager/_objectDataTable", args={
-			  objectName      = relatedObject
-			, gridFields      = gridFields
-			, dataSourceUrl   = dataSourceUrl
-			, id              = "related-object-datatable-#objectName#-#propertyName#-" & CreateUUId()
-			, compact         = true
-			, useMultiActions = false
-			, isMultilingual  = false
-			, draftsEnabled   = false
-			, allowSearch     = true
-			, allowFilter     = false
-			, allowDataExport = false
+			  objectName        = relatedObject
+			, gridFields        = gridFields
+			, dataSourceUrl     = dataSourceUrl
+			, id                = "related-object-datatable-#objectName#-#propertyName#-" & CreateUUId()
+			, compact           = true
+			, useMultiActions   = false
+			, isMultilingual    = false
+			, draftsEnabled     = false
+			, allowSearch       = true
+			, allowFilter       = false
+			, allowDataExport   = false
+			, objectTitlePlural = translatePropertyName( objectName, propertyName )
 		} );
 	}
 

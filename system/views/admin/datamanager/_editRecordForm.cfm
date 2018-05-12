@@ -7,11 +7,6 @@
 	param name="args.formName"                type="string"  default="preside-objects.#args.object#.admin.edit";
 	param name="args.mergeWithFormName"       type="string"  default="";
 	param name="args.useVersioning"           type="boolean" default=false;
-	param name="args.draftsEnabled"           type="boolean" default=false;
-	param name="args.canPublish"              type="boolean" default=false;
-	param name="args.canSaveDraft"            type="boolean" default=false;
-	param name="args.cancelAction"            type="string"  default=event.buildAdminLink( objectName=args.object, recordId=args.id, operation="viewRecord" );
-	param name="args.cancelLabel"             type="string"  default=translateResource( "cms:datamanager.cancel.btn" );
 	param name="args.hiddenFields"            type="struct"  default={};
 	param name="args.fieldLayout"             type="string"  default="formcontrols.layouts.field";
 	param name="args.fieldsetLayout"          type="string"  default="formcontrols.layouts.fieldset";
@@ -23,7 +18,8 @@
 	param name="args.resultAction"            type="string"  default="";
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
-	param name="args.actionButtons"           type="string"  default="";
+	param name="args.objectName"              type="string"  default=args.object;
+	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._editRecordActionButtons", args=args );
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue=args.object );
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.object#:editRecord.prompt", defaultValue="" );
@@ -77,33 +73,7 @@
 		#args.postForm#
 
 		<div class="form-actions row">
-			<cfif Len( Trim( args.actionButtons ) )>
-				#args.actionButtons#
-			<cfelse>
-				<div class="col-md-offset-2">
-					<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
-						<i class="fa fa-reply bigger-110"></i>
-						#args.cancelLabel#
-					</a>
-
-					<cfif args.draftsEnabled>
-						<cfif args.canSaveDraft>
-							<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
-								<i class="fa fa-save bigger-110"></i> #args.saveDraftLabel#
-							</button>
-						</cfif>
-						<cfif args.canPublish>
-							<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
-								<i class="fa fa-globe bigger-110"></i> #args.publishLabel#
-							</button>
-						</cfif>
-					<cfelse>
-						<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i> #args.editRecordLabel#
-						</button>
-					</cfif>
-				</div>
-			</cfif>
+			#args.renderedActionButtons#
 		</div>
 	</form>
 </cfoutput>

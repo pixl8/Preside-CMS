@@ -32,6 +32,7 @@
 			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
 			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
 			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
+			  , noRecordMessage     = tableSettings.noRecordMessage || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , compact             = tableSettings.compact         || cfrequest.compact
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
@@ -183,7 +184,7 @@
 							sNext : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "" } ),
 							sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "" } )
 						},
-						sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [objectTitle], defaultValue : "" } ),
+						sEmptyTable : noRecordMessage,
 						sInfo : i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } ),
 						sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [objectTitle], defaultValue : "" } ),
 						sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [objectTitle], defaultValue : "" } ),

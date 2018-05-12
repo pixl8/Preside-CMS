@@ -1,5 +1,6 @@
 <cfscript>
 	param name="args.objectName"          type="string";
+	param name="args.multiActions"        type="string"  default="";
 	param name="args.useMultiActions"     type="boolean" default=false;
 	param name="args.multiActionViewlet"  type="string"  default="admin.datamanager._multiActions";
 	param name="args.multiActionUrl"      type="string"  default="";
@@ -18,10 +19,11 @@
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
 	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
+	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
+	param name="args.objectTitlePlural"   type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 
-	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
-	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ objectTitle ] );
+	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ args.objectTitlePlural ] );
 	batchEditTitle       = translateResource( uri="cms:datamanager.batchEditSelected.title" );
 
 	event.include( "/js/admin/specific/datamanager/object/");
@@ -127,6 +129,7 @@
 
 		<table id="#tableId#" class="table table-hover object-listing-table"
 			data-object-name="#args.objectName#"
+			data-object-title="#args.objectTitlePlural#"
 		    data-datasource-url="#args.datasourceUrl#"
 		    data-use-multi-actions="#args.useMultiActions#"
 		    data-allow-search="#args.allowSearch#"
@@ -137,6 +140,7 @@
 		    data-no-actions="#args.noActions#"
 		    data-allow-filter="#args.allowFilter#"
 		    data-compact="#args.compact#"
+		    data-no-record-message="#args.noRecordMessage#"
 		>
 			<thead>
 				<tr>
@@ -149,7 +153,7 @@
 						</th>
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
-						<th data-field="#fieldName#">#translateResource( uri="preside-objects.#args.objectName#:field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )#</th>
+						<th data-field="#ListLast( fieldName, '.' )#">#translatePropertyName( args.objectName, fieldName )#</th>
 					</cfloop>
 					<cfif args.draftsEnabled>
 						<th>#translateResource( uri="cms:datamanager.column.draft.status" )#</th>
@@ -167,7 +171,11 @@
 		</table>
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
-					#renderViewlet( event=args.multiActionViewlet, args=args )#
+					<cfif Len( Trim( args.multiActions ) )>
+						#args.multiActions#
+					<cfelse>
+						#renderViewlet( event=args.multiActionViewlet, args=args )#
+					</cfif>
 				</div>
 			</form>
 		</cfif>

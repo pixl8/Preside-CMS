@@ -8,19 +8,21 @@ component {
 // CONSTRUCTOR
 
 	/**
-	 * @coldbox.inject               coldbox
-	 * @presideObjectService.inject  PresideObjectService
-	 * @resourceBundleService.inject ResourceBundleService
-	 * @stickerForPreside.inject     stickerForPreside
-	 * @widgetsService.inject        WidgetsService
-	 * @pageTypesService.inject      PageTypesService
-	 * @formsService.inject          FormsService
+	 * @coldbox.inject                        coldbox
+	 * @presideObjectService.inject           PresideObjectService
+	 * @resourceBundleService.inject          ResourceBundleService
+	 * @stickerForPreside.inject              stickerForPreside
+	 * @delayedStickerRendererService.inject  delayedStickerRendererService
+	 * @widgetsService.inject                 WidgetsService
+	 * @pageTypesService.inject               PageTypesService
+	 * @formsService.inject                   FormsService
 	 */
 	public any function init(
 		  required any coldbox
 		, required any presideObjectService
 		, required any resourceBundleService
 		, required any stickerForPreside
+		, required any delayedStickerRendererService
 		, required any widgetsService
 		, required any pageTypesService
 		, required any formsService
@@ -30,6 +32,7 @@ component {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setResourceBundleService( arguments.resourceBundleService );
 		_setStickerForPreside( arguments.stickerForPreside );
+		_setDelayedStickerRendererService( arguments.delayedStickerRendererService );
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setFormsService( arguments.formsService );
@@ -70,7 +73,7 @@ component {
 	}
 
 	public void function reloadStatic() {
-		_getStickerForPreside().init( _getColdbox() );
+		_getStickerForPreside().init( coldbox=_getColdbox(), delayedStickerRendererService=_getDelayedStickerRendererService() );
 	}
 
 	public void function reloadWidgets() {
@@ -113,6 +116,13 @@ component {
 	}
 	private void function _setStickerForPreside( required any stickerForPreside ) {
 		_stickerForPreside = arguments.stickerForPreside;
+	}
+
+	private any function _getDelayedStickerRendererService() {
+		return _delayedStickerRendererService;
+	}
+	private void function _setDelayedStickerRendererService( required any delayedStickerRendererService ) {
+		_delayedStickerRendererService = arguments.delayedStickerRendererService;
 	}
 
 	private any function _getWidgetsService() {
