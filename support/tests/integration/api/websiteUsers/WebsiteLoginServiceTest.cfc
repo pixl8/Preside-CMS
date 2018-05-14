@@ -373,6 +373,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testToken   = "xxxxxx-yyyyyy";
 		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", -1, Now() ) ]]);
 
+		userService.$( "$getPresideSetting", false );
 		userService.$( "resendPasswordResetInstructions", true );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
@@ -393,6 +394,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testToken   = "xxxxxx-yyyyyy";
 		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ) ]]);
 
+		userService.$( "$getPresideSetting" ).$args( category="email", setting="resendtoken", default=false ).$results( true );
 		userService.$( "resendPasswordResetInstructions", true );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
