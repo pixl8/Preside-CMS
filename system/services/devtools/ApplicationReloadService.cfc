@@ -9,13 +9,14 @@ component {
 
 	/**
 	 * @coldbox.inject                        coldbox
-	 * @presideObjectService.inject           PresideObjectService
-	 * @resourceBundleService.inject          ResourceBundleService
+	 * @presideObjectService.inject           presideObjectService
+	 * @resourceBundleService.inject          resourceBundleService
 	 * @stickerForPreside.inject              stickerForPreside
 	 * @delayedStickerRendererService.inject  delayedStickerRendererService
-	 * @widgetsService.inject                 WidgetsService
-	 * @pageTypesService.inject               PageTypesService
-	 * @formsService.inject                   FormsService
+	 * @widgetsService.inject                 widgetsService
+	 * @pageTypesService.inject               pageTypesService
+	 * @formsService.inject                   formsService
+	 * @itemTypesService.inject               formbuilderItemTypesService
 	 */
 	public any function init(
 		  required any coldbox
@@ -26,6 +27,7 @@ component {
 		, required any widgetsService
 		, required any pageTypesService
 		, required any formsService
+		, required any itemTypesService
 	) {
 
 		_setColdbox( arguments.coldbox );
@@ -36,6 +38,7 @@ component {
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setFormsService( arguments.formsService );
+		_setItemTypesService( arguments.itemTypesService );
 
 		return this;
 	}
@@ -86,6 +89,7 @@ component {
 
 	public void function reloadForms() {
 		_getFormsService().reload();
+		_getItemTypesService().clearCachedItemTypeConfig();
 	}
 
 
@@ -144,5 +148,12 @@ component {
 	}
 	private void function _setFormsService( required any formsService ) {
 		_formsService = arguments.formsService;
+	}
+
+	private any function _getItemTypesService() {
+		return _itemTypesService;
+	}
+	private void function _setItemTypesService( required any itemTypesService ) {
+		_itemTypesService = arguments.itemTypesService;
 	}
 }
