@@ -150,7 +150,9 @@ component {
 		return itemTypeConfig.configFormName ?: "";
 	}
 
-
+	public void function clearCachedItemTypeConfig() {
+		_setCachedItemTypeConfiguration( {} );
+	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTypesAndCategories() {
