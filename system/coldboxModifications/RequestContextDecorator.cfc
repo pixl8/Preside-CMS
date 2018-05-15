@@ -216,7 +216,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return currentUrl.startsWith( adminPath );
 	}
 
-	public boolean function setIsDataManagerRequest() output=false {
+	public void function setIsDataManagerRequest() output=false {
 		getRequestContext().setValue(
 			  name    = "_isDataManagerRequest"
 			, value   = true
