@@ -26,7 +26,7 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
-		this.appBasePath                             = arguments.appBasePath;
+		this.appBasePath                             = _getAppBasePath( appBasePath = arguments.appBasePath );
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -107,10 +107,11 @@ component {
 		  string appMapping     = "/app"
 		, string assetsMapping  = "/assets"
 		, string logsMapping    = "/logs"
-	    , string appBasePath	= _getAppBasePath( appBasePath = arguments.appBasePath )
-		, string appPath        = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/application"
-		, string assetsPath     = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/assets"
-		, string logsPath       = _getApplicationRoot( appRoot = appBasePath & "/" ) & "/logs"
+	    //, string appBasePath	= _getAppBasePath( appBasePath = arguments.appBasePath )
+		  , string appBasePath
+		, string appPath        = _getApplicationRoot( appRoot = this.appBasePath & "/" ) & "/application"
+		, string assetsPath     = _getApplicationRoot( appRoot = this.appBasePath & "/" ) & "/assets"
+		, string logsPath       = _getApplicationRoot( appRoot = this.appBasePath & "/" ) & "/logs"
 
 	) {
 		var presideroot = _getPresideRoot();
@@ -131,7 +132,7 @@ component {
 
 		request._presideMappings = {
 			  appMapping     = arguments.appMapping
-			, appBasePath    = arguments.appBasePath
+			, appBasePath    = this.appBasePath
 			, assetsMapping  = arguments.appBasePath & arguments.assetsMapping
 			, logsMapping    = arguments.appBasePath & arguments.logsMapping
 		};
@@ -557,9 +558,23 @@ component {
 		if ( Len( arguments.appBasePath ) ) {
 			appBasePath = arguments.appBasePath;
 		} else {
+
+			try {
+
+				// cbController returns null - not sure how this should be initialised /
+				// It appears that ColdBox is not available at this stage.
+				// Needing assistance with this.
 			var cbController = _getColdboxController();
+				if ( isNull( cbController ) ) {
+					throw(message = "cbController isNull");
+				}
 			var site = cbController.getRequestContext().getSite();
 			appBasePath = ( site.path == "/" ) ? "" : site.path;
+
+			} catch ( any e ) {
+				appBasePath = "";
+			}
+
 		}
 
 		if ( ! Len(appBasePath) ) {

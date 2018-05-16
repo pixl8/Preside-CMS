@@ -15,8 +15,7 @@ component implements="iRouteHandler" output=false {
 	 */
 	public any function init( string adminBasePath = "", required string adminPath, required string eventName, required any applicationsService, required any sysConfigService, required any controller ) {
 		_setAdminBasePath( arguments.adminBasePath );
-		var adminBasePath = Len( arguments.adminBasePath ) ? arguments.adminBasePath : _getAdminBasePath();
-		_setAdminPath( adminBasePath & arguments.adminPath );
+		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );
 		_setApplicationsService( arguments.applicationsService );
 		_setSysConfigService( arguments.sysConfigService );
@@ -76,7 +75,7 @@ component implements="iRouteHandler" output=false {
 		return Len( Trim( fromSysConfig ) ) ? fromSysConfig : _adminPath;
 	}
 	private void function _setAdminPath( required string adminPath ) {
-		_adminPath = arguments.adminPath;
+		_adminPath = _getAdminBasePath() & arguments.adminPath;
 	}
 
 	private string function _getAdminBasePath() {

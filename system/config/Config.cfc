@@ -179,7 +179,7 @@ component {
 			, feature            = "cms"
 			, defaultEvent       = "admin.sitetree"
 			, accessPermission   = "cms.access"
-			, activeEventPattern = "admin\.*"
+			, activeEventPattern = "admin\..*"
 			, layout             = "admin"
 		} ];
 
