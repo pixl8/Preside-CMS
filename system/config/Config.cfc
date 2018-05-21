@@ -510,6 +510,8 @@ component {
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
+			, tiff   = { serveAsAttachment=false, mimeType="image/tiff" }
+			, tif    = { serveAsAttachment=false, mimeType="image/tiff" }
 		};
 
 		types.video = {

@@ -492,7 +492,11 @@ component extends="preside.system.base.AdminHandler" {
 
 			assetData.delete( "asset_folder" );
 			assetData.delete( "file" );
-			assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+
+			if ( listFindNoCase( "tif,tiff", ListLast( assetData.title, "." ) ) )
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? replaceNoCase( assetData.title ,ListLast(assetData.title,"." ), "jpg" ) : fileName;
+			else
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
 
 			try {
 				var assetId = assetManagerService.addAsset(
