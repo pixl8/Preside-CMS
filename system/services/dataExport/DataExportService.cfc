@@ -74,6 +74,10 @@ component {
 		selectDataArgs.startRow  = 1;
 		selectDataArgs.autoGroup = true;
 		selectDataArgs.useCache  = false;
+		selectDataArgs.orderBy   = presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "dataExportDefaultSortOrder"
+		);
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
 
 		if ( canReportProgress || canLog ) {
