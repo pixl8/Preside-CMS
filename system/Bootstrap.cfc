@@ -419,8 +419,14 @@ component {
 	private void function _removeSessionCookies() {
 		var pc             = getPageContext();
 		var resp           = pc.getResponse();
-		var allCookies     = resp.getHeaders( "Set-Cookie" );
 		var cleanedCookies = [];
+
+		try {
+			var allCookies = resp.getHeaders( "Set-Cookie" );
+		} catch( "java.lang.AbstractMethodError" e ) {
+			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
+			return;
+		}
 
 		if ( ArrayLen( allCookies ) ) {
 			for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
@@ -484,8 +490,14 @@ component {
 		var pc             = getPageContext();
 		var resp           = pc.getResponse();
 		var cbController   = _getColdboxController();
-		var allCookies     = resp.getHeaders( "Set-Cookie" );
 		var sessionCookies = [ "CFID", "CFTOKEN" ];
+
+		try {
+			var allCookies = resp.getHeaders( "Set-Cookie" );
+		} catch( "java.lang.AbstractMethodError" e ) {
+			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
+			return;
+		}
 
 		if ( IsNull( cbController ) || isStatelessRequest( _getUrl() ) ) {
 			if ( ArrayLen( allCookies ) ) {
