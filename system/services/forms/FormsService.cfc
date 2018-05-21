@@ -1478,7 +1478,7 @@ component displayName="Forms service" {
 	private string function _runDefaultValueFunction( required string objectName, required string default ) {
 		var defaultValue = arguments.default ?: "";
 
-		if ( Len( Trim( defaultValue ) ) ) {
+		if ( ListLen( defaultValue, ":" ) > 1 ) {
 			switch( ListFirst( defaultValue, ":" ) ) {
 				case "cfml":
 					defaultValue = Evaluate( ListRest( defaultValue, ":" ) );
@@ -1495,7 +1495,7 @@ component displayName="Forms service" {
 			}
 		}
 
-		return defaultValue;
+		return defaultValue ?: "";
 	}
 
 // GETTERS AND SETTERS
