@@ -1138,6 +1138,9 @@
 			}
 
 			this.selected.push( item );
+
+			this.hidden_field.trigger( "change" );
+			this.form_field_jq.trigger( "change" );
 		}
 
 		UberSelect.prototype.add_to_hidden_field = function( value ){
