@@ -534,6 +534,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailSendingContextService = mockEmailSendingContextService
 					, assetManagerService        = mockAssetManagerService
 					, emailStyleInliner          = mockEmailStyleInliner
+					, emailSettings              = mockEmailSettings
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -1430,6 +1431,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockBlueprintDao         = createStub();
 		mockViewOnlineContentDao = createStub();
 		mockRequestContext       = createStub();
+		mockEmailSettings        = { defaultContentExpiry=30 };
 
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
 		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
@@ -1459,6 +1461,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailSendingContextService = mockEmailSendingContextService
 				, assetManagerService        = mockAssetManagerService
 				, emailStyleInliner          = mockEmailStyleInliner
+				, emailSettings              = mockEmailSettings
 			);
 		}
 

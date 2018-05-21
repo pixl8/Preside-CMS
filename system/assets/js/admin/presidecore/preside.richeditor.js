@@ -6,14 +6,16 @@ PresideRichEditor = ( function( $ ){
 
 	PresideRichEditor.prototype.init = function( elementToReplace ){
 		var $elementToReplace = $( elementToReplace )
-		  , config           = {}
-		  , toolbar          = $elementToReplace.data( "toolbar" )          || cfrequest.ckeditorDefaultToolbar
-		  , width            = $elementToReplace.data( "width" )            || cfrequest.ckeditorDefaultWidth
-		  , minHeight        = $elementToReplace.data( "minHeight" )        || cfrequest.ckeditorDefaultMinHeight
-		  , maxHeight        = $elementToReplace.data( "maxHeight" )        || cfrequest.ckeditorDefaultMaxHeight
-		  , customConfig     = $elementToReplace.data( "customConfig" )     || cfrequest.ckeditorConfig
-		  , widgetCategories = $elementToReplace.data( "widgetCategories" ) || cfrequest.widgetCategories || ""
-		  , stylesheets      = $elementToReplace.data( "stylesheets" )
+		  , config            = {}
+		  , toolbar           = $elementToReplace.data( "toolbar" )          || cfrequest.ckeditorDefaultToolbar
+		  , width             = $elementToReplace.data( "width" )            || cfrequest.ckeditorDefaultWidth
+		  , minHeight         = $elementToReplace.data( "minHeight" )        || cfrequest.ckeditorDefaultMinHeight
+		  , maxHeight         = $elementToReplace.data( "maxHeight" )        || cfrequest.ckeditorDefaultMaxHeight
+		  , customConfig      = $elementToReplace.data( "customConfig" )     || cfrequest.ckeditorConfig
+		  , widgetCategories  = $elementToReplace.data( "widgetCategories" ) || cfrequest.widgetCategories || ""
+		  , stylesheets       = $elementToReplace.data( "stylesheets" )
+		  , enterMode         = $elementToReplace.data( "enterMode" )
+		  , autoParagraph     = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
@@ -34,6 +36,19 @@ PresideRichEditor = ( function( $ ){
 		if ( maxHeight ) {
 			config.autoGrow_maxHeight = isNaN( parseInt( maxHeight ) ) ? 0 : parseInt( maxHeight );
 		}
+		if ( enterMode && enterMode.length ) {
+			switch( enterMode.toLowerCase() ){
+				case "br":
+					config.enterMode = CKEDITOR.ENTER_BR;
+					break;
+				case "div":
+					config.enterMode = CKEDITOR.ENTER_DIV;
+					break;
+				default:
+					config.enterMode = CKEDITOR.ENTER_P;
+			}
+		}
+		config.autoParagraph    = autoParagraph;
 		config.widgetCategories = widgetCategories;
 
 		this.editor = CKEDITOR.replace( elementToReplace, config );

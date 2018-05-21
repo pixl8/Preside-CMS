@@ -2,6 +2,7 @@
 	param name="args.objectName"          type="string";
 	param name="args.batchEditableFields" type="array"   default=[];
 
+	canDelete            = IsTrue( prc.canDelete ?: "" );
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	batchEditTitle       = translateResource( uri="cms:datamanager.batchEditSelected.title" );
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
@@ -29,7 +30,7 @@
 			</ul>
 		</div>
 	</cfif>
-	<cfif hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
+	<cfif canDelete>
 		<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#deleteSelectedPrompt#">
 			<i class="fa fa-trash-o bigger-110"></i>
 			#deleteSelected#

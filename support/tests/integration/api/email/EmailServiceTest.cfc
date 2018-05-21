@@ -17,17 +17,22 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var testArgs          = { some="test", data=true, template="notification" };
 				var testHandlerResult = { from="someone@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 				var expectedSendArgs  = {
-					  from        = ""
-					, recipientId = ""
-					, subject     = ""
-					, to          = testToAddresses
-					, cc          = []
-					, bcc         = []
-					, htmlBody    = ""
-					, textBody    = ""
-					, params      = {}
-					, template    = "notification"
-					, args        = testArgs
+					  from                  = ""
+					, recipientId           = ""
+					, subject               = ""
+					, to                    = testToAddresses
+					, cc                    = []
+					, bcc                   = []
+					, replyto               = []
+					, failto                = []
+					, htmlBody              = ""
+					, textBody              = ""
+					, params                = {}
+					, template              = "notification"
+					, resendOf              = ""
+					, returnLogId           = false
+					, overwriteTemplateArgs = false
+					, args                  = testArgs
 				};
 
 				expectedSendArgs.append( testHandlerResult );
@@ -53,30 +58,40 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var recipientId         = CreateUUId();
 				var testPreparedMessage = { from="someone@test.com", to="to@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject", textBody="text only body" };
 				var expectedSendArgs  = {
-					  from     = ""
-					, subject  = ""
-					, to       = ""
-					, cc       = []
-					, bcc      = []
-					, htmlBody = ""
-					, textBody = ""
-					, params   = {}
-					, template = "notification"
-					, recipientId = recipientId
-					, args     = testArgs
+					  from                  = ""
+					, subject               = ""
+					, to                    = ""
+					, cc                    = []
+					, bcc                   = []
+					, replyto               = []
+					, failto                = []
+					, htmlBody              = ""
+					, textBody              = ""
+					, params                = {}
+					, template              = "notification"
+					, resendOf              = ""
+					, returnLogId           = false
+					, overwriteTemplateArgs = false
+					, recipientId           = recipientId
+					, args                  = testArgs
 				};
 				expectedPrepArgs = {
-					  template    = "notification"
-					, recipientId = recipientId
-					, args        = testArgs
-					, to          = []
-					, from        = ""
-					, subject     = ""
-					, cc          = []
-					, bcc         = []
-					, htmlBody    = ""
-					, textBody    = ""
-					, params      = {}
+					  template              = "notification"
+					, recipientId           = recipientId
+					, args                  = testArgs
+					, to                    = []
+					, from                  = ""
+					, subject               = ""
+					, cc                    = []
+					, bcc                   = []
+					, replyto               = []
+					, failto                = []
+					, htmlBody              = ""
+					, textBody              = ""
+					, params                = {}
+					, resendOf              = ""
+					, returnLogId           = false
+					, overwriteTemplateArgs = false
 				};
 
 				expectedSendArgs.append( testPreparedMessage );
@@ -104,17 +119,22 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var testHandlerResult = { cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 				var testDefaultFrom   = "default@test.com";
 				var expectedSendArgs  = {
-					  from        = testDefaultFrom
-					, recipientId = ""
-					, subject     = ""
-					, to          = testToAddresses
-					, cc          = []
-					, bcc         = []
-					, htmlBody    = ""
-					, textBody    = ""
-					, params      = {}
-					, args        = testArgs
-					, template    = "notification"
+					  from                  = testDefaultFrom
+					, recipientId           = ""
+					, subject               = ""
+					, to                    = testToAddresses
+					, cc                    = []
+					, bcc                   = []
+					, replyto               = []
+					, failto                = []
+					, htmlBody              = ""
+					, textBody              = ""
+					, params                = {}
+					, args                  = testArgs
+					, template              = "notification"
+					, resendOf              = ""
+					, returnLogId           = false
+					, overwriteTemplateArgs = false
 				};
 
 				expectedSendArgs.append( testHandlerResult );
@@ -162,7 +182,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					emailService.send( to=[ "test@test.com" ], subject="Test subject", htmlBody="not really html" );
 				} catch( "EmailService.missingSender" e ) {
 					expect( e.message ?: "" ).toBe( "Missing from email address when sending message with subject [Test subject]"                  );
-					expect( e.detail  ?: "" ).toBe( "Ensure that a default from email address is configured through your PresideCMS administrator" );
+					expect( e.detail  ?: "" ).toBe( "Ensure that a default from email address is configured through your Preside administrator" );
 					errorThrown = true;
 				} catch( any e ){
 					fail( "Incorrect error thrown. Expected type [EmailService.missingSender] but error of type [#e.type#] was thrown instead with message [#e.message#]." );

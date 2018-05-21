@@ -1,90 +1,107 @@
-component extends="coldbox.system.web.Controller" output=false {
+component extends="coldbox.system.web.Controller" {
 
-	public any function init() output=false {
+	public any function init() {
 		super.init( argumentCollection = arguments );
 
 		services.handlerService     = new preside.system.coldboxModifications.services.HandlerService( this );
+		services.moduleService      = new preside.system.coldboxModifications.services.ModuleService( this );
 		services.interceptorService = new preside.system.coldboxModifications.services.InterceptorService( this );
 		services.requestService     = new preside.system.coldboxModifications.services.RequestService( this );
-		instance.wireBox            = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
+		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
 	}
 
-	public boolean function handlerExists( required string event ) output=false {
-		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
+	function getRenderer(){
+		return variables.wireBox.getInstance( "presideRenderer" );
+	}
+
+	public boolean function handlerExists( required string event ) {
+		variables._handlerExistsCache = variables._handlerExistsCache ?: {};
+		if ( variables._handlerExistsCache.keyExists( arguments.event ) ) {
+			return variables._handlerExistsCache[ arguments.event ];
+		}
+
 		var handlerSvc = "";
 		var handler    = "";
 		var action     = ListLast( arguments.event, "." );
-		var cacheKey   = "handler exists: " & arguments.event;
-		var exists     = cache.get( cacheKey );
-
-		if ( !IsNull( local.exists ) ) {
-			return exists;
-		}
+		var exists     = false;
 
 		try {
 			handlerSvc = getHandlerService();
 			handler = handlerSvc.getRegisteredHandler( event=arguments.event );
 
 			if ( handler.getViewDispatch() ) {
-				cache.set( cacheKey, false );
-				return false;
+				exists = false;
+			} else {
+				var fullEvent = handler.getFullEvent();
+				if ( fullEvent != arguments.event && fullEvent != ( arguments.event & ".index" ) ) {
+					exists = false;
+				} else {
+					handler = handlerSvc.getHandler( handler, getRequestContext() );
+					handler = GetMetaData( handler );
+
+					if ( Right( handler.fullname ?: "", Len( arguments.event ) ) eq arguments.event ) {
+						action = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
+					}
+
+					exists = _actionExistsInHandler( handler, action );
+				}
 			}
 
-			var fullEvent = handler.getFullEvent();
-			if ( fullEvent != arguments.event && fullEvent != ( arguments.event & ".index" ) ) {
-				cache.set( cacheKey, false );
-				return false;
-			}
-
-			handler = handlerSvc.getHandler( handler, getRequestContext() );
-			handler = GetMetaData( handler );
-			if ( Right( handler.fullname ?: "", Len( arguments.event ) ) eq arguments.event ) {
-				action = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
-			}
-			exists = _actionExistsInHandler( handler, action );
-			cache.set( cacheKey, exists );
-
-			return exists;
 
 		} catch( "HandlerService.EventHandlerNotRegisteredException" e ) {
-			cache.set( cacheKey, false );
-			return false;
+			exists = false;
 		}
+
+		variables._handlerExistsCache[ arguments.event ] = exists;
+		return exists;
 	}
 
-	public boolean function viewExists( required string view ) output=false {
-		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
-		var cacheKey   = "view exists: " & arguments.view;
-		var exists     = cache.get( cacheKey );
-		var targetView = "";
-
-		if ( !IsNull( local.exists ) ) {
-			return exists;
+	public boolean function viewExists( required string view ) {
+		variables._viewExistsCache = variables._viewExistsCache ?: {};
+		if ( variables._viewExistsCache.keyExists( arguments.view ) ) {
+			return variables._viewExistsCache[ arguments.view ];
 		}
 
-		targetView = getPlugin( "Renderer" ).locateView( ListChangeDelims( arguments.view, "/", "." ) );
-		exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
+		var targetView = getRenderer().locateView( ListChangeDelims( arguments.view, "/", "." ) );
+		var exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
 
-		cache.set( cacheKey, exists );
+		variables._viewExistsCache[ arguments.view ] = exists;
 
 		return exists;
 	}
 
-	public boolean function viewletExists( required string event ) output=false {
+	public boolean function viewletExists( required string event ) {
 		return handlerExists( arguments.event ) or viewExists( arguments.event );
 	}
 
-	public any function renderViewlet( required string event, struct args={}, boolean private=true, boolean prepostExempt=true  ) output=false {
+	public any function renderViewlet(
+		  required string  event
+		,          struct  args          = {}
+		,          boolean private       = true
+		,          boolean prepostExempt = true
+		,          boolean delayed       = _getDelayedViewletRendererService().isViewletDelayedByDefault( arguments.event )
+	) {
+		if ( arguments.delayed ) {
+			return _getDelayedViewletRendererService().renderDelayedViewletTag(
+				  event         = arguments.event
+				, args          = arguments.args
+				, private       = arguments.private
+				, prepostExempt = arguments.prepostExempt
+			);
+		}
+
 		var result        = "";
 		var view          = "";
 		var handler       = arguments.event;
 		var defaultAction = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
+		var hndlrExists   = handlerExists( handler );
 
-		if ( not handlerExists( handler ) ) {
+		if ( !hndlrExists ) {
 			handler = ListAppend( handler, defaultAction, "." );
+			hndlrExists = handlerExists( handler );
 		}
 
-		if ( handlerExists( handler ) ) {
+		if ( hndlrExists ) {
 			return runEvent(
 				  event          = handler
 				, prepostExempt  = arguments.prepostExempt
@@ -94,36 +111,22 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 
 		view = ListChangeDelims( arguments.event, "/", "." );
-		if ( not viewExists( view ) ) {
+		if ( !viewExists( view ) ) {
 			view = ListAppend( view, defaultAction, "/" );
 		}
 
-		try {
-			return getPlugin( "Renderer" ).renderView(
-				  view = view
-				, args = arguments.args
-			);
-		} catch ( "missinginclude" e ) {
-			var cache             = getCacheBox().getCache( "ViewletExistsCache" );
-			var missingCheckedKey = "doublecheckmissing" & arguments.event;
-			var checkedAlready    = cache.get( missingCheckedKey );
-
-			if ( IsNull( local.checkedAlready ) ) {
-				cache.clearAll();
-				cache.set( missingCheckedKey, true );
-				return renderViewlet( argumentCollection=arguments );
-			}
-
-			rethrow;
-		}
+		return getRenderer().renderView(
+			  view = view
+			, args = arguments.args
+		);
 	}
 
-	public any function getRequestContext() output=false {
+	public any function getRequestContext() {
 		return getRequestService().getContext();
 	}
 
-	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) output=false {
-		var target = arguments.fwSetting ? instance.coldboxSettings : instance.configSettings;
+	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) {
+		var target = arguments.fwSetting ? variables.coldboxSettings : variables.configSettings;
 
 		if ( target.keyExists( arguments.name ) ) {
 			return target[ arguments.name ];
@@ -137,15 +140,13 @@ component extends="coldbox.system.web.Controller" output=false {
 			return arguments.defaultValue;
 		}
 
-		getUtil().throwit(
-			  message = "The setting #arguments.name# does not exist."
-			, detail  = "FWSetting flag is #arguments.FWSetting#"
-			, type    = "Controller.SettingNotFoundException"
-		);
+		throw( message="The setting #arguments.name# does not exist.",
+			   detail="FWSetting flag is #arguments.FWSetting#",
+			   type="Controller.SettingNotFoundException");
 	}
 
 // private helpers
-	private boolean function _actionExistsInHandler( required struct handlerMeta, required string action ) output=false {
+	private boolean function _actionExistsInHandler( required struct handlerMeta, required string action ) {
 		if ( StructKeyExists( arguments.handlerMeta, "extends" ) and _actionExistsInHandler( arguments.handlerMeta.extends, arguments.action ) ) {
 			return true;
 		}
@@ -159,5 +160,13 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 
 		return false;
+	}
+
+	private any function _getDelayedViewletRendererService() {
+		if ( !variables.keyExists( "_delayedViewletRendererService" ) ) {
+			variables._delayedViewletRendererService = wireBox.getInstance( "delayedViewletRendererService" );
+		}
+
+		return variables._delayedViewletRendererService;
 	}
 }

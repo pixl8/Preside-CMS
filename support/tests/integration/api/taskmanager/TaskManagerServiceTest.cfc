@@ -129,13 +129,15 @@ component extends="testbox.system.BaseSpec" {
 
 		describe( "runTask()", function(){
 			it( "should call the handler defined for the task, passing additional args set", function(){
-				var tm      = _getTaskManagerService();
-				var taskKey = "syncEvents";
-				var task    = { event="sync.events", name="My task", timeout=120 };
-				var logId   = CreateUUId();
-				var args    = { test=true, blah=CreateUUId() };
+				var tm         = _getTaskManagerService();
+				var taskKey    = "syncEvents";
+				var task       = { event="sync.events", name="My task", timeout=120 };
+				var logId      = CreateUUId();
+				var args       = { test=true, blah=CreateUUId() };
+				var taskConfig = { crontab_definition = "* */10 * * * *", timeout=120 };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( taskConfig );
 				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
 				mockColdbox.$( "runEvent", true );
 				tm.$( "markTaskAsRunning" );
@@ -159,8 +161,10 @@ component extends="testbox.system.BaseSpec" {
 				var taskKey = "syncEvents";
 				var task     = { event="sync.events", name="another task", timeout=120 };
 				var logId   = CreateUUId();
+				var taskConfig = { crontab_definition = "* */10 * * * *", timeout=120 };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( taskConfig );
 				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
 				mockColdbox.$( "runEvent", true );
 				tm.$( "markTaskAsRunning" );
@@ -183,8 +187,10 @@ component extends="testbox.system.BaseSpec" {
 				var taskKey = "syncEvents";
 				var task     = { event="sync.events", name="Sync events", timeout=120 };
 				var logId   = CreateUUId();
+				var taskConfig = { crontab_definition = "* */10 * * * *", timeout=120 };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( taskConfig );
 				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
 				mockColdbox.$( method="runEvent", throwException=true );
 				tm.$( "markTaskAsRunning" );
@@ -207,8 +213,10 @@ component extends="testbox.system.BaseSpec" {
 				var taskKey = "syncEvents";
 				var task     = { event="sync.events", name="I like testing", timeout=120 };
 				var logId   = CreateUUId();
+				var taskConfig = { crontab_definition = "* */10 * * * *", timeout=120 };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( taskConfig );
 				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
 				mockColdbox.$( "runEvent", false );
 				tm.$( "markTaskAsRunning" );
@@ -229,8 +237,10 @@ component extends="testbox.system.BaseSpec" {
 				var taskKey = "syncEvents";
 				var task     = { event="sync.events", name="This rocks", timeout=120 };
 				var logId   = CreateUUId();
+				var taskConfig = { crontab_definition = "* */10 * * * *", timeout=120 };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( taskConfig );
 				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
 				mockColdbox.$( "runEvent", false );
 				tm.$( "markTaskAsRunning" );
@@ -251,8 +261,10 @@ component extends="testbox.system.BaseSpec" {
 				var taskKey = "syncEvents";
 				var task     = { event="sync.events", name="already running task", timeout=120 };
 				var logId   = CreateUUId();
+				var taskConfig = { crontab_definition = "* */10 * * * *", timeout=120 };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( taskConfig );
 				tm.$( "taskIsRunning" ).$args( taskKey ).$results( true );
 				mockColdbox.$( "runEvent", false );
 
@@ -340,7 +352,7 @@ component extends="testbox.system.BaseSpec" {
 				var lastRun        = "2014-10-24T09:03:13";
 				var taskKey        = "someKey";
 				var task           = { schedule = "* */5 * * * *", isScheduled=true };
-				var config         = { crontab_definition = "" };
+				var config         = { crontab_definition = "", timeout=100 };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
 				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
@@ -355,7 +367,7 @@ component extends="testbox.system.BaseSpec" {
 				var taskKey        = "someKey";
 				var task           = { schedule = "* */5 * * * *", isScheduled=true };
 				var rightNow       = Now();
-				var config         = { crontab_definition = "" };
+				var config         = { crontab_definition = "", timeout=100  };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
 				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
@@ -370,7 +382,7 @@ component extends="testbox.system.BaseSpec" {
 				var lastRun        = "2014-10-24T09:03:13";
 				var taskKey        = "someKey";
 				var task           = { schedule = "* */5 * * * *", isScheduled=true };
-				var config         = { crontab_definition = "* */10 * * * *" };
+				var config         = { crontab_definition = "* */10 * * * *", timeout=100  };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
 				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
@@ -385,7 +397,7 @@ component extends="testbox.system.BaseSpec" {
 				var lastRun        = "2014-10-24T09:03:13";
 				var taskKey        = "someKey";
 				var task           = { schedule = "disabled", isScheduled=false };
-				var config         = { crontab_definition = "* */10 * * * *" };
+				var config         = { crontab_definition = "* */10 * * * *", timeout=100  };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
 				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
@@ -401,7 +413,7 @@ component extends="testbox.system.BaseSpec" {
 				var tm          = _getTaskManagerService();
 				var taskKey     = "sometask";
 				var newRecordId = CreateUUId();
-				var task        = { event="sync.events", priority=0, schedule="* 13 2 * * *" };
+				var task        = { event="sync.events", priority=0, schedule="* 13 2 * * *", timeout=100 };
 				var nextRunDate = DateAdd( "d", 1, Now() );
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
@@ -414,6 +426,7 @@ component extends="testbox.system.BaseSpec" {
 					, enabled            = true
 					, priority           = task.priority
 					, crontab_definition = task.schedule
+					, timeout            = task.timeout
 				} ).$results( newRecordId );
 
 				expect( tm.addTaskToStatusDb( taskKey ) ).toBe( newRecordId );
@@ -427,12 +440,14 @@ component extends="testbox.system.BaseSpec" {
 				var expires     = Now();
 				var nextRunDate = DateAdd( "h", 1, expires );
 				var threadId    = CreateUUId();
+				var machineId   = CreateUUId();
 
 				tm.$( "getNextRunDate" ).$args( taskKey ).$results( nextRunDate );
+				tm.$( "_getMachineId", machineId );
 
 				tm.$( "getTaskRunExpiry" ).$args( taskKey ).$results( expires );
 				mockTaskDao.$( "updateData" ).$args(
-					  data = { is_running = true, next_run=nextRunDate, run_expires=expires, running_thread=threadId }
+					  data = { is_running = true, next_run=nextRunDate, run_expires=expires, running_thread=threadId, running_machine=machineId }
 					, filter = { task_key = taskKey }
 				).$results( 1 );
 
@@ -448,9 +463,11 @@ component extends="testbox.system.BaseSpec" {
 				var nowish = Now();
 				var task = { timeout=120 }
 				var expectedExpiry = DateAdd( "s", task.timeout, nowish );
+				var config         = { crontab_definition = "* */10 * * * *", timeout=120 };
 
 				tm.$( "_getOperationDate", nowish );
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
 
 				expect( tm.getTaskRunExpiry( taskKey ) ).toBe( expectedExpiry );
 
@@ -688,6 +705,7 @@ component extends="testbox.system.BaseSpec" {
 		mockCfThreadHelper   = mockbox.createStub();
 		mockErrorLogService  = mockbox.createStub();
 		mockSiteService      = mockbox.createStub();
+		mockTaskScheduler    = mockbox.createStub();
 		mockLogger           = _getMockLogger();
 
 		configWrapper.$( "getConfiguredTasks", arguments.dummyConfig );
@@ -710,6 +728,7 @@ component extends="testbox.system.BaseSpec" {
 			, cfThreadHelper             = mockCfThreadHelper
 			, errorLogService            = mockErrorLogService
 			, siteService                = mockSiteService
+			, taskScheduler              = mockTaskScheduler
 		);
 	}
 

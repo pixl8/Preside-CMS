@@ -2,7 +2,7 @@ component {
 
 	property name="loginService"         inject="loginService";
 	property name="updateManagerService" inject="updateManagerService";
-	property name="i18n"                 inject="coldbox:plugin:i18n";
+	property name="i18n"                 inject="i18n";
 
 	public void function setLocale( event, rc, prc ) {
 		var locale = rc.locale ?: "";

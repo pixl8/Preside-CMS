@@ -373,6 +373,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testToken   = "xxxxxx-yyyyyy";
 		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", -1, Now() ) ]]);
 
+		userService.$( "$getPresideSetting", false );
+		userService.$( "resendPasswordResetInstructions", true );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
 			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
@@ -387,11 +389,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() );
 	}
 
-	function test20_validateResetPasswordToken_shouldReturnFalseAndClearToken_whenRecordFoundAndNotExpiredByHashedKeyDoesNotMatch() output=false {
+	function test20_validateResetPasswordToken_shouldReturnFalseClearTokenAndSendEmail_whenRecordFoundAndNotExpiredByHashedKeyDoesNotMatch() output=false {
 		var userService = _getUserService();
 		var testToken   = "xxxxxx-yyyyyy";
 		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ) ]]);
 
+		userService.$( "$getPresideSetting" ).$args( category="email", setting="resendtoken", default=false ).$results( true );
+		userService.$( "resendPasswordResetInstructions", true );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
 			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
@@ -405,7 +409,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockBCryptService.$( "checkPw" ).$args( ListLast( testToken, "-" ), testRecord.reset_password_key ).$results( false );
 
 		super.assertFalse( userService.validateResetPasswordToken( testToken ) );
-		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() )
+		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() );
+		super.assertEquals( 1, userService.$callLog().resendPasswordResetInstructions.len() );
 	}
 
 	function test21_validateResetPasswordToken_shouldReturnTrue_whenRecordFoundAndNotExpiredAndHashedKeyMatches() output=false {
@@ -454,7 +459,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private helpers
 	private any function _getUserService() output=false {
-		mockSessionStorage    = getMockbox().createEmptyMock( "coldbox.system.plugins.SessionStorage" );
+		mockSessionStorage    = getMockbox().createEmptyMock( "preside.system.modules.cbstorages.models.SessionStorage" );
 		mockCookieService     = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
 		mockUserDao           = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();

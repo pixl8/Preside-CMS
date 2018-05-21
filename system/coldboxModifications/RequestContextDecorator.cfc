@@ -176,10 +176,27 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 // Admin specific
-	public string function buildAdminLink( string linkTo="", string queryString="", string siteId=this.getSiteId() ) output=false {
+	public string function buildAdminLink(
+		  string linkTo      = ""
+		, string queryString = ""
+		, string siteId      = this.getSiteId()
+	) output=false {
+		if ( arguments.keyExists( "objectName" ) ) {
+			var args = {
+				  objectName = arguments.objectName
+				, recordId   = arguments.recordId  ?: ""
+				, operation  = arguments.operation ?: ""
+				, args       = arguments.args      ?: {}
+			};
+
+			args.args.append( arguments );
+
+			return getModel( "adminObjectLinkBuilderService" ).buildLink( argumentCollection=args );
+		}
+
 		arguments.linkTo = ListAppend( "admin", arguments.linkTo, "." );
 
-		if ( isActionRequest( arguments.linkTo ) ) {
+		if ( isActionRequest( arguments.linkTo ) && this.getModel( "featureService" ).isFeatureEnabled( "adminCsrfProtection" ) ) {
 			arguments.queryString = ListPrepend( arguments.queryString, "csrfToken=" & this.getCsrfToken(), "&" );
 		}
 
@@ -197,6 +214,25 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var adminPath  = getAdminPath();
 
 		return currentUrl.startsWith( adminPath );
+	}
+
+	public void function setIsDataManagerRequest() output=false {
+		getRequestContext().setValue(
+			  name    = "_isDataManagerRequest"
+			, value   = true
+			, private = true
+		);
+	}
+
+	public boolean function isDataManagerRequest() output=false {
+		var isDmHandler = getRequestContext().getCurrentEvent().startsWith( "admin.datamanager." );
+		var isDmRequest = getRequestContext().getValue(
+			  name         = "_isDataManagerRequest"
+			, defaultValue = false
+			, private      = true
+		);
+
+		return isDmHandler || isDmRequest;
 	}
 
 	public boolean function isAdminUser() output=false {
@@ -232,7 +268,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
 		event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
 
-		content reset=true type="text/html";header statusCode="401";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		content reset=true type="text/html";header statusCode="401";WriteOutput( getModel( "presideRenderer" ).renderLayout() );abort;
 	}
 
 	public void function audit( userId=getAdminUserId() ) output=false {
@@ -256,6 +292,34 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return request.http.body ?: ToString( getHTTPRequestData().content );
 	}
 
+	public void function initializeDatamanagerPage(
+		  required string objectName
+		,          string recordId   = ""
+	) output=false {
+		var args = StructCopy( arguments );
+
+		args.append({
+			  eventArguments = {}
+			, action         = "__custom"
+		});
+
+		getController().runEvent(
+			  event          = "admin.datamanager._loadCommonVariables"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = args
+		);
+
+		getController().runEvent(
+			  event          = "admin.datamanager._loadCommonBreadCrumbs"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = args
+		);
+
+		setIsDataManagerRequest();
+	}
+
 // Sticker
 	public any function include() output=false {
 		return _getSticker().include( argumentCollection = arguments );
@@ -263,6 +327,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 	public any function includeData() output=false {
 		return _getSticker().includeData( argumentCollection = arguments );
+	}
+
+	public any function includeUrl() output=false {
+		return _getSticker().includeUrl( argumentCollection = arguments );
 	}
 
 	public string function renderIncludes( string type, string group="default" ) output=false {
@@ -321,18 +389,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function _getSticker() output=false {
-		return getController().getPlugin(
-			  plugin       = "StickerForPreside"
-			, customPlugin = true
-		);
+		return getModel( "StickerForPreside" );
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService", "featureService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
-			return _simpleRequestCache( "getSingleton" & arguments.beanName, function(){
+			return _simpleRequestCache( "getModel" & arguments.beanName, function(){
 				return getController().getWireBox().getInstance( args.beanName );
 			} );
 		}
@@ -349,7 +414,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getModel( "csrfProtectionService" ).generateToken( argumentCollection = arguments );
 	}
 
-	public string function validateCsrfToken() output=false {
+	public boolean function validateCsrfToken() output=false {
 		return getModel( "csrfProtectionService" ).validateToken( argumentCollection = arguments );
 	}
 
@@ -499,6 +564,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public void function checkPageAccess() output=false {
+		if ( !getCurrentPageId().len() ) {
+			return;
+		}
+
 		var websiteLoginService = getModel( "websiteLoginService" );
 		var accessRules         = getPageAccessRules();
 
@@ -729,17 +798,86 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return this;
 	}
 
+// CACHING HELPERS
+	public boolean function cachePage( boolean cache ) output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		if ( arguments.keyExists( "cache" ) ) {
+			prc._cachePage = arguments.cache;
+			return arguments.cache;
+		}
+
+		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
+		    && !event.valueExists( "fwreinit" )
+		    && !this.isAdminUser()
+		    && event.getHTTPMethod() == "GET"
+		    && !this.getCurrentUrl().startsWith( "/asset/" )
+		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
+	}
+
+	public struct function getCacheableRequestData() output=false {
+		var event         = getRequestContext();
+		var rc            = event.getCollection( private=false );
+		var prc           = event.getCollection( private=true  );
+		var cacheableVars = { prc={}, rc={} };
+		var isCacheable   = function( value ) {
+			return IsSimpleValue( value ) || IsArray( value ) || IsStruct( value ) || IsQuery( value );
+		};
+
+		for( var key in rc ) {
+			if ( isCacheable( rc[ key ] ) ) {
+				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+			}
+		}
+		for( var key in prc ) {
+			if ( isCacheable( prc[ key ] ) ) {
+				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+			}
+		}
+
+		return cacheableVars;
+	}
+
+	public void function restoreCachedData( required struct cachedData ) output=false {
+		var event = getRequestContext();
+		var rc    = event.getCollection( private=false );
+		var prc   = event.getCollection( private=true  );
+
+		rc.append( cachedData.rc ?: {}, false );
+		prc.append( cachedData.prc ?: {}, false );
+
+		getController().getRequestService().getFlashScope().inflateFlash();
+	}
+
+	public void function setPageCacheTimeout( required numeric timeoutInSeconds ) output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		prc._pageCacheTimeout = arguments.timeoutInSeconds;
+	}
+
+	public any function getPageCacheTimeout() output=false {
+		var event = getRequestContext();
+		var prc   = event.getCollection( private=true );
+
+		return prc._pageCacheTimeout ?: NullValue();
+	}
+
 // status codes
 	public void function notFound() output=false {
 		announceInterception( "onNotFound" );
 		getController().runEvent( "general.notFound" );
-		content reset=true type="text/html";header statusCode="404";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		content reset=true type="text/html";header statusCode="404";
+		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+		abort;
 	}
 
 	public void function accessDenied( required string reason ) output=false {
 		announceInterception( "onAccessDenied" , arguments );
 		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments }, private=true );
-		WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+		abort;
 	}
 
 // private helpers

@@ -2,7 +2,7 @@
  * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  *
- * May 2014: This file has been lightly modified for the purposes of integrating with PresideCMS
+ * May 2014: This file has been lightly modified for the purposes of integrating with Preside
  */
 
 'use strict';
@@ -208,6 +208,7 @@
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
 		presideLinkRegex = /^{{link:(.*?):link}}$/,
+		presideAssetRegex = /^{{asset:(.*?):asset}}$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
 		functionCallProtectedEmailLinkRegex = /^javascript:([^(]+)\(([^)]+)\)$/,
@@ -487,6 +488,10 @@
 					retval.type = 'sitetreelink'
 					retval.page = urlMatch[ 1 ];
 				}
+				else if ( href && ( urlMatch = href.match( presideAssetRegex ) ) ) {
+					retval.type  = 'asset'
+					retval.asset = urlMatch[ 1 ];
+				}
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
 					retval.type = 'url';
@@ -550,6 +555,9 @@
 			switch ( data.type ) {
 				case 'sitetreelink':
 					set[ 'data-cke-saved-href' ] = '{{link:' + ( data.page || '' ) + ':link}}';
+					break;
+				case 'asset':
+					set[ 'data-cke-saved-href' ] = '{{asset:' + ( data.asset || '' ) + ':asset}}';
 					break;
 				case 'url':
 					var protocol = ( data.protocol != undefined ) ? data.protocol : 'http://'
