@@ -370,7 +370,7 @@ component displayName="Forms service" {
 						} else if ( StructKeyExists( arguments.savedData, renderArgs.name ) ) {
 							renderArgs.defaultValue = arguments.savedData[ renderArgs.name ];
 						} else if ( StructKeyExists( field, "default" ) ) {
-							renderArgs.defaultValue = field.default;
+							renderArgs.defaultValue = _runDefaultValueFunction( field.sourceObject ?: "", field.default );
 						}
 
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
@@ -1473,6 +1473,29 @@ component displayName="Forms service" {
 
 	private string function _generateFormNameFromDefinition( required struct definition ) {
 		return "dynamicform-" & LCase( Hash( SerializeJson( arguments.definition ) ) );
+	}
+
+	private string function _runDefaultValueFunction( required string objectName, required string default ) {
+		var defaultValue = arguments.default ?: "";
+
+		if ( ListLen( defaultValue, ":" ) > 1 ) {
+			switch( ListFirst( defaultValue, ":" ) ) {
+				case "cfml":
+					defaultValue = Evaluate( ListRest( defaultValue, ":" ) );
+				break;
+				case "closure":
+					var func = Evaluate( ListRest( defaultValue, ":" ) );
+					defaultValue = func( {} );
+				break;
+				case "method":
+					var obj = _getPresideObjectService().getObject( arguments.objectName );
+
+					defaultValue = obj[ ListRest( defaultValue, ":" ) ]( {} );
+				break;
+			}
+		}
+
+		return defaultValue ?: "";
 	}
 
 // GETTERS AND SETTERS
