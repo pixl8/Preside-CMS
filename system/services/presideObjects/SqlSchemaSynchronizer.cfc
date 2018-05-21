@@ -322,6 +322,7 @@ component {
 								, newColumnName = columnName
 							);
 
+							_runSql( sql=renameSql, dsn=arguments.dsn );
 						}
 
 						colProperties = objectProperties[ columnName ];
