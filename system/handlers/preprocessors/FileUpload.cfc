@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	private any function index( event, rc, prc, fieldName="", preProcessorArgs={} ) output=false {
 		var tempFile     = GetTempDirectory() & "/" & createUUID();

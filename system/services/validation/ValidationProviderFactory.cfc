@@ -1,4 +1,4 @@
-component output="false" {
+component {
 
 	public ValidationProvider function createProvider( required any sourceCfc ) output=false {
 		var provider = new ValidationProvider( sourceCfc=arguments.sourceCfc );

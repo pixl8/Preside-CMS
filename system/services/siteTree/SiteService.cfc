@@ -1,7 +1,7 @@
 /**
  * The site service provides methods for interacting with the core "Site" system
  */
-component output=false singleton=true displayname="Site service" autodoc=true {
+component singleton=true displayname="Site service" autodoc=true {
 
 // CONSTRUCTOR
 	/**

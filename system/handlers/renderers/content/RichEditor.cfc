@@ -1,4 +1,4 @@
-component output=false {
+component {
 	property name="contentRendererService" inject="contentRendererService";
 
 	public string function default( event, rc, prc, args={} ){

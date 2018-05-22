@@ -3,7 +3,7 @@
  * plain link
  *
  */
-component extends="preside.system.base.SystemPresideObject" labelfield="internal_title" output=false displayname="Link" {
+component extends="preside.system.base.SystemPresideObject" labelfield="internal_title" displayname="Link" {
 
 	property name="internal_title"    type="string" dbtype="varchar" maxlength="100" required=true  uniqueindexes="linktitle";
 	property name="type"              type="string" dbtype="varchar" maxlength="20"  required=false default="external"  enum="linkType";

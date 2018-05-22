@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="permissionService" inject="permissionService";
 

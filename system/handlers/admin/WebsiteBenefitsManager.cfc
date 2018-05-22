@@ -1,4 +1,4 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="websiteBenefitDao"        inject="presidecms:object:website_benefit";

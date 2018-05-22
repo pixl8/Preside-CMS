@@ -1,4 +1,4 @@
-component output=false extends="coldbox.system.logging.AbstractAppender" {
+component extends="coldbox.system.logging.AbstractAppender" {
 
 // CONSTRUCTOR
 	public any function init( required string name, struct properties = {}, string layout = "", numeric levelMin = 0, numeric levelMax = 4 ) output=false {
