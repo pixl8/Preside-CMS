@@ -11,7 +11,7 @@ component displayName="Website login service" {
 
 // constructor
 	/**
-	 * @sessionStorage.inject             coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject             sessionStorage
 	 * @cookieService.inject              cookieService
 	 * @userDao.inject                    presidecms:object:website_user
 	 * @userLoginTokenDao.inject          presidecms:object:website_user_login_token
@@ -257,21 +257,18 @@ component displayName="Website login service" {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.count() ) {
-			var resetToken       = _createTemporaryResetToken();
-			var resetKey         = _createTemporaryResetKey();
-			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
-			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
+			var token = createPasswordResetToken();
 
 			_getUserDao().updateData( id=userRecord.id, data={
-				  reset_password_token        = resetToken
-				, reset_password_key          = hashedResetKey
-				, reset_password_token_expiry = resetTokenExpiry
+				  reset_password_token        = token.resetToken
+				, reset_password_key          = token.hashedResetKey
+				, reset_password_token_expiry = token.resetTokenExpiry
 			} );
 
 			_getEmailService().send(
 				  template    = "resetWebsitePassword"
 				, recipientId = userRecord.id
-				, args        = { resetToken = "#resetToken#-#resetKey#" }
+				, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
 			);
 
 			$recordWebsiteUserAction(
@@ -284,6 +281,46 @@ component displayName="Website login service" {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Resends new token to expired token and reminds them the token is expired
+	 */
+	public boolean function resendPasswordResetInstructions( required string userId ) autodoc=true {
+		var token      = createPasswordResetToken();
+
+		_getUserDao().updateData( id=arguments.userId, data={
+			  reset_password_token        = token.resetToken
+			, reset_password_key          = token.hashedResetKey
+			, reset_password_token_expiry = token.resetTokenExpiry
+		} );
+
+		var result = _getEmailService().send(
+			  template    = "resetWebsitePasswordForTokenExpiry"
+			, recipientId = arguments.userId
+			, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
+		);
+
+		$recordWebsiteUserAction(
+			  userId = arguments.userId
+			, action = "sendPasswordResetInstructions"
+			, type   = "login"
+		);
+
+		return true;
+	}
+
+	/**
+	 * Creates a password reset token.
+	 */
+	public struct function createPasswordResetToken() autodoc=true {
+		var token              = {};
+		token.resetToken       = _createTemporaryResetToken();
+		token.resetKey         = _createTemporaryResetKey();
+		token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
+		token.resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		return token;
 	}
 
 	/**
@@ -682,6 +719,11 @@ component displayName="Website login service" {
 				  id     = record.id
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( IsBoolean( resendToken ) && resendToken ) {
+				resendPasswordResetInstructions( record.id );
+			}
 
 			return QueryNew('');
 		}

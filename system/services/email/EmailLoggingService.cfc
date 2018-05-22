@@ -10,10 +10,12 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @recipientTypeService.inject emailRecipientTypeService
+	 * @emailTemplateService.inject emailTemplateService
 	 *
 	 */
-	public any function init( required any recipientTypeService ) {
+	public any function init( required any recipientTypeService, required any emailTemplateService ) {
 		_setRecipientTypeService( arguments.recipientTypeService );
+		_setEmailTemplateService( arguments.emailTemplateService );
 
 		return this;
 	}
@@ -38,6 +40,7 @@ component {
 		, required string recipient
 		, required string sender
 		, required string subject
+		,          string resendOf = ""
 		,          struct sendArgs = {}
 	) {
 		var data = {
@@ -45,6 +48,7 @@ component {
 			, recipient      = arguments.recipient
 			, sender         = arguments.sender
 			, subject        = arguments.subject
+			, resend_of      = arguments.resendOf
 			, send_args      = SerializeJson( arguments.sendArgs )
 		};
 
@@ -53,6 +57,46 @@ component {
 		}
 
 		return $getPresideObject( "email_template_send_log" ).insertData( data );
+	}
+
+	/**
+	 * Saves the email content of a sent email, to be used to view exact content
+	 * sent, and for resending the original email
+	 *
+	 * @autodoc            true
+	 * @template.hint      ID of the email template
+	 * @id.hint            ID of the email template log record
+	 * @htmlBody.hint      HTML content of the email
+	 * @textBody.hint      Plain-text content of the email
+	 */
+	public void function logEmailContent(
+		  required string template
+		, required string id
+		, required string htmlBody
+		, required string textBody
+	) {
+		if ( !$isFeatureEnabled( "emailCenterResend" ) ) {
+			return;
+		}
+		if ( !_getEmailTemplateService().shouldSaveContentForTemplate( arguments.template ) ) {
+			return;
+		}
+
+		var contentExpiry = _getEmailTemplateService().getSavedContentExpiry( arguments.template );
+		if ( contentExpiry <= 0 ) {
+			return;
+		}
+
+		var expires       = now().add( "d", contentExpiry );
+		var contentId     = $getPresideObject( "email_template_send_log_content" ).insertData( {
+			  html_body = arguments.htmlBody
+			, text_body = arguments.textBody
+			, expires   = expires
+		} );
+
+		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
+			content = contentId
+		} );
 	}
 
 	/**
@@ -238,6 +282,112 @@ component {
 	}
 
 	/**
+	 * Resends an email. A duplicate of the original content is sent
+	 *
+	 */
+	public void function resendOriginalEmail( required string id ) {
+		var dao                    = $getPresideObject( "email_template_send_log");
+		var message                = dao.selectData(
+			  id           = arguments.id
+			, selectFields = [
+				  "email_template_send_log.*"
+				, "content.html_body as html_body"
+				, "content.text_body as text_body"
+			  ]
+		);
+		var template               = _getEmailTemplateService().getTemplate( message.email_template );
+		var recipientIdLogProperty = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( template.recipient_type );
+		var sendArgs               = deserializeJson( message.send_args );
+
+		var resentMessageId        = $sendEmail(
+		      template              = message.email_template
+		    , recipientId           = message[ recipientIdLogProperty ]
+		    , to                    = [ message.recipient ]
+		    , from                  = message.sender
+		    , subject               = message.subject
+		    , htmlBody              = message.html_body
+		    , textBody              = message.text_body
+		    , args                  = sendArgs
+		    , resendOf              = message.id
+		    , returnLogId           = true
+		    , overwriteTemplateArgs = true
+		);
+
+		$audit(
+			  action   = "resend_original_email"
+			, type     = "emailresend"
+			, recordId = resentMessageId
+			, detail   = { subject=message.subject, recipient=message.recipient, originalMessageId=arguments.id }
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "resend"
+			, userAgent = ""
+			, extraData = { resentMessageId=resentMessageId, resendType="original" }
+		);
+
+	}
+
+	/**
+	 * Resends an email. Email is regenerated using the original sendArgs
+	 *
+	 */
+	public void function rebuildAndResendEmail( required string id ) {
+		var dao                    = $getPresideObject( "email_template_send_log");
+		var message                = dao.selectData( id=arguments.id );
+		var template               = _getEmailTemplateService().getTemplate( message.email_template );
+		var recipientIdLogProperty = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( template.recipient_type );
+		var originalArgs           = deserializeJson( message.send_args );
+		var sendArgs               = _getEmailTemplateService().rebuildArgsForResend( template=message.email_template, logId=id, originalArgs=originalArgs );
+		var resentMessageId        = $sendEmail(
+		      template    = message.email_template
+		    , recipientId = message[ recipientIdLogProperty ]
+		    , to          = !len( message[ recipientIdLogProperty ] ) ? [ message.recipient ] : []
+		    , args        = sendArgs
+		    , resendOf    = message.id
+		    , returnLogId = true
+		);
+
+		$audit(
+			  action   = "rebuild_and_resend_email"
+			, type     = "emailresend"
+			, recordId = resentMessageId
+			, detail   = { subject=message.subject, recipient=message.recipient, originalMessageId=arguments.id }
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "resend"
+			, userAgent = ""
+			, extraData = { resentMessageId=resentMessageId, resendType="rebuild" }
+		);
+
+	}
+
+	/**
+	 * Resends an email. Email is regenerated using the original sendArgs
+	 *
+	 */
+	public boolean function deleteExpiredContent( any logger ) {
+		var canLog   = arguments.keyExists( "logger" );
+		var canInfo  = canLog && logger.canInfo();
+		var canError = canLog && logger.canError();
+		var dao      = $getPresideObject( "email_template_send_log_content");
+
+		if ( canInfo ) { logger.info( "Deleting expired email content from logs..." ); }
+
+		var deleted  = dao.deleteData(
+			  filter       = "expires <= :expires"
+			, filterParams = { expires=now() }
+		);
+
+		if ( canInfo ) { logger.info( "Content of [#deleted#] emails deleted." ); }
+
+		return true;
+	}
+
+	/**
 	 * Inserts a tracking pixel into the given HTML email
 	 * content (based on the given message ID). Returns
 	 * the HTML with the inserted tracking pixel
@@ -273,7 +423,11 @@ component {
 		, required string messageHtml
 	) {
 		var converted      = arguments.messageHtml;
-		var linkRegex      = 'href="(.*?)"';
+		
+		var linkRegex      = 'href="';
+		    linkRegex     &= "((?!javascript:void\(location.href='mailto:'";
+		    linkRegex     &= '|mailto).*?)"';
+
 		var linkMatches    = converted.reMatchNoCase( linkRegex );
 		var baseTrackinUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
 
@@ -300,12 +454,14 @@ component {
 		  required string messageId
 		, required string activity
 		,          struct extraData = {}
+		,          string userIp    = cgi.remote_addr
+		,          string userAgent = cgi.http_user_agent
 	) {
 		$getPresideObject( "email_template_send_log_activity" ).insertData({
 			  message       = arguments.messageId
 			, activity_type = arguments.activity
-			, user_ip       = cgi.remote_addr
-			, user_agent    = cgi.http_user_agent
+			, user_ip       = arguments.userIp
+			, user_agent    = arguments.userAgent
 			, extra_data    = SerializeJson( arguments.extraData )
 		});
 	}
@@ -317,8 +473,9 @@ component {
 	 * @id.hint ID of the log record
 	 */
 	public struct function getLog( required string id ) {
-		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=[
-			  "email_template_send_log.recipient"
+		var selectFields = [
+			  "email_template_send_log.id"
+			, "email_template_send_log.recipient"
 			, "email_template_send_log.sender"
 			, "email_template_send_log.subject"
 			, "email_template_send_log.sent"
@@ -337,9 +494,16 @@ component {
 			, "email_template_send_log.click_count"
 			, "email_template_send_log.email_template"
 			, "email_template_send_log.datecreated"
+			, "email_template_send_log.resend_of"
 			, "email_template.name"
 			, "email_template.recipient_type"
-		] );
+		];
+		if ( $isFeatureEnabled( "emailCenterResend" ) ) {
+			selectFields.append( "content.html_body" );
+			selectFields.append( "content.text_body" );
+		}
+
+		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=selectFields );
 
 		for( var l in logRecord ) {
 			return l;
@@ -402,6 +566,13 @@ component {
 	}
 	private void function _setRecipientTypeService( required any recipientTypeService ) {
 		_recipientTypeService = arguments.recipientTypeService;
+	}
+
+	private any function _getEmailTemplateService() {
+		return _emailTemplateService;
+	}
+	private void function _setEmailTemplateService( required any emailTemplateService ) {
+		_emailTemplateService = arguments.emailTemplateService;
 	}
 
 }

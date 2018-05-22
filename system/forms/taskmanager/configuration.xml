@@ -4,12 +4,21 @@ Task manager: Settings form
 
 This form is used for general configuration of the task manager
 -->
-<form>
+<form i18nBaseUri="cms:taskmanager.configform.">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="site_context"           control="objectpicker" required="true"              object="site" label="cms:taskmanager.configform.site_context.label"           help="cms:taskmanager.configform.site_context.help" />
-			<field name="scheduledtasks_enabled" control="yesnoswitch"  required="false"                           label="cms:taskmanager.configform.scheduledtasks_enabled.label" help="cms:taskmanager.configform.scheduledtasks_enabled.help" />
-			<field name="keep_logs_for_days"     control="spinner"      required="false" default="7"               label="cms:taskmanager.configform.keep_logs_for_days.label"     help="cms:taskmanager.configform.keep_logs_for_days.help"     />
+			<field name="scheduledtasks_enabled" control="yesnoswitch"  required="false"             />
+			<field name="keep_logs_for_days"     control="spinner"      required="false" default="7" />
+		</fieldset>
+		<fieldset id="server">
+			<field name="site_context"   control="objectpicker" required="true" object="site" />
+			<field name="http_port"      control="spinner"      required="false" default="80" />
+			<field name="http_username"  control="textinput"    required="false" />
+			<field name="http_password"  control="password"     required="false" outputSavedValue="true" />
+			<field name="proxy_server"   control="textinput"    required="false" />
+			<field name="proxy_port"     control="textinput"    required="false" />
+			<field name="proxy_user"     control="textinput"    required="false" />
+			<field name="proxy_password" control="password"     required="false" outputSavedValue="true"  />
 		</fieldset>
 	</tab>
 </form>

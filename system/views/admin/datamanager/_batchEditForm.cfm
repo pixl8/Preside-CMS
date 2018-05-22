@@ -17,7 +17,7 @@
 	<form class="form-horizontal" method="post" data-dirty-form="protect" action="#saveChangesAction#">
 		<input type="hidden" name="sourceIds"   value="#ids#">
 		<input type="hidden" name="updateField" value="#field#">
-		<input type="hidden" name="objectName"  value="#object#">
+		<input type="hidden" name="object"      value="#object#">
 
 		#multiEditBehaviourControl#
 		#fieldFormControl#

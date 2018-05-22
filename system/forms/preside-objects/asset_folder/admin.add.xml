@@ -14,6 +14,10 @@ This form is used for adding folders in the asset manager section of the adminis
 		<fieldset id="restrictions" sortorder="10">
 			<field sortorder="10" binding="asset_folder.allowed_filetypes" control="filetypepicker" multiple="true" />
 			<field sortorder="20" binding="asset_folder.max_filesize_in_mb" />
+			<field sortorder="30" binding="asset_folder.min_width_in_px" />
+			<field sortorder="40" binding="asset_folder.max_width_in_px" />
+			<field sortorder="50" binding="asset_folder.min_height_in_px" />
+			<field sortorder="60" binding="asset_folder.max_height_in_px" />
 		</fieldset>
 	</tab>
 	<tab id="permissions" sortorder="30" title="preside-objects.asset_folder:permissions.tab.title" feature="websiteUsers">

@@ -48,10 +48,7 @@ component {
 
 		if ( IsSimpleValue( userId ?: {} ) && userId.len() ) {
 			restRequest.setUser( userId );
-
-			if ( _userHasAccessToApi( userId, restRequest.getApi() ) ) {
-				return;
-			}
+			return;
 		}
 
 		_failRequest( restRequest, restResponse, "Not authorized" );
@@ -91,6 +88,12 @@ component {
 		return record.id ?: "";
 	}
 
+	public boolean function userHasAccessToApi( required string userId, required string api ) {
+		return $getPresideObject( "rest_user_api_access" ).dataExists(
+			filter = { rest_user=userId, api=api }
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _failRequest(
 		  required any    restRequest
@@ -109,12 +112,6 @@ component {
 			, title     = "Authorization failed"
 			, type      = "rest.authorization.failed"
 			, message   = defaultStatusText
-		);
-	}
-
-	private boolean function _userHasAccessToApi( required string userId, required string api ) {
-		return $getPresideObject( "rest_user_api_access" ).dataExists(
-			filter = { rest_user=userId, api=api }
 		);
 	}
 

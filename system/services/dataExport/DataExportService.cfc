@@ -41,10 +41,17 @@ component {
 		,          array   selectFields       = []
 		,          numeric exportPagingSize   = 1000
 		,          any     recordsetDecorator = ""
+		,          string  exportFileName     = ""
+		,          string  mimetype           = ""
+		,          any     logger
+		,          any     progress
 	) {
 		var exporterHandler      = "dataExporters.#arguments.exporter#.export";
 		var coldboxController    = $getColdbox();
 		var pageNumber           = 1;
+		var canLog               = arguments.keyExists( "logger" );
+		var canInfo              = canLog && logger.canInfo();
+		var canReportProgress    = arguments.keyExists( "progress" );
 
 		if ( !coldboxController.handlerExists( exporterHandler ) ) {
 			throw( type="preside.dataExporter.missing.action", message="No 'export' action could be found for the [#arguments.exporter#] exporter. The exporter should provide an 'export' handler action at /handlers/dataExporters/#arguments.exporter#.cfc to process the export. See documentation for further details." );
@@ -67,7 +74,20 @@ component {
 		selectDataArgs.startRow  = 1;
 		selectDataArgs.autoGroup = true;
 		selectDataArgs.useCache  = false;
+		selectDataArgs.orderBy   = presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "dataExportDefaultSortOrder"
+		);
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
+
+		if ( canReportProgress || canLog ) {
+			var totalRecordsToExport = presideObjectService.selectData(
+				  argumentCollection = selectDataArgs
+				, recordCountOnly    = true
+				, maxRows            = 0
+			);
+			var totalPagesToExport = Ceiling( totalRecordsToExport / selectDataArgs.maxRows );
+		}
 
 		var simpleFormatField = function( required string fieldName, required any value ){
 			switch( propertyDefinitions[ arguments.fieldName ].type ?: "" ) {
@@ -93,9 +113,31 @@ component {
 		};
 
 		var batchedRecordIterator = function(){
+			if ( canReportProgress && progress.isCancelled() ) {
+				abort;
+			}
+
 			var results = presideObjectService.selectData(
 				argumentCollection=selectDataArgs
 			);
+
+			if ( canInfo || canReportProgress ) {
+				var currentPage = ( ( selectDataArgs.startRow-1 ) + selectDataArgs.maxRows ) / selectDataArgs.maxRows;
+				if ( canInfo ) {
+					if ( results.recordCount ) {
+						logger.info( "Fetched next [#NumberFormat( results.recordCount )#] of [#NumberFormat( totalRecordsToExport )#] records (page [#NumberFormat( currentPage )#] of [#NumberFormat( totalPagesToExport )#])" );
+					} else {
+						logger.info( "Completed export" );
+					}
+				}
+				if ( canReportProgress ) {
+					if ( results.recordCount ) {
+						progress.setProgress( Ceiling( ( 100 / totalPagesToExport ) * currentPage-1 ) );
+					} else {
+						progress.setProgress( 100 );
+					}
+				}
+			}
 
 			if ( results.recordCount && IsClosure( selectDataArgs.recordsetDecorator ) ) {
 				selectDataArgs.recordsetDecorator( results );
@@ -120,7 +162,7 @@ component {
 		}
 		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
 
-		return coldboxController.runEvent(
+		var result = coldboxController.runEvent(
 			  private        = true
 			, prepostExempt  = true
 			, event          = exporterHandler
@@ -132,6 +174,16 @@ component {
 				, objectName            = arguments.objectName
 			  }
 		);
+
+		if ( canReportProgress ) {
+			progress.setResult( {
+				  exportFileName = arguments.exportFileName
+				, mimetype       = arguments.mimetype
+				, filePath       = result
+			} );
+		}
+
+		return result;
 	}
 
 	public struct function getDefaultExportFieldsForObject( required string objectName ) {

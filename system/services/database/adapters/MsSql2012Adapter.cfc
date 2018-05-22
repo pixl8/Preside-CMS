@@ -23,23 +23,13 @@ component extends="MsSqlAdapter" {
 		,          boolean distinct      = false
 
 	) {
-		var newGroupBy  = "";
-		var sql         = arguments.distinct ? "select distinct" : "select";
-		var delim       = " ";
-		var col         = "";
+		var sql   = arguments.distinct ? "select distinct" : "select";
+		var delim = " ";
+		var col   = "";
 
 		for( col in arguments.selectColumns ){
 			sql &= delim & col;
 			delim = ", ";
-		}
-		if ( containsAggregateFunctions( sql ) ) {
-			delim = " ";
-			for( col in arguments.selectColumns ){
-				if ( !containsAggregateFunctions( col ) ) {
-					newGroupBy &= delim & REReplace(col, "as\s\w+", "", "one");
-					delim = ", ";
-				}
-			}
 		}
 
 		sql &= " from " & escapeEntity( arguments.tableName );
@@ -57,13 +47,8 @@ component extends="MsSqlAdapter" {
 
 		sql &= getClauseSql( tableAlias = arguments.tableAlias, filter = arguments.filter );
 
-
 		if ( Len( Trim ( arguments.groupBy ) ) ) {
-			if ( containsAggregateFunctions( sql ) ) {
-				sql &= " group by " & newGroupBy;
-			} else {
-				sql = reCompileGroupByForMsSql( sql, arguments.selectColumns, arguments.groupBy, arguments.tableAlias );
-			}
+			sql &= " group by " & arguments.groupBy;
 		}
 
 		if ( Len( Trim ( arguments.having ) ) ) {
@@ -83,5 +68,9 @@ component extends="MsSqlAdapter" {
 		}
 
 		return sql;
+	}
+
+	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
+		return "Concat( #leftExpression#, #rightExpression# )";
 	}
 }

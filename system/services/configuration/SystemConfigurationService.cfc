@@ -1,6 +1,6 @@
 /**
  * The system configuration service provides the API layer
- * for interacting with PresideCMS' [[editablesystemsettings]].
+ * for interacting with Preside' [[editablesystemsettings]].
  *
  * @singleton
  * @autodoc

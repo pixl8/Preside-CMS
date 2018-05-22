@@ -21,16 +21,17 @@
 	param name="args.permission_context"          type="array" default=[];
 	param name="args.parent_restriction"          type="string" default="none";
 
-	param name="args.editPageBaseLink"            type="string" default=event.buildAdminLink( linkTo="sitetree.editPage", queryString="id={id}" );
-	param name="args.pageTypeDialogBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage={id}" );
-	param name="args.addPageBaseLink"             type="string" default=event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page={id}&page_type={type}' );
-	param name="args.trashPageBaseLink"           type="string" default=event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id={id}" );
-	param name="args.activatePageBaseLink"        type="string" default=event.buildAdminLink( linkTo="sitetree.activatePageAction", queryString="id={id}" );
-	param name="args.deactivatePageBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.deactivatePageAction", queryString="id={id}" );
-	param name="args.pageHistoryBaseLink"         type="string" default=event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id={id}" );
-	param name="args.editPagePermissionsBaseLink" type="string" default=event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id={id}" );
-	param name="args.reorderChildrenBaseLink"     type="string" default=event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id={id}" );
-	param name="args.previewPageBaseLink"         type="string" default=event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id={id}" );
+	param name="args.editPageBaseLink"            type="string" default=event.buildAdminLink( linkTo="sitetree.editPage"            , queryString="id={id}&child_count={child_count}" );
+	param name="args.pageTypeDialogBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.pageTypeDialog"      , queryString="parentPage={id}"                   );
+	param name="args.addPageBaseLink"             type="string" default=event.buildAdminLink( linkTo="sitetree.addPage"             , querystring="parent_page={id}&page_type={type}" );
+	param name="args.trashPageBaseLink"           type="string" default=event.buildAdminLink( linkTo="sitetree.trashPageAction"     , queryString="id={id}"                           );
+	param name="args.activatePageBaseLink"        type="string" default=event.buildAdminLink( linkTo="sitetree.activatePageAction"  , queryString="id={id}"                           );
+	param name="args.deactivatePageBaseLink"      type="string" default=event.buildAdminLink( linkTo="sitetree.deactivatePageAction", queryString="id={id}"                           );
+	param name="args.pageHistoryBaseLink"         type="string" default=event.buildAdminLink( linkTo="sitetree.pageHistory"         , queryString="id={id}"                           );
+	param name="args.editPagePermissionsBaseLink" type="string" default=event.buildAdminLink( linkTo="sitetree.editPagePermissions" , queryString="id={id}"                           );
+	param name="args.reorderChildrenBaseLink"     type="string" default=event.buildAdminLink( linkTo="sitetree.reorderChildren"     , queryString="id={id}"                           );
+	param name="args.previewPageBaseLink"         type="string" default=event.buildAdminLink( linkTo="sitetree.previewPage"         , queryString="id={id}"                           );
+	param name="args.clearCacheBaseLink"          type="string" default=event.buildAdminLink( linkTo="sitetree.clearPageCacheAction", queryString="id={id}"                           );
 
 	permContextKeys = Duplicate( args.permission_context );
 	permContextKeys.prepend( args.id );
@@ -61,8 +62,9 @@
 		hasManagePermsPermission = hasCmsPermission( permissionKey="sitetree.manageContextPerms", context="page", contextKeys=permContextKeys );
 		hasPageHistoryPermission = hasCmsPermission( permissionKey="sitetree.viewversions"      , context="page", contextKeys=permContextKeys );
 		hasActivatePermission    = hasCmsPermission( permissionKey="sitetree.activate"          , context="page", contextKeys=permContextKeys ) && !isSystemPage && !isDraft;
+		hasClearCachePermission  = hasCmsPermission( permissionKey="sitetree.clearcaches"       , context="page", contextKeys=permContextKeys );
 
-		hasDropdown = hasDeletePagePermission || hasSortPagesPermission || hasManagePermsPermission || hasPageHistoryPermission;
+		hasDropdown = hasDeletePagePermission || hasSortPagesPermission || hasManagePermsPermission || hasPageHistoryPermission || hasClearCachePermission;
 
 		selected          = rc.selected ?: "";
 		selectedAncestors = prc.selectedAncestors ?: [];
@@ -93,14 +95,14 @@
 				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
-					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#" #dataImage#> #args.title#</a>
+					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id, child_count=args.child_count} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#" #dataImage#> #args.title#</a>
 				<cfelse>
 					<span class="page-title" #dataImage#>#args.title#</span>
 				</cfif>
 
 				<div class="actions pull-right btn-group">
 					<cfif hasEditPagePermission>
-						<a data-context-key="e" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
+						<a data-context-key="e" href="#quickBuildLink( args.editPageBaseLink, {id=args.id, child_count=args.child_count} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
 					<cfelse>
 						<i class="fa fa-pencil disabled"></i>
 					</cfif>
@@ -126,12 +128,12 @@
 							<cfif hasActivatePermission>
 								<li>
 									<cfif IsTrue( args.active )>
-										<a href="#quickBuildLink( args.deactivatePageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.deactivate.child.page.link", data=[ safeTitle ] )#">
+										<a href="#quickBuildLink( args.deactivatePageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#htmlEditFormat( translateResource( uri="cms:sitetree.deactivate.child.page.link", data=[ safeTitle ] ) )#">
 											<i class="fa fa-fw fa-times-circle"></i>
 											#translateResource( "cms:sitetree.deactivate.page.dropdown" )#
 										</a>
 									<cfelse>
-										<a href="#quickBuildLink( args.activatePageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.activate.child.page.link", data=[ safeTitle ] )#">
+										<a href="#quickBuildLink( args.activatePageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#htmlEditFormat( translateResource( uri="cms:sitetree.activate.child.page.link", data=[ safeTitle ] ) )#">
 											<i class="fa fa-fw fa-check-circle"></i>
 											#translateResource( "cms:sitetree.activate.page.dropdown" )#
 										</a>
@@ -140,7 +142,7 @@
 							</cfif>
 							<cfif hasDeletePagePermission>
 								<li>
-									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#htmlEditFormat( translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] ) )#" data-has-children="#args.child_count#">
 										<i class="fa fa-fw fa-trash-o"></i>
 										#translateResource( "cms:sitetree.trash.page.dropdown" )#
 									</a>
@@ -148,7 +150,7 @@
 							</cfif>
 							<cfif hasPageHistoryPermission>
 								<li>
-									<a data-context-key="h" href="#quickBuildLink( args.pageHistoryBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.page.history.link" )#">
+									<a data-context-key="h" href="#quickBuildLink( args.pageHistoryBaseLink, {id=args.id} )#" title="#htmlEditFormat( translateResource( "cms:sitetree.page.history.link" ) )#">
 										<i class="fa fa-fw fa-history"></i>
 										#translateResource( "cms:sitetree.page.history.dropdown" )#
 									</a>
@@ -166,9 +168,17 @@
 
 							<cfif hasSortPagesPermission>
 								<li>
-									<a data-context-key="o" href="#quickBuildLink( args.reorderChildrenBaseLink, {id=args.id} )#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#">
+									<a data-context-key="o" href="#quickBuildLink( args.reorderChildrenBaseLink, {id=args.id} )#" title="#htmlEditFormat( translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] ) )#">
 										<i class="fa fa-fw fa-sort-amount-asc"></i>
 										#translateResource( "cms:sitetree.sort.children.dropdown" )#
+									</a>
+								</li>
+							</cfif>
+							<cfif hasClearCachePermission>
+								<li>
+									<a href="#quickBuildLink( args.clearCacheBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#htmlEditFormat( translateResource( uri="cms:sitetree.flush.page.cache.prompt", data=[ safeTitle ] ) )#">
+										<i class="fa fa-fw fa-refresh"></i>
+										#translateResource( "cms:sitetree.flush.page.cache.link" )#
 									</a>
 								</li>
 							</cfif>

@@ -3,7 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailTemplateService"       inject="emailTemplateService";
 	property name="emailLayoutService"         inject="emailLayoutService";
-	property name="messagebox"                 inject="coldbox:plugin:messagebox";
+	property name="messagebox"                 inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -221,7 +221,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function log( event, rc, prc ) {
+	public void function logs( event, rc, prc ) {
 		var templateId = rc.template ?: "";
 
 		prc.template = emailTemplateService.getTemplate( id=templateId );
@@ -236,7 +236,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.log.breadcrumb.title"  , data=[ prc.template.name ] )
-			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.log", queryString="template=" & templateId )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.logs", queryString="template=" & templateId )
 		);
 	}
 

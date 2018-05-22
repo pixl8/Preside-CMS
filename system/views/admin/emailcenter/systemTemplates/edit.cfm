@@ -16,7 +16,7 @@
 			, id               = templateId
 			, version          = rc.version ?: ""
 			, isDraft          = IsTrue( savedTemplate._version_is_draft ?: "" )
-			, baseUrl          = event.buildAdminLink( linkto="emailCenter.systemTemplates.edit", queryString="template=#templateId#&version=" )
+			, baseUrl          = event.buildAdminLink( linkto="emailCenter.systemTemplates.edit", queryString="template=#templateId#&version={version}" )
 			, allVersionsUrl   = event.buildAdminLink( linkto="emailCenter.systemTemplates.versionHistory", queryString="template=#templateId#" )
 		} )#
 
