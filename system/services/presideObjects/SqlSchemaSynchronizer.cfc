@@ -75,11 +75,12 @@ component {
 					try {
 						_enableFkChecks( false, obj.meta.dsn, obj.meta.tableName );
 						_updateDbTable(
-							  tableName      = obj.meta.tableName
-							, generatedSql   = obj.sql
-							, dsn            = obj.meta.dsn
-							, indexes        = obj.meta.indexes
-							, columnVersions = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
+							  tableName        = obj.meta.tableName
+							, generatedSql     = obj.sql
+							, dsn              = obj.meta.dsn
+							, indexes          = obj.meta.indexes
+							, columnVersions   = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
+							, objectProperties = obj.meta.properties
 						);
 						_enableFkChecks( true, obj.meta.dsn, obj.meta.tableName );
 					} catch( any e ) {
@@ -285,6 +286,7 @@ component {
 		, required struct indexes
 		, required string dsn
 		, required struct columnVersions
+		, required struct objectProperties
 
 	) {
 		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
@@ -303,6 +305,7 @@ component {
 		var deDeprecateSql  = "";
 		var wasDeDeprecated = false;
 		var newName         = "";
+		var colProperties   = {};
 
 		// MySQL particularly can get its knickers in a twist with foreign keys.
 		// Drop all foreign keys before messing with table modifications
@@ -312,7 +315,6 @@ component {
 			wasDeDeprecated = false;
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
 				columnName = Replace( column.column_name, "__deprecated__", "" );
-
 				if ( StructKeyExists( colsSql, columnName ) ) {
 					colSql = colsSql[ columnName ];
 
@@ -324,18 +326,21 @@ component {
 								, oldColumnName = column.column_name
 								, newColumnName = columnName
 							);
+
 							_runSql( sql=renameSql, dsn=arguments.dsn );
 						}
+
+						colProperties = objectProperties[ columnName ];
 
 						deDeprecateSql = adapter.getAlterColumnSql(
 							  tableName     = arguments.tableName
 							, columnName    = column.column_name
 							, newName       = columnName
-							, dbType        = column.type_name
+							, dbType        = colProperties.dbType
 							, nullable      = true // it was deprecated, must be nullable!
-							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
-							, primaryKey    = column.is_primarykey
-							, autoIncrement = column.is_autoincrement
+							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( IsNumeric( colProperties.maxLength ?: "" ) ? colProperties.maxLength : 0 ) : 0
+							, primaryKey    = IsBoolean( colProperties.pk ?: "" ) && colProperties.pk
+							, autoIncrement = colProperties.generator eq "increment"
 						);
 
 						dbColumnNames   = Replace( dbColumnNames, column.column_name, columnName );
