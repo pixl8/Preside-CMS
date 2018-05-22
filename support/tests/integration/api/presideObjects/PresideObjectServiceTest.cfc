@@ -181,6 +181,48 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test004a_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChanged" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3a_propertyChanged" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "30", columns.test_property.column_size, "The test_property column has not been modified to a length of 30" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test004b_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChangedToRelationship" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3b_propertyChangedToRelationship" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "35", columns.test_property.column_size, "The test_property column has not been modified to a length of 35" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test005_objectExists_shouldReturnFalse_whenObjectDoesNotExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
