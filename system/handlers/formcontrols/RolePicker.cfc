@@ -1,4 +1,4 @@
-component output=false {
+component {
 	property name="permissionService" inject="permissionService";
 
 	public string function index( event, rc, prc, args={} ) output=false {

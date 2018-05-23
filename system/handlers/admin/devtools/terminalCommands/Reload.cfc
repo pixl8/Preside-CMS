@@ -1,4 +1,4 @@
-component output=false hint="Reload all or part of your preside application" {
+component hint="Reload all or part of your preside application" {
 
 	property name="jsonRpc2Plugin"           inject="JsonRpc2";
 	property name="applicationReloadService" inject="applicationReloadService";

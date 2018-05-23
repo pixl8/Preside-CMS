@@ -1,4 +1,4 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="updateManagerService" inject="updateManagerService";
 	property name="messageBox"           inject="messagebox@cbmessagebox";

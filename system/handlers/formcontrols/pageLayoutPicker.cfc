@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="pageTypesService" inject="pageTypesService";
 

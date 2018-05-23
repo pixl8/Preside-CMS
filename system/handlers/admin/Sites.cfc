@@ -1,4 +1,4 @@
-component output=false extends="preside.system.base.AdminHandler" {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="siteService"     inject="siteService";
 	property name="siteTreeService" inject="siteTreeService";

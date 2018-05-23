@@ -1,4 +1,4 @@
-component extends="preside.system.modules.cbi18n.models.i18n" output=false {
+component extends="preside.system.modules.cbi18n.models.i18n" {
 
 	property name="resourceBundleService" inject="resourceBundleService";
 	property name="resourceService"       inject="resourceService@cbi18n";

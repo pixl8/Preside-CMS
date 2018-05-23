@@ -1,4 +1,4 @@
-component output=false validationProvider=true singleton=true {
+component validationProvider=true singleton=true {
 
 	/**
 	 * @presideObjectService.inject PresideObjectService

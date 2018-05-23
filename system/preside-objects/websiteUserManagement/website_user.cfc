@@ -3,7 +3,7 @@
  *
  * @dataExportFields id,login_id,email_address,display_name,active,last_logged_in,last_logged_out,last_request_made,datecreated,datemodified
  */
-component extends="preside.system.base.SystemPresideObject" labelfield="display_name" output=false displayname="Website user" {
+component extends="preside.system.base.SystemPresideObject" labelfield="display_name" displayname="Website user" {
 	property name="login_id"                    type="string"   dbtype="varchar" maxLength="255" required=true uniqueindexes="login_id";
 	property name="email_address"               type="string"   dbtype="varchar" maxLength="255" required=true uniqueindexes="email";
 	property name="password"                    type="string"   dbtype="varchar" maxLength="60"  required=false autofilter=false renderer="none";
