@@ -6,7 +6,7 @@
 				  active  = ListLast( event.getCurrentHandler(), ".") eq "datamanager" && ( IsTrue( prc.objectInDatamanagerUi ?: "" ) || !Len( Trim( prc.objectName ) ) )
 				, link    = event.buildAdminLink( linkTo="datamanager" )
 				, gotoKey = "d"
-				, icon    = "fa-puzzle-piece"
+				, icon    = "fa-database"
 				, title   = translateResource( 'cms:datamanager' )
 			  }
 		) );
