@@ -1,4 +1,4 @@
-component extends="preside.system.modules.cbstorages.models.SessionStorage" {
+component extends="preside.system.modules.cbstorages.models.SessionStorage" output=false {
 
 	private boolean function areSessionsEnabled() output=false {
 		var appSettings = getApplicationSettings();
