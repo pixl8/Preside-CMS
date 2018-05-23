@@ -35,7 +35,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.objectGroups = dataManagerService.getGroupedObjects();
 
-		prc.pageIcon  = "puzzle-piece";
+		prc.pageIcon  = "database";
 		prc.pageTitle = translateResource( "cms:datamanager" );
 	}
 
@@ -924,7 +924,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.delete        = datamanagerService.isOperationAllowed( objectName, "delete" );
 		prc.pageTitle     = translateResource( uri="cms:datamanager.oneToManyListing.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
 		prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToManyListing.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
-		prc.pageIcon      = "puzzle-piece";
+		prc.pageIcon      = "database";
 
 		event.setLayout( "adminModalDialog" );
 	}
@@ -2912,7 +2912,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.objectRootUri         = presideObjectService.getResourceBundleUriRoot( prc.objectName );
 			prc.objectTitle           = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
 			prc.objectTitlePlural     = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
-			prc.objectIconClass       = translateResource( uri=prc.objectRootUri & "iconClass"     , defaultValue="fa-puzzle-piece" );
+			prc.objectIconClass       = translateResource( uri=prc.objectRootUri & "iconClass"     , defaultValue="fa-database" );
 			prc.objectDescription     = translateResource( uri=prc.objectRootUri & "description"   , defaultValue="" );
 			prc.draftsEnabled         = datamanagerService.areDraftsEnabledForObject( prc.objectName );
 			prc.canView               = _checkPermission( argumentCollection=arguments, key="read"              , throwOnError=false );
