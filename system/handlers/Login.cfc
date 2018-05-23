@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="websiteLoginService"   inject="websiteLoginService";
 	property name="passwordPolicyService" inject="passwordPolicyService";

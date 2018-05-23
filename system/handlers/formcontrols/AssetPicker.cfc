@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="presideObjectService" inject="presideObjectService";
 	property name="assetManagerService"  inject="AssetManagerService";

@@ -1,4 +1,4 @@
-component extends="coldbox.system.interceptors.SES" output=false {
+component extends="coldbox.system.interceptors.SES" {
 
 	property name="featureService"                   inject="delayedInjector:featureService";
 	property name="systemConfigurationService"       inject="delayedInjector:systemConfigurationService";

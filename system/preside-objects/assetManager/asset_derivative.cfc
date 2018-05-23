@@ -1,7 +1,7 @@
 /**
  * The asset derivative object represents a derived version of an [[presideobject-asset]], storing the file path and named derivative used to transform the initial asset.
  */
-component extends="preside.system.base.SystemPresideObject" output=false displayName="Asset derivative" {
+component extends="preside.system.base.SystemPresideObject" displayName="Asset derivative" {
 
 	property name="asset"         relationship="many-to-one" required=true  uniqueindexes="derivative|1" ondelete="cascade";
 	property name="asset_version" relationship="many-to-one" required=false uniqueindexes="derivative|2" ondelete="cascade";
