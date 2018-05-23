@@ -5,6 +5,7 @@
 	prc.pageIcon     = "group";
 	prc.pageTitle    = translateResource( "cms:websiteUserManager.userspage.title");
 	prc.pageSubTitle = translateResource( "cms:websiteUserManager.userspage.subtitle");
+	canDelete        = IsTrue( prc.canDelete ?: false );
 </cfscript>
 
 
@@ -22,11 +23,12 @@
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
-		, useMultiActions = false
+		, useMultiActions = canDelete
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteUserManager.getUsersForAjaxDataTables" )
-		, gridFields      = [ "active", "login_id", "display_name", "email_address", "last_request_made" ]
+		, gridFields      = [ "id", "active", "login_id", "display_name", "email_address", "last_request_made" ]
 		, allowDataExport = true
 		, dataExportUrl   = event.buildAdminLink( linkTo="websiteUserManager.exportAction" )
+		, multiActionUrl  = event.buildAdminLink( linkTo="websiteUserManager.deleteUserAction" )
 	} )#
 
 </cfoutput>
