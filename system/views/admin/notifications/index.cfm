@@ -119,12 +119,12 @@
 			<div class="form-actions" id="multi-action-buttons">
 				<button class="btn btn-danger confirmation-prompt" type="submit" name="dismiss" disabled="disabled" data-global-key="d" title="#translateResource( 'cms:notifications.multidiscard.prompt' )#">
 					<i class="fa fa-trash-o bigger-110"></i>
-					Dismiss
+					#translateResource( 'cms:notifications.dismiss.btn' )#
 				</button>
 
 				<button class="btn" type="submit" name="read" disabled="disabled" data-global-key="r">
 					<i class="fa fa-check bigger-110"></i>
-					Mark as read
+					#translateResource( 'cms:notifications.read.btn' )#
 				</button>
 			</div>
 		</form>
