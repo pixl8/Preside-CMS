@@ -283,12 +283,12 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object4:title" ).$results( "Object 4" );
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object5:title" ).$results( "Object 5" );
 
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object1:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-1" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object2:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-2" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object3:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-3" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object4:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-4" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object5:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-5" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object6:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-6" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object1:iconClass", defaultValue="fa-database" ).$results( "fa-object-1" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object2:iconClass", defaultValue="fa-database" ).$results( "fa-object-2" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object3:iconClass", defaultValue="fa-database" ).$results( "fa-object-3" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object4:iconClass", defaultValue="fa-database" ).$results( "fa-object-4" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object5:iconClass", defaultValue="fa-database" ).$results( "fa-object-5" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object6:iconClass", defaultValue="fa-database" ).$results( "fa-object-6" );
 
 
 
