@@ -23,7 +23,7 @@
 				<ul class="list-unstyled">
 					<cfloop array="#blockers#" index="blocker">
 						<li>
-							<i class="fa fa-puzzle-piece"></i>
+							<i class="fa fa-database"></i>
 
 							#translateResource( "preside-objects.#blocker.objectName#:title" )#, #translateResource( uri="cms:datamanager.x.related.records", data=[blocker.recordcount] )#
 						</li>
