@@ -130,18 +130,26 @@ component {
 	 * Runs an email template's 'prepareParameters' handler action
 	 * to prepare dynamic parameters for the email render.
 	 *
-	 * @autodoc       true
-	 * @template.hint The template whose parameters are to be prepared
-	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 * @autodoc             true
+	 * @template.hint       ID of the template whose parameters are to be prepared
+	 * @templateDetail.hint Struct with details of the template whose parameters are to be prepared
+	 * @args.hint           A struct of args that have been passed to the email sending logic that will inform the building of this email
 	 *
 	 */
-	public struct function prepareParameters( required string template, struct args={} ) {
+	public struct function prepareParameters(
+		  required string template
+		,          struct args           = {}
+		,          struct templateDetail = {}
+	) {
 		var handlerAction = "email.template.#arguments.template#.prepareParameters";
+		var prepArgs      = arguments.args.copy();
+
+		prepArgs.templateDetail = arguments.templateDetail;
 
 		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
 				  event          = handlerAction
-				, eventArguments = arguments.args
+				, eventArguments = prepArgs
 				, private        = true
 				, prePostExempt  = true
 			);

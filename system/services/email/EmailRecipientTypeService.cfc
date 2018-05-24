@@ -117,24 +117,33 @@ component displayName="Email Recipient Type Service" {
 	 * Prepares email parameters (variables for substituting in subject + body)
 	 * for the given recipient type and provided args (e.g. could contain user id)
 	 *
-	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type whose params we are to prepare
-	 * @recipientId.hint   The ID of the recipient
-	 * @args.hint          Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to prepare the params. e.g. { userId=idofUserToSendEmailTo }.
+	 * @autodoc             true
+	 * @recipientType.hint  The ID of the recipient type whose params we are to prepare
+	 * @recipientId.hint    The ID of the recipient
+	 * @args.hint           Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to prepare the params. e.g. { userId=idofUserToSendEmailTo }.
+	 * @template.hint       ID of the template being prepared
+	 * @templateDetail.hint Structure with details of the template being prepared
 	 */
 	public struct function prepareParameters(
 		  required string recipientType
 		, required string recipientId
-		,          struct args = {}
+		,          struct args           = {}
+		,          string template       = ""
+		,          struct templateDetail = {}
 	) {
 		var handlerAction = "email.recipientType.#recipientType#.prepareParameters";
 
 		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
 				  event          = handlerAction
-				, eventArguments = { args=arguments.args, recipientId=arguments.recipientId }
 				, private        = true
 				, prePostExempt  = true
+				, eventArguments = {
+					  args           = arguments.args
+					, recipientId    = arguments.recipientId
+					, template       = arguments.template
+					, templateDetail = arguments.templateDetail
+				  }
 			);
 		}
 

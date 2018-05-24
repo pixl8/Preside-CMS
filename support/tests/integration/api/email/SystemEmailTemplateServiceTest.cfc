@@ -101,22 +101,24 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "prepareParameters()", function(){
 			it( "should call the 'prepareParameters' method on the corresponding handler for the given template, passing any args through to the method, and return the result", function(){
-				var service    = _getService();
-				var template   = "adminWelcome"
-				var args       = { moreTesting = CreateUUId() };
-				var mockResult = { test=CreateUUId() };
+				var service        = _getService();
+				var template       = "adminWelcome"
+				var templateDetail = { test=CreateUUId() };
+				var args           = { moreTesting = CreateUUId() };
+				var mockResult     = { test=CreateUUId() };
 
 				mockColdboxController.$( "handlerExists" ).$args( "email.template.#template#.prepareParameters" ).$results( true );
 				mockColdboxController.$( "runEvent" ).$args(
 					  event          = "email.template.#template#.prepareParameters"
-					, eventArguments = args
+					, eventArguments = { moreTesting=args.moreTesting, templateDetail=templateDetail }
 					, private        = true
 					, prePostExempt  = true
 				).$results( mockResult );
 
 				expect( service.prepareParameters(
-					  template = template
-					, args     = args
+					  template       = template
+					, args           = args
+					, templateDetail = templateDetail
 				) ).toBe( mockResult );
 			} );
 
