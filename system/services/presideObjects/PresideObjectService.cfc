@@ -626,6 +626,12 @@ component displayName="Preside Object Service" {
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 					, forceVersionCreation = arguments.forceVersionCreation
 				);
+			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
+				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
+					  objectName = arguments.objectName
+					, recordId   = arguments.id
+					, data       = cleanedData
+				);
 			}
 
 			if ( arguments.useVersioning ) {

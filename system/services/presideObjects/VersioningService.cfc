@@ -125,7 +125,16 @@ component {
 			);
 			var dataChanged = changedFields.len();
 
+
 			if ( !arguments.forceVersionCreation && !dataChanged ) {
+				if ( prevVersionsExist ) {
+					updateLatestVersionWithNonVersionedChanges(
+						  objectName = arguments.objectName
+						, recordId   = oldData.id
+						, data       = arguments.data
+					);
+				}
+
 				continue;
 			}
 
@@ -237,6 +246,32 @@ component {
 		}
 
 		return arguments.versionNumber;
+	}
+
+	public numeric function updateLatestVersionWithNonVersionedChanges(
+		  required string objectName
+		, required string recordId
+		, required struct data
+	) {
+		var poService         = $getPresideObjectService();
+		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
+		var idField           = poService.getIdField( arguments.objectName );
+		var filter            = "#idField# = :#idField# and ( _version_is_latest = :_version_is_latest or _version_is_latest_draft = :_version_is_latest_draft )"
+		var filterParams      = {
+			  "#idField#"              = arguments.recordId
+			, _version_is_latest       = true
+			, _version_is_latest_draft = true
+		};
+
+		poService.updateData(
+			  objectName              = versionObjectName
+			, data                    = arguments.data
+			, filter                  = filter
+			, filterParams            = filterParams
+			, useVersioning           = false
+			, skipTrivialInterceptors = true
+			, setDateModified         = false
+		);
 	}
 
 	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
