@@ -407,10 +407,11 @@ component displayName="Preside Object Service" {
 
 					if ( relationship == "many-to-many" ) {
 						syncManyToManyData(
-							  sourceObject   = args.objectName
-							, sourceProperty = key
-							, sourceId       = newId
-							, targetIdList   = manyToManyData[ key ]
+							  sourceObject        = args.objectName
+							, sourceProperty      = key
+							, sourceId            = newId
+							, targetIdList        = manyToManyData[ key ]
+							, requiresVersionSync = false
 						);
 					} else if ( relationship == "one-to-many" ) {
 						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
@@ -683,10 +684,11 @@ component displayName="Preside Object Service" {
 					if ( relationship == "many-to-many" ) {
 						for( var updatedId in updatedRecords ) {
 							syncManyToManyData(
-								  sourceObject   = arguments.objectName
-								, sourceProperty = key
-								, sourceId       = updatedId
-								, targetIdList   = manyToManyData[ key ]
+								  sourceObject        = arguments.objectName
+								, sourceProperty      = key
+								, sourceId            = updatedId
+								, targetIdList        = manyToManyData[ key ]
+								, requiresVersionSync = false
 							);
 						}
 					} else if ( relationship == "one-to-many" ) {
@@ -933,11 +935,21 @@ component displayName="Preside Object Service" {
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 */
 	public boolean function syncManyToManyData(
-		  required string sourceObject
-		, required string sourceProperty
-		, required string sourceId
-		, required string targetIdList
+		  required string  sourceObject
+		, required string  sourceProperty
+		, required string  sourceId
+		, required string  targetIdList
+		,          boolean requiresVersionSync = true
 	) autodoc=true {
+		if ( arguments.requiresVersionSync ) {
+			return updateData(
+				  objectName              = arguments.sourceObject
+				, id                      = arguments.sourceId
+				, data                    = { "#arguments.sourceProperty#" = arguments.targetIdList }
+				, updateManyToManyRecords = true
+			) > 0;
+		}
+
 		var prop = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObject = prop.relatedTo ?: "";
 		var pivotTable   = prop.relatedVia ?: "";
