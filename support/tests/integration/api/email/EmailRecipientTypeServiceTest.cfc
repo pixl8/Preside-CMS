@@ -56,16 +56,29 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedHandler = "email.recipientType.websiteUser.prepareParameters";
 				var mockArgs        = { userId=CreateUUId() };
 				var mockParams      = { first_name="test", login_id="me" };
+				var template        = CreateUUId();
+				var templateDetail  = { test=CreateUUId() };
 
 				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( true );
 				mockColdboxController.$( "runEvent"      ).$args(
 					  event          = expectedHandler
-					, eventArguments = { args=mockArgs, recipientId=recipientId }
 					, private        = true
 					, prePostExempt  = true
+					, eventArguments = {
+						  args           = mockArgs
+						, recipientId    = recipientId
+						, template       = template
+						, templateDetail = templateDetail
+					  }
 				).$results( mockParams );
 
-				expect( service.prepareParameters( recipientType=recipientType, recipientId=recipientId, args=mockArgs ) ).toBe( mockParams );
+				expect( service.prepareParameters(
+					  recipientType  = recipientType
+					, recipientId    = recipientId
+					, args           = mockArgs
+					, template       = template
+					, templateDetail = templateDetail
+				) ).toBe( mockParams );
 			} );
 
 			it( "should return an empty struct when no handler action exists", function(){

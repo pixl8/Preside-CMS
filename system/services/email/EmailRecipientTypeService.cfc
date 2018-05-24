@@ -139,9 +139,10 @@ component displayName="Email Recipient Type Service" {
 				, private        = true
 				, prePostExempt  = true
 				, eventArguments = {
-					  args        = arguments.args
-					, recipientId = arguments.recipientId
-					, template    = arguments.template
+					  args           = arguments.args
+					, recipientId    = arguments.recipientId
+					, template       = arguments.template
+					, templateDetail = arguments.templateDetail
 				  }
 			);
 		}
