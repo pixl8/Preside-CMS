@@ -1782,13 +1782,13 @@
 
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
-			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
-			data.set2 = poService.selectData( objectName="object_1", filter="id = :id", filterParams={id=objId} );
-			data.set3 = poService.selectData( objectName="object_1", filter="id = :id", filterParams={id="meh"} );
-			data.set4 = poService.selectData( objectName="object_1", filter={ id = "meh" } );
-			data.set5 = poService.selectData( objectName="object_1" );
-			data.set6 = poService.selectData( objectName="object_2" );
-			data.set7 = poService.selectData( objectName="object_3" );
+			data.set1 = poService.selectData( objectName="object_1", test=CreateUUId(), filter={ id = objId } );
+			data.set2 = poService.selectData( objectName="object_1", test=CreateUUId(), filter="id = :id", filterParams={id=objId} );
+			data.set3 = poService.selectData( objectName="object_1", test=CreateUUId(), filter="id = :id", filterParams={id="meh"} );
+			data.set4 = poService.selectData( objectName="object_1", test=CreateUUId(), filter={ id = "meh" } );
+			data.set5 = poService.selectData( objectName="object_1", test=CreateUUId() );
+			data.set6 = poService.selectData( objectName="object_2", test=CreateUUId() );
+			data.set7 = poService.selectData( objectName="object_3", test=CreateUUId() );
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
