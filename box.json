@@ -56,5 +56,8 @@
         ".twgit_features_subject",
         "build.sh",
         "test.sh"
-    ]
+    ],
+    "testbox":{
+        "runner":"http://127.0.0.1:9999/runtests.cfm"
+    }
 }

@@ -97,10 +97,10 @@ component displayName="Multilingual Preside Object Service" {
 		translationObject.isPageType   = false;
 
 		for( var propertyName in translationProperties ) {
-			if ( !validProperties.find( propertyName ) ) {
-				translationProperties.delete( propertyName );
-				dbFieldList.delete( propertyName );
-				propertyNames.delete( propertyName );
+			if ( !validProperties.findNoCase( propertyName ) ) {
+				StructDelete( translationProperties, propertyName );
+				ArrayDeleteNoCase( dbFieldList, propertyName );
+				ArrayDeleteNoCase( propertyNames, propertyName );
 				continue;
 			}
 
