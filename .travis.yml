@@ -11,7 +11,7 @@ before_install:
   - mkdir /tmp/bin
   - export PATH=$PATH:/tmp/bin
 install:
-  - curl --location 'http://integration.stg.ortussolutions.com/artifacts/ortussolutions/commandbox/3.9.2/commandbox-bin-3.9.2.zip' -o /tmp/box.zip
+  - curl --location 'http://integration.stg.ortussolutions.com/artifacts/ortussolutions/commandbox/4.0.0/commandbox-bin-4.0.0.zip' -o /tmp/box.zip
   - unzip /tmp/box.zip -d /tmp/bin
   - sed -i "s/java_args='-client'/java_args='-Xmx512m -client'/" /tmp/bin/box
   - gem install s3_website
