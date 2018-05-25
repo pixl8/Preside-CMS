@@ -558,7 +558,7 @@ component {
 				};
 
 				for( var field in child ) {
-					if ( !requiredSelectFields.find( field ) ) {
+					if ( !page.keyExists( field ) ) {
 						page[ field ] = child[ field ];
 					}
 				}
