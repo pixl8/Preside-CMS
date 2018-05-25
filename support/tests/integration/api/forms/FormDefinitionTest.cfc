@@ -315,14 +315,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should append any passed arguments other than 'tab' and 'fieldset' to the created field", function(){
 				var definition = _getFormDefinition();
 
-				definition.addField( name="testfield", fieldset="testfieldset", tab="test", rules=[{ myRule="test" }, label="mylabel", control="richeditor" ] );
+				definition.addField( name="testfield", fieldset="testfieldset", tab="test", rules=[{ myRule="test", label="mylabel", control="richeditor" } ] );
 
-				expect( definition.getRawDefinition() ).toBe( { tabs=[ { id="test", fieldsets=[{id="testfieldset", fields=[ { name="testfield", rules=[{ myRule="test" }, label="mylabel", control="richeditor" ] } ] }] } ] } );
+				expect( definition.getRawDefinition() ).toBe( { tabs=[ { id="test", fieldsets=[{id="testfieldset", fields=[ { name="testfield", rules=[{ myRule="test", label="mylabel", control="richeditor" } ] } ] }] } ] } );
 			} );
 
 			it( "should return self so that methods can be chained", function(){
 				var definition = _getFormDefinition();
-				var result     = definition.addField( name="testfield", fieldset="testfieldset", tab="test", rules=[{ myRule="test" }, label="mylabel", control="richeditor" ] );
+				var result     = definition.addField( name="testfield", fieldset="testfieldset", tab="test", rules=[{ myRule="test", label="mylabel", control="richeditor" }] );
 
 				expect( result ).toBe( definition );
 			} );
