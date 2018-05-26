@@ -271,7 +271,7 @@ component extends="testbox.system.BaseSpec" {
 				) ).toBe( taskId );
 			} );
 
-			it( "should convert CreateTimeSpan() entries to seconds in the retry interval configuration", function(){
+			it( title="should convert CreateTimeSpan() entries to seconds in the retry interval configuration", skip=true, body=function(){
 				var service = _getService();
 				var owner   = CreateUUId();
 				var event   = "some.event";
