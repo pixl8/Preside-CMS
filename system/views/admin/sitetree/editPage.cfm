@@ -178,6 +178,24 @@
 			, id      = "_backToEdit"
 			, label   = translateResource( uri="cms:sitetree.editPage.backToEdit" )
 		)#
+
+		<cfif canActivate>
+			<div class="form-group">
+				<label class="col-sm-2 control-label no-padding-right">
+					#translateResource( "cms:sitetree.editPage.PageStatus" )#
+				</label>
+				<div class="col-sm-9">
+					<label class="control-label no-padding-right">
+						<cfif IsTrue( page.active )>
+							#translateResource( "cms:sitetree.page.status.active" )#
+						<cfelse>
+							#translateResource( "cms:sitetree.page.status.inactive" )#
+						</cfif>
+					</label>
+				</div>
+			</div>
+		</cfif>
+
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
 				<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">
