@@ -29,6 +29,9 @@ component {
 			ArrayAppend( result.aaData, record );
 		}
 
+		if( isStruct( result.aaData[1] ) AND result.aaData[1]._options NEQ '' )
+			result.aaData[1]._options = reReplace(result.aaData[1]._options,"\s","","ALL");
+
 		return result;
 	}
 
