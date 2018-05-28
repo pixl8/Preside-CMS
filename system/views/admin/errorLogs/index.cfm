@@ -4,7 +4,7 @@
 
 <cfoutput>
 	<cfif not logs.len()>
-		<p><em>There are no error logs to see here.</em></p>
+		<p><em>#translateResource( "cms:errorLogs.page.noLog" )#</em></p>
 	<cfelse>
 		<div class="top-right-button-group">
 			<a class="pull-right inline red confirmation-prompt" href="#event.buildAdminLink( linkTo='errorLogs.deleteAllAction' )#" data-global-key="c" title="#translateResource( "cms:errorLogs.delete.all.logs.link" )#">
