@@ -25,6 +25,7 @@
 					<cfif Len( Trim( systemMenu ) )>
 						<li>#systemMenu#</li>
 					</cfif>
+					<li>#renderViewlet( event='admin.Layout.localePicker' )#</li>
 
 					<li>#helpAndSupport#</li>
 				</ul>
