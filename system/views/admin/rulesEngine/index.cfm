@@ -5,8 +5,9 @@
 
 
 <cfoutput>
-	<div class="top-right-button-group">
+	<div class="top-right-button-group" style="margin: -8px 4px 0px 0px;">
 		<cfif hasCmsPermission( "rulesEngine.add" )>
+			<br>
 			<button data-toggle="dropdown" class="btn btn-sm btn-success pull-right inline">
 				<span class="fa fa-caret-down"></span>
 				<i class="fa fa-fw fa-plus"></i>&nbsp; #translateResource( 'cms:rulesEngine.add.condition.btn')#

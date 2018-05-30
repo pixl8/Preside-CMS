@@ -73,8 +73,6 @@
 				, context  = "admin"
 			)#
 
-			<br>
-
 			<div class="row">
 				<div class="col-md-offset-2">
 					<a href="##filter-form" data-toggle="collapse">
@@ -90,6 +88,7 @@
 					</button>
 				</div>
 			</div>
+			<br>
 		</form>
 	</div>
 
