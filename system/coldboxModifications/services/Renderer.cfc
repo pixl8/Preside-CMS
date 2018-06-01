@@ -543,8 +543,8 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var layoutPath       = "";
 		var moduleLayoutPath = "";
 
-		if ( len( moduleName ) && instance.modulesConfig.keyExists( moduleName ) ){
-			moduleLayoutPath = "#modulesConfig[moduleName].mapping#/#layoutsConvention#/#arguments.layout#";
+		if ( len( moduleName ) && variables.modulesConfig.keyExists( moduleName ) ){
+			moduleLayoutPath = "#variables.modulesConfig[moduleName].mapping#/#layoutsConvention#/#arguments.layout#";
 			if ( FileExists( ExpandPath( moduleLayoutPath ) ) ) {
 				return moduleLayoutPath;
 			}
@@ -586,11 +586,11 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		parentModuleLayoutPath 	= "/#variables.appMapping#/#variables.layoutsConvention#/modules/#moduleName#/#arguments.layout#";
 		parentCommonLayoutPath 	= "/#variables.appMapping#/#variables.layoutsConvention#/modules/#arguments.layout#";
 
-		if ( instance.modulesConfig.keyExists( moduleName ) ) {
-			moduleLayoutPath = "#instance.modulesConfig[ moduleName ].mapping#/#instance.modulesConfig[ moduleName ].conventions.layoutsLocation#/#arguments.layout#";
+		if ( variables.modulesConfig.keyExists( moduleName ) ) {
+			moduleLayoutPath = "#variables.modulesConfig[ moduleName ].mapping#/#variables.modulesConfig[ moduleName ].conventions.layoutsLocation#/#arguments.layout#";
 
 			// Check parent view order setup
-			if ( instance.modulesConfig[ moduleName ].layoutParentLookup ){
+			if ( variables.modulesConfig[ moduleName ].layoutParentLookup ){
 				// We check if layout is overriden in parent first.
 				if ( fileExists( expandPath( parentModuleLayoutPath ) ) ) {
 					return parentModuleLayoutPath;
@@ -662,11 +662,11 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		parentModuleViewPath = "/#variables.appMapping#/#variables.viewsConvention#/modules/#moduleName#/#arguments.view#";
 		parentCommonViewPath = "/#variables.appMapping#/#variables.viewsConvention#/modules/#arguments.view#";
 
-		if ( instance.modulesConfig.keyExists( moduleName ) ) {
-			moduleViewPath = "#instance.modulesConfig[ moduleName ].mapping#/#instance.modulesConfig[ moduleName ].conventions.viewsLocation#/#arguments.view#";
+		if ( variables.modulesConfig.keyExists( moduleName ) ) {
+			moduleViewPath = "#variables.modulesConfig[ moduleName ].mapping#/#variables.modulesConfig[ moduleName ].conventions.viewsLocation#/#arguments.view#";
 
 			// Check parent view order setup
-			if ( instance.modulesConfig[ moduleName ].viewParentLookup ) {
+			if ( variables.modulesConfig[ moduleName ].viewParentLookup ) {
 				// We check if view is overriden in parent first.
 				if ( fileExists( expandPath( parentModuleViewPath & ".cfm" ) ) ) {
 					return parentModuleViewPath;
