@@ -29,4 +29,10 @@ This form is used for the "edit site" form in the site manager
 			<field name="auto_redirect"    sortorder="30" control="yesNoSwitch" label="preside-objects.site:field.auto_redirect.title"    help="preside-objects.site:field.auto_redirect.help" />
 		</fieldset>
 	</tab>
+	<tab id="tagManager" sortorder="20" title="preside-objects.site:tagManager.tab.title">
+		<fieldset id="tagManager" sortorder="10">
+			<field binding="site.tagManagerID"     sortorder="10" control="textinput" />
+			<field binding="site.containerID"      sortorder="20" control="textinput" />
+		</fieldset>
+	</tab>
 </form>
