@@ -16,18 +16,19 @@ component {
 		var savedData     = args.savedData     ?: {};
 		var labelRenderer = args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
 		var labelFields   = labelRendererService.getSelectFieldsForLabel( labelRenderer );
+		var useCache	  = structKeyExists(args, 'useCache') ? args.useCache : true;
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#"
+					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&useCache=#useCache#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&q=%QUERY"
+				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&useCache=#useCache#&q=%QUERY"
 			);
 		} else {
 			var filter = {};
@@ -48,6 +49,7 @@ component {
 				, orderBy      = orderBy
 				, filter       = filter
 				, savedFilters = ListToArray( savedFilters )
+				, useCache	   = useCache
 			);
 		}
 

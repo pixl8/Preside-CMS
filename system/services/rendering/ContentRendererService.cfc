@@ -44,12 +44,13 @@ component {
 		}
 	}
 
-	public string function renderLabel( required string objectName, required string recordId, string keyField="id" ) {
+	public string function renderLabel( required string objectName, required string recordId, string keyField="id", array bypassTenants = [] ) {
 		var record = _getPresideObjectService().selectData(
 			  objectName         = arguments.objectName
 			, filter             = { "#keyField#"=arguments.recordId }
 			, selectFields       = [ "${labelfield} as label" ]
 			, allowDraftVersions = $getRequestContext().showNonLiveContent()
+			, bypassTenants = arguments.bypassTenants
 		);
 
 		if ( record.recordCount ) {

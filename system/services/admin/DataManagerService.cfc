@@ -392,6 +392,7 @@ component {
 		,          numeric maxRows       = 1000
 		,          string  orderBy       = "label"
 		,          string  labelRenderer = ""
+		,	   boolean useCache	 = false
 	) {
 		var result = [];
 		var records = "";
@@ -403,6 +404,7 @@ component {
 			, maxRows      = arguments.maxRows
 			, orderBy      = arguments.orderBy
 			, autoGroupBy  = true
+			, useCache     = arguments.useCache
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
 			result.text = replaceList(_getLabelRendererService().renderLabel( labelRenderer, result ), "&lt;,&gt;,&amp;,&quot;", '<,>,&,"');
