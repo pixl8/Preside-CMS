@@ -1932,7 +1932,7 @@ component displayName="Preside Object Service" {
 	}
 
 	public string function slugify() {
-		return $slugify( argumentsCollection=arguments );
+		return $slugify( argumentCollection=arguments );
 	}
 
 // PRIVATE HELPERS
