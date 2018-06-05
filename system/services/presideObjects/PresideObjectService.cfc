@@ -1930,6 +1930,10 @@ component displayName="Preside Object Service" {
 		return expanded;
 	}
 
+	public string function slugify() {
+		return $slugify( argumentsCollection=arguments );
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
