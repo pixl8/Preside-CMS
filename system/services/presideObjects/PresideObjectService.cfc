@@ -588,6 +588,7 @@ component displayName="Preside Object Service" {
 			  operation  = "update"
 			, objectName = arguments.objectName
 			, data       = cleanedData
+			, id         = arguments.id
 		) );
 
 		if ( !Len( Trim( arguments.id ?: "" ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceUpdateAll ) {
@@ -2901,7 +2902,7 @@ component displayName="Preside Object Service" {
 		return newData;
 	}
 
-	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data ) {
+	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data, string id="" ) {
 		var obj       = getObject( arguments.objectName );
 		var props     = getObjectProperties( arguments.objectName );
 		var newData   = Duplicate( arguments.data );
@@ -2920,7 +2921,7 @@ component displayName="Preside Object Service" {
 					continue;
 				}
 
-				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop );
+				var generatedValue = _generateValue( arguments.objectName, arguments.id, prop.generator, newData, prop );
 				if ( !IsNull( local.generatedValue ) ) {
 					generated[ propName ] = newData[ propName ] = generatedValue;
 				}
@@ -2930,7 +2931,7 @@ component displayName="Preside Object Service" {
 		return generated;
 	}
 
-	private any function _generateValue( required string objectName, required string generator, required struct data, required struct prop ) {
+	private any function _generateValue( required string objectName, required string id, required string generator, required struct data, required struct prop ) {
 		switch( ListFirst( arguments.generator, ":" ) ) {
 			case "UUID":
 				return CreateUUId();
@@ -2956,6 +2957,34 @@ component displayName="Preside Object Service" {
 
 					return Hash( valueToHash );
 				}
+			break;
+			case "slug":
+				var generateFrom = prop.generateFrom ?: getLabelField( arguments.objectName );
+				var idField      = getIdField( arguments.objectName );
+
+				if ( len( arguments.data[ prop.name ] ?: "" ) || !arguments.data.keyExists( generateFrom ) ) {
+					return;
+				}
+
+				var slug         = slugify( arguments.data[ generateFrom ] );
+				var filter       = "slug = :slug";
+				var filterParams = { slug=slug };
+				var increment    = 0;
+
+				if ( len( arguments.id ) ) {
+					filter &= " and id != :id";
+					filterParams.id = arguments.id;
+				}
+
+				while( dataExists( objectName=arguments.objectName, filter=filter, filterParams=filterParams ) ) {
+					if ( increment ) {
+						slug = ReReplace( slug, "\-[0-9]+$", "" );
+					}
+					slug &= "-" & ++increment;
+					filterParams.slug = slug;
+				}
+
+				return slug;
 			break;
 		}
 
