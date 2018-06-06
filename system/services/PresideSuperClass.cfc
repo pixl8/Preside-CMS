@@ -26,6 +26,7 @@ component displayName="Preside Super Class" {
 	 * @adHocTaskManagerService.inject    delayedInjector:adHocTaskManagerService
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 * @i18n.inject                       delayedInjector:i18n
+	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
 	 *
 	 */
 	public any function init(
@@ -47,6 +48,7 @@ component displayName="Preside Super Class" {
 		, required any adHocTaskManagerService
 		, required any coldbox
 		, required any i18n
+		, required any htmlHelper
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -66,6 +68,7 @@ component displayName="Preside Super Class" {
 		$adHocTaskManagerService    = arguments.adHocTaskManagerService;
 		$coldbox                    = arguments.coldbox;
 		$i18n                       = arguments.i18n;
+		$htmlHelper                 = arguments.htmlHelper;
 
 		return this;
 	}
@@ -804,4 +807,19 @@ component displayName="Preside Super Class" {
 		return $getAdhocTaskManagerService().createTask( argumentCollection=arguments );
 	}
 
+	/**
+	 * Proxy to the slugify method of Coldbox's HTMLHelper
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var slug = $slugify( "My Site: About Us" );
+	 * // Will return "my-site-about-us"
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public string function $slugify() {
+		return $htmlHelper.slugify( argumentCollection=arguments );
+	}
 }
