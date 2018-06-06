@@ -265,7 +265,12 @@
 
 <!--- tasks --->
 	<cffunction name="createTask" access="public" returntype="any" output="false">
-		<cfreturn getSingleton( "adHocTaskManagerService" ).createTask( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "adHocTaskManagerService" ).createTask( argumentCollection=arguments ) />
+	</cffunction>
+
+<!--- utils --->
+	<cffunction name="slugify" access="public" returntype="string" output="false">
+		<cfreturn getSingleton( "PresideObjectService" ).slugify( argumentCollection=arguments )>
 	</cffunction>
 
 <!--- helpers --->

@@ -2765,6 +2765,7 @@
 	<cffunction name="test080_01_insertData_shouldPopulateGeneratedFieldsWithTheirGeneratedValues" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
 
 			poService.dbSync();
 
@@ -2775,6 +2776,7 @@
 			super.assertEquals( "Mrs Fred Smith", record.label );
 			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+			super.assertEquals( "mrs-fred-smith", record.slug );
 		</cfscript>
 	</cffunction>
 
@@ -3009,6 +3011,8 @@
 	<cffunction name="test089_updateData_shouldGenerateFieldValues_forPropsThatGenerateAlways" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
+			poService.$( "slugify" ).$args( "Miss Roberta Holness" ).$results( "miss-roberta-holness" );
 
 			poService.dbSync();
 
@@ -3020,6 +3024,7 @@
 			super.assertEquals( "Miss Roberta Holness", record.label );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
 			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
+			super.assertEquals( "miss-roberta-holness", record.slug );
 		</cfscript>
 	</cffunction>
 
