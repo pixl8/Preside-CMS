@@ -131,7 +131,7 @@ component {
 					updateLatestVersionWithNonVersionedChanges(
 						  objectName = arguments.objectName
 						, recordId   = oldData.id
-						, data       = arguments.data
+						, data       = StructCopy( arguments.data )
 					);
 				}
 
