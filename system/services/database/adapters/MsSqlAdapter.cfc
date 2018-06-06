@@ -230,7 +230,6 @@ component extends="BaseAdapter" {
 		,          boolean distinct      = false
 
 	) {
-		var newGroupBy  = "";
 		var sql         = arguments.distinct ? "select distinct" : "select";
 		var delim       = " ";
 		var col         = "";
@@ -239,21 +238,10 @@ component extends="BaseAdapter" {
 			sql &= delim & col;
 			delim = ", ";
 		}
-		if ( containsAggregateFunctions( sql ) ) {
-			delim = " ";
-			for( col in arguments.selectColumns ){
-				if ( !containsAggregateFunctions( col ) ) {
-					newGroupBy &= delim & REReplace(col, "as\s\w+", "", "one");
-					delim = ", ";
-				}
-			}
-		}
 
 		if ( arguments.maxRows ) {
 			if ( Len( Trim ( arguments.orderBy ) ) ) {
-				if ( !containsAggregateFunctions( sql ) ) {
-					sql &= ", row_number() over (order by " & arguments.orderBy & ") as _rownumber ";
-				}
+				sql &= ", row_number() over (order by " & arguments.orderBy & ") as _rownumber ";
 			} else {
 				sql &= ", row_number() over ( order by (SELECT 1) ) as _rownumber ";
 			}
@@ -276,11 +264,7 @@ component extends="BaseAdapter" {
 
 
 		if ( Len( Trim ( arguments.groupBy ) ) ) {
-			if ( containsAggregateFunctions( sql ) ) {
-				sql &= " group by " & newGroupBy;
-			} else {
-				sql = reCompileGroupByForMsSql( sql, arguments.selectColumns, arguments.groupBy, arguments.tableAlias );
-			}
+			sql &= " group by " & arguments.groupBy;
 		}
 
 		if ( Len( Trim ( arguments.having ) ) ) {
@@ -321,39 +305,6 @@ component extends="BaseAdapter" {
 		return "alter table #escapeEntity( arguments.tableName )# " & ( arguments.checksEnabled ? 'nocheck' : 'with check check' ) & " constraint all";
 	}
 
-	private string function reCompileGroupByForMsSql( string sql, array select, string groupBy, string tableAlias ) {
-		var sqlNonGroupBy      = arguments.sql;
-		var strNonGroupBy      = Replace( arguments.groupBy, "group by", "", "all" );
-		var arrColumnInGroupBy = ListToArray( strNonGroupBy, ", " );
-		var newSql             = "select";
-		var delim              = " ";
-		var col                = "";
-
-		for( col in arrColumnInGroupBy ){
-			newSql &= delim & col;
-			delim  = ", ";
-		}
-
-		newSql = REReplace( arguments.sql, "select.*?from", newSql & " from ", "one" );
-		newSql = " , ( " & newSql & " group by "  & strNonGroupBy & " ) as Temp ";
-		delim = " ";
-
-		if ( FindNoCase( "where", sqlNonGroupBy, 1 ) > 0 ) {
-			newSql = Replace( sqlNonGroupBy, "where", newSql & " where ", "one" );
-			for( col in arrColumnInGroupBy) {
-				newSql &=" and " & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
-			}
-		} else {
-			newSql &= " where ";
-			for( col in arrColumnInGroupBy ) {
-				newSql &= delim & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
-				delim = " and ";
-			}
-		}
-
-		return newSql;
-	}
-
 	private boolean function containsAggregateFunctions( required string sql ) {
 		return ReFindNoCase( "\b(SUM|COUNT|AVG|MIN|MAX)\(", arguments.sql );
 	}
@@ -363,7 +314,7 @@ component extends="BaseAdapter" {
 	}
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
-		return "#leftExpression# + #rightExpression#";
+		return "Cast( #leftExpression# as nvarchar( MAX ) ) + Cast( #rightExpression# as nvarchar( MAX ) )";
 	}
 
 

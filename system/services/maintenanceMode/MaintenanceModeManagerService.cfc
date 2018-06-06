@@ -52,14 +52,14 @@ component {
 
 // private helpers
 	private void function _activateMaintenanceMode( required struct settings ) {
-		var settings     = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
-		var tasksEnabled = IsBoolean( settings.scheduledtasks_enabled ?: "" ) && settings.scheduledtasks_enabled;
+		var taskSettings = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
+		var tasksEnabled = IsBoolean( taskSettings.scheduledtasks_enabled ?: "" ) && taskSettings.scheduledtasks_enabled;
 		if ( tasksEnabled ) {
 			_setScheduledTaskStatus( false );
 		}
 
 		_getMaintenanceModeService().setMaintenanceMode(
-			  maintenanceHtml = _generateMaintenanceModePage( settings )
+			  maintenanceHtml = _generateMaintenanceModePage( arguments.settings )
 			, bypassPassword  = arguments.settings.bypass_password ?: ""
 			, allowedIps      = ListToArray( arguments.settings.ip_whitelist ?: "", Chr(10) & Chr(13) & "," )
 			, tasksEnabled    = tasksEnabled

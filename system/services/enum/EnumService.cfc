@@ -51,23 +51,34 @@ component {
 	 * @validatorMessage cms:validation.enum.default
 	 */
 	public boolean function enum(
-	      required string  fieldName
-	    , required any     value
-	    , required string  enum
+		  required string  fieldName
+		, required any     value
+		, required string  enum
+		,          boolean multiple = false
 	) {
-	    if ( !IsSimpleValue( arguments.value ) || !Len( Trim( arguments.value ) ) ) {
-	        return true;
-	    }
+		if ( !IsSimpleValue( arguments.value ) || !Len( Trim( arguments.value ) ) ) {
+			return true;
+		}
 
-	    var enums    = _getConfiguredEnums();
+		var enums    = _getConfiguredEnums();
 		var rawItems = enums[ arguments.enum ] ?: [];
 
-	    return rawItems.find( arguments.value );
+		if ( arguments.multiple ) {
+			for( var v in ListToArray( arguments.value ) ) {
+				if ( !rawItems.find( v ) ) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		return rawItems.find( arguments.value );
 	}
 
 	public string function enum_js() {
 		// server side validation only for now
-	    return "function( value, elem, params ){ return true; }";
+		return "function( value, elem, params ){ return true; }";
 	}
 
 // PRIVATE HELPERS

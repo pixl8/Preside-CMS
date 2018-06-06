@@ -1,6 +1,6 @@
 /**
  * The document metadata service provides methods for extracting metadata from documents such as PDFs and word documents.
- * Its purpose in the context of PresideCMS is for metadata and content extraction from uploaded documents.
+ * Its purpose in the context of Preside is for metadata and content extraction from uploaded documents.
  * \n
  * In its current form, only the extraction of image EXIF metadata is supported. Extensions such as the Tika extension
  * can override/extend this service to provide full functionality.
@@ -36,7 +36,7 @@ component displayName="Document metadata service" {
 
 	/**
 	 * This method returns raw text read from the document, useful for populating search engines, etc.
-	 * This method is currently unsupported in the core PresideCMS platform and must be supported
+	 * This method is currently unsupported in the core Preside platform and must be supported
 	 * through Apache Tika extension or similar.
 	 *
 	 * @fileContent.hint Binary content of the file for which you want to extract meta data

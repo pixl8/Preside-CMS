@@ -58,8 +58,7 @@ window.presideBootbox = window.presideBootbox || (function init($, undefined) {
    * @private
    */
   function _t(key) {
-    var locale = locales[defaults.locale];
-    return locale ? locale[key] : locales.en[key];
+    return i18n.translateResource( "cms:" + key.toLowerCase() + ".btn" )
   }
 
   function processCallback(e, dialog, callback) {

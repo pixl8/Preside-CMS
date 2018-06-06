@@ -12,8 +12,10 @@ component {
 		prc._presideReloaded = true;
 
 		_performDbMigrations();
+		_configureVariousServices();
 		_populateDefaultLanguages();
 		_populateAutoRulesEngineExpressions();
+
 		announceInterception( "onApplicationStart" );
 	}
 
@@ -186,5 +188,15 @@ component {
 
 	private void function _populateAutoRulesEngineExpressions() {
 		expressionGenerator.generateAndRegisterAutoExpressions();
+	}
+
+	private void function _configureVariousServices() {
+		var i18n = getModel( "i18n" );
+
+		i18n.configure();
+
+		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
+			i18n.setFwLocale( request.DefaultLocaleFromCookie );
+		}
 	}
 }

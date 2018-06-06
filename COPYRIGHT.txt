@@ -1,20 +1,20 @@
-The PresideCMS program and all source code is Copyright 2003-2014 Pixl8 Interactive Limited unless otherwise stated
+The Preside program and all source code is Copyright 2003-2014 Pixl8 Interactive Limited unless otherwise stated
 
-PresideCMS is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License version 2
+Preside is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License version 2
 
 Special exception
 
-Linking PresideCMS statically or dynamically with other modules constitutes the preparation of a derivative work based on 
-PresideCMS. Thus, the terms and conditions of the GNU General Public License version 2 ("GPL") cover the entire combined work. 
+Linking Preside statically or dynamically with other modules constitutes the preparation of a derivative work based on
+Preside. Thus, the terms and conditions of the GNU General Public License version 2 ("GPL") cover the entire combined work.
 
-The copyright holders of PresideCMS grant you permission to combine PresideCMS with programs
-or libraries that are released under the GNU Lesser General Public License version 2.1. 
+The copyright holders of Preside grant you permission to combine Preside with programs
+or libraries that are released under the GNU Lesser General Public License version 2.1.
 
-In addition you may combine PresideCMS with other source code of your choice and distribute this without PresideCMS under the license of your choice, providing that you follow these specific guidelines:
+In addition you may combine Preside with other source code of your choice and distribute this without Preside under the license of your choice, providing that you follow these specific guidelines:
 
-You agree not to modify the PresideCMS logo or remove it from display anywhere within the software.
-You agree not to remove notices within the PresideCMS software that reference the copyright holders
-You agree not to remove credit links from the PresideCMS administrator, you may add addendums.
+You agree not to modify the Preside logo or remove it from display anywhere within the software.
+You agree not to remove notices within the Preside software that reference the copyright holders
+You agree not to remove credit links from the Preside administrator, you may add addendums.
 
 
 This program is distributed in the hope that it will be useful, but

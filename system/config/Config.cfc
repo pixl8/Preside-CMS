@@ -4,11 +4,11 @@ component {
 
 		settings = {};
 
-		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
+		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
 		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
 		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
 
-		settings.appMappingPath    = Replace( ReReplace( settings.appMapping   , "^/", "" ), "/", ".", "all" );
+		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
 
@@ -19,16 +19,15 @@ component {
 			, handlersIndexAutoReload   = false
 			, debugMode                 = false
 			, defaultEvent              = "general.index"
-			, customErrorTemplate       = ""
 			, reinitPassword            = ( applicationSettings.COLDBOX_RELOAD_PASSWORD ?: "true" )
 			, handlerCaching            = true
 			, eventCaching              = true
 			, requestContextDecorator   = "preside.system.coldboxModifications.RequestContextDecorator"
-			, UDFLibraryFile            = _getUdfFiles()
+			, applicationHelper         = _getUdfFiles()
 			, pluginsExternalLocation   = "preside.system.plugins"
 			, viewsExternalLocation     = "/preside/system/views"
 			, layoutsExternalLocation   = "/preside/system/layouts"
-			, modulesExternalLocation   = ["/preside/system/modules"]
+			, modulesExternalLocation   = [ "/app/extensions", "/preside/system/modules" ]
 			, handlersExternalLocation  = "preside.system.handlers"
 			, applicationStartHandler   = "General.applicationStart"
 			, applicationEndHandler     = "General.applicationEnd"
@@ -36,6 +35,7 @@ component {
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
+			, customErrorTemplate       = "/preside/system/coldboxModifications/includes/errorReport.cfm"
 		};
 
 		i18n = {
@@ -51,7 +51,9 @@ component {
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } },
+			{ class="preside.system.interceptors.PageCachingInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -129,8 +131,8 @@ component {
 		logbox = {
 			appenders = {
 				defaultLogAppender = {
-					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
-					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
+					  class      = 'coldbox.system.logging.appenders.RollingFileAppender'
+					, properties = { filePath=settings.logsMapping, filename="coldbox.log", async=true }
 				},
 				taskmanagerRequestAppender = {
 					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
@@ -163,12 +165,14 @@ component {
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
 		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics          = [];
+		settings.syncDb                      = IsBoolean( settings.injectedConfig.syncDb ?: ""  ) ? settings.injectedConfig.syncDb : true;
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.devConsoleToggleKeyCode     = 96;
 		settings.adminLanguages              = [];
 		settings.showNonLiveContentByDefault = true;
+		settings.coldboxVersion              = _calculateColdboxVersion();
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -190,6 +194,7 @@ component {
 
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
+			, "notification"
 			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
@@ -223,7 +228,7 @@ component {
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
@@ -239,6 +244,7 @@ component {
 			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
+			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
 			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
@@ -247,7 +253,7 @@ component {
 				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read" ]
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 				, serviceProviders = [ "manage" ]
-				, settings         = [ "navigate", "manage" ]
+				, settings         = [ "navigate", "manage", "resend" ]
 				, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
 				, logs             = [ "view" ]
 				, queue            = [ "view", "clear" ]
@@ -283,11 +289,12 @@ component {
 
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets = [ "/css/admin/specific/richeditor/" ]
-				, width       = "auto"
-				, minHeight   = 0
-				, maxHeight   = 300
-				, configFile  = "/ckeditorExtensions/config.js"
+				  stylesheets   = [ "/css/admin/specific/richeditor/" ]
+				, width         = "auto"
+				, minHeight     = 0
+				, maxHeight     = 300
+				, autoParagraph = false
+				, configFile    = "/ckeditorExtensions/config.js?v10.9.0a"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		};
@@ -319,13 +326,16 @@ component {
 			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
+			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
+			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
+			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.extension"    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {
@@ -361,6 +371,7 @@ component {
 		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "running", "requeued", "succeeded", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
@@ -368,6 +379,10 @@ component {
 			  enabled                 = true
 			, policy                  = "preside"
 			, bypassForAdministrators = true
+		};
+
+		settings.csrf = {
+			tokenExpiryInSeconds = 1200
 		};
 
 		settings.rest = {
@@ -415,7 +430,6 @@ component {
 		environments = {
 			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
 		};
-
 	}
 
 // ENVIRONMENT SPECIFIC
@@ -438,11 +452,11 @@ component {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "#settings.appMapping#/helpers" ) ) {
-			siteUdfs = DirectoryList( "#settings.appMapping#/helpers", true, false, "*.cfm" );
+		if ( DirectoryExists( "/#settings.appMapping#/helpers" ) ) {
+			siteUdfs = DirectoryList( "/#settings.appMapping#/helpers", true, false, "*.cfm" );
 
 			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "#settings.appMapping#/helpers" ) );
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/#settings.appMapping#/helpers" ) );
 			}
 		}
 
@@ -467,7 +481,7 @@ component {
 	}
 
 	private string function _discoverWireboxBinder() {
-		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/WireBox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.WireBox";
 		}
 
@@ -475,7 +489,7 @@ component {
 	}
 
 	private string function _discoverCacheboxConfigurator() {
-		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/Cachebox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.Cachebox";
 		}
 
@@ -484,9 +498,8 @@ component {
 
 	private array function _loadExtensions() {
 		return new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping          = settings.appMapping
-			, extensionsDirectory = "#settings.appMapping#/extensions"
-		).listExtensions( activeOnly=true );
+			  appMapping = settings.appMapping
+		).listExtensions();
 	}
 
 	private struct function _getConfiguredFileTypes() output=false{
@@ -575,6 +588,11 @@ component {
 		derivatives.pageThumbnail = {
 			  permissions = "inherit"
 			, transformations = [ { method="shrinkToFit", args={ width=100, height=100 } } ]
+		};
+
+		derivatives.adminCropping = {
+			  permissions = "inherit"
+			, transformations = [ { method="shrinkToFit", args={ width=300, height=300 } } ]
 		};
 
 		return derivatives;
@@ -670,7 +688,11 @@ component {
 			, "created_by"
 			, "site_url"
 		] };
-		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", parameters=[
+		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.resetCmsPasswordForTokenExpiry = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
@@ -679,7 +701,7 @@ component {
 			, { id="submission_preview"  , required=true }
 			, { id="notification_subject", required=false }
 		] };
-		templates.notification = { feature="cms", recipientType="adminUser", parameters=[
+		templates.notification = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="admin_link"          , required=true  }
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
@@ -688,7 +710,11 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", parameters=[
+		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.resetWebsitePasswordForTokenExpiry = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
@@ -712,9 +738,26 @@ component {
 		serviceProviders.smtp = {};
 
 		return {
-			  templates        = templates
-			, recipientTypes   = recipientTypes
-			, serviceProviders = serviceProviders
+			  templates            = templates
+			, recipientTypes       = recipientTypes
+			, serviceProviders     = serviceProviders
+			, defaultContentExpiry = 30
 		};
+	}
+
+	private string function _calculateColdboxVersion() {
+		var boxJsonPath = "/coldbox/box.json";
+
+		if ( FileExists( boxJsonPath ) ) {
+			try {
+				var boxInfo = DeserializeJson( FileRead( boxJsonPath ) );
+
+				return boxInfo.version ?: "unknown";
+			} catch( any e ) {
+				return "unknown";
+			}
+		}
+
+		return "3.8.2";
 	}
 }

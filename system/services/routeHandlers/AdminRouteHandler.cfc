@@ -2,7 +2,7 @@
  * @singleton
  *
  */
-component implements="iRouteHandler" output=false {
+component implements="iRouteHandler" {
 
 // constructor
 	/**

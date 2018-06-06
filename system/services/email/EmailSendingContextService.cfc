@@ -67,14 +67,20 @@ component {
 	 * @autodoc            true
 	 * @recipientType.hint The email system recipient type that is being sent to
 	 * @recipientId.hint   The ID of the recipient that is being sent to
+	 * @templateId.hint    The ID of the template being rendered/sent
+	 * @template.hint      Struct with details of the template being rendered/sent
 	 */
 	public void function setContext(
 		  required string recipientType
 		, required string recipientId
+		,          string templateId = ""
+		,          struct template   = {}
 	) {
 		request[ _requestKey ] = {
 			  recipientType = arguments.recipientType
 			, recipientId   = arguments.recipientId
+			, templateId    = arguments.templateId
+			, template      = arguments.template
 		};
 	}
 

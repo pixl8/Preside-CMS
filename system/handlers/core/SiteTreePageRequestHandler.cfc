@@ -1,10 +1,11 @@
-component output=false {
+component {
 
-	property name="pageTypesService"         inject="pageTypesService";
-	property name="presideObjectService"     inject="presideObjectService";
-	property name="websitePermissionService" inject="websitePermissionService";
-	property name="websiteLoginService"      inject="websiteLoginService";
-	property name="websiteUserActionService" inject="websiteUserActionService";
+	property name="pageTypesService"              inject="pageTypesService";
+	property name="presideObjectService"          inject="presideObjectService";
+	property name="websitePermissionService"      inject="websitePermissionService";
+	property name="websiteLoginService"           inject="websiteLoginService";
+	property name="websiteUserActionService"      inject="websiteUserActionService";
+	property name="delayedViewletRendererService" inject="delayedViewletRendererService";
 
 	public function index( event, rc, prc ) output=false {
 		announceInterception( "preRenderSiteTreePage" );
@@ -59,7 +60,12 @@ component output=false {
 		}
 
 		if ( pageType.hasHandler() && getController().handlerExists( viewlet ) ) {
-			rc.body = renderViewlet( event=viewlet, prePostExempt=false );
+			var delayed = delayedViewletRendererService.isViewletDelayedByDefault(
+				  viewlet      = viewlet
+				, defaultValue = pageType.isSystemPageType() // system page types should be delayed by default
+			);
+
+			rc.body = renderViewlet( event=viewlet, prePostExempt=false, delayed=delayed );
 		} else {
 			rc.body = renderView(
 				  view          = view

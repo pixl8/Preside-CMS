@@ -1,39 +1,15 @@
 component output="false" extends="preside.system.base.AdminHandler" {
 
 	property name="userDao"               inject="presidecms:object:security_user";
-	property name="messageBox"            inject="coldbox:plugin:messageBox";
+	property name="messageBox"            inject="messagebox@cbmessagebox";
 	property name="bCryptService"         inject="bCryptService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
-	property name="i18n"                  inject="coldbox:plugin:i18n";
+	property name="i18n"                  inject="i18n";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
-		var secondaryNavItems = [];
-		var currentEvent = event.getCurrentEvent();
-
-		secondaryNavItems.append({
-			  active = currentEvent == "admin.editProfile.index"
-			, link   = event.buildAdminLink( "editProfile" )
-			, title  = translateResource( uri="cms:editProfile.secondary.nav.title" )
-			, icon   = "fa-user"
-		});
-		secondaryNavItems.append({
-			  active = currentEvent == "admin.editProfile.updatePassword"
-			, link   = event.buildAdminLink( "editProfile.updatePassword" )
-			, title  = translateResource( uri="cms:editProfile.password.secondary.nav.title" )
-			, icon   = "fa-key"
-		});
-		if ( loginService.isTwoFactorAuthenticationEnabled() ) {
-			secondaryNavItems.append({
-				  active = currentEvent == "admin.editProfile.twoFactorAuthentication"
-				, link   = event.buildAdminLink( "editProfile.twofactorauthentication" )
-				, title  = translateResource( uri="cms:editProfile.twoFactorAuthentication.secondary.nav.title" )
-				, icon   = "fa-user-secret"
-			});
-		}
-
-		prc.secondaryNav = renderView( view="/admin/layout/secondaryNavigation", args={ items=secondaryNavItems } );
+		_setupEditProfileTabs( argumentCollection=arguments );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:editProfile.page.title" )
@@ -231,5 +207,39 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication", queryString="setup=true" ) );
 		}
 		setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" ) );
+	}
+
+	private void function _setupEditProfileTabs( event, rc, prc ) {
+		var secondaryNavItems = [];
+		var currentEvent = event.getCurrentEvent();
+
+		secondaryNavItems.append({
+			  active = currentEvent == "admin.editProfile.index"
+			, link   = event.buildAdminLink( "editProfile" )
+			, title  = translateResource( uri="cms:editProfile.secondary.nav.title" )
+			, icon   = "fa-user"
+		});
+		secondaryNavItems.append({
+			  active = currentEvent == "admin.editProfile.updatePassword"
+			, link   = event.buildAdminLink( "editProfile.updatePassword" )
+			, title  = translateResource( uri="cms:editProfile.password.secondary.nav.title" )
+			, icon   = "fa-key"
+		});
+		if ( loginService.isTwoFactorAuthenticationEnabled() ) {
+			secondaryNavItems.append({
+				  active = currentEvent == "admin.editProfile.twoFactorAuthentication"
+				, link   = event.buildAdminLink( "editProfile.twofactorauthentication" )
+				, title  = translateResource( uri="cms:editProfile.twoFactorAuthentication.secondary.nav.title" )
+				, icon   = "fa-user-secret"
+			});
+		}
+		secondaryNavItems.append({
+			  active = currentEvent == "admin.notifications.preferences"
+			, link   = event.buildAdminLink( "notifications.preferences" )
+			, title  = translateResource( uri="cms:notifications.preferences.tab.title" )
+			, icon   = "fa-bell"
+		});
+
+		prc.secondaryNav = renderView( view="/admin/layout/secondaryNavigation", args={ items=secondaryNavItems } );
 	}
 }

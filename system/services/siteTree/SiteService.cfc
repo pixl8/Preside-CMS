@@ -1,14 +1,14 @@
 /**
  * The site service provides methods for interacting with the core "Site" system
  */
-component output=false singleton=true displayname="Site service" autodoc=true {
+component singleton=true displayname="Site service" autodoc=true {
 
 // CONSTRUCTOR
 	/**
 	 * @siteDao.inject               presidecms:object:site
 	 * @siteAliasDomainDao.inject    presidecms:object:site_alias_domain
 	 * @siteRedirectDomainDao.inject presidecms:object:site_redirect_domain
-	 * @sessionStorage.inject        coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject        sessionStorage
 	 * @permissionService.inject     permissionService
 	 * @coldbox.inject               coldbox
 	 *

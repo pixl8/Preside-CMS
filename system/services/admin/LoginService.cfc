@@ -11,7 +11,7 @@ component displayName="Admin login service" {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject      coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject      sessionStorage
 	 * @bCryptService.inject       BCryptService
 	 * @systemUserList.inject      coldbox:setting:system_users
 	 * @userDao.inject             presidecms:object:security_user
@@ -279,6 +279,29 @@ component displayName="Admin login service" {
 		}
 
 		return false;
+	}
+
+	/**
+	 * @autodoc
+	 * Resends new token to expired token and reminds them the token is expired
+	 */
+	public boolean function resendPasswordResetInstructions( required string userId ) {
+		var tokenInfo = createLoginResetToken( arguments.userId );
+
+		_getEmailService().send(
+			  template    = "resetCmsPasswordForTokenExpiry"
+			, recipientId = arguments.userId
+			, args        = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#" }
+		);
+
+		$audit(
+			  userId   = arguments.userId
+			, source   = "login"
+			, action   = "password_reset_instructions_sent"
+			, type     = "user"
+		);
+
+		return true;
 	}
 
 	/**
@@ -903,6 +926,11 @@ component displayName="Admin login service" {
 				  id     = record.id
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( IsBoolean( resendToken ) && resendToken ){
+				resendPasswordResetInstructions( record.id );
+			}
 
 			return QueryNew('');
 		}
