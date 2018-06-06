@@ -33,7 +33,7 @@
         "cbi18n":"1.3.1+56",
         "cbmessagebox":"2.2.0+10",
         "cbstorages":"1.3.0+14",
-        "cbjavaloader":"^1.3.3+25"
+        "cbjavaloader":"1.5.0+35"
     },
     "devDependencies":{
         "testbox":"2.7.0"
