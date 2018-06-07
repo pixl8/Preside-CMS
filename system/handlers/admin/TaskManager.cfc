@@ -33,7 +33,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:taskmanager.configure.page.subtitle" );
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:taskmanager.configure.page.crumbtrail" )
+			  title = translateResource( uri="cms:taskmanager.configureTask.page.title" )
 			, link  = event.buildAdminLink( linkTo="taskmanager.configure" )
 		);
 	}
