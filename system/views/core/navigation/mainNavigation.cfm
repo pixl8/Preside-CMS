@@ -43,11 +43,15 @@
 	<cfif IsFeatureEnabled( "websiteusers" )>
 		<cfif IsLoggedIn()>
 			<li>
-				<a href="#event.buildLink( linkTo="login.logout" )#">Logout</a>
+				<a href="#event.buildLink( linkTo="login.logout" )#">
+					#translateResource( "cms:cms.navigation.login" )#
+				</a>
 			</li>
 		<cfelse>
 			<li>
-				<a href="#event.buildLink( page="login" )#">Login</a>
+				<a href="#event.buildLink( page="login" )#">
+					#translateResource( "cms:cms.navigation.logout" )#
+				</a>
 			</li>
 		</cfif>
 	</cfif>
