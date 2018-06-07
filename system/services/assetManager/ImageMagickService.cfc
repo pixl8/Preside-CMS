@@ -74,7 +74,7 @@ component displayname="ImageMagick"  {
 		var imagePrefix    = CreateUUId();
 		var tmpFilePathPDF = GetTempFile( GetTempDirectory(), "mgk" );
 		var tmpFilePathJpg = GetTempFile( GetTempDirectory(), "mgk" ) & ".jpg";
-		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB "#tmpFilePathJpg#"';
+		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB -flatten "#tmpFilePathJpg#"';
 
 		FileWrite( tmpFilePathPDF, arguments.asset );
 
