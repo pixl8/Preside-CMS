@@ -9,8 +9,10 @@ component {
 			event.adminAccessDenied();
 		}
 		_checkLogin( event );
+
 		var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
 
+		event.setXFrameOptionsHeader( "SAMEORIGIN" );
 		event.setLayout( applicationsService.getLayout( activeApplication ) );
 		event.setLanguage( "" );
 		event.includeData( {
