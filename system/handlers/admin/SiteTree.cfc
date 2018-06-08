@@ -10,6 +10,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="pageCache"                        inject="cachebox:PresidePageCache";
+	property name="cookieService"                    inject="cookieService";
 
 	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -85,9 +86,9 @@ component extends="preside.system.base.AdminHandler" {
 		] );
 
 		var additionalNodeArgs = {
-			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}"                           )
+			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}&child_count={child_count}" )
 			, pageTypeDialogBaseLink      = event.buildAdminLink( linkTo="sitetree.pageTypeDialog"     , queryString="parentPage={id}"                   )
-			, addPageBaseLink             = event.buildAdminLink( linkTo='sitetree.addPage'            , querystring='parent_page={id}&page_type={type}' )
+			, addPageBaseLink             = event.buildAdminLink( linkTo="sitetree.addPage"            , querystring="parent_page={id}&page_type={type}" )
 			, trashPageBaseLink           = event.buildAdminLink( linkTo="sitetree.trashPageAction"    , queryString="id={id}"                           )
 			, pageHistoryBaseLink         = event.buildAdminLink( linkTo="sitetree.pageHistory"        , queryString="id={id}"                           )
 			, editPagePermissionsBaseLink = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id={id}"                           )
@@ -265,6 +266,12 @@ component extends="preside.system.base.AdminHandler" {
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+		rc._backToEdit   = IsTrue( cookieService.getVar( "sitetree_editPage_backToEdit", "" ) );
+		prc.childCount   = rc.child_count ?: "";
+
+		if( !len( prc.childCount ) ) {
+			prc.childCount = siteTreeService.getTree( rootPageId=pageId, maxDepth=0 ).recordCount ?: 0;
+		}
 
 		var version = Val ( rc.version    ?: "" );
 
@@ -302,7 +309,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.canAddChildren     = _checkPermissions( argumentCollection=arguments, key="add"               , pageId=pageId, throwOnError=false ) && prc.allowableChildPageTypes != "none";
 		prc.canDeletePage      = _checkPermissions( argumentCollection=arguments, key="trash"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
-		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false );
+		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false ) && prc.managedChildPageTypes.len() || prc.childCount;
 		prc.canManagePagePerms = _checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId, throwOnError=false );
 
 		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
@@ -383,11 +390,16 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-
-		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
-			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		cookieService.setVar( name="sitetree_editPage_backToEdit", value=false );
+		if ( IsTrue( rc._backToEdit ?: "" ) ) {
+			cookieService.setVar( name="sitetree_editPage_backToEdit", value=true );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persist="_backToEdit" );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			}
 		}
 	}
 

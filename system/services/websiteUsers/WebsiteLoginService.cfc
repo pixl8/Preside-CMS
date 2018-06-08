@@ -284,6 +284,33 @@ component displayName="Website login service" {
 	}
 
 	/**
+	 * Resends new token to expired token and reminds them the token is expired
+	 */
+	public boolean function resendPasswordResetInstructions( required string userId ) autodoc=true {
+		var token      = createPasswordResetToken();
+
+		_getUserDao().updateData( id=arguments.userId, data={
+			  reset_password_token        = token.resetToken
+			, reset_password_key          = token.hashedResetKey
+			, reset_password_token_expiry = token.resetTokenExpiry
+		} );
+
+		var result = _getEmailService().send(
+			  template    = "resetWebsitePasswordForTokenExpiry"
+			, recipientId = arguments.userId
+			, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
+		);
+
+		$recordWebsiteUserAction(
+			  userId = arguments.userId
+			, action = "sendPasswordResetInstructions"
+			, type   = "login"
+		);
+
+		return true;
+	}
+
+	/**
 	 * Creates a password reset token.
 	 */
 	public struct function createPasswordResetToken() autodoc=true {
@@ -692,6 +719,11 @@ component displayName="Website login service" {
 				  id     = record.id
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( IsBoolean( resendToken ) && resendToken ) {
+				resendPasswordResetInstructions( record.id );
+			}
 
 			return QueryNew('');
 		}

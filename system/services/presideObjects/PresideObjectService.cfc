@@ -152,11 +152,15 @@ component displayName="Preside Object Service" {
 	 * @recordCountOnly.hint         If set to true, the method will just return the number of records that the select statement would return
 	 * @getSqlAndParamsOnly.hint     If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
+	 * @tenantIds.hint               Struct of tenant IDs. Keys of the struct indicate the tenant, values indicate the ID. e.g. `{ site=specificSiteId }`. These values will override the current active tenant for the request.
+	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
 	 * @filterParams.docdefault      {}
 	 * @extraFilters.docdefault      []
 	 * @extraJoins.docdefault        []
+	 * @tenantIds.docdefault         {}
+	 * @bypassTenants.docdefault     []
 	 */
 	public any function selectData(
 		  required string  objectName
@@ -183,6 +187,8 @@ component displayName="Preside Object Service" {
 		,          boolean recordCountOnly         = false
 		,          boolean getSqlAndParamsOnly     = false
 		,          boolean distinct                = false
+		,          struct  tenantIds               = {}
+		,          array   bypassTenants           = []
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 
@@ -349,13 +355,13 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( StructKeyExists( obj.properties, dateCreatedField ) and not StructKeyExists( cleanedData, dateCreatedField ) ) {
+		if ( dateCreatedField.len() && obj.properties.keyExists( dateCreatedField ) && !cleanedData.keyExists( dateCreatedField ) ) {
 			cleanedData[ dateCreatedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, dateModifiedField ) and not StructKeyExists( cleanedData, dateModifiedField ) ) {
+		if ( dateModifiedField.len() && obj.properties.keyExists( dateModifiedField ) && !cleanedData.keyExists( dateModifiedField ) ) {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, idField ) ) {
+		if ( ListFindNoCase( obj.dbFieldList, idField ) && StructKeyExists( obj.properties, idField ) ) {
 			if ( not StructKeyExists( cleanedData, idField ) or not Len( Trim( cleanedData[idField] ) ) ) {
 				newId = _generateNewIdWhenNecessary( generator=( obj.properties[idField].generator ?: "UUID" ) );
 				if ( Len( Trim( newId ) ) ) {
@@ -401,10 +407,11 @@ component displayName="Preside Object Service" {
 
 					if ( relationship == "many-to-many" ) {
 						syncManyToManyData(
-							  sourceObject   = args.objectName
-							, sourceProperty = key
-							, sourceId       = newId
-							, targetIdList   = manyToManyData[ key ]
+							  sourceObject        = args.objectName
+							, sourceProperty      = key
+							, sourceId            = newId
+							, targetIdList        = manyToManyData[ key ]
+							, requiresVersionSync = false
 						);
 					} else if ( relationship == "one-to-many" ) {
 						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
@@ -581,6 +588,7 @@ component displayName="Preside Object Service" {
 			  operation  = "update"
 			, objectName = arguments.objectName
 			, data       = cleanedData
+			, id         = arguments.id
 		) );
 
 		if ( !Len( Trim( arguments.id ?: "" ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceUpdateAll ) {
@@ -619,6 +627,12 @@ component displayName="Preside Object Service" {
 					, isDraft              = arguments.isDraft
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 					, forceVersionCreation = arguments.forceVersionCreation
+				);
+			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
+				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
+					  objectName = arguments.objectName
+					, recordId   = arguments.id
+					, data       = cleanedData
 				);
 			}
 
@@ -671,10 +685,11 @@ component displayName="Preside Object Service" {
 					if ( relationship == "many-to-many" ) {
 						for( var updatedId in updatedRecords ) {
 							syncManyToManyData(
-								  sourceObject   = arguments.objectName
-								, sourceProperty = key
-								, sourceId       = updatedId
-								, targetIdList   = manyToManyData[ key ]
+								  sourceObject        = arguments.objectName
+								, sourceProperty      = key
+								, sourceId            = updatedId
+								, targetIdList        = manyToManyData[ key ]
+								, requiresVersionSync = false
 							);
 						}
 					} else if ( relationship == "one-to-many" ) {
@@ -921,11 +936,21 @@ component displayName="Preside Object Service" {
 	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
 	 */
 	public boolean function syncManyToManyData(
-		  required string sourceObject
-		, required string sourceProperty
-		, required string sourceId
-		, required string targetIdList
+		  required string  sourceObject
+		, required string  sourceProperty
+		, required string  sourceId
+		, required string  targetIdList
+		,          boolean requiresVersionSync = true
 	) autodoc=true {
+		if ( arguments.requiresVersionSync ) {
+			return updateData(
+				  objectName              = arguments.sourceObject
+				, id                      = arguments.sourceId
+				, data                    = { "#arguments.sourceProperty#" = arguments.targetIdList }
+				, updateManyToManyRecords = true
+			) > 0;
+		}
+
 		var prop = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObject = prop.relatedTo ?: "";
 		var pivotTable   = prop.relatedVia ?: "";
@@ -1379,6 +1404,12 @@ component displayName="Preside Object Service" {
 	 * @objectName Name of the object whose dateCreated field you wish to get
 	 */
 	public string function getDateCreatedField( required string objectName ) {
+		var noDateCreated = getObjectAttribute( arguments.objectName, "noDateCreated", "" );
+
+		if ( IsBoolean( noDateCreated ) && noDateCreated ) {
+			return "";
+		}
+
 		return getObjectAttribute( arguments.objectName, "dateCreatedField", "dateCreated" );
 	}
 
@@ -1389,6 +1420,12 @@ component displayName="Preside Object Service" {
 	 * @objectName Name of the object whose dateModified field you wish to get
 	 */
 	public string function getDateModifiedField( required string objectName ) {
+		var noDateModified = getObjectAttribute( arguments.objectName, "noDateModified", "" );
+
+		if ( IsBoolean( noDateModified ) && noDateModified ) {
+			return "";
+		}
+
 		return getObjectAttribute( arguments.objectName, "dateModifiedField", "dateModified" );
 	}
 
@@ -1892,6 +1929,10 @@ component displayName="Preside Object Service" {
 
 
 		return expanded;
+	}
+
+	public string function slugify() {
+		return $slugify( argumentCollection=arguments );
 	}
 
 // PRIVATE HELPERS
@@ -2861,7 +2902,7 @@ component displayName="Preside Object Service" {
 		return newData;
 	}
 
-	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data ) {
+	private struct function _addGeneratedValues( required string operation, required string objectName, required struct data, string id="" ) {
 		var obj       = getObject( arguments.objectName );
 		var props     = getObjectProperties( arguments.objectName );
 		var newData   = Duplicate( arguments.data );
@@ -2880,7 +2921,7 @@ component displayName="Preside Object Service" {
 					continue;
 				}
 
-				var generatedValue = _generateValue( arguments.objectName, prop.generator, newData, prop );
+				var generatedValue = _generateValue( arguments.objectName, arguments.id, prop.generator, newData, prop );
 				if ( !IsNull( local.generatedValue ) ) {
 					generated[ propName ] = newData[ propName ] = generatedValue;
 				}
@@ -2890,7 +2931,7 @@ component displayName="Preside Object Service" {
 		return generated;
 	}
 
-	private any function _generateValue( required string objectName, required string generator, required struct data, required struct prop ) {
+	private any function _generateValue( required string objectName, required string id, required string generator, required struct data, required struct prop ) {
 		switch( ListFirst( arguments.generator, ":" ) ) {
 			case "UUID":
 				return CreateUUId();
@@ -2916,6 +2957,34 @@ component displayName="Preside Object Service" {
 
 					return Hash( valueToHash );
 				}
+			break;
+			case "slug":
+				var generateFrom = prop.generateFrom ?: getLabelField( arguments.objectName );
+				var idField      = getIdField( arguments.objectName );
+
+				if ( len( arguments.data[ prop.name ] ?: "" ) || !arguments.data.keyExists( generateFrom ) ) {
+					return;
+				}
+
+				var slug         = slugify( arguments.data[ generateFrom ] );
+				var filter       = "slug = :slug";
+				var filterParams = { slug=slug };
+				var increment    = 0;
+
+				if ( len( arguments.id ) ) {
+					filter &= " and id != :id";
+					filterParams.id = arguments.id;
+				}
+
+				while( dataExists( objectName=arguments.objectName, filter=filter, filterParams=filterParams ) ) {
+					if ( increment ) {
+						slug = ReReplace( slug, "\-[0-9]+$", "" );
+					}
+					slug &= "-" & ++increment;
+					filterParams.slug = slug;
+				}
+
+				return slug;
 			break;
 		}
 

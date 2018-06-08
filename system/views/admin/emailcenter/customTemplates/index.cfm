@@ -1,6 +1,6 @@
 <cfscript>
 	objectName          = "email_template"
-	gridFields          = [ "name", "email_blueprint" ];
+	gridFields          = [ "name", "email_blueprint", "datecreated", "datemodified" ];
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );

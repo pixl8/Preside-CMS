@@ -173,7 +173,7 @@ component output="false" singleton=true {
 
 		// enum
 		if ( Len( Trim( field.enum ?: "" ) ) ) {
-			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum } } );
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum, multiple=( IsBoolean( field.multiple ?: "" ) && field.multiple ) } } );
 		}
 
 		for( rule in rules ){

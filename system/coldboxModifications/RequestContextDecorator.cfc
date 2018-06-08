@@ -868,13 +868,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	public void function notFound() output=false {
 		announceInterception( "onNotFound" );
 		getController().runEvent( "general.notFound" );
-		content reset=true type="text/html";header statusCode="404";WriteOutput( getModel( "presideRenderer" ).renderLayout() );abort;
+		content reset=true type="text/html";header statusCode="404";
+		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+		abort;
 	}
 
 	public void function accessDenied( required string reason ) output=false {
 		announceInterception( "onAccessDenied" , arguments );
 		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments }, private=true );
-		WriteOutput( getModel( "presideRenderer" ).renderLayout() );abort;
+		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+		abort;
 	}
 
 // private helpers

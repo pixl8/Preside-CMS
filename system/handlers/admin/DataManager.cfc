@@ -35,7 +35,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.objectGroups = dataManagerService.getGroupedObjects();
 
-		prc.pageIcon  = "puzzle-piece";
+		prc.pageIcon  = "database";
 		prc.pageTitle = translateResource( "cms:datamanager" );
 	}
 
@@ -71,7 +71,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			args.append( {
-				  gridFields          = prc.gridFields       ?: [ "label","datecreated","datemodified" ]
+				  gridFields          = prc.gridFields       ?: _getObjectFieldsForGrid( objectName )
 				, hiddenGridFields    = prc.hiddenGridFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
@@ -148,14 +148,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function viewRecord( event, rc, prc ) {
-		var objectName    = prc.objectName ?: "";
-		var recordId      = prc.recordId   ?: ""
-		var version       = Val( prc.version ?: "" );
-		var language      = rc.language ?: "";
-		var canTranslate  = IsTrue( prc.canTranslate ?: "" );
-		var objectTitle   = prc.objectTitle ?: "";
-		var recordLabel   = prc.recordLabel ?: "";
-		var useVersioning = IsTrue( prc.useVersioning ?: "" );
+		var objectName      = prc.objectName ?: "";
+		var recordId        = prc.recordId   ?: ""
+		var version         = Val( prc.version ?: "" );
+		var language        = rc.language     ?: "";
+		var objectTitle     = prc.objectTitle ?: "";
+		var recordLabel     = prc.recordLabel ?: "";
+		var canTranslate    = IsTrue( prc.canTranslate    ?: "" );
+		var useVersioning   = IsTrue( prc.useVersioning   ?: "" );
+		var canViewVersions = IsTrue( prc.canViewVersions ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
@@ -174,7 +175,7 @@ component extends="preside.system.base.AdminHandler" {
 			version = rc.version = prc.version = Val( url.version ?: "" );
 		}
 
-		if ( useVersioning ) {
+		if ( useVersioning && canViewVersions ) {
 			prc.versionNavigator = customizationService.runCustomization(
 				  objectName     = objectName
 				, action         = "versionNavigator"
@@ -643,7 +644,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object              = prc.objectName
 				, useMultiActions     = IsTrue( rc.useMultiActions ?: "" )
-				, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
+				, gridFields          = ( rc.gridFields          ?: _getObjectFieldsForGrid( objectName ).toList() )
 				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
 				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
 				, includeActions      = !IsTrue( rc.noActions ?: "" )
@@ -663,7 +664,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object          = objectName
 				, useMultiActions = IsTrue( prc.canDelete ?: "" ) || ArrayLen( prc.batchEditableFields ?: [] )
-				, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+				, gridFields      = ( rc.gridFields ?: _getObjectFieldsForGrid( objectName ).toList() )
 				, actionsView     = "/admin/datamanager/_oneToManyListingActions"
 				, filter          = { "#relationshipKey#" : parentId }
 			}
@@ -716,8 +717,7 @@ component extends="preside.system.base.AdminHandler" {
 		var filterValue    = "";
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
-
-		_checkPermission( argumentCollection=arguments, key="read", checkOperations=false );
+		var useCache       = IsTrue( rc.useCache ?: "" );
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
@@ -735,6 +735,7 @@ component extends="preside.system.base.AdminHandler" {
 			, orderBy       = orderBy
 			, ids           = ListToArray( rc.values ?: "" )
 			, labelRenderer = labelRenderer
+			, useCache      = useCache
 		);
 
 		event.renderData( type="json", data=records );
@@ -924,7 +925,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.delete        = datamanagerService.isOperationAllowed( objectName, "delete" );
 		prc.pageTitle     = translateResource( uri="cms:datamanager.oneToManyListing.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
 		prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToManyListing.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
-		prc.pageIcon      = "puzzle-piece";
+		prc.pageIcon      = "database";
 
 		event.setLayout( "adminModalDialog" );
 	}
@@ -1495,10 +1496,11 @@ component extends="preside.system.base.AdminHandler" {
 		var hasRecordActionsCustomization = !actionsView.len() && customizationService.objectHasCustomization( objectName, "getRecordActionsForGridListing" );
 
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
-			var canView           = IsTrue( prc.canView       ?: "" );
-			var canEdit           = IsTrue( prc.canEdit       ?: "" );
-			var canDelete         = IsTrue( prc.canDelete     ?: "" );
-			var canViewHistory    = IsTrue( prc.useVersioning ?: "" );
+			var canView           = IsTrue( prc.canView         ?: "" );
+			var canEdit           = IsTrue( prc.canEdit         ?: "" );
+			var canDelete         = IsTrue( prc.canDelete       ?: "" );
+			var canViewVersions   = IsTrue( prc.canViewVersions ?: "" );
+			var canViewHistory    = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
 			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
 			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
 			var deleteRecordLink  = canDelete      ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
@@ -2652,7 +2654,7 @@ component extends="preside.system.base.AdminHandler" {
 			  parent             = rc.parentId ?: ""
 			, objectName         = objectName
 			, currentLevel       = Val( rc.parentLevel ?: "" ) + 1
-			, gridFields         = prc.gridFields ?: [ "label","datecreated","datemodified" ]
+			, gridFields         = prc.gridFields ?: _getObjectFieldsForGrid( objectName )
 			, isMultilingual     = IsTrue( prc.isMultilingual ?: "" )
 			, draftsEnabled      = IsTrue( prc.draftsEnabled  ?: "" )
 			, baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" )
@@ -2843,8 +2845,9 @@ component extends="preside.system.base.AdminHandler" {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
 		var e   = "";
-		var includeAllFormulaFields = ( arguments.action == "viewRecord" );
-		var useAnyWhereActions      = [
+		var includeAllFormulaFields  = ( arguments.action == "viewRecord" );
+		var onlyCheckForLoginActions = [ "getObjectRecordsForAjaxSelectControl" ];
+		var useAnyWhereActions       = [
 			  "getChildObjectRecordsForAjaxDataTables"
 			, "getObjectRecordsForAjaxSelectControl"
 			, "quickAddForm"
@@ -2863,6 +2866,10 @@ component extends="preside.system.base.AdminHandler" {
 			, "dataExportConfigModal"
 			, "exportDataAction"
 		];
+
+		if( onlyCheckForLoginActions.findNoCase( arguments.action ) ){
+			return;
+		}
 
 		prc.objectName            = "";
 		prc.objectTitle           = "";
@@ -2907,7 +2914,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.objectRootUri         = presideObjectService.getResourceBundleUriRoot( prc.objectName );
 			prc.objectTitle           = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=prc.objectName );
 			prc.objectTitlePlural     = translateResource( uri=prc.objectRootUri & "title"         , defaultValue=prc.objectName );
-			prc.objectIconClass       = translateResource( uri=prc.objectRootUri & "iconClass"     , defaultValue="fa-puzzle-piece" );
+			prc.objectIconClass       = translateResource( uri=prc.objectRootUri & "iconClass"     , defaultValue="fa-database" );
 			prc.objectDescription     = translateResource( uri=prc.objectRootUri & "description"   , defaultValue="" );
 			prc.draftsEnabled         = datamanagerService.areDraftsEnabledForObject( prc.objectName );
 			prc.canView               = _checkPermission( argumentCollection=arguments, key="read"              , throwOnError=false );
@@ -2915,6 +2922,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canedit               = _checkPermission( argumentCollection=arguments, key="edit"              , throwOnError=false );
 			prc.canDelete             = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
 			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
+			prc.canViewVersions       = _checkPermission( argumentCollection=arguments, key="viewversions"      , throwOnError=false );
 			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
 			prc.hiddenGridFields      = _getObjectHiddenFieldsForGrid( prc.objectName );

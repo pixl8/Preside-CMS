@@ -85,6 +85,8 @@ component {
 		_getEmailSendingContextService().setContext(
 			  recipientType = messageTemplate.recipient_type ?: ""
 			, recipientId   = arguments.recipientId
+			, templateId    = arguments.template
+			, template      = messageTemplate
 		);
 		try {
 			var params = Duplicate( arguments.parameters );
@@ -459,12 +461,13 @@ component {
 	) {
 		arguments.type = arguments.type == "text" ? "text" : "html";
 		var replaced = JavaCast( "String", arguments.text );
+		var Matcher  = CreateObject( "java", "java.util.regex.Matcher" );
 
 		for( var paramName in arguments.params ) {
 			var token = "(?i)\Q${#paramName#}\E";
 			var value = IsSimpleValue( arguments.params[ paramName ] ) ? arguments.params[ paramName ] : ( arguments.params[ paramName ][ arguments.type ] ?: "" );
 
-			replaced = replaced.replaceAll( token, value );
+			replaced = replaced.replaceAll( token, Matcher.quoteReplacement( value ) );
 		}
 
 		return replaced;
@@ -474,27 +477,32 @@ component {
 	 * Prepares params (for use in replacing tokens in subject and body)
 	 * for the given email template, recipient type and sending args.
 	 *
-	 * @autodoc       true
-	 * @template      ID of the template of the email that is being prepared
-	 * @recipientType ID of the recipient type of the email that is being prepared
-	 * @recipientId   ID of the recipient
-	 * @args          Structure of variables that are being used to send / prepare the email
+	 * @autodoc        true
+	 * @template       ID of the template of the email that is being prepared
+	 * @recipientType  ID of the recipient type of the email that is being prepared
+	 * @recipientId    ID of the recipient
+	 * @args           Structure of variables that are being used to send / prepare the email
+	 * @templateDetail Structure the template record
 	 */
 	public struct function prepareParameters(
 		  required string template
 		, required string recipientType
 		, required string recipientId
 		, required struct args
+		,          struct templateDetail = {}
 	) {
 		var params = _getEmailRecipientTypeService().prepareParameters(
-			  recipientType = arguments.recipientType
-			, recipientId   = arguments.recipientId
-			, args          = arguments.args
+			  recipientType  = arguments.recipientType
+			, recipientId    = arguments.recipientId
+			, args           = arguments.args
+			, template       = arguments.template
+			, templateDetail = arguments.templateDetail
 		);
 		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
 			params.append( _getSystemEmailTemplateService().prepareParameters(
-				  template = arguments.template
-				, args     = arguments.args
+				  template       = arguments.template
+				, args           = arguments.args
+				, templateDetail = arguments.templateDetail
 			) );
 		}
 

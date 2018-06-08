@@ -1138,6 +1138,9 @@
 			}
 
 			this.selected.push( item );
+
+			this.hidden_field.trigger( "change" );
+			this.form_field_jq.trigger( "change" );
 		}
 
 		UberSelect.prototype.add_to_hidden_field = function( value ){
@@ -1431,6 +1434,7 @@
 					$this.removeData( 'uberSelect' );
 				} else if ( !uberSelect ) {
 					$this.data( 'uberSelect', new UberSelect( this, options ) );
+					$this.closest( "form" ).trigger( "uberSelectInit" );
 				}
 			});
 		}

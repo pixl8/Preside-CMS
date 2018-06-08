@@ -13,6 +13,10 @@
 		<cfreturn getSingleton( "systemConfigurationService" ).getSetting( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="getSystemCategorySettings" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "systemConfigurationService" ).getCategorySettings( argumentCollection = arguments ) />
+	</cffunction>
+
 <!--- preside objects --->
 	<cffunction name="getPresideObject" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "PresideObjectService" ).getObject( argumentCollection = arguments ) />
@@ -261,7 +265,12 @@
 
 <!--- tasks --->
 	<cffunction name="createTask" access="public" returntype="any" output="false">
-		<cfreturn getSingleton( "adHocTaskManagerService" ).createTask( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "adHocTaskManagerService" ).createTask( argumentCollection=arguments ) />
+	</cffunction>
+
+<!--- utils --->
+	<cffunction name="slugify" access="public" returntype="string" output="false">
+		<cfreturn getSingleton( "PresideObjectService" ).slugify( argumentCollection=arguments )>
 	</cffunction>
 
 <!--- helpers --->

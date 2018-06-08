@@ -2,6 +2,7 @@ component extends="coldbox.system.Interceptor" {
 
 	property name="cache"                         inject="cachebox:PresidePageCache";
 	property name="delayedViewletRendererService" inject="delayedInjector:delayedViewletRendererService";
+	property name="delayedStickerRendererService" inject="delayedInjector:delayedStickerRendererService";
 	property name="loginService"                  inject="delayedInjector:websiteLoginService";
 
 // PUBLIC
@@ -15,8 +16,9 @@ component extends="coldbox.system.Interceptor" {
 			if ( !IsNull( local.cached ) ) {
 				event.restoreCachedData( cached.data ?: {} );
 				event.checkPageAccess();
+				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
 				content reset=true;
-				echo( delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" ) );
+				echo( delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered ) );
 				abort;
 			}
 		}
@@ -33,7 +35,8 @@ component extends="coldbox.system.Interceptor" {
 			);
 		}
 
-		interceptData.renderedContent = delayedViewletRendererService.renderDelayedViewlets( content );
+		var viewletsRendered          = delayedViewletRendererService.renderDelayedViewlets( content );
+		interceptData.renderedContent = delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered );
 	}
 
 	public void function postUpdateObjectData( event, interceptData ) {

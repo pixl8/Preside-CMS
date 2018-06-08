@@ -79,7 +79,14 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
-			ensureAssetsAreInCorrectLocation( folderId=arguments.id );
+			$createTask(
+				  event             = "admin.AssetManager._editAssetLocationInBackgroundThread"
+				, args              = { id = arguments.id }
+				, runNow            = true
+				, adminOwner        = $getAdminLoggedInUserId()
+				, discardOnComplete = false
+				, title             = "cms:assetmanager.edit.folder.task.title"
+			);
 		}
 
 		var auditDetail = Duplicate( arguments.data );
@@ -165,18 +172,26 @@ component displayName="AssetManager Service" {
 	}
 
 	public struct function getFolderRestrictions( required string id ) {
-		var folderSettings = getCascadingFolderSettings( id=arguments.id, settings=[ "allowed_filetypes", "max_filesize_in_mb" ] );
+		var folderSettings = getCascadingFolderSettings( id=arguments.id, settings=[ "allowed_filetypes", "max_filesize_in_mb", "min_width_in_px", "max_width_in_px", "min_height_in_px", "max_height_in_px" ] );
 
-		folderSettings.allowed_filetypes = ListToArray( folderSettings.allowed_filetypes ?: "" );
+		folderSettings.allowed_filetypes  = ListToArray( folderSettings.allowed_filetypes ?: "" );
 		folderSettings.max_filesize_in_mb = folderSettings.max_filesize_in_mb ?: "";
+		folderSettings.min_width_in_px    = folderSettings.min_width_in_px    ?: "";
+		folderSettings.max_width_in_px    = folderSettings.max_width_in_px    ?: "";
+		folderSettings.min_height_in_px   = folderSettings.min_height_in_px   ?: "";
+		folderSettings.max_height_in_px   = folderSettings.max_height_in_px   ?: "";
 
 		if ( folderSettings.allowed_filetypes.len() ) {
 			folderSettings.allowed_filetypes = expandTypeList( folderSettings.allowed_filetypes, true );
 		}
 
 		return {
-			  maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? folderSettings.max_filesize_in_mb : 10
-			, allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
+			  allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
+			, maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? folderSettings.max_filesize_in_mb : 10
+			, minImageWidth     = IsNumeric( folderSettings.min_width_in_px )    ? folderSettings.min_width_in_px    : 0
+			, maxImageWidth     = IsNumeric( folderSettings.max_width_in_px )    ? folderSettings.max_width_in_px    : 0
+			, minImageHeight    = IsNumeric( folderSettings.min_height_in_px )   ? folderSettings.min_height_in_px   : 0
+			, maxImageHeight    = IsNumeric( folderSettings.max_height_in_px )   ? folderSettings.max_height_in_px   : 0
 		};
 	}
 
@@ -220,11 +235,17 @@ component displayName="AssetManager Service" {
 		,          string  title           = ""
 		,          boolean throwIfNot      = false
 		,          boolean restore         = false
+		,          string  fileWidth       = 0
+		,          string  fileHeight      = 0
 		,          struct  restrictions    = getFolderRestrictions( arguments.folderId )
 	) {
 		var typeDisallowed  = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
 		var sizeInMb        = arguments.size / 1048576;
 		var tooBig          = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+		var tooSmallWidth   = restrictions.minImageWidth  && val( arguments.fileWidth  ) && val( restrictions.minImageWidth  ) && arguments.fileWidth  < restrictions.minImageWidth;
+		var tooBigWidth     = restrictions.maxImageWidth  && val( arguments.fileWidth  ) && val( restrictions.maxImageWidth  ) && arguments.fileWidth  > restrictions.maxImageWidth;
+		var tooSmallHeight  = restrictions.minImageHeight && val( arguments.fileHeight ) && val( restrictions.minImageHeight ) && arguments.fileHeight < restrictions.minImageHeight;
+		var tooBigHeight    = restrictions.maxImageHeight && val( arguments.fileHeight ) && val( restrictions.maxImageHeight ) && arguments.fileHeight > restrictions.maxImageHeight;
 		var fileExist       = _getAssetDao().dataExists( filter={ title=arguments.title, asset_folder=arguments.folderId } );
 
 		if ( typeDisallowed  ) {
@@ -243,6 +264,28 @@ component displayName="AssetManager Service" {
 				throw(
 					  type    = "PresideCMS.AssetManager.asset.too.big.for.folder"
 					, message = "Cannot add file to asset folder due to size restriction. Size of file: [#NumberFormat( sizeInMb, '0.00' )#Mb]. Maximum size: [#restrictions.maxFileSize#Mb]."
+				);
+			}
+
+			return false;
+		}
+
+		if ( tooSmallWidth ||  tooSmallHeight ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.Assetmanager.asset.too.small.resolution.for.folder"
+					, message = "Cannot add file to asset folder due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Minimum resolution: [#restrictions.minImageWidth#X#restrictions.minImageHeight# pixels]."
+				);
+			}
+
+			return false;
+		}
+
+		if ( tooBigWidth ||  tooBigHeight ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.Assetmanager.asset.too.big.resolution.for.folder"
+					, message = "Cannot add file to asset folder due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Maximum resolution: [#restrictions.maxImageWidth#X#restrictions.maxImageHeight# pixels]."
 				);
 			}
 
@@ -286,6 +329,7 @@ component displayName="AssetManager Service" {
 		, string  parentString         = "/ "
 		, string  parentFolder         = ""
 		, array   foldersForSelectList = []
+		, array   noPermissionFolders
 	) {
 		var folderPassesCriteria = function( id, label ){
 			return ( !ids.len() || ids.findNoCase( arguments.id ) ) && ( !Len( Trim( searchQuery ) ) || arguments.label.findNoCase( searchQuery ) );
@@ -303,14 +347,24 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		var folders = _getFolderDao().selectData(
+		var noPermissionFolders = arguments.noPermissionFolders ?: _userNoPermissionAssetFolders();
+		var filter              = "( asset_folder.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden and asset_folder.parent_folder = :parent_folder)";
+		var params              = {
+			  is_trashed            = false
+			, "asset_folder.hidden" = false
+			, parent_folder         = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
+		}
+
+		if( arrayLen( noPermissionFolders ) ){
+			filter &= " and ( asset_folder.id not in (:asset_folder.id) )";
+			params[ "asset_folder.id" ] = noPermissionFolders;
+		}
+
+		var folders             = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
 			, orderBy      = "label"
-			, filter       = {
-				  parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
-				, is_trashed    = false
-				, hidden        = false
-			  }
+			, filter       = filter
+			, filterParams = params
 		);
 
 		for ( var folder in folders ) {
@@ -332,6 +386,7 @@ component displayName="AssetManager Service" {
 				, parentString         = parentString & folder.label & " / "
 				, parentFolder         = folder.id
 				, foldersForSelectList = foldersForSelectList
+				, noPermissionFolders  = noPermissionFolders
 			);
 		}
 
@@ -339,11 +394,19 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function getAssetFolderPrefetchCachebusterForAjaxSelect() {
-		var records = _getFolderDao().selectData(
+		var folders     = _getFolderDao().selectData(
 			selectFields = [ "Max( datemodified ) as lastmodified" ]
 		);
+		var permissions = $getPresideObject( "security_context_permission" ).selectData(
+			  filter       = { context="assetmanagerfolder" }
+			, selectFields = [ "Max( datemodified ) as lastmodified" ]
+		);
+		var lastUpdate  = IsDate( folders.lastmodified ) ? folders.lastmodified : now();
+		if ( IsDate( permissions.lastmodified ) ) {
+			lastUpdate = max( lastUpdate, permissions.lastmodified );
+		}
 
-		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
+		return Hash( lastUpdate );
 	}
 
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
@@ -459,12 +522,13 @@ component displayName="AssetManager Service" {
 	}
 
 	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100, string savedFilters="" ) {
-		var assetDao    = _getAssetDao();
-		var filter      = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
-		var params      = { is_trashed=false, "asset_folder.hidden"=false };
-		var types       = _getTypes();
-		var records     = "";
-		var result      = [];
+		var assetDao            = _getAssetDao();
+		var filter              = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
+		var params              = { is_trashed=false, "asset_folder.hidden"=false };
+		var types               = _getTypes();
+		var records             = "";
+		var result              = [];
+		var noPermissionFolders = _userNoPermissionAssetFolders();
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
@@ -485,6 +549,10 @@ component displayName="AssetManager Service" {
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			filter &= " and ( asset.title like (:title) or asset_folder.label like (:title) )";
 			params.title = "%#arguments.searchQuery#%";
+		}
+		if( arrayLen( noPermissionFolders ) ){
+			filter &= " and ( asset.asset_folder not in (:asset_folder.id) )";
+			params[ "asset_folder.id" ] = noPermissionFolders;
 		}
 
 		records = assetDao.selectData(
@@ -585,6 +653,9 @@ component displayName="AssetManager Service" {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
+		var fileMetaInfo = _getDocumentMetadataService().getMetaData( arguments.fileBinary );
+		var fileWidth    = fileMetaInfo.width  ?: 0;
+		var fileHeight   = fileMetaInfo.height ?: 0;
 
 		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
@@ -597,6 +668,8 @@ component displayName="AssetManager Service" {
 			, size       = asset.size
 			, folderId   = asset.asset_folder
 			, throwIfNot = true
+			, fileWidth  = fileWidth
+			, fileHeight = fileHeight
 		);
 
 		if ( arguments.ensureUniqueTitle ) {
@@ -628,7 +701,7 @@ component displayName="AssetManager Service" {
 		var newId = _getAssetDao().insertData( data=asset, insertManyToManyRecords=true );
 
 		if ( _autoExtractDocumentMeta() ) {
-			_saveAssetMetaData( assetId=newId, metaData=_getDocumentMetadataService().getMetaData( arguments.fileBinary ) );
+			_saveAssetMetaData( assetId=newId, metaData=fileMetaInfo );
 		}
 
 		asset.id = newId;
@@ -2056,6 +2129,23 @@ component displayName="AssetManager Service" {
 		}
 
 		return params.title;
+	}
+
+	private array function _userNoPermissionAssetFolders(){
+		var noPermissionFolders    = [];
+		var restrictedAssetFolders = $getPresideObject( "security_context_permission" ).selectData(
+			  filter       = { context="assetmanagerfolder" }
+			, selectFields = [ "context_key as folderId" ]
+			, distinct     = true
+		);
+
+		for( var folder in restrictedAssetFolders ){
+			if( !$getAdminPermissionService().hasPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ restrictedAssetFolders.folderId ] ) ){
+				arrayAppend( noPermissionFolders, restrictedAssetFolders.folderId );
+			}
+		}
+
+		return noPermissionFolders;
 	}
 
 // GETTERS AND SETTERS

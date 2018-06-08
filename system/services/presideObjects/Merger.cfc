@@ -1,4 +1,4 @@
-component output=false singleton=true hint="I do the logic for merging two objects to make one" {
+component singleton=true hint="I do the logic for merging two objects to make one" {
 
 // CONSTRUCTOR
 	public any function init() output=false {

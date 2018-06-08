@@ -314,7 +314,7 @@ component extends="BaseAdapter" {
 	}
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
-		return "#leftExpression# + #rightExpression#";
+		return "Cast( #leftExpression# as nvarchar( MAX ) ) + Cast( #rightExpression# as nvarchar( MAX ) )";
 	}
 
 

@@ -6,10 +6,11 @@
 component {
 
 	/**
-	 * @controller.inject coldbox
+	 * @delayedStickerRendererService.inject delayedStickerRendererService
 	 *
 	 */
-	public any function init() {
+	public any function init( required any delayedStickerRendererService ) {
+		_setDelayedStickerRendererService( arguments.delayedStickerRendererService );
 		_initSticker();
 
 		return this;
@@ -22,7 +23,14 @@ component {
 	public any function include()        { return _getSticker().include       ( argumentCollection=arguments ); }
 	public any function includeData()    { return _getSticker().includeData   ( argumentCollection=arguments ); }
 	public any function includeUrl()     { return _getSticker().includeUrl    ( argumentCollection=arguments ); }
-	public any function renderIncludes() { return _getSticker().renderIncludes( argumentCollection=arguments ); }
+
+	public any function renderIncludes( boolean delayed=true ) {
+		if ( delayed ) {
+			return _getDelayedStickerRendererService().renderDelayedStickerTag( argumentCollection=arguments, memento=_getSticker().getMemento() );
+		} else {
+			return _getSticker().renderIncludes( argumentCollection=arguments );
+		}
+	}
 
 // PRIVATE HELPERS
 	private void function _initSticker() {
@@ -52,6 +60,13 @@ component {
 	}
 
 // GETTERS AND SETTERS
+	private any function _getDelayedStickerRendererService() {
+		return _delayedStickerRendererService;
+	}
+	private void function _setDelayedStickerRendererService( required any delayedStickerRendererService ) {
+		_delayedStickerRendererService = arguments.delayedStickerRendererService;
+	}
+
 	private any function _getSticker() {
 		return _sticker;
 	}

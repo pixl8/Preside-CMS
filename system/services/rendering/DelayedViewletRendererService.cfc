@@ -98,7 +98,7 @@ component {
 		for( var key in arguments.args ) {
 			var value = IsSimpleValue( arguments.args[ key ] ) ? arguments.args[ key ] :  SerializeJson( arguments.args[ key ] );
 
-			tag &= delim & key & "=" & ToBase64( value );
+			tag &= delim & key & "=" & ToBase64( ToString( value ) );
 			delim = ",";
 		}
 

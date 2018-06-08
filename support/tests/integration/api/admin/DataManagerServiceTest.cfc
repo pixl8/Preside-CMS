@@ -135,8 +135,58 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, attributeName = "datamanagerGridFields"
 					, defaultValue  = "testlabelfield,datecreated,datemodified"
 				).$results( "field1,field2,field3" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateCreated"
+				).$results( false );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateModified"
+				).$results( false );
 
 				expect( dataManagerService.listGridFields( "object4" ) ).toBe( ["field1","field2","field3"] );
+			} );
+		} );
+
+		describe( "defaultGridFields()", function(){
+			it( "should return default grid fields for object", function(){
+				var dataManagerService = _getService();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "labelfield"
+					, defaultValue  = "label"
+				).$results( "testlabelfield" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateCreated"
+				).$results( false );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateModified"
+				).$results( false );
+
+				expect( dataManagerService.defaultGridFields( "object4" ) ).toBe( ["testlabelfield","datecreated","datemodified"] );
+			} );
+
+			it( "should return default grid fields for object without modified and created dates if excluded", function(){
+				var dataManagerService = _getService();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "labelfield"
+					, defaultValue  = "label"
+				).$results( "testlabelfield" );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateCreated"
+				).$results( true );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "object4"
+					, attributeName = "noDateModified"
+				).$results( true );
+
+				expect( dataManagerService.defaultGridFields( "object4" ) ).toBe( ["testlabelfield"] );
 			} );
 		} );
 
@@ -233,12 +283,12 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object4:title" ).$results( "Object 4" );
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object5:title" ).$results( "Object 5" );
 
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object1:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-1" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object2:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-2" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object3:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-3" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object4:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-4" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object5:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-5" );
-		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object6:iconClass", defaultValue="fa-puzzle-piece" ).$results( "fa-object-6" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object1:iconClass", defaultValue="fa-database" ).$results( "fa-object-1" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object2:iconClass", defaultValue="fa-database" ).$results( "fa-object-2" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object3:iconClass", defaultValue="fa-database" ).$results( "fa-object-3" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object4:iconClass", defaultValue="fa-database" ).$results( "fa-object-4" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object5:iconClass", defaultValue="fa-database" ).$results( "fa-object-5" );
+		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object6:iconClass", defaultValue="fa-database" ).$results( "fa-object-6" );
 
 
 

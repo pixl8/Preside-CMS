@@ -7,7 +7,7 @@ component {
 		var propertyName  = args.propertyName ?: "";
 		var recordId      = args.recordId     ?: "";
 		var enum          = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="enum" );
-		var values        = args.data.listToArray();
+		var values        = listToArray( args.data );
 		var rendered      = [];
 
 		if ( !enum.len() ) {

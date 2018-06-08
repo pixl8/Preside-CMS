@@ -16,5 +16,8 @@ This form is used for configuring general email settings
 		<fieldset id="masssendout" sortorder="20">
 			<field sortorder="10" name="ratelimit" control="spinner" required="false" default="100" />
 		</fieldset>
+		<fieldset id="features" sortorder="30">
+			<field sortorder="10" name="resendtoken" control="yesnoswitch" required="false" default="false" />
+		</fieldset>
 	</tab>
 </form>

@@ -1,6 +1,8 @@
 /**
- * The notifications service provides an API to the PresideCMS administrator [[notifications|notifications system]].
+ * The notifications service provides an API to the Preside administrator [[notifications|notifications system]].
  *
+ * @singleton
+ * @presideService
  */
 component autodoc=true displayName="Notification Service" {
 
@@ -118,6 +120,7 @@ component autodoc=true displayName="Notification Service" {
 		var queryResult = _getConsumerDao().selectData(
 			  selectFields = [ "Count(*) as notification_count" ]
 			, filter       = { security_user = arguments.userId, read = false }
+			, useCache     = false
 		);
 
 		return Val( queryResult.notification_count ?: "" );
@@ -239,6 +242,7 @@ component autodoc=true displayName="Notification Service" {
 		var result = _getConsumerDao().selectData(
 			  selectFields = [ "Count( * ) as notification_count" ]
 			, filter       = filter
+			, useCache     = false
 		);
 
 		return Val( result.notification_count ?: "" );
@@ -525,6 +529,36 @@ component autodoc=true displayName="Notification Service" {
 			, args     = emailArgs
 			, to       = ListToArray( arguments.recipient, ",;" )
 		);
+	}
+
+	public boolean function deleteOldNotifications( any logger ) {
+
+		var keepNotificationsFor = Val( $getPresideSetting( "notification", "keep_notifications_for_days", 0 ) );
+		var canLog               = arguments.keyExists( "logger" );
+		var canInfo              = canLog && logger.canInfo();
+		var canError             = canLog && logger.canError();
+
+		if( keepNotificationsFor == 0 ){
+			if ( canInfo ) { logger.info( "Notification cleanup is disabled, no notifications have been deleted." ); }
+			return true;
+		} else {
+			if ( canInfo ) { logger.info( "Deleting old notifications..." ); }
+
+			var notificationsDeleted = $getPresideObject( "admin_notification" ).deleteData(
+				  filter       = "datecreated < :datecreated"
+				, filterParams = { datecreated = dateAdd( "d", -keepNotificationsFor, DateFormat( now(), "dd-mmm-yyyy" ) ) }
+			);
+
+			if ( canInfo ) {
+				if ( notificationsDeleted ) {
+					logger.info( "Done. Deleted [#NumberFormat( notificationsDeleted )#] notifications." );
+				} else {
+					logger.info( "Done. No notifications found to delete." );
+				}
+			}
+
+			return true;
+		}
 	}
 
 // PRIVATE HELPERS

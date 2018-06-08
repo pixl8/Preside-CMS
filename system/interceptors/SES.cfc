@@ -1,4 +1,4 @@
-component extends="coldbox.system.interceptors.SES" output=false {
+component extends="coldbox.system.interceptors.SES" {
 
 	property name="featureService"                   inject="delayedInjector:featureService";
 	property name="systemConfigurationService"       inject="delayedInjector:systemConfigurationService";
@@ -107,12 +107,8 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			}
 
 			if ( site.isEmpty() ) {
-				throw(
-					  type      = "presidecms.site.not.found"
-					, message   = "There is no PresideCMS site configured with the current domain, [#super.getCGIElement( 'server_name', event )#]"
-					, detail    = "If you are the system administrator, and expect the domain to work, please update the site's main domain either in the database or through the administrator if accessible."
-					, errorCode = 404
-				);
+				header statuscode="404" statustext="Not Found";
+				abort;
 			}
 		}
 
@@ -232,7 +228,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		}
 
 		var path    = event.getCurrentUrl( includeQueryString=true );
-		var fullUrl = event.getBaseUrl() & path;
+		var fullUrl = event.getSiteUrl() & path;
 
 		urlRedirectsService.redirectOnMatch(
 			  path    = path

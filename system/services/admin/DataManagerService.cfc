@@ -68,7 +68,7 @@ component {
 				groups[ groupId ].objects.append( {
 					  id        = objectName
 					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
-					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-puzzle-piece" )
+					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-database" )
 				} );
 			}
 		}
@@ -105,18 +105,39 @@ component {
 	}
 
 	public array function listGridFields( required string objectName ) {
-		var labelfield = _getPresideObjectService().getObjectAttribute(
+		var fields = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerGridFields"
+			, defaultValue  = arrayToList( defaultGridFields( arguments.objectName ) )
+		);
+
+		return ListToArray( fields, ", " );
+	}
+
+	public array function defaultGridFields( required string objectName ) {
+		var labelfield     = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "labelfield"
 			, defaultValue  = "label"
 		);
-		var fields = _getPresideObjectService().getObjectAttribute(
+		var noDateCreated  = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
-			, attributeName = "datamanagerGridFields"
-			, defaultValue  = "#labelfield#,datecreated,datemodified"
+			, attributeName = "noDateCreated"
 		);
+		var noDateModified = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "noDateModified"
+		);
+		var fields     = [ labelfield ];
 
-		return ListToArray( fields );
+		if ( !noDateCreated ) {
+			fields.append( "datecreated" );
+		}
+		if ( !noDateModified ) {
+			fields.append( "datemodified" );
+		}
+
+		return fields;
 	}
 
 	public array function listHiddenGridFields( required string objectName ) {
@@ -504,20 +525,24 @@ component {
 		,          numeric maxRows       = 1000
 		,          string  orderBy       = "label"
 		,          string  labelRenderer = ""
+		,          array   bypassTenants = []
+		,          boolean useCache      = false
 	) {
 		var result = [];
 		var records = "";
 		var args   = {
-			  objectName   = arguments.objectName
-			, selectFields = arguments.selectFields
-			, savedFilters = arguments.savedFilters
-			, extraFilters = arguments.extraFilters
-			, maxRows      = arguments.maxRows
-			, orderBy      = arguments.orderBy
-			, autoGroupBy  = true
+			  objectName    = arguments.objectName
+			, selectFields  = arguments.selectFields
+			, savedFilters  = arguments.savedFilters
+			, extraFilters  = arguments.extraFilters
+			, bypassTenants = arguments.bypassTenants
+			, maxRows       = arguments.maxRows
+			, orderBy       = arguments.orderBy
+			, autoGroupBy   = true
+			, useCache      = arguments.useCache
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
-			result.text = _getLabelRendererService().renderLabel( labelRenderer, result );
+			result.text = replaceList(_getLabelRendererService().renderLabel( labelRenderer, result ), "&lt;,&gt;,&amp;,&quot;", '<,>,&,"');
 			result.value = result.id;
 			result.delete( "label" );
 			result.delete( "id" );
@@ -545,7 +570,7 @@ component {
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
 			var searchFields = [ labelField ];
 			if ( len( arguments.labelRenderer ) ) {
-				searchFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery

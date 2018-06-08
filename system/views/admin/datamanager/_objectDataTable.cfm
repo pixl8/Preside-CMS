@@ -140,6 +140,7 @@
 		    data-no-actions="#args.noActions#"
 		    data-allow-filter="#args.allowFilter#"
 		    data-compact="#args.compact#"
+		    data-no-record-message="#args.noRecordMessage#"
 		>
 			<thead>
 				<tr>

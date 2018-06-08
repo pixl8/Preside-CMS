@@ -21,7 +21,7 @@ component {
 	}
 
 	private string function defaultSubject() {
-		return "Reset your PresideCMS password";
+		return "Reset your Preside password";
 	}
 
 	private string function defaultHtmlBody() {

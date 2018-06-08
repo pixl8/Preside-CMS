@@ -83,8 +83,12 @@ component displayName="Multilingual Preside Object Service" {
 		var extraLanguageIndexes  = "";
 
 		validProperties.append( "id" );
-		validProperties.append( "datecreated" );
-		validProperties.append( "datemodified" );
+		if ( !( arguments.sourceObject.meta.noDateCreated ?: false ) ) {
+			validProperties.append( "datecreated" );
+		}
+		if ( !( arguments.sourceObject.meta.noDateModified ?: false ) ) {
+			validProperties.append( "datemodified" );
+		}
 
 		translationObject.tableName    = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
 		translationObject.derivedFrom  = arguments.objectName;
@@ -93,10 +97,10 @@ component displayName="Multilingual Preside Object Service" {
 		translationObject.isPageType   = false;
 
 		for( var propertyName in translationProperties ) {
-			if ( !validProperties.find( propertyName ) ) {
-				translationProperties.delete( propertyName );
-				dbFieldList.delete( propertyName );
-				propertyNames.delete( propertyName );
+			if ( !validProperties.findNoCase( propertyName ) ) {
+				StructDelete( translationProperties, propertyName );
+				ArrayDeleteNoCase( dbFieldList, propertyName );
+				ArrayDeleteNoCase( propertyNames, propertyName );
 				continue;
 			}
 

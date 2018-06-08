@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="assetManagerService"          inject="assetManagerService";
 	property name="websiteUserActionService"     inject="websiteUserActionService";
@@ -18,7 +18,7 @@ component output=false {
 		var passwordProtected = false;
 		var config            = assetManagerService.getDerivativeConfig( assetId );
 		var configHash        = assetManagerService.getDerivativeConfigHash( config );
-		
+
 		try {
 			if ( Len( Trim( derivativeName ) ) ) {
 				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
@@ -122,37 +122,49 @@ component output=false {
 
 		var permissionSettings = assetManagerService.getAssetPermissioningSettings( assetId );
 
-		if ( permissionSettings.restricted ) {
-			if ( Len( Trim( permissionSettings.conditionId ) ) ) {
-				var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( permissionSettings.conditionId );
+		if ( !event.isAdminUser() ) {
+			if ( permissionSettings.restricted ) {
+				if ( Len( Trim( permissionSettings.conditionId ) ) ) {
+					var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( permissionSettings.conditionId );
 
-				if ( !conditionIsTrue ) {
-					if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-						event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
-					} else {
-						event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+					if ( !conditionIsTrue ) {
+						if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+							event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+						} else {
+							event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+						}
 					}
+					return;
 				}
-				return;
+				var hasPerm = event.isAdminUser() && hasCmsPermission(
+					  permissionKey       = "assetmanager.assets.download"
+					, context             = "assetmanagerfolder"
+					, contextKeys         = permissionSettings.contextTree
+					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
+				);
+				if ( hasPerm ) { return; }
+
+				if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+					event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+				}
+
+				hasPerm = hasWebsitePermission(
+					  permissionKey       = "assets.access"
+					, context             = "asset"
+					, contextKeys         = permissionSettings.contextTree
+					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
+				)
+				if ( !hasPerm ) {
+					event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				}
 			}
-			var hasPerm = event.isAdminUser() && hasCmsPermission(
-				  permissionKey       = "assetmanager.assets.download"
-				, context             = "assetmanagerfolder"
-				, contextKeys         = permissionSettings.contextTree
-				, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
+		} else {
+
+			hasPerm = hasCmsPermission(
+				  permissionKey = "assetmanager.assets.download"
+				, context       = "assetmanagerfolder"
+				, contextKeys   = permissionSettings.contextTree ?: []
 			);
-			if ( hasPerm ) { return; }
-
-			if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-				event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
-			}
-
-			hasPerm = hasWebsitePermission(
-				  permissionKey       = "assets.access"
-				, context             = "asset"
-				, contextKeys         = permissionSettings.contextTree
-				, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
-			)
 			if ( !hasPerm ) {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}

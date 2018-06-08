@@ -4,7 +4,7 @@ component {
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
 		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
-		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|baiduspider|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
+		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
@@ -158,6 +158,7 @@ component {
 					_ensureCaseSensitiveStructSettingsAreActive();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
+					_preserveLocaleCookieIfPresent();
 					_initColdBox();
 
 					_announceInterception( "postPresideReload" );
@@ -221,7 +222,7 @@ component {
 				      nullSupport          = luceeCompilerSettings.nullSupport
 				      templateCharset      = luceeCompilerSettings.templateCharset;
 			} catch( security e ) {
-				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
+				throw( type="security", message="Preside could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
 			}
 		}
 	}
@@ -418,8 +419,14 @@ component {
 	private void function _removeSessionCookies() {
 		var pc             = getPageContext();
 		var resp           = pc.getResponse();
-		var allCookies     = resp.getHeaders( "Set-Cookie" );
 		var cleanedCookies = [];
+
+		try {
+			var allCookies = resp.getHeaders( "Set-Cookie" );
+		} catch( "java.lang.AbstractMethodError" e ) {
+			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
+			return;
+		}
 
 		if ( ArrayLen( allCookies ) ) {
 			for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
@@ -483,8 +490,14 @@ component {
 		var pc             = getPageContext();
 		var resp           = pc.getResponse();
 		var cbController   = _getColdboxController();
-		var allCookies     = resp.getHeaders( "Set-Cookie" );
 		var sessionCookies = [ "CFID", "CFTOKEN" ];
+
+		try {
+			var allCookies = resp.getHeaders( "Set-Cookie" );
+		} catch( "java.lang.AbstractMethodError" e ) {
+			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
+			return;
+		}
 
 		if ( IsNull( cbController ) || isStatelessRequest( _getUrl() ) ) {
 			if ( ArrayLen( allCookies ) ) {
@@ -669,5 +682,9 @@ component {
 		}
 
 		return stripped;
+	}
+
+	private void function _preserveLocaleCookieIfPresent() {
+		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
 	}
 }

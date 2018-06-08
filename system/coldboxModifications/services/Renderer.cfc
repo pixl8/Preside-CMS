@@ -543,8 +543,8 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var layoutPath       = "";
 		var moduleLayoutPath = "";
 
-		if ( len( moduleName ) ){
-			moduleLayoutPath = "#modulesConfig[moduleName].mapping#/#layoutsConvention#/#arguments.layout#";
+		if ( len( moduleName ) && variables.modulesConfig.keyExists( moduleName ) ){
+			moduleLayoutPath = "#variables.modulesConfig[moduleName].mapping#/#layoutsConvention#/#arguments.layout#";
 			if ( FileExists( ExpandPath( moduleLayoutPath ) ) ) {
 				return moduleLayoutPath;
 			}
@@ -567,58 +567,62 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	* @explicitModule Are we locating explicitly or implicitly for a module layout
 	*/
 	function locateModuleLayout(
-		required layout,
-		module="",
-		boolean explicitModule=false
+		  required string  layout
+		,          string  module=""
+		,          boolean explicitModule=false
 	){
-		var parentModuleLayoutPath 	= "";
-		var parentCommonLayoutPath 	= "";
-		var moduleLayoutPath 		= "";
-		var moduleName 		 		= "";
+		var parentModuleLayoutPath = "";
+		var parentCommonLayoutPath = "";
+		var moduleLayoutPath       = "";
+		var moduleName             = "";
 
 		// Explicit Module layout lookup?
-		if( len(arguments.module) and arguments.explicitModule ){
-			return "#variables.modulesConfig[arguments.module].mapping#/#variables.modulesConfig[arguments.module].conventions.layoutsLocation#/#arguments.layout#";
+		if ( len( arguments.module ) and arguments.explicitModule ){
+			return "#variables.modulesConfig[ arguments.module ].mapping#/#variables.modulesConfig[ arguments.module ].conventions.layoutsLocation#/#arguments.layout#";
 		}
 
 		// Declare Locations
-		moduleName 	     		= getRequestContext().getCurrentModule();
+		moduleName              = getRequestContext().getCurrentModule();
 		parentModuleLayoutPath 	= "/#variables.appMapping#/#variables.layoutsConvention#/modules/#moduleName#/#arguments.layout#";
 		parentCommonLayoutPath 	= "/#variables.appMapping#/#variables.layoutsConvention#/modules/#arguments.layout#";
-		moduleLayoutPath 		= "#variables.modulesConfig[moduleName].mapping#/#variables.modulesConfig[moduleName].conventions.layoutsLocation#/#arguments.layout#";
 
-		// Check parent view order setup
-		if( variables.modulesConfig[moduleName].layoutParentLookup ){
+		if ( variables.modulesConfig.keyExists( moduleName ) ) {
+			moduleLayoutPath = "#variables.modulesConfig[ moduleName ].mapping#/#variables.modulesConfig[ moduleName ].conventions.layoutsLocation#/#arguments.layout#";
+
+			// Check parent view order setup
+			if ( variables.modulesConfig[ moduleName ].layoutParentLookup ){
+				// We check if layout is overriden in parent first.
+				if ( fileExists( expandPath( parentModuleLayoutPath ) ) ) {
+					return parentModuleLayoutPath;
+				}
+				// Check if parent has a common layout override
+				if ( fileExists( expandPath( parentCommonLayoutPath ) ) ) {
+					return parentCommonLayoutPath;
+				}
+				// Check module
+				if ( fileExists( expandPath( moduleLayoutPath ) ) ) {
+					return moduleLayoutPath;
+				}
+				// Return normal layout lookup
+				return locateLayout( arguments.layout );
+			}
+
+			// If we reach here then we are doing module lookup first then if not parent.
+			if ( fileExists( expandPath( moduleLayoutPath ) ) ) {
+				return moduleLayoutPath;
+			}
 			// We check if layout is overriden in parent first.
-			if( fileExists(expandPath(parentModuleLayoutPath)) ){
+			if ( fileExists( expandPath( parentModuleLayoutPath ) ) ) {
 				return parentModuleLayoutPath;
 			}
 			// Check if parent has a common layout override
-			if( fileExists(expandPath(parentCommonLayoutPath)) ){
+			if ( fileExists( expandPath( parentCommonLayoutPath ) ) ) {
 				return parentCommonLayoutPath;
 			}
-			// Check module
-			if( fileExists(expandPath(moduleLayoutPath)) ){
-				return moduleLayoutPath;
-			}
-			// Return normal layout lookup
-			return locateLayout(arguments.layout);
 		}
 
-		// If we reach here then we are doing module lookup first then if not parent.
-		if( fileExists(expandPath(moduleLayoutPath)) ){
-			return moduleLayoutPath;
-		}
-		// We check if layout is overriden in parent first.
-		if( fileExists(expandPath(parentModuleLayoutPath)) ){
-			return parentModuleLayoutPath;
-		}
-		// Check if parent has a common layout override
-		if( fileExists(expandPath(parentCommonLayoutPath)) ){
-			return parentCommonLayoutPath;
-		}
 		// Return normal layout lookup
-		return locateLayout(arguments.layout);
+		return locateLayout( arguments.layout );
 	}
 
 	/**
@@ -639,59 +643,62 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	* @explicitModule Are we locating explicitly or implicitly for a module layout
 	*/
 	function locateModuleView(
-		required view,
-		module="",
-		boolean explicitModule=false
+		  required string  view
+		,          string  module=""
+		,          boolean explicitModule=false
 	){
 		var parentModuleViewPath = "";
 		var parentCommonViewPath = "";
-		var moduleViewPath = "";
-		var moduleName     = "";
+		var moduleViewPath       = "";
+		var moduleName           = "";
 
 		// Explicit Module view lookup?
-		if( len(arguments.module) and arguments.explicitModule){
-			return "#variables.modulesConfig[arguments.module].mapping#/#variables.modulesConfig[arguments.module].conventions.viewsLocation#/#arguments.view#";
+		if ( len( arguments.module ) and arguments.explicitModule ) {
+			return "#variables.modulesConfig[ arguments.module ].mapping#/#variables.modulesConfig[ arguments.module ].conventions.viewsLocation#/#arguments.view#";
 		}
 
 		// Declare Locations
-		moduleName     = arguments.module;
+		moduleName           = arguments.module;
 		parentModuleViewPath = "/#variables.appMapping#/#variables.viewsConvention#/modules/#moduleName#/#arguments.view#";
 		parentCommonViewPath = "/#variables.appMapping#/#variables.viewsConvention#/modules/#arguments.view#";
-		moduleViewPath = "#variables.modulesConfig[moduleName].mapping#/#variables.modulesConfig[moduleName].conventions.viewsLocation#/#arguments.view#";
 
-		// Check parent view order setup
-		if( variables.modulesConfig[moduleName].viewParentLookup ){
+		if ( variables.modulesConfig.keyExists( moduleName ) ) {
+			moduleViewPath = "#variables.modulesConfig[ moduleName ].mapping#/#variables.modulesConfig[ moduleName ].conventions.viewsLocation#/#arguments.view#";
+
+			// Check parent view order setup
+			if ( variables.modulesConfig[ moduleName ].viewParentLookup ) {
+				// We check if view is overriden in parent first.
+				if ( fileExists( expandPath( parentModuleViewPath & ".cfm" ) ) ) {
+					return parentModuleViewPath;
+				}
+				// Check if parent has a common view override
+				if ( fileExists( expandPath( parentCommonViewPath & ".cfm" ) ) ) {
+					return parentCommonViewPath;
+				}
+				// Check module for view
+				if ( fileExists( expandPath( moduleViewPath & ".cfm" ) ) ) {
+					return moduleViewPath;
+				}
+				// Return normal view lookup
+				return locateView( arguments.view );
+			}
+
+			// If we reach here then we are doing module lookup first then if not parent.
+			if ( fileExists( expandPath( moduleViewPath & ".cfm" ) ) ) {
+				return moduleViewPath;
+			}
 			// We check if view is overriden in parent first.
-			if( fileExists(expandPath(parentModuleViewPath & ".cfm")) ){
+			if ( fileExists( expandPath( parentModuleViewPath & ".cfm" ) ) ) {
 				return parentModuleViewPath;
 			}
 			// Check if parent has a common view override
-			if( fileExists(expandPath(parentCommonViewPath & ".cfm")) ){
+			if ( fileExists( expandPath( parentCommonViewPath & ".cfm" ) ) ) {
 				return parentCommonViewPath;
 			}
-			// Check module for view
-			if( fileExists(expandPath(moduleViewPath & ".cfm")) ){
-				return moduleViewPath;
-			}
-			// Return normal view lookup
-			return locateView(arguments.view);
-		}
-
-		// If we reach here then we are doing module lookup first then if not parent.
-		if( fileExists(expandPath(moduleViewPath & ".cfm")) ){
-			return moduleViewPath;
-		}
-		// We check if view is overriden in parent first.
-		if( fileExists(expandPath(parentModuleViewPath & ".cfm")) ){
-			return parentModuleViewPath;
-		}
-		// Check if parent has a common view override
-		if( fileExists(expandPath(parentCommonViewPath & ".cfm")) ){
-			return parentCommonViewPath;
 		}
 
 		// Return normal view lookup
-		return locateView(arguments.view);
+		return locateView( arguments.view );
 	}
 
 	/************************************** PRIVATE *********************************************/

@@ -594,7 +594,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function listSubmissionsForAjaxDataTable( event, rc, prc ) {
-		var formId   = ( rc.formId ?: "" );
+		var formId                = ( rc.formId ?: "" );
+		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
 
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
@@ -606,11 +607,12 @@ component extends="preside.system.base.AdminHandler" {
 		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
 		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
 		var results         = formbuilderService.getSubmissionsForGridListing(
-			  formId      = formId
-			, startRow    = dtHelper.getStartRow()
-			, maxRows     = dtHelper.getMaxRows()
-			, orderBy     = dtHelper.getSortOrder()
-			, searchQuery = dtHelper.getSearchQuery()
+			  formId                = formId
+			, startRow              = dtHelper.getStartRow()
+			, maxRows               = dtHelper.getMaxRows()
+			, orderBy               = dtHelper.getSortOrder()
+			, searchQuery           = dtHelper.getSearchQuery()
+			, savedFilterExpIdLists = savedFilterExpIdLists
 		);
 		var records = Duplicate( results.records );
 		var viewSubmissionTitle   = translateResource( "formbuilder:view.submission.modal.title" );

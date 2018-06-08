@@ -181,6 +181,48 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test004a_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChanged" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3a_propertyChanged" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "30", columns.test_property.column_size, "The test_property column has not been modified to a length of 30" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test004b_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChangedToRelationship" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3b_propertyChangedToRelationship" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "35", columns.test_property.column_size, "The test_property column has not been modified to a length of 35" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test005_objectExists_shouldReturnFalse_whenObjectDoesNotExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
@@ -1850,13 +1892,13 @@
 
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
-			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
-			data.set2 = poService.selectData( objectName="object_1", filter="id = :id", filterParams={id=objId} );
-			data.set3 = poService.selectData( objectName="object_1", filter="id = :id", filterParams={id="meh"} );
-			data.set4 = poService.selectData( objectName="object_1", filter={ id = "meh" } );
-			data.set5 = poService.selectData( objectName="object_1" );
-			data.set6 = poService.selectData( objectName="object_2" );
-			data.set7 = poService.selectData( objectName="object_3" );
+			data.set1 = poService.selectData( objectName="object_1", test=CreateUUId(), filter={ id = objId } );
+			data.set2 = poService.selectData( objectName="object_1", test=CreateUUId(), filter="id = :id", filterParams={id=objId} );
+			data.set3 = poService.selectData( objectName="object_1", test=CreateUUId(), filter="id = :id", filterParams={id="meh"} );
+			data.set4 = poService.selectData( objectName="object_1", test=CreateUUId(), filter={ id = "meh" } );
+			data.set5 = poService.selectData( objectName="object_1", test=CreateUUId() );
+			data.set6 = poService.selectData( objectName="object_2", test=CreateUUId() );
+			data.set7 = poService.selectData( objectName="object_3", test=CreateUUId() );
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
@@ -2723,6 +2765,7 @@
 	<cffunction name="test080_01_insertData_shouldPopulateGeneratedFieldsWithTheirGeneratedValues" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
 
 			poService.dbSync();
 
@@ -2733,6 +2776,7 @@
 			super.assertEquals( "Mrs Fred Smith", record.label );
 			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+			super.assertEquals( "mrs-fred-smith", record.slug );
 		</cfscript>
 	</cffunction>
 
@@ -2967,6 +3011,8 @@
 	<cffunction name="test089_updateData_shouldGenerateFieldValues_forPropsThatGenerateAlways" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
+			poService.$( "slugify" ).$args( "Miss Roberta Holness" ).$results( "miss-roberta-holness" );
 
 			poService.dbSync();
 
@@ -2978,6 +3024,7 @@
 			super.assertEquals( "Miss Roberta Holness", record.label );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
 			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
+			super.assertEquals( "miss-roberta-holness", record.slug );
 		</cfscript>
 	</cffunction>
 

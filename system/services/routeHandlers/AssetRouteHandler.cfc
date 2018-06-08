@@ -1,4 +1,4 @@
-component implements="iRouteHandler" output=false singleton=true {
+component implements="iRouteHandler" singleton=true {
 
 // constructor
 	/**
@@ -18,7 +18,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public void function translate( required string path, required any event ) output=false {
-		var assetId        = UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) );
+		var assetId        = UrlDecode( UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) ) );
 		var versionId      = ListLen( assetId, "." ) > 1 ? ListRest( assetId, "." ) : "";
 		var isTrashedAsset = Left( assetId, 1 ) == "$";
 		var derivativeId   = "";
@@ -33,7 +33,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		event.setValue( _getEventName(), "core.AssetDownload.asset" );
 
 		if ( ReFind( "^/asset/.*?/(.*?)/.*$", arguments.path ) ) {
-			derivativeId = UrlDecode( ReReplace( arguments.path, "^/asset/.*?/(.*?)/.*$", "\1" ) );
+			derivativeId = UrlDecode( UrlDecode( ReReplace( arguments.path, "^/asset/.*?/(.*?)/.*$", "\1" ) ) );
 			event.setValue( "derivativeId", derivativeId );
 		}
 	}

@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	public string function default( event, rc, prc, args={} ){
 		var data = args.data ?: "";

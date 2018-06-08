@@ -423,7 +423,11 @@ component {
 		, required string messageHtml
 	) {
 		var converted      = arguments.messageHtml;
-		var linkRegex      = 'href="(.*?)"';
+		
+		var linkRegex      = 'href="';
+		    linkRegex     &= "((?!javascript:void\(location.href='mailto:'";
+		    linkRegex     &= '|mailto).*?)"';
+
 		var linkMatches    = converted.reMatchNoCase( linkRegex );
 		var baseTrackinUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
 
