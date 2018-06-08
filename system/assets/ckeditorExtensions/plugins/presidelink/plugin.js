@@ -502,10 +502,15 @@
 
 			// Load target and popup settings.
 			if ( element ) {
-				var target = element.getAttribute( 'target' );
+				var target = element.getAttribute( 'target' )
+				  , rel    = element.getAttribute( 'rel' );
 
 				if ( target ) {
 					retval.link_target = target;
+				}
+
+				if ( rel == "nofollow" ) {
+					retval.nofollow = 1;
 				}
 
 				for ( var a in advAttrNames ) {
@@ -623,6 +628,10 @@
 			// Popups and target.
 			if ( data.link_target && data.link_target !== "_self" ) {
 				set.target = data.link_target;
+			}
+
+			if ( data.nofollow && data.nofollow !== "" ) {
+				set.rel = "nofollow";
 			}
 
 			if ( data.title && data.title.length ) {
