@@ -207,6 +207,24 @@ component {
 		);
 	}
 
+	private string function buildBatchEditFieldLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.batchEditField"
+			, queryString = _queryString( "object=#objectName#", args )
+		);
+	}
+
+	private string function buildBatchEditActionLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.batchEditAction"
+			, queryString = _queryString( "object=#objectName#", args )
+		);
+	}
+
 	private string function buildExportDataActionLink( event, rc, prc, args={} ) {
 		return event.buildAdminLink( linkTo = "datamanager.exportDataAction", queryString=args.queryString ?: "" );
 	}
