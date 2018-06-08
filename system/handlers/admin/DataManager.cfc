@@ -434,7 +434,7 @@ component extends="preside.system.base.AdminHandler" {
 		switch( action ){
 			case "batchUpdate":
 				setNextEvent(
-					  url           = event.buildAdminLink( linkTo="datamanager.batchEditField", queryString="object=#objectName#&field=#( rc.field ?: '' )#" )
+					  url           = event.buildAdminLink( objectName=objectName, operation="batchEditField", queryString="field=#( rc.field ?: '' )#" )
 					, persistStruct = { id = ids }
 				);
 			break;
@@ -3039,7 +3039,7 @@ component extends="preside.system.base.AdminHandler" {
 				, args           = args
 			);
 
-			if ( Len( Trim( args.recordId ?: "" ) ) ) {
+			if ( Len( Trim( args.recordId ?: "" ) ) && ListLen( args.recordId ) == 1 ) {
 				customizationService.runCustomization(
 					  objectName     = args.objectName
 					, action         = "recordBreadcrumb"
