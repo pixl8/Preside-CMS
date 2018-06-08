@@ -51,57 +51,72 @@ component extends="preside.system.base.AdminHandler" {
 		prc.preRenderListing  = ( customizationService.objectHasCustomization( objectName, "preRenderListing"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderListing"  , args=args ) : "" );
 		prc.postRenderListing = ( customizationService.objectHasCustomization( objectName, "postRenderListing" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderListing" , args=args ) : "" );
 
-		if ( customizationService.objectHasCustomization( objectName, "listingViewlet" ) ) {
-			prc.listingView = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "listingViewlet"
-				, args       = { objectName=objectName }
-			);
-		} else {
-			args.usesTreeView = dataManagerService.usesTreeView( objectName );
-
-			if ( args.usesTreeView ) {
-				var defaultTab = sessionStorage.getVar( name="_datamanagerTabForObject#objectName#", default="tree" );
-				var actualTab  = rc.tab ?: defaultTab;
-
-				args.treeView = actualTab != "grid";
-				sessionStorage.setVar( "_datamanagerTabForObject#objectName#", actualTab );
-			} else {
-				args.treeView = false;
-			}
-
-			args.append( {
-				  gridFields          = prc.gridFields       ?: _getObjectFieldsForGrid( objectName )
-				, hiddenGridFields    = prc.hiddenGridFields ?: []
+		prc.listingView = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "listingViewlet"
+			, defaultHandler = "admin.DataManager._objectListingViewlet"
+			, args           = {
+				  objectName          = objectName
+				, gridFields          = prc.gridFields          ?: _getObjectFieldsForGrid( objectName )
+				, hiddenGridFields    = prc.hiddenGridFields    ?: []
+				, batchEditableFields = prc.batchEditableFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
+				, canDelete           = IsTrue( prc.canDelete      ?: "" )
+			}
+		);
+	}
+
+	private string function _objectListingViewlet( event, rc, prc, args={} ) {
+		var objectName  = args.objectName ?: "";
+		var listing     = "";
+
+		args.usesTreeView = dataManagerService.usesTreeView( objectName );
+
+		if ( args.usesTreeView ) {
+			var defaultTab = sessionStorage.getVar( name="_datamanagerTabForObject#objectName#", default="tree" );
+			var actualTab  = rc.tab ?: defaultTab;
+
+			args.treeView = actualTab != "grid";
+			sessionStorage.setVar( "_datamanagerTabForObject#objectName#", actualTab );
+		} else {
+			args.treeView = false;
+		}
+
+		args.append( {
+			  gridFields          = args.gridFields          ?: _getObjectFieldsForGrid( objectName )
+			, hiddenGridFields    = args.hiddenGridFields    ?: _getObjectHiddenFieldsForGrid( objectName )
+			, batchEditableFields = args.batchEditableFields ?: dataManagerService.listBatchEditableFields( objectName )
+			, isMultilingual      = IsTrue( args.isMultilingual ?: multilingualPresideObjectService.isMultilingual( objectName ) )
+			, draftsEnabled       = IsTrue( args.draftsEnabled  ?: datamanagerService.areDraftsEnabledForObject( objectName ) )
+			, canDelete           = IsTrue( args.canDelete      ?: _checkPermission( argumentCollection=arguments, object=objectName, key="delete", throwOnError=false ) )
+		} );
+
+		if ( args.treeView ) {
+			listing = renderViewlet( event="admin.datamanager._treeView", args=args );
+
+		} else {
+			args.multiActions = customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "listingMultiActions"
+				, defaultHandler = "admin.datamanager._listingMultiActions"
+				, args           = args
+			);
+			args.append( {
+				  useMultiActions = args.multiActions.len()
+				, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
+				, allowDataExport = true
 			} );
 
-			if ( args.treeView ) {
-				prc.listingView = renderViewlet( event="admin.datamanager._treeView", args=args );
-
-			} else {
-				args.multiActions = customizationService.runCustomization(
-					  objectName     = objectName
-					, action         = "listingMultiActions"
-					, defaultHandler = "admin.datamanager._listingMultiActions"
-					, args           = args
-				);
-				args.append( {
-					  useMultiActions     = args.multiActions.len()
-					, multiActionUrl      = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-					, batchEditableFields = prc.batchEditableFields ?: []
-					, allowDataExport     = true
-				} );
-
-				prc.listingView = renderView( view="/admin/datamanager/_objectDataTable", args=args );
-			}
-
-			if ( args.usesTreeView  ) {
-				args.content = prc.listingView;
-				prc.listingView = renderView( view="/admin/datamanager/_treeGridSwitcher", args=args );
-			}
+			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
+
+		if ( args.usesTreeView  ) {
+			args.content = listing;
+			listing = renderView( view="/admin/datamanager/_treeGridSwitcher", args=args );
+		}
+
+		return listing;
 	}
 
 	private string function _listingMultiActions( event, rc, prc, args={} ) {
@@ -120,14 +135,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getListingMultiActions( event, rc, prc, args={} ) {
-		args.actions = [];
+		var objectName = args.objectName ?: "";
 
-		if ( ArrayLen( prc.batchEditableFields ?: [] ) ) {
-			args.batchEditableFields = prc.batchEditableFields;
+		args.actions             = [];
+		args.batchEditableFields = [];
+
+		if ( objectName == ( prc.objectName ?: "" ) ) {
+			args.batchEditableFields = prc.batchEditableFields ?: [];
+		} else {
+			args.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
+		}
+
+		if ( ArrayLen( args.batchEditableFields ) ) {
 			args.actions.append( renderView( view="/admin/datamanager/_batchEditMultiActionButton", args=args ) );
 		}
 
-		if ( IsTrue( prc.canDelete ) ) {
+		if ( IsTrue( args.canDelete ?: ( prc.canDelete ?: "" ) ) ) {
 			args.actions.append({
 				  class     = "btn-danger"
 				, label     = translateResource( uri="cms:datamanager.deleteSelected.title" )
