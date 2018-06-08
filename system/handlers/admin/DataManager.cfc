@@ -148,14 +148,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function viewRecord( event, rc, prc ) {
-		var objectName    = prc.objectName ?: "";
-		var recordId      = prc.recordId   ?: ""
-		var version       = Val( prc.version ?: "" );
-		var language      = rc.language ?: "";
-		var canTranslate  = IsTrue( prc.canTranslate ?: "" );
-		var objectTitle   = prc.objectTitle ?: "";
-		var recordLabel   = prc.recordLabel ?: "";
-		var useVersioning = IsTrue( prc.useVersioning ?: "" );
+		var objectName      = prc.objectName ?: "";
+		var recordId        = prc.recordId   ?: ""
+		var version         = Val( prc.version ?: "" );
+		var language        = rc.language     ?: "";
+		var objectTitle     = prc.objectTitle ?: "";
+		var recordLabel     = prc.recordLabel ?: "";
+		var canTranslate    = IsTrue( prc.canTranslate    ?: "" );
+		var useVersioning   = IsTrue( prc.useVersioning   ?: "" );
+		var canViewVersions = IsTrue( prc.canViewVersions ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
@@ -174,7 +175,7 @@ component extends="preside.system.base.AdminHandler" {
 			version = rc.version = prc.version = Val( url.version ?: "" );
 		}
 
-		if ( useVersioning ) {
+		if ( useVersioning && canViewVersions ) {
 			prc.versionNavigator = customizationService.runCustomization(
 				  objectName     = objectName
 				, action         = "versionNavigator"
@@ -1495,10 +1496,11 @@ component extends="preside.system.base.AdminHandler" {
 		var hasRecordActionsCustomization = !actionsView.len() && customizationService.objectHasCustomization( objectName, "getRecordActionsForGridListing" );
 
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
-			var canView           = IsTrue( prc.canView       ?: "" );
-			var canEdit           = IsTrue( prc.canEdit       ?: "" );
-			var canDelete         = IsTrue( prc.canDelete     ?: "" );
-			var canViewHistory    = IsTrue( prc.useVersioning ?: "" );
+			var canView           = IsTrue( prc.canView         ?: "" );
+			var canEdit           = IsTrue( prc.canEdit         ?: "" );
+			var canDelete         = IsTrue( prc.canDelete       ?: "" );
+			var canViewVersions   = IsTrue( prc.canViewVersions ?: "" );
+			var canViewHistory    = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
 			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
 			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
 			var deleteRecordLink  = canDelete      ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
@@ -2920,6 +2922,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canedit               = _checkPermission( argumentCollection=arguments, key="edit"              , throwOnError=false );
 			prc.canDelete             = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
 			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
+			prc.canViewVersions       = _checkPermission( argumentCollection=arguments, key="viewversions"      , throwOnError=false );
 			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
 			prc.hiddenGridFields      = _getObjectHiddenFieldsForGrid( prc.objectName );
