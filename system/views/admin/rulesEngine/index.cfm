@@ -5,7 +5,7 @@
 
 
 <cfoutput>
-	<div class="top-right-button-group" style="margin: -8px 4px 0px 0px;">
+	<div class="top-right-button-group" >
 		<cfif hasCmsPermission( "rulesEngine.add" )>
 			<br>
 			<button data-toggle="dropdown" class="btn btn-sm btn-success pull-right inline">
