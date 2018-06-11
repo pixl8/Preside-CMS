@@ -24,13 +24,11 @@ component {
 		for( row in arguments.qry ){
 			record = {};
 			for( col in arguments.columns ){
-				record[ ListLast( col, "." ) ] = row[ ListLast( col, "." ) ];
+				record[ ListLast( col, "." ) ] = reReplace(row[ ListLast( col, "." ) ],"\s","","ALL");
 			}
+
 			ArrayAppend( result.aaData, record );
 		}
-
-		if( isStruct( result.aaData[1] ) AND result.aaData[1]._options NEQ '' )
-			result.aaData[1]._options = reReplace(result.aaData[1]._options,"\s","","ALL");
 
 		return result;
 	}
