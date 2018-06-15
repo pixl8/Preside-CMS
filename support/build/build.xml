@@ -55,7 +55,7 @@
 		<move file="../../box.json.orig" tofile="../../box.json" />
 		<copy file="../../version.json" tofile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.json" />
 		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/build.zip" />
-		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/PresideCMS-${versionnumber}.zip" />
+		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/PresideCMS-${versionnumber}.${build.number}.zip" />
 
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
