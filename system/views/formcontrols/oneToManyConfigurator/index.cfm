@@ -20,7 +20,7 @@
 	configuratorLabelUrl    = event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#" );
 	configuratorAddUrl      = event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
 	objectSingularName      = translateResource( "preside-objects.#object#:title.singular" );
-	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ lcase( objectSingularName ) ] );
+	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ objectSingularName ] );
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
