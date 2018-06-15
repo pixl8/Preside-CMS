@@ -13,13 +13,22 @@ component {
 	 * @assetRendererService.inject AssetRendererService
 	 * @widgetsService.inject       WidgetsService
 	 * @presideObjectService.inject PresideObjectService
+	 * @labelRendererService.inject labelRendererService
 	 */
-	public any function init( required any coldbox, required any cache, required any assetRendererService, required any widgetsService, required any presideObjectService ) {
+	public any function init(
+		  required any coldbox
+		, required any cache
+		, required any assetRendererService
+		, required any widgetsService
+		, required any presideObjectService
+		, required any labelRendererService
+	) {
 		_setColdbox( arguments.coldbox );
 		_setCache( arguments.cache );
 		_setAssetRendererService( arguments.assetRendererService );
 		_setWidgetsService( arguments.widgetsService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setLabelRendererService( arguments.labelRendererService );
 
 		_setRenderers( {} );
 
@@ -45,13 +54,27 @@ component {
 		}
 	}
 
-	public string function renderLabel( required string objectName, required string recordId, string keyField="id" ) {
+	public string function renderLabel(
+		  required string objectName
+		, required string recordId
+		,          string keyField      = "id"
+		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
+	) {
+
+		var labelRendererService = _getLabelRendererService();
+		var selectFields = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : [ "${labelfield} as label" ]
 		var record = _getPresideObjectService().selectData(
 			  objectName         = arguments.objectName
 			, filter             = { "#keyField#"=arguments.recordId }
-			, selectFields       = [ "${labelfield} as label" ]
+			, selectFields       = selectFields
 			, allowDraftVersions = $getRequestContext().showNonLiveContent()
 		);
+
+		if ( Len( Trim( arguments.labelRenderer ) ) ) {
+			for( var r in record ) {
+				return labelRendererService.renderLabel( arguments.labelRenderer, r );
+			}
+		}
 
 		if ( record.recordCount ) {
 			return record.label;
@@ -597,5 +620,12 @@ component {
 	}
 	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getLabelRendererService() {
+		return _labelRendererService;
+	}
+	private void function _setLabelRendererService( required any labelRendererService ) {
+		_labelRendererService = arguments.labelRendererService;
 	}
 }
