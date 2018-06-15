@@ -21,23 +21,10 @@
 		<move file="../../box.json" tofile="../../box.json.orig" />
 		<move file="../../box.json.no.deps" tofile="../../box.json" />
 
-		<replace file="../../box.json.orig" token="VERSION_NUMBER" value="${versionnumber}" />
-		<replace file="../../box.json"      token="VERSION_NUMBER" value="${versionnumber}" />
+		<replace file="../../box.json.orig" token="VERSION_NUMBER" value="${versionnumber}.${build.number}" />
+		<replace file="../../box.json"      token="VERSION_NUMBER" value="${versionnumber}.${build.number}" />
 
-		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.zip">
-			<zipfileset dir="../../" prefix="presidecms-${versionnumber}.${build.number}">
-				<exclude name="support/**"                    />
-				<exclude name="system/assets/node_modules/**" />
-				<exclude name=".travis.yml"                   />
-				<exclude name="build.sh"                      />
-				<exclude name="test.sh"                       />
-				<exclude name=".twgit*"                       />
-				<exclude name=".zanata-cache/**"              />
-				<exclude name="zanata.xml"                    />
-				<exclude name="box.json.orig"                 />
-			</zipfileset>
-		</zip>
-		<zip destfile="${artifacts.dir}/${release.name}.zip">
+		<zip destfile="${artifacts.dir}/PresideCMS-${versionnumber}.${build.number}.zip">
 			<zipfileset dir="../../">
 				<exclude name="support/**"                    />
 				<exclude name="system/assets/node_modules/**" />
@@ -54,8 +41,6 @@
 		<move file="../../box.json" tofile="../../box.json.no.deps" />
 		<move file="../../box.json.orig" tofile="../../box.json" />
 		<copy file="../../version.json" tofile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.json" />
-		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/build.zip" />
-		<copy file="${artifacts.dir}/${release.name}.zip" tofile="${artifacts.dir}/PresideCMS-${versionnumber}.zip" />
 
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
