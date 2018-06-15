@@ -23,8 +23,10 @@
 
 		<replace file="../../box.json.orig" token="VERSION_NUMBER" value="${versionnumber}.${build.number}" />
 		<replace file="../../box.json"      token="VERSION_NUMBER" value="${versionnumber}.${build.number}" />
+		<replace file="../../box.json.orig" token="DOWNLOADLOCATION" value="${release.name}/PresideCMS-${versionnumber}.${build.number}.zip" />
+		<replace file="../../box.json"      token="DOWNLOADLOCATION" value="${release.name}/PresideCMS-${versionnumber}.${build.number}.zip" />
 
-		<zip destfile="${artifacts.dir}/PresideCMS-${versionnumber}.${build.number}.zip">
+		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.${build.number}.zip">
 			<zipfileset dir="../../">
 				<exclude name="support/**"                    />
 				<exclude name="system/assets/node_modules/**" />
