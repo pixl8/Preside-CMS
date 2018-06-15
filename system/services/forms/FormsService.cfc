@@ -11,7 +11,7 @@ component displayName="Forms service" {
 	 * @presideObjectService.inject      PresideObjectService
 	 * @siteService.inject               SiteService
 	 * @validationEngine.inject          ValidationEngine
-	 * @i18n.inject                      coldbox:plugin:i18n
+	 * @i18n.inject                      i18n
 	 * @coldbox.inject                   coldbox
 	 * @presideFieldRuleGenerator.inject PresideFieldRuleGenerator
 	 * @featureService.inject            featureService
@@ -370,7 +370,7 @@ component displayName="Forms service" {
 						} else if ( StructKeyExists( arguments.savedData, renderArgs.name ) ) {
 							renderArgs.defaultValue = arguments.savedData[ renderArgs.name ];
 						} else if ( StructKeyExists( field, "default" ) ) {
-							renderArgs.defaultValue = field.default;
+							renderArgs.defaultValue = _runDefaultValueFunction( field.sourceObject ?: "", field.default );
 						}
 
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
@@ -893,7 +893,8 @@ component displayName="Forms service" {
 		var formAttributes = {};
 
 		try {
-			xml = XmlParse( arguments.filePath );
+			var xmlContent = fileread( arguments.filePath, "utf-8" );
+			xml            = XmlParse( xmlContent );
 		} catch ( any e ) {
 			throw(
 				  type = "FormsService.BadFormXml"
@@ -1472,6 +1473,29 @@ component displayName="Forms service" {
 
 	private string function _generateFormNameFromDefinition( required struct definition ) {
 		return "dynamicform-" & LCase( Hash( SerializeJson( arguments.definition ) ) );
+	}
+
+	private string function _runDefaultValueFunction( required string objectName, required string default ) {
+		var defaultValue = arguments.default ?: "";
+
+		if ( ListLen( defaultValue, ":" ) > 1 ) {
+			switch( ListFirst( defaultValue, ":" ) ) {
+				case "cfml":
+					defaultValue = Evaluate( ListRest( defaultValue, ":" ) );
+				break;
+				case "closure":
+					var func = Evaluate( ListRest( defaultValue, ":" ) );
+					defaultValue = func( {} );
+				break;
+				case "method":
+					var obj = _getPresideObjectService().getObject( arguments.objectName );
+
+					defaultValue = obj[ ListRest( defaultValue, ":" ) ]( {} );
+				break;
+			}
+		}
+
+		return defaultValue ?: "";
 	}
 
 // GETTERS AND SETTERS

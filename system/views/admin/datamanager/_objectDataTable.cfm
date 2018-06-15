@@ -1,24 +1,29 @@
 <cfscript>
 	param name="args.objectName"          type="string";
+	param name="args.multiActions"        type="string"  default="";
 	param name="args.useMultiActions"     type="boolean" default=false;
 	param name="args.multiActionViewlet"  type="string"  default="admin.datamanager._multiActions";
 	param name="args.multiActionUrl"      type="string"  default="";
 	param name="args.isMultilingual"      type="boolean" default=false;
 	param name="args.draftsEnabled"       type="boolean" default=false;
+	param name="args.noActions"           type="boolean" default=false;
 	param name="args.gridFields"          type="array";
+	param name="args.hiddenGridFields"    type="array"   default=[];
 	param name="args.filterContextData"   type="struct"  default={};
 	param name="args.allowSearch"         type="boolean" default=true;
 	param name="args.allowFilter"         type="boolean" default=true;
 	param name="args.allowDataExport"     type="boolean" default=false;
 	param name="args.clickableRows"       type="boolean" default=true;
+	param name="args.compact"             type="boolean" default=false;
 	param name="args.batchEditableFields" type="array"   default=[];
-	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#&draftsEnabled=#args.draftsEnabled#" );
-	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( linkTo="dataManager.exportDataAction" );
-	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( linkTo="dataManager.dataExportConfigModal", queryString="id=#args.objectName#" );
+	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
+	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
+	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
+	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
+	param name="args.objectTitlePlural"   type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 
-	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
-	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ objectTitle ] );
+	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ args.objectTitlePlural ] );
 	batchEditTitle       = translateResource( uri="cms:datamanager.batchEditSelected.title" );
 
 	event.include( "/js/admin/specific/datamanager/object/");
@@ -40,7 +45,7 @@
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
 </cfscript>
 <cfoutput>
-	<div class="table-responsive">
+	<div class="table-responsive<cfif args.compact> table-compact</cfif>">
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
@@ -124,6 +129,7 @@
 
 		<table id="#tableId#" class="table table-hover object-listing-table"
 			data-object-name="#args.objectName#"
+			data-object-title="#args.objectTitlePlural#"
 		    data-datasource-url="#args.datasourceUrl#"
 		    data-use-multi-actions="#args.useMultiActions#"
 		    data-allow-search="#args.allowSearch#"
@@ -131,7 +137,10 @@
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
+		    data-no-actions="#args.noActions#"
 		    data-allow-filter="#args.allowFilter#"
+		    data-compact="#args.compact#"
+		    data-no-record-message="#args.noRecordMessage#"
 		>
 			<thead>
 				<tr>
@@ -144,7 +153,7 @@
 						</th>
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
-						<th data-field="#fieldName#">#translateResource( uri="preside-objects.#args.objectName#:field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )#</th>
+						<th data-field="#ListLast( fieldName, '.' )#">#translatePropertyName( args.objectName, fieldName )#</th>
 					</cfloop>
 					<cfif args.draftsEnabled>
 						<th>#translateResource( uri="cms:datamanager.column.draft.status" )#</th>
@@ -152,7 +161,9 @@
 					<cfif args.isMultilingual>
 						<th>#translateResource( uri="cms:datamanager.translate.column.status" )#</th>
 					</cfif>
-					<th>&nbsp;</th>
+					<cfif !args.noActions>
+						<th>&nbsp;</th>
+					</cfif>
 				</tr>
 			</thead>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
@@ -160,7 +171,11 @@
 		</table>
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
-					#renderViewlet( event=args.multiActionViewlet, args=args )#
+					<cfif Len( Trim( args.multiActions ) )>
+						#args.multiActions#
+					<cfelse>
+						#renderViewlet( event=args.multiActionViewlet, args=args )#
+					</cfif>
 				</div>
 			</form>
 		</cfif>

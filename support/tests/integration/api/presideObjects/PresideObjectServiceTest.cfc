@@ -181,6 +181,48 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test004a_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChanged" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3a_propertyChanged" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "30", columns.test_property.column_size, "The test_property column has not been modified to a length of 30" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test004b_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChangedToRelationship" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3b_propertyChangedToRelationship" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "35", columns.test_property.column_size, "The test_property column has not been modified to a length of 35" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test005_objectExists_shouldReturnFalse_whenObjectDoesNotExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
@@ -1030,6 +1072,74 @@
 			for( i=1; i lte 4; i++ ){
 				super.assertEquals( "label #i#", result.label[i] );
 			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test027a_selectData_shouldSelectAdditionalColumnsAndData_whenExtraSelectFieldsArgumentSupplied" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds           = [];
+			var bId            = "";
+			var cId            = "";
+			var expectedFields = ["id", "label", "obj_b", "a_count" ];
+			var field          = "";
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bId = poService.insertData( objectName="object_b", data={ label="isn't this lovely", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true );
+			cId = poService.insertData( objectName="object_c", data={ label="isn't this lovely", obj_b=bId } );
+
+			var result = poService.selectData(
+				  objectName        = "object_c"
+				, extraSelectFields = [ "a_count" ]
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , cId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Formula field not calculated correctly" );
+
+			for( field in expectedFields ){
+				super.assert( ListFindNoCase( result.columnList, field ), "[#field#] column missing from results" );
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test027b_selectData_shouldIncludeAllFormulaColumnsAndData_whenIncludeAllFormulaFieldsIsTrue" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds           = [];
+			var bId            = "";
+			var cId            = "";
+			var expectedFields = ["id", "label", "obj_b", "a_count", "compound_label" ];
+			var expectedLabel  = "object_c label object_b label";
+			var field          = "";
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bId = poService.insertData( objectName="object_b", data={ label="object_b label", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true );
+			cId = poService.insertData( objectName="object_c", data={ label="object_c label", obj_b=bId } );
+
+			var result = poService.selectData(
+				  objectName              = "object_c"
+				, includeAllFormulaFields = true
+			);
+
+			for( field in expectedFields ){
+				super.assert( ListFindNoCase( result.columnList, field ), "[#field#] column missing from results" );
+			}
+
+			super.assertEquals( result.recordCount   , 1            , "Expected record count mismatch" );
+			super.assertEquals( result.id            , cId          , "Expected record ID mismatch" );
+			super.assertEquals( result.a_count       , 3            , "Formula field not calculated correctly" );
+			super.assertEquals( result.compound_label, expectedLabel, "Formula field not calculated correctly" );
 		</cfscript>
 	</cffunction>
 
@@ -2014,7 +2124,7 @@
 	<cffunction name="test057_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", left("_version_ptest_category_join_object",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_category_join_object", "ptest_an_object_with_versioning" ];
+			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object_no_version_on_insert", left("_version_ptest_category_join_object",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object_no_version_on_insert", "ptest_category_join_object", "ptest_an_object_with_versioning" ];
 			var tables         = "";
 
 			poService.dbSync();
@@ -2099,6 +2209,21 @@
 				super.assertEquals( 1    , record._version_number );
 				super.assertEquals( newId, record.id );
 			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test0_62_b_insertData_shouldNotAddVersionRecord_forVersionedObject_whenVersionOnInsertIsFalse" returntype="void">
+		<cfscript>
+			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
+
+			poService.dbSync();
+
+			var newId          = poService.insertData( "a_category_object_no_version_on_insert", { label="my new label" } );
+			var versionRecords = poService.selectData( "vrsn_a_category_object_no_version_on_insert" );
+			var records        = poService.selectData( "a_category_object_no_version_on_insert" );
+
+			super.assertEquals( 0, versionRecords.recordCount );
+			super.assertEquals( 1, records.recordCount );
 		</cfscript>
 	</cffunction>
 
@@ -2640,6 +2765,7 @@
 	<cffunction name="test080_01_insertData_shouldPopulateGeneratedFieldsWithTheirGeneratedValues" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
 
 			poService.dbSync();
 
@@ -2650,6 +2776,7 @@
 			super.assertEquals( "Mrs Fred Smith", record.label );
 			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+			super.assertEquals( "mrs-fred-smith", record.slug );
 		</cfscript>
 	</cffunction>
 
@@ -2884,6 +3011,8 @@
 	<cffunction name="test089_updateData_shouldGenerateFieldValues_forPropsThatGenerateAlways" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
+			poService.$( "slugify" ).$args( "Miss Roberta Holness" ).$results( "miss-roberta-holness" );
 
 			poService.dbSync();
 
@@ -2895,6 +3024,7 @@
 			super.assertEquals( "Miss Roberta Holness", record.label );
 			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
 			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
+			super.assertEquals( "miss-roberta-holness", record.slug );
 		</cfscript>
 	</cffunction>
 

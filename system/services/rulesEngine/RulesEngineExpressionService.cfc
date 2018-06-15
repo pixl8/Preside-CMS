@@ -246,7 +246,13 @@ component displayName="RulesEngine Expression Service" {
 		, required struct payload
 		, required struct configuredFields
 	) {
-		var expression = _getRawExpression( expressionId );
+		try {
+			var expression = _getRawExpression( expressionId );
+		} catch( any e ) {
+			$raiseError( e );
+			return false;
+		}
+
 		var contexts   = expression.contexts ?: [];
 
 		if ( !contexts.findNoCase( arguments.context ) && !contexts.findNoCase( "global" ) ) {

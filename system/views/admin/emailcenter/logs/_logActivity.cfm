@@ -6,6 +6,7 @@
 <cfparam name="args.message"         default="" />
 <cfparam name="args.ipAddress"       default="" />
 <cfparam name="args.userAgent"       default="" />
+<cfparam name="args.showAuditTrail"  default=true />
 
 <cfoutput>
 	<div class="timeline-item clearfix" data-date="#args.logDate#">
@@ -31,7 +32,7 @@
 				</div>
 			</div>
 
-			<cfif Len( Trim( args.ipAddress & args.userAgent ) )>
+			<cfif Len( Trim( args.ipAddress & args.userAgent ) ) && args.showAuditTrail>
 				<div class="widget-header widget-header-small">
 					<span class="widget-toolbar no-border light-grey">
 						<cfif Len( Trim( args.ipAddress ) )>

@@ -1,44 +1,17 @@
-<cfparam name="args.viewRecordLink"    type="string" />
-<cfparam name="args.deleteRecordLink"  type="string" />
-<cfparam name="args.editRecordLink"    type="string" />
-<cfparam name="args.viewHistoryLink"   type="string" />
-<cfparam name="args.deleteRecordTitle" type="string" />
-<cfparam name="args.objectName"        type="string" />
-<cfparam name="args.canEdit"           type="boolean" />
-<cfparam name="args.canDelete"         type="boolean" />
-<cfparam name="args.canViewHistory"    type="boolean" />
+<cfparam name="args.actions" type="array" />
 
-<cfoutput>
-	<div class="action-buttons btn-group">
-		<cfif args.canEdit>
-			<a href="#args.editRecordLink#" data-context-key="e">
-				<i class="fa fa-pencil"></i>
-			</a>
-		</cfif>
-
-		<cfif args.canDelete>
-			<a class="confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
-				<i class="fa fa-trash-o"></i>
-			</a>
-		</cfif>
-
-		<cfsavecontent variable="extraMenuItems">
-			<cfif args.canViewHistory>
-				<li>
-					<a data-context-key="h" href="#args.viewHistoryLink#">
-						<i class="fa fa-history"></i>
-						#translateResource( uri="cms:datatable.contextmenu.history" )#
+<cfif args.actions.len()>
+	<cfoutput>
+		<div class="action-buttons btn-group">
+			<cfloop array="#args.actions#" index="i" item="action">
+				<cfif IsSimpleValue( action )>
+					#action#
+				<cfelse>
+					<a class="<cfif i == 1>row-link</cfif><cfif Len( Trim( action.class ?: "" ))> #action.class#"</cfif>"<cfif Len( Trim( action.contextKey ?: "" ))> data-context-key="#action.contextKey#"</cfif> href="#( action.link ?: "" )#"<cfif Len( Trim( action.title ?: "" ))> title="#HtmlEditFormat( action.title )#"</cfif><cfif Len( Trim( action.target ?: "" ))> target="#action.target#"</cfif>>
+						<i class="fa fa-fw #( action.icon ?: "" )#"></i>
 					</a>
-				</li>
-			</cfif>
-		</cfsavecontent>
-
-		<cfif Len( Trim( extraMenuItems ) )>
-			<a class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i></a>
-
-			<ul class="dropdown-menu pull-right text-left">
-				#extraMenuItems#
-			</ul>
-		</cfif>
-	</div>
-</cfoutput>
+				</cfif>
+			</cfloop>
+		</div>
+	</cfoutput>
+</cfif>

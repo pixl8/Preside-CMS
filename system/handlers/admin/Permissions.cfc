@@ -1,4 +1,4 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="permissionService" inject="permissionService";
 

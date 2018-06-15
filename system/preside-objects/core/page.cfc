@@ -3,7 +3,7 @@
  */
 
 
-component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayname="Sitetree Page" siteFiltered=true {
+component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true {
 
 <!--- properties --->
 	property name="title"        type="string"  dbtype="varchar"  maxLength="200" required=true control="textinput";

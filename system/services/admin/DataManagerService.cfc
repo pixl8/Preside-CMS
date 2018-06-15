@@ -1,7 +1,9 @@
 /**
+ * Service to provide business logic for the [[datamanager]].
+ *
  * @singleton
  * @presideservice
- *
+ * @autodoc
  */
 component {
 
@@ -11,10 +13,11 @@ component {
 	 * @presideObjectService.inject PresideObjectService
 	 * @contentRenderer.inject      ContentRendererService
 	 * @labelRendererService.inject LabelRendererService
-	 * @i18nPlugin.inject           coldbox:plugin:i18n
+	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
+	 * @customizationService.inject datamanagerCustomizationService
 	 */
 	public any function init(
 		  required any presideObjectService
@@ -24,6 +27,7 @@ component {
 		, required any permissionService
 		, required any siteService
 		, required any relationshipGuidance
+		, required any customizationService
 	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
@@ -32,6 +36,7 @@ component {
 		_setPermissionService( arguments.permissionService );
 		_setSiteService( arguments.siteService );
 		_setRelationshipGuidance( arguments.relationshipGuidance );
+		_setCustomizationService( arguments.customizationService );
 
 		return this;
 	}
@@ -61,8 +66,9 @@ component {
 					};
 				}
 				groups[ groupId ].objects.append( {
-					  id    = objectName
-					, title = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
+					  id        = objectName
+					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
+					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-database" )
 				} );
 			}
 		}
@@ -83,21 +89,61 @@ component {
 	}
 
 	public boolean function isObjectAvailableInDataManager( required string objectName ) {
+		if ( objectIsIndexedInDatamanagerUi( arguments.objectName ) ) {
+			return true;
+		}
+
+		var datamanagerEnabled = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerEnabled", defaultValue="" );
+
+		return IsBoolean( datamanagerEnabled ) && datamanagerEnabled;
+	}
+
+	public boolean function objectIsIndexedInDatamanagerUi( required string objectName ) {
 		var groupId = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerGroup", defaultValue="" );
 
-		return Len( Trim( groupId ) );
+		return Len( Trim( groupId ) ) > 0;
 	}
 
 	public array function listGridFields( required string objectName ) {
-		var labelfield = _getPresideObjectService().getObjectAttribute(
+		var fields = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerGridFields"
+			, defaultValue  = arrayToList( defaultGridFields( arguments.objectName ) )
+		);
+
+		return ListToArray( fields, ", " );
+	}
+
+	public array function defaultGridFields( required string objectName ) {
+		var labelfield     = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "labelfield"
 			, defaultValue  = "label"
 		);
+		var noDateCreated  = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "noDateCreated"
+		);
+		var noDateModified = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "noDateModified"
+		);
+		var fields     = [ labelfield ];
+
+		if ( !noDateCreated ) {
+			fields.append( "datecreated" );
+		}
+		if ( !noDateModified ) {
+			fields.append( "datemodified" );
+		}
+
+		return fields;
+	}
+
+	public array function listHiddenGridFields( required string objectName ) {
 		var fields = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
-			, attributeName = "datamanagerGridFields"
-			, defaultValue  = "#labelfield#,datecreated,datemodified"
+			, attributeName = "datamanagerHiddenGridFields"
 		);
 
 		return ListToArray( fields );
@@ -151,11 +197,24 @@ component {
 	}
 
 	public boolean function isOperationAllowed( required string objectName, required string operation ) {
+		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, "isOperationAllowed" ) ) {
+			var result = _getCustomizationService().runCustomization(
+				  objectName = arguments.objectName
+				, action     = "isOperationAllowed"
+				, args       = arguments
+			);
+
+			return IsBoolean( result ?: "" ) && result;
+		}
+
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "add,edit,delete,viewversions"
+			, defaultValue  = "read,add,edit,delete,viewversions,translate"
 		);
+
+		operations = operations.reReplaceNoCase( "\bview\b", "read" );
+
 
 		return operations != "none" && ListFindNoCase( operations, arguments.operation );
 	}
@@ -174,6 +233,31 @@ component {
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerSortField"
 			, defaultValue  = "sortorder"
+		);
+	}
+
+	public boolean function usesTreeView( required string objectName ) {
+		var treeView = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeView"
+		);
+
+		return IsBoolean( treeView ) && treeView;
+	}
+
+	public string function getTreeParentProperty( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeParentProperty"
+			, defaultValue  = "parent"
+		);
+	}
+
+	public string function getTreeSortOrder( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeSortOrder"
+			, defaultValue  = _getPresideObjectService().getLabelField( arguments.objectName )
 		);
 	}
 
@@ -208,18 +292,41 @@ component {
 		}
 	}
 
+	/**
+	 * Gets raw results from the database for the data manager
+	 * grid listing. Results are returned as a struct with keys:
+	 * `records` (query) and `totalRecords` (numeric count).
+	 * \n
+	 * Note: any additional arguments passed will be passed on to
+	 * the [[presideobjectservice-selectdata]] call.
+	 *
+	 * @autodoc       true
+	 * @objectName    Name of the object whose records we are to get
+	 * @gridFields    Array of "grid fields", these will be converted to a selectFields array for the [[presideobjectservice-selectdata]] call
+	 * @startRow      For pagination, first row number to fetch
+	 * @maxRows       For pagination, maximum number of rows to fetch
+	 * @orderBy       Order by string for sorting records
+	 * @searchQuery   Optional search query
+	 * @filter        Optional filter for the [[presideobjectservice-selectdata]] call
+	 * @filterParams  Optional params for the `filter`
+	 * @draftsEnabled Whether or not drafts are enabled (if so, the method will additionally fetch the draft status of each record)
+	 * @extraFilters  Optional array of extraFilters to send to the [[presideobjectservice-selectdata]] call
+	 * @searchFields  Optional array of fields that will be used to search against with the `searchQuery` argument
+	 */
 	public struct function getRecordsForGridListing(
 		  required string  objectName
 		, required array   gridFields
-		,          numeric startRow      = 1
-		,          numeric maxRows       = 10
-		,          string  orderBy       = ""
-		,          string  searchQuery   = ""
-		,          any     filter        = {}
-		,          struct  filterParams  = {}
-		,          boolean draftsEnabled = areDraftsEnabledForObject( arguments.objectName )
-		,          array   extraFilters  = []
-		,          array   searchFields  = listSearchFields( arguments.objectName )
+		,          numeric startRow       = 1
+		,          numeric maxRows        = 10
+		,          string  orderBy        = ""
+		,          string  searchQuery    = ""
+		,          any     filter         = {}
+		,          struct  filterParams   = {}
+		,          boolean draftsEnabled  = areDraftsEnabledForObject( arguments.objectName )
+		,          array   extraFilters   = []
+		,          array   searchFields   = listSearchFields( arguments.objectName )
+		,          boolean treeView       = false
+		,          string  treeViewParent = ""
 	) {
 
 		var result = { totalRecords = 0, records = "" };
@@ -244,6 +351,32 @@ component {
 				  )
 				, filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } }
 			});
+		}
+
+		if ( arguments.treeView ) {
+			var parentField  = getTreeParentProperty( arguments.objectName );
+			var treeSubQuery = _getPresideObjectService().selectData(
+				  objectName          = arguments.objectName
+				, selectFields        = [ parentField ]
+				, filter              = "#parentField# is not null"
+				, getSqlAndParamsOnly = true
+			);
+			args.extraJoins = args.extraJoins ?: [];
+			args.extraJoins.append( {
+				  type           = "left"
+				, subQuery       = treeSubQuery.sql
+				, subQueryAlias  = "childRecords"
+				, subQueryColumn = parentField
+				, joinToTable    = arguments.objectName
+				, joinToColumn   = _getPresideObjectService().getIdField( arguments.objectName )
+			} );
+			args.extraFilters.append( { filter={ "#parentField#"=arguments.treeViewParent } } );
+			args.selectFields.append( "Count( childRecords.#parentField# ) as child_count" );
+
+			args.filterParams = args.filterParams ?: {};
+			for( var param in treeSubQuery.params ) {
+				args.filterParams[ param.name ] = args.filterParams[ param.name ] ?: param;
+			}
 		}
 
 		result.records = _getPresideObjectService().selectData( argumentCollection=args );
@@ -392,17 +525,21 @@ component {
 		,          numeric maxRows       = 1000
 		,          string  orderBy       = "label"
 		,          string  labelRenderer = ""
+		,          array   bypassTenants = []
+		,          boolean useCache      = false
 	) {
 		var result = [];
 		var records = "";
 		var args   = {
-			  objectName   = arguments.objectName
-			, selectFields = arguments.selectFields
-			, savedFilters = arguments.savedFilters
-			, extraFilters = arguments.extraFilters
-			, maxRows      = arguments.maxRows
-			, orderBy      = arguments.orderBy
-			, autoGroupBy  = true
+			  objectName    = arguments.objectName
+			, selectFields  = arguments.selectFields
+			, savedFilters  = arguments.savedFilters
+			, extraFilters  = arguments.extraFilters
+			, bypassTenants = arguments.bypassTenants
+			, maxRows       = arguments.maxRows
+			, orderBy       = arguments.orderBy
+			, autoGroupBy   = true
+			, useCache      = arguments.useCache
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
 			result.text = replaceList(_getLabelRendererService().renderLabel( labelRenderer, result ), "&lt;,&gt;,&amp;,&quot;", '<,>,&,"');
@@ -413,6 +550,9 @@ component {
 			return result;
 		};
 		var labelField         = _getPresideOBjectService().getLabelField( arguments.objectName );
+		if (args.orderBy is 'label') {
+			args.orderBy = labelField;
+		}
 		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 		if ( len( arguments.labelRenderer ) ) {
@@ -428,12 +568,16 @@ component {
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
 		} else if ( Len( Trim( arguments.searchQuery ) ) ) {
+			var searchFields = [ labelField ];
+			if ( len( arguments.labelRenderer ) ) {
+				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
+			}
 			args.filter       = _buildSearchFilter(
 				  q            = arguments.searchQuery
 				, objectName   = arguments.objectName
 				, gridFields   = args.selectFields
 				, labelfield   = labelfield
-				, searchFields = [ labelField ]
+				, searchFields = searchFields
 			);
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
@@ -508,7 +652,7 @@ component {
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.#idField# as id" );
-		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
+		if ( !labelFieldIsRelationship && ListLen( labelField, "." ) < 2 && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
 		}
@@ -540,10 +684,10 @@ component {
 			if ( ignore.findNoCase( field ) ) {
 				continue;
 			}
-			if ( not StructKeyExists( props, field ) ) {
+			if ( !StructKeyExists( props, field ) ) {
 				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
-				} else {
+				} else if ( field != labelField ) {
 					sqlFields[i] = "'' as " & field;
 				}
 				continue;
@@ -585,6 +729,9 @@ component {
 
 			if ( fieldRelationship == "many-to-one" ) {
 				var relatedLabelField = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+				var delim             = relatedLabelField.find( "$" ) ? "$" : ".";
+
+				relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
 
 				newOrderBy.append( relatedLabelField & " " & orderDirection );
 			} else {
@@ -653,34 +800,41 @@ component {
 	}
 
 	private string function _getFullFieldName( required string field, required string objectName ) {
-		var poService = "";
+		var poService = _getPresideObjectService();
 		var fieldName = arguments.field;
 		var objName   = arguments.objectName;
+		var fullName  = "";
 
 		if ( fieldName contains "${labelfield}" ) {
-			fieldName = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" );
+			fieldName = poService.getObjectAttribute( arguments.objectName, "labelfield", "label" );
 			if ( ListLen( fieldName, "." ) == 2 ) {
 				objName = ListFirst( fieldName, "." );
 				fieldName = ListLast( fieldName, "." );
 			}
 
-			return objName & "." & fieldName;
-		}
+			fullName = objName & "." & fieldName;
+		} else {
+			var prop = poService.getObjectProperty( objectName=objName, propertyName=fieldName );
+			var relatedTo = prop.relatedTo ?: "none";
 
-		var prop = _getPresideObjectService().getObjectProperty( objectName=objName, propertyName=fieldName );
-		var relatedTo = prop.relatedTo ?: "none";
+			if(  Len( Trim( relatedTo ) ) && relatedTo != "none" ) {
+				var objectLabelField = poService.getObjectAttribute( relatedTo, "labelfield", "label" );
 
-		if(  Len( Trim( relatedTo ) ) and relatedTo neq "none" ) {
-			var objectLabelField = _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
-
-			if( Find( ".", objectLabelField ) ){
-				return arguments.field & "$" & objectLabelField;
-			} else{
-				return arguments.field & "." & objectLabelField;
+				if( Find( ".", objectLabelField ) ){
+					fullName = arguments.field & "$" & objectLabelField;
+				} else{
+					fullName = arguments.field & "." & objectLabelField;
+				}
+			} else {
+				fullName = objName & "." & fieldName;
 			}
 		}
 
-		return objName & "." & fieldName;
+		return poService.expandFormulaFields(
+			  objectName   = objName
+			, expression   = fullName
+			, includeAlias = false
+		);
 	}
 
 	private string function _propertyIsSearchable( required string field, required string objectName ) {
@@ -694,7 +848,7 @@ component {
 
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
-		return ( prop.type ?: "" ) == "string" && !( prop.formula ?: "" ).len();
+		return ( prop.type ?: "" ) == "string";
 	}
 
 // GETTERS AND SETTERS
@@ -745,6 +899,13 @@ component {
 	}
 	private void function _setRelationshipGuidance( required any RelationshipGuidance ) {
 		_RelationshipGuidance = arguments.RelationshipGuidance;
+	}
+
+	private any function _getCustomizationService() {
+		return _customizationService;
+	}
+	private void function _setCustomizationService( required any customizationService ) {
+		_customizationService = arguments.customizationService;
 	}
 
 }

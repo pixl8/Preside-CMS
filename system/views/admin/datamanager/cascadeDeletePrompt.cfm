@@ -3,14 +3,11 @@
 	id                  = prc.id           ?: "";
 	blockers            = prc.blockers     ?: [];
 	postActionUrl       = Trim( rc.postActionUrl ?: "" );
+	cancelUrl           = Trim( rc.cancelUrl ?: "" );
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	objectTitlePural    = translateResource( uri="preside-objects.#objectName#:title", defaultValue=objectName );
-	deleteTitle         = translateResource( uri="cms:datamanager.cascadeDelete.title" );
 
-	prc.pageIcon  = "trash";
-	prc.pageTitle = deleteTitle;
-
-	cancelLink = postActionUrl.len() ? postActionUrl : event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" );
+	cancelLink = cancelUrl.len() ? cancelUrl : event.buildAdminLink( objectName=objectName, recordId=id, operation="viewRecord" );
 </cfscript>
 
 <cfoutput>
@@ -26,7 +23,7 @@
 				<ul class="list-unstyled">
 					<cfloop array="#blockers#" index="blocker">
 						<li>
-							<i class="fa fa-puzzle-piece"></i>
+							<i class="fa fa-database"></i>
 
 							#translateResource( "preside-objects.#blocker.objectName#:title" )#, #translateResource( uri="cms:datamanager.x.related.records", data=[blocker.recordcount] )#
 						</li>
@@ -49,9 +46,7 @@
 					</button>
 				</a>
 
-				<form class="inline" action="#event.buildAdminLink( linkTo='datamanager.deleteRecordAction' )#" method="post">
-					<input type="hidden" name="object" value="#objectName#" />
-					<input type="hidden" name="id" value="#id#" />
+				<form class="inline" action="#event.buildAdminLink( objectName=objectName, recordId=id, operation='deleteRecordAction' )#" method="post">
 					<input type="hidden" name="forceDelete" value="1" />
 					<cfif postActionUrl.len()>
 						<input type="hidden" name="postActionUrl" value="#HtmlEditFormat( postActionUrl )#" />

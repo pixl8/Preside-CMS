@@ -10,7 +10,7 @@ component {
 	 * @loginService.inject             loginService
 	 * @pageTypesService.inject         pageTypesService
 	 * @siteService.inject              siteService
-	 * @i18nService.inject              coldbox:plugin:i18n
+	 * @i18nService.inject              i18n
 	 * @coldboxController.inject        coldbox
 	 * @presideObjectService.inject     presideObjectService
 	 * @versioningService.inject        versioningService
@@ -123,6 +123,7 @@ component {
 		, numeric version      = 0
 		, boolean getLatest    = false
 		, boolean allowDrafts  = $getRequestContext().showNonLiveContent()
+		, string  site         = ""
 
 	) {
 		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
@@ -144,6 +145,10 @@ component {
 				  type    = "SiteTreeService.GetPage.MissingArgument"
 				, message = "Neither [id], [system_key] nor [slug] was passed to the getPage() method. You must specify one of either argument"
 			);
+		}
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			args.tenantIds = { site=arguments.site };
 		}
 
 		if ( not arguments.includeTrash ) {
@@ -395,8 +400,9 @@ component {
 		,          array   selectFields    = []
 		,          boolean includeSiblings = false
 		,          boolean allowDrafts     = $getRequestContext().showNonLiveContent()
+		,          string  site            = ""
 	) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts );
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts, site=arguments.site );
 		var args = "";
 
 		if ( page.recordCount and page._hierarchy_lineage neq "/" ) {
@@ -425,6 +431,10 @@ component {
 				args.selectFields = arguments.selectFields;
 			}
 
+			if ( Len( Trim( arguments.site ) ) ) {
+				args.tenantIds = { site=arguments.site };
+			}
+
 			return _getPObj().selectData( argumentCollection = args );
 		}
 
@@ -437,6 +447,7 @@ component {
 		, boolean getLatest         = false
 		, boolean allowDrafts       = false
 		, numeric version           = 0
+		, string  site              = ""
 	) {
 		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
@@ -450,6 +461,10 @@ component {
 				, trashed          = false
 			  }
 		};
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			homepageArgs.tenantIds = { site=arguments.site };
+		}
 
 		if ( arguments.version ) {
 			homepageArgs.fromVersionTable = true;
@@ -477,14 +492,15 @@ component {
 	}
 
 	public array function getPagesForNavigationMenu(
-		  string  rootPage          = getSiteHomepage().id
-		, numeric depth             = 1
-		, boolean includeInactive   = false
-		, array   activeTree        = []
-		, boolean expandAllSiblings = true
-		, array   selectFields      = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
-		, boolean isSubMenu         = false
-		, boolean allowDrafts       = $getRequestContext().showNonLiveContent()
+		  string  rootPage              = getSiteHomepage().id
+		, numeric depth                 = 1
+		, boolean includeInactive       = false
+		, array   activeTree            = []
+		, boolean expandAllSiblings     = true
+		, array   selectFields          = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
+		, boolean isSubMenu             = false
+		, boolean allowDrafts           = $getRequestContext().showNonLiveContent()
+		, boolean delayConditionalItems = $isFeatureEnabled( "fullPageCaching" )
 	) {
 		var args = arguments;
 		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ];
@@ -518,7 +534,8 @@ component {
 			);
 
 			for( var child in children ){
-				var excluded = IsBoolean( child.exclude_from_navigation_when_restricted ) && child.exclude_from_navigation_when_restricted && !userHasPageAccess( child.id );
+				var hasRestrictions = IsBoolean( child.exclude_from_navigation_when_restricted ) && child.exclude_from_navigation_when_restricted;
+				var excluded        = hasRestrictions && !args.delayConditionalItems && !userHasPageAccess( child.id );
 
 				if ( excluded ) {
 					continue;
@@ -533,14 +550,15 @@ component {
 				}
 
 				var page = {
-					  id       = child.id
-					, title    = Len( Trim( child.navigation_title ?: "" ) ) ? child.navigation_title : child.title
-					, children = child.children ?: []
-					, active   = ( activeTree.find( child.id ) > 0 )
+					  id              = child.id
+					, title           = Len( Trim( child.navigation_title ?: "" ) ) ? child.navigation_title : child.title
+					, children        = child.children ?: []
+					, active          = ( activeTree.find( child.id ) > 0 )
+					, hasRestrictions = args.delayConditionalItems && hasRestrictions
 				};
 
 				for( var field in child ) {
-					if ( !requiredSelectFields.find( field ) ) {
+					if ( !page.keyExists( field ) ) {
 						page[ field ] = child[ field ];
 					}
 				}
@@ -1192,6 +1210,10 @@ component {
 			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
 		);
 
+		if ( !page.recordcount && _isAutoRedirectEnabled() ) {
+			_checkPageHistoryForSlug( arguments.slug );
+		}
+
 		return page.id ?: "";
 	}
 
@@ -1479,6 +1501,34 @@ component {
 		}
 
 		return page.id ?: "";
+	}
+
+	private void function _checkPageHistoryForSlug( required string slug ) {
+		var versionObjectName = _getPresideObjectService().getVersionObjectName( "page" );
+		var pageFromHistory   = _getPresideObjectService().selectData(
+			  objectName   = versionObjectName
+			, selectFields = [ "#versionObjectName#.id" ]
+			, filter       = "#versionObjectName#.slug = :slug and #versionObjectName#._hierarchy_slug = :_hierarchy_slug"
+			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
+			, orderBy      = "#versionObjectName#._version_number desc"
+			, maxRows      = 1
+		);
+
+		if ( pageFromHistory.recordcount ) {
+			var currentPage = _getPObj().selectData(
+				  filter       = { id=pageFromHistory.id, trashed=false }
+				, selectFields = [ "id" ]
+			);
+			if ( currentPage.recordCount ) {
+				var redirectUrl = $getRequestContext().buildLink( page=pageFromHistory.id );
+				location addtoken=false url=redirectUrl statusCode=301;
+			}
+		}
+	}
+
+	private boolean function _isAutoRedirectEnabled() {
+		var site = $getRequestContext().getSite();
+		return isBoolean( site.auto_redirect ) && site.auto_redirect;
 	}
 
 // GETTERS AND SETTERS

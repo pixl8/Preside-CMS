@@ -4,7 +4,7 @@
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
     "packageDirectory":"preside",
-    "homepage":"https://www.presidecms.com",
+    "homepage":"https://www.preside.org",
     "documentation":"https://docs.preside.org",
     "repository":{
         "type":"github",
@@ -12,13 +12,13 @@
     },
     "bugs":"https://presidecms.atlassian.net",
     "slug":"presidecms",
-    "shortDescription":"The PresideCMS platform by Pixl8 Interactive",
+    "shortDescription":"The Preside platform by Pixl8 Interactive",
     "description":"",
     "instructions":"https://docs.preside.org/quickstart.html",
-    "changelog":"https://www.presidecms.com/release-notes.html",
+    "changelog":"https://www.preside.org/release-notes.html",
     "keywords":"CMS,ColdBox,FOSS",
     "private":false,
-    "projectURL":"https://www.presidecms.com",
+    "projectURL":"https://www.preside.org",
     "license":[
         {
             "type":"LGPLv2",

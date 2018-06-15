@@ -35,6 +35,7 @@ component {
 		}
 
 		args.target = args.target ?: link.target;
+		args.nofollow = IsTrue( args.nofollow ?: link.nofollow ?: "" )
 
 		return renderView( view=( args.view ?: "/renderers/link/default" ), args=args );
 	}

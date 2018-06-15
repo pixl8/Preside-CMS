@@ -14,7 +14,7 @@
 </cfscript>
 
 <cfoutput>
-	<div class="tabbable">
+	<div class="tabbable tabs-left">
 		<ul class="nav nav-tabs">
 			<li<cfif activeTab eq "general"> class="active"</cfif>>
 				<cfset link = activeTab eq "general" ? "##" : event.buildAdminLink( linkTo="notifications.preferences" ) />

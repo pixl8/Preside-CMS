@@ -26,6 +26,10 @@ This form is used for the add/edit link screen in the richeditor.
 			<field sortorder="50" name="title"         control="textinput"   required="false" maxlength="200" label="cms:ckeditor.linkpicker.title.label"        placeholder="cms:ckeditor.linkpicker.title.placeholder" />
 		</fieldset>
 
+		<fieldset id="asset" sortorder="35">
+			<field sortorder="10" name="asset"  control="assetPicker" required="true" label="cms:ckeditor.linkpicker.asset.label" />
+		</fieldset>
+
 		<fieldset id="anchor" sortorder="40">
 			<field sortorder="10" name="anchor" control="select"    required="true"  label="cms:ckeditor.linkpicker.anchor.label" placeholder="cms:ckeditor.linkpicker.anchor.placeholder" values="" />
 			<field sortorder="20" name="title"  control="textinput" required="false" label="cms:ckeditor.linkpicker.title.label"  placeholder="cms:ckeditor.linkpicker.title.placeholder" maxlength="200" />
@@ -34,7 +38,8 @@ This form is used for the add/edit link screen in the richeditor.
 
 	<tab id="advanced" sortorder="20" title="cms:ckeditor.linkpicker.advanced.tab">
 		<fieldset id="advanced" sortorder="10">
-			<field sortorder="10" name="link_target" control="select"    required="false"                 label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" labels="cms:ckeditor.linkpicker.link_target._self,cms:ckeditor.linkpicker.link_target._blank,cms:ckeditor.linkpicker.link_target._parent,cms:ckeditor.linkpicker.link_target._top" />
+			<field sortorder="10" name="link_target" control="select"      required="false" label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" labels="cms:ckeditor.linkpicker.link_target._self,cms:ckeditor.linkpicker.link_target._blank,cms:ckeditor.linkpicker.link_target._parent,cms:ckeditor.linkpicker.link_target._top" />
+			<field sortorder="20" name="nofollow"    control="yesnoswitch" required="false" label="cms:ckeditor.linkpicker.nofollow.label" help="cms:ckeditor.linkpicker.nofollow.help" />
 		</fieldset>
 	</tab>
 </form>

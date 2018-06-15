@@ -1,4 +1,4 @@
-component output=false accessors=true {
+component accessors=true {
 	property name="id"          type="string";
 	property name="title"       type="string";
 	property name="description" type="string";

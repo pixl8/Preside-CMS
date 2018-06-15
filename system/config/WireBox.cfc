@@ -1,7 +1,6 @@
  component extends="coldbox.system.ioc.config.Binder" {
 
 	public void function configure() {
-		_registerAopListener();
 		_setupCustomDslProviders();
 		_mapCommonSystemServices();
 		_mapSpecificSystemServices();
@@ -14,6 +13,7 @@
 	private void function _setupCustomDslProviders() {
 		mapDSL( "presidecms", "preside.system.coldboxModifications.PresideWireboxDsl" );
 		mapDSL( "delayedInjector", "preside.system.coldboxModifications.DelayedInjectorDsl" );
+		mapDSL( "coldbox", "preside.system.coldboxModifications.LegacyDslBuilder" );
 	}
 
 	private void function _mapCommonSystemServices() {
@@ -23,10 +23,10 @@
 	}
 
 	private void function _mapSiteServices() {
-		var appMapping     = getColdbox().getSetting( name="appMapping"    , defaultValue="/app" );
+		var appMapping     = getColdbox().getSetting( name="appMapping"    , defaultValue="app" ).reReplace( "^/", "" );
 		var appMappingPath = getColdbox().getSetting( name="appMappingPath", defaultValue="app"  );
 
-		if ( DirectoryExists( "#appMapping#/services" ) ) {
+		if ( DirectoryExists( "/#appMapping#/services" ) ) {
 			mapDirectory( packagePath="#appMappingPath#.services", influence=function( mapping, objectPath ) {
 				_injectPresideSuperClass( argumentCollection=arguments );
 			} );
@@ -67,6 +67,7 @@
 			.initArg( name="rootUrl"         , value="" );
 
 		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
+		map( "presideRenderer" ).asSingleton().to( "preside.system.coldboxModifications.services.Renderer" );
 	}
 
 	private void function _loadExtensionConfigurations() {
@@ -79,12 +80,6 @@
 				CreateObject( "#appMappingPath#.extensions.#ListLast( extensions[i].directory, '\/' )#.config.Wirebox" ).configure( binder=this );
 			}
 		}
-	}
-
-	private void function _registerAopListener() {
-		wirebox.listeners = [
-			{ class="coldbox.system.aop.Mixer", properties={ generationPath="/aoptmp" } }
-		];
 	}
 
 	private void function _injectPresideSuperClass( required any mapping, required string objectPath ) {

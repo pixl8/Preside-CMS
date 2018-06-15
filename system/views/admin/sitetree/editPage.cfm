@@ -9,8 +9,9 @@
 	prc.pageIcon     = "pencil";
 	prc.pageTitle    = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.page.title ] );
 
-	pageId  = rc.id      ?: "";
-	version = rc.version ?: "";
+	pageId     = rc.id      ?: "";
+	version    = rc.version ?: "";
+	childCount = prc.childCount ?: 0;
 
 	safeTitle = HtmlEditFormat( page.title );
 
@@ -38,7 +39,7 @@
 		, id               = pageId
 		, version          = version
 		, isDraft          = IsTrue( page._version_is_draft ?: "" )
-		, baseUrl          = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version=" )
+		, baseUrl          = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version={version}" )
 		, allVersionsUrl   = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
 		, discardDraftsUrl = ( canSaveDraft ? event.buildAdminlink( linkTo="sitetree.discardDraftsAction", queryString="id=#pageId#" ) : "" )
 	} )#
@@ -85,7 +86,7 @@
 
 				<cfif canDeletePage>
 					<li>
-						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#" data-has-children="#childCount#">
 							<i class="fa fa-fw fa-trash-o"></i>&nbsp;
 							#translateResource( "cms:sitetree.trash.page.dropdown" )#
 						</a>
@@ -170,7 +171,13 @@
 		)#
 
 
-
+		#renderFormControl(
+			  type    = "yesNoSwitch"
+			, context = "admin"
+			, name    = "_backToEdit"
+			, id      = "_backToEdit"
+			, label   = translateResource( uri="cms:sitetree.editPage.backToEdit" )
+		)#
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
 				<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">

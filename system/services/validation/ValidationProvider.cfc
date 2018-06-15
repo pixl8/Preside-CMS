@@ -1,4 +1,4 @@
-component output="false" {
+component {
 
 	public any function init( required any sourceCfc ) output=false {
 		_setSourceCfc( arguments.sourceCfc );

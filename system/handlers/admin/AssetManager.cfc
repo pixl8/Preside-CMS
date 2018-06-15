@@ -9,8 +9,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="errorLogService"                  inject="errorLogService";
 	property name="storageProviderService"           inject="storageProviderService";
 	property name="storageLocationService"           inject="storageLocationService";
-	property name="messageBox"                       inject="coldbox:plugin:messageBox";
-	property name="datatableHelper"                  inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="messageBox"                       inject="messagebox@cbmessagebox";
+	property name="datatableHelper"                  inject="jQueryDatatablesHelpers";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 
 	function preHandler( event, rc, prc ) {
@@ -542,8 +542,9 @@ component extends="preside.system.base.AdminHandler" {
 		event.include( "/js/admin/specific/owlcarousel/"  )
 		     .include( "/css/admin/specific/owlcarousel/" );
 
-		prc.versions = assetManagerService.getAssetVersions( rc.asset );
-		prc.assetType = assetManagerService.getAssetType( name=prc.asset.asset_type );
+		prc.versions     = assetManagerService.getAssetVersions( rc.asset );
+		prc.assetType    = assetManagerService.getAssetType( name=prc.asset.asset_type );
+		prc.isImageAsset = listFirst( prc.assetType.mimetype, "/" ) == "image";
 
 		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( "asset" );
 		prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="assetmanager.assets.translate" , context="assetmanagerfolder", contextKeys= prc.permissionContext );
@@ -557,7 +558,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var assetId          = rc.asset  ?: "";
 		var folderId         = rc.folder ?: "";
-		var formName         = "preside-objects.asset.admin.edit";
+		var formName         = rc.keyExists( "focal_point" ) ? formsService.getMergedFormName( "preside-objects.asset.admin.edit", "preside-objects.asset.cropping" ) : "preside-objects.asset.admin.edit";
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = "";
 		var success          = true;
@@ -1268,5 +1269,9 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !permitted ) {
 			event.adminAccessDenied();
 		}
+	}
+
+	private void function _editAssetLocationInBackgroundThread( event, rc, prc, args={} ){
+		assetManagerService.ensureAssetsAreInCorrectLocation( folderId=args.id ?: "" );
 	}
 }

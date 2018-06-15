@@ -81,12 +81,13 @@ component {
 	) {
 		var poService         = $getPresideObjectService();
 		var existingRecords   = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=true );
+		var prevVersionsExist = existingRecords.recordCount > 0;
 		var newData           = Duplicate( arguments.data );
 		var idField           = poService.getidField( arguments.objectName );
 		var dateCreatedField  = poService.getdateCreatedField( arguments.objectName );
 		var dateModifiedField = poService.getdateModifiedField( arguments.objectName );
 
-		if ( !existingRecords.recordCount ) {
+		if ( !prevVersionsExist ) {
 			existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=false );
 		}
 
@@ -97,9 +98,20 @@ component {
 			var versionedManyToManyFields = _getVersionedManyToManyFieldsForObject( arguments.objectName );
 			var oldManyToManyData = versionedManyToManyFields.len() ? poService.getDeNormalizedManyToManyData(
 				  objectName   = arguments.objectName
-				, id           = oldData.id
+				, id           = oldData[ idField ]
 				, selectFields = versionedManyToManyFields
 			) : {};
+
+			if ( !prevVersionsExist ) {
+				saveVersionForInsert(
+					  objectName     = arguments.objectName
+					, data           = oldData
+					, manyToManyData = oldManyToManyData
+					, versionNumber  = arguments.versionNumber
+				);
+
+				arguments.versionNumber = getNextVersionNumber();
+			}
 
 			var newDataForChangedFieldsCheck = Duplicate( arguments.data );
 
@@ -113,7 +125,16 @@ component {
 			);
 			var dataChanged = changedFields.len();
 
+
 			if ( !arguments.forceVersionCreation && !dataChanged ) {
+				if ( prevVersionsExist ) {
+					updateLatestVersionWithNonVersionedChanges(
+						  objectName = arguments.objectName
+						, recordId   = oldData.id
+						, data       = StructCopy( arguments.data )
+					);
+				}
+
 				continue;
 			}
 
@@ -225,6 +246,32 @@ component {
 		}
 
 		return arguments.versionNumber;
+	}
+
+	public numeric function updateLatestVersionWithNonVersionedChanges(
+		  required string objectName
+		, required string recordId
+		, required struct data
+	) {
+		var poService         = $getPresideObjectService();
+		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
+		var idField           = poService.getIdField( arguments.objectName );
+		var filter            = "#idField# = :#idField# and ( _version_is_latest = :_version_is_latest or _version_is_latest_draft = :_version_is_latest_draft )"
+		var filterParams      = {
+			  "#idField#"              = arguments.recordId
+			, _version_is_latest       = true
+			, _version_is_latest_draft = true
+		};
+
+		poService.updateData(
+			  objectName              = versionObjectName
+			, data                    = arguments.data
+			, filter                  = filter
+			, filterParams            = filterParams
+			, useVersioning           = false
+			, skipTrivialInterceptors = true
+			, setDateModified         = false
+		);
 	}
 
 	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
@@ -441,8 +488,8 @@ component {
 	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string versionedObjectName, required string originalObjectName ) {
 		var idField = objMeta.idField ?: "id";
 		if ( StructKeyExists( objMeta.properties, idField ) ) {
-			if ( ( objMeta.properties[ idField ].generator ?: "" ) == "increment" ) {
-				throw( type="VersioningService.pkLimitiation", message="We currently cannot version objects with a an auto incrementing id.", detail="Please either use the default UUID generator for the id or turn versioning off on the object with versioned=false" );
+			if ( ( objMeta.properties[ idField ].generator ?: "" ) == "increment" && ( objMeta.versionOnInsert ?: true ) ) {
+				throw( type="VersioningService.pkLimitiation", message="We currently cannot version objects with an auto incrementing id UNLESS you set @versionOnInsert to false on the object CFC definition.", detail="Please either use the default UUID generator for the id, set versionOnInsert=false or turn versioning off on the object with versioned=false" );
 			}
 			objMeta.properties[ idField ].pk = false;
 			objMeta.properties[ idField ].generator = "none";
@@ -576,31 +623,33 @@ component {
 	private void function _addAdditionalVersioningPropertiesToSourceObject( required struct objMeta, required string objectName ) {
 		objMeta.properties[ "_version_is_draft" ] = objMeta.properties[ "_version_is_draft" ] ?: {};
 		objMeta.properties[ "_version_is_draft" ].append( {
-			  name         = "_version_is_draft"
-			, required     = false
-			, type         = "boolean"
-			, dbtype       = "boolean"
-			, indexes      = ""
-			, control      = "none"
-			, maxLength    = 0
-			, relationship = "none"
-			, relatedto    = "none"
-			, generator    = "none"
-			, default      = false
+			  name          = "_version_is_draft"
+			, required      = false
+			, type          = "boolean"
+			, dbtype        = "boolean"
+			, indexes       = ""
+			, control       = "none"
+			, maxLength     = 0
+			, relationship  = "none"
+			, relatedto     = "none"
+			, generator     = "none"
+			, default       = false
+			, adminRenderer = "none"
 		} );
 		objMeta.properties[ "_version_has_drafts" ] = objMeta.properties[ "_version_has_drafts" ] ?: {};
 		objMeta.properties[ "_version_has_drafts" ].append( {
-			  name         = "_version_has_drafts"
-			, required     = false
-			, type         = "boolean"
-			, dbtype       = "boolean"
-			, indexes      = ""
-			, control      = "none"
-			, maxLength    = 0
-			, relationship = "none"
-			, relatedto    = "none"
-			, generator    = "none"
-			, default      = false
+			  name          = "_version_has_drafts"
+			, required      = false
+			, type          = "boolean"
+			, dbtype        = "boolean"
+			, indexes       = ""
+			, control       = "none"
+			, maxLength     = 0
+			, relationship  = "none"
+			, relatedto     = "none"
+			, generator     = "none"
+			, default       = false
+			, adminRenderer = "none"
 		} );
 
 		for( var fieldName in [ "_version_is_draft", "_version_has_drafts" ] ) {
@@ -787,5 +836,4 @@ component {
 
 		return strct;
 	}
-
 }

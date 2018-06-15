@@ -1,4 +1,4 @@
-component extends="coldbox.system.interceptors.SES" output=false {
+component extends="coldbox.system.interceptors.SES" {
 
 	property name="featureService"                   inject="delayedInjector:featureService";
 	property name="systemConfigurationService"       inject="delayedInjector:systemConfigurationService";
@@ -58,7 +58,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		StructDelete( variables, "pathInfoProvider" );
 		StructDelete( this     , "pathInfoProvider" );
 
-		$include( arguments.location );
+		include arguments.location;
 
 		return this;
 	}

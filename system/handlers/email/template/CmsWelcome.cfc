@@ -28,7 +28,7 @@ component {
 	}
 
 	private string function defaultSubject() {
-		return "Welcome to PresideCMS";
+		return "Welcome to Preside";
 	}
 
 	private string function defaultHtmlBody() {

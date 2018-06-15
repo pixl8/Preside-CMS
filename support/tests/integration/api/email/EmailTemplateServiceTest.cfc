@@ -534,6 +534,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailSendingContextService = mockEmailSendingContextService
 					, assetManagerService        = mockAssetManagerService
 					, emailStyleInliner          = mockEmailStyleInliner
+					, emailSettings              = mockEmailSettings
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -658,19 +659,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockArgs            = { userId=CreateUUId(), bookingId=CreateUUId() };
 				var sysEmailParams      = { eventName="My event", bookingSummary=CreateUUId() };
 				var recipientTypeParams = { known_as="Harry" };
+				var templateDetail      = { test="template", whatever=CreateUUId() };
 				var finalParams         = Duplicate( sysEmailParams );
 
 				finalParams.append( recipientTypeParams );
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
-				mockSystemEmailTemplateService.$( "prepareParameters" ).$args( template=template, args=mockArgs ).$results( sysEmailParams );
-				mockEmailRecipientTypeService.$( "prepareParameters" ).$args( recipientType=recipientType, recipientId=recipientId, args=mockArgs ).$results( recipientTypeParams );
+				mockSystemEmailTemplateService.$( "prepareParameters" ).$args( template=template, templateDetail=templateDetail, args=mockArgs ).$results( sysEmailParams );
+				mockEmailRecipientTypeService.$( "prepareParameters" ).$args( recipientType=recipientType, recipientId=recipientId, template=template, templateDetail=templateDetail, args=mockArgs ).$results( recipientTypeParams );
 
 				expect( service.prepareParameters(
-					  template      = template
-					, recipientType = recipientType
-					, recipientId   = recipientId
-					, args          = mockArgs
+					  template       = template
+					, recipientType  = recipientType
+					, recipientId    = recipientId
+					, args           = mockArgs
+					, templateDetail = templateDetail
 				) ).toBe( finalParams );
 			} );
 		} );
@@ -889,7 +892,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.prepareMessage( template=template, recipientId=mockRecipientId, args={} );
 
 				expect( mockEmailSendingContextService.$callLog().setContext.len() ).toBe( 1 );
-				expect( mockEmailSendingContextService.$callLog().setContext[ 1 ] ).toBe( { recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId } );
+				expect( mockEmailSendingContextService.$callLog().setContext[ 1 ] ).toBe( { recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId, templateId=template, template=mockTemplate } );
 				expect( mockEmailSendingContextService.$callLog().clearContext.len() ).toBe( 1 );
 			} );
 
@@ -1430,6 +1433,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockBlueprintDao         = createStub();
 		mockViewOnlineContentDao = createStub();
 		mockRequestContext       = createStub();
+		mockEmailSettings        = { defaultContentExpiry=30 };
 
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
 		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
@@ -1459,6 +1463,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailSendingContextService = mockEmailSendingContextService
 				, assetManagerService        = mockAssetManagerService
 				, emailStyleInliner          = mockEmailStyleInliner
+				, emailSettings              = mockEmailSettings
 			);
 		}
 
