@@ -21,8 +21,8 @@
 		<move file="../../box.json" tofile="../../box.json.orig" />
 		<move file="../../box.json.no.deps" tofile="../../box.json" />
 
-		<replace file="../../box.json.orig" token="VERSION_NUMBER" value="${versionnumber}" />
-		<replace file="../../box.json"      token="VERSION_NUMBER" value="${versionnumber}" />
+		<replace file="../../box.json.orig" token="VERSION_NUMBER" value="${versionnumber}.${build.number}" />
+		<replace file="../../box.json"      token="VERSION_NUMBER" value="${versionnumber}.${build.number}" />
 
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.zip">
 			<zipfileset dir="../../" prefix="presidecms-${versionnumber}.${build.number}">
