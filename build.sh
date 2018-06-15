@@ -69,7 +69,7 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 
 	ant -f support/build/build.xml -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG -Dversionnumber=$VERSION_NUMBER
 
-	./publish.sh
+	./publish.sh || exit 1;
 else
 	echo "Skipping packaging, not on stable or release branch in a travis build. To package preside yourself, run ant -f ./support/build/build.xml"
 fi
