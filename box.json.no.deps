@@ -2,7 +2,7 @@
     "slug":"presidecms",
     "name":"PresideCMS",
     "version":"VERSION_NUMBER",
-    "location":"http://downloads.preside.org/DOWNLOADLOCATION",
+    "location":"https://downloads.preside.org/DOWNLOADLOCATION",
     "type":"cms",
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
