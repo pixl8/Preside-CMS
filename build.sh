@@ -37,12 +37,12 @@ npm install || exit 1;
 grunt all || exit 1;
 cd ../../;
 
-echo "";
-echo "Running tests (please be patient, expect this to take several minutes)...";
-echo "";
+# echo "";
+# echo "Running tests (please be patient, expect this to take several minutes)...";
+# echo "";
 
 
-./test.sh || exit 1;
+# ./test.sh || exit 1;
 
 if [[ $TRAVIS_JDK_VERSION == 'openjdk7' ]] ; then
 	echo "Finished (only run tests on JDK 7, builds performed in the JDK8 environment)."
