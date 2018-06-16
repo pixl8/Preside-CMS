@@ -42,7 +42,6 @@
 
 		<move file="../../box.json" tofile="../../box.json.no.deps" />
 		<move file="../../box.json.orig" tofile="../../box.json" />
-		<copy file="../../version.json" tofile="${artifacts.dir}/${release.name}/PresideCMS-${versionnumber}.json" />
 
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
