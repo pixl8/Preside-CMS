@@ -1,7 +1,8 @@
 {
+    "slug":"presidecms",
     "name":"PresideCMS",
     "version":"VERSION_NUMBER",
-    "location":"http://downloads.preside.org/DOWNLOADLOCATION",
+    "location":"https://downloads.preside.org/DOWNLOADLOCATION",
     "type":"cms",
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
@@ -13,7 +14,6 @@
         "URL":"https://github.com/pixl8/Preside-CMS"
     },
     "bugs":"https://presidecms.atlassian.net",
-    "slug":"presidecms",
     "shortDescription":"The Preside platform by Pixl8 Interactive",
     "description":"",
     "instructions":"https://docs.preside.org/quickstart.html",

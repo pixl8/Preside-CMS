@@ -4,7 +4,7 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	mv box.json box.json.orig
 	mv box.json.no.deps box.json
 	if [[ $TRAVIS_BRANCH == release* ]] ; then
-		sed -i 's/"name":"PresideCMS"/"name":"preside-be"/' box.json
+		sed -i 's/"slug":"presidecms"/"slug":"preside-be"/' box.json
 	fi
 	box forgebox login username="$FORGEBOXUSER" password="$FORGEBOXPASS" || exit 1;
 	box publish || exit 1
