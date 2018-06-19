@@ -38,3 +38,4 @@ deploy:
   on:
     repo: pixl8/Preside-CMS
     all_branches: true
+    condition: $TRAVIS_BRANCH == release* || $TRAVIS_TAG == v*
