@@ -11,18 +11,16 @@ before_install:
   - mkdir /tmp/bin
   - export PATH=$PATH:/tmp/bin
 install:
-  - curl --location 'https://www.ortussolutions.com/parent/download/commandbox/type/bin' -o /tmp/box.zip
+  - curl --location 'https://www.ortussolutions.com/parent/download/commandbox/type/bin' -o /tmp/box.`
   - unzip /tmp/box.zip -d /tmp/bin
-  - sed -i "s/java_args='-client'/java_args='-Xmx512m -client'/" /tmp/bin/box
+  - ./support/build/install.sh
 before_script:
   - mysql -u root -e 'create database preside_test;'
   - npm install grunt-cli -g
 script:
-  - "./build.sh"
-cache:
-  directories:
-    - system/assets/node_modules
-    - $HOME/.CommandBox
+  - ./support/tests/test.sh
+  - ./support/build/package.sh
+  - ./support/build/publish.sh
 
 notifications:
   email: false
