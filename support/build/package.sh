@@ -70,8 +70,6 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	echo "";
 
 	zip -rq $ZIP_FILE * -x jmimemagic.log || exit 1
-
-	rm -rf $PACKAGE_DIR
 else
 	echo "Skipping packaging, not on stable or release branch in a travis build."
 	exit 0

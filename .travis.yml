@@ -18,9 +18,7 @@ before_script:
   - mysql -u root -e 'create database preside_test;'
   - npm install grunt-cli -g
 script:
-  - ./support/tests/test.sh
-  - ./support/build/package.sh
-  - ./support/build/publish.sh
+  - ./support/tests/test.sh && ./support/build/package.sh && ./support/build/publish.sh
 
 notifications:
   email: false
