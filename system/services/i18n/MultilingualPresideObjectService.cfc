@@ -99,8 +99,14 @@ component displayName="Multilingual Preside Object Service" {
 		for( var propertyName in translationProperties ) {
 			if ( !validProperties.findNoCase( propertyName ) ) {
 				StructDelete( translationProperties, propertyName );
-				ArrayDeleteNoCase( dbFieldList, propertyName );
-				ArrayDeleteNoCase( propertyNames, propertyName );
+
+				if ( dbFieldList.findNoCase( propertyName ) ) {
+					ArrayDeleteAt( dbFieldList, dbFieldList.findNoCase( propertyName )  );
+				}
+				if ( propertyNames.findNoCase( propertyName ) ) {
+					ArrayDeleteAt( propertyNames, propertyNames.findNoCase( propertyName )  );
+				}
+
 				continue;
 			}
 
