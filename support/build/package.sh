@@ -61,6 +61,11 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	rm box.json
 	cp ../box.json box.json
 
+	if [[ $TRAVIS_BRANCH == release* ]] ; then
+		sed -i 's/"slug":"presidecms"/"slug":"preside-be"/' box.json
+		sed -i 's/"name":"Preside"/"name":"Preside Bleeding Edge Build"/' box.json
+	fi
+
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," box.json
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," version.json
 	sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/Preside-$VERSION_NUMBER.zip," box.json
