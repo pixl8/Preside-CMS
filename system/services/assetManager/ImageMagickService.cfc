@@ -183,7 +183,7 @@ component displayname="ImageMagick"  {
 				);
 			}
 			args &= " -gravity #gravity##extent##offset#";
-		} else {
+		} else if ( arguments.width && arguments.height ) {
 			args &= "!";
 		}
 		args = args.replace( "{preCrop}", preCrop );
