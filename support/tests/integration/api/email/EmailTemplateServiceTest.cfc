@@ -1439,6 +1439,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
 		service.$( "$getPresideObject" ).$args( "email_blueprint" ).$results( mockBlueprintDao );
 		service.$( "$getPresideObject" ).$args( "email_template_view_online_content" ).$results( mockViewOnlineContentDao );
+		service.$( "$isFeatureEnabled" ).$args( "emailStyleInliner" ).$results( true );
 		service.$( "$audit" );
 		service.$( "$getRequestContext", mockRequestContext );
 
