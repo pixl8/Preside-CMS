@@ -618,7 +618,7 @@ component {
 		var controller = _getColdboxController();
 
 		if ( !IsNull( controller ) ) {
-			controller.getInterceptorService().processState( argumentCollection=arguments );
+			controller.getInterceptorService().processState( argumentCollection=arguments, bufferOutput=false );
 		}
 	}
 
