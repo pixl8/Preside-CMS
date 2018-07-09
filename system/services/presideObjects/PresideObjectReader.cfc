@@ -56,7 +56,7 @@ component {
 	}
 
 	public struct function readObject( required any object ) {
-		_announceInterception( "preReadPresideObject", { object=object } );
+		_announceInterception( state="preReadPresideObject", interceptData={ object=object } );
 
 		var meta          = _mergeExtendedObjectMeta( getMetaData( arguments.object ) );
 		var componentName = ListLast( meta.name, "." );
@@ -73,7 +73,7 @@ component {
 		var meta = arguments.object.meta = arguments.object.meta ?: {};
 		var componentName = ListLast( meta.name, "." );
 
-		_announceInterception( "postReadPresideObject", { objectMeta=meta } );
+		_announceInterception( state="postReadPresideObject", interceptData={ objectMeta=meta } );
 
 		meta.tablePrefix   = meta.tablePrefix   ?: _getTablePrefix();
 		meta.tableName     = meta.tableName     ?: componentName;
@@ -515,7 +515,7 @@ component {
 		}
 	}
 
-	private any function _announceInterception() {
+	private any function _announceInterception( required string state, struct interceptData={}, boolean bufferOutput=false ) {
 		return _getInterceptorService().processState( argumentCollection=arguments );
 	}
 

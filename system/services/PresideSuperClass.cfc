@@ -774,7 +774,11 @@ component displayName="Preside Super Class" {
 	 *
 	 * @autodoc
 	 */
-	public any function $announceInterception() {
+	public any function $announceInterception(
+		  required string  state
+		,          struct  interceptData = {}
+		,          boolean bufferOutput = false
+	) {
 		return $getColdbox().getInterceptorService().processState( argumentCollection=arguments )
 	}
 

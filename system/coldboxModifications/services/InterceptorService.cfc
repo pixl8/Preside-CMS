@@ -28,8 +28,18 @@ component extends="coldbox.system.web.services.InterceptorService" output=false 
 		return super.registerInterceptor( argumentCollection=arguments );
 	}
 
+	public any function processState(
+		  required any     state
+		,          any     interceptData    = structNew()
+		,          boolean async            = false
+		,          boolean asyncAll         = false
+		,          boolean bufferOutput     = true
+		,          boolean asyncAllJoin     = true
+		,          string  asyncPriority    = 'NORMAL'
+		,          numeric asyncJoinTimeout = 0
+	) {
+		var loc = {};
 
-	public any function processState( required string state ) {
 		if ( _registeringInterceptors && !_ignoreStatesDuringLoadCheck.findNoCase( arguments.state ) ) {
 			throw(
 				  type    = "coldbox.interceptor.panic"
@@ -37,6 +47,66 @@ component extends="coldbox.system.web.services.InterceptorService" output=false 
 			);
 		}
 
-		return super.processState( argumentCollection=arguments );
+		if( !StructKeyExists( instance.interceptionStates, arguments.state ) ){
+			return;
+		}
+
+		if ( arguments.bufferOutput ) {
+			var requestBuffer = new coldbox.system.core.util.RequestBuffer();
+			arguments.buffer = requestBuffer;
+		} else {
+			arguments.buffer = "";
+		}
+
+		arguments.event = controller.getRequestService().getContext();
+		loc.results     = instance.interceptionStates[ arguments.state ].process( argumentCollection=arguments );
+
+		if( arguments.bufferOutput && requestBuffer.isBufferInScope() ) {
+			WriteOutput( requestBuffer.getString() );
+			requestBuffer.clear();
+		}
+
+		if( StructKeyExists( loc, "results" ) ) {
+			return loc.results;
+		}
+	}
+
+
+	public any function registerInterceptionPoint(
+		  required any interceptorKey
+		, required any state
+		, required any oInterceptor
+		,          any interceptorMD
+	) {
+		// Init md if not passed
+		if( !structKeyExists( arguments, "interceptorMD") ){
+			arguments.interceptorMD = newPointRecord();
+		}
+
+		// Verify if state doesn't exist, create it
+		if ( !StructKeyExists( instance.interceptionStates, arguments.state ) ){
+			oInterceptorState = new preside.system.coldboxModifications.InterceptorState(
+				state 		= arguments.state,
+				logbox 		= controller.getLogBox(),
+				controller 	= controller
+			);
+
+			instance.interceptionStates[ arguments.state ] = oInterceptorState;
+		} else {
+			// Get the State we need to register in
+			oInterceptorState = structFind( instance.interceptionStates, arguments.state );
+		}
+
+		// Verify if the interceptor is already in the state
+		if( !oInterceptorState.exists( arguments.interceptorKey ) ){
+			//Register it
+			oInterceptorState.register(
+				interceptorKey 	= arguments.interceptorKey,
+				interceptor 	= arguments.oInterceptor,
+				interceptorMD 	= arguments.interceptorMD
+			);
+		}
+
+		return this;
 	}
 }
