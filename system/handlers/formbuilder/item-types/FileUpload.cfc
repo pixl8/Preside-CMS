@@ -21,7 +21,7 @@ component {
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
 		var fileName = Listlast( args.response ?: "", '/\' );
 
-		if ( Len( Trim( fileName ) ) ) {
+		if ( Len( Trim( fileName ) ) && fileName != "{}" ) {
 			return [ event.buildLink(
 				  fileStorageProvider = 'formBuilderStorageProvider'
 				, fileStoragePath     = args.response
