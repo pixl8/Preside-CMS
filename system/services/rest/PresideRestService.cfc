@@ -363,7 +363,7 @@ component {
 		return _apiList;
 	}
 
-	private void function _announceInterception( required string state, struct interceptData={} ) {
+	private void function _announceInterception( required string state, struct interceptData={}, boolean bufferOutput=false ) {
 		try {
 			_getInterceptorService().processState( argumentCollection=arguments );
 		} catch( any e ) {
