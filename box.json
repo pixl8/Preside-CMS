@@ -33,7 +33,8 @@
         "cbi18n":"1.3.1+56",
         "cbmessagebox":"2.2.0+10",
         "cbstorages":"1.3.0+14",
-        "cbjavaloader":"1.5.0+35"
+        "cbjavaloader":"1.5.0+35",
+        "cfconcurrent":"1.0.0"
     },
     "devDependencies":{
         "testbox":"2.7.0"
@@ -47,7 +48,8 @@
         "cbi18n":"system/modules/cbi18n",
         "cbmessagebox":"system/modules/cbmessagebox",
         "cbstorages":"system/modules/cbstorages",
-        "cbjavaloader":"system/modules/cbjavaloader"
+        "cbjavaloader":"system/modules/cbjavaloader",
+        "cfconcurrent":"system/externals/cfconcurrent"
     },
     "ignore":[
         ".git/*",
