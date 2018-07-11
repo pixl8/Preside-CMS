@@ -83,6 +83,11 @@ component extends="coldbox.system.interceptors.SES" {
 		var domain         = super.getCGIElement( "server_name", event );
 		var explicitSiteId = event.getValue( name="_sid", defaultValue="" ).trim();
 		var site           = {};
+		var presideSystemAssetPath = pathInfo.startsWith( "/preside/system/assets" );
+
+		if ( presideSystemAssetPath ) {
+			return;
+		}
 
 		if ( explicitSiteId.len() ) {
 			site = siteService.getSite( explicitSiteId );
@@ -176,6 +181,11 @@ component extends="coldbox.system.interceptors.SES" {
 		var pathToRemove = ( site.path ?: "" ).reReplace( "/$", "" );
 		var fullPath     = super.getCGIElement( "path_info", event );
 		var presidePath  = "";
+		var adminBasePath = adminRouteHandler.getAdminBasePath();
+		if ( right( adminBasePath, 1 ) == "/" ) {
+			adminBasePath = left( adminBasePath, len( adminBasePath) -1 );
+		}
+		adminBasePath = "/" & adminBasePath;
 		var languageSlug = event.getLanguageSlug();
 		if ( Len( Trim( languageSlug ) ) ) {
 			pathToRemove = pathToRemove & "/" & languageSlug & "/";
@@ -187,8 +197,12 @@ component extends="coldbox.system.interceptors.SES" {
 			presidePath = fullPath;
 		}
 
-
+		if ( adminRouteHandler.match( adminBasePath & presidePath, fullPath ) ) {
+			event.setCurrentPresideUrlPath( adminBasePath & presidePath );
+		} else {
 		event.setCurrentPresideUrlPath( presidePath );
+	        }
+
 	}
 
 	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
@@ -228,7 +242,7 @@ component extends="coldbox.system.interceptors.SES" {
 		}
 
 		var path    = event.getCurrentUrl( includeQueryString=true );
-		var fullUrl = event.getSiteUrl() & path;
+		var fullUrl = event.getBaseUrl() & path;
 
 		urlRedirectsService.redirectOnMatch(
 			  path    = path

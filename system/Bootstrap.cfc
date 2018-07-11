@@ -12,6 +12,7 @@ component {
 		, string  scriptProtect                = "none"
 		, string  reloadPassword               = "true"
 		, boolean showDbSyncScripts            = false
+		  ,string appBasePath				= ""
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -25,6 +26,7 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
+		this.appBasePath                             = _getAppBasePath( appBasePath = arguments.appBasePath );
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -105,9 +107,10 @@ component {
 		  string appMapping     = "/app"
 		, string assetsMapping  = "/assets"
 		, string logsMapping    = "/logs"
-		, string appPath        = _getApplicationRoot() & "/application"
-		, string assetsPath     = _getApplicationRoot() & "/assets"
-		, string logsPath       = _getApplicationRoot() & "/logs"
+		  , string appBasePath
+		, string appPath        = _getApplicationRoot( appRoot = this.appBasePath & "/" ) & "/application"
+		, string assetsPath     = _getApplicationRoot( appRoot = this.appBasePath & "/" ) & "/assets"
+		, string logsPath       = _getApplicationRoot( appRoot = this.appBasePath & "/" ) & "/logs"
 	) {
 		var presideroot = _getPresideRoot();
 
@@ -127,8 +130,9 @@ component {
 
 		request._presideMappings = {
 			  appMapping     = arguments.appMapping
-			, assetsMapping  = arguments.assetsMapping
-			, logsMapping    = arguments.logsMapping
+			, appBasePath    = this.appBasePath
+			, assetsMapping  = arguments.appBasePath & arguments.assetsMapping
+			, logsMapping    = arguments.appBasePath & arguments.logsMapping
 		};
 
 		_setupCustomTagPath( presideroot );
@@ -216,10 +220,10 @@ component {
 
 			try {
 				admin action="getCompilerSettings" returnVariable="luceeCompilerSettings";
-				admin action               = "updateCompilerSettings"
-				      dotNotationUpperCase = false
-				      suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
-				      nullSupport          = luceeCompilerSettings.nullSupport
+				admin action               = "updateCompilerSettings";
+				      dotNotationUpperCase = false;
+				      suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg;
+				      nullSupport          = luceeCompilerSettings.nullSupport;
 				      templateCharset      = luceeCompilerSettings.templateCharset;
 			} catch( security e ) {
 				throw( type="security", message="Preside could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
@@ -559,6 +563,46 @@ component {
 		return ExpandPath( "/preside" );
 	}
 
+	private string function _getAppBasePath( string appBasePath ) {
+		var appBasePath = "";
+
+		if ( Len( arguments.appBasePath ) ) {
+			appBasePath = arguments.appBasePath;
+		} else {
+
+			try {
+
+				// cbController returns null - not sure how this should be initialised /
+				// It appears that ColdBox is not available at this stage.
+				// Needing assistance with this.
+			var cbController = _getColdboxController();
+				if ( isNull( cbController ) ) {
+					throw(message = "cbController isNull");
+				}
+			var site = cbController.getRequestContext().getSite();
+			appBasePath = ( site.path == "/" ) ? "" : site.path;
+
+			} catch ( any e ) {
+				appBasePath = "";
+			}
+
+		}
+
+		if ( ! Len(appBasePath) ) {
+			return appBasePath;
+		}
+
+		if ( right(appBasePath, 1) == "/" ) {
+			appBasePath = left(appBasePath, len(appBasePath) - 1);
+		}
+
+		if ( left(appBasePath, 1) != "/" ) {
+			appBasePath = "/" & appBasePath;
+		}
+
+		return appBasePath;
+	}
+
 	private boolean function _clearoutDuplicateCookies( required array cookieSet ) {
 		var existingCookies = {};
 		var anyCleared      = false;
@@ -578,8 +622,8 @@ component {
 		return anyCleared;
 	}
 
-	private string function _getApplicationRoot() {
-		return ExpandPath( "/" );
+	private string function _getApplicationRoot( required string appRoot ) {
+		return ExpandPath( arguments.appRoot );
 	}
 
 	private void function _friendlyError( required any exception, numeric statusCode=500 ) {

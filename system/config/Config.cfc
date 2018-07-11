@@ -5,6 +5,7 @@ component {
 		settings = {};
 
 		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
+		settings.appBasePath   = request._presideMappings.appBasePath;
 		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
 		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
 
@@ -150,6 +151,7 @@ component {
 		settings.widgets                     = {};
 		settings.templates                   = [];
 		settings.adminDefaultEvent           = "sitetree";
+		settings.preside_admin_base_path     = settings.appBasePath ?: "";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
 		settings.dsn                         = "preside";
@@ -208,7 +210,7 @@ component {
 			, "systemInformation"
 		];
 
-		settings.uploads_directory = ExpandPath( "/uploads" );
+		settings.uploads_directory = ExpandPath( settings.appBasePath & "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
 		};
@@ -300,7 +302,7 @@ component {
 		};
 
 		settings.static = {
-			  rootUrl        = ""
+			  rootUrl        = settings.appBasePath
 			, siteAssetsPath = "/assets"
 			, siteAssetsUrl  = "/assets"
 		};
