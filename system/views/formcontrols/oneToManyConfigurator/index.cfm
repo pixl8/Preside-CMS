@@ -8,6 +8,9 @@
 	defaultValue            = args.defaultValue     ?: "";
 	records                 = args.records          ?: QueryNew('');
 	extraClasses            = args.extraClasses     ?: "";
+	addButtonClass          = args.add              ? "configurator-add" : "";
+	editButtonClass         = args.edit             ? "configurator-edit" : "";
+	removableClass          = args.removable        ? "" : "non-removable";
 	multiple                = isBoolean( args.multiple ?: "" ) && args.multiple;
 	sortable                = isBoolean( args.sortable ?: "" ) && args.sortable;
 	disabled                = isBoolean( args.disabled ?: "" ) && args.disabled;
@@ -20,14 +23,15 @@
 	configuratorLabelUrl    = event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#" );
 	configuratorAddUrl      = event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
 	objectSingularName      = translateResource( "preside-objects.#object#:title.singular" );
-	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ lcase( objectSingularName ) ] );
+	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ objectSingularName ] );
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
 
-	extraClasses = ListAppend( extraClasses, "configurator-add non-searchable", ' ' );
+	extraClasses = ListAppend( extraClasses, "#addButtonClass# #editButtonClass# #removableClass# non-searchable", ' ' );
+
 </cfscript>
 
 <cfoutput>

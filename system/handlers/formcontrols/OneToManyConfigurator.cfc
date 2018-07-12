@@ -23,6 +23,9 @@ component {
 		args.formName      = args.formName      ?: presideObjectService.getObjectAttribute( targetObject, "configuratorFormName" );
 		args.fields        = args.fields        ?: "";
 		args.targetFields  = args.targetFields  ?: "";
+		args.add           = args.add           ?: true;
+		args.edit          = args.edit          ?: true;
+		args.removable     = args.removable     ?: true;
 
 		return renderView( view="formcontrols/oneToManyConfigurator/index", args=args );
 	}
