@@ -10,18 +10,21 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @taskScheduler.inject taskScheduler
-	 * @siteService.inject   siteService
-	 * @logger.inject        logbox:logger:taskmanager
+	 * @taskScheduler.inject          taskScheduler
+	 * @siteService.inject            siteService
+	 * @presideExecutorService.inject presideExecutorService
+	 * @logger.inject                 logbox:logger:taskmanager
 	 */
 	public any function init(
 		  required any     taskScheduler
 		, required any     siteService
 		, required any     logger
+		, required any     presideExecutorService
 		,          numeric maxTaskTimeout = ( 60 * 60 * 24 * 365 ) // one year!
 	) {
 		_setTaskScheduler( arguments.taskScheduler );
 		_setSiteService( arguments.siteService );
+		_setPresideExecutorService( arguments.presideExecutorService );
 		_setLogger( arguments.logger );
 		_setMaxTimeout( arguments.maxTaskTimeout );
 
@@ -145,14 +148,13 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public void function runTaskInThread( required string taskId ) {
-		if ( _inChildThread() ) {
-			runTask( arguments.taskId );
-		}
+		var task = new TaskRunner(
+			  adhocTaskManagerService = this
+			, taskId                  = arguments.taskId
+			, errorLogService         = $getErrorLogService()
+		);
 
-		thread action="run" name="runTask-#CreateUUId()#" taskId=arguments.taskId {
-			setting requesttimeout=_getMaxTimeout();
-			runTask( taskId=attributes.taskId );
-		}
+		_getPresideExecutorService().execute( task );
 	}
 
 	/**
@@ -508,6 +510,13 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 	private void function _setMaxTimeout( required numeric maxTimeout ) {
 		_maxTimeout = arguments.maxTimeout;
+	}
+
+	private any function _getPresideExecutorService() {
+		return _presideExecutorService;
+	}
+	private void function _setPresideExecutorService( required any presideExecutorService ) {
+		_presideExecutorService = arguments.presideExecutorService;
 	}
 
 }

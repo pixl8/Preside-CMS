@@ -7,10 +7,12 @@ component {
 	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
 	property name="expressionGenerator"       inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="presideExecutorService"    inject="presideExecutorService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
+		_startConcurrentThreadPools();
 		_performDbMigrations();
 		_configureVariousServices();
 		_populateDefaultLanguages();
@@ -198,5 +200,9 @@ component {
 		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
 			i18n.setFwLocale( request.DefaultLocaleFromCookie );
 		}
+	}
+
+	private void function _startConcurrentThreadPools() {
+		presideExecutorService.start();
 	}
 }

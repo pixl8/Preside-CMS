@@ -746,18 +746,20 @@ component extends="testbox.system.BaseSpec" {
 
 // private helpers
 	private any function _getService() {
-		mockTaskDao        = CreateStub();
-		mockColdbox        = CreateStub();
-		mockRequestContext = CreateStub();
-		mockTaskScheduler  = CreateStub();
-		mockSiteService    = CreateStub();
-		mockLogboxLogger   = CreateStub();
-		nowish             = DateAdd( 'd', 1, Now() );
+		mockTaskDao         = CreateStub();
+		mockColdbox         = CreateStub();
+		mockRequestContext  = CreateStub();
+		mockTaskScheduler   = CreateStub();
+		mockSiteService     = CreateStub();
+		mockLogboxLogger    = CreateStub();
+		mockExecutorService = CreateStub();
+		nowish              = DateAdd( 'd', 1, Now() );
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
-			  taskScheduler = mockTaskScheduler
-			, siteService   = mockSiteService
-			, logger        = mockLogBoxLogger
+			  taskScheduler          = mockTaskScheduler
+			, siteService            = mockSiteService
+			, logger                 = mockLogBoxLogger
+			, presideExecutorService = mockExecutorService
 		) );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
