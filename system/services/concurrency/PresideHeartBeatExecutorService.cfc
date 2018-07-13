@@ -19,7 +19,7 @@ component extends="cfconcurrent.ScheduledThreadPoolExecutor" {
 			  serviceName       = "PresideHeartbeatExecutorService"
 			, maxConcurrent     = 1
 			, threadPoolName    = "PresideHeartbeatThreadPool"
-			, threadNamePattern = "PresideHeartBeat"
+			, threadNamePattern = "PresideHeartBeat-#_getAppId()#"
 		);
 
 		_setPresideHeartBeat( arguments.presideHeartbeat );
@@ -50,4 +50,9 @@ component extends="cfconcurrent.ScheduledThreadPoolExecutor" {
 		_presideHeartBeat = arguments.presideHeartBeat;
 	}
 
+	private string function _getAppId() {
+		var appSettings = getApplicationSettings();
+
+		return appSettings.PRESIDE_APPLICATION_ID ?: ( appSettings.name ?: CreateUUId() );
+	}
 }

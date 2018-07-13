@@ -15,7 +15,7 @@ component extends="cfconcurrent.ExecutorService" {
 	){
 		super.init(
 			  argumentCollection = arguments
-			, threadNamePattern  = "PresideTaskManagerPool-Thread-${threadno}"
+			, threadNamePattern  = "PresideTaskManagerPool-#_getAppId()#-Thread-${threadno}"
 			, serviceName        = "PresideScheduledTaskExecutorService"
 		);
 
@@ -26,4 +26,10 @@ component extends="cfconcurrent.ExecutorService" {
 		super.stop();
 	}
 
+// GETTERS AND SETTERS
+	private string function _getAppId() {
+		var appSettings = getApplicationSettings();
+
+		return appSettings.PRESIDE_APPLICATION_ID ?: ( appSettings.name ?: CreateUUId() );
+	}
 }
