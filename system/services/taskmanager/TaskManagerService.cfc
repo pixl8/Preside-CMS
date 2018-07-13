@@ -264,6 +264,7 @@ component displayName="Task Manager Service" {
 				, threadId           = newThreadId
 				, logger             = logger
 				, taskManagerService = this
+				, errorLogService    = $getErrorLogService()
 			);
 
 			_getScheduledTaskExecutorService().execute( task );

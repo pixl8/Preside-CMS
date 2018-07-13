@@ -151,6 +151,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		var task = new AdhocTaskRunner(
 			  adhocTaskManagerService = this
 			, taskId                  = arguments.taskId
+			, errorLogService         = $getErrorLogService()
 		);
 
 		_getAdhocExecutorService().execute( task );

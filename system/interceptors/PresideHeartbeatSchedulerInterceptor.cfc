@@ -10,7 +10,7 @@ component extends="coldbox.system.Interceptor" {
 		try {
 			var result = taskmanagerService.runScheduledTasks();
 
-			if ( Len( Trim( result.error ) ) ) {
+			if ( Len( Trim( result.error ?: "" ) ) ) {
 				throw( type="preside.taskmanager.configuration", message=result.error );
 			}
 		} catch( any e ) {

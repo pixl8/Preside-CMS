@@ -9,17 +9,22 @@
  */
 component {
 
-
 	public any function init(
 		  required any    adhocTaskManagerService
+		, required any    errorLogService
 		, required string taskId
 	) {
 		variables.adhocTaskManagerService = arguments.adhocTaskManagerService;
+		variables.errorLogService         = arguments.errorLogService;
 		variables.taskId                  = arguments.taskId;
 	}
 
 	public void function run() {
-		adhocTaskManagerService.runTask( taskId );
+		try {
+			adhocTaskManagerService.runTask( taskId );
+		} catch( any e ) {
+			errorLogService.raiseError( e );
+		}
 	}
 
 }

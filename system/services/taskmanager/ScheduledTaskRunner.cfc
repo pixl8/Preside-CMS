@@ -12,12 +12,14 @@ component {
 
 	public any function init(
 		  required any    taskManagerService
+		, required any    errorLogService
 		, required string threadId
 		, required string taskKey
 		, required struct args
 		, required any    logger
 	) {
 		variables.taskManagerService = arguments.taskManagerService;
+		variables.errorLogService    = arguments.errorLogService;
 		variables.threadId           = arguments.threadId;
 		variables.taskKey            = arguments.taskKey;
 		variables.args               = arguments.args;
@@ -30,11 +32,15 @@ component {
 	}
 
 	public void function run() {
-		if ( canInfo ) {
-			logger.info( "Task starting now..." );
-		}
+		try {
+			if ( canInfo ) {
+				logger.info( "Task starting now..." );
+			}
 
-		taskManagerService.runTaskWithinThread( taskKey, args, threadId, logger );
+			taskManagerService.runTaskWithinThread( taskKey, args, threadId, logger );
+		} catch( any e ) {
+			errorLogService.raiseError( e );
+		}
 	}
 
 }
