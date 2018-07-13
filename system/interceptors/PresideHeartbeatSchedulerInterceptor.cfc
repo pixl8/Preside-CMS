@@ -8,11 +8,13 @@ component extends="coldbox.system.Interceptor" {
 
 	public void function onPresideHeartbeat( event, interceptData ) output=false {
 		try {
+			taskmanagerService.cleanupNoLongerRunningTasks();
 			var result = taskmanagerService.runScheduledTasks();
 
 			if ( Len( Trim( result.error ?: "" ) ) ) {
 				throw( type="preside.taskmanager.configuration", message=result.error );
 			}
+
 		} catch( any e ) {
 			errorLogService.raiseError( e );
 		}

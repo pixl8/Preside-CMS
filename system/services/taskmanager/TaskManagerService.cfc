@@ -192,15 +192,7 @@ component displayName="Task Manager Service" {
 			return true;
 		}
 
-		var runningTasks = _getRunningTasks();
-		var threadRef    = runningTasks[ task.running_thread ].thread ?: NullValue();
-
-		if ( IsNull( threadRef ) ) {
-			return false;
-		}
-
-		var state = threadRef.getState()
-		return !state.equals( state.TERMINATED );
+		return _taskisRunningOnLocalMachine( task );
 	}
 
 	public array function getRunnableTasks() {
@@ -354,6 +346,22 @@ component displayName="Task Manager Service" {
 		for( var taskKey in listTasks() ){
 			if ( taskIsRunning( taskKey ) ) {
 				killRunningTask( taskKey, arguments.timeout );
+			}
+		}
+	}
+
+	public void function cleanupNoLongerRunningTasks() {
+		var runningTasksAccordingToDb = _getTaskDao().selectData(
+			  filter = { is_running=true, running_machine=_getMachineId() }
+		);
+
+		for( var task in runningTasksAccordingToDb ) {
+			if ( !_taskisRunningOnLocalMachine( task ) ) {
+				markTaskAsCompleted(
+					  taskKey   = task.task_key
+					, success   = false
+					, timetaken = -1
+				);
 			}
 		}
 	}
@@ -746,6 +754,18 @@ component displayName="Task Manager Service" {
 			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
 			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
 		];
+	}
+
+	private boolean function _taskIsRunningOnLocalMachine( required any task ){
+		var runningTasks = _getRunningTasks();
+		var threadRef    = runningTasks[ task.running_thread ].thread ?: NullValue();
+
+		if ( IsNull( threadRef ) ) {
+			return false;
+		}
+
+		var state = threadRef.getState()
+		return !state.equals( state.TERMINATED );
 	}
 
 // GETTERS AND SETTERS
