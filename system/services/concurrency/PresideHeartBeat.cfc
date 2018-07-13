@@ -12,7 +12,5 @@ component {
 // PUBLIC API METHODS
 	public void function run() {
 		$announceInterception( "onPresideHeartbeat" );
-
-		systemOutput( getApplicationMetadata() );
 	}
 }
