@@ -71,8 +71,22 @@ component output=false extends="coldbox.system.ioc.Injector" {
 		for( var singletonKey in singletons ) {
 			var singleton = singletons[ singletonKey ];
 
+			if ( IsObject( singleton ) && StructKeyExists( singleton, "canShutdown" ) ) {
+				if ( !singleton.canShutdown( force=arguments.force ) ) {
+					throw(
+						  type    = "preside.reload.failed"
+						, message = "The application has been prevented from reloading because one or more services refused to shutdown."
+						, detail  = "Either: reload the application with the &force URL parameter; restart the server; or, wait until later."
+					);
+				}
+			}
+		}
+
+		for( var singletonKey in singletons ) {
+			var singleton = singletons[ singletonKey ];
+
 			if ( IsObject( singleton ) && StructKeyExists( singleton, "shutdown" ) ) {
-				singleton.shutdown( force=arguments.force );
+				singleton.shutdown();
 			}
 		}
 	}
