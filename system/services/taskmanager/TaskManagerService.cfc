@@ -10,15 +10,15 @@ component displayName="Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @configWrapper.inject              taskManagerConfigurationWrapper
-	 * @controller.inject                 coldbox
-	 * @taskDao.inject                    presidecms:object:taskmanager_task
-	 * @taskHistoryDao.inject             presidecms:object:taskmanager_task_history
-	 * @systemConfigurationService.inject systemConfigurationService
-	 * @logger.inject                     logbox:logger:taskmanager
-	 * @errorLogService.inject            errorLogService
-	 * @siteService.inject                siteService
-	 * @presideExecutorService.inject     presideExecutorService
+	 * @configWrapper.inject                taskManagerConfigurationWrapper
+	 * @controller.inject                   coldbox
+	 * @taskDao.inject                      presidecms:object:taskmanager_task
+	 * @taskHistoryDao.inject               presidecms:object:taskmanager_task_history
+	 * @systemConfigurationService.inject   systemConfigurationService
+	 * @logger.inject                       logbox:logger:taskmanager
+	 * @errorLogService.inject              errorLogService
+	 * @siteService.inject                  siteService
+	 * @scheduledTaskExecutorService.inject presideScheduledTaskExecutorService
 	 *
 	 */
 	public any function init(
@@ -30,7 +30,7 @@ component displayName="Task Manager Service" {
 		, required any logger
 		, required any errorLogService
 		, required any siteService
-		, required any presideExecutorService
+		, required any scheduledTaskExecutorService
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
@@ -40,7 +40,7 @@ component displayName="Task Manager Service" {
 		_setLogger( arguments.logger );
 		_setErrorLogService( arguments.errorLogService );
 		_setSiteService( arguments.siteService );
-		_setPresideExecutorService( arguments.presideExecutorService );
+		_setScheduledTaskExecutorService( arguments.scheduledTaskExecutorService );
 		_setMachineId();
 
 		_initialiseDb();
@@ -266,7 +266,7 @@ component displayName="Task Manager Service" {
 				, taskManagerService = this
 			);
 
-			_getPresideExecutorService().execute( task );
+			_getScheduledTaskExecutorService().execute( task );
 		}
 	}
 
@@ -826,11 +826,11 @@ component displayName="Task Manager Service" {
 		_taskScheduler = arguments.taskScheduler;
 	}
 
-	private any function _getPresideExecutorService() {
-		return _presideExecutorService;
+	private any function _getScheduledTaskExecutorService() {
+		return _scheduledTaskExecutorService;
 	}
-	private void function _setPresideExecutorService( required any presideExecutorService ) {
-		_presideExecutorService = arguments.presideExecutorService;
+	private void function _setScheduledTaskExecutorService( required any scheduledTaskExecutorService ) {
+		_scheduledTaskExecutorService = arguments.scheduledTaskExecutorService;
 	}
 
 	private struct function _getRunningTasks() {

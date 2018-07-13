@@ -1,9 +1,4 @@
 /**
- * A special cfconcurrent.ExecutorService that adds
- * a 'shutdown()' proxy to the 'stop()' method to automatically
- * shutdown onApplicationEnd().
- *
- * It also passes in constructor arguments from configuration.
  *
  * @singleton
  *
@@ -19,7 +14,7 @@ component extends="cfconcurrent.ExecutorService" {
 		, numeric maxWorkQueueSize  = 10000
 		, string  threadNamePattern = "PresideAdhocPool-Thread-${threadno}"
 	){
-		super.init( argumentCollection=arguments, serviceName="PresideExecutorService" );
+		super.init( argumentCollection=arguments, serviceName="PresideAdhocExecutorService" );
 
 		return this;
 	}

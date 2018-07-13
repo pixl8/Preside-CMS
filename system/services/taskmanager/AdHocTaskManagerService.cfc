@@ -12,19 +12,19 @@ component displayName="Ad-hoc Task Manager Service" {
 	/**
 	 * @taskScheduler.inject          taskScheduler
 	 * @siteService.inject            siteService
-	 * @presideExecutorService.inject presideExecutorService
+	 * @adhocExectutorService.inject  presideAdhocExecutorService
 	 * @logger.inject                 logbox:logger:taskmanager
 	 */
 	public any function init(
 		  required any     taskScheduler
 		, required any     siteService
 		, required any     logger
-		, required any     presideExecutorService
+		, required any     adhocExectutorService
 		,          numeric maxTaskTimeout = ( 60 * 60 * 24 * 365 ) // one year!
 	) {
 		_setTaskScheduler( arguments.taskScheduler );
 		_setSiteService( arguments.siteService );
-		_setPresideExecutorService( arguments.presideExecutorService );
+		_setAdhocExecutorService( arguments.adhocExectutorService );
 		_setLogger( arguments.logger );
 		_setMaxTimeout( arguments.maxTaskTimeout );
 
@@ -154,7 +154,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, errorLogService         = $getErrorLogService()
 		);
 
-		_getPresideExecutorService().execute( task );
+		_getAdhocExecutorService().execute( task );
 	}
 
 	/**
@@ -512,10 +512,10 @@ component displayName="Ad-hoc Task Manager Service" {
 		_maxTimeout = arguments.maxTimeout;
 	}
 
-	private any function _getPresideExecutorService() {
+	private any function _getAdhocExecutorService() {
 		return _presideExecutorService;
 	}
-	private void function _setPresideExecutorService( required any presideExecutorService ) {
+	private void function _setAdhocExecutorService( required any presideExecutorService ) {
 		_presideExecutorService = arguments.presideExecutorService;
 	}
 
