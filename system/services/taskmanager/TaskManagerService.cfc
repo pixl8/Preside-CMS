@@ -299,18 +299,21 @@ component displayName="Task Manager Service" {
 			}
 			try {
 				var runningTasks = _getRunningTasks();
+				var theThread    = runningTasks[ task.running_thread ].thread ?: NullValue();
 
-				runningTasks[ task.running_thread ].thread.interrupt();
-
-				if ( logger.canWarn() ) {
-					logger.warn( "Thread interrupted" );
+				if ( !IsNull( theThread ) ) {
+					theThread.interrupt();
+					if ( logger.canWarn() ) {
+						logger.warn( "Thread interrupted" );
+					}
 				}
-
 			} catch( any e ) {
 				if ( logger.canError() ) {
 					logger.error( "Task errored while terminating. Error: #e.message#. Detail: #e.detail#." );
 				}
 			}
+
+			markTaskAsCompleted( taskKey=arguments.taskKey, success=false, timeTaken=0 );
 		}
 
 		return !taskIsRunning( taskKey );
