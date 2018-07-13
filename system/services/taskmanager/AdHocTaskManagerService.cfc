@@ -148,7 +148,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public void function runTaskInThread( required string taskId ) {
-		var task = new TaskRunner(
+		var task = new AdhocTaskRunner(
 			  adhocTaskManagerService = this
 			, taskId                  = arguments.taskId
 			, errorLogService         = $getErrorLogService()

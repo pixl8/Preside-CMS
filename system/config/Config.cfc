@@ -53,7 +53,8 @@ component {
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } },
 			{ class="preside.system.interceptors.PageCachingInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
+			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.PresideHeartbeatSchedulerInterceptor", properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -118,6 +119,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
+		interceptorSettings.customInterceptionPoints.append( "onPresideHeartbeat"                    );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()

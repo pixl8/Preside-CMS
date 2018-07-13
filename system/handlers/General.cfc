@@ -1,18 +1,19 @@
 component {
-	property name="applicationReloadService"  inject="applicationReloadService";
-	property name="databaseMigrationService"  inject="databaseMigrationService";
-	property name="applicationsService"       inject="applicationsService";
-	property name="websiteLoginService"       inject="websiteLoginService";
-	property name="adminLoginService"         inject="loginService";
-	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
-	property name="expressionGenerator"       inject="rulesEngineAutoPresideObjectExpressionGenerator";
-	property name="presideExecutorService"    inject="presideExecutorService";
+	property name="applicationReloadService"        inject="applicationReloadService";
+	property name="databaseMigrationService"        inject="databaseMigrationService";
+	property name="applicationsService"             inject="applicationsService";
+	property name="websiteLoginService"             inject="websiteLoginService";
+	property name="adminLoginService"               inject="loginService";
+	property name="antiSamySettings"                inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"                 inject="delayedInjector:antiSamyService";
+	property name="expressionGenerator"             inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="presideExecutorService"          inject="presideExecutorService";
+	property name="presideHeartBeatExecutorService" inject="presideHeartBeatExecutorService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
-		_startConcurrentThreadPools();
+		_startThreadPools();
 		_performDbMigrations();
 		_configureVariousServices();
 		_populateDefaultLanguages();
@@ -202,7 +203,8 @@ component {
 		}
 	}
 
-	private void function _startConcurrentThreadPools() {
+	private void function _startThreadPools() {
+		presideHeartBeatExecutorService.start();
 		presideExecutorService.start();
 	}
 }
