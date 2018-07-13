@@ -14,11 +14,7 @@ component extends="cfconcurrent.ScheduledThreadPoolExecutor" {
 	 * @presideHeartbeat.inject presideHeartbeat
 	 *
 	 */
-	public function init(
-		  required any     presideHeartbeat
-		,          numeric maxConcurrent  = 0
-		,          string  threadPoolName = "PresideScheduledThreadPool"
-	){
+	public function init( required any presideHeartbeat ){
 		super.init(
 			  serviceName       = "PresideHeartbeatExecutorService"
 			, maxConcurrent     = 1

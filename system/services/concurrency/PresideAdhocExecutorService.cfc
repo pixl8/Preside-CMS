@@ -6,15 +6,18 @@
 component extends="cfconcurrent.ExecutorService" {
 
 	/**
-	 * TODO: configuration options for maxCorrent/QueueSize
-	 *
+	 *  @maxConcurrent.inject    coldbox:setting:concurrency.pools.adhoc.maxConcurrent
+	 *  @maxWorkQueueSize.inject coldbox:setting:concurrency.pools.adhoc.maxWorkQueueSize
 	 */
 	public function init(
-		  numeric maxConcurrent     = 0
-		, numeric maxWorkQueueSize  = 10000
-		, string  threadNamePattern = "PresideAdhocPool-Thread-${threadno}"
+		  required numeric maxConcurrent
+		, required numeric maxWorkQueueSize
 	){
-		super.init( argumentCollection=arguments, serviceName="PresideAdhocExecutorService" );
+		super.init(
+			  argumentCollection = arguments
+			, threadNamePattern  = "PresideAdhocPool-Thread-${threadno}"
+			, serviceName        = "PresideAdhocExecutorService"
+		);
 
 		return this;
 	}
