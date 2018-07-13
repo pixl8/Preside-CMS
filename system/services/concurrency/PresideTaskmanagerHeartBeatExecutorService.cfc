@@ -1,9 +1,4 @@
 /**
- * A special cfconcurrent.ExecutorService that adds
- * a 'shutdown()' proxy to the 'stop()' method to automatically
- * shutdown onApplicationEnd().
- *
- * It also passes in constructor arguments from configuration.
  *
  * @singleton
  *
@@ -11,18 +6,18 @@
 component extends="cfconcurrent.ScheduledThreadPoolExecutor" {
 
 	/**
-	 * @presideHeartbeat.inject presideHeartbeat
+	 * @presideTaskManagerHeartBeat.inject presideTaskManagerHeartBeat
 	 *
 	 */
-	public function init( required any presideHeartbeat ){
+	public function init( required any presideTaskManagerHeartBeat ){
 		super.init(
-			  serviceName       = "PresideHeartbeatExecutorService"
+			  serviceName       = "PresideTaskManagerHeartbeatExecutorService"
 			, maxConcurrent     = 1
-			, threadPoolName    = "PresideHeartbeatThreadPool"
-			, threadNamePattern = "PresideHeartBeat-#_getAppId()#"
+			, threadPoolName    = "PresideTaskManagerHeartbeatThreadPool"
+			, threadNamePattern = "PresideTaskManagerHeartBeat-#_getAppId()#"
 		);
 
-		_setPresideHeartBeat( arguments.presideHeartbeat );
+		_setHeartbeatTask( arguments.presideTaskManagerHeartBeat );
 
 		return this;
 	}
@@ -31,7 +26,7 @@ component extends="cfconcurrent.ScheduledThreadPoolExecutor" {
 		super.start();
 		super.scheduleAtFixedRate(
 			  id           = "PresideHeartBeat"
-			, task         = _getPresideHeartbeat()
+			, task         = _getHeartbeatTask()
 			, initialDelay = 0
 			, period       = 1
 			, timeUnit     = getObjectFactory().SECONDS
@@ -43,10 +38,10 @@ component extends="cfconcurrent.ScheduledThreadPoolExecutor" {
 	}
 
 // GETTERS / SETTERS
-	private any function _getPresideHeartBeat() {
+	private any function _getHeartbeatTask() {
 		return _presideHeartBeat;
 	}
-	private void function _setPresideHeartBeat( required any presideHeartBeat ) {
+	private void function _setHeartbeatTask( required any presideHeartBeat ) {
 		_presideHeartBeat = arguments.presideHeartBeat;
 	}
 

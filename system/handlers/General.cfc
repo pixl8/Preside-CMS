@@ -1,15 +1,16 @@
 component {
-	property name="applicationReloadService"            inject="applicationReloadService";
-	property name="databaseMigrationService"            inject="databaseMigrationService";
-	property name="applicationsService"                 inject="applicationsService";
-	property name="websiteLoginService"                 inject="websiteLoginService";
-	property name="adminLoginService"                   inject="loginService";
-	property name="antiSamySettings"                    inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"                     inject="delayedInjector:antiSamyService";
-	property name="expressionGenerator"                 inject="rulesEngineAutoPresideObjectExpressionGenerator";
-	property name="presideAdhocExecutorService"         inject="presideAdhocExecutorService";
-	property name="presideScheduledTaskExecutorService" inject="presideScheduledTaskExecutorService";
-	property name="presideHeartBeatExecutorService"     inject="presideHeartBeatExecutorService";
+	property name="applicationReloadService"                        inject="applicationReloadService";
+	property name="databaseMigrationService"                        inject="databaseMigrationService";
+	property name="applicationsService"                             inject="applicationsService";
+	property name="websiteLoginService"                             inject="websiteLoginService";
+	property name="adminLoginService"                               inject="loginService";
+	property name="antiSamySettings"                                inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"                                 inject="delayedInjector:antiSamyService";
+	property name="expressionGenerator"                             inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="presideAdhocExecutorService"                     inject="presideAdhocExecutorService";
+	property name="presideScheduledTaskExecutorService"             inject="presideScheduledTaskExecutorService";
+	property name="presideTaskmanagerHeartBeatExecutorService"      inject="presideTaskmanagerHeartBeatExecutorService";
+	property name="PresideAdhocTaskmanagerHeartBeatExecutorService" inject="PresideAdhocTaskmanagerHeartBeatExecutorService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -207,6 +208,7 @@ component {
 	private void function _startThreadPools() {
 		presideScheduledTaskExecutorService.start();
 		presideAdhocExecutorService.start();
-		presideHeartBeatExecutorService.start();
+		presideTaskmanagerHeartBeatExecutorService.start();
+		presideAdhocTaskmanagerHeartBeatExecutorService.start();
 	}
 }
