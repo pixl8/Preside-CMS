@@ -10,18 +10,18 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @siteService.inject            siteService
-	 * @adhocExectutorService.inject  presideAdhocExecutorService
-	 * @logger.inject                 logbox:logger:taskmanager
+	 * @siteService.inject           siteService
+	 * @adhocExecutorService.inject  presideAdhocExecutorService
+	 * @logger.inject                logbox:logger:taskmanager
 	 */
 	public any function init(
 		  required any     siteService
 		, required any     logger
-		, required any     adhocExectutorService
+		, required any     adhocExecutorService
 		,          numeric maxTaskTimeout = ( 60 * 60 * 24 * 365 ) // one year!
 	) {
 		_setSiteService( arguments.siteService );
-		_setAdhocExecutorService( arguments.adhocExectutorService );
+		_setAdhocExecutorService( arguments.adhocExecutorService );
 		_setLogger( arguments.logger );
 		_setMaxTimeout( arguments.maxTaskTimeout );
 
@@ -68,7 +68,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, admin_owner         = arguments.adminOwner
 			, web_owner           = arguments.webOwner
 			, discard_on_complete = arguments.discardOnComplete
-			, next_attempt_date   = Val( arguments.runNow ) ? "" : DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
+			, next_attempt_date   = ( arguments.runNow || !Val( arguments.runIn ) ) ? "" : DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
 			, retry_interval      = _serializeRetryInterval( arguments.retryInterval )
 			, title               = arguments.title
 			, title_data          = SerializeJson( arguments.titleData )
