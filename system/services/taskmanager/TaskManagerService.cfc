@@ -79,16 +79,12 @@ component displayName="Task Manager Service" {
 		var task        = getTask( arguments.taskKey );
 		var taskDetails = _getTaskDao().selectData(
 			  filter       = { task_key=arguments.taskKey }
-			, selectFields = [ "crontab_definition", "enabled", "timeout" ]
+			, selectFields = [ "crontab_definition", "enabled" ]
 		);
 
 		for( var t in taskDetails ) {
 			if ( !Len( Trim( t.crontab_definition ) ) ) {
 				t.crontab_definition = task.schedule;
-			}
-
-			if ( !Len( Trim( t.timeout ) ) ) {
-				t.timeout = task.timeout;
 			}
 
 			return t;
@@ -135,21 +131,6 @@ component displayName="Task Manager Service" {
 
 	public boolean function taskIsRunning( required string taskKey ) {
 		transaction {
-			if ( taskRunIsExpired( arguments.taskKey ) ) {
-				var logger = _getLogger( taskKey=arguments.taskKey );
-
-				if ( logger.canError() ) {
-					logger.error( "Task run has expired for task [#arguments.taskKey#]." );
-				}
-
-				markTaskAsCompleted(
-					  taskKey   = arguments.taskKey
-					, success   = false
-					, timetaken = -1
-				);
-
-				return false;
-			}
 			var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
 			if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
@@ -169,13 +150,6 @@ component displayName="Task Manager Service" {
 
 			return markedAsRunning;
 		}
-	}
-
-	public boolean function taskRunIsExpired( required string taskKey ) {
-		return _getTaskDao().dataExists(
-			  filter       = "task_key = :task_key and is_running = :is_running and run_expires < :run_expires"
-			, filterParams = { task_key=arguments.taskKey, is_running=true, run_expires=_getOperationDate() }
-		);
 	}
 
 	public boolean function taskThreadIsRunning( required string taskKey ) {
@@ -412,7 +386,6 @@ component displayName="Task Manager Service" {
 			, data   = {
 				  is_running      = true
 				, next_run        = getNextRunDate( arguments.taskKey )
-				, run_expires     = getTaskRunExpiry( arguments.taskKey )
 				, running_thread  = arguments.threadId
 				, running_machine = _getMachineId()
 			  }
@@ -440,7 +413,6 @@ component displayName="Task Manager Service" {
 				, next_run             = getNextRunDate( arguments.taskKey )
 				, was_last_run_success = arguments.success
 				, last_run_time_taken  = arguments.timeTaken
-				, run_expires          = ""
 				, running_thread       = ""
 				, running_machine      = ""
 			  }
@@ -534,7 +506,6 @@ component displayName="Task Manager Service" {
 			, is_running         = false
 			, priority           = configuredTask.priority
 			, crontab_definition = configuredTask.schedule
-			, timeout            = configuredTask.timeout
 		} );
 	}
 
@@ -642,12 +613,6 @@ component displayName="Task Manager Service" {
 			  filter = { task_key = arguments.taskKey }
 			, data   = { enabled = true }
 		);
-	}
-
-	public date function getTaskRunExpiry( required string taskKey ) {
-		var taskConfig = getTaskConfiguration( arguments.taskKey );
-
-		return DateAdd( "s", taskConfig.timeout, _getOperationDate() );
 	}
 
 	public string function createLogHtml( required string log, numeric fetchAfterLines=0 ) {
