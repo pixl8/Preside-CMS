@@ -683,17 +683,15 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function canShutdown( required boolean force ) {
-		if ( arguments.force ) {
-			return true;
-		}
-
-		if ( tasksAreRunning() ) {
+		if ( !arguments.force && tasksAreRunning() ) {
 			throw(
 				  type    = "preside.reload.taskmanager.running"
 				, message = "The application has been prevented from reloading because one or more tasks are running in the task manager."
 				, detail  = "Either: reload the application with the &force URL parameter; manually stop all tasks before reloading the application; or, await their completion."
 			);
 		}
+
+		return true;
 	}
 
 	public void function shutdown() {
