@@ -11,6 +11,7 @@
 	hasReturnUrl = Len( Trim( taskProgress.returnUrl ) );
 	succeeded    = status == "succeeded";
 	isRunning    = status == "running";
+	isPending    = status == "pending";
 
 	if ( canCancel ) {
 		cancelAction = event.buildAdminLink( linkto="adhocTaskManager.cancelTaskAction", querystring="taskId=" & taskId );
@@ -19,13 +20,14 @@
 
 	progressClass = "danger";
 	switch( status ) {
+		case "pending":
 		case "running":
 		case "succeeded":
 			progressClass = "success";
 	}
 
 	event.include( "/css/admin/specific/taskmanager/" );
-	if ( isRunning ) {
+	if ( isRunning || isPending ) {
 		event.include( "/js/admin/specific/adhoctaskprogress/" );
 		event.includeData({
 			  adhocTaskStatusUpdateUrl = event.buildAdminLink( linkto="adhocTaskManager.status", queryString="taskId=#taskId#" )
@@ -43,7 +45,7 @@
 		</div>
 		<div class="clearfix">
 			<div class="pull-right log-actions">
-				<span class="time-taken <cfif succeeded>complete green<cfelseif isRunning>running blue<cfelse>red</cfif>">
+				<span class="time-taken <cfif succeeded>complete green<cfelseif isRunning>running blue<cfelseif isPending>orange<cfelse>red</cfif>">
 					<i class="fa fa-fw fa-clock-o"></i>
 
 					<span class="time-taken">#translateResource( "cms:taskamanager.log.timetaken" )#</span>

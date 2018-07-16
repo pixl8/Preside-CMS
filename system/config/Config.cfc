@@ -371,7 +371,7 @@ component {
 		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
-		settings.enum.adhocTaskStatus             = [ "pending", "running", "requeued", "succeeded", "failed" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
@@ -422,8 +422,9 @@ component {
 		settings.dataExport = {};
 		settings.dataExport.csv = { delimiter="," };
 
-
 		settings.email = _getEmailSettings();
+
+		settings.concurrency = _getConcurrencySettings();
 
 		_loadConfigurationFromExtensions();
 
@@ -742,6 +743,15 @@ component {
 			, recipientTypes       = recipientTypes
 			, serviceProviders     = serviceProviders
 			, defaultContentExpiry = 30
+		};
+	}
+
+	private struct function _getConcurrencySettings(){
+		return {
+			pools = {
+				  scheduledTasks = { maxConcurrent=0, maxWorkQueueSize=10000 }
+				, adhoc          = { maxConcurrent=0, maxWorkQueueSize=10000 }
+			}
 		};
 	}
 

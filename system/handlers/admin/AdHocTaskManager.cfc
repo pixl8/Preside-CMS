@@ -33,10 +33,17 @@ component extends="preside.system.base.AdminHandler" {
 		var taskTitle = translateResource( uri=prc.task.title, data=taskTitleData, defaultValue=prc.task.title );
 
 		prc.taskProgress           = adHocTaskManagerService.getProgress( taskId );
-		prc.taskProgress.log       = taskManagerService.createLogHtml( prc.taskProgress.log );
-		prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
 
-		prc.canCancel = prc.task.status == "running";
+		if ( prc.task.status == "pending" ) {
+			prc.taskProgress.timeTaken = translateResource( "enum.adhocTaskStatus:pending.title" );
+			prc.taskProgress.log       = taskManagerService.createLogHtml( translateResource( "cms:adhoctaskmanager.progress.pending.log" ) );
+		} else {
+			prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
+			prc.taskProgress.log       = taskManagerService.createLogHtml( prc.taskProgress.log );
+
+		}
+
+		prc.canCancel = prc.task.status == "running" || prc.task.status == "pending";
 		prc.canCancel = prc.canCancel && ( prc.task.admin_owner == event.getAdminUserId() || hasCmsPermission( "adhocTaskManager.canceltask" ) );
 
 		prc.pageTitle    = translateResource( uri="cms:adhoctaskmanager.progress.page.title", data=[ taskTitle ] );
@@ -59,7 +66,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		taskProgress.logLineCount = taskProgress.log.listLen( Chr( 10 ) );
 		taskProgress.log          = taskManagerService.createLogHtml( taskProgress.log, Val( rc.fetchAfterLines ?: "" ) );
-		taskProgress.timeTaken    = renderContent( renderer="TaskTimeTaken", data=taskProgress.timeTaken*1000, context=[ "accurate" ] );
+
+		if ( task.status == "pending" ) {
+			taskProgress.timeTaken = translateResource( "enum.adhocTaskStatus:pending.title" );
+		} else {
+			taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=taskProgress.timeTaken*1000, context=[ "accurate" ] );
+		}
+
 
 		event.renderData(
 			  data = taskProgress

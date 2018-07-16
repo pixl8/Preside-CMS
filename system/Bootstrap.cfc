@@ -114,6 +114,7 @@ component {
 		this.mappings[ "/preside"        ] = presideroot;
 		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox";
 		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/cfconcurrent"   ] = presideroot & "/system/externals/cfconcurrent";
 		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
 		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
 

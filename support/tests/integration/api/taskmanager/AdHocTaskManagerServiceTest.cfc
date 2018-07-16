@@ -159,6 +159,7 @@ component extends="testbox.system.BaseSpec" {
 					, title_data          = "[]"
 					, result_url          = ""
 					, return_url          = ""
+					, next_attempt_date   = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -182,6 +183,7 @@ component extends="testbox.system.BaseSpec" {
 					, web_owner           = owner
 					, discard_on_complete = true
 					, retry_interval      = "[]"
+					, next_attempt_date   = ""
 					, title               = "myresource:export.title"
 					, title_data          = '["test","this"]'
 					, result_url          = "http://www.mysite.com/download/export/"
@@ -225,6 +227,7 @@ component extends="testbox.system.BaseSpec" {
 					, title_data          = "[]"
 					, result_url          = resultUrl
 					, return_url          = ""
+					, next_attempt_date   = ""
 				} ).$results( taskId );
 
 				service.$( "setResultUrl" );
@@ -260,6 +263,7 @@ component extends="testbox.system.BaseSpec" {
 					, retry_interval      = SerializeJson( [{ tries=4, interval=120 }] )
 					, title               = ""
 					, title_data          = "[]"
+					, next_attempt_date   = ""
 					, result_url          = ""
 					, return_url          = ""
 				} ).$results( taskId );
@@ -287,6 +291,7 @@ component extends="testbox.system.BaseSpec" {
 					, retry_interval      = SerializeJson( [{ tries=4, interval=CreateTimeSpan( 0, 0, 3, 45 ).getSeconds() }] )
 					, title               = ""
 					, title_data          = "[]"
+					, next_attempt_date   = ""
 					, result_url          = ""
 					, return_url          = ""
 				} ).$results( taskId );
@@ -318,11 +323,12 @@ component extends="testbox.system.BaseSpec" {
 					, title_data          = '["test","this"]'
 					, result_url          = "http://www.mysite.com/download/export/"
 					, return_url          = "http://www.mysite.com/download/cancelled/"
+					, next_attempt_date   = nextRunDate
 				} ).$results( taskId );
-				service.$( "runTaskInThread" );
-				service.$( "_scheduleTask" );
 
-				service.createTask(
+				service.$( "runTaskInThread" );
+
+				expect( service.createTask(
 					  webOwner          = owner
 					, event             = event
 					, args              = args
@@ -332,14 +338,7 @@ component extends="testbox.system.BaseSpec" {
 					, titleData         = [ "test", "this" ]
 					, resultUrl         = "http://www.mysite.com/download/export/"
 					, returnUrl         = "http://www.mysite.com/download/cancelled/"
-				);
-
-				var log = service.$callLog()._scheduleTask;
-				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( {
-					  taskId          = taskId
-					, nextAttemptDate = nextRunDate
-				} );
+				) ).toBe( taskId );
 			} );
 		} );
 
@@ -449,77 +448,13 @@ component extends="testbox.system.BaseSpec" {
 		} );
 
 		describe( "requeueTask()", function(){
-			it( "should create a task through the task scheduler to run the task", function(){
-				var service         = _getService();
-				var taskId          = CreateUUId();
-				var error           = { type="blah", message=CreateUUId() };
-				var attemptCount    = 10;
-				var nextAttemptDate = DateAdd( 'n', 40, Now() );
-				var taskUrl         = "http://blah.com/run/task/?taskId=#taskId#";
-				var settings        = {
-					  site_context   = CreateUUId()
-					, http_port      = 8880
-					, http_username  = "testusername"
-					, http_password  = "testpassword"
-					, proxy_server   = "https://myproxy.com"
-					, proxy_port     = "443"
-					, proxy_user     = "proxyuser"
-					, proxy_password = "proxypass"
-				};
-
-				service.$( "getTaskRunnerUrl" ).$args( taskId=taskId, siteContext=settings.site_context ).$results( taskUrl );
-				service.$( "$getPresideCategorySettings" ).$args( category="taskmanager" ).$results( settings );
-				mockTaskScheduler.$( "createTask" );
-				mockTaskDao.$( "updateData" );
-
-				service.requeueTask(
-					  taskId          = taskId
-					, error           = error
-					, attemptCount    = attemptCount
-					, nextAttemptDate = nextAttemptDate
-				);
-
-				var log = mockTaskScheduler.$callLog().createTask;
-				expect( log.len() ).toBe( 1 );
-				expect( log[ 1 ] ).toBe( {
-					  task          = "PresideAdHocTask-" & taskId
-					, url           = taskUrl
-					, port          = settings.http_port
-					, username      = settings.http_username
-					, password      = settings.http_password
-					, proxyServer   = settings.proxy_server
-					, proxyPort     = settings.proxy_port
-					, proxyUser     = settings.proxy_user
-					, proxyPassword = settings.proxy_password
-					, startdate     = DateFormat( nextAttemptDate, "yyyy-mm-dd" )
-					, startTime     = TimeFormat( nextAttemptDate, "HH:mm:ss" )
-					, interval      = "once"
-					, hidden        = true
-					, autoDelete    = true
-				} );
-			} );
-
 			it( "should update status of db record to requeued", function(){
 				var service         = _getService();
 				var taskId          = CreateUUId();
 				var error           = { type="blah", message=CreateUUId() };
 				var attemptCount    = 10;
 				var nextAttemptDate = DateAdd( 'n', 40, Now() );
-				var taskUrl         = "http://blah.com/run/task/?taskId=#taskId#";
-				var settings        = {
-					  site_context   = CreateUUId()
-					, http_port      = 8880
-					, http_username  = "testusername"
-					, http_password  = "testpassword"
-					, proxy_server   = "https://myproxy.com"
-					, proxy_port     = "443"
-					, proxy_user     = "proxyuser"
-					, proxy_password = "proxypass"
-				};
 
-				service.$( "getTaskRunnerUrl" ).$args( taskId=taskId, siteContext=settings.site_context ).$results( taskUrl );
-				service.$( "$getPresideCategorySettings" ).$args( category="taskmanager" ).$results( settings );
-				mockTaskScheduler.$( "createTask" );
 				mockTaskDao.$( "updateData", 1 );
 
 				service.requeueTask(
@@ -746,18 +681,20 @@ component extends="testbox.system.BaseSpec" {
 
 // private helpers
 	private any function _getService() {
-		mockTaskDao        = CreateStub();
-		mockColdbox        = CreateStub();
-		mockRequestContext = CreateStub();
-		mockTaskScheduler  = CreateStub();
-		mockSiteService    = CreateStub();
-		mockLogboxLogger   = CreateStub();
-		nowish             = DateAdd( 'd', 1, Now() );
+		mockTaskDao         = CreateStub();
+		mockColdbox         = CreateStub();
+		mockRequestContext  = CreateStub();
+		mockTaskScheduler   = CreateStub();
+		mockSiteService     = CreateStub();
+		mockLogboxLogger    = CreateStub();
+		mockThreadUtil      = CreateStub();
+		nowish              = DateAdd( 'd', 1, Now() );
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
-			  taskScheduler = mockTaskScheduler
-			, siteService   = mockSiteService
-			, logger        = mockLogBoxLogger
+			  taskScheduler        = mockTaskScheduler
+			, siteService          = mockSiteService
+			, logger               = mockLogBoxLogger
+			, threadUtil           = mockThreadUtil
 		) );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );

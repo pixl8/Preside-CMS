@@ -1,16 +1,19 @@
 component {
-	property name="applicationReloadService"  inject="applicationReloadService";
-	property name="databaseMigrationService"  inject="databaseMigrationService";
-	property name="applicationsService"       inject="applicationsService";
-	property name="websiteLoginService"       inject="websiteLoginService";
-	property name="adminLoginService"         inject="loginService";
-	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
-	property name="expressionGenerator"       inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="applicationReloadService"    inject="applicationReloadService";
+	property name="databaseMigrationService"    inject="databaseMigrationService";
+	property name="applicationsService"         inject="applicationsService";
+	property name="websiteLoginService"         inject="websiteLoginService";
+	property name="adminLoginService"           inject="loginService";
+	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
+	property name="expressionGenerator"         inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
+	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
+		_startHeartbeats();
 		_performDbMigrations();
 		_configureVariousServices();
 		_populateDefaultLanguages();
@@ -198,5 +201,12 @@ component {
 		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
 			i18n.setFwLocale( request.DefaultLocaleFromCookie );
 		}
+	}
+
+	private void function _startHeartbeats() {
+		presideTaskmanagerHeartBeat.start();
+		presideAdhocTaskHeartBeat.start();
+
+		SessionRotate(); // If we have reloaded during admin session, this ensures session is detached from heartbeats
 	}
 }
