@@ -654,14 +654,16 @@ component extends="testbox.system.BaseSpec" {
 		mockSysConfigService = mockbox.createStub();
 		mockErrorLogService  = mockbox.createStub();
 		mockSiteService      = mockbox.createStub();
-		mockTaskScheduler    = mockbox.createStub();
+		mockThreadUtil       = mockbox.createStub();
 		mockLogger           = _getMockLogger();
 
 		configWrapper.$( "getConfiguredTasks", arguments.dummyConfig );
 		mockSysConfigService.$( "getSetting" ).$args( "taskmanager", "scheduledtasks_enabled", false ).$results( true );
 		mockErrorLogService.$( "raiseError" );
-		mockTaskScheduler.$( "execute" );
 		mockSiteService.$( "getActiveSiteId", CreateUUId() );
+		mockThreadUtil.$( "setThreadName" );
+		mockThreadUtil.$( "setThreadRequestDefaults" );
+		mockThreadUtil.$( "getCurrentThread", {} );
 
 		var tm = mockBox.createMock( object=CreateObject( "preside.system.services.taskmanager.TaskManagerService" ) );
 
@@ -679,7 +681,7 @@ component extends="testbox.system.BaseSpec" {
 			, logger                       = mockLogger
 			, errorLogService              = mockErrorLogService
 			, siteService                  = mockSiteService
-			, scheduledTaskExecutorService = mockTaskScheduler
+			, threadUtil                   = mockThreadUtil
 		);
 	}
 

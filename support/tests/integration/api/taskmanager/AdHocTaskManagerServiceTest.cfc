@@ -687,14 +687,14 @@ component extends="testbox.system.BaseSpec" {
 		mockTaskScheduler   = CreateStub();
 		mockSiteService     = CreateStub();
 		mockLogboxLogger    = CreateStub();
-		mockExecutorService = CreateStub();
+		mockThreadUtil      = CreateStub();
 		nowish              = DateAdd( 'd', 1, Now() );
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
 			  taskScheduler        = mockTaskScheduler
 			, siteService          = mockSiteService
 			, logger               = mockLogBoxLogger
-			, adhocExecutorService = mockExecutorService
+			, threadUtil           = mockThreadUtil
 		) );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
