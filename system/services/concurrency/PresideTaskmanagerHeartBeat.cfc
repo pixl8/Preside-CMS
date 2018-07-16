@@ -25,7 +25,6 @@ component extends="AbstractHeartBeat" {
 	public void function run() {
 		try {
 			var result = _getTaskmanagerService().runScheduledTasks();
-
 			_getTaskmanagerService().cleanupNoLongerRunningTasks();
 
 			if ( Len( Trim( result.error ?: "" ) ) ) {

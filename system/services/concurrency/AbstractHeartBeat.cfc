@@ -28,7 +28,7 @@ component {
 		}
 	}
 
-	public void function shutdown( ){
+	public void function shutdown(){
 		stop();
 	}
 
