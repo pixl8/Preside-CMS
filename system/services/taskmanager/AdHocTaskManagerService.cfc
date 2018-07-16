@@ -10,20 +10,19 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @siteService.inject           siteService
-	 * @adhocExecutorService.inject  presideAdhocExecutorService
-	 * @logger.inject                logbox:logger:taskmanager
+	 * @siteService.inject siteService
+	 * @threadUtil.inject  threadUtil
+	 * @logger.inject      logbox:logger:taskmanager
 	 */
 	public any function init(
-		  required any     siteService
-		, required any     logger
-		, required any     adhocExecutorService
-		,          numeric maxTaskTimeout = ( 60 * 60 * 24 * 365 ) // one year!
+		  required any siteService
+		, required any logger
+		, required any threadUtil
 	) {
 		_setSiteService( arguments.siteService );
-		_setAdhocExecutorService( arguments.adhocExecutorService );
 		_setLogger( arguments.logger );
-		_setMaxTimeout( arguments.maxTaskTimeout );
+		_setThreadUtil( arguments.threadUtil );
+
 
 		return this;
 	}
@@ -158,13 +157,15 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public void function runTaskInThread( required string taskId ) {
-		var task = new AdhocTaskRunner(
-			  adhocTaskManagerService = this
-			, taskId                  = arguments.taskId
-			, errorLogService         = $getErrorLogService()
-		);
+		thread name="adhocTaskThread-#CreateUUId()#" taskId=arguments.taskId {
+			var tu   = _getThreadUtil();
+			var task = getTask( attributes.taskId );
 
-		_getAdhocExecutorService().execute( task );
+			tu.setThreadRequestDefaults();
+			tu.setThreadName( "Preside Adhoc task #task.event#: #arguments.taskId#" );
+
+			runTask( attributes.taskId );
+		}
 	}
 
 	/**
@@ -518,18 +519,10 @@ component displayName="Ad-hoc Task Manager Service" {
 		_logger = arguments.logger;
 	}
 
-	private numeric function _getMaxTimeout() {
-		return _maxTimeout;
+	private any function _getThreadUtil() {
+		return _threadUtil;
 	}
-	private void function _setMaxTimeout( required numeric maxTimeout ) {
-		_maxTimeout = arguments.maxTimeout;
+	private void function _setThreadUtil( required any threadUtil ) {
+		_threadUtil = arguments.threadUtil;
 	}
-
-	private any function _getAdhocExecutorService() {
-		return _presideExecutorService;
-	}
-	private void function _setAdhocExecutorService( required any presideExecutorService ) {
-		_presideExecutorService = arguments.presideExecutorService;
-	}
-
 }

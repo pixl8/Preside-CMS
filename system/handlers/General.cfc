@@ -1,21 +1,19 @@
 component {
-	property name="applicationReloadService"                        inject="applicationReloadService";
-	property name="databaseMigrationService"                        inject="databaseMigrationService";
-	property name="applicationsService"                             inject="applicationsService";
-	property name="websiteLoginService"                             inject="websiteLoginService";
-	property name="adminLoginService"                               inject="loginService";
-	property name="antiSamySettings"                                inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"                                 inject="delayedInjector:antiSamyService";
-	property name="expressionGenerator"                             inject="rulesEngineAutoPresideObjectExpressionGenerator";
-	property name="presideAdhocExecutorService"                     inject="presideAdhocExecutorService";
-	property name="presideScheduledTaskExecutorService"             inject="presideScheduledTaskExecutorService";
-	property name="presideTaskmanagerHeartBeatExecutorService"      inject="presideTaskmanagerHeartBeatExecutorService";
-	property name="PresideAdhocTaskmanagerHeartBeatExecutorService" inject="PresideAdhocTaskmanagerHeartBeatExecutorService";
+	property name="applicationReloadService"    inject="applicationReloadService";
+	property name="databaseMigrationService"    inject="databaseMigrationService";
+	property name="applicationsService"         inject="applicationsService";
+	property name="websiteLoginService"         inject="websiteLoginService";
+	property name="adminLoginService"           inject="loginService";
+	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
+	property name="expressionGenerator"         inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
+	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
-		_startThreadPools();
+		_startHeartbeats();
 		_performDbMigrations();
 		_configureVariousServices();
 		_populateDefaultLanguages();
@@ -205,10 +203,10 @@ component {
 		}
 	}
 
-	private void function _startThreadPools() {
-		presideScheduledTaskExecutorService.start();
-		presideAdhocExecutorService.start();
-		presideTaskmanagerHeartBeatExecutorService.start();
-		presideAdhocTaskmanagerHeartBeatExecutorService.start();
+	private void function _startHeartbeats() {
+		presideTaskmanagerHeartBeat.start();
+		presideAdhocTaskHeartBeat.start();
+
+		SessionRotate(); // If we have reloaded during admin session, this ensures session is detached from heartbeats
 	}
 }

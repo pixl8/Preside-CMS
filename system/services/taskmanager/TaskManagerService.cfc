@@ -10,15 +10,15 @@ component displayName="Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @configWrapper.inject                taskManagerConfigurationWrapper
-	 * @controller.inject                   coldbox
-	 * @taskDao.inject                      presidecms:object:taskmanager_task
-	 * @taskHistoryDao.inject               presidecms:object:taskmanager_task_history
-	 * @systemConfigurationService.inject   systemConfigurationService
-	 * @logger.inject                       logbox:logger:taskmanager
-	 * @errorLogService.inject              errorLogService
-	 * @siteService.inject                  siteService
-	 * @scheduledTaskExecutorService.inject presideScheduledTaskExecutorService
+	 * @configWrapper.inject               taskManagerConfigurationWrapper
+	 * @controller.inject                  coldbox
+	 * @taskDao.inject                     presidecms:object:taskmanager_task
+	 * @taskHistoryDao.inject              presidecms:object:taskmanager_task_history
+	 * @systemConfigurationService.inject  systemConfigurationService
+	 * @logger.inject                      logbox:logger:taskmanager
+	 * @errorLogService.inject             errorLogService
+	 * @siteService.inject                 siteService
+	 * @threadUtil.inject                  threadUtil
 	 *
 	 */
 	public any function init(
@@ -30,7 +30,7 @@ component displayName="Task Manager Service" {
 		, required any logger
 		, required any errorLogService
 		, required any siteService
-		, required any scheduledTaskExecutorService
+		, required any threadUtil
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
@@ -40,7 +40,7 @@ component displayName="Task Manager Service" {
 		_setLogger( arguments.logger );
 		_setErrorLogService( arguments.errorLogService );
 		_setSiteService( arguments.siteService );
-		_setScheduledTaskExecutorService( arguments.scheduledTaskExecutorService );
+		_setThreadUtil( arguments.threadUtil );
 		_setMachineId();
 
 		_initialiseDb();
@@ -225,15 +225,14 @@ component displayName="Task Manager Service" {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			var task = new ScheduledTaskRunner(
-				  argumentCollection = arguments
-				, threadId           = newThreadId
-				, logger             = logger
-				, taskManagerService = this
-				, errorLogService    = $getErrorLogService()
-			);
-
-			_getScheduledTaskExecutorService().execute( task );
+			thread name=newThreadId threadId=newThreadId logger=logger args=arguments.args taskKey=arguments.taskKey {
+				runTaskWithinThread(
+					  taskKey  = attributes.taskKey
+					, args     = attributes.args
+					, threadId = attributes.threadId
+					, logger   = attributes.logger
+				)
+			}
 		}
 	}
 
@@ -246,9 +245,11 @@ component displayName="Task Manager Service" {
 		var task       = getTask( arguments.taskKey );
 		var start      = getTickCount();
 		var success    = false;
-		var thisThread = CreateObject( "java", "java.lang.Thread" ).currentThread();
+		var tu         = _getThreadUtil();
 
-		markTaskAsStarted( arguments.threadId, thisThread );
+		tu.setThreadName( "Preside Scheduled Task: #taskKey#" );
+		tu.setThreadRequestDefaults();
+		markTaskAsStarted( arguments.threadId, tu.getCurrentThread() );
 
 		try {
 			$getRequestContext().setUseQueryCache( false );
@@ -833,18 +834,18 @@ component displayName="Task Manager Service" {
 		_taskScheduler = arguments.taskScheduler;
 	}
 
-	private any function _getScheduledTaskExecutorService() {
-		return _scheduledTaskExecutorService;
-	}
-	private void function _setScheduledTaskExecutorService( required any scheduledTaskExecutorService ) {
-		_scheduledTaskExecutorService = arguments.scheduledTaskExecutorService;
-	}
-
 	private struct function _getRunningTasks() {
 		return _runningTasks;
 	}
 	private void function _setRunningTasks( required struct runningTasks ) {
 		_runningTasks = arguments.runningTasks;
+	}
+
+	private any function _getThreadUtil() {
+		return _threadUtil;
+	}
+	private void function _setThreadUtil( required any threadUtil ) {
+		_threadUtil = arguments.threadUtil;
 	}
 
 }

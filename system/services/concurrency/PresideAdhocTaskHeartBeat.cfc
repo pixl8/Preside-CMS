@@ -1,31 +1,31 @@
 /**
  * @presideService true
  * @singleton      true
+ *
  */
-component {
+component extends="AbstractHeartBeat" {
 
-// CONSTRUCTOR
 	/**
-	 * @adhoctaskmanagerService.inject adhocTaskManagerService
-	 * @errorLogService.inject         errorLogService
+	 * @adhocTaskmanagerService.inject adhocTaskmanagerService
 	 *
 	 */
-	public any function init(
-		  required any adhocTaskmanagerService
-		, required any errorLogService
-	) {
+	public function init( required any adhocTaskmanagerService ){
+		super.init(
+			  threadName   = "Preside Adhoc Task Heartbeat"
+			, intervalInMs = 1000
+		);
+
 		_setAdhocTaskmanagerService( arguments.adhocTaskmanagerService );
-		_setErrorLogService( arguments.errorLogService );
 
 		return this;
 	}
 
-// PUBLIC API METHODS
+	// PUBLIC API METHODS
 	public void function run() {
 		try {
 			_getAdhocTaskmanagerService().runScheduledTasks();
 		} catch( any e ) {
-			_getErrorLogService().raiseError( e );
+			$raiseError( e );
 		}
 	}
 
@@ -35,12 +35,5 @@ component {
 	}
 	private void function _setAdhocTaskmanagerService( required any adhocTaskmanagerService ) {
 		_taskmanagerService = arguments.adhocTaskmanagerService;
-	}
-
-	private any function _getErrorLogService() {
-		return _errorLogService;
-	}
-	private void function _setErrorLogService( required any errorLogService ) {
-		_errorLogService = arguments.errorLogService;
 	}
 }
