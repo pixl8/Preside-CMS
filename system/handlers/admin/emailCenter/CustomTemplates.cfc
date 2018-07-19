@@ -117,6 +117,30 @@ component extends="preside.system.base.AdminHandler" {
 		event.setLayout( "adminModalDialog" );
 	}
 
+	function sendTestModalForm( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=false );
+
+		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+
+		prc.savedData = {
+			  send_to   = event.getAdminUserDetails().email_address
+			, recipient = rc.previewRecipient ?: ""
+		};
+
+		prc.formAction = event.buildAdminLink( linkto="emailcenter.customtemplates.sendTest", queryString="id=" & rc.id );
+		prc.formName = formsService.createForm( basedOn="email.test.send.test", generator=function( formDefinition ){
+			formDefinition.modifyField(
+				  name     = "recipient"
+				, fieldset = "default"
+				, tab      = "default"
+				, object   = filterObject
+			);
+		} );
+
+
+		event.setLayout( "adminModalDialog" );
+	}
+
 	function edit( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
 		_getTemplate( argumentCollection=arguments, allowDrafts=true );

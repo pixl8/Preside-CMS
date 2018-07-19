@@ -1,11 +1,15 @@
 <cfscript>
-	recordId         = rc.id      ?: "";
-	version          = rc.version ?: "";
-	preview          = prc.preview  ?: {};
-	previewRecipient = prc.previewRecipientName ?: "";
+	recordId             = rc.id                    ?: "";
+	version              = rc.version               ?: "";
+	preview              = prc.preview              ?: {};
+	previewRecipient     = rc.previewRecipient      ?: "";
+	previewRecipientName = prc.previewRecipientName ?: "";
 
 	previewRecipientPickerLink  = event.buildAdminLink( linkto="emailcenter.customTemplates.previewRecipientPicker", queryString="id=#rc.id#" );
 	previewRecipientPickerTitle = translateResource( "cms:emailcenter.customTemplates.preview.choose.recipient.modal.title" );
+
+	sendTestFormLink   = event.buildAdminLink( linkto="emailcenter.customTemplates.sendTestModalForm", queryString="id=#rc.id#&previewRecipient=#previewRecipient#" );
+	sendTestModalTitle = translateResource( "cms:emailcenter.customTemplates.preview.send.test.modal.title" );
 
 	event.include( "/js/admin/specific/htmliframepreview/" );
 	event.include( "/css/admin/specific/htmliframepreview/" );
@@ -27,8 +31,8 @@
 
 			<p>
 				<i class="fa fa-fw fa-info-circle fa-lg"></i>
-				<cfif Len( Trim( previewRecipient ) )>
-					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ "<strong>" & previewRecipient & "</strong>" ] )#
+				<cfif Len( Trim( previewRecipientName ) )>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ "<strong>" & previewRecipientName & "</strong>" ] )#
 				<cfelse>
 					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint")#
 				</cfif>
@@ -43,6 +47,12 @@
 					<i class="fa fa-fw fa-user"></i>
 
 					#translateResource( uri="cms:emailcenter.customTemplates.preview.choose.recipient.btn")#
+				</a>
+
+				<a class="btn btn-warning send-test-email-link" href="#sendTestFormLink#" title="#sendTestModalTitle#">
+					<i class="fa fa-fw fa-paper-plane"></i>
+
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.send.test.btn")#
 				</a>
 			</p>
 		</div>
