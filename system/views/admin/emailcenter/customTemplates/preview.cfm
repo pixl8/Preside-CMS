@@ -28,7 +28,7 @@
 			<p>
 				<i class="fa fa-fw fa-info-circle fa-lg"></i>
 				<cfif Len( Trim( previewRecipient ) )>
-					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ previewRecipient ] )#
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ "<strong>" & previewRecipient & "</strong>" ] )#
 				<cfelse>
 					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint")#
 				</cfif>
