@@ -83,17 +83,38 @@ component extends="preside.system.base.AdminHandler" {
 	function preview( event, rc, prc ) {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true )
 
-		var id      = rc.id ?: "";
-		var version = Val( rc.version ?: "" );
+		var id               = rc.id ?: "";
+		var version          = Val( rc.version ?: "" );
+		var previewRecipient = rc.previewRecipient ?: "";
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.preview.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.preview.page.subtitle", data=[ prc.record.name ] );
-		prc.preview      = emailTemplateService.previewTemplate( template=id, allowDrafts=true, version=version );
+		prc.preview      = emailTemplateService.previewTemplate(
+			  template         = id
+			, allowDrafts      = true
+			, version          = version
+			, previewRecipient = previewRecipient
+		);
+
+		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+
+		if ( Len( Trim( previewRecipient ) ) ){
+			prc.previewRecipientName = renderLabel( prc.filterObject, previewRecipient );
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.preview.page.breadcrumb", data=[ prc.record.name ] )
 			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#id#" )
 		);
+	}
+
+	function previewRecipientPicker( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=false );
+
+		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+		prc.gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
+
+		event.setLayout( "adminModalDialog" );
 	}
 
 	function edit( event, rc, prc ) {
@@ -425,6 +446,13 @@ component extends="preside.system.base.AdminHandler" {
 		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId );
 		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
+		var addPreviewLink = IsTrue( rc.addPreviewLink ?: "" );
+
+		if ( addPreviewLink ) {
+			var actionsView = "admin.emailCenter.customTemplates._selectPreviewUserLink";
+		} else {
+			var actionsView = "admin.emailCenter.customTemplates._noActions";
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -433,7 +461,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object        = filterObject
 				, gridFields    = gridFields.toList()
-				, actionsView   = "admin.emailCenter.customTemplates._noActions"
+				, actionsView   = actionsView
 				, draftsEnabled = false
 				, extraFilters  = extraFilters
 			}

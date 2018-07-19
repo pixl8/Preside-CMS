@@ -1,10 +1,15 @@
 <cfscript>
-	recordId = rc.id      ?: "";
-	version  = rc.version ?: "";
-	preview  = prc.preview  ?: {};
+	recordId         = rc.id      ?: "";
+	version          = rc.version ?: "";
+	preview          = prc.preview  ?: {};
+	previewRecipient = prc.previewRecipientName ?: "";
+
+	previewRecipientPickerLink  = event.buildAdminLink( linkto="emailcenter.customTemplates.previewRecipientPicker", queryString="id=#rc.id#" );
+	previewRecipientPickerTitle = translateResource( "cms:emailcenter.customTemplates.preview.choose.recipient.modal.title" );
 
 	event.include( "/js/admin/specific/htmliframepreview/" );
 	event.include( "/css/admin/specific/htmliframepreview/" );
+	event.include( "/js/admin/specific/emailcenter/customtemplates/preview/" );
 </cfscript>
 
 <cfsavecontent variable="body">
@@ -17,6 +22,30 @@
 			, baseUrl        = event.buildAdminLink( linkto="emailCenter.customTemplates.preview", queryString="id=#recordId#&version={version}" )
 			, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.customTemplates.versionHistory", queryString="id=#recordId#" )
 		} )#
+
+		<div class="alert alert-info">
+
+			<p>
+				<i class="fa fa-fw fa-info-circle fa-lg"></i>
+				<cfif Len( Trim( previewRecipient ) )>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ previewRecipient ] )#
+				<cfelse>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint")#
+				</cfif>
+				<br>
+				<br>
+			</p>
+
+			<p>
+				<i class="fa fa-fw fa-lg"></i> <!--- alignment icon --->
+
+				<a class="btn btn-info preview-recipient-picker-link" href="#previewRecipientPickerLink#" title="#previewRecipientPickerTitle#">
+					<i class="fa fa-fw fa-user"></i>
+
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.choose.recipient.btn")#
+				</a>
+			</p>
+		</div>
 
 		<h4 class="blue lighter">#translateResource( uri="cms:emailcenter.systemTemplates.template.preview.subject", data=[ preview.subject ] )#</h4>
 
