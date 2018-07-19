@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="emailRecipientTypeService"  inject="emailRecipientTypeService";
 	property name="emailLayoutService"         inject="emailLayoutService";
 	property name="emailMassSendingService"    inject="emailMassSendingService";
+	property name="emailService"               inject="emailService";
 	property name="formsService"               inject="formsService";
 	property name="dao"                        inject="presidecms:object:email_template";
 	property name="blueprintDao"               inject="presidecms:object:email_blueprint";
@@ -127,7 +128,7 @@ component extends="preside.system.base.AdminHandler" {
 			, recipient = rc.previewRecipient ?: ""
 		};
 
-		prc.formAction = event.buildAdminLink( linkto="emailcenter.customtemplates.sendTest", queryString="id=" & rc.id );
+		prc.formAction = event.buildAdminLink( linkto="emailcenter.customtemplates.sendTestAction", queryString="id=" & rc.id );
 		prc.formName = formsService.createForm( basedOn="email.test.send.test", generator=function( formDefinition ){
 			formDefinition.modifyField(
 				  name     = "recipient"
@@ -140,6 +141,23 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.setLayout( "adminModalDialog" );
 	}
+
+	public void function sendTestAction( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments );
+
+		var templateId = rc.id ?: "";
+
+		emailService.send(
+			  template    = templateId
+			, recipientId = rc.recipient
+			, to          = [ rc.send_to ]
+		);
+
+		messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.test.success", data=[ rc.send_to ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#&previewRecipient=#rc.recipient#" ) );
+	}
+
+
 
 	function edit( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
