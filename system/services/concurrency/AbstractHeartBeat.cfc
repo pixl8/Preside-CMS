@@ -39,10 +39,7 @@ component {
 	}
 
 	public void function interrupt() {
-		var rt = _getRunningThread();
-		if ( !IsNull( rt ) ) {
-			rt.interrupt();
-		}
+		_getThreadUtil().interrupt();
 	}
 
 	public void function register() {

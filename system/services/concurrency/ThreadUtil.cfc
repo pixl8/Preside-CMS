@@ -15,6 +15,12 @@ component {
 		setting enablecfoutputonly=true showdebugoutput=false requesttimeout=oneHundredYears;
 	}
 
+	public void function interrupt() {
+		if ( !isInterrupted() ) {
+			getCurrentThread().interrupt();
+		}
+	}
+
 	public boolean function isInterrupted() {
 		return jvmThread.isInterrupted();
 	}
