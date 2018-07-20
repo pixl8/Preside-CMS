@@ -57,7 +57,9 @@
 			</p>
 		</div>
 
-		<h4 class="blue lighter">#translateResource( uri="cms:emailcenter.systemTemplates.template.preview.subject", data=[ preview.subject ] )#</h4>
+		<div class="page-header">
+			<h4 class="blue">#translateResource( uri="cms:emailcenter.systemTemplates.template.preview.subject", data=[ preview.subject ] )#</h4>
+		</div>
 
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">
