@@ -175,21 +175,44 @@ component {
 	 * Prepares an email message ready for preview (returns a struct with
 	 * subject, htmlBody + textBody keys)
 	 *
-	 * @autodoc          true
-	 * @template.hint    The ID of the template to send
-	 * @allowDrafts.hint Whether or not to allow draft versions of the template
-	 * @version.hint     A specific version number to preview (default is latest)
+	 * @autodoc               true
+	 * @template.hint         The ID of the template to send
+	 * @allowDrafts.hint      Whether or not to allow draft versions of the template
+	 * @version.hint          A specific version number to preview (default is latest)
+	 * @previewRecipient.hint Optional ID of a recipient whose preview parameters we will fetch and whose context data to use when rendering the email content
 	 */
-	public struct function previewTemplate( required string template, boolean allowDrafts=false, numeric version=0 ) {
+	public struct function previewTemplate(
+		  required string  template
+		,          boolean allowDrafts      = false
+		,          numeric version          = 0
+		,          string  previewRecipient = ""
+	) {
 		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.allowDrafts, version=arguments.version );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
 		}
-		var params = getPreviewParameters(
-			  template      = arguments.template
-			, recipientType = messageTemplate.recipient_type
-		);
+
+		if ( Len( Trim( arguments.previewRecipient ) ) ) {
+			_getEmailSendingContextService().setContext(
+				  recipientType = messageTemplate.recipient_type ?: ""
+				, recipientId   = arguments.previewRecipient
+				, templateId    = arguments.template
+				, template      = messageTemplate
+			);
+
+			var params = prepareParameters(
+				  template      = arguments.template
+				, recipientType = messageTemplate.recipient_type
+				, recipientId   = arguments.previewRecipient
+				, args          = {}
+			);
+		} else {
+			var params = getPreviewParameters(
+				  template      = arguments.template
+				, recipientType = messageTemplate.recipient_type
+			);
+		}
 
 		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
 		var body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
@@ -229,6 +252,10 @@ component {
 		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
 		message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
 		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
+
+		if ( Len( Trim( previewRecipient ) ) ) {
+			_getEmailSendingContextService().clearContext();
+		}
 
 		return message;
 	}

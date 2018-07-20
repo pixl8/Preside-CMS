@@ -1,10 +1,19 @@
 <cfscript>
-	recordId = rc.id      ?: "";
-	version  = rc.version ?: "";
-	preview  = prc.preview  ?: {};
+	recordId             = rc.id                    ?: "";
+	version              = rc.version               ?: "";
+	preview              = prc.preview              ?: {};
+	previewRecipient     = rc.previewRecipient      ?: "";
+	previewRecipientName = prc.previewRecipientName ?: "";
+
+	previewRecipientPickerLink  = event.buildAdminLink( linkto="emailcenter.customTemplates.previewRecipientPicker", queryString="id=#rc.id#" );
+	previewRecipientPickerTitle = translateResource( "cms:emailcenter.customTemplates.preview.choose.recipient.modal.title" );
+
+	sendTestFormLink   = event.buildAdminLink( linkto="emailcenter.customTemplates.sendTestModalForm", queryString="id=#rc.id#&previewRecipient=#previewRecipient#" );
+	sendTestModalTitle = translateResource( "cms:emailcenter.customTemplates.preview.send.test.modal.title" );
 
 	event.include( "/js/admin/specific/htmliframepreview/" );
 	event.include( "/css/admin/specific/htmliframepreview/" );
+	event.include( "/js/admin/specific/emailcenter/customtemplates/preview/" );
 </cfscript>
 
 <cfsavecontent variable="body">
@@ -17,6 +26,36 @@
 			, baseUrl        = event.buildAdminLink( linkto="emailCenter.customTemplates.preview", queryString="id=#recordId#&version={version}" )
 			, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.customTemplates.versionHistory", queryString="id=#recordId#" )
 		} )#
+
+		<div class="alert alert-info">
+
+			<p>
+				<i class="fa fa-fw fa-info-circle fa-lg"></i>
+				<cfif Len( Trim( previewRecipientName ) )>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ "<strong>" & previewRecipientName & "</strong>" ] )#
+				<cfelse>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint")#
+				</cfif>
+				<br>
+				<br>
+			</p>
+
+			<p>
+				<i class="fa fa-fw fa-lg"></i> <!--- alignment icon --->
+
+				<a class="btn btn-info preview-recipient-picker-link" href="#previewRecipientPickerLink#" title="#previewRecipientPickerTitle#">
+					<i class="fa fa-fw fa-user"></i>
+
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.choose.recipient.btn")#
+				</a>
+
+				<a class="btn btn-warning send-test-email-link" href="#sendTestFormLink#" title="#sendTestModalTitle#">
+					<i class="fa fa-fw fa-paper-plane"></i>
+
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.send.test.btn")#
+				</a>
+			</p>
+		</div>
 
 		<h4 class="blue lighter">#translateResource( uri="cms:emailcenter.systemTemplates.template.preview.subject", data=[ preview.subject ] )#</h4>
 

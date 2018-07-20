@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="emailRecipientTypeService"  inject="emailRecipientTypeService";
 	property name="emailLayoutService"         inject="emailLayoutService";
 	property name="emailMassSendingService"    inject="emailMassSendingService";
+	property name="emailService"               inject="emailService";
 	property name="formsService"               inject="formsService";
 	property name="dao"                        inject="presidecms:object:email_template";
 	property name="blueprintDao"               inject="presidecms:object:email_blueprint";
@@ -83,18 +84,82 @@ component extends="preside.system.base.AdminHandler" {
 	function preview( event, rc, prc ) {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true )
 
-		var id      = rc.id ?: "";
-		var version = Val( rc.version ?: "" );
+		var id               = rc.id ?: "";
+		var version          = Val( rc.version ?: "" );
+		var previewRecipient = rc.previewRecipient ?: "";
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.preview.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.preview.page.subtitle", data=[ prc.record.name ] );
-		prc.preview      = emailTemplateService.previewTemplate( template=id, allowDrafts=true, version=version );
+		prc.preview      = emailTemplateService.previewTemplate(
+			  template         = id
+			, allowDrafts      = true
+			, version          = version
+			, previewRecipient = previewRecipient
+		);
+
+		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+
+		if ( Len( Trim( previewRecipient ) ) ){
+			prc.previewRecipientName = renderLabel( prc.filterObject, previewRecipient );
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.preview.page.breadcrumb", data=[ prc.record.name ] )
 			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#id#" )
 		);
 	}
+
+	function previewRecipientPicker( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=false );
+
+		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+		prc.gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
+
+		event.setLayout( "adminModalDialog" );
+	}
+
+	function sendTestModalForm( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=false );
+
+		prc.savedData = {
+			  send_to   = event.getAdminUserDetails().email_address
+			, recipient = rc.previewRecipient ?: ""
+		};
+
+		prc.formAction = event.buildAdminLink( linkto="emailcenter.customtemplates.sendTestAction", queryString="id=" & rc.id );
+		prc.formName = _getTestSendFormName( argumentCollection=arguments );
+
+
+		event.setLayout( "adminModalDialog" );
+	}
+
+	public void function sendTestAction( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments );
+
+		var formName         = _getTestSendFormName( argumentCollection=arguments );
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+		var templateId       = rc.id ?: "";
+
+		if ( validationResult.validated() ) {
+			var sendTo    = ListToArray( formData.send_to ?: "", ",;#Chr(10)##Chr(13)#" );
+			var recipient = formData.recipient ?: "";
+
+			emailService.send(
+				  template    = templateId
+				, recipientId = recipient
+				, to          = sendTo
+			);
+
+			messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.test.success", data=[ rc.send_to ] ) );
+		} else {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.send.test.validation.failure" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#&previewRecipient=#rc.recipient#" ) );
+	}
+
+
 
 	function edit( event, rc, prc ) {
 		_checkPermissions( event=event, key="edit" );
@@ -425,6 +490,13 @@ component extends="preside.system.base.AdminHandler" {
 		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId );
 		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
+		var addPreviewLink = IsTrue( rc.addPreviewLink ?: "" );
+
+		if ( addPreviewLink ) {
+			var actionsView = "admin.emailCenter.customTemplates._selectPreviewUserLink";
+		} else {
+			var actionsView = "admin.emailCenter.customTemplates._noActions";
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -433,7 +505,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object        = filterObject
 				, gridFields    = gridFields.toList()
-				, actionsView   = "admin.emailCenter.customTemplates._noActions"
+				, actionsView   = actionsView
 				, draftsEnabled = false
 				, extraFilters  = extraFilters
 			}
@@ -512,6 +584,19 @@ component extends="preside.system.base.AdminHandler" {
 			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
 		}
+	}
+
+	private string function _getTestSendFormName( event, rc, prc ) {
+		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+
+		return formsService.createForm( basedOn="email.test.send.test", generator=function( formDefinition ){
+			formDefinition.modifyField(
+				  name     = "recipient"
+				, fieldset = "default"
+				, tab      = "default"
+				, object   = filterObject
+			);
+		} )
 	}
 
 }
