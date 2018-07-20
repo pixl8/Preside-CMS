@@ -39,7 +39,7 @@ component {
 	}
 
 	public void function interrupt() {
-		_getThreadUtil().interrupt();
+		_getThreadUtil().interrupt( _getRunningThread() );
 	}
 
 	public void function register() {
