@@ -24,6 +24,7 @@ component {
 			do {
 				sleep( _getIntervalInMs() );
 				run();
+				content reset=true;
 			} while( !_isStopped() );
 		}
 	}
@@ -38,10 +39,7 @@ component {
 	}
 
 	public void function interrupt() {
-		var rt = _getRunningThread();
-		if ( !IsNull( rt ) ) {
-			rt.interrupt();
-		}
+		_getThreadUtil().interrupt();
 	}
 
 	public void function register() {
@@ -100,7 +98,7 @@ component {
 	}
 
 	private boolean function _isStopped() {
-		return _stopped;
+		return _stopped || _getThreadUtil().isInterrupted();
 	}
 	private void function _setStopped( required boolean stopped ) {
 		_stopped = arguments.stopped;
