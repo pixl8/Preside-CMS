@@ -121,22 +121,13 @@ component extends="preside.system.base.AdminHandler" {
 	function sendTestModalForm( event, rc, prc ) {
 		_getTemplate( argumentCollection=arguments, allowDrafts=false );
 
-		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
-
 		prc.savedData = {
 			  send_to   = event.getAdminUserDetails().email_address
 			, recipient = rc.previewRecipient ?: ""
 		};
 
 		prc.formAction = event.buildAdminLink( linkto="emailcenter.customtemplates.sendTestAction", queryString="id=" & rc.id );
-		prc.formName = formsService.createForm( basedOn="email.test.send.test", generator=function( formDefinition ){
-			formDefinition.modifyField(
-				  name     = "recipient"
-				, fieldset = "default"
-				, tab      = "default"
-				, object   = filterObject
-			);
-		} );
+		prc.formName = _getTestSendFormName( argumentCollection=arguments );
 
 
 		event.setLayout( "adminModalDialog" );
@@ -145,15 +136,26 @@ component extends="preside.system.base.AdminHandler" {
 	public void function sendTestAction( event, rc, prc ) {
 		_getTemplate( argumentCollection=arguments );
 
-		var templateId = rc.id ?: "";
+		var formName         = _getTestSendFormName( argumentCollection=arguments );
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+		var templateId       = rc.id ?: "";
 
-		emailService.send(
-			  template    = templateId
-			, recipientId = rc.recipient
-			, to          = [ rc.send_to ]
-		);
+		if ( validationResult.validated() ) {
+			var sendTo    = ListToArray( formData.send_to ?: "", ",;#Chr(10)##Chr(13)#" );
+			var recipient = formData.recipient ?: "";
 
-		messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.test.success", data=[ rc.send_to ] ) );
+			emailService.send(
+				  template    = templateId
+				, recipientId = recipient
+				, to          = sendTo
+			);
+
+			messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.test.success", data=[ rc.send_to ] ) );
+		} else {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.send.test.validation.failure" ) );
+		}
+
 		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#&previewRecipient=#rc.recipient#" ) );
 	}
 
@@ -582,6 +584,19 @@ component extends="preside.system.base.AdminHandler" {
 			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
 		}
+	}
+
+	private string function _getTestSendFormName( event, rc, prc ) {
+		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+
+		return formsService.createForm( basedOn="email.test.send.test", generator=function( formDefinition ){
+			formDefinition.modifyField(
+				  name     = "recipient"
+				, fieldset = "default"
+				, tab      = "default"
+				, object   = filterObject
+			);
+		} )
 	}
 
 }
