@@ -904,6 +904,57 @@ component {
 	}
 
 	/**
+	 * Returns link click stats for a given template
+	 *
+	 * @autodoc    true
+	 * @templateId Id of the template for which to get the count. If not provided, the number of queued emails will be for all templates.
+	 * @dateFrom   Optional date from which to fetch link clicking stats
+	 * @dateTo     Optional date to which to fetch link clicking stats
+	 */
+	public array function getLinkClickStats(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [{
+			filter = { "send_logs$activities.activity_type"="click" }
+		}];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+
+		var clickStats    = [];
+		var rawClickStats = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.extra_data as link" ]
+			, extraFilters = extraFilters
+			, autoGroupBy  = true
+			, orderBy      = "click_count desc"
+		);
+
+		for( var link in rawClickStats ) {
+			try {
+				clickStats.append( {
+					  link       = DeserializeJson( link.link ).link
+					, clickCount = link.click_count
+				} );
+			} catch( any e ){}
+		}
+
+		return clickStats;
+	}
+
+	/**
 	 * Returns a query of queued email counts grouped by email template
 	 *
 	 * @autodoc    true
