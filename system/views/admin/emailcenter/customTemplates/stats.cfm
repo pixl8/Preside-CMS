@@ -3,5 +3,12 @@
 	showClicks = IsTrue( prc.showClicks ?: "" );
 </cfscript>
 <cfoutput>
-	#renderViewlet( event="admin.emailcenter.customtemplates._customTemplateTabs", args={ body="TODO", tab="stats" } )#
+	<cfsavecontent variable="body">
+		#renderViewlet(
+			  event = "admin.emailcenter.templateStatsSummary"
+			, args  = { templateId=templateId }
+		)#
+	</cfsavecontent>
+
+	#renderViewlet( event="admin.emailcenter.customtemplates._customTemplateTabs", args={ body=body, tab="stats" } )#
 </cfoutput>

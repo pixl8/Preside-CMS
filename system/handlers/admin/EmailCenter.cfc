@@ -28,4 +28,12 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/emailcenter/_emailParamsHelper", args=args );
 	}
 
+	private string function templateStatsSummary( event, rc, prc, args={} ) {
+		args.stats = emailTemplateService.getStats(
+			  templateId = args.templateId ?: ""
+		);
+
+		return renderView( view="/admin/emailcenter/_templateStatsSummary", args=args );
+	}
+
 }
