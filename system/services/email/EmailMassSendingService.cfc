@@ -49,7 +49,7 @@ component {
 	 *
 	 * @autodoc true
 	 */
-	public boolean function processQueue() {
+	public void function processQueue() {
 		var rateLimit      = Val( $getPresideSetting( "email", "ratelimit", 100 ) );
 		var processedCount = 0;
 		var queuedEmail    = "";
@@ -63,22 +63,18 @@ component {
 			}
 
 			try {
-				var result = emailService.send(
+				emailService.send(
 					  template    = queuedEmail.template
 					, recipientId = queuedEmail.recipient
 				);
+
+				removeFromQueue( queuedEmail.id );
 			} catch ( Any e ) {
-				if ( e.type contains "EmailService.missing" ) {
-					result = false;
-				} else {
-					rethrow;
-				}
+				$raiseError( e );
 			}
 
-			removeFromQueue( queuedEmail.id );
 		} while( ++processedCount < rateLimit );
 
-		return true;
 	}
 
 	/**

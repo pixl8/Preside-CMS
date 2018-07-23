@@ -33,7 +33,6 @@ component extends="AbstractHeartBeat" {
 			}
 			_getEmailMassSendingService().processQueue();
 		} catch( any e ) {
-			systemOutput( e );
 			$raiseError( e );
 		}
 	}
