@@ -48,8 +48,16 @@
 	}
 
 	tabs.append({
+		  id     = "stats"
+		, icon   = "fa-line-chart purple"
+		, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.stats" )
+		, active = ( args.tab == "stats" )
+		, link   = ( args.tab == "stats" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.stats", queryString="id=#templateId#" )
+	});
+
+	tabs.append({
 		  id     = "log"
-		, icon   = "fa-list-alt light-grey"
+		, icon   = "fa-list-alt yellow"
 		, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.log" )
 		, active = ( args.tab == "log" )
 		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.logs", queryString="id=#templateId#" )
