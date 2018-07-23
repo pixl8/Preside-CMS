@@ -441,6 +441,21 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function stats( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+
+		var id = rc.id ?: "";
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.stats.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.stats.page.subtitle", data=[ prc.record.name ] );
+		prc.showClicks   = IsTrue( prc.template.track_clicks ?: "" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.stats.page.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.stats", queryString="id=#id#" )
+		);
+	}
+
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
