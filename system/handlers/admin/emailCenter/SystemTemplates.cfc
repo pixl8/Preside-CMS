@@ -263,7 +263,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.canEdit            = canSaveDraft || canPublish;
 		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.systemtemplates.configureLayout" );
-		args.stats              = renderViewlet( event="admin.emailCenter.templateStatsSummary", args={ templateId=template.id } );
 
 		return renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args=args );
 	}
