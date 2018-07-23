@@ -268,9 +268,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "recipient", "template" ]
-					, orderBy      = "id"
+					, orderBy      = "datecreated"
+					, filter       = "status is null or status = :status"
+					, filterParams = { status="queued" }
 					, maxRows      = 1
 				).$results( dummyRecord );
+				mockQueueDao.$( "updateData", 1 )
 
 				expect( service.getNextQueuedEmail() ).toBe( { id=id, recipient=recipientId, template=templateId } );
 			} );
@@ -281,11 +284,42 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "recipient", "template" ]
-					, orderBy      = "id"
+					, orderBy      = "datecreated"
+					, filter       = "status is null or status = :status"
+					, filterParams = { status="queued" }
 					, maxRows      = 1
 				).$results( dummyRecord );
 
 				expect( service.getNextQueuedEmail() ).toBe( {} );
+			} );
+
+			it( "should update the status of the queued email to ensure no other processes attempt to process the same email", function(){
+				var service     = _getService();
+				var id          = 49;
+				var recipientId = CreateUUId();
+				var templateId  = CreateUUId()
+				var dummyRecord = QueryNew( "id,recipient,template", "int,varchar,varchar", [ [ id, recipientId, templateId ] ] );
+
+				mockQueueDao.$( "selectData" ).$args(
+					  selectFields = [ "id", "recipient", "template" ]
+					, orderBy      = "datecreated"
+					, filter       = "status is null or status = :status"
+					, filterParams = { status="queued" }
+					, maxRows      = 1
+				).$results( dummyRecord );
+				mockQueueDao.$( "updateData", 1 )
+
+				expect( service.getNextQueuedEmail() ).toBe( { id=id, recipient=recipientId, template=templateId } );
+
+				var updateCallLog = mockQueueDao.$callLog().updateData;
+
+				expect( updateCallLog.len()  ).toBe( 1 );
+				expect( updateCallLog[ 1 ]  ).toBe( {
+					  filter       = "id = :id and ( status is null or status = :status )"
+					, filterParams = { id=id, status="queued" }
+					, data         = { status = "sending" }
+				} );
+
 			} );
 		} );
 
