@@ -49,26 +49,18 @@ component {
 	 *
 	 * @autodoc true
 	 */
-	public boolean function processQueue( any logger ) {
-		autoQueueScheduledSendouts( logger ?: NullValue() )
-
+	public boolean function processQueue() {
 		var rateLimit      = Val( $getPresideSetting( "email", "ratelimit", 100 ) );
 		var processedCount = 0;
 		var queuedEmail    = "";
 		var emailService   = _getEmailService();
-		var canLog         = arguments.keyExists( "logger" );
-		var canInfo        = canLog && logger.canInfo();
-		var canError       = canLog && logger.canError();
 
 		do {
 			queuedEmail = getNextQueuedEmail();
 
 			if ( !queuedEmail.count() ) {
-				if ( canInfo ) { logger.info( "The batch sending queue is empty!" ); }
 				break;
 			}
-
-			if ( canInfo ) { logger.info( "Sending email template, [#queuedEmail.template#], to recipient, [#queuedEmail.recipient#]" ); }
 
 			try {
 				var result = emailService.send(
@@ -83,14 +75,8 @@ component {
 				}
 			}
 
-			if ( !result && canError ) {
-				logger.error( "Sending failed. See email sending logs and error logs for detail." );
-			}
-
 			removeFromQueue( queuedEmail.id );
 		} while( ++processedCount < rateLimit );
-
-		if ( canInfo ) { logger.info( "Done. Processed [#NumberFormat( processedCount )#] queued emails." ); }
 
 		return true;
 	}
@@ -211,22 +197,11 @@ component {
 	 *
 	 * @autodoc true
 	 */
-	public numeric function autoQueueScheduledSendouts( any logger ) {
+	public numeric function autoQueueScheduledSendouts() {
 		var templateService   = _getEmailTemplateService();
 		var oneTimeTemplates  = templateService.listDueOneTimeScheduleTemplates();
 		var repeatedTemplates = templateService.listDueRepeatedScheduleTemplates();
 		var totalQueued       = 0;
-		var canLog            = arguments.keyExists( "logger" );
-		var canInfo           = canLog && logger.canInfo();
-
-		if ( canInfo ) {
-			if ( oneTimeTemplates.len() ) {
-				logger.info( "Queueing [#oneTimeTemplates.len()#] one time scheduled email template(s) for sending..." );
-			}
-			if ( repeatedTemplates.len() ) {
-				logger.info( "Queueing [#repeatedTemplates.len()#] repeat scheduled email template(s) for sending..." );
-			}
-		}
 
 		for( var oneTimeTemplate in oneTimeTemplates ){
 			totalQueued += queueSendout( oneTimeTemplate );
@@ -236,10 +211,6 @@ component {
 		for( var repeatedTemplate in repeatedTemplates ){
 			totalQueued += queueSendout( repeatedTemplate );
 			templateService.updateScheduledSendFields( templateId=repeatedTemplate );
-		}
-
-		if ( canInfo && ( oneTimeTemplates.len() + repeatedTemplates.len() ) ) {
-			logger.info( "[#NumberFormat( totalQueued )#] emails were queued to send" );
 		}
 
 		return totalQueued;

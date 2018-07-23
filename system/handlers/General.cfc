@@ -9,6 +9,7 @@ component {
 	property name="expressionGenerator"         inject="rulesEngineAutoPresideObjectExpressionGenerator";
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
+	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -206,5 +207,9 @@ component {
 	private void function _startHeartbeats() {
 		presideTaskmanagerHeartBeat.startInNewRequest();
 		presideAdhocTaskHeartBeat.startInNewRequest();
+
+		for( var i=1; i<=emailQueueConcurrency; i++ ) {
+			getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
+		}
 	}
 }

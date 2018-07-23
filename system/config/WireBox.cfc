@@ -68,6 +68,17 @@
 
 		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
 		map( "presideRenderer" ).asSingleton().to( "preside.system.coldboxModifications.services.Renderer" );
+
+		var emailQueueConcurrency = Val( settings.email.queueConcurrency ?: 1 );
+
+		for( var i=1; i <= emailQueueConcurrency; i++ ) {
+			map( "PresideEmailQueueHeartBeat#i#" )
+			    .asSingleton()
+			    .to( "preside.system.services.concurrency.PresideEmailQueueHeartBeat" )
+			    .initArg( name="instanceNumber", value=i )
+			    .virtualInheritance( "presideSuperClass" );
+		}
+
 	}
 
 	private void function _loadExtensionConfigurations() {

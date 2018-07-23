@@ -744,6 +744,7 @@ component {
 			, recipientTypes       = recipientTypes
 			, serviceProviders     = serviceProviders
 			, defaultContentExpiry = 30
+			, queueConcurrency     = 1
 		};
 	}
 
