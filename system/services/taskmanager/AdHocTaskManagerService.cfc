@@ -144,7 +144,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			var nextTask = getNextScheduledTaskToRun();
 
 			if ( !IsNull( nextTask ) ) {
-				runTaskInThread( nextTask.id );
+				_runTaskInNewRequest( nextTask.id );
 			}
 		} while( !IsNull( nextTask ) );
 	}
@@ -502,6 +502,15 @@ component displayName="Ad-hoc Task Manager Service" {
 		var secondsInADay = 86400;
 
 		return Round( Val( arguments.input ) * secondsInADay );
+	}
+
+	private void function _runTaskInNewRequest( required string taskId ) {
+		var event         = $getRequestContext();
+		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.adhocTask" );
+
+		http url=taskRunnerUrl method="post" timeout=2 throwonerror=true {
+			httpparam name="taskId" value=arguments.taskId type="formfield";
+		}
 	}
 
 // GETTERS AND SETTERS

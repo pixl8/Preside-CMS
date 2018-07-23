@@ -9,6 +9,7 @@ component {
 		_setThreadName( arguments.threadName );
 		_setIntervalInMs( arguments.intervalInMs );
 		_setThreadUtil( arguments.threadUtil );
+		_setStopped( true );
 
 		return this;
 	}
@@ -18,14 +19,19 @@ component {
 	}
 
 	public void function start() {
-		thread name="#_getThreadName()#-#CreateUUId()#" {
-			register();
+		if ( _isStopped() ) {
+			thread name="#_getThreadName()#-#CreateUUId()#" {
+				register();
 
-			do {
-				sleep( _getIntervalInMs() );
-				run();
-				content reset=true;
-			} while( !_isStopped() );
+				do {
+					sleep( _getIntervalInMs() );
+					run();
+
+					request.delete( "__cacheboxRequestCache" );
+
+					content reset=true;
+				} while( !_isStopped() );
+			}
 		}
 	}
 
@@ -39,7 +45,10 @@ component {
 	}
 
 	public void function interrupt() {
-		_getThreadUtil().interrupt( _getRunningThread() );
+		_getThreadUtil().shutdownThread(
+			  theThread     = _getRunningThread()
+			, interruptWait = 10000
+		);
 	}
 
 	public void function register() {
