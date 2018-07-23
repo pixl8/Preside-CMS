@@ -614,11 +614,11 @@ component extends="testbox.system.BaseSpec" {
 				mockSiteService.$( "getActiveSiteId", siteId );
 
 				tm.$( "getRunnableTasks", tasks );
-				tm.$( "runTask" );
+				tm.$( "_runTaskInNewRequest" );
 
 				tm.runScheduledTasks();
 
-				expect( tm.$callLog().runTask.len() ).toBe( 3 );
+				expect( tm.$callLog()._runTaskInNewRequest.len() ).toBe( 3 );
 			} );
 
 			it( "should return an array of the tasks that were started", function(){
@@ -633,7 +633,7 @@ component extends="testbox.system.BaseSpec" {
 				mockSiteService.$( "getActiveSiteId", siteId );
 
 				tm.$( "getRunnableTasks", tasks );
-				tm.$( "runTask" );
+				tm.$( "_runTaskInNewRequest" );
 
 				var result = tm.runScheduledTasks();
 
