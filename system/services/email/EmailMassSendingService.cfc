@@ -251,14 +251,35 @@ component {
 	 * @autodoc true
 	 */
 	public struct function getNextQueuedEmail() {
-		var queuedEmail = $getPresideObject( "email_mass_send_queue" ).selectData(
-			  selectFields = [ "id", "recipient", "template" ]
-			, orderby      = "id"
-			, maxRows      = 1
-		);
+		transaction {
+			var takenByOtherProcess = false;
+			var queueDao            = $getPresideObject( "email_mass_send_queue" );
+			var queuedEmail         = queueDao.selectData(
+				  selectFields = [ "id", "recipient", "template" ]
+				, filter       = "status is null or status = :status"
+				, filterParams = { status="queued" }
+				, orderby      = "datecreated"
+				, maxRows      = 1
+			);
 
-		for( var q in queuedEmail ) {
-			return q;
+			for( var q in queuedEmail ) {
+				var updated = queueDao.updateData(
+					  filter       = "id = :id and ( status is null or status = :status )"
+					, filterParams = { id=q.id, status="queued" }
+					, data         = { status = "sending" }
+				);
+
+				if ( updated ) {
+					return q;
+				}
+
+				takenByOtherProcess = true;
+				break;
+			}
+		}
+
+		if ( takenByOtherProcess ) {
+			return getNextQueuedEmail();
 		}
 
 		return {};
