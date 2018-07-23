@@ -13,11 +13,11 @@ component {
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
-		_startHeartbeats();
 		_performDbMigrations();
 		_configureVariousServices();
 		_populateDefaultLanguages();
 		_populateAutoRulesEngineExpressions();
+		_startHeartbeats();
 
 		announceInterception( "onApplicationStart" );
 	}
@@ -204,9 +204,7 @@ component {
 	}
 
 	private void function _startHeartbeats() {
-		presideTaskmanagerHeartBeat.start();
-		presideAdhocTaskHeartBeat.start();
-
-		SessionRotate(); // If we have reloaded during admin session, this ensures session is detached from heartbeats
+		presideTaskmanagerHeartBeat.startInNewRequest();
+		presideAdhocTaskHeartBeat.startInNewRequest();
 	}
 }

@@ -29,6 +29,19 @@ component extends="AbstractHeartBeat" {
 		}
 	}
 
+	public void function startInNewRequest() {
+		var startUrl = $getRequestContext().buildLink( linkTo="taskmanager.runtasks.startAdhocTaskManagerHeartbeat" );
+
+		thread name=CreateUUId() startUrl=startUrl {
+			try {
+				sleep( 5000 );
+				http method="post" url=startUrl timeout=2 throwonerror=true;
+			} catch( any e ) {
+				$raiseError( e );
+			}
+		}
+	}
+
 // GETTERS AND SETTERS
 	private any function _getAdhocTaskmanagerService() {
 		return _taskmanagerService;

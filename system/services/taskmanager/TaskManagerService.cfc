@@ -303,10 +303,7 @@ component displayName="Task Manager Service" {
 				var theThread    = runningTasks[ task.running_thread ].thread ?: NullValue();
 
 				if ( !IsNull( theThread ) ) {
-					theThread.interrupt();
-					if ( logger.canWarn() ) {
-						logger.warn( "Thread interrupted" );
-					}
+					_getThreadUtil().shutdownThread( theThread=theThread, logger=logger );
 				}
 			} catch( any e ) {
 				if ( logger.canError() ) {
@@ -494,7 +491,7 @@ component displayName="Task Manager Service" {
 		var tasks = getRunnableTasks();
 
 		for( var taskKey in tasks ){
-			runTask( taskKey );
+			_runTaskInNewRequest( taskKey );
 		}
 
 		return { tasksStarted=tasks };
@@ -753,6 +750,15 @@ component displayName="Task Manager Service" {
 
 		var state = threadRef.getState()
 		return !state.equals( state.TERMINATED );
+	}
+
+	private void function _runTaskInNewRequest( required string taskKey ) {
+		var event         = $getRequestContext();
+		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.scheduledTask" );
+
+		http url=taskRunnerUrl method="post" timeout=2 throwonerror=true {
+			httpparam name="taskKey" value=arguments.taskKey type="formfield";
+		}
 	}
 
 // GETTERS AND SETTERS
