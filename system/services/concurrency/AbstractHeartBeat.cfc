@@ -42,15 +42,19 @@ component {
 	}
 
 	public void function stop() {
-		interrupt();
+		shutdownThread();
 		deregister();
 	}
 
-	public void function interrupt() {
-		_getThreadUtil().shutdownThread(
-			  theThread     = _getRunningThread()
-			, interruptWait = 10000
-		);
+	public void function shutdownThread() {
+		var runningThread = _getRunningThread();
+
+		if ( !IsNull( runningThread ) ) {
+			_getThreadUtil().shutdownThread(
+				  theThread     = runningThread
+				, interruptWait = 10000
+			);
+		}
 	}
 
 	public void function register() {
