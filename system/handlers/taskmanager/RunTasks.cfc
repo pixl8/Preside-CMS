@@ -4,6 +4,7 @@ component {
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 	property name="taskManagerService"          inject="taskManagerService";
 	property name="adhocTaskManagerService"     inject="adhocTaskManagerService";
+	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
 
 	public void function startTaskManagerHeartbeat( event, rc, prc ) {
 		presideTaskmanagerHeartBeat.start();
@@ -13,6 +14,17 @@ component {
 	public void function startAdhocTaskManagerHeartbeat( event, rc, prc ) {
 		presideAdhocTaskHeartBeat.start();
 		event.renderData( data={ ok=true }, type="json" );
+	}
+
+	public void function startEmailQueueHeartbeat( event, rc, prc ) {
+		var instanceNumber = Val( rc.instanceNumber ?: "" );
+
+		if ( instanceNumber > 0 && instanceNumber <= emailQueueConcurrency ) {
+			getModel( "PresideEmailQueueHeartBeat#instanceNumber#" ).start();
+			event.renderData( data={ ok=true }, type="json" );
+		}
+
+		event.renderData( data={ ok=false, message="Queue heartbeat instance [#instanceNumber#] not found!" }, type="json" );
 	}
 
 	public void function scheduledTask( event, rc, prc ) {

@@ -36,7 +36,9 @@ component {
 	}
 
 	public void function shutdown(){
-		stop();
+		if ( !_isStopped() ) {
+			stop();
+		}
 	}
 
 	public void function stop() {
