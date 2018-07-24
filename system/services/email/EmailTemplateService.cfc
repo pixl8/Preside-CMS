@@ -888,19 +888,50 @@ component {
 	 * @templateId ID of the template to get counts for
 	 * @dateFrom   Optional date from which to count
 	 * @dateTo     Optional date to which to count
+	 * @timePoints Optional number of points to break out the stats over time (i.e. for use in graphing)
 	 */
 	public struct function getStats(
-		  required string templateId
-		,          string dateFrom = ""
-		,          string dateTo   = ""
+		  required string  templateId
+		,          string  dateFrom   = getFirstStatDate( arguments.templateId )
+		,          string  dateTo     = getLastStatDate( arguments.templateId )
+		,          numeric timePoints = 1
 	) {
-		return {
-			  sent      = getSentCount( argumentCollection=arguments )
-			, delivered = getDeliveredCount( argumentCollection=arguments )
-			, failed    = getFailedCount( argumentCollection=arguments )
-			, opened    = getOpenedCount( argumentCollection=arguments )
-			, queued    = getQueuedCount( templateId=arguments.templateId )
+		if ( arguments.timePoints == 1 ) {
+			return {
+				  sent      = getSentCount( argumentCollection=arguments )
+				, delivered = getDeliveredCount( argumentCollection=arguments )
+				, failed    = getFailedCount( argumentCollection=arguments )
+				, opened    = getOpenedCount( argumentCollection=arguments )
+				, queued    = getQueuedCount( templateId=arguments.templateId )
+			};
+		}
+
+		var stats = {
+			  sent      = []
+			, delivered = []
+			, failed    = []
+			, opened    = []
+			, queued    = []
 		};
+		if ( IsDate( arguments.dateFrom ) && IsDate( arguments.dateTo ) ) {
+			var timeJumps = Round( DateDiff( "s", arguments.dateFrom, arguments.dateTo ) / arguments.timePoints );
+
+			for( var i=0; i<arguments.timePoints; i++ ) {
+				var snapshot = getStats(
+					  templateId = templateId
+					, dateFrom   = DateAdd( "s", i*timeJumps    , arguments.dateFrom )
+					, dateTo     = DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom )
+				);
+
+				stats.sent.append( snapshot.sent );
+				stats.delivered.append( snapshot.delivered );
+				stats.failed.append( snapshot.failed );
+				stats.opened.append( snapshot.opened );
+				stats.queued.append( snapshot.queued );
+			}
+		}
+
+		return stats;
 	}
 
 	/**
