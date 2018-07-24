@@ -786,7 +786,7 @@ component {
 	}
 
 	/**
-	 * Gets a count of opened emails sent in the given
+	 * Gets a unique count of opened emails sent in the given
 	 * timeframe for the given template.
 	 *
 	 * @autodoc    true
@@ -794,7 +794,7 @@ component {
 	 * @dateFrom   Optional date from which to count
 	 * @dateTo     Optional date to which to count
 	 */
-	public numeric function getOpenedCount(
+	public numeric function getUniqueOpenedCount(
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
@@ -821,6 +821,82 @@ component {
 		);
 
 		return Val( result.opened_count ?: "" );
+	}
+
+	/**
+	 * Gets a comulative count of opened emails sent in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getOpenedCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs$activities.id ) as opened_count" ]
+			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="open" }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.opened_count ?: "" );
+	}
+
+	/**
+	 * Gets a count of link clicks in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getClickCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs$activities.id ) as click_count" ]
+			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="click" }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.click_count ?: "" );
 	}
 
 	/**
@@ -895,14 +971,16 @@ component {
 		,          string  dateFrom   = getFirstStatDate( arguments.templateId )
 		,          string  dateTo     = getLastStatDate( arguments.templateId )
 		,          numeric timePoints = 1
+		,          boolean uniqueOpens = ( arguments.timePoints == 1 )
 	) {
 		if ( arguments.timePoints == 1 ) {
 			return {
 				  sent      = getSentCount( argumentCollection=arguments )
 				, delivered = getDeliveredCount( argumentCollection=arguments )
 				, failed    = getFailedCount( argumentCollection=arguments )
-				, opened    = getOpenedCount( argumentCollection=arguments )
+				, opened    = arguments.uniqueOpens ? getUniqueOpenedCount( argumentCollection=arguments ) : getOpenedCount( argumentCollection=arguments )
 				, queued    = getQueuedCount( templateId=arguments.templateId )
+				, clicks    = getClickCount( argumentCollection=arguments )
 			};
 		}
 
@@ -911,6 +989,7 @@ component {
 			, delivered = []
 			, failed    = []
 			, opened    = []
+			, clicks    = []
 			, dates     = []
 		};
 		if ( IsDate( arguments.dateFrom ) && IsDate( arguments.dateTo ) ) {
@@ -918,15 +997,17 @@ component {
 
 			for( var i=0; i<arguments.timePoints; i++ ) {
 				var snapshot = getStats(
-					  templateId = templateId
-					, dateFrom   = DateAdd( "s", i*timeJumps    , arguments.dateFrom )
-					, dateTo     = DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom )
+					  templateId  = templateId
+					, dateFrom    = DateAdd( "s", i*timeJumps    , arguments.dateFrom )
+					, dateTo      = DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom )
+					, uniqueOpens = false
 				);
 
 				stats.sent.append( snapshot.sent );
 				stats.delivered.append( snapshot.delivered );
 				stats.failed.append( snapshot.failed );
 				stats.opened.append( snapshot.opened );
+				stats.clicks.append( snapshot.clicks );
 				stats.dates.append( DateTimeFormat( DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom ), "yyyy-mm-dd HH:nn" ) );
 			}
 		}

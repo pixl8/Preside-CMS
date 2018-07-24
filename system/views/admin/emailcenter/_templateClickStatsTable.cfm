@@ -25,7 +25,9 @@
 								<cfloop array="#clickStats#" item="clickStat" index="i">
 									<tr>
 										<td>
-											<a href="#clickStat.link#">#clickStat.link#</a>
+											<a href="#clickStat.link#" title="#clickStat.link#">
+												#abbreviate( clickStat.link, 75 )#
+											</a>
 										</td>
 										<td>#NumberFormat( clickStat.clickCount )#</td>
 									</tr>

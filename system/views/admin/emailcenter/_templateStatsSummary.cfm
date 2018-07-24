@@ -3,6 +3,7 @@
 	sent      = NumberFormat( Val( args.stats.sent      ?: "" ) );
 	delivered = NumberFormat( Val( args.stats.delivered ?: "" ) );
 	opened    = NumberFormat( Val( args.stats.opened    ?: "" ) );
+	clicks    = NumberFormat( Val( args.stats.clicks    ?: "" ) );
 	failed    = NumberFormat( Val( args.stats.failed    ?: "" ) );
 
 	event.include( "/css/admin/specific/emailcenter/stats/" );
@@ -29,6 +30,11 @@
 			<i class="fa fa-envelope green"></i>&nbsp;
 			<span class="fa-lg green">#opened#</span>
 			<span class="grey">#translateResource( uri="cms:emailcenter.stats.opened" )#</span>
+		</dd>
+		<dd>
+			<i class="fa fa-pointer green"></i>&nbsp;
+			<span class="fa-lg green">#clicks#</span>
+			<span class="grey">#translateResource( uri="cms:emailcenter.stats.clicks" )#</span>
 		</dd>
 		<dd>
 			<i class="fa fa-exclamation red"></i>&nbsp;
