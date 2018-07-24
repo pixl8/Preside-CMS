@@ -52,7 +52,7 @@
 							<div class="widget-main padding-20">
 								<cfif clickStats.len()>
 									<div class="table-responsive">
-					 					<table class="table">
+					 					<table class="table no-top-border">
 					 						<thead>
 					 							<tr>
 					 								<th>#translateResource( "cms:emailcenter.stats.clickstats.box.link.header"  )#</th>
