@@ -29,13 +29,31 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function templateStatsSummary( event, rc, prc, args={} ) {
-		args.stats = emailTemplateService.getStats(
-			  templateId = args.templateId ?: ""
-			, dateFrom   = DateFormat( DateAdd( "d", -30, Now() ), "yyyy-mm-dd" )
-			, dateTo     = DateFormat( DateAdd( "d", 1  , Now() ), "yyyy-mm-dd" )
-		);
+		args.stats = emailTemplateService.getStats( templateId = args.templateId ?: "" );
 
 		return renderView( view="/admin/emailcenter/_templateStatsSummary", args=args );
+	}
+
+	private string function templateInteractionStatsChart( event, rc, prc, args={} ) {
+		var templateId = args.templateId ?: "";
+
+		args.interactionStats = emailTemplateService.getStats(
+			  templateId = args.templateId
+			, timePoints = 20
+		);
+
+		event.include( "/js/admin/lib/plotly/" );
+
+		return renderView( view="/admin/emailcenter/_templateInteractionStatsChart", args=args );
+	}
+
+	private string function templateClickStatsTable( event, rc, prc, args={} ) {
+		var templateId = args.templateId ?: "";
+
+		args.clickStats = emailTemplateService.getLinkClickStats( templateId=templateId );
+
+
+		return renderView( view="/admin/emailcenter/_templateClickStatsTable", args=args );
 	}
 
 }

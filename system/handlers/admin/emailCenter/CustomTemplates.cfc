@@ -441,6 +441,21 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function stats( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+
+		var id = rc.id ?: "";
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.stats.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.stats.page.subtitle", data=[ prc.record.name ] );
+		prc.showClicks   = IsTrue( prc.template.track_clicks ?: "" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.stats.page.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.stats", queryString="id=#id#" )
+		);
+	}
+
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -535,7 +550,6 @@ component extends="preside.system.base.AdminHandler" {
 		var canSaveDraft    = hasCmsPermission( "emailcenter.customtemplates.savedraft" );
 		var canPublish      = hasCmsPermission( "emailcenter.customtemplates.publish"   );
 
-		args.stats                  = renderViewlet( event="admin.emailCenter.templateStatsSummary", args={ templateId=template.id } );
 		args.canEdit                = canSaveDraft || canPublish;
 		args.canConfigureLayout     = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.customtemplates.configureLayout" );
 		args.canEditSendOptions     = hasCmsPermission( "emailcenter.customtemplates.editSendOptions" );
@@ -549,6 +563,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( template.count() ) {
 			args.canSend       = template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.canSendTest   = true;
 			args.scheduleType  = template.schedule_type ?: "";
 			args.nextSendDate  = template.schedule_next_send_date ?: "";
 			args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );

@@ -5,11 +5,21 @@
 	previewRecipient     = rc.previewRecipient      ?: "";
 	previewRecipientName = prc.previewRecipientName ?: "";
 
+
 	previewRecipientPickerLink  = event.buildAdminLink( linkto="emailcenter.customTemplates.previewRecipientPicker", queryString="id=#rc.id#" );
 	previewRecipientPickerTitle = translateResource( "cms:emailcenter.customTemplates.preview.choose.recipient.modal.title" );
 
-	sendTestFormLink   = event.buildAdminLink( linkto="emailcenter.customTemplates.sendTestModalForm", queryString="id=#rc.id#&previewRecipient=#previewRecipient#" );
-	sendTestModalTitle = translateResource( "cms:emailcenter.customTemplates.preview.send.test.modal.title" );
+	if (  Len( Trim( previewRecipientName ) ) ) {
+		previewLink = '<a class="preview-recipient-picker-link"  href="#previewRecipientPickerLink#">'
+		            & '<i class="fa fa-fw fa-user"></i> '
+		            & translateResource( uri="cms:emailcenter.customTemplates.preview.recipient.change.link", data=[ previewRecipientName ] )
+		            & '</a>';
+	} else {
+		previewLink = '<a class="preview-recipient-picker-link"  href="#previewRecipientPickerLink#">'
+		            & '<i class="fa fa-fw fa-user"></i> '
+		            & translateResource( uri="cms:emailcenter.customTemplates.preview.recipient.choose.link" )
+		            & '</a>';
+	}
 
 	event.include( "/js/admin/specific/htmliframepreview/" );
 	event.include( "/css/admin/specific/htmliframepreview/" );
@@ -18,42 +28,15 @@
 
 <cfsavecontent variable="body">
 	<cfoutput>
-		#renderViewlet( event='admin.datamanager.versionNavigator', args={
-			  object         = "email_template"
-			, id             = recordId
-			, version        = version
-			, isDraft        = IsTrue( prc.record._version_is_draft ?: "" )
-			, baseUrl        = event.buildAdminLink( linkto="emailCenter.customTemplates.preview", queryString="id=#recordId#&version={version}" )
-			, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.customTemplates.versionHistory", queryString="id=#recordId#" )
-		} )#
 
 		<div class="alert alert-info">
-
 			<p>
-				<i class="fa fa-fw fa-info-circle fa-lg"></i>
+				<i class="fa fa-fw fa-info-circle"></i>
 				<cfif Len( Trim( previewRecipientName ) )>
-					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ "<strong>" & previewRecipientName & "</strong>" ] )#
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ previewLink ] )#
 				<cfelse>
-					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint")#
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint", data=[ previewLink ] )#
 				</cfif>
-				<br>
-				<br>
-			</p>
-
-			<p>
-				<i class="fa fa-fw fa-lg"></i> <!--- alignment icon --->
-
-				<a class="btn btn-info preview-recipient-picker-link" href="#previewRecipientPickerLink#" title="#previewRecipientPickerTitle#">
-					<i class="fa fa-fw fa-user"></i>
-
-					#translateResource( uri="cms:emailcenter.customTemplates.preview.choose.recipient.btn")#
-				</a>
-
-				<a class="btn btn-warning send-test-email-link" href="#sendTestFormLink#" title="#sendTestModalTitle#">
-					<i class="fa fa-fw fa-paper-plane"></i>
-
-					#translateResource( uri="cms:emailcenter.customTemplates.preview.send.test.btn")#
-				</a>
 			</p>
 		</div>
 

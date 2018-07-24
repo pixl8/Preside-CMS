@@ -786,7 +786,7 @@ component {
 	}
 
 	/**
-	 * Gets a count of opened emails sent in the given
+	 * Gets a unique count of opened emails sent in the given
 	 * timeframe for the given template.
 	 *
 	 * @autodoc    true
@@ -794,7 +794,7 @@ component {
 	 * @dateFrom   Optional date from which to count
 	 * @dateTo     Optional date to which to count
 	 */
-	public numeric function getOpenedCount(
+	public numeric function getUniqueOpenedCount(
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
@@ -821,6 +821,82 @@ component {
 		);
 
 		return Val( result.opened_count ?: "" );
+	}
+
+	/**
+	 * Gets a comulative count of opened emails sent in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getOpenedCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs$activities.id ) as opened_count" ]
+			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="open" }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.opened_count ?: "" );
+	}
+
+	/**
+	 * Gets a count of link clicks in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getClickCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs$activities.id ) as click_count" ]
+			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="click" }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.click_count ?: "" );
 	}
 
 	/**
@@ -888,19 +964,176 @@ component {
 	 * @templateId ID of the template to get counts for
 	 * @dateFrom   Optional date from which to count
 	 * @dateTo     Optional date to which to count
+	 * @timePoints Optional number of points to break out the stats over time (i.e. for use in graphing)
 	 */
 	public struct function getStats(
+		  required string  templateId
+		,          string  dateFrom   = getFirstStatDate( arguments.templateId )
+		,          string  dateTo     = getLastStatDate( arguments.templateId )
+		,          numeric timePoints = 1
+		,          boolean uniqueOpens = ( arguments.timePoints == 1 )
+	) {
+		if ( arguments.timePoints == 1 ) {
+			return {
+				  sent      = getSentCount( argumentCollection=arguments )
+				, delivered = getDeliveredCount( argumentCollection=arguments )
+				, failed    = getFailedCount( argumentCollection=arguments )
+				, opened    = arguments.uniqueOpens ? getUniqueOpenedCount( argumentCollection=arguments ) : getOpenedCount( argumentCollection=arguments )
+				, queued    = getQueuedCount( templateId=arguments.templateId )
+				, clicks    = getClickCount( argumentCollection=arguments )
+			};
+		}
+
+		var stats = {
+			  sent      = []
+			, delivered = []
+			, failed    = []
+			, opened    = []
+			, clicks    = []
+			, dates     = []
+		};
+		if ( IsDate( arguments.dateFrom ) && IsDate( arguments.dateTo ) ) {
+			var timeJumps = Round( DateDiff( "s", arguments.dateFrom, arguments.dateTo ) / arguments.timePoints );
+
+			for( var i=0; i<arguments.timePoints; i++ ) {
+				var snapshot = getStats(
+					  templateId  = templateId
+					, dateFrom    = DateAdd( "s", i*timeJumps    , arguments.dateFrom )
+					, dateTo      = DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom )
+					, uniqueOpens = false
+				);
+
+				stats.sent.append( snapshot.sent );
+				stats.delivered.append( snapshot.delivered );
+				stats.failed.append( snapshot.failed );
+				stats.opened.append( snapshot.opened );
+				stats.clicks.append( snapshot.clicks );
+				stats.dates.append( DateTimeFormat( DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom ), "yyyy-mm-dd HH:nn" ) );
+			}
+		}
+
+		return stats;
+	}
+
+	/**
+	 * Retrieves the earliest date on which
+	 * there are statistics for the given
+	 * template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template
+	 *
+	 */
+	public any function getFirstStatDate( required string templateId ) {
+		var earliestRecord = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "min( send_logs.datecreated ) as earliest" ]
+			, forceJoins   = "inner"
+		);
+
+		return earliestRecord.earliest ?: "";
+	}
+
+	/**
+	 * Retrieves the latest date on which
+	 * there are statistics for the given
+	 * template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template
+	 *
+	 */
+	public any function getLastStatDate( required string templateId ) {
+		var dates          = [];
+		var latestActivity = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "max( send_logs$activities.datecreated ) as latest" ]
+			, forceJoins = "inner"
+		);
+		var latestKeyDates = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, forceJoins   = "inner"
+			, selectFields = [
+				  "max( send_logs.sent_date           ) as sent_date"
+				, "max( send_logs.failed_date         ) as failed_date"
+				, "max( send_logs.delivered_date      ) as delivered_date"
+				, "max( send_logs.hard_bounced_date   ) as hard_bounced_date"
+				, "max( send_logs.opened_date         ) as opened_date"
+				, "max( send_logs.marked_as_spam_date ) as marked_as_spam_date"
+				, "max( send_logs.unsubscribed_date   ) as unsubscribed_date"
+			  ]
+		);
+
+		if ( IsDate( latestActivity.latest              ) ) { dates.append( latestActivity.latest              ); }
+		if ( IsDate( latestKeyDates.sent_date           ) ) { dates.append( latestKeyDates.sent_date           ); }
+		if ( IsDate( latestKeyDates.failed_date         ) ) { dates.append( latestKeyDates.failed_date         ); }
+		if ( IsDate( latestKeyDates.delivered_date      ) ) { dates.append( latestKeyDates.delivered_date      ); }
+		if ( IsDate( latestKeyDates.hard_bounced_date   ) ) { dates.append( latestKeyDates.hard_bounced_date   ); }
+		if ( IsDate( latestKeyDates.opened_date         ) ) { dates.append( latestKeyDates.opened_date         ); }
+		if ( IsDate( latestKeyDates.marked_as_spam_date ) ) { dates.append( latestKeyDates.marked_as_spam_date ); }
+		if ( IsDate( latestKeyDates.unsubscribed_date   ) ) { dates.append( latestKeyDates.unsubscribed_date   ); }
+
+		if ( dates.len() ) {
+			dates.sort( function( a, b ){
+				return a > b ? -1 : 1;
+			} );
+
+			return dates[ 1 ];
+		}
+
+		return "";
+
+	}
+
+	/**
+	 * Returns link click stats for a given template
+	 *
+	 * @autodoc    true
+	 * @templateId Id of the template for which to get the count. If not provided, the number of queued emails will be for all templates.
+	 * @dateFrom   Optional date from which to fetch link clicking stats
+	 * @dateTo     Optional date to which to fetch link clicking stats
+	 */
+	public array function getLinkClickStats(
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
-		return {
-			  sent      = getSentCount( argumentCollection=arguments )
-			, delivered = getDeliveredCount( argumentCollection=arguments )
-			, failed    = getFailedCount( argumentCollection=arguments )
-			, opened    = getOpenedCount( argumentCollection=arguments )
-			, queued    = getQueuedCount( templateId=arguments.templateId )
-		};
+		var extraFilters = [{
+			filter = { "send_logs$activities.activity_type"="click" }
+		}];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+
+		var clickStats    = [];
+		var rawClickStats = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.extra_data as link" ]
+			, extraFilters = extraFilters
+			, autoGroupBy  = true
+			, orderBy      = "click_count desc"
+		);
+
+		for( var link in rawClickStats ) {
+			try {
+				clickStats.append( {
+					  link       = DeserializeJson( link.link ).link
+					, clickCount = link.click_count
+				} );
+			} catch( any e ){}
+		}
+
+		return clickStats;
 	}
 
 	/**
@@ -1075,7 +1308,6 @@ component {
 		);
 	}
 
-// PRIVATE HELPERS
 	private string function _addIFrameBaseLinkTagForPreviewHtml( required string html ) {
 		return html.replace( "</head>", '<base target="_parent"></head>' );
 	}
