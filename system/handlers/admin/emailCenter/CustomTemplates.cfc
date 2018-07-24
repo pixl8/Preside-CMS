@@ -450,10 +450,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.stats.page.subtitle", data=[ prc.record.name ] );
 		prc.showClicks   = IsTrue( prc.template.track_clicks ?: "" );
 
-		if ( prc.showClicks ) {
-			prc.clickStats = emailTemplateService.getLinkClickStats( templateId=id );
-		}
-
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.stats.page.breadcrumb", data=[ prc.record.name ] )
 			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.stats", queryString="id=#id#" )

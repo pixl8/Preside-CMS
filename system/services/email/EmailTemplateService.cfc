@@ -911,7 +911,7 @@ component {
 			, delivered = []
 			, failed    = []
 			, opened    = []
-			, queued    = []
+			, dates     = []
 		};
 		if ( IsDate( arguments.dateFrom ) && IsDate( arguments.dateTo ) ) {
 			var timeJumps = Round( DateDiff( "s", arguments.dateFrom, arguments.dateTo ) / arguments.timePoints );
@@ -927,7 +927,7 @@ component {
 				stats.delivered.append( snapshot.delivered );
 				stats.failed.append( snapshot.failed );
 				stats.opened.append( snapshot.opened );
-				stats.queued.append( snapshot.queued );
+				stats.dates.append( DateTimeFormat( DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom ), "yyyy-mm-dd HH:nn" ) );
 			}
 		}
 
