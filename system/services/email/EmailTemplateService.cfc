@@ -904,6 +904,76 @@ component {
 	}
 
 	/**
+	 * Retrieves the earliest date on which
+	 * there are statistics for the given
+	 * template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template
+	 *
+	 */
+	public any function getFirstStatDate( required string templateId ) {
+		var earliestRecord = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "min( send_logs.datecreated ) as earliest" ]
+			, forceJoins   = "inner"
+		);
+
+		return earliestRecord.earliest ?: "";
+	}
+
+	/**
+	 * Retrieves the latest date on which
+	 * there are statistics for the given
+	 * template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template
+	 *
+	 */
+	public any function getLastStatDate( required string templateId ) {
+		var dates          = [];
+		var latestActivity = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "max( send_logs$activities.datecreated ) as latest" ]
+			, forceJoins = "inner"
+		);
+		var latestKeyDates = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, forceJoins   = "inner"
+			, selectFields = [
+				  "max( send_logs.sent_date           ) as sent_date"
+				, "max( send_logs.failed_date         ) as failed_date"
+				, "max( send_logs.delivered_date      ) as delivered_date"
+				, "max( send_logs.hard_bounced_date   ) as hard_bounced_date"
+				, "max( send_logs.opened_date         ) as opened_date"
+				, "max( send_logs.marked_as_spam_date ) as marked_as_spam_date"
+				, "max( send_logs.unsubscribed_date   ) as unsubscribed_date"
+			  ]
+		);
+
+		if ( IsDate( latestActivity.latest              ) ) { dates.append( latestActivity.latest              ); }
+		if ( IsDate( latestKeyDates.sent_date           ) ) { dates.append( latestKeyDates.sent_date           ); }
+		if ( IsDate( latestKeyDates.failed_date         ) ) { dates.append( latestKeyDates.failed_date         ); }
+		if ( IsDate( latestKeyDates.delivered_date      ) ) { dates.append( latestKeyDates.delivered_date      ); }
+		if ( IsDate( latestKeyDates.hard_bounced_date   ) ) { dates.append( latestKeyDates.hard_bounced_date   ); }
+		if ( IsDate( latestKeyDates.opened_date         ) ) { dates.append( latestKeyDates.opened_date         ); }
+		if ( IsDate( latestKeyDates.marked_as_spam_date ) ) { dates.append( latestKeyDates.marked_as_spam_date ); }
+		if ( IsDate( latestKeyDates.unsubscribed_date   ) ) { dates.append( latestKeyDates.unsubscribed_date   ); }
+
+		if ( dates.len() ) {
+			dates.sort( function( a, b ){
+				return a > b ? -1 : 1;
+			} );
+
+			return dates[ 1 ];
+		}
+
+		return "";
+
+	}
+
+	/**
 	 * Returns link click stats for a given template
 	 *
 	 * @autodoc    true
@@ -1126,7 +1196,6 @@ component {
 		);
 	}
 
-// PRIVATE HELPERS
 	private string function _addIFrameBaseLinkTagForPreviewHtml( required string html ) {
 		return html.replace( "</head>", '<base target="_parent"></head>' );
 	}
