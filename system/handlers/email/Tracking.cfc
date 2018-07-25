@@ -15,7 +15,7 @@ component {
 			try {
 				emailLoggingService.markAsOpened( messageId );
 			} catch( any e ) {
-				logError( e );
+				// ignore errors that will be due to original email log no longer existing
 			}
 		}
 
@@ -23,20 +23,22 @@ component {
 	}
 
 	public void function click( event, rc, prc ) {
-		var messageId = Trim( rc.mid  ?: "" );
-		var link      = Trim( rc.link ?: "" );
+		var messageId         = Trim( rc.mid  ?: "" );
+		var link              = Trim( rc.link ?: "" );
+		var ignoreLinkPattern = "/e/t/[co]/"; // ignore email tracking links for reporting (i.e. we may have a double encoded link somehow)
 
 		try {
 			link = ToString( ToBinary( link ) );
 		} catch( any e ) {
 			logError( e );
+			event.notFound();
 		}
 
-		if ( messageId.len() ) {
+		if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link ) ) {
 			try {
 				emailLoggingService.recordClick( id=messageId, link=link );
 			} catch( any e ) {
-				logError( e );
+				// ignore errors that will be due to original email log no longer existing
 			}
 		}
 
