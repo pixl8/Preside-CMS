@@ -1372,7 +1372,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "getOpenedCount()", function(){
+		describe( "getUniqueOpenedCount()", function(){
 			it( "should return count of successful opens for the given template for all time when no date range passed", function(){
 				var service    = _getService();
 				var templateId = CreateUUId();
@@ -1385,7 +1385,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extraFilters = []
 				).$results( stats );
 
-				expect( service.getOpenedCount( templateId ) ).toBe( 635 );
+				expect( service.getUniqueOpenedCount( templateId ) ).toBe( 635 );
 			} );
 
 			it( "should add date filters when dateFrom and dateTo passed", function(){
@@ -1405,7 +1405,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					]
 				).$results( stats );
 
-				expect( service.getOpenedCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
+				expect( service.getUniqueOpenedCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
 			} );
 		} );
 
@@ -1468,12 +1468,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId = CreateUUId();
 				var dateFrom   = "2017-06-12";
 				var dateTo     = "2017-07-19";
-				var stats      = { sent=4985, delivered=4980, failed=5, opened=234, queued=340 };
+				var stats      = { sent=4985, delivered=4980, failed=5, opened=234, queued=340, clicks=234 };
 
-				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.sent );
-				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.delivered );
-				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.failed );
-				service.$( "getOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.opened );
+				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.sent );
+				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.delivered );
+				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.failed );
+				service.$( "getUniqueOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.opened );
+				service.$( "getClickCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.clicks );
 				service.$( "getQueuedCount" ).$args( templateId=templateId ).$results( stats.queued );
 
 				expect( service.getStats( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ) ).toBe( stats );
