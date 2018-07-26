@@ -6,6 +6,10 @@
 	<cfsavecontent variable="body">
 		<div class="clearfix">
 			#renderViewlet(
+				  event = "admin.emailcenter.templateStatsFilter"
+				, args  = { templateId=templateId }
+			)#
+			#renderViewlet(
 				  event = "admin.emailcenter.templateStatsSummary"
 				, args  = { templateId=templateId }
 			)#
