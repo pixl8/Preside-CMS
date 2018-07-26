@@ -24,7 +24,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="email_blueprint"  relationship="many-to-one" relatedTo="email_blueprint";
 	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
-	property name="sending_method" type="string" dbtype="varchar" maxlength=20 required=false default="auto" enum="emailSendingMethod" ignoreChangesForVersioning=true;
+	property name="sending_method" type="string" dbtype="varchar" maxlength=20 required=false default="manual" enum="emailSendingMethod" ignoreChangesForVersioning=true;
 
 	property name="sending_limit"         type="string"  dbtype="varchar" maxlength=20 required=false default="none" enum="emailSendingLimit" ignoreChangesForVersioning=true;
 	property name="sending_limit_unit"    type="string"  dbtype="varchar" maxlength=20 required=false enum="timeUnit" ignoreChangesForVersioning=true;
