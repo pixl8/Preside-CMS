@@ -2,7 +2,7 @@
 	templateId   = rc.id ?: "";
 	formId       = "email-send-options";
 	formName     = prc.formName ?: "";
-	saveAction   = event.buildAdminLink( linkto="emailcenter.customTemplates.saveSendOptionsAction" );
+	saveAction   = event.buildAdminLink( linkto="emailcenter.customTemplates.saveSettingsAction" );
 	cancelAction = event.buildAdminLink( linkto="emailcenter.customTemplates.preview", queryString="id=" & templateId );
 
 	event.include( "/js/admin/specific/emailcenter/customTemplates/sendOptions/" );
@@ -36,5 +36,5 @@
 		</form>
 	</cfsavecontent>
 
-	#renderViewlet( event="admin.emailcenter.customtemplates._customTemplateTabs", args={ body=body, tab="sendoptions" } )#
+	#renderViewlet( event="admin.emailcenter.customtemplates._customTemplateTabs", args={ body=body, tab="settings" } )#
 </cfoutput>

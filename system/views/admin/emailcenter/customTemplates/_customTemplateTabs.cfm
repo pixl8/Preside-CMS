@@ -27,13 +27,24 @@
 		});
 	}
 
-	if ( args.canConfigureLayout && args.canEditSendOptions ) {
+
+	if ( args.canEditSendOptions ) {
 		tabs.append({
 			  id     = "settings"
-			, icon   = "fa-cogs grey"
+			, icon   = "fa-cogs orange"
 			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.settings" )
 			, active = ( args.tab == "settings" )
 			, link   = ( args.tab == "settings" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.settings", queryString="id=" & templateId )
+		});
+	}
+
+	if ( args.canConfigureLayout ) {
+		tabs.append({
+			  id     = "layout"
+			, icon   = "fa-align-justify grey"
+			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.layout" )
+			, active = ( args.tab == "layout" )
+			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.configureLayout", queryString="id=" & templateId )
 		});
 	}
 

@@ -286,7 +286,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function sendOptions( event, rc, prc ) {
+	public void function settings( event, rc, prc ) {
 		_checkPermissions( event=event, key="editSendOptions" );
 		_getTemplate( argumentCollection=arguments, allowDrafts=true, fromVersionTable=false );
 
@@ -300,6 +300,8 @@ component extends="preside.system.base.AdminHandler" {
 			prc.formName = formsService.getMergedFormName( "preside-objects.email_template.configure.send", "preside-objects.email_template.configure.send.methods" );
 		}
 
+		prc.formName = formsService.getMergedFormName( "preside-objects.email_template.admin.edit.settings", prc.formName );
+
 		if ( prc.record.blueprint_filter.len() ) {
 			var filterDescription = translateResource(
 				  uri = "preside-objects.email_template:fieldset.filter.description.additional.filter"
@@ -311,19 +313,19 @@ component extends="preside.system.base.AdminHandler" {
 			prc.formAdditionalArgs = {
 				  fields    = { recipient_filter = { preRulesEngineFilters = prc.record.blueprint_filter } }
 				, fieldsets = { filter           = { description           = filterDescription   } }
-			}
+			};
 		}
 
-		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.title"   , data=[ prc.template.name ] );
-		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.subTitle", data=[ prc.template.name ] );
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.settings.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.settings.page.subTitle", data=[ prc.template.name ] );
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.breadcrumb.title"  , data=[ prc.template.name ] )
-			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=" & templateId )
+			  title = translateResource( uri="cms:emailcenter.customTemplates.settings.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.settings", queryString="id=" & templateId )
 		);
 	}
 
-	public void function saveSendOptionsAction( event, rc, prc ) {
+	public void function saveSettingsAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="editSendOptions" );
 		_getTemplate( argumentCollection=arguments, allowDrafts=true, fromVersionTable=false );
 
@@ -336,7 +338,11 @@ component extends="preside.system.base.AdminHandler" {
 			formName = formsService.getMergedFormName( "preside-objects.email_template.configure.send", "preside-objects.email_template.configure.send.methods" );
 		}
 
-		var formData         = event.getCollectionForForm( formName );
+		formName = formsService.getMergedFormName( "preside-objects.email_template.admin.edit.settings", formName );
+
+		var formData    = event.getCollectionForForm( formName );
+		    formData.id = id;
+
 		var validationResult = validateForm( formName, formData );
 
 		if ( anonymousOnly ) {
@@ -347,14 +353,14 @@ component extends="preside.system.base.AdminHandler" {
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
 			emailTemplateService.updateScheduledSendFields( templateId=id );
 
-			messagebox.info( translateResource( "cms:emailcenter.customTemplates.send.options.saved.confirmation" ) );
+			messagebox.info( translateResource( "cms:emailcenter.customTemplates.settings.saved.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
 		}
 
 		formData.validationResult = validationResult;
 		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 		setNextEvent(
-			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=#id#" )
+			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.settings", queryString="id=#id#" )
 			, persistStruct = formData
 		);
 	}
