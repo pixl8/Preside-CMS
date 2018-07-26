@@ -240,6 +240,22 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function stats( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		prc.showClicks = IsTrue( prc.template.track_clicks ?: "" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.stats.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.stats", queryString="template=" & templateId )
+		);
+	}
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"

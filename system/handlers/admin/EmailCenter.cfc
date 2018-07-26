@@ -55,19 +55,30 @@ component extends="preside.system.base.AdminHandler" {
 	private string function templateInteractionStatsChart( event, rc, prc, args={} ) {
 		var templateId = args.templateId ?: "";
 
-		args.minDate  = prc.minDate = prc.minDate ?: emailTemplateService.getFirstStatDate( templateId );
-		args.maxDate  = prc.maxDate = prc.maxDate ?: emailTemplateService.getLastStatDate( templateId );
-		args.dateFrom = IsDate( rc.dateFrom ?: "" ) ? rc.dateFrom : args.minDate;
-		args.dateTo   = IsDate( rc.dateTo   ?: "" ) ? rc.dateTo   : args.maxDate;
+		args.minDate        = prc.minDate = prc.minDate ?: emailTemplateService.getFirstStatDate( templateId );
+		args.maxDate        = prc.maxDate = prc.maxDate ?: emailTemplateService.getLastStatDate( templateId );
+		args.dateFrom       = IsDate( rc.dateFrom ?: "" ) ? rc.dateFrom : args.minDate;
+		args.dateTo         = IsDate( rc.dateTo   ?: "" ) ? rc.dateTo   : args.maxDate;
+		args.statsAvailable = IsDate( args.minDate ) && IsDate( args.maxDate );
 
-		args.interactionStats = emailTemplateService.getStats(
-			  templateId = args.templateId
-			, timePoints = 20
-			, dateFrom   = args.dateFrom
-			, dateTo     = args.dateTo
-		);
+		if ( args.statsAvailable ) {
+			var timepoints = Round( DateDiff( "h", args.dateFrom, args.dateTo ) );
 
-		event.include( "/js/admin/lib/plotly/" );
+			if ( timepoints > 20 ) {
+				timepoints = 20;
+			} else if ( timepoints < 5 ) {
+				timepoints = 5;
+			}
+
+			args.interactionStats = emailTemplateService.getStats(
+				  templateId = args.templateId
+				, timePoints = timepoints
+				, dateFrom   = args.dateFrom
+				, dateTo     = args.dateTo
+			);
+
+			event.include( "/js/admin/lib/plotly/" );
+		}
 
 		return renderView( view="/admin/emailcenter/_templateInteractionStatsChart", args=args );
 	}
