@@ -37,6 +37,14 @@
 	}
 
 	tabs.append({
+		  id     = "stats"
+		, icon   = "fa-line-chart purple"
+		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.stats" )
+		, active = ( args.tab == "stats" )
+		, link   = ( args.tab == "stats" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.stats", queryString="template=#templateId#" )
+	});
+
+	tabs.append({
 		  id     = "log"
 		, icon   = "fa-list-alt light-grey"
 		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.log" )
