@@ -98,8 +98,8 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
-
-		if ( Len( Trim( previewRecipient ) ) ){
+		prc.canPreviewWithRecipient = Len( Trim( prc.filterObject ) );
+		if ( prc.canPreviewWithRecipient && Len( Trim( previewRecipient ) ) ){
 			prc.previewRecipientName = renderLabel( prc.filterObject, previewRecipient );
 		}
 
