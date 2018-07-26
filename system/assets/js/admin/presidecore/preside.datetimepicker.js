@@ -5,12 +5,14 @@
 		  , pickerConfig     = $thisPicker.data()
 		  , relativeToField  = pickerConfig.relativeToField
 		  , relativeOperator = pickerConfig.relativeOperator
+		  , defaultDate      = pickerConfig.defaultDate
 		  , conf, $form, relativeField, datetimePicker;
 
 		conf = {
-			  minDate   : pickerConfig.startDate || false
-			, maxDate   : pickerConfig.endDate   || false
-			, icons     : {
+			  minDate     : pickerConfig.startDate || false
+			, maxDate     : pickerConfig.endDate   || false
+			, useCurrent  : false
+			, icons       : {
 				  time:     'fa fa-clock-o'
 				, date:     'fa fa-calendar'
 				, up:       'fa fa-chevron-up'
@@ -34,6 +36,15 @@
 				$thisPicker.valid();
 			}
 		});
+
+		$thisPicker.on( "dp.show", function(){
+			var dp = $thisPicker.data( "DateTimePicker" )
+			  , currentDate = $.trim( $thisPicker.val() );
+
+			if ( currentDate === "" ) {
+				dp.date( moment( defaultDate ) );
+			}
+		} );
 
 		datetimePicker = $thisPicker.data( "DateTimePicker" );
 
