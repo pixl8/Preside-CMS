@@ -27,23 +27,13 @@
 		});
 	}
 
-	if ( args.canConfigureLayout ) {
+	if ( args.canConfigureLayout && args.canEditSendOptions ) {
 		tabs.append({
-			  id     = "layout"
-			, icon   = "fa-code"
-			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.layout" )
-			, active = ( args.tab == "layout" )
-			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.configurelayout", queryString="id=" & templateId )
-		});
-	}
-
-	if ( args.canEditSendOptions ) {
-		tabs.append({
-			  id     = "sendoptions"
-			, icon   = "fa-envelope orange"
-			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.sendOptions" )
-			, active = ( args.tab == "sendoptions" )
-			, link   = ( args.tab == "sendoptions" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=#templateId#" )
+			  id     = "settings"
+			, icon   = "fa-cogs grey"
+			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.settings" )
+			, active = ( args.tab == "settings" )
+			, link   = ( args.tab == "settings" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.settings", queryString="id=" & templateId )
 		});
 	}
 
