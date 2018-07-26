@@ -5,7 +5,7 @@
 	dateTo   = "<strong>#DateTimeFormat( args.dateTo  , "yyyy-mm-dd HH:nn" )#</strong>";
 
 	minDate  = IsDate( args.minDate ?: "" ) ? DateFormat( args.minDate, "yyyy-mm-dd" ) : "";
-	maxDate  = IsDate( args.maxDate ?: "" ) ? DateFormat( args.maxDate, "yyyy-mm-dd" ) : "";
+	maxDate  = IsDate( args.maxDate ?: "" ) ? DateFormat( DateAdd( 'd', 1, args.maxDate ), "yyyy-mm-dd" ) : "";
 
 	if ( IsDate( args.dateFrom ) && IsDate( args.dateTo ) ) {
 		summary = translateResource( uri="cms:emailcenter.stats.filter.summary.from.to", data=[ dateFrom, dateTo ] );

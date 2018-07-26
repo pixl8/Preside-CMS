@@ -60,9 +60,17 @@ component extends="preside.system.base.AdminHandler" {
 		args.dateFrom = IsDate( rc.dateFrom ?: "" ) ? rc.dateFrom : args.minDate;
 		args.dateTo   = IsDate( rc.dateTo   ?: "" ) ? rc.dateTo   : args.maxDate;
 
+		var timepoints = Round( DateDiff( "h", args.dateFrom, args.dateTo ) );
+
+		if ( timepoints > 20 ) {
+			timepoints = 20;
+		} else if ( timepoints < 5 ) {
+			timepoints = 5;
+		}
+
 		args.interactionStats = emailTemplateService.getStats(
 			  templateId = args.templateId
-			, timePoints = 20
+			, timePoints = timepoints
 			, dateFrom   = args.dateFrom
 			, dateTo     = args.dateTo
 		);
