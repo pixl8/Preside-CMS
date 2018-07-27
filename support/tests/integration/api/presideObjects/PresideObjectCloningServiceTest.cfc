@@ -113,19 +113,19 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "cloneRecord()", function(){
-			it( "should do stuff", function(){
-				fail( "but not yet implemented" );
-			} );
-		} );
-
-		describe( "getCloneForm()", function(){
-			it( "should do stuff", function(){
-				fail( "but not yet implemented" );
-			} );
-		} );
-
 		describe( "getCloneHandler()", function(){
+			it( "return handler event specified in @cloneHandler annotation on the object", function(){
+				var service    = _getService();
+				var objectName = "SomeObject#CreateUUId()#";
+				var cloneHandler = "some.handler.here.#CreateUUId()#";
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName=objectName, attributeName="cloneHandler" ).$results( cloneHandler );
+
+				expect( service.getCloneHandler( objectName ) ).toBe( cloneHandler );
+			} );
+		} );
+
+		describe( "cloneRecord()", function(){
 			it( "should do stuff", function(){
 				fail( "but not yet implemented" );
 			} );

@@ -83,6 +83,22 @@ component {
 		return listCloneableFields( arguments.objectName ).len() > 0;
 	}
 
+	/**
+	 * Returns handler event used to clone an object
+	 * record, or empty string if no custom handler
+	 * exists.
+	 *
+	 * @autodoc true
+	 * @objectName Name of the object whose clone handler you wish to get
+	 *
+	 */
+	public string function getCloneHandler( required string objectName ) {
+		return $getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "cloneHandler"
+		);
+	}
+
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS
