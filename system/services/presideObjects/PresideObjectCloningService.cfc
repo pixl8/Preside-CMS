@@ -63,6 +63,26 @@ component {
 		return cloneable;
 	}
 
+	/**
+	 * Returns whether or not the given object
+	 * is cloneable
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object to check
+	 */
+	public boolean function isCloneable( required string objectName ) {
+		var cloneable = $getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "cloneable"
+		);
+
+		if ( IsBoolean( cloneable ) && !cloneable ) {
+			return false;
+		}
+
+		return listCloneableFields( arguments.objectName ).len() > 0;
+	}
+
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS

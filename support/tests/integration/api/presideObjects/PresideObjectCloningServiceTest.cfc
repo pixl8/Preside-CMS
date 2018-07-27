@@ -62,6 +62,57 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "isCloneable()", function(){
+			it( "should return false if the object has @clonable=false annotation", function(){
+				var service    = _getService();
+				var objectName = "SomeObject#CreateUUId()#";
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName=objectName, attributeName="cloneable" ).$results( false );
+
+				expect( service.isCloneable( objectName ) ).toBeFalse();
+			} );
+
+			it( "should return true if the object has @clonable=true annotation and has one or more cloneable attributes", function(){
+				var service    = _getService();
+				var objectName = "SomeObject#CreateUUId()#";
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName=objectName, attributeName="cloneable" ).$results( true );
+				service.$( "listCloneableFields" ).$args( objectName=objectName ).$results( [ "more", "than", "zero" ] );
+
+				expect( service.isCloneable( objectName ) ).toBeTrue();
+			} );
+
+			it( "should return true if the object does not specify @clonable annotation and has one or more cloneable attributes", function(){
+				var service    = _getService();
+				var objectName = "SomeObject#CreateUUId()#";
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName=objectName, attributeName="cloneable" ).$results( "" );
+				service.$( "listCloneableFields" ).$args( objectName=objectName ).$results( [ "more", "than", "zero" ] );
+
+				expect( service.isCloneable( objectName ) ).toBeTrue();
+			} );
+
+			it( "should return false if the object does not specify @clonable annotation but has no cloneable attributes", function(){
+				var service    = _getService();
+				var objectName = "SomeObject#CreateUUId()#";
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName=objectName, attributeName="cloneable" ).$results( "" );
+				service.$( "listCloneableFields" ).$args( objectName=objectName ).$results( [] );
+
+				expect( service.isCloneable( objectName ) ).toBeFalse();
+			} );
+
+			it( "should return false if the object  has @clonable=true annotation but has no cloneable attributes", function(){
+				var service    = _getService();
+				var objectName = "SomeObject#CreateUUId()#";
+
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectName=objectName, attributeName="cloneable" ).$results( true );
+				service.$( "listCloneableFields" ).$args( objectName=objectName ).$results( [] );
+
+				expect( service.isCloneable( objectName ) ).toBeFalse();
+			} );
+		} );
+
 		describe( "cloneRecord()", function(){
 			it( "should do stuff", function(){
 				fail( "but not yet implemented" );
