@@ -15,6 +15,41 @@ component {
 
 // PUBLIC API METHODS
 	/**
+	 * Clones a record for the given object, record ID
+	 * and supporting data
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose record you wish to clone
+	 * @recordId   ID of the record to clone
+	 * @data       Data to overwrite any data for the existing record
+	 *
+	 */
+	public string function cloneRecord(
+		  required string objectName
+		, required string recordId
+		, required struct data
+	) {
+		if ( !isCloneable( objectName=arguments.objectName ) ) {
+			throw( type="preside.cloning.not.possible", message="The object, [#arguments.objectName#], is not cloneable." );
+		}
+
+		var customHandler = getCloneHandler( objectName=arguments.objectName );
+		if ( Len( Trim( customHandler ) ) ) {
+			var result = $getColdbox().runEvent(
+				  event          = customHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { objectName=arguments.objectName, recordId=arguments.recordId, data=arguments.data }
+			);
+
+			return IsSimpleValue( result ?: {} ) ? result : "";
+		}
+
+		return "";
+	}
+
+
+	/**
 	 * Returns an array of fieldnames for properties that are clonable for the
 	 * given object.
 	 *

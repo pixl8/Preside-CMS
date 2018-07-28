@@ -126,14 +126,50 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "cloneRecord()", function(){
-			it( "should do stuff", function(){
-				fail( "but not yet implemented" );
+			it( "should throw informative error when object is not cloneable", function(){
+				var service    = _getService();
+				var objectName = "nonCloneableObject#CreateUUId()#";
+
+				service.$( "isCloneable" ).$args( objectName=objectName ).$results( false );
+
+				expect( function(){
+					service.cloneRecord(
+						  objectName = objectName
+						, recordId   = CreateUUId()
+						, data       = {}
+					)
+				} ).toThrow( "preside.cloning.not.possible"  );
+			} );
+			it( "should call the custom clone handler for the object when defined to take care of cloning completely", function(){
+				var service      = _getService();
+				var objectName   = "myObject#CreateUUId()#";
+				var recordId     = CreateUUId();
+				var cloneHandler = "test.handler.#CreateUUId()#";
+				var data         = { test="this", right=Now() };
+				var newId        = CreateUUId();
+
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = cloneHandler
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { objectName=objectName, recordId=recordId, data=data }
+				).$results( newId );
+
+				service.$( "isCloneable" ).$args( objectName=objectName ).$results( true );
+				service.$( "getCloneHandler" ).$args( objectName=objectName ).$results( cloneHandler );
+
+				expect( service.cloneRecord(
+					  objectName = objectName
+					, recordId   = recordId
+					, data       = data
+				) ).toBe( newId );
 			} );
 		} );
 	}
 
 	private any function _getService() {
 		mockPresideObjectService = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		mockColdbox              = CreateStub();
 
 		mockPresideObjectService.$( "getIdField"          , "_id" );
 		mockPresideObjectService.$( "getDateCreatedField" , "_datecreated" );
@@ -142,6 +178,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		var service = CreateMock( object = new preside.system.services.presideObjects.PresideObjectCloningService() );
 
 		service.$( "$getPresideObjectService", mockPresideObjectService );
+		service.$( "$getColdbox", mockColdbox );
 
 		return service;
 	}
