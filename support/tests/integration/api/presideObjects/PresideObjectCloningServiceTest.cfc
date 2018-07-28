@@ -183,6 +183,37 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					)
 				} ).toThrow( "preside.clone.record.not.found"  );
 			} );
+
+			it( "should merge passed data with cloneable field values from the original record for simple field values when creating the new record (i.e. non related data)", function(){
+				var service         = _getService();
+				var objectName      = "someobject#CreateUUId()#";
+				var recordId        = CreateUUId();
+				var newRecordId     = CreateUUId();
+				var cloneableFields = [ "one", "two", "three" ];
+				var newData         = { one=1, four=4 };
+				var oldRecord       = QueryNew( "id,one,two,three,datecreated,datemodified", "varchar,varchar,varchar,varchar,date,date", [[CreateUUId(), "one", "two", "three", Now(),Now() ] ] );
+
+				service.$( "isCloneable" ).$args( objectName=objectName ).$results( true );
+				service.$( "getCloneHandler" ).$args( objectName=objectName ).$results( "" );
+				service.$( "listCloneableFields" ).$args( objectName=objectName ).$results( cloneableFields );
+
+				mockPresideObjectService.$( "selectData" ).$args( objectName=objectName, id=recordId ).$results( oldRecord );
+				for( var prop in cloneableFields ) {
+					mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName=prop, attributeName="relationship" ).$results( "none" );
+				}
+
+				mockPresideObjectService.$( "insertData" ).$args(
+					  objectName              = objectName
+					, data                    = { one=1, two="two", three="three", four=4 }
+					, insertManyToManyRecords = true
+				).$results( newRecordId );
+
+				expect( service.cloneRecord(
+					  objectName = objectName
+					, recordId   = recordId
+					, data       = newData
+				) ).toBe( newRecordId );
+			} );
 		} );
 	}
 

@@ -52,8 +52,20 @@ component {
 		if ( !originalRecord.recordCount ) {
 			throw( type="preside.clone.record.not.found", message="Clone failed. Object record [#arguments.objectName#: #arguments.recordId#] was not found." );
 		}
+		for( var o in originalRecord ) { originalRecord=o; }
+		for( var fieldName in listCloneableFields( objectName=arguments.objectName ) ) {
+			if ( !arguments.data.keyExists( fieldName ) ) {
+				arguments.data[ fieldName ] = originalRecord[ fieldName ] ?: "";
+			}
+		}
 
-		return "";
+		var newId = $getPresideObjectService().insertData(
+			  objectName              = arguments.objectName
+			, data                    = arguments.data
+			, insertManyToManyRecords = true
+		);
+
+		return newId;
 	}
 
 
