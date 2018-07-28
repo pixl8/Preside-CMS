@@ -164,6 +164,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, data       = data
 				) ).toBe( newId );
 			} );
+
+			it( "should throw an informative error when the source record does not exist", function(){
+				var service    = _getService();
+				var objectName = "someobject#CreateUUId()#";
+				var recordId   = CreateUUId();
+
+				service.$( "isCloneable" ).$args( objectName=objectName ).$results( true );
+				service.$( "getCloneHandler" ).$args( objectName=objectName ).$results( "" );
+
+				mockPresideObjectService.$( "selectData" ).$args( objectName=objectName, id=recordId ).$results( QueryNew( "" ) );
+
+				expect( function(){
+					service.cloneRecord(
+						  objectName = objectName
+						, recordId   = recordId
+						, data       = {}
+					)
+				} ).toThrow( "preside.clone.record.not.found"  );
+			} );
 		} );
 	}
 

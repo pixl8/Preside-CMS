@@ -45,6 +45,14 @@ component {
 			return IsSimpleValue( result ?: {} ) ? result : "";
 		}
 
+		var originalRecord = $getPresideObjectService().selectData(
+			  objectName = arguments.objectName
+			, id         = arguments.recordId
+		);
+		if ( !originalRecord.recordCount ) {
+			throw( type="preside.clone.record.not.found", message="Clone failed. Object record [#arguments.objectName#: #arguments.recordId#] was not found." );
+		}
+
 		return "";
 	}
 
