@@ -199,12 +199,58 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				mockPresideObjectService.$( "selectData" ).$args( objectName=objectName, id=recordId ).$results( oldRecord );
 				for( var prop in cloneableFields ) {
-					mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName=prop, attributeName="relationship" ).$results( "none" );
+					mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName=prop, attributeName="relationship", defaultValue="none" ).$results( "none" );
 				}
 
 				mockPresideObjectService.$( "insertData" ).$args(
 					  objectName              = objectName
 					, data                    = { one=1, two="two", three="three", four=4 }
+					, insertManyToManyRecords = true
+				).$results( newRecordId );
+
+				expect( service.cloneRecord(
+					  objectName = objectName
+					, recordId   = recordId
+					, data       = newData
+				) ).toBe( newRecordId );
+			} );
+
+			it( "should fetch many-to-many data for cloning for cloneable many-to-many relationships that are not passed in with the data struct", function(){
+				var service          = _getService();
+				var objectName       = "someobject#CreateUUId()#";
+				var recordId         = CreateUUId();
+				var newRecordId      = CreateUUId();
+				var cloneableFields  = [ "one", "two", "three", "many_to_one", "many_to_many", "many_to_many_two" ];
+				var newData          = { one=1, four=4, many_to_many_two="#CreateUUId()#,#CreateUUId()#" };
+				var oldRecord        = QueryNew( "id,one,two,three,many_to_one,datecreated,datemodified", "varchar,varchar,varchar,varchar,varchar,date,date", [[CreateUUId(), "one", "two", "three", CreateUUId(), Now(),Now() ] ] );
+				var oldManyToManyIds = QueryNew( "id", "varchar", [[CreateUUId()],[CreateUUId()]])
+
+				service.$( "isCloneable" ).$args( objectName=objectName ).$results( true );
+				service.$( "getCloneHandler" ).$args( objectName=objectName ).$results( "" );
+				service.$( "listCloneableFields" ).$args( objectName=objectName ).$results( cloneableFields );
+
+				mockPresideObjectService.$( "selectData" ).$args( objectName=objectName, id=recordId ).$results( oldRecord );
+				for( var prop in cloneableFields ) {
+					if ( prop.findNoCase( "many" ) ) {
+						if ( prop == "many_to_many" ) {
+							mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName=prop, attributeName="relationship", defaultValue="none" ).$results( "many-to-many" );
+						} else {
+							mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName=prop, attributeName="relationship", defaultValue="none" ).$results( "many-to-one" );
+						}
+					} else {
+						mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName=prop, attributeName="relationship", defaultValue="none" ).$results( "none" );
+					}
+				}
+
+				mockPresideObjectService.$( "selectManyToManyData" ).$args(
+					  objectName   = objectName
+					, propertyName = "many_to_many"
+					, selectFields = [ "id" ]
+				).$results( oldManyToManyIds );
+
+				mockPresideObjectService.$( "insertData" ).$args(
+					  objectName              = objectName
+					, data                    = { one=1, two="two", three="three", four=4, many_to_one=oldRecord.many_to_one, many_to_many=ValueList( oldManyToManyIds.id ), many_to_many_two=newData.many_to_many_two }
 					, insertManyToManyRecords = true
 				).$results( newRecordId );
 

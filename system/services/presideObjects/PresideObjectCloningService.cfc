@@ -45,7 +45,8 @@ component {
 			return IsSimpleValue( result ?: {} ) ? result : "";
 		}
 
-		var originalRecord = $getPresideObjectService().selectData(
+		var poService      = $getPresideObjectService();
+		var originalRecord = poService.selectData(
 			  objectName = arguments.objectName
 			, id         = arguments.recordId
 		);
@@ -53,13 +54,39 @@ component {
 			throw( type="preside.clone.record.not.found", message="Clone failed. Object record [#arguments.objectName#: #arguments.recordId#] was not found." );
 		}
 		for( var o in originalRecord ) { originalRecord=o; }
+
 		for( var fieldName in listCloneableFields( objectName=arguments.objectName ) ) {
 			if ( !arguments.data.keyExists( fieldName ) ) {
-				arguments.data[ fieldName ] = originalRecord[ fieldName ] ?: "";
+				var relationship = poService.getObjectPropertyAttribute(
+					  objectName    = arguments.objectName
+					, propertyName  = fieldName
+					, attributeName = "relationship"
+					, defaultValue  = "none"
+				);
+
+				switch( relationship ) {
+					case "one-to-many":
+					break;
+					case "many-to-many":
+						var existingValues = poService.selectManyToManyData(
+							  objectName   = arguments.objectName
+							, propertyName = fieldName
+							, selectFields = [ "id" ]
+						);
+
+						if ( existingValues.recordCount ) {
+							arguments.data[ fieldName ] = ValueList( existingValues.id );
+						} else {
+							arguments.data[ fieldName ] = "";
+						}
+					break;
+					default:
+						arguments.data[ fieldName ] = originalRecord[ fieldName ] ?: "";
+				}
 			}
 		}
 
-		var newId = $getPresideObjectService().insertData(
+		var newId = poService.insertData(
 			  objectName              = arguments.objectName
 			, data                    = arguments.data
 			, insertManyToManyRecords = true
