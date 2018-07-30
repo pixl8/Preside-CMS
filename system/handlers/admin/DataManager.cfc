@@ -1336,6 +1336,16 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
+		if ( IsTrue( prc.canClone ?: "" ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="cloneRecord", recordId=recordId )
+				, btnClass  = "btn-info"
+				, iconClass = "fa-clone"
+				, globalKey = "c"
+				, title     = translateResource( uri="cms:datamanager.cloneRecord.btn" )
+			} );
+		}
+
 		if ( IsTrue( prc.canDelete ?: "" ) ) {
 			actions.append( {
 				  link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
