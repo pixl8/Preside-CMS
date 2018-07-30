@@ -4,7 +4,7 @@
 	param name="args.cloneRecordAction"       type="string"  default=event.buildAdminLink( objectName=args.object, operation="cloneRecordAction" );
 	param name="args.version"                 type="string"  default="";
 	param name="args.cloneableData"           type="struct"  default={};
-	param name="args.formName"                type="string"  default="preside-objects.#args.object#.admin.edit";
+	param name="args.formName"                type="string"  default="preside-objects.#args.object#.admin.clone";
 	param name="args.mergeWithFormName"       type="string"  default="";
 	param name="args.useVersioning"           type="boolean" default=false;
 	param name="args.hiddenFields"            type="struct"  default={};
@@ -19,7 +19,7 @@
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
 	param name="args.objectName"              type="string"  default=args.object;
-	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._editRecordActionButtons", args=args );
+	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._cloneRecordActionButtons", args=args );
 
 	objectTitleSingular = prc.objectTitle ?: "";
 	cloneRecordPrompt   = translateResource( uri="preside-objects.#args.object#:cloneRecord.prompt", defaultValue="" );

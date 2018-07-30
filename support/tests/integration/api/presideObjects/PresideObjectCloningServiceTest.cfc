@@ -245,8 +245,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				mockPresideObjectService.$( "selectManyToManyData" ).$args(
 					  objectName   = objectName
+					, id           = recordId
 					, propertyName = "many_to_many"
-					, selectFields = [ "id" ]
+					, selectFields = [ "many_to_many.id" ]
 				).$results( oldManyToManyIds );
 
 				mockPresideObjectService.$( "insertData" ).$args(
