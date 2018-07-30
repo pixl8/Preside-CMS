@@ -368,6 +368,43 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function cloneRecord( event, rc, prc ) {
+		var objectName    = prc.objectName ?: "";
+		var recordId      = prc.recordId   ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="clone" );
+
+		prc.record          = queryRowToStruct( prc.record );
+		prc.cancelAction    = event.buildAdminLink( objectName=objectName, recordId=recordId )
+		prc.cloneRecordForm = "TODO";
+		// prc.cloneRecordForm = customizationService.runCustomization(
+		// 	  objectName     = objectName
+		// 	, action         = "cloneRecordForm"
+		// 	, defaultHandler = "admin.datamanager._cloneRecordForm"
+		// 	, args = {
+		// 		  objectName        = objectName
+		// 		, cloneRecordAction = event.buildAdminLink( objectName=objectName, operation="cloneRecordAction" )
+		// 		, recordId          = prc.recordId ?: ""
+		// 		, draftsEnabled     = IsTrue( prc.draftsEnabled ?: "" )
+		// 		, canSaveDraft      = IsTrue( prc.canSaveDraft  ?: "" )
+		// 		, canPublish        = IsTrue( prc.canPublish    ?: "" )
+		// 		, cancelAction      = prc.cancelAction ?: ""
+		// 		, record            = prc.record
+		// 	  }
+		// );
+
+		var recordLabel         = prc.recordLabel ?: "";
+		var objectTitleSingular = prc.objectTitle ?: ""
+		var cloneRecordTitle     = translateResource( uri="cms:datamanager.clonerecord.title", data=[  objectTitleSingular , recordLabel ] );
+
+		prc.pageIcon  = "pencil";
+		prc.pageTitle = cloneRecordTitle;
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.clonerecord.breadcrumb.title" )
+			, link  = ""
+		);
+	}
+
 	public void function deleteRecordAction( event, rc, prc ) {
 		var objectName = prc.objectName ?: "";
 		var recordId   = prc.recordId ?: "";
