@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="emailRecipientTypeService"  inject="emailRecipientTypeService";
 	property name="emailLayoutService"         inject="emailLayoutService";
 	property name="emailMassSendingService"    inject="emailMassSendingService";
+	property name="customizationService"       inject="dataManagerCustomizationService";
 	property name="emailService"               inject="emailService";
 	property name="formsService"               inject="formsService";
 	property name="dao"                        inject="presidecms:object:email_template";
@@ -231,6 +232,22 @@ component extends="preside.system.base.AdminHandler" {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var id = rc.id ?: "";
+
+		prc.cloneRecordForm = customizationService.runCustomization(
+			  objectName     = "email_template"
+			, action         = "cloneRecordForm"
+			, defaultHandler = "admin.datamanager._cloneRecordForm"
+			, args = {
+				  objectName        = "email_template"
+				, cloneRecordAction = event.buildAdminLink( linkto="emailcenter.customTemplates.cloneAction" )
+				, recordId          = id
+				, draftsEnabled     = true
+				, canSaveDraft      = true
+				, canPublish        = false
+				, cancelAction      = event.buildAdminLink( linkto="emailcenter.customTemplates" )
+				, record            = prc.record
+			  }
+		);
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.clone.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.clone.page.subtitle", data=[ prc.record.name ] );

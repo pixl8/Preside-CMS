@@ -1,7 +1,8 @@
 /**
  * Layout, subject and body of a single email, either system, transactional or marketing.
  *
- * @labelfield name
+ * @labelfield         name
+ * @datamanagerEnabled true
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template"  {
 	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename";
