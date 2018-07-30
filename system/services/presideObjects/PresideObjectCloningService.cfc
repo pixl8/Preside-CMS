@@ -77,8 +77,9 @@ component {
 				case "many-to-many":
 					var existingValues = poService.selectManyToManyData(
 						  objectName   = arguments.objectName
+						, id           = arguments.recordId
 						, propertyName = fieldName
-						, selectFields = [ "id" ]
+						, selectFields = [ "#fieldName#.id" ]
 					);
 
 					if ( existingValues.recordCount ) {
