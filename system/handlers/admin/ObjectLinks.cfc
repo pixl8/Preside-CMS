@@ -105,6 +105,22 @@ component {
 		return "";
 	}
 
+	private string function buildCloneRecordLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "clone" ) ) {
+			var recordId     = args.recordId ?: "";
+			var queryString = "object=#objectName#&id=#recordId#";
+
+			return event.buildAdminLink(
+				  linkto      = "datamanager.cloneRecord"
+				, queryString = _queryString( queryString, args )
+			);
+		}
+
+		return "";
+	}
+
 	private string function buildDeleteRecordActionLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 		var recordId   = args.recordId   ?: "";

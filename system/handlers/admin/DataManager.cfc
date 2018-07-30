@@ -1521,10 +1521,12 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
 			var canView           = IsTrue( prc.canView         ?: "" );
 			var canEdit           = IsTrue( prc.canEdit         ?: "" );
+			var canClone          = IsTrue( prc.canClone        ?: "" );
 			var canDelete         = IsTrue( prc.canDelete       ?: "" );
 			var canViewVersions   = IsTrue( prc.canViewVersions ?: "" );
 			var canViewHistory    = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
 			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
+			var cloneRecordLink   = canClone       ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
 			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
 			var deleteRecordLink  = canDelete      ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
 			var viewHistoryLink   = canViewHistory ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
@@ -1563,6 +1565,13 @@ component extends="preside.system.base.AdminHandler" {
 							  link       = editRecordLink.replace( "{id}", record.id )
 							, icon       = "fa-pencil"
 							, contextKey = "e"
+						} );
+					}
+					if ( canClone ) {
+						actions.append( {
+							  link       = cloneRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-clone"
+							, contextKey = "c"
 						} );
 					}
 					if ( canDelete ) {
@@ -2316,7 +2325,7 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
-		var operations      = [ "read", "add", "edit", "delete", "viewversions", "translate" ];
+		var operations      = [ "read", "add", "edit", "delete", "viewversions", "translate", "clone" ];
 		var draftOperations = [ "addRecord", "addRecordAction", "editRecord", "editRecordAction", "translateRecord", "translateRecordAction" ];
 		var permitted       = true;
 
@@ -2946,6 +2955,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canDelete             = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
 			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
 			prc.canViewVersions       = _checkPermission( argumentCollection=arguments, key="viewversions"      , throwOnError=false );
+			prc.canClone              = _checkPermission( argumentCollection=arguments, key="clone"             , throwOnError=false );
 			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
 			prc.hiddenGridFields      = _getObjectHiddenFieldsForGrid( prc.objectName );
