@@ -405,6 +405,28 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function cloneRecordAction( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+		var recordId   = prc.recordId   ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="clone" );
+
+		if ( customizationService.objectHasCustomization( objectName, "cloneRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "cloneRecordAction"
+				, args       = { objectName=objectName, recordId=recordId }
+			);
+		} else {
+			runEvent(
+				  event          = "admin.DataManager._cloneRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = { audit=true }
+			);
+		}
+	}
+
 	public void function deleteRecordAction( event, rc, prc ) {
 		var objectName = prc.objectName ?: "";
 		var recordId   = prc.recordId ?: "";
@@ -2295,6 +2317,129 @@ component extends="preside.system.base.AdminHandler" {
 			messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
 
 			setNextEvent( url=successUrl );
+		}
+	}
+
+	private void function _cloneRecordAction(required any     event
+		, required struct  rc
+		, required struct  prc
+		,          string  object                  = ( rc.object ?: '' )
+		,          string  recordId                = ( rc.id     ?: '' )
+		,          string  errorAction             = ""
+		,          string  errorUrl                = ( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( objectName=arguments.object, operation="cloneRecord", recordId=arguments.recordId ) )
+		,          string  missingUrl              = event.buildAdminLink( objectname=arguments.object, operation="listing" )
+		,          string  successAction           = ""
+		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={id}' ) : event.buildAdminLink( objectname=arguments.object, recordId="{id}" ) )
+		,          boolean redirectOnSuccess       = true
+		,          string  formName                = _getDefaultCloneFormName( arguments.object )
+		,          string  mergeWithFormName       = ""
+		,          boolean audit                   = false
+		,          string  auditAction             = ""
+		,          string  auditType               = "datamanager"
+		,          boolean draftsEnabled           = IsTrue( prc.draftsEnabled ?: "" )
+		,          boolean canPublish              = IsTrue( prc.canPublish    ?: "" )
+		,          boolean canSaveDraft            = IsTrue( prc.canSaveDraft  ?: "" )
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = arguments.object
+		,          array   permissionContextKeys   = []
+		,          any     validationResult
+	) {
+		arguments.formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
+
+		var id               = rc.id      ?: "";
+		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		var objectName       = prc.objectTitle ?: "";
+		var obj              = "";
+		var validationResult = "";
+		var persist          = "";
+		var isDraft          = false;
+		var forceVersion     = false;
+		var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
+
+		if ( !existingRecord.recordCount ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
+
+			setNextEvent( url=missingUrl );
+		}
+
+		validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+
+		var args = arguments;
+
+		args.formData         = formData;
+		args.existingRecord   = existingRecord;
+		args.validationResult = validationResult;
+		if ( customizationService.objectHasCustomization( object, "preCloneRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preCloneRecordAction"
+				, args       = args
+			);
+		}
+
+
+		if ( not validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+
+			setNextEvent( url=errorUrl, persistStruct=persist );
+		}
+
+		if ( arguments.draftsEnabled ) {
+			isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+			if ( isDraft && !arguments.canSaveDraft ) {
+				event.adminAccessDenied();
+			}
+			if ( !isDraft && !arguments.canPublish ) {
+				event.adminAccessDenied();
+			}
+		}
+
+		args.newId = cloningService.cloneRecord(
+			  objectName = object
+			, recordId   = id
+			, data       = formData
+			, isDraft    = isDraft
+		);
+
+		if ( arguments.audit ) {
+			var auditDetail = _getAuditDataFromFormData( formData );
+			auditDetail.objectName = arguments.object;
+			auditDetail.newid = args.newId;
+
+			if ( !Len( Trim( arguments.auditAction ) ) ) {
+				if ( arguments.draftsEnabled ) {
+					if ( isDraft ) {
+						arguments.auditAction = "datamanager_clone_draft_record";
+					} else {
+						arguments.auditAction = "datamanager_publish_clone_record";
+					}
+				} else {
+					arguments.auditAction = "datamanager_clone_record";
+				}
+			}
+			event.audit(
+				  action   = arguments.auditAction
+				, type     = arguments.auditType
+				, recordId = id
+				, detail   = auditDetail
+			);
+		}
+
+		if ( customizationService.objectHasCustomization( object, "postCloneRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "postCloneRecordAction"
+				, args       = args
+			);
+		}
+
+		if ( redirectOnSuccess ) {
+			messageBox.info( translateResource( uri="cms:datamanager.recordCloned.confirmation", data=[ objectName ] ) );
+
+			setNextEvent( url=successUrl.replace( "{id}", args.newId, "all" ) );
 		}
 	}
 

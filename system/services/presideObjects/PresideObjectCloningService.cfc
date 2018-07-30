@@ -22,12 +22,13 @@ component {
 	 * @objectName Name of the object whose record you wish to clone
 	 * @recordId   ID of the record to clone
 	 * @data       Data to overwrite any data for the existing record
-	 *
+	 * @isDraft    Whether or not the clone is to be a draft record
 	 */
 	public string function cloneRecord(
-		  required string objectName
-		, required string recordId
-		, required struct data
+		  required string  objectName
+		, required string  recordId
+		, required struct  data
+		,          boolean isDraft = false
 	) {
 		if ( !isCloneable( objectName=arguments.objectName ) ) {
 			throw( type="preside.cloning.not.possible", message="The object, [#arguments.objectName#], is not cloneable." );
@@ -96,6 +97,7 @@ component {
 				  objectName              = arguments.objectName
 				, data                    = arguments.data
 				, insertManyToManyRecords = true
+				, isDraft                 = arguments.isDraft
 			);
 
 			for( var propertyName in oneToManyFields ) {
@@ -104,6 +106,7 @@ component {
 					, recordId     = arguments.recordId
 					, newRecordId  = newId
 					, propertyName = propertyName
+					, isDraft      = arguments.isDraft
 				);
 			}
 		}
@@ -120,13 +123,15 @@ component {
 	 * @recordId     ID of the source record that is being cloned
 	 * @newRecordId  ID of the newly cloned record
 	 * @propertyName Property that defines the one-to-many relationship whose records we will also clone
+	 * @isDraft      Whether or not the clone is a draft record
 	 *
 	 */
 	public any function cloneOneToManyRecords(
-		  required string objectName
-		, required string recordId
-		, required string newRecordId
-		, required string propertyName
+		  required string  objectName
+		, required string  recordId
+		, required string  newRecordId
+		, required string  propertyName
+		,          boolean isDraft = false
 	) {
 		var poService       = $getPresideObjectService();
 		var relatedTo       = poService.getObjectPropertyAttribute( attributeName="relatedTo"      , objectName=arguments.objectName, propertyName=arguments.propertyName );
@@ -145,6 +150,7 @@ component {
 				  objectName = relatedTo
 				, recordId   = record.id
 				, data       = cloneData
+				, isDraft    = arguments.isDraft
 			);
 		}
 

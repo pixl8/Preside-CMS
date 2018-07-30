@@ -206,6 +206,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  objectName              = objectName
 					, data                    = { one=1, two="two", three="three", four=4 }
 					, insertManyToManyRecords = true
+					, isDraft                 = false
 				).$results( newRecordId );
 
 				expect( service.cloneRecord(
@@ -252,6 +253,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  objectName              = objectName
 					, data                    = { one=1, two="two", three="three", four=4, many_to_one=oldRecord.many_to_one, many_to_many=ValueList( oldManyToManyIds.id ), many_to_many_two=newData.many_to_many_two }
 					, insertManyToManyRecords = true
+					, isDraft                 = false
 				).$results( newRecordId );
 
 				expect( service.cloneRecord(
@@ -283,6 +285,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  objectName              = objectName
 					, data                    = { one="one" }
 					, insertManyToManyRecords = true
+					, isDraft                 = false
 				).$results( newRecordId );
 
 				expect( service.cloneRecord(
@@ -298,6 +301,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, recordId     = recordId
 					, newRecordId  = newRecordId
 					, propertyName = "one_to_many"
+					, isDraft      = false
 				} );
 			} );
 		} );
@@ -347,6 +351,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					expect( callLog[ ++i ] ).toBe( {
 						  objectName = relatedTo
 						, recordId   = record.id
+						, isDraft    = false
 						, data       = { "#relationshipKey#"=newRecordId }
 					} );
 				}
