@@ -726,7 +726,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, view_online     = false
 				};
 
-				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( mockTemplate );
 				service.$( "prepareParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
@@ -796,7 +796,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, view_online     = false
 				};
 
-				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( mockTemplate );
 				service.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( mockFrom );
 				service.$( "prepareParameters" ).$args(
 					  template      = template
@@ -849,7 +849,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var template    = CreateUUId();
 				var errorThrown = false;
 
-				service.$( "getTemplate" ).$args( template ).$results( {} );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( {} );
 
 				try {
 					service.prepareMessage( template, {} );
@@ -923,7 +923,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				};
 
 				service.$( "getViewOnlineLink" ).$args( mockHtmlBodyWithLayout ).$results( viewOnlineLink );
-				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( mockTemplate );
 				service.$( "prepareParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
