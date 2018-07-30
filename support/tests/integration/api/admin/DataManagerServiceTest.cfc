@@ -239,6 +239,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockSiteService          = createEmptyMock( "preside.system.services.siteTree.SiteService" );
 		mockRelationshipGuidance = createEmptyMock( "preside.system.services.presideObjects.RelationshipGuidance" );
 		mockCustomizationService = createEmptyMock( "preside.system.services.admin.DataManagerCustomizationService" );
+		mockCloningService       = createEmptyMock( "preside.system.services.presideObjects.PresideObjectCloningService" );
+		mockMultilingualService  = createEmptyMock( "preside.system.services.i18n.MultilingualPresideObjectService" );
 
 		_setupMockObjectMeta();
 
@@ -251,6 +253,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, siteService          = mockSiteService
 			, relationshipGuidance = mockRelationshipGuidance
 			, customizationService = mockCustomizationService
+			, cloningService       = mockCloningService
+			, multilingualService  = mockMultilingualService
 		);
 	}
 
