@@ -260,6 +260,46 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, data       = newData
 				) ).toBe( newRecordId );
 			} );
+
+			it( "should perform 'cloneRecord' operations on any cloneable one-to-many relationship records", function(){
+				var service          = _getService();
+				var objectName       = "someobject#CreateUUId()#";
+				var recordId         = CreateUUId();
+				var newRecordId      = CreateUUId();
+				var cloneableFields  = [ "one", "one_to_many" ];
+				var newData          = {};
+				var oldRecord        = QueryNew( "id,one,datecreated,datemodified", "varchar,varchar,date,date", [[CreateUUId(), "one", Now(),Now() ] ] );
+
+				service.$( "isCloneable" ).$args( objectName=objectName ).$results( true );
+				service.$( "cloneOneToManyRecords" );
+				service.$( "getCloneHandler" ).$args( objectName=objectName ).$results( "" );
+				service.$( "listCloneableFields" ).$args( objectName=objectName ).$results( cloneableFields );
+
+				mockPresideObjectService.$( "selectData" ).$args( objectName=objectName, id=recordId ).$results( oldRecord );
+				mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName="one"        , attributeName="relationship", defaultValue="none" ).$results( "none" );
+				mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectName=objectName, propertyName="one_to_many", attributeName="relationship", defaultValue="none" ).$results( "one-to-many" );
+
+				mockPresideObjectService.$( "insertData" ).$args(
+					  objectName              = objectName
+					, data                    = { one="one" }
+					, insertManyToManyRecords = true
+				).$results( newRecordId );
+
+				expect( service.cloneRecord(
+					  objectName = objectName
+					, recordId   = recordId
+					, data       = newData
+				) ).toBe( newRecordId );
+
+				var callLog = service.$callLog().cloneOneToManyRecords;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( {
+					  objectName   = objectname
+					, recordId     = recordId
+					, newRecordId  = newRecordId
+					, propertyName = "one_to_many"
+				} );
+			} );
 		} );
 	}
 

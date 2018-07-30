@@ -50,6 +50,7 @@ component {
 			  objectName = arguments.objectName
 			, id         = arguments.recordId
 		);
+		var oneToManyFields = [];
 		if ( !originalRecord.recordCount ) {
 			throw( type="preside.clone.record.not.found", message="Clone failed. Object record [#arguments.objectName#: #arguments.recordId#] was not found." );
 		}
@@ -66,6 +67,7 @@ component {
 
 				switch( relationship ) {
 					case "one-to-many":
+						oneToManyFields.append( fieldName );
 					break;
 					case "many-to-many":
 						var existingValues = poService.selectManyToManyData(
@@ -92,7 +94,36 @@ component {
 			, insertManyToManyRecords = true
 		);
 
+		for( var propertyName in oneToManyFields ) {
+			cloneOneToManyRecords(
+				  objectName   = arguments.objectName
+				, recordId     = arguments.recordId
+				, newRecordId  = newId
+				, propertyName = propertyName
+			);
+		}
+
 		return newId;
+	}
+
+	/**
+	 * Clones related one-to-many records for a given source
+	 * record + new cloned record ID
+	 *
+	 * @autodoc true
+	 * @objectName   Name of the object whose source record is being cloned
+	 * @recordId     ID of the source record that is being cloned
+	 * @newRecordId  ID of the newly cloned record
+	 * @propertyName Property that defines the one-to-many relationship whose records we will also clone
+	 *
+	 */
+	public any function cloneOneToManyRecords(
+		  required string objectName
+		, required string recordId
+		, required string newRecordId
+		, required string propertyName
+	) {
+		return;
 	}
 
 
