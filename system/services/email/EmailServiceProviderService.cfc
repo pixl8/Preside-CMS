@@ -203,8 +203,9 @@ component {
 	 * @autodoc true
 	 * @provider.hint ID of the provider through which to send the email
 	 * @sendArgs.hint Structure of arguments to send to the provider's send handler action
+	 * @logSend.hint  Whether or not to log the email send and track future events
 	 */
-	public any function sendWithProvider( required string provider, required struct sendArgs ) {
+	public any function sendWithProvider( required string provider, required struct sendArgs, boolean logSend=true ) {
 		var sendAction  = getProviderSendAction( arguments.provider );
 		var settings    = getProviderSettings( arguments.provider );
 		var logService  = _getEmailLoggingService();
@@ -219,17 +220,22 @@ component {
 			);
 		}
 
-		sendArgs.messageId = _logMessage( arguments.sendArgs );
-		sendArgs.htmlBody  = logService.insertTrackingPixel(
-			  messageId   = sendArgs.messageId
-			, messageHtml = sendArgs.htmlBody ?: ""
-		);
+		if ( arguments.logSend ) {
+			sendArgs.messageId = _logMessage( arguments.sendArgs );
 
-		if ( _getEmailTemplateService().isTrackingEnabled( arguments.sendArgs.template ?: "" ) ) {
-			sendArgs.htmlBody  = logService.insertClickTrackingLinks(
+			sendArgs.htmlBody  = logService.insertTrackingPixel(
 				  messageId   = sendArgs.messageId
 				, messageHtml = sendArgs.htmlBody ?: ""
 			);
+
+			if ( _getEmailTemplateService().isTrackingEnabled( arguments.sendArgs.template ?: "" ) ) {
+				sendArgs.htmlBody  = logService.insertClickTrackingLinks(
+					  messageId   = sendArgs.messageId
+					, messageHtml = sendArgs.htmlBody ?: ""
+				);
+			}
+		} else {
+			sendArgs.messageId = CreateUUId();
 		}
 
 		try {
