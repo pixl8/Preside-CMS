@@ -63,19 +63,21 @@ component {
 	 * @bcc.hint            Optional array of addresses to bcc in to the email
 	 * @parameters.hint     Optional struct of variables for use in content token substitution in subject and body
 	 * @messageHeaders.hint Optional struct of email message headers to set
+	 * @isTest.hint         Whether or not this is for a test send
 	 */
 	public struct function prepareMessage(
-		  required string template
-		, required struct args
-		,          string recipientId    = ""
-		,          array  to             = []
-		,          array  cc             = []
-		,          array  bcc            = []
-		,          struct parameters     = {}
-		,          array  attachments    = []
-		,          struct messageHeaders = {}
+		  required string  template
+		, required struct  args
+		,          string  recipientId    = ""
+		,          array   to             = []
+		,          array   cc             = []
+		,          array   bcc            = []
+		,          struct  parameters     = {}
+		,          array   attachments    = []
+		,          struct  messageHeaders = {}
+		,          boolean isTest         = false
 	) {
-		var messageTemplate  = getTemplate( arguments.template );
+		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.isTest );
 		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
 		if ( messageTemplate.isEmpty() ) {

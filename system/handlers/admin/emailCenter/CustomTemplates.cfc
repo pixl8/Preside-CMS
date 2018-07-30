@@ -112,7 +112,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function previewRecipientPicker( event, rc, prc ) {
-		_getTemplate( argumentCollection=arguments, allowDrafts=false );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		prc.gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
@@ -121,7 +121,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function sendTestModalForm( event, rc, prc ) {
-		_getTemplate( argumentCollection=arguments, allowDrafts=false );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		prc.savedData = {
 			  send_to   = event.getAdminUserDetails().email_address
@@ -136,7 +136,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function sendTestAction( event, rc, prc ) {
-		_getTemplate( argumentCollection=arguments );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var formName         = _getTestSendFormName( argumentCollection=arguments );
 		var formData         = event.getCollectionForForm( formName );
@@ -151,6 +151,7 @@ component extends="preside.system.base.AdminHandler" {
 				  template    = templateId
 				, recipientId = recipient
 				, to          = sendTo
+				, isTest      = true
 			);
 
 			messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.test.success", data=[ rc.send_to ] ) );
@@ -576,7 +577,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function getRecipientListForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event=event, key="read" );
-		_getTemplate( argumentCollection=arguments );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var templateId   = rc.id ?: "";
 
@@ -637,10 +638,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function _customTemplateActions( event, rc, prc, args={} ) {
 		var templateId = rc.id ?: "";
-		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=false );
-
+		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 		if ( template.count() ) {
-			args.canSend       = template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.canSend       = IsFalse( template._version_is_draft ) && template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
 			args.canSendTest   = true;
 			args.scheduleType  = template.schedule_type ?: "";
 			args.nextSendDate  = template.schedule_next_send_date ?: "";
