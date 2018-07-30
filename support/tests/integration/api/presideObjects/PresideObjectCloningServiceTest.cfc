@@ -301,6 +301,57 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				} );
 			} );
 		} );
+
+		describe( "cloneOneToManyRecords()", function(){
+			it( "should fetch related records and call cloneRecord() for each one, passing the new source cloned record ID in the data", function(){
+				var service         = _getService();
+				var objectName      = "my_object_#CreateUUId()#";
+				var propertyName    = "one_to_many_prop";
+				var recordId        = CreateUUId();
+				var newRecordId     = CreateUUId();
+				var relatedTo       = "some_other_object_#CreateUUId()#";
+				var relationshipKey = "some_key";
+				var dummyRecords    = QueryNew( "id", "varchar", [[CreateUUId()],[CreateUUId()],[CreateUUId()],[CreateUUId()]]);
+
+				mockPresideObjectService.$( "selectData" ).$args(
+					  objectName   = objectName
+					, id           = recordId
+					, selectFields = [ "#propertyName#._id as id" ]
+					, forceJoins   = "inner"
+				).$results( dummyRecords );
+
+				mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName = objectName
+					, propertyName = propertyName
+					, attributeName = "relatedTo"
+				).$results( relatedTo );
+				mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = objectName
+					, propertyName  = propertyName
+					, attributeName = "relationshipKey"
+				).$results( relationshipKey );
+
+				service.$( "cloneRecord", CreateUUId() );
+
+				service.cloneOneToManyRecords(
+					  objectName   = objectName
+					, propertyName = propertyName
+					, recordId     = recordId
+					, newRecordId  = newRecordId
+				);
+
+				var callLog = service.$callLog().cloneRecord;
+				expect( callLog.len() ).toBe( dummyRecords.recordCount );
+				var i = 0;
+				for( var record in dummyRecords ) {
+					expect( callLog[ ++i ] ).toBe( {
+						  objectName = relatedTo
+						, recordId   = record.id
+						, data       = { "#relationshipKey#"=newRecordId }
+					} );
+				}
+			} );
+		} );
 	}
 
 	private any function _getService() {

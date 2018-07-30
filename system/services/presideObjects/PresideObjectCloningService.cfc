@@ -123,7 +123,27 @@ component {
 		, required string newRecordId
 		, required string propertyName
 	) {
-		return;
+		var poService       = $getPresideObjectService();
+		var relatedTo       = poService.getObjectPropertyAttribute( attributeName="relatedTo"      , objectName=arguments.objectName, propertyName=arguments.propertyName );
+		var relationshipKey = poService.getObjectPropertyAttribute( attributeName="relationshipKey", objectName=arguments.objectName, propertyName=arguments.propertyName );
+		var idField         = poService.getIdField( objectName=relatedTo );
+		var cloneData       = { "#relationshipKey#"=arguments.newRecordId };
+		var recordsToClone  = poService.selectData(
+			  objectName   = arguments.objectName
+			, id           = arguments.recordId
+			, selectFields = [ "#arguments.propertyName#.#idField# as id" ]
+			, forceJoins   = "inner"
+		);
+
+		for( var record in recordsToClone ) {
+			cloneRecord(
+				  objectName = relatedTo
+				, recordId   = record.id
+				, data       = cloneData
+			);
+		}
+
+		return recordsToClone.recordCount;
 	}
 
 
