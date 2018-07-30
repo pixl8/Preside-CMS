@@ -91,19 +91,21 @@ component {
 			}
 		}
 
-		var newId = poService.insertData(
-			  objectName              = arguments.objectName
-			, data                    = arguments.data
-			, insertManyToManyRecords = true
-		);
-
-		for( var propertyName in oneToManyFields ) {
-			cloneOneToManyRecords(
-				  objectName   = arguments.objectName
-				, recordId     = arguments.recordId
-				, newRecordId  = newId
-				, propertyName = propertyName
+		transaction {
+			var newId = poService.insertData(
+				  objectName              = arguments.objectName
+				, data                    = arguments.data
+				, insertManyToManyRecords = true
 			);
+
+			for( var propertyName in oneToManyFields ) {
+				cloneOneToManyRecords(
+					  objectName   = arguments.objectName
+					, recordId     = arguments.recordId
+					, newRecordId  = newId
+					, propertyName = propertyName
+				);
+			}
 		}
 
 		return newId;
