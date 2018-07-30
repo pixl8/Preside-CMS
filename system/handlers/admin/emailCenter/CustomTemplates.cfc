@@ -226,6 +226,21 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	function clone( event, rc, prc ) {
+		_checkPermissions( event=event, key="add" );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+
+		var id = rc.id ?: "";
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.clone.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.clone.page.subtitle", data=[ prc.record.name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.clone.page.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.clone", queryString="id=#id#" )
+		);
+	}
+
 	function deleteAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="delete" );
 
@@ -403,8 +418,10 @@ component extends="preside.system.base.AdminHandler" {
 		args.previewRecordLink = event.buildAdminLink( linkTo="emailCenter.customTemplates.preview"       , queryString="id=" & args.id );
 		args.editRecordLink    = event.buildAdminLink( linkTo="emailCenter.customTemplates.edit"          , queryString="id=" & args.id );
 		args.viewHistoryLink   = event.buildAdminLink( linkTo="emailCenter.customTemplates.versionHistory", queryString="id=" & args.id );
+		args.cloneLink         = event.buildAdminLink( linkTo="emailCenter.customTemplates.clone"         , queryString="id=" & args.id );
 		args.deleteRecordTitle = translateResource( "cms:emailcenter.customTemplates.delete.record.link.title" );
 		args.objectName        = "email_template";
+		args.canClone          = hasCmsPermission( "emailCenter.customTemplates.add"   );
 		args.canEdit           = hasCmsPermission( "emailCenter.customTemplates.edit"   );
 		args.canDelete         = hasCmsPermission( "emailCenter.customTemplates.delete" );
 		args.canViewHistory    = hasCmsPermission( "emailCenter.customTemplates.view"   );
