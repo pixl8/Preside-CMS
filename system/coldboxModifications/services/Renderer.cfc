@@ -140,6 +140,12 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		numeric _counter,
 		numeric _records
 	){
+		if ( Len( Trim( arguments.presideObject ?: "" ) ) ) {
+			return wireBox.getInstance( "presideObjectViewService" ).renderView(
+				argumentCollection = arguments
+			);
+		}
+
 		var viewCacheKey 		= "";
 		var viewCacheEntry 		= "";
 		var viewCacheProvider 	= variables.templateCache;

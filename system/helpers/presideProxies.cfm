@@ -23,18 +23,6 @@
 	</cffunction>
 
 <!--- rendering --->
-	<cffunction name="renderView" access="public" returntype="any" output="false">
-		<cfscript>
-			if ( Len( Trim( arguments.presideObject ?: "" ) ) ) {
-				return getSingleton( "presideObjectViewService" ).renderView(
-					argumentCollection = arguments
-				);
-			}
-
-			return getSingleton( "presideRenderer" ).renderView( argumentCollection=arguments );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="renderViewlet" access="public" returntype="any" output="false">
 		<cfreturn getController().renderViewlet( argumentCollection = arguments ) />
 	</cffunction>
