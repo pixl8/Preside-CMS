@@ -515,7 +515,7 @@ component {
 		}
 	}
 
-	private any function _announceInterception( required string state, struct interceptData={}, boolean bufferOutput=false ) {
+	private any function _announceInterception( required string state, struct interceptData={} ) {
 		return _getInterceptorService().processState( argumentCollection=arguments );
 	}
 

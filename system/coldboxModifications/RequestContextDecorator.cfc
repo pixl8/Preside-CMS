@@ -405,7 +405,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getController().getWireBox().getInstance( arguments.beanName );
 	}
 
-	public any function announceInterception( required string state, struct interceptData={}, boolean bufferOutput=false ) output=false {
+	public any function announceInterception( required string state, struct interceptData={} ) output=false {
 		return getController().getInterceptorService().processState( argumentCollection=arguments );
 	}
 

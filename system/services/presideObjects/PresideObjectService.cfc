@@ -3053,7 +3053,7 @@ component displayName="Preside Object Service" {
 		return _getSqlRunner().runSql( argumentCollection = arguments );
 	}
 
-	private any function _announceInterception( required string state, struct interceptData={}, boolean bufferOutput=false ) {
+	private any function _announceInterception( required string state, struct interceptData={} ) {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};

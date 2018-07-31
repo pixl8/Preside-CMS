@@ -777,7 +777,6 @@ component displayName="Preside Super Class" {
 	public any function $announceInterception(
 		  required string  state
 		,          struct  interceptData = {}
-		,          boolean bufferOutput = false
 	) {
 		return $getColdbox().getInterceptorService().processState( argumentCollection=arguments )
 	}
