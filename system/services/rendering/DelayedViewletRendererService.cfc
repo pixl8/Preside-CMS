@@ -175,7 +175,7 @@ component {
 		var action            = ListLast( arguments.handlerName, "." );
 		var coldbox           = $getColdbox();
 		var handlerSvc        = coldbox.getHandlerService();
-		var handlerDescriptor = handlerSvc.getRegisteredHandler( event=arguments.handlerName );
+		var handlerDescriptor = handlerSvc.getHandlerBean( event=arguments.handlerName );
 		var handlerObject     = handlerSvc.getHandler( handlerDescriptor, coldbox.getRequestService().getContext() );
 		var handlerMeta       = GetMetaData( handlerObject );
 		var functions         = handlerMeta.functions ?: [];
