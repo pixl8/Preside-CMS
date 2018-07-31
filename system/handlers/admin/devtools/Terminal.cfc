@@ -35,7 +35,7 @@ component acessors=true extends="preside.system.base.JsonRpc2Handler" {
 
 		for( var handler in handlers ){
 			try {
-				var handlerMeta = getComponentMetaData( handlerSvc.getRegisteredHandler( handler & ".index" ).getRunnable() );
+				var handlerMeta = getComponentMetaData( handlerSvc.getHandlerBean( handler & ".index" ).getRunnable() );
 				var methodName  = LCase( ListLast( handlerMeta.name ?: "unknown", "." ) );
 
 				if ( _isMethodEnabled( methodName ) ) {

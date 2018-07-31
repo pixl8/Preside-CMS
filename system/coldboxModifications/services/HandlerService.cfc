@@ -72,7 +72,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 		return fileArray;
 	}
 
-	public any function getRegisteredHandler( required string event ) {
+	public any function getHandlerBean( required string event ) {
 		var handlerBean     = new coldbox.system.web.context.EventHandlerBean( variables.handlersInvocationPath );
 		var handlerReceived = ListLast( ReReplace( arguments.event, "\.[^.]*$", "" ), ":" );
 		var methodReceived  = ListLast( arguments.event, "." );
@@ -122,7 +122,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 				}
 			}
 
-			getController().getLogBox().getLogger(this).error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
+			variables.log.error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
 		}
 
 		// Do View Dispatch Check Procedures
@@ -135,7 +135,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 
 		// If we get here, then invalid event handler is active and we need to
 		// return an event handler bean that matches it
-		return getRegisteredHandler( handlerBean.getFullEvent() );
+		return getHandlerBean( handlerBean.getFullEvent() );
 	}
 
 	public any function getHandler( required any ehBean, required any requestContext ) {
@@ -145,7 +145,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 			if ( ( e.message ?: "" ) contains "has no accessible Member with name" ) {
 				invalidEvent( arguments.ehBean.getFullEvent(), arguments.ehBean );
 
-				return getHandler( getRegisteredHandler( arguments.ehBean.getFullEvent()), arguments.requestContext );
+				return getHandler( getHandlerBean( arguments.ehBean.getFullEvent()), arguments.requestContext );
 			} else {
 				rethrow;
 			}

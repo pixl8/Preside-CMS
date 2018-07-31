@@ -28,7 +28,7 @@ component extends="coldbox.system.web.Controller" {
 
 		try {
 			handlerSvc = getHandlerService();
-			handler = handlerSvc.getRegisteredHandler( event=arguments.event );
+			handler = handlerSvc.getHandlerBean( event=arguments.event );
 
 			if ( handler.getViewDispatch() ) {
 				exists = false;
