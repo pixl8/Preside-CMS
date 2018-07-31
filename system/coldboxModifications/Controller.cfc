@@ -7,6 +7,7 @@ component extends="coldbox.system.web.Controller" {
 		services.moduleService      = new preside.system.coldboxModifications.services.ModuleService( this );
 		services.interceptorService = new preside.system.coldboxModifications.services.InterceptorService( this );
 		services.requestService     = new preside.system.coldboxModifications.services.RequestService( this );
+		services.routingService     = new preside.system.coldboxModifications.services.RoutingService( this );
 		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
 	}
 

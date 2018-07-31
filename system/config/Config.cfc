@@ -51,7 +51,6 @@ component {
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } },
 			{ class="preside.system.interceptors.PageCachingInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
 		];

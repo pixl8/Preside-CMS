@@ -27,8 +27,8 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		ArrayAppend( handlerMappings, { invocationPath=handlersExternalLocation, handlers=getHandlerListing( HandlersExternalLocationPath, handlersExternalLocation ) } );
 		controller.setSetting( name="RegisteredExternalHandlers", value=_listHandlerNames( handlerMappings[handlerMappings.len()].handlers ) );
 
-		instance.handlerMappings             = handlerMappings;
-		instance.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
+		variables.handlerMappings             = handlerMappings;
+		variables.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
 	}
 
 	public array function getHandlerListing( required string directory, string invocationPath ) output=false {
@@ -64,18 +64,18 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 	}
 
 	public any function getRegisteredHandler( required string event ) output=false {
-		var handlerBean     = new coldbox.system.web.context.EventHandlerBean( instance.handlersInvocationPath );
+		var handlerBean     = new coldbox.system.web.context.EventHandlerBean( variables.handlersInvocationPath );
 		var handlerReceived = ListLast( ReReplace( arguments.event, "\.[^.]*$", "" ), ":" );
 		var methodReceived  = ListLast( arguments.event, "." );
 		var isModuleCall    = Find( ":", arguments.event );
-		var moduleSettings  = instance.modules;
+		var moduleSettings  = variables.modules;
 		var handlerIndex    = 0;
 		var moduleReceived  = "";
 		var currentSite     = controller.getRequestContext().getSite();
 
 		if( !isModuleCall ){
-			if ( Len( Trim( currentSite.template ?: "" ) ) && instance.siteTemplateHandlerMappings.keyExists( currentSite.template ) ) {
-				for ( var handlerSource in instance.siteTemplateHandlerMappings[ currentSite.template ] ) {
+			if ( Len( Trim( currentSite.template ?: "" ) ) && variables.siteTemplateHandlerMappings.keyExists( currentSite.template ) ) {
+				for ( var handlerSource in variables.siteTemplateHandlerMappings[ currentSite.template ] ) {
 					handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
 					if ( handlerIndex ) {
@@ -87,7 +87,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 				}
 			}
 
-			for ( var handlerSource in instance.handlerMappings ) {
+			for ( var handlerSource in variables.handlerMappings ) {
 				handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
 
@@ -147,7 +147,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		var handlers = {};
 		var startWithLen = Len( arguments.thatStartWith );
 
-		for( var source in instance.handlerMappings ) {
+		for( var source in variables.handlerMappings ) {
 			for( var handler in  source.handlers ){
 				if ( !startWithLen || Left( handler.name, startWithLen ) == arguments.thatStartWith ) {
 					handlers[ handler.name ] = 0;
