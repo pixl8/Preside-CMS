@@ -646,9 +646,10 @@ component extends="preside.system.base.AdminHandler" {
 			args.scheduleType  = template.schedule_type ?: "";
 			args.nextSendDate  = template.schedule_next_send_date ?: "";
 			args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
+			args.canClone      = hasCmsPermission( "emailcenter.customtemplates.add" );
 			args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
 
-			if ( args.canSend || args.canDelete || args.canToggleLock || args.scheduleType == "repeat" ) {
+			if ( args.canSend || args.canDelete || args.canToggleLock || args.canClone || args.scheduleType == "repeat" ) {
 				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
 			}
 		}

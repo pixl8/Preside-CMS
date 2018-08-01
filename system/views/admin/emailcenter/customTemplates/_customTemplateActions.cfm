@@ -3,6 +3,7 @@
 	canSendTest   = IsTrue( args.canSendTest   ?: "" );
 	canSend       = IsTrue( args.canSend       ?: "" );
 	canDelete     = IsTrue( args.canDelete     ?: "" );
+	canClone      = IsTrue( args.canClone      ?: "" );
 	canToggleLock = IsTrue( args.canToggleLock ?: "" );
 	isRepeat      = ( args.scheduleType ?: "" ) == "repeat";
 	sendDate      = args.nextSendDate;
@@ -10,6 +11,10 @@
 	if ( canSend ) {
 		sendLink = event.buildAdminLink( linkTo="emailcenter.customTemplates.send", queryString="id=" & templateId );
 		sendButton = translateResource( "cms:emailcenter.customtemplates.send.btn" );
+	}
+	if ( canClone ) {
+		cloneLink = event.buildAdminLink( linkTo="emailcenter.customTemplates.clone", queryString="id=" & templateId );
+		cloneButton = translateResource( "cms:emailcenter.customtemplates.clone.btn" );
 	}
 	if ( canSendTest ) {
 		previewRecipient   = rc.previewRecipient ?: "";
@@ -33,7 +38,7 @@
 		<cfif canSend>
 			<a class="pull-right inline" href="#sendLink#">
 				<button class="btn btn-warning btn-sm">
-					<i class="fa fa-share"></i>
+					<i class="fa fa-fw fa-share"></i>
 					#sendButton#
 				</button>
 			</a>
@@ -43,6 +48,14 @@
 				<button class="btn btn-default btn-sm">
 					<i class="fa fa-fw fa-flask"></i>
 					#sendTestButton#
+				</button>
+			</a>
+		</cfif>
+		<cfif canClone>
+			<a class="pull-right inline" href="#cloneLink#">
+				<button class="btn btn-info btn-sm">
+					<i class="fa fa-fw fa-clone"></i>
+					#cloneButton#
 				</button>
 			</a>
 		</cfif>
