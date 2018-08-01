@@ -1,5 +1,7 @@
 component {
 
+	property name="formsService" inject="formsService";
+
 	private array function getCloneRecordActionButtons( event, rc, prc, args={} ) {
 		var actions = [{
 			  type      = "link"
@@ -20,6 +22,22 @@ component {
 		} );
 
 		return actions;
+	}
+
+	private string function getCloneRecordFormName( event, rc, prc, args={} ) {
+		var formName           = "preside-objects.email_template.admin.clone";
+		var emailSendingMethod = prc.record.sending_method ?: "";
+		var scheduleType       = prc.record.schedule_type ?: "";
+
+		if ( emailSendingMethod == "scheduled" ) {
+			if ( scheduleType == "fixeddate" ) {
+				formName = formsService.getMergedFormName( formName, "preside-objects.email_template.admin.clone.fixed.schedule" );
+			} else {
+				formName = formsService.getMergedFormName( formName, "preside-objects.email_template.admin.clone.repeat.schedule" );
+			}
+		}
+
+		return formName;
 	}
 
 }
