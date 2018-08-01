@@ -580,8 +580,9 @@ component extends="preside.system.base.AdminHandler" {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var templateId   = rc.id ?: "";
+		var hideAlreadySent = IsBoolean( rc.hideAlreadySent ?: "" ) ? rc.hideAlreadySent : true;
 
-		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId );
+		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId, hideAlreadySent );
 		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
 		var addPreviewLink = IsTrue( rc.addPreviewLink ?: "" );
