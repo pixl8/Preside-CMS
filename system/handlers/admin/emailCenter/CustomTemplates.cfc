@@ -658,14 +658,41 @@ component extends="preside.system.base.AdminHandler" {
 			args.canSend       = !args.isDraft && template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
 			args.canPublish    = args.isDraft && hasCmsPermission( "emailCenter.customTemplates.publish"   );
 			args.canSendTest   = true;
-			args.scheduleType  = template.schedule_type ?: "";
-			args.nextSendDate  = template.schedule_next_send_date ?: "";
 			args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
 			args.canClone      = hasCmsPermission( "emailcenter.customtemplates.add" );
-			args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
 
-			if ( args.canSend || args.canDelete || args.canToggleLock || args.canClone || args.canPublish || args.scheduleType == "repeat" ) {
+			if ( args.canSend || args.canDelete || args.canClone || args.canPublish ) {
 				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
+			}
+		}
+
+		return "";
+	}
+
+	private string function _customTemplateNotices( event, rc, prc, args={} ) {
+		var templateId = rc.id ?: "";
+		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+
+		if ( template.count() ) {
+			args.isDraft       = IsTrue( template._version_is_draft );
+			args.sendMethod    = template.sending_method ?: "";
+			args.scheduleType  = template.schedule_type ?: "";
+
+			if ( !args.isDraft && args.sendMethod == "scheduled" ) {
+				args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
+
+				if ( IsDate( args.sendDate ) ) {
+					if ( args.sendDate <= Now() ) {
+						args.sent   = emailTemplateService.getSentCount( templateId );
+						args.queued = emailTemplateService.getQueuedCount( templateId );
+					} else {
+						args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
+					}
+				}
+			}
+
+			if ( args.isDraft || args.sendMethod == "scheduled" ) {
+				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateNotices", args=args );
 			}
 		}
 

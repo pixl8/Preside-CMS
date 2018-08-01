@@ -625,6 +625,8 @@ component {
 
 				if ( arguments.markAsSent ) {
 					updatedData.schedule_sent = true;
+				} else if ( IsBoolean( template.schedule_sent ?: "" ) && template.schedule_sent && template.schedule_date > Now() ) {
+					updatedData.schedule_sent = false;
 				}
 			}
 		} else {

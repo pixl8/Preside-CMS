@@ -538,6 +538,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
 				expect( service.$callLog().saveTemplate[1].template.schedule_sent ).toBe( true );
 			} );
+
+			it( "it should mark the email as not sent, when type is fixeddate, scheduled date is in the future and is sent is set to true", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "fixeddate"
+					, schedule_measure        = ""
+					, schedule_date           = DateAdd( "ww", 1, nowish )
+					, schedule_unit           = ""
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+					, schedule_sent           = true
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId=templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_sent ?: "" ).toBe( false );
+			} );
 		} );
 
 		describe( "init()", function(){
