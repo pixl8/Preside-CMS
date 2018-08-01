@@ -162,6 +162,17 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#&previewRecipient=#rc.recipient#" ) );
 	}
 
+	public void function cancelSendAction( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+		_checkPermissions( event, "cancelsend" );
+
+		var templateId = rc.id ?: "";
+
+		emailTemplateService.clearQueue( templateId );
+		messagebox.info( translateResource( uri="cms:emailcenter.queue.cleared", data=[ prc.record.name ] ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#" ) );
+	}
 
 
 	function edit( event, rc, prc ) {
@@ -685,6 +696,15 @@ component extends="preside.system.base.AdminHandler" {
 					if ( args.sendDate <= Now() ) {
 						args.sent   = emailTemplateService.getSentCount( templateId );
 						args.queued = emailTemplateService.getQueuedCount( templateId );
+
+						if ( args.queued ) {
+							args.canCancel = hasCmsPermission( "emailcenter.customtemplates.cancelsend" );
+							if ( args.canCancel ) {
+								args.cancelLink   = event.buildAdminLink( linkto="emailcenter.customtemplates.cancelSendAction", queryString="id=" & templateId );
+								args.cancelPrompt = translateResource( "cms:emailcenter.customtemplates.cancel.send.prompt" );
+								args.cancelSend   = translateResource( "cms:emailcenter.customtemplates.cancel.send.link"   );
+							}
+						}
 					} else {
 						args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
 					}

@@ -250,7 +250,7 @@ component {
 			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
 			, emailCenter            = {
 				  layouts          = [ "navigate", "configure" ]
-				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read" ]
+				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read", "cancelsend" ]
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 				, serviceProviders = [ "manage" ]
 				, settings         = [ "navigate", "manage", "resend" ]
