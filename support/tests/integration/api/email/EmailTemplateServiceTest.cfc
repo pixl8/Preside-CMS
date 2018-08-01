@@ -41,6 +41,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = false
+					, forceVersionCreation    = false
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -70,6 +71,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = false
+					, forceVersionCreation    = false
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -112,6 +114,34 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = true
+					, forceVersionCreation    = false
+					, updateManyToManyRecords = true
+				});
+			} );
+
+			it( "should make a forced update when 'saveDraft' is passed as false and 'forcePublication' is passed as true (for an existing template)", function(){
+				var service  = _getService();
+				var id       = CreateUUId();
+				var template = {
+					  name      = "Some template"
+					, layout    = "default"
+					, subject   = "Reset password instructions"
+					, html_body = CreateUUId()
+					, text_body = CreateUUId()
+				};
+
+				mockTemplateDao.$( "insertData", CreateUUId() );
+				mockTemplateDao.$( "updateData", 1 );
+
+				expect( service.saveTemplate( id=id, template=template, isDraft=false, forcePublication=true ) ).toBe( id );
+				expect( mockTemplateDao.$callLog().insertData.len() ).toBe( 0 );
+				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
+
+				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
+					  id                      = id
+					, data                    = template
+					, isDraft                 = false
+					, forceVersionCreation    = true
 					, updateManyToManyRecords = true
 				});
 			} );
