@@ -4,7 +4,7 @@ component {
 		var method = args.data ?: "";
 
 		var icon     = translateResource( "enum.emailSendingMethod:#method#.iconClass" );
-		var label    = translateResource( "enum.emailSendingMethod:#method#.label" );
+		var label    = translateResource( "enum.emailSendingMethod:#method#.shortlabel" );
 		var rendered = '<i class="fa fa-fw #icon#"></i> #label#';
 
 		if ( method =="scheduled" && Len( Trim( args.record.schedule_type ?: "" ) ) ) {
