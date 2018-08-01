@@ -8,8 +8,27 @@ component {
 		var sendingMethod = args.record.sending_method ?: "";
 		var templateId    = args.record.id             ?: "";
 
-		if ( sendingMethod != "scheduled" ) {
-			return '<em class="light-grey">#translateResource( "cms:not.applicable" )#</em>';
+		if ( sendingMethod == "auto" ) {
+			var sent  = emailTemplateService.getSentCount( templateId );
+
+			if ( sent ) {
+				return '<span class="green">#translateResource( uri="cms:emailcenter.table.manual.actual.recipients", data=[ NumberFormat( sent ) ] )#</span>';
+			} else {
+				return '<em class="light-grey">#translateResource( uri="cms:emailcenter.table.not.sent" )#</em>';
+			}
+		}
+
+		if ( sendingMethod == "manual" ) {
+			var sent   = emailTemplateService.getSentCount( templateId );
+			var queued = emailTemplateService.getQueuedCount( templateId );
+
+			if ( queued ) {
+				return '<span class="orange">#translateResource( uri="cms:emailcenter.table.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#</span>';
+			} else if ( sent ) {
+				return '<span class="green">#translateResource( uri="cms:emailcenter.table.manual.actual.recipients", data=[ NumberFormat( sent ) ] )#</span>';
+			}
+
+			return '<em class="light-grey">#translateResource( uri="cms:emailcenter.table.not.sent" )#</em>';
 		}
 
 		if ( IsDate( theDate ) ) {
