@@ -30,6 +30,7 @@ component extends="AbstractHeartBeat" {
 		try {
 			if ( _getInstanceNumber() == 1 ) {
 				_getEmailMassSendingService().autoQueueScheduledSendouts();
+				_getEmailMassSendingService().requeueHungEmails();
 			}
 			_getEmailMassSendingService().processQueue();
 		} catch( any e ) {

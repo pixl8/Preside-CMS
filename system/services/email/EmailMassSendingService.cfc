@@ -213,6 +213,20 @@ component {
 	}
 
 	/**
+	 * Automatically requeues any emails that were marked as sending but have
+	 * not then completed. This may occur due to a server restart during sending, etc.
+	 *
+	 * @autodoc true
+	 */
+	public numeric function requeueHungEmails() {
+		return $getPresideObject( "email_mass_send_queue" ).updateData(
+			  data         = { status="queued" }
+			, filter       = "status = :status and datemodified < :datemodified"
+			, filterParams = { status="sending", datemodified=DateAdd( "h", -1, Now() ) }
+		);
+	}
+
+	/**
 	 * Returns the next queued email ready for sending.
 	 *
 	 * @autodoc true
