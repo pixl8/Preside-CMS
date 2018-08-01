@@ -73,7 +73,7 @@ component {
 			}
 
 			removeFromQueue( queuedEmail.id );
-		} while( ++processedCount < rateLimit );
+		} while( ++processedCount < rateLimit && !$isInterrupted() );
 
 	}
 
