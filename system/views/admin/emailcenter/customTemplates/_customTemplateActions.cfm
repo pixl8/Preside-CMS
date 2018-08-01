@@ -2,6 +2,7 @@
 	templateId    = rc.id ?: "";
 	canSendTest   = IsTrue( args.canSendTest   ?: "" );
 	canSend       = IsTrue( args.canSend       ?: "" );
+	canPublish    = IsTrue( args.canPublish    ?: "" );
 	canDelete     = IsTrue( args.canDelete     ?: "" );
 	canClone      = IsTrue( args.canClone      ?: "" );
 	canToggleLock = IsTrue( args.canToggleLock ?: "" );
@@ -15,6 +16,11 @@
 	if ( canClone ) {
 		cloneLink = event.buildAdminLink( linkTo="emailcenter.customTemplates.clone", queryString="id=" & templateId );
 		cloneButton = translateResource( "cms:emailcenter.customtemplates.clone.btn" );
+	}
+	if ( canPublish ) {
+		publishLink = event.buildAdminLink( linkTo="emailcenter.customTemplates.publishAction", queryString="id=" & templateId );
+		publishButton = translateResource( uri="cms:emailcenter.customtemplates.publish.btn" );
+		publishPrompt = translateResource( uri="cms:emailcenter.customtemplates.publish.btn.prompt", data=[ prc.record.name ?: "" ] );
 	}
 	if ( canSendTest ) {
 		previewRecipient   = rc.previewRecipient ?: "";
@@ -40,6 +46,14 @@
 				<button class="btn btn-warning btn-sm">
 					<i class="fa fa-fw fa-share"></i>
 					#sendButton#
+				</button>
+			</a>
+		</cfif>
+		<cfif canPublish>
+			<a class="pull-right inline confirmation-prompt" href="#publishLink#" title="#HtmlEditFormat( publishPrompt )#">
+				<button class="btn btn-warning btn-sm">
+					<i class="fa fa-fw fa-globe"></i>
+					#publishButton#
 				</button>
 			</a>
 		</cfif>

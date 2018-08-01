@@ -46,8 +46,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "cms:emailcenter.customTemplates.add.page.title" );
 		prc.pageSubtitle = translateResource( "cms:emailcenter.customTemplates.add.page.subtitle" );
 
-		prc.canPublish   = hasCmsPermission( "emailCenter.customTemplates.saveDraft" );
-		prc.canSaveDraft = hasCmsPermission( "emailCenter.customTemplates.publish"   );
+		prc.canPublish   = hasCmsPermission( "emailCenter.customTemplates.publish" );
+		prc.canSaveDraft = hasCmsPermission( "emailCenter.customTemplates.saveDraft"   );
 
 		if ( !prc.canPublish && !prc.canSaveDraft ) {
 			event.adminAccessDenied();
@@ -227,6 +227,19 @@ component extends="preside.system.base.AdminHandler" {
 			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.edit", queryString="id=#id#" )
 			, persistStruct = formData
 		);
+	}
+
+	function publishAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="edit" );
+		_checkPermissions( event=event, key="publish" );
+
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+
+		var id = rc.id ?: "";
+		emailTemplateService.saveTemplate( id=id, template={}, isDraft=false, forcePublication=true );
+
+		messagebox.info( translateResource( "cms:emailcenter.customTemplates.template.published.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
 	}
 
 	function clone( event, rc, prc ) {
@@ -641,7 +654,9 @@ component extends="preside.system.base.AdminHandler" {
 		var templateId = rc.id ?: "";
 		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 		if ( template.count() ) {
-			args.canSend       = IsFalse( template._version_is_draft ) && template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.isDraft       = IsTrue( template._version_is_draft );
+			args.canSend       = !args.isDraft && template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.canPublish    = args.isDraft && hasCmsPermission( "emailCenter.customTemplates.publish"   );
 			args.canSendTest   = true;
 			args.scheduleType  = template.schedule_type ?: "";
 			args.nextSendDate  = template.schedule_next_send_date ?: "";
@@ -649,7 +664,7 @@ component extends="preside.system.base.AdminHandler" {
 			args.canClone      = hasCmsPermission( "emailcenter.customtemplates.add" );
 			args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
 
-			if ( args.canSend || args.canDelete || args.canToggleLock || args.canClone || args.scheduleType == "repeat" ) {
+			if ( args.canSend || args.canDelete || args.canToggleLock || args.canClone || args.canPublish || args.scheduleType == "repeat" ) {
 				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
 			}
 		}
