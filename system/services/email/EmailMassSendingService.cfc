@@ -68,11 +68,11 @@ component {
 					, recipientId = queuedEmail.recipient
 				);
 
-				removeFromQueue( queuedEmail.id );
 			} catch ( Any e ) {
 				$raiseError( e );
 			}
 
+			removeFromQueue( queuedEmail.id );
 		} while( ++processedCount < rateLimit );
 
 	}
