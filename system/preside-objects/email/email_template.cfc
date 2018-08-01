@@ -25,7 +25,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="email_blueprint"  relationship="many-to-one" relatedTo="email_blueprint";
 	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
-	property name="sending_method" type="string" dbtype="varchar" maxlength=20 required=false default="manual" enum="emailSendingMethod" ignoreChangesForVersioning=true;
+	property name="sending_method" type="string" dbtype="varchar" maxlength=20 required=false default="manual" enum="emailSendingMethod" ignoreChangesForVersioning=true renderer="emailSendingMethod";
 
 	property name="sending_limit"         type="string"  dbtype="varchar" maxlength=20 required=false default="none" enum="emailSendingLimit" ignoreChangesForVersioning=true;
 	property name="sending_limit_unit"    type="string"  dbtype="varchar" maxlength=20 required=false enum="timeUnit" ignoreChangesForVersioning=true;
@@ -44,5 +44,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="queued_emails"       relationship="one-to-many" relatedto="email_mass_send_queue"    relationshipKey="template"       cloneable=false;
 	property name="layout_config_items" relationship="one-to-many" relatedto="email_layout_config_item" relationshipKey="email_template" cloneable=true;
 
-	property name="queued_email_count" formula="Count( ${prefix}queued_emails.id )" type="numeric";
+	property name="queued_email_count" formula="Count( distinct ${prefix}queued_emails.id )" type="numeric";
+	property name="sent_count"         formula="Count( distinct ${prefix}send_logs.id )"     type="numeric";
+	property name="send_date"          formula="Coalesce( ${prefix}schedule_next_send_date, ${prefix}schedule_date )"  type="date" dbtype="datetime" renderer="emailSendDate";
 }
