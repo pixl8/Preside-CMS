@@ -77,6 +77,7 @@
 
 <cfoutput>
 	#renderViewlet( "admin.emailcenter.customtemplates._customTemplateActions" )#
+	#renderViewlet( "admin.emailcenter.customtemplates._customTemplateNotices" )#
 
 	<div class="tabbable">
 		<ul class="nav nav-tabs">

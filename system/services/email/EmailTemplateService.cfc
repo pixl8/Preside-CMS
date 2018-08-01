@@ -352,8 +352,9 @@ component {
 	 */
 	public string function saveTemplate(
 		  required struct  template
-		,          string  id       = ""
-		,          boolean isDraft  = false
+		,          string  id               = ""
+		,          boolean isDraft          = false
+		,          boolean forcePublication = false
 	) {
 		transaction {
 			if ( Len( Trim( arguments.id ) ) ) {
@@ -361,6 +362,7 @@ component {
 					  id                      = arguments.id
 					, data                    = arguments.template
 					, isDraft                 = arguments.isDraft
+					, forceVersionCreation    = !arguments.isDraft && arguments.forcePublication
 					, updateManyToManyRecords = true
 				);
 
@@ -623,6 +625,8 @@ component {
 
 				if ( arguments.markAsSent ) {
 					updatedData.schedule_sent = true;
+				} else if ( IsBoolean( template.schedule_sent ?: "" ) && template.schedule_sent && template.schedule_date > Now() ) {
+					updatedData.schedule_sent = false;
 				}
 			}
 		} else {
