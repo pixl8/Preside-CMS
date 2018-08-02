@@ -28,6 +28,7 @@ component displayName="Preside Super Class" {
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 * @i18n.inject                       delayedInjector:i18n
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
+	 * @healthcheckService.inject         delayedInjector:healthcheckService
 	 *
 	 */
 	public any function init(
@@ -51,6 +52,7 @@ component displayName="Preside Super Class" {
 		, required any coldbox
 		, required any i18n
 		, required any htmlHelper
+		, required any healthcheckService
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -72,6 +74,7 @@ component displayName="Preside Super Class" {
 		$coldbox                    = arguments.coldbox;
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
+		$healthcheckService         = arguments.healthcheckService;
 
 		return this;
 	}
@@ -867,5 +870,40 @@ component displayName="Preside Super Class" {
 	public void function $systemOutput( required string message ) {
 		systemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" );
 	}
+
+
+	/**
+	 * Returns the [[api-healthcheckservice]] service
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public void function $getHealthcheckService() {
+		return $healthcheckService;
+	}
+
+	/**
+	 * Returns whether or not the given healthcheck
+	 * service is up (proxies to [[healthcheckservice-isup]])
+	 *
+	 * @autodoc   true
+	 * @serviceid ID of the service to check
+	 */
+	public any function $isUp( required string serviceId ) {
+		return $healthcheckService.isUp( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns whether or not the given healthcheck
+	 * service is down (proxies to [[healthcheckservice-isup]] and
+	 * reverses the result)
+	 *
+	 * @autodoc   true
+	 * @serviceid ID of the service to check
+	 */
+	public any function $isDown( required string serviceId ) {
+		return !$healthcheckService.isUp( argumentCollection=arguments );
+	}
+
 
 }

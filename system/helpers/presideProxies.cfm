@@ -278,6 +278,19 @@
 		</cfscript>
 	</cffunction>
 
+<!--- healthchecks --->
+	<cffunction name="isUp" access="public" returntype="any" output="false">
+		<cfargument name="serviceId" type="string" required="true" />
+
+		<cfreturn getSingleton( "healthcheckService" ).isUp( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="isDown" access="public" returntype="any" output="false">
+		<cfargument name="serviceId" type="string" required="true" />
+
+		<cfreturn !getSingleton( "healthcheckService" ).isUp( argumentCollection=arguments ) />
+	</cffunction>
+
 <!--- helpers --->
 	<cffunction name="simpleRequestCache" access="public" returntype="any" output="false">
 		<cfargument name="key" type="string" required="true" />
