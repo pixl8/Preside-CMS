@@ -1,10 +1,18 @@
+/**
+ * @singleton      true
+ * @presideService true
+ *
+ */
 component {
 
 // CONSTRUCTOR
+	/**
+	 * @threadUtil.inject delayedInjector:threadUtil
+	 */
 	public any function init(
 		  required string  threadName
 		, required numeric intervalInMs
-		,          any     threadUtil = new ThreadUtil()
+		,          any     threadUtil
 	) {
 		_setThreadName( arguments.threadName );
 		_setIntervalInMs( arguments.intervalInMs );
@@ -31,6 +39,10 @@ component {
 
 					content reset=true;
 				} while( !_isStopped() );
+
+				$systemOutput( "The #_getThreadName()# heartbeat thread has gracefully exited after being told to stop." );
+
+				deregister();
 			}
 		}
 	}
@@ -67,7 +79,7 @@ component {
 			_setRunningThread( tu.getCurrentThread() );
 			_setStopped( false );
 		} catch( any e ) {
-			systemOutput( e );
+			$systemOutput( e );
 		}
 	}
 

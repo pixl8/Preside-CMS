@@ -48,10 +48,10 @@ component {
 		var lockName = "gracefulshutdownlock-#ExpandPath( '/' )#";
 
 		lock name=lockName type="exclusive" timeout=0 {
-			log file="application" text="Attempting graceful application shutdown...";
+			$systemOutput( "Attempting graceful application shutdown..." );
 			$announceInterception( "onApplicationEnd" );
 			$getColdbox().getWirebox().shutdownSingletons( arguments.force );
-			log file="application" text="Gracefull application shutdown complete";
+			$systemOutput( "Gracefull application shutdown complete" );
 		}
 	}
 

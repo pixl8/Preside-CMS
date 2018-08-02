@@ -19,6 +19,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.saveTemplate( template=template ) ).toBe( id );
 			} );
 
+			it( "should default the sending method to 'manual' when using a blueprint that has a recipient type tied to an object (not anonymous)", function(){
+				var service       = _getService();
+				var id            = CreateUUId();
+				var blueprint     = CreateUUId();
+				var recipientType = CreateUUId();
+				var template      = {
+					  name            = "Some template"
+					, layout          = "default"
+					, subject         = "Reset password instructions"
+					, html_body       = CreateUUId()
+					, text_body       = CreateUUId()
+					, email_blueprint = blueprint
+				};
+
+				mockBluePrintDao.$( "selectData" ).$args( id=blueprint ).$results( QueryNew( "recipient_type", "varchar", [[recipientType]]) );
+				mockTemplateDao.$( "insertData", id );
+				mockEmailRecipientTypeService.$( "getFilterObjectForRecipientType" ).$args( recipientType ).$results( "someobject" );
+
+				service.saveTemplate( template=template );
+				expect( mockTemplateDao.$callLog().insertData[1].data.sending_method ?: "" ).toBe( "manual" );
+			} );
+
 			it( "should update a record when ID is supplied", function(){
 				var service  = _getService();
 				var id       = CreateUUId();

@@ -18,33 +18,49 @@
 		<cfif IsDraft>
 			#translateResource( uri="cms:emailcenter.customTemplates.draft.notice" )#
 
-		<cfelseif scheduleType == "repeat">
-			<cfif IsDate( sendDate )>
-				#translateResource( uri="cms:emailcenter.next.send.date.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn"), NumberFormat( estimatedSendCount ) ])#
-			<cfelse>
-				#translateResource( uri="cms:emailcenter.next.send.date.unknown.alert" )#
-			</cfif>
-		<cfelse>
-			<cfif IsDate( sendDate )>
-				<cfif sendDate gt now()>
-					#translateResource( uri="cms:emailcenter.send.date.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn"), NumberFormat( estimatedSendCount ) ])#
-				<cfelseif queued>
-					#translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#
-					<cfif canCancel>
-						<a href="#cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( cancelPrompt )#">
-							<i class="fa fa-fw fa-ban"></i>
-							#cancelSend#
-						</a>
-					</cfif>
-				<cfelseif sent>
-					#translateResource( uri="cms:emailcenter.sent.alert", data=[ NumberFormat( sent ) ] )#
+		<cfelseif sendMethod == "scheduled">
+			<cfif scheduleType == "repeat">
+				<cfif IsDate( sendDate )>
+					#translateResource( uri="cms:emailcenter.next.send.date.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn"), NumberFormat( estimatedSendCount ) ])#
 				<cfelse>
-					#translateResource( uri="cms:emailcenter.send.date.in.past.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn") ] )#
+					#translateResource( uri="cms:emailcenter.next.send.date.unknown.alert" )#
 				</cfif>
 			<cfelse>
-				#translateResource( uri="cms:emailcenter.send.date.unknown.alert" )#
-			</cfif>
+				<cfif IsDate( sendDate )>
+					<cfif sendDate gt now()>
+						#translateResource( uri="cms:emailcenter.send.date.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn"), NumberFormat( estimatedSendCount ) ])#
+					<cfelseif queued>
+						#translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#
+						<cfif canCancel>
+							<a href="#cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( cancelPrompt )#">
+								<i class="fa fa-fw fa-ban"></i>
+								#cancelSend#
+							</a>
+						</cfif>
+					<cfelseif sent>
+						#translateResource( uri="cms:emailcenter.sent.alert", data=[ NumberFormat( sent ) ] )#
+					<cfelse>
+						#translateResource( uri="cms:emailcenter.send.date.in.past.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn") ] )#
+					</cfif>
+				<cfelse>
+					#translateResource( uri="cms:emailcenter.send.date.unknown.alert" )#
+				</cfif>
 
+			</cfif>
+		<cfelse>
+			<cfif queued>
+				#translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#
+				<cfif canCancel>
+					<a href="#cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( cancelPrompt )#">
+						<i class="fa fa-fw fa-ban"></i>
+						#cancelSend#
+					</a>
+				</cfif>
+			<cfelseif sent>
+				#translateResource( uri="cms:emailcenter.manual.sent.alert", data=[ NumberFormat( sent ) ] )#
+			<cfelseif sendMethod == "manual">
+				#translateResource( uri="cms:emailcenter.manual.send.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn") ] )#
+			</cfif>
 		</cfif>
 	</p>
 	<br>

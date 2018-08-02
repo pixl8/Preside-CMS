@@ -849,4 +849,23 @@ component displayName="Preside Super Class" {
 	public boolean function $isInterrupted() {
 		return $getThreadUtil().isInterrupted( argumentCollection=arguments );
 	}
+
+	/**
+	 * Logs to the Lucee system output console (either direct to console, or to
+	 * catalina.out if Tomcat, etc). This method wraps SystemOutput() and adds
+	 * a PRESIDE prefix + timestamp to every log.
+	 * \n
+	 * Example:
+	 * \n
+	 * ```
+	 * $systemOutput( "Lions and tigers and bears. Oh my!" );
+	 * ```
+	 *
+	 * @autodoc true
+	 * @message The message to send to the console/log
+	 */
+	public void function $systemOutput( required string message ) {
+		systemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" );
+	}
+
 }

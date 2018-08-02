@@ -153,7 +153,7 @@ component {
 				if ( _reloadRequired() ) {
 					_announceInterception( "prePresideReload" );
 
-					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
+					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." );
 
 					_clearExistingApplication();
 					_ensureCaseSensitiveStructSettingsAreActive();
@@ -163,7 +163,7 @@ component {
 					_initColdBox();
 
 					_announceInterception( "postPresideReload" );
-					log file="application" text="Application start up complete";
+					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" );
 				}
 			}
 		} catch( lock e ) {

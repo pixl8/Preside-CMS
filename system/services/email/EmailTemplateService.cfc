@@ -380,7 +380,22 @@ component {
 				arguments.template.id = arguments.id;
 
 			}
+
+			if ( Len( Trim( arguments.template.email_blueprint ?: "" ) ) && !Len( Trim( arguments.template.sending_method ?: "" ) ) ) {
+				var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=arguments.template.email_blueprint );
+
+				if ( Len( Trim( blueprint.recipient_type ?: "" ) ) ) {
+					var filterObject = _getEmailRecipientTypeService().getFilterObjectForRecipientType( blueprint.recipient_type );
+					if ( Len( Trim( filterObject ) ) ) {
+						arguments.template.sending_method = "manual";
+					} else {
+						arguments.template.sending_method = "auto";
+					}
+				}
+			}
+
 			var newId = $getPresideObject( "email_template" ).insertData( data=arguments.template, isDraft=arguments.isDraft );
+			newId = newId ?: "";
 			$audit(
 				  action   = arguments.isDraft ? "createDraftEmailTemplate" : "insertEmailTemplate"
 				, type     = "emailtemplate"

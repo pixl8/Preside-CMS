@@ -8,12 +8,14 @@ component extends="AbstractHeartBeat" {
 
 	/**
 	 * @taskmanagerService.inject taskmanagerService
+	 * @threadUtil.inject         threadUtil
 	 *
 	 */
-	public function init( required any taskmanagerService ){
+	public function init( required any taskmanagerService, required any threadUtil ){
 		super.init(
 			  threadName   = "Preside Taskmanager Heartbeat"
 			, intervalInMs = 1000
+			, threadUtil   = arguments.threadUtil
 		);
 
 		_setTaskmanagerService( arguments.taskmanagerService );
