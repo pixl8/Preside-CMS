@@ -698,31 +698,34 @@ component extends="preside.system.base.AdminHandler" {
 			args.sendMethod    = template.sending_method ?: "";
 			args.scheduleType  = template.schedule_type ?: "";
 
-			if ( !args.isDraft && args.sendMethod == "scheduled" ) {
-				args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
+			if ( !args.isDraft  ) {
+				if ( args.sendMethod == "scheduled" ){
+					args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
 
-				if ( IsDate( args.sendDate ) ) {
-					if ( args.sendDate <= Now() ) {
-						args.sent   = emailTemplateService.getSentCount( templateId );
-						args.queued = emailTemplateService.getQueuedCount( templateId );
-
-						if ( args.queued ) {
-							args.canCancel = hasCmsPermission( "emailcenter.customtemplates.cancelsend" );
-							if ( args.canCancel ) {
-								args.cancelLink   = event.buildAdminLink( linkto="emailcenter.customtemplates.cancelSendAction", queryString="id=" & templateId );
-								args.cancelPrompt = translateResource( "cms:emailcenter.customtemplates.cancel.send.prompt" );
-								args.cancelSend   = translateResource( "cms:emailcenter.customtemplates.cancel.send.link"   );
-							}
+					if ( IsDate( args.sendDate ) ) {
+						if ( args.sendDate <= Now() ) {
+							args.sent   = emailTemplateService.getSentCount( templateId );
+							args.queued = emailTemplateService.getQueuedCount( templateId );
+						} else {
+							args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
 						}
-					} else {
-						args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
+					}
+				} else {
+					args.sent   = emailTemplateService.getSentCount( templateId );
+					args.queued = emailTemplateService.getQueuedCount( templateId );
+				}
+
+				if ( Val( args.queued ?: "" ) ) {
+					args.canCancel = hasCmsPermission( "emailcenter.customtemplates.cancelsend" );
+					if ( args.canCancel ) {
+						args.cancelLink   = event.buildAdminLink( linkto="emailcenter.customtemplates.cancelSendAction", queryString="id=" & templateId );
+						args.cancelPrompt = translateResource( "cms:emailcenter.customtemplates.cancel.send.prompt" );
+						args.cancelSend   = translateResource( "cms:emailcenter.customtemplates.cancel.send.link"   );
 					}
 				}
 			}
 
-			if ( args.isDraft || args.sendMethod == "scheduled" ) {
-				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateNotices", args=args );
-			}
+			return renderView( view="/admin/emailCenter/customTemplates/_customTemplateNotices", args=args );
 		}
 
 		return "";
