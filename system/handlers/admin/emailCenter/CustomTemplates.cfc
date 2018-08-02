@@ -444,6 +444,15 @@ component extends="preside.system.base.AdminHandler" {
 			formData.sending_method = "auto";
 		}
 
+		if ( formData.sending_method == "scheduled" && formData.schedule_type == "repeat" ) {
+			var scheduleValidationFormName = "preside-objects.email_template.repeat.schedule.form.for.validation";
+			validationResult = validateForm(
+				  formName         = scheduleValidationFormName
+				, formData         = formdata
+				, validationResult = validationResult
+			);
+		}
+
 		if ( validationResult.validated() ) {
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
 			emailTemplateService.updateScheduledSendFields( templateId=id );
