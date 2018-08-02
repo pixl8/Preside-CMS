@@ -7,15 +7,18 @@ component extends="AbstractHeartBeat" {
 
 	/**
 	 * @emailMassSendingService.inject emailMassSendingService
+	 * @threadUtil.inject              threadUtil
 	 *
 	 */
 	public function init(
 		  required any     emailMassSendingService
+		, required any     threadUtil
 		,          numeric instanceNumber = 1
 		,          string  threadName     = "Preside Email Queue Processor #arguments.instanceNumber#"
 	){
 		super.init(
 			  threadName   = arguments.threadName
+			, threadUtil   = arguments.threadUtil
 			, intervalInMs = 5000
 		);
 

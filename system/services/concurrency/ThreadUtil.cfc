@@ -1,12 +1,18 @@
 /**
  * Provides thread related helper methods.
  *
- * @autodoc
+ * @autodoc        true
+ * @presideService true
+ * @singleton      true
  */
 component {
 
 	variables.jvmThread       = CreateObject( "java", "java.lang.Thread" );
 	variables.oneHundredYears = 60 * 60 * 24 * 365 * 100;
+
+	public any function init() {
+		return this;
+	}
 
 	/**
 	 * Gets the Java object representing the current thread
@@ -114,44 +120,44 @@ component {
 		if ( canWarn ) { logger.warn( "Interrupt signal sent to running task." ); }
 
 		if ( !isSleeping( theThread ) ) {
-			SystemOutput( "Attempting to soft shutdown the thread, [#theThread.getName()#]." );
+			$systemOutput( "Attempting to soft shutdown the thread, [#theThread.getName()#]." );
 			if ( softInterrupt( arguments.theThread ) ) {
 				while( ++attempt <= maxAttempts && !isTerminated( arguments.theThread ) ) {
 					if ( attempt > 1 ) {
-						SystemOutput( "Waiting to gracefully shutdown thread [#threadName#]. Current state: #arguments.thethread.getState().name()#" );
+						$systemOutput( "Waiting to gracefully shutdown thread [#threadName#]. Current state: #arguments.thethread.getState().name()#" );
 						if ( canWarn ) { logger.warn( "Waiting to gracefully shutdown task. Current state: #arguments.thethread.getState().name()#" ); }
 					}
 					sleep( 100 );
 				}
 				if ( isTerminated( arguments.thethread ) ) {
-					SystemOutput( "The thread [#threadName#], has gracefully shutdown." );
+					$systemOutput( "The thread [#threadName#], has gracefully shutdown." );
 					if ( canWarn ) { logger.warn( "Task gracefully shutdown." ); }
 					return;
 				}
 			}
-			SystemOutput( "Failed to soft shutdown #theThread.getName()# in a timely manner." );
+			$systemOutput( "Failed to soft shutdown #theThread.getName()# in a timely manner." );
 		} else {
 			maxAttempts = maxAttempts*2;
 		}
 
 		attempt=0;
-		SystemOutput( "Attempting to shutdown the thread, [#theThread.getName()#] using an interrupt." );
+		$systemOutput( "Attempting to shutdown the thread, [#theThread.getName()#] using an interrupt." );
 		interrupt( arguments.theThread );
 		while( ++attempt <= maxAttempts && !isTerminated( arguments.theThread ) ) {
 			if ( attempt > 1 ) {
-				SystemOutput( "Waiting to gracefully shutdown thread [#threadName#]. Current state: #arguments.thethread.getState().name()#" );
+				$systemOutput( "Waiting to gracefully shutdown thread [#threadName#]. Current state: #arguments.thethread.getState().name()#" );
 				if ( canWarn ) { logger.warn( "Waiting to gracefully shutdown task. Current state: #arguments.thethread.getState().name()#" ); }
 			}
 			sleep( 100 );
 		}
 
 		if ( isTerminated( arguments.thethread ) ) {
-			SystemOutput( "The thread [#threadName#], has gracefully shutdown." );
+			$systemOutput( "The thread [#threadName#], has gracefully shutdown." );
 			if ( canWarn ) { logger.warn( "Task has gracefully shutdown." ); }
 			return;
 		}
 
-		SystemOutput( "The thread [#threadName#], did not gracefully terminate. Forcefully stopping it." );
+		$systemOutput( "The thread [#threadName#], did not gracefully terminate. Forcefully stopping it." );
 		if ( canWarn ) { logger.warn( "Task did not gracefully terminate after #( arguments.interruptWait / 1000 )# seconds. Forcefully stopping it." ); }
 
 		try {
@@ -161,10 +167,10 @@ component {
 		sleep( 100 );
 
 		if ( isTerminated( arguments.theThread ) ) {
-			SystemOutput( "The thread [#threadName#], has been terminated." );
+			$systemOutput( "The thread [#threadName#], has been terminated." );
 			if ( canWarn ) { logger.warn( "Task terminated." ); }
 		} else {
-			SystemOutput( "The thread [#threadName#], failed to terminate!" );
+			$systemOutput( "The thread [#threadName#], failed to terminate!" );
 			if ( canError ) { logger.error( "Task failed to terminate." ); }
 		}
 	}
