@@ -24,6 +24,7 @@ component displayName="Preside Super Class" {
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
 	 * @validationEngine.inject           delayedInjector:validationEngine
 	 * @adHocTaskManagerService.inject    delayedInjector:adHocTaskManagerService
+	 * @threadUtil.inject                 delayedInjector:threadUtil
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 * @i18n.inject                       delayedInjector:i18n
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
@@ -46,6 +47,7 @@ component displayName="Preside Super Class" {
 		, required any taskmanagerService
 		, required any validationEngine
 		, required any adHocTaskManagerService
+		, required any threadUtil
 		, required any coldbox
 		, required any i18n
 		, required any htmlHelper
@@ -66,6 +68,7 @@ component displayName="Preside Super Class" {
 		$taskmanagerService         = arguments.taskmanagerService;
 		$validationEngine           = arguments.validationEngine;
 		$adHocTaskManagerService    = arguments.adHocTaskManagerService;
+		$threadUtil                 = arguments.threadUtil;
 		$coldbox                    = arguments.coldbox;
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
@@ -824,5 +827,26 @@ component displayName="Preside Super Class" {
 	 */
 	public string function $slugify() {
 		return $htmlHelper.slugify( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns the [[api-threadutil|threadUtil] service.
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public any function $getThreadUtil() {
+		return $threadUtil;
+	}
+
+	/**
+	 * Checks to see whether or not the current thread
+	 * has been interrupted. Useful for long loops to gracefully
+	 * shutdown when asked. Proxy to [[threadutil-isinterrupted]].
+	 *
+	 * @autodoc
+	 */
+	public boolean function $isInterrupted() {
+		return $getThreadUtil().isInterrupted( argumentCollection=arguments );
 	}
 }
