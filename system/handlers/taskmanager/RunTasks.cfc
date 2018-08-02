@@ -2,6 +2,7 @@ component {
 
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
+	property name="healthcheckHeartBeat"        inject="healthcheckHeartBeat";
 	property name="taskManagerService"          inject="taskManagerService";
 	property name="adhocTaskManagerService"     inject="adhocTaskManagerService";
 	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
@@ -13,6 +14,11 @@ component {
 
 	public void function startAdhocTaskManagerHeartbeat( event, rc, prc ) {
 		presideAdhocTaskHeartBeat.start();
+		event.renderData( data={ ok=true }, type="json" );
+	}
+
+	public void function startHealthCheckHeartbeat( event, rc, prc ) {
+		healthcheckHeartBeat.start();
 		event.renderData( data={ ok=true }, type="json" );
 	}
 

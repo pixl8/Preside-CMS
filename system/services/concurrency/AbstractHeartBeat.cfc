@@ -32,12 +32,16 @@ component {
 				register();
 
 				do {
-					sleep( _getIntervalInMs() );
 					run();
 
-					request.delete( "__cacheboxRequestCache" );
+					if ( _isStopped() ) {
+						break;
+					}
 
+					request.delete( "__cacheboxRequestCache" );
 					content reset=true;
+
+					sleep( _getIntervalInMs() );
 				} while( !_isStopped() );
 
 				$systemOutput( "The #_getThreadName()# heartbeat thread has gracefully exited after being told to stop." );
