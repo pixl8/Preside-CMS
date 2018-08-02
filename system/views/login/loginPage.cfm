@@ -14,10 +14,25 @@
 
     <cfswitch expression="#args.message#">
         <cfcase value="LOGIN_REQUIRED">
-            <div class="alert alert-warning">#args.login_required#</div>
+            <div class="alert alert-warning">
+                <cfif len( trim( args.login_required ) )>
+                    #args.login_required#
+                <cfelse>
+                    The resource you are attempting to access requires a secure login. Please login using the form below.
+                </cfif>
+            </div>
         </cfcase>
         <cfcase value="LOGIN_FAILED">
-            <div class="alert alert-warning">#args.login_failed#</div>
+            <div class="alert alert-warning">
+                <cfif len( trim( args.login_failed ) )>
+                    #args.login_failed#
+                <cfelse>
+                    The email address and password combination you supplied did not match our records. Please try again.
+                </cfif>
+            </div>
+        </cfcase>
+        <cfcase value="PASSWORD_RESET">
+            <div class="alert alert-success">#translateResource( 'cms:login.password.reset.confirmation' )#</div>
         </cfcase>
     </cfswitch>
 
@@ -28,7 +43,7 @@
             <label for="loginId">#translateResource( uri="page-types.login:emailaddress.label" )#</label>
             <input type="email" id="loginId" name="loginId" value="#args.loginId#" class="form-control">
         </div>
-                                    
+
         <div class="form-group">
             <label for="password">#translateResource( uri="page-types.login:password.label" )#</label>
             <input type="password" id="password" name="password" class="form-control">
@@ -37,14 +52,14 @@
         <cfif args.allowRememberMe>
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" name="rememberMe" value="1"<cfif IsBoolean( args.rememberMe ) and args.rememberMe> checked="checked"</cfif>> #translateResource( uri="page-types.login:rememberMe.label" )#
+                    <input type="checkbox" id="rememberMe" name="rememberMe" value="1"<cfif IsBoolean( args.rememberMe ) and args.rememberMe> checked="checked"</cfif>> #translateResource( uri="page-types.login:rememberMe.label" )#
                 </label>
             </div>
         </cfif>
 
         <div class="form-group">
             <p><a href="#event.buildLink( page="forgotten_password" )#">#translateResource( uri="page-types.login:forgottenPasswordLink.title" )#</a></p>
-            
+
             <button type="submit" class="btn btn-default">#translateResource( uri="page-types.login:loginButton.title" )#</button>
         </div>
     </form>
