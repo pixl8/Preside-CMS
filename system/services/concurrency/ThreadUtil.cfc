@@ -58,6 +58,40 @@ component {
 		}
 	}
 
+
+	/**
+	 * Interrupts the given thread by setting a Lucee
+	 * variable that the thread could respond to. Hence, super soft!
+	 *
+	 * @autodoc   true
+	 * @theThread Java object representing the thread to interrupt
+	 *
+	 */
+	public boolean function softInterrupt( any thethread=getCurrentThread() ) {
+		if ( !arguments.thethread.isInterrupted() ) {
+			try {
+				var requestScope = getRequestScope( arguments.theThread );
+				requestScope.__softInterrupted = true;
+			} catch( any e ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Gets the request scope of the given cfthread thread object
+	 *
+	 * @autodoc   true
+	 * @theThread Java object representing the cfthread whose request scope you wish to get
+	 */
+	public any function getRequestScope( required any theThread ) {
+		return arguments.theThread.getPageContext().scope( "request", NullValue() );
+	}
+
 	/**
 	 * Attempts to gracefully end the given thread, reverting
 	 * to forceful shutdown if the thread does not shutdown
@@ -70,7 +104,7 @@ component {
 	 *
 	 */
 	public void function shutdownThread( any thethread=getCurrentThread(), numeric interruptWait=10000, any logger ) {
-		var maxAttempts = arguments.interruptWait / 100;
+		var maxAttempts = arguments.interruptWait / 200;
 		var attempt     = 0;
 		var canLog      = arguments.keyExists( "logger" );
 		var canWarn     = canLog && logger.canWarn();
@@ -79,35 +113,59 @@ component {
 
 		if ( canWarn ) { logger.warn( "Interrupt signal sent to running task." ); }
 
-		interrupt( arguments.theThread );
+		if ( !isSleeping( theThread ) ) {
+			SystemOutput( "Attempting to soft shutdown the thread, [#theThread.getName()#]." );
+			if ( softInterrupt( arguments.theThread ) ) {
+				while( ++attempt <= maxAttempts && !isTerminated( arguments.theThread ) ) {
+					if ( attempt > 1 ) {
+						SystemOutput( "Waiting to gracefully shutdown thread [#threadName#]. Current state: #arguments.thethread.getState().name()#" );
+						if ( canWarn ) { logger.warn( "Waiting to gracefully shutdown task. Current state: #arguments.thethread.getState().name()#" ); }
+					}
+					sleep( 100 );
+				}
+				if ( isTerminated( arguments.thethread ) ) {
+					SystemOutput( "The thread [#threadName#], has gracefully shutdown." );
+					if ( canWarn ) { logger.warn( "Task gracefully shutdown." ); }
+					return;
+				}
+			}
+			SystemOutput( "Failed to soft shutdown #theThread.getName()# in a timely manner." );
+		} else {
+			maxAttempts = maxAttempts*2;
+		}
 
+		attempt=0;
+		SystemOutput( "Attempting to shutdown the thread, [#theThread.getName()#] using an interrupt." );
+		interrupt( arguments.theThread );
 		while( ++attempt <= maxAttempts && !isTerminated( arguments.theThread ) ) {
-			log file="application" text="Waiting to gracefully shutdown thread [#threadName#]. Current state: #arguments.thethread.getState().name()#";
-			if ( canWarn ) { logger.warn( "Waiting to gracefully shutdown task. Current state: #arguments.thethread.getState().name()#" ); }
+			if ( attempt > 1 ) {
+				SystemOutput( "Waiting to gracefully shutdown thread [#threadName#]. Current state: #arguments.thethread.getState().name()#" );
+				if ( canWarn ) { logger.warn( "Waiting to gracefully shutdown task. Current state: #arguments.thethread.getState().name()#" ); }
+			}
 			sleep( 100 );
 		}
 
 		if ( isTerminated( arguments.thethread ) ) {
-			log file="application" text="Thread [#threadName#] gracefully shutdown.";
-			if ( canWarn ) { logger.warn( "Task gracefully shutdown." ); }
+			SystemOutput( "The thread [#threadName#], has gracefully shutdown." );
+			if ( canWarn ) { logger.warn( "Task has gracefully shutdown." ); }
+			return;
+		}
+
+		SystemOutput( "The thread [#threadName#], did not gracefully terminate. Forcefully stopping it." );
+		if ( canWarn ) { logger.warn( "Task did not gracefully terminate after #( arguments.interruptWait / 1000 )# seconds. Forcefully stopping it." ); }
+
+		try {
+			theThread.getPageContext().release();
+		} catch( any e ) {}
+		theThread.stop();
+		sleep( 100 );
+
+		if ( isTerminated( arguments.theThread ) ) {
+			SystemOutput( "The thread [#threadName#], has been terminated." );
+			if ( canWarn ) { logger.warn( "Task terminated." ); }
 		} else {
-			log file="application" text="Thread [#threadName#] did not gracefully terminate. Forcefully stopping it.";
-			if ( canWarn ) { logger.warn( "Task did not gracefully terminate after #( arguments.interruptWait / 1000 )# seconds. Forcefully stopping it." ); }
-
-			try {
-				theThread.getPageContext().release();
-			} catch( any e ) {}
-			theThread.stop();
-			sleep( 100 );
-
-			if ( isTerminated( arguments.theThread ) ) {
-				log file="application" text="Thread [#threadName#] terminated.";
-				if ( canWarn ) { logger.warn( "Task terminated." ); }
-			} else {
-				log file="application" text="Thread [#threadName#] failed to terminate!";
-				if ( canError ) { logger.error( "Task failed to terminate." ); }
-
-			}
+			SystemOutput( "The thread [#threadName#], failed to terminate!" );
+			if ( canError ) { logger.error( "Task failed to terminate." ); }
 		}
 	}
 
@@ -118,7 +176,7 @@ component {
 	 *
 	 */
 	public boolean function isInterrupted() {
-		return jvmThread.isInterrupted();
+		return ( IsBoolean( request.__softInterrupted ?: "" ) && request.__softInterrupted ) || jvmThread.isInterrupted();
 	}
 
 	/**
@@ -131,7 +189,29 @@ component {
 	public boolean function isTerminated( any thethread=getCurrentThread() ) {
 		var state = theThread.getState().name();
 
-		return state == "TERMINATED"
+		return state == "TERMINATED";
+	}
+
+	/**
+	 * Whether or not the given thread is currently sleeping
+	 *
+	 * @autodoc   true
+	 * @thethread The thread (java object) to check
+	 *
+	 */
+	public boolean function isSleeping( any thethread=getCurrentThread() ) {
+		var state = theThread.getState().name();
+
+		if ( state == "TIMED_WAITING" ) {
+			var trace = theThread.getStackTrace();
+
+			try {
+				var isSleep = trace[ 1 ].getMethodName() == "sleep";
+				return isSleep;
+			} catch( any e ) {}
+		}
+
+		return false;
 	}
 
 }

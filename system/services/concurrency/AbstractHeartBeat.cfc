@@ -31,6 +31,10 @@ component {
 
 					content reset=true;
 				} while( !_isStopped() );
+
+				SystemOutput( "The #_getThreadName()# heartbeat thread has gracefully exited after being told to stop." );
+
+				deregister();
 			}
 		}
 	}
