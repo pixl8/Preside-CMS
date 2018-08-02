@@ -31,16 +31,14 @@
 <cfsavecontent variable="body">
 	<cfoutput>
 		<cfif canPreviewWithRecipient>
-			<div class="alert alert-info">
-				<p>
-					<i class="fa fa-fw fa-info-circle"></i>
-					<cfif Len( Trim( previewRecipientName ) )>
-						#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ previewLink ] )#
-					<cfelse>
-						#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint", data=[ previewLink ] )#
-					</cfif>
-				</p>
-			</div>
+			<p class="light-grey">
+				<i class="fa fa-fw fa-info-circle"></i>
+				<cfif Len( Trim( previewRecipientName ) )>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ previewLink ] )#
+				<cfelse>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint", data=[ previewLink ] )#
+				</cfif>
+			</p>
 		</cfif>
 
 		<div class="page-header">
