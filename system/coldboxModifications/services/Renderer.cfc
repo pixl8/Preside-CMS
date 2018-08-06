@@ -127,7 +127,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		struct args="#getRequestContext().getCurrentViewArgs()#",
 		module="",
 		boolean cache=false,
-		cacheTimeout="",
+		numeric cacheTimeout,
 		cacheLastAccessTimeout="",
 		cacheSuffix="",
 		cacheProvider="template",
