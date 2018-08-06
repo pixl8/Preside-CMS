@@ -286,8 +286,8 @@ component displayName="Preside Object View Service" {
 		  required string  presideObject
 		, required string  view
 		, required boolean cacheAutoKey
-		,          numeric cacheTimeout
-		,          numeric cacheLastAccessTimeout
+		,          any     cacheTimeout = ""
+		,          any     cacheLastAccessTimeout = ""
 		,          string  cacheSuffix
 		,          string  cacheProvider = "template"
 
