@@ -21,4 +21,25 @@
 		} );
 	}
 
+	// select the target node
+	var target = document.querySelector('table');
+
+	// create an observer instance
+	var observer = new MutationObserver(function(mutations) {
+		mutations.forEach(function(mutation) {
+			if ( mutation.type === 'childList' ) {
+				console.log( "mutate" );
+				var $listingTable  = $( '.object-listing-table' );
+				var $selectAllCBox = $listingTable.find( "th input:checkbox" );
+				$selectAllCBox.click();
+			}
+		});
+	});
+
+	// configuration of the observer:
+	var config = { attributes: true, childList: true, characterData: true }
+
+	// pass in the target node, as well as the observer options
+	observer.observe(target, config);
+
 } )( presideJQuery );
