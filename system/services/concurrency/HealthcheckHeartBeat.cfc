@@ -13,15 +13,18 @@ component extends="AbstractHeartBeat" {
 	public function init(
 		  required any     healthCheckService
 		, required any     threadUtil
-		,          string  threadName     = "Preside Service Healthcheck Heartbeat"
+		, required string  serviceId
+		, required numeric intervalInMs
+		,          string  threadName     = "Preside Service Healthcheck: #arguments.serviceId#"
 	){
 		super.init(
 			  threadName   = arguments.threadName
 			, threadUtil   = arguments.threadUtil
-			, intervalInMs = 30000
+			, intervalInMs = arguments.intervalInMs
 		);
 
 		_setHealthcheckService( arguments.healthCheckService );
+		_setServiceId( arguments.serviceId );
 
 		return this;
 	}
@@ -29,21 +32,12 @@ component extends="AbstractHeartBeat" {
 	// PUBLIC API METHODS
 	public void function run() {
 		try {
-			var healthCheckService = _getHealthCheckService();
-			var services           = healthCheckService.listRegisteredServices();
-
-			if ( !services.len() ) {
-				super.shutdown();
+			if ( $isInterrupted() ) {
+				return;
 			}
 
-			for( var serviceId in services ) {
-				if ( !healthCheckService.checkService( serviceId ) ) {
-					$systemOutput( "System healthcheck is reporting that the service, [#serviceId#], is currently DOWN." );
-				}
-
-				if ( $isInterrupted() ) {
-					break;
-				}
+			if ( !_getHealthCheckService().checkService( _getServiceId() ) ) {
+				$systemOutput( "System healthcheck is reporting that the service, [#serviceId#], is currently DOWN." );
 			}
 		} catch( any e ) {
 			$raiseError( e );
@@ -55,8 +49,10 @@ component extends="AbstractHeartBeat" {
 
 		thread name=CreateUUId() startUrl=startUrl {
 			try {
-				sleep( 1000 );
-				http method="post" url=startUrl timeout=2 throwonerror=true {}
+				sleep( 10000 );
+				http method="post" url=startUrl timeout=2 throwonerror=true {
+					httpparam name="serviceId" type="formfield" value=_getServiceId();
+				}
 			} catch( any e ) {
 				$raiseError( e );
 			}
@@ -69,5 +65,12 @@ component extends="AbstractHeartBeat" {
 	}
 	private void function _setHealthCheckService( required any healthCheckService ) {
 		_healthCheckService = arguments.healthCheckService;
+	}
+
+	private string function _getServiceId() {
+		return _serviceId;
+	}
+	private void function _setServiceId( required string serviceId ) {
+		_serviceId = arguments.serviceId;
 	}
 }

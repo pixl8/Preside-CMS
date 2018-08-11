@@ -9,7 +9,8 @@ component {
 	property name="expressionGenerator"         inject="rulesEngineAutoPresideObjectExpressionGenerator";
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
-	property name="healthCheckHeartbeat"        inject="healthCheckHeartbeat";
+	property name="healthcheckService"          inject="healthcheckService";
+
 	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
 
 	public void function applicationStart( event, rc, prc ) {
@@ -208,10 +209,15 @@ component {
 	private void function _startHeartbeats() {
 		presideTaskmanagerHeartBeat.startInNewRequest();
 		presideAdhocTaskHeartBeat.startInNewRequest();
-		healthCheckHeartbeat.startInNewRequest();
 
 		for( var i=1; i<=emailQueueConcurrency; i++ ) {
 			getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
+		}
+
+		if ( isFeatureEnabled( "healthchecks" ) ) {
+			for( var serviceId in healthcheckService.listRegisteredServices() ) {
+				getModel( "healthCheckHeartbeat#serviceId#" ).startInNewRequest();
+			}
 		}
 	}
 }

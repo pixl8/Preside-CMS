@@ -3,36 +3,44 @@ component extends="testbox.system.BaseSpec" {
 
 	function run(){
 		describe( "listRegisteredServices()", function(){
-			it( "should return an array of service IDs by reading from system handlers in the 'healthcheck' folder", function(){
-				var service = _getService( mockServices=[] );
-				var handlers = [ "healthcheck.elasticsearch", "healthcheck.postcodelookup", "healthcheck.googlemaps" ];
+			it( "should return an array of service IDs from the configured services", function(){
+				var service = _getService();
+				var services = service.listRegisteredServices();
 
-				mockColdbox.$( "listHandlers" ).$args( thatStartWith="healthcheck." ).$results( handlers );
+				services.sort( "textnocase" );
 
-				expect( service.listRegisteredServices() ).toBe( [ "elasticsearch", "postcodelookup", "googlemaps" ] );
-			} );
-
-			it( "should only ever read from system handlers once, results should be cached after that", function(){
-				var service = _getService( mockServices=[] );
-				var handlers = [ "healthcheck.elasticsearch", "healthcheck.postcodelookup", "healthcheck.googlemaps" ];
-
-				mockColdbox.$( "listHandlers" ).$args( thatStartWith="healthcheck." ).$results( handlers );
-
-				expect( service.listRegisteredServices() ).toBe( [ "elasticsearch", "postcodelookup", "googlemaps" ] );
-				expect( service.listRegisteredServices() ).toBe( [ "elasticsearch", "postcodelookup", "googlemaps" ] );
-				expect( service.listRegisteredServices() ).toBe( [ "elasticsearch", "postcodelookup", "googlemaps" ] );
-
-				expect( mockColdbox.$callLog().listHandlers.len() ).toBe( 1 );
-
+				expect( services ).toBe( [ "another", "elasticsearch", "test" ] );
 			} );
 		} );
 
 		describe( "checkService()", function(){
-			it( "should run the healthcheck for the given service and set the boolean result, retrievable with isUp() function", function(){
+			it( "should run the default healthcheck event for the given service and set the boolean result, retrievable with isUp() function", function(){
 				var service   = _getService();
 
 				mockColdbox.$( "runEvent" ).$args(
-					  event = "healthcheck.elasticsearch.check"
+					  event = "healthcheck.another.check"
+					, private = true
+					, prepostexempt = true
+				).$results( true );
+
+				expect( service.checkService( "another" ) ).toBe( true );
+				expect( service.isUp( "another" ) ).toBe( true );
+
+				mockColdbox.$( "runEvent" ).$args(
+					  event = "healthcheck.another.check"
+					, private = true
+					, prepostexempt = true
+				).$results( false );
+
+				expect( service.checkService( "another" ) ).toBe( false );
+				expect( service.isUp( "another" ) ).toBe( false );
+			} );
+
+			it( "should run the configured healthcheck event for the given service and set the boolean result, retrievable with isUp() function", function(){
+				var service   = _getService();
+
+				mockColdbox.$( "runEvent" ).$args(
+					  event = "test.handler.here"
 					, private = true
 					, prepostexempt = true
 				).$results( true );
@@ -41,7 +49,7 @@ component extends="testbox.system.BaseSpec" {
 				expect( service.isUp( "elasticsearch" ) ).toBe( true );
 
 				mockColdbox.$( "runEvent" ).$args(
-					  event = "healthcheck.elasticsearch.check"
+					  event = "test.handler.here"
 					, private = true
 					, prepostexempt = true
 				).$results( false );
@@ -54,7 +62,7 @@ component extends="testbox.system.BaseSpec" {
 				var service   = _getService();
 
 				mockColdbox.$( "runEvent" ).$args(
-					  event = "healthcheck.elasticsearch.check"
+					  event = "test.handler.here"
 					, private = true
 					, prepostexempt = true
 				).$results( {} );
@@ -66,9 +74,8 @@ component extends="testbox.system.BaseSpec" {
 			it( "should log error and return false when healthcheck throws an error", function(){
 				var service = _getService();
 
-				service.$( "$raiseerror" );
 				mockColdbox.$( "runEvent" ).$args(
-					  event = "healthcheck.elasticsearch.check"
+					  event = "test.handler.here"
 					, private = true
 					, prepostexempt = true
 				).$throws( "any.old.error" );
@@ -119,21 +126,23 @@ component extends="testbox.system.BaseSpec" {
 	}
 
 	private any function _getService( mockServices=_defaultMockServices() ) {
-		var service = createMock( object=new preside.system.services.healthchecks.HealthcheckService() );
+		var service = createMock( object=new preside.system.services.healthchecks.HealthcheckService(
+			  configuredServices = arguments.mockServices
+		) );
 
 		mockColdbox = createStub();
 		service.$( "$getColdbox", mockColdbox );
-
-		if ( arguments.mockServices.len() ) {
-			service.$( "listRegisteredServices", arguments.mockServices );
-		}
+		service.$( "$raiseerror" );
 
 		return service;
-
 	}
 
-	private array function _defaultMockServices() {
-		return [ "elasticsearch", "test", "another" ];
+	private struct function _defaultMockServices() {
+		return {
+			  elasticsearch = { interval=CreateTimeSpan( 0, 0, 1, 0 ), handler="test.handler.here" }
+			, test          = {}
+			, another       = {}
+		};
 	}
 
 }
