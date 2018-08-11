@@ -11,36 +11,25 @@ component {
 	variables._services = {};
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @configuredServices.inject coldbox:setting:healthcheckServices
+	 *
+	 */
+	public any function init( required struct configuredServices ) {
+		_setConfiguredServices( arguments.configuredServices );
+
 		return this;
 	}
 
 // PUBLIC API METHODS
 	/**
-	 * Reads healthcheck services by examinig coldbox
-	 * handlers that match the pattern healthcheck.myservice
-	 * where myservice is the handler cfc and the ID of the
-	 * service to monitor.
+	 * Returns configured services that whose health
+	 * will be periodically checked.
 	 *
 	 * @autodoc true
 	 */
 	public array function listRegisteredServices() {
-		var services = _getRegisteredServices();
-
-		if ( IsNull( services ) ) {
-			var possibleHandlers = $getColdbox().listHandlers( thatStartWith="healthcheck." );
-
-			services = [];
-			for( var possibleHandler in possibleHandlers ) {
-				if ( ListLen( possibleHandler, "." ) == 2 ) {
-					services.append( ListLast( possibleHandler, "." ) );
-				}
-			}
-
-			_setRegisteredServices( services );
-		}
-
-		return services;
+		return StructKeyArray( _getConfiguredServices() );
 	}
 
 	/**
@@ -68,11 +57,9 @@ component {
 			return false;
 		}
 
-		var event = "healthcheck.#arguments.serviceId#.check";
-
 		try {
 			var result = $getColdbox().runEvent(
-				  event         = event
+				  event         = _getHealthCheckHandlerEvent( arguments.serviceId )
 				, private       = true
 				, prepostExempt = true
 			);
@@ -109,13 +96,17 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private string function _getHealthCheckHandlerEvent( required string serviceId ) {
+		var svc = _getConfiguredServices()[ arguments.serviceId ];
+
+		return svc.handler ?: "healthcheck.#arguments.serviceId#.check";
+	}
 
 // GETTERS AND SETTERS
-	private any function _getRegisteredServices() {
-		return _registeredServices ?: NullValue();
+	private struct function _getConfiguredServices() {
+		return _configuredServices;
 	}
-	private void function _setRegisteredServices( required any registeredServices ) {
-		_registeredServices = arguments.registeredServices;
+	private void function _setConfiguredServices( required struct configuredServices ) {
+		_configuredServices = arguments.configuredServices;
 	}
-
 }

@@ -331,6 +331,7 @@ component {
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
 			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
 			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
+			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -426,6 +427,8 @@ component {
 
 		settings.concurrency = _getConcurrencySettings();
 
+		settings.healthCheckServices = {};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {
@@ -440,6 +443,7 @@ component {
 
 		settings.features[ "devtools.new"       ].enabled=true;
 		settings.features[ "devtools.extension" ].enabled=true;
+		settings.features[ "healthchecks"       ].enabled=false;
 	}
 
 // PRIVATE UTILITY

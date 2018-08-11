@@ -2,8 +2,8 @@ component {
 
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
-	property name="healthcheckHeartBeat"        inject="healthcheckHeartBeat";
 	property name="taskManagerService"          inject="taskManagerService";
+	property name="healthcheckService"          inject="healthcheckService";
 	property name="adhocTaskManagerService"     inject="adhocTaskManagerService";
 	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
 
@@ -18,8 +18,16 @@ component {
 	}
 
 	public void function startHealthCheckHeartbeat( event, rc, prc ) {
-		healthcheckHeartBeat.start();
-		event.renderData( data={ ok=true }, type="json" );
+		var serviceId = rc.serviceId ?: "";
+
+		if( healthcheckService.serviceExists( serviceId=serviceId ) ) {
+			getModel( "healthCheckHeartbeat#serviceId#" ).start();
+
+			event.renderData( data={ ok=true }, type="json" );
+		} else {
+			event.renderData( data={ ok=false, message="Healtcheck service ID [#serviceId#] not found!" }, type="json" );
+		}
+
 	}
 
 	public void function startEmailQueueHeartbeat( event, rc, prc ) {
@@ -28,9 +36,10 @@ component {
 		if ( instanceNumber > 0 && instanceNumber <= emailQueueConcurrency ) {
 			getModel( "PresideEmailQueueHeartBeat#instanceNumber#" ).start();
 			event.renderData( data={ ok=true }, type="json" );
+		} else {
+			event.renderData( data={ ok=false, message="Queue heartbeat instance [#instanceNumber#] not found!" }, type="json" );
 		}
 
-		event.renderData( data={ ok=false, message="Queue heartbeat instance [#instanceNumber#] not found!" }, type="json" );
 	}
 
 	public void function scheduledTask( event, rc, prc ) {

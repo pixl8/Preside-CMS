@@ -70,7 +70,6 @@
 		map( "presideRenderer" ).asSingleton().to( "preside.system.coldboxModifications.services.Renderer" );
 
 		var emailQueueConcurrency = Val( settings.email.queueConcurrency ?: 1 );
-
 		for( var i=1; i <= emailQueueConcurrency; i++ ) {
 			map( "PresideEmailQueueHeartBeat#i#" )
 			    .asSingleton()
@@ -79,6 +78,18 @@
 			    .virtualInheritance( "presideSuperClass" );
 		}
 
+		var healthcheckServices = settings.healthCheckServices ?: {};
+		var msInADay            = 86400000;
+		for( var serviceId in healthcheckServices ) {
+			var intervalInMs = Val( healthcheckServices[ serviceId ].interval ?: CreateTimeSpan( 0, 0, 0, 30 ) ) * msInADay;
+
+			map( "healthcheckHeartBeat#serviceId#" )
+			    .asSingleton()
+			    .to( "preside.system.services.concurrency.HealthcheckHeartBeat" )
+			    .initArg( name="serviceId", value=serviceId )
+			    .initArg( name="intervalInMs", value=intervalInMs )
+			    .virtualInheritance( "presideSuperClass" );
+		}
 	}
 
 	private void function _loadExtensionConfigurations() {
