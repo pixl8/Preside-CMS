@@ -229,7 +229,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			if ( Len( Trim( qs ) ) ) {
 				redirectUrl &= "?" & qs;
 			}
-			getController().setNextEvent( url=redirectUrl, statusCode=301 );
+			getController().relocate( url=redirectUrl, statusCode=301 );
 		}
 	}
 
