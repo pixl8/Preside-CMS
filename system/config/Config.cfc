@@ -443,7 +443,6 @@ component {
 
 		settings.features[ "devtools.new"       ].enabled=true;
 		settings.features[ "devtools.extension" ].enabled=true;
-		settings.features[ "healthchecks"       ].enabled=false;
 	}
 
 // PRIVATE UTILITY
