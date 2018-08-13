@@ -33,6 +33,13 @@ component {
 		var rendered = "";
 
 		if ( Len( Trim( formId ) ) ) {
+			if( !formbuilderService.formExists( formId ) ){
+				if ( !event.isAdminUser() ) {
+					return "";
+				}
+				return '<div class="alert alert-warning"><p><strong>' & translateResource( "formbuilder:notexists.form.admin.preview.warning") & '</strong></p></div>';
+			}
+
 			if ( !formbuilderService.isFormActive( formId ) ) {
 				if ( !event.isAdminUser() ) {
 					return "";

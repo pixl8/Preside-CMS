@@ -912,6 +912,10 @@ component displayName="Admin login service" {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
 
+		if( isEmpty( t ) || isEmpty( k ) ){
+			return QueryNew('');
+		}
+
 		var record = _getUserDao().selectData(
 			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
 			, filter       = { reset_password_token = t }
