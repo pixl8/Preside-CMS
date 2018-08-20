@@ -150,7 +150,7 @@ component {
 			cloneRecord(
 				  objectName = relatedTo
 				, recordId   = record.id
-				, data       = cloneData
+				, data       = cloneData.copy()
 				, isDraft    = arguments.isDraft
 			);
 		}
