@@ -97,17 +97,19 @@ component extends="preside.system.base.AdminHandler" {
 			listing = renderViewlet( event="admin.datamanager._treeView", args=args );
 
 		} else {
-			args.multiActions = customizationService.runCustomization(
-				  objectName     = objectName
-				, action         = "listingMultiActions"
-				, defaultHandler = "admin.datamanager._listingMultiActions"
-				, args           = args
-			);
-			args.append( {
-				  useMultiActions = args.multiActions.len()
-				, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-				, allowDataExport = true
-			} );
+			if ( !IsBoolean( args.useMultiActions ?: "" ) || args.useMultiActions ) {
+				args.multiActions = customizationService.runCustomization(
+					  objectName     = objectName
+					, action         = "listingMultiActions"
+					, defaultHandler = "admin.datamanager._listingMultiActions"
+					, args           = args
+				);
+				args.append( {
+					  useMultiActions = args.multiActions.len()
+					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
+					, allowDataExport = args.allowDataExport ?: true
+				} );
+			}
 
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
