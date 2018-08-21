@@ -513,6 +513,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObjectService", mockPresideObjectService );
+		service.$( "$isInterrupted", false );
 		mockPresideObjectService.$( "getDbAdapterForObject", mockDbAdapter );
 
 		mockDbAdapter.$( "getNowFunctionSql", "nowwweee()" );

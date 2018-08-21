@@ -7,12 +7,14 @@ component extends="AbstractHeartBeat" {
 
 	/**
 	 * @adhocTaskmanagerService.inject adhocTaskmanagerService
+	 * @threadUtil.inject              threadUtil
 	 *
 	 */
-	public function init( required any adhocTaskmanagerService ){
+	public function init( required any adhocTaskmanagerService, required any threadUtil ){
 		super.init(
 			  threadName   = "Preside Adhoc Task Heartbeat"
 			, intervalInMs = 1000
+			, threadUtil   = arguments.threadUtil
 		);
 
 		_setAdhocTaskmanagerService( arguments.adhocTaskmanagerService );

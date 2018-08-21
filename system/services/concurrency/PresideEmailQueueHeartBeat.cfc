@@ -7,15 +7,18 @@ component extends="AbstractHeartBeat" {
 
 	/**
 	 * @emailMassSendingService.inject emailMassSendingService
+	 * @threadUtil.inject              threadUtil
 	 *
 	 */
 	public function init(
 		  required any     emailMassSendingService
+		, required any     threadUtil
 		,          numeric instanceNumber = 1
-		,          string  threadName     = "Preside Email Queue Heartbeat #arguments.instanceNumber#"
+		,          string  threadName     = "Preside Email Queue Processor #arguments.instanceNumber#"
 	){
 		super.init(
 			  threadName   = arguments.threadName
+			, threadUtil   = arguments.threadUtil
 			, intervalInMs = 5000
 		);
 
@@ -30,6 +33,7 @@ component extends="AbstractHeartBeat" {
 		try {
 			if ( _getInstanceNumber() == 1 ) {
 				_getEmailMassSendingService().autoQueueScheduledSendouts();
+				_getEmailMassSendingService().requeueHungEmails();
 			}
 			_getEmailMassSendingService().processQueue();
 		} catch( any e ) {

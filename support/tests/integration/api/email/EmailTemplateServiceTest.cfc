@@ -19,6 +19,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.saveTemplate( template=template ) ).toBe( id );
 			} );
 
+			it( "should default the sending method to 'manual' when using a blueprint that has a recipient type tied to an object (not anonymous)", function(){
+				var service       = _getService();
+				var id            = CreateUUId();
+				var blueprint     = CreateUUId();
+				var recipientType = CreateUUId();
+				var template      = {
+					  name            = "Some template"
+					, layout          = "default"
+					, subject         = "Reset password instructions"
+					, html_body       = CreateUUId()
+					, text_body       = CreateUUId()
+					, email_blueprint = blueprint
+				};
+
+				mockBluePrintDao.$( "selectData" ).$args( id=blueprint ).$results( QueryNew( "recipient_type", "varchar", [[recipientType]]) );
+				mockTemplateDao.$( "insertData", id );
+				mockEmailRecipientTypeService.$( "getFilterObjectForRecipientType" ).$args( recipientType ).$results( "someobject" );
+
+				service.saveTemplate( template=template );
+				expect( mockTemplateDao.$callLog().insertData[1].data.sending_method ?: "" ).toBe( "manual" );
+			} );
+
 			it( "should update a record when ID is supplied", function(){
 				var service  = _getService();
 				var id       = CreateUUId();
@@ -41,6 +63,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = false
+					, forceVersionCreation    = false
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -70,6 +93,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = false
+					, forceVersionCreation    = false
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -112,6 +136,34 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = true
+					, forceVersionCreation    = false
+					, updateManyToManyRecords = true
+				});
+			} );
+
+			it( "should make a forced update when 'saveDraft' is passed as false and 'forcePublication' is passed as true (for an existing template)", function(){
+				var service  = _getService();
+				var id       = CreateUUId();
+				var template = {
+					  name      = "Some template"
+					, layout    = "default"
+					, subject   = "Reset password instructions"
+					, html_body = CreateUUId()
+					, text_body = CreateUUId()
+				};
+
+				mockTemplateDao.$( "insertData", CreateUUId() );
+				mockTemplateDao.$( "updateData", 1 );
+
+				expect( service.saveTemplate( id=id, template=template, isDraft=false, forcePublication=true ) ).toBe( id );
+				expect( mockTemplateDao.$callLog().insertData.len() ).toBe( 0 );
+				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
+
+				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
+					  id                      = id
+					, data                    = template
+					, isDraft                 = false
+					, forceVersionCreation    = true
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -507,6 +559,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
 				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
 				expect( service.$callLog().saveTemplate[1].template.schedule_sent ).toBe( true );
+			} );
+
+			it( "it should mark the email as not sent, when type is fixeddate, scheduled date is in the future and is sent is set to true", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "fixeddate"
+					, schedule_measure        = ""
+					, schedule_date           = DateAdd( "ww", 1, nowish )
+					, schedule_unit           = ""
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+					, schedule_sent           = true
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId=templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_sent ?: "" ).toBe( false );
 			} );
 		} );
 

@@ -24,9 +24,11 @@ component displayName="Preside Super Class" {
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
 	 * @validationEngine.inject           delayedInjector:validationEngine
 	 * @adHocTaskManagerService.inject    delayedInjector:adHocTaskManagerService
+	 * @threadUtil.inject                 delayedInjector:threadUtil
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 * @i18n.inject                       delayedInjector:i18n
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
+	 * @healthcheckService.inject         delayedInjector:healthcheckService
 	 *
 	 */
 	public any function init(
@@ -46,9 +48,11 @@ component displayName="Preside Super Class" {
 		, required any taskmanagerService
 		, required any validationEngine
 		, required any adHocTaskManagerService
+		, required any threadUtil
 		, required any coldbox
 		, required any i18n
 		, required any htmlHelper
+		, required any healthcheckService
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -66,9 +70,11 @@ component displayName="Preside Super Class" {
 		$taskmanagerService         = arguments.taskmanagerService;
 		$validationEngine           = arguments.validationEngine;
 		$adHocTaskManagerService    = arguments.adHocTaskManagerService;
+		$threadUtil                 = arguments.threadUtil;
 		$coldbox                    = arguments.coldbox;
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
+		$healthcheckService         = arguments.healthcheckService;
 
 		return this;
 	}
@@ -825,4 +831,79 @@ component displayName="Preside Super Class" {
 	public string function $slugify() {
 		return $htmlHelper.slugify( argumentCollection=arguments );
 	}
+
+	/**
+	 * Returns the [[api-threadutil|threadUtil] service.
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public any function $getThreadUtil() {
+		return $threadUtil;
+	}
+
+	/**
+	 * Checks to see whether or not the current thread
+	 * has been interrupted. Useful for long loops to gracefully
+	 * shutdown when asked. Proxy to [[threadutil-isinterrupted]].
+	 *
+	 * @autodoc
+	 */
+	public boolean function $isInterrupted() {
+		return $getThreadUtil().isInterrupted( argumentCollection=arguments );
+	}
+
+	/**
+	 * Logs to the Lucee system output console (either direct to console, or to
+	 * catalina.out if Tomcat, etc). This method wraps SystemOutput() and adds
+	 * a PRESIDE prefix + timestamp to every log.
+	 * \n
+	 * Example:
+	 * \n
+	 * ```
+	 * $systemOutput( "Lions and tigers and bears. Oh my!" );
+	 * ```
+	 *
+	 * @autodoc true
+	 * @message The message to send to the console/log
+	 */
+	public void function $systemOutput( required string message ) {
+		systemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" );
+	}
+
+
+	/**
+	 * Returns the [[api-healthcheckservice]] service
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public void function $getHealthcheckService() {
+		return $healthcheckService;
+	}
+
+	/**
+	 * Returns whether or not the given healthcheck
+	 * service is up (proxies to [[healthcheckservice-isup]])
+	 *
+	 * @autodoc   true
+	 * @serviceid ID of the service to check
+	 */
+	public any function $isUp( required string serviceId ) {
+		return $healthcheckService.isUp( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns whether or not the given healthcheck
+	 * service is down (proxies to [[healthcheckservice-isup]] and
+	 * reverses the result)
+	 *
+	 * @autodoc   true
+	 * @serviceid ID of the service to check
+	 */
+	public any function $isDown( required string serviceId ) {
+		return !$healthcheckService.isUp( argumentCollection=arguments );
+	}
+
+
 }

@@ -68,12 +68,12 @@ component {
 					, recipientId = queuedEmail.recipient
 				);
 
-				removeFromQueue( queuedEmail.id );
 			} catch ( Any e ) {
 				$raiseError( e );
 			}
 
-		} while( ++processedCount < rateLimit );
+			removeFromQueue( queuedEmail.id );
+		} while( ++processedCount < rateLimit && !$isInterrupted() );
 
 	}
 
@@ -120,9 +120,10 @@ component {
 	 * the recipients for mass sending an email
 	 *
 	 * @autodoc         true
-	 * @templateId.hint ID of the template whose filters you are to get
+	 * @templateId      ID of the template whose filters you are to get
+	 * @hideAlreadySent Whether or not to filter out recipients that have reached sending limits
 	 */
-	public array function getTemplateRecipientFilters( required string templateId ) {
+	public array function getTemplateRecipientFilters( required string templateId, boolean hideAlreadySent=true ) {
 		var template = _getEmailTemplateService().getTemplate( arguments.templateId );
 		if ( template.isEmpty() ) {
 			return [];
@@ -132,13 +133,13 @@ component {
 		if ( !recipientObject.len() ) {
 			return [];
 		}
-		var extraFilters = getFiltersForSendLimits(
+		var extraFilters = arguments.hideAlreadySent ? getFiltersForSendLimits(
 			  templateId    = arguments.templateId
 			, recipientType = template.recipient_type
 			, sendLimit     = template.sending_limit
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
-		);
+		) : [];
 		var blueprintFilter = template.blueprint_filter ?: "";
 		if ( blueprintFilter.len() ) {
 			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
@@ -210,6 +211,20 @@ component {
 		}
 
 		return totalQueued;
+	}
+
+	/**
+	 * Automatically requeues any emails that were marked as sending but have
+	 * not then completed. This may occur due to a server restart during sending, etc.
+	 *
+	 * @autodoc true
+	 */
+	public numeric function requeueHungEmails() {
+		return $getPresideObject( "email_mass_send_queue" ).updateData(
+			  data         = { status="queued" }
+			, filter       = "status = :status and datemodified < :datemodified"
+			, filterParams = { status="sending", datemodified=DateAdd( "h", -1, Now() ) }
+		);
 	}
 
 	/**

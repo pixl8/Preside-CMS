@@ -15,6 +15,10 @@ component extends="coldbox.system.web.Controller" {
 		return variables.wireBox.getInstance( "presideRenderer" );
 	}
 
+	public array function listHandlers( string thatStartWith="" ) {
+		return getHandlerService().listHandlers( argumentCollection=arguments );
+	}
+
 	public boolean function handlerExists( required string event ) {
 		variables._handlerExistsCache = variables._handlerExistsCache ?: {};
 		if ( variables._handlerExistsCache.keyExists( arguments.event ) ) {

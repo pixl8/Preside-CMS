@@ -46,8 +46,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "cms:emailcenter.customTemplates.add.page.title" );
 		prc.pageSubtitle = translateResource( "cms:emailcenter.customTemplates.add.page.subtitle" );
 
-		prc.canPublish   = hasCmsPermission( "emailCenter.customTemplates.saveDraft" );
-		prc.canSaveDraft = hasCmsPermission( "emailCenter.customTemplates.publish"   );
+		prc.canPublish   = hasCmsPermission( "emailCenter.customTemplates.publish" );
+		prc.canSaveDraft = hasCmsPermission( "emailCenter.customTemplates.saveDraft"   );
 
 		if ( !prc.canPublish && !prc.canSaveDraft ) {
 			event.adminAccessDenied();
@@ -162,6 +162,17 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#&previewRecipient=#rc.recipient#" ) );
 	}
 
+	public void function cancelSendAction( event, rc, prc ) {
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+		_checkPermissions( event, "cancelsend" );
+
+		var templateId = rc.id ?: "";
+
+		emailTemplateService.clearQueue( templateId );
+		messagebox.info( translateResource( uri="cms:emailcenter.queue.cleared", data=[ prc.record.name ] ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#" ) );
+	}
 
 
 	function edit( event, rc, prc ) {
@@ -215,7 +226,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( validationResult.validated() ) {
-			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=( saveAction=="savedraft" ) );
+			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=( saveAction=="savedraft" ), forcePublication=true );
 
 			messagebox.info( translateResource( "cms:emailcenter.customTemplates.template.saved.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
@@ -227,6 +238,19 @@ component extends="preside.system.base.AdminHandler" {
 			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.edit", queryString="id=#id#" )
 			, persistStruct = formData
 		);
+	}
+
+	function publishAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="edit" );
+		_checkPermissions( event=event, key="publish" );
+
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+
+		var id = rc.id ?: "";
+		emailTemplateService.saveTemplate( id=id, template={}, isDraft=false, forcePublication=true );
+
+		messagebox.info( translateResource( "cms:emailcenter.customTemplates.template.published.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
 	}
 
 	function clone( event, rc, prc ) {
@@ -420,6 +444,15 @@ component extends="preside.system.base.AdminHandler" {
 			formData.sending_method = "auto";
 		}
 
+		if ( formData.sending_method == "scheduled" && formData.schedule_type == "repeat" ) {
+			var scheduleValidationFormName = "preside-objects.email_template.repeat.schedule.form.for.validation";
+			validationResult = validateForm(
+				  formName         = scheduleValidationFormName
+				, formData         = formdata
+				, validationResult = validationResult
+			);
+		}
+
 		if ( validationResult.validated() ) {
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
 			emailTemplateService.updateScheduledSendFields( templateId=id );
@@ -460,7 +493,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template"
-				, gridFields    = "name,email_blueprint,datecreated,datemodified"
+				, gridFields    = "name,sending_method,send_date,schedule_type"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
 				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
@@ -580,8 +613,9 @@ component extends="preside.system.base.AdminHandler" {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var templateId   = rc.id ?: "";
+		var hideAlreadySent = IsBoolean( rc.hideAlreadySent ?: "" ) ? rc.hideAlreadySent : true;
 
-		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId );
+		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId, hideAlreadySent );
 		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
 		var addPreviewLink = IsTrue( rc.addPreviewLink ?: "" );
@@ -640,16 +674,58 @@ component extends="preside.system.base.AdminHandler" {
 		var templateId = rc.id ?: "";
 		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 		if ( template.count() ) {
-			args.canSend       = IsFalse( template._version_is_draft ) && template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.isDraft       = IsTrue( template._version_is_draft );
+			args.canSend       = !args.isDraft && template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.canPublish    = args.isDraft && hasCmsPermission( "emailCenter.customTemplates.publish"   );
 			args.canSendTest   = true;
-			args.scheduleType  = template.schedule_type ?: "";
-			args.nextSendDate  = template.schedule_next_send_date ?: "";
 			args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
-			args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
+			args.canClone      = hasCmsPermission( "emailcenter.customtemplates.add" );
 
-			if ( args.canSend || args.canDelete || args.canToggleLock || args.scheduleType == "repeat" ) {
+			if ( args.canSend || args.canDelete || args.canClone || args.canPublish ) {
 				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
 			}
+		}
+
+		return "";
+	}
+
+	private string function _customTemplateNotices( event, rc, prc, args={} ) {
+		var templateId = rc.id ?: "";
+		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+
+		if ( template.count() ) {
+			args.isDraft       = IsTrue( template._version_is_draft );
+			args.sendMethod    = template.sending_method ?: "";
+			args.scheduleType  = template.schedule_type ?: "";
+
+			if ( !args.isDraft  ) {
+				if ( args.sendMethod == "scheduled" ){
+					args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
+
+					if ( IsDate( args.sendDate ) ) {
+						if ( args.sendDate <= Now() ) {
+							args.sent   = emailTemplateService.getSentCount( templateId );
+							args.queued = emailTemplateService.getQueuedCount( templateId );
+						} else {
+							args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
+						}
+					}
+				} else {
+					args.sent   = emailTemplateService.getSentCount( templateId );
+					args.queued = emailTemplateService.getQueuedCount( templateId );
+				}
+
+				if ( Val( args.queued ?: "" ) ) {
+					args.canCancel = hasCmsPermission( "emailcenter.customtemplates.cancelsend" );
+					if ( args.canCancel ) {
+						args.cancelLink   = event.buildAdminLink( linkto="emailcenter.customtemplates.cancelSendAction", queryString="id=" & templateId );
+						args.cancelPrompt = translateResource( "cms:emailcenter.customtemplates.cancel.send.prompt" );
+						args.cancelSend   = translateResource( "cms:emailcenter.customtemplates.cancel.send.link"   );
+					}
+				}
+			}
+
+			return renderView( view="/admin/emailCenter/customTemplates/_customTemplateNotices", args=args );
 		}
 
 		return "";

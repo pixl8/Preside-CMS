@@ -352,8 +352,9 @@ component {
 	 */
 	public string function saveTemplate(
 		  required struct  template
-		,          string  id       = ""
-		,          boolean isDraft  = false
+		,          string  id               = ""
+		,          boolean isDraft          = false
+		,          boolean forcePublication = false
 	) {
 		transaction {
 			if ( Len( Trim( arguments.id ) ) ) {
@@ -361,6 +362,7 @@ component {
 					  id                      = arguments.id
 					, data                    = arguments.template
 					, isDraft                 = arguments.isDraft
+					, forceVersionCreation    = !arguments.isDraft && arguments.forcePublication
 					, updateManyToManyRecords = true
 				);
 
@@ -378,7 +380,22 @@ component {
 				arguments.template.id = arguments.id;
 
 			}
+
+			if ( Len( Trim( arguments.template.email_blueprint ?: "" ) ) && !Len( Trim( arguments.template.sending_method ?: "" ) ) ) {
+				var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=arguments.template.email_blueprint );
+
+				if ( Len( Trim( blueprint.recipient_type ?: "" ) ) ) {
+					var filterObject = _getEmailRecipientTypeService().getFilterObjectForRecipientType( blueprint.recipient_type );
+					if ( Len( Trim( filterObject ) ) ) {
+						arguments.template.sending_method = "manual";
+					} else {
+						arguments.template.sending_method = "auto";
+					}
+				}
+			}
+
 			var newId = $getPresideObject( "email_template" ).insertData( data=arguments.template, isDraft=arguments.isDraft );
+			newId = newId ?: "";
 			$audit(
 				  action   = arguments.isDraft ? "createDraftEmailTemplate" : "insertEmailTemplate"
 				, type     = "emailtemplate"
@@ -623,6 +640,8 @@ component {
 
 				if ( arguments.markAsSent ) {
 					updatedData.schedule_sent = true;
+				} else if ( IsBoolean( template.schedule_sent ?: "" ) && template.schedule_sent && template.schedule_date > Now() ) {
+					updatedData.schedule_sent = false;
 				}
 			}
 		} else {
