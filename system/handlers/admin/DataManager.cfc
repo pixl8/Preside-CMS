@@ -24,7 +24,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		_loadCommonVariables( argumentCollection=arguments );
-		if ( !arguments.action.endsWith( "action" ) ) {
+		if ( !ReFindNoCase( "action$", arguments.action ) ) {
 			_loadCommonBreadCrumbs( argumentCollection=arguments );
 			_loadTopRightButtons( argumentCollection=arguments );
 		}
@@ -2965,6 +2965,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			if ( Len( Trim( prc.recordId ) ) && ListLen( prc.recordId ) == 1 ) {
+
 				if ( prc.useVersioning ) {
 					if ( !prc.isTranslationAction ) {
 						prc.version = rc.version = Val( rc.version ?: ( presideObjectService.objectIsVersioned( prc.objectName ) ? versioningService.getLatestVersionNumber( prc.objectName, prc.recordId ) : 0 ) );
