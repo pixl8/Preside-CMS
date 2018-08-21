@@ -139,7 +139,7 @@ component {
 		var passwordPolicy = passwordPolicyService.getPolicy( "website" );
 
 		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
-			args.policyMessage = renderContent( "richeditor", passwordPolicy.message );
+			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
 		}
 
 		return renderView( view="/login/resetPassword", presideObject="reset_password", id=event.getCurrentPageId(), args=args );
