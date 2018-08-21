@@ -21,4 +21,21 @@
 		} );
 	}
 
+	var target = $( ".object-listing-table" ).get( 0 );
+	var observer = new MutationObserver(function(mutations) {
+		mutations.forEach(function(mutation) {
+			if ( mutation.type === 'childList' ) {
+				var $listingTable  = $( '.object-listing-table' );
+				var $selectAllCBox = $listingTable.find( "th input:checkbox" );
+				if( $selectAllCBox. prop("checked") == true ){
+					$selectAllCBox.click();
+				}
+			}
+		});
+	});
+
+	var config = { attributes: true, childList: true, characterData: true }
+
+	observer.observe(target, config);
+
 } )( presideJQuery );
