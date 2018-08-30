@@ -7,15 +7,16 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @loginService.inject             loginService
-	 * @pageTypesService.inject         pageTypesService
-	 * @siteService.inject              siteService
-	 * @i18nService.inject              i18n
-	 * @coldboxController.inject        coldbox
-	 * @presideObjectService.inject     presideObjectService
-	 * @versioningService.inject        versioningService
-	 * @websitePermissionService.inject websitePermissionService
+	 * @loginService.inject                loginService
+	 * @pageTypesService.inject            pageTypesService
+	 * @siteService.inject                 siteService
+	 * @i18nService.inject                 i18n
+	 * @coldboxController.inject           coldbox
+	 * @presideObjectService.inject        presideObjectService
+	 * @versioningService.inject           versioningService
+	 * @websitePermissionService.inject    websitePermissionService
 	 * @rulesEngineConditionService.inject rulesEngineConditionService
+	 * @cloningService.inject              presideObjectCloningService
 	 */
 	public any function init(
 		  required any loginService
@@ -27,6 +28,7 @@ component {
 		, required any versioningService
 		, required any websitePermissionService
 		, required any rulesEngineConditionService
+		, required any cloningService
 	) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
@@ -37,6 +39,7 @@ component {
 		_setVersioningService( arguments.versioningService );
 		_setWebsitePermissionService( arguments.websitePermissionService );
 		_setRulesEngineConditionService( arguments.rulesEngineConditionService );
+		_setCloningService( arguments.cloningService );
 		_setPageSlugsAreMultilingual();
 
 		_ensureSystemPagesExistInTree();
@@ -639,34 +642,12 @@ component {
 		}
 
 		StructAppend( data, {
-			  created_by                = arguments.userId
-			, updated_by                = arguments.userId
-			, _hierarchy_child_selector = ""
-			, _hierarchy_lineage        = "/"
-			, _hierarchy_depth          = 0
-			, _hierarchy_slug           = Len( Trim( arguments.slug ) ) ? "/#arguments.slug#/" : "/"
+			  created_by = arguments.userId
+			, updated_by = arguments.userId
 		} );
 
 		transaction {
-			data.sort_order            = _calculateSortOrder( argumentCollection = arguments );
-			data._hierarchy_id         = _getNextAvailableHierarchyId();
-			data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
-
-			if ( StructKeyExists( arguments, "parent_page" ) ) {
-				parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false );
-				if ( not parent.recordCount ) {
-					throw(
-						  type    = "SiteTreeService.MissingParent"
-						, message = "Error when adding site tree page. Parent page with id, [#arguments.parent_page#], was not found."
-					);
-				}
-				data.parent_page           = arguments.parent_page;
-				data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id                & "/";
-				data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug                      & "/";
-				data._hierarchy_sort_order = parent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
-				data._hierarchy_depth      = parent._hierarchy_depth + 1;
-			}
-			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
+			StructAppend( data, _calculateSortOrderAndHierarchyFields( argumentCollection=arguments ) );
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
 
@@ -945,9 +926,55 @@ component {
 		, required boolean createAsDraft
 		, required boolean cloneChildren
 	) {
-		// TODO!
+		var cloningService = _getCloningService();
+		var existingPage   = getPage( id=arguments.sourcePageId, useCache=false, allowDrafts=true );
+		var versionNumber  = _getPresideObjectService().getNextVersionNumber();
+		var newData        = StructCopy( arguments.newPageData );
 
-		return CreateUUId();
+		StructAppend( newData, _calculateSortOrderAndHierarchyFields(
+			  parent_page = newData.parent_page ?: existingPage.parent_page
+			, slug        = newData.slug        ?: existingPage.slug
+		) );
+
+		var newPageId = cloningService.cloneRecord(
+			  objectName    = "page"
+			, recordId      = arguments.sourcePageId
+			, data          = newData
+			, isDraft       = arguments.createAsDraft
+			, versionNumber = versionNumber
+		);
+
+		var pageTypeData = StructCopy( arguments.newPageData );
+		    pageTypeData.id   = newPageId;
+		    pageTypeData.page = newPageId;
+
+		cloningService.cloneRecord(
+			  objectName    = existingPage.page_type
+			, recordId      = arguments.sourcePageId
+			, data          = pageTypeData
+			, isDraft       = arguments.createAsDraft
+			, versionNumber = versionNumber
+		);
+
+		if ( arguments.cloneChildren ) {
+			var children = getTree(
+				  rootPageId  = arguments.sourcePageId
+				, maxDepth    = 1
+				, useCache    = false
+				, allowDrafts = true
+			);
+
+			for( var child in children ) {
+				clonePage(
+					  sourcePageId   = child.id
+					, newPageData    = { parent_page=newPageId }
+					, createAsDraft  = arguments.createAsDraft
+					, cloneChildren  = true
+				);
+			}
+		}
+
+		return newPageId;
 	}
 
 	public boolean function permanentlyDeletePage( required string id ) {
@@ -1542,6 +1569,37 @@ component {
 		return isBoolean( site.auto_redirect ) && site.auto_redirect;
 	}
 
+	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page ) {
+		var data = {
+			  _hierarchy_child_selector = ""
+			, _hierarchy_lineage        = "/"
+			, _hierarchy_depth          = 0
+			, _hierarchy_slug           = Len( Trim( arguments.slug ) ) ? "/#arguments.slug#/" : "/"
+		};
+
+		data.sort_order            = _calculateSortOrder( argumentCollection = arguments );
+		data._hierarchy_id         = _getNextAvailableHierarchyId();
+		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
+
+		if ( StructKeyExists( arguments, "parent_page" ) ) {
+			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false );
+			if ( !parent.recordCount ) {
+				throw(
+					  type    = "SiteTreeService.MissingParent"
+					, message = "Error when adding site tree page. Parent page with id, [#arguments.parent_page#], was not found."
+				);
+			}
+			data.parent_page           = arguments.parent_page;
+			data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id                & "/";
+			data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug                      & "/";
+			data._hierarchy_sort_order = parent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
+			data._hierarchy_depth      = parent._hierarchy_depth + 1;
+		}
+		data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
+
+		return data;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLoginService() {
 		return _loginService;
@@ -1612,6 +1670,13 @@ component {
 	}
 	private void function _setRulesEngineConditionService( required any rulesEngineConditionService ) {
 		_rulesEngineConditionService = arguments.rulesEngineConditionService;
+	}
+
+	private any function _getCloningService() {
+		return _cloningService;
+	}
+	private void function _setCloningService( required any cloningService ) {
+		_cloningService = arguments.cloningService;
 	}
 
 	private void function _setPageSlugsAreMultilingual() {

@@ -11,7 +11,7 @@ This form is used as the base "clone page" form for Sitetree pages. See also [[f
 		<fieldset id="clonebasic" sortorder="10">
 			<field sortorder="10" binding="page.parent_page" control="sitetreePagePicker" required="true" />
 			<field sortorder="20" binding="page.title" />
-			<field sortorder="30" binding="page.slug" required="true" />
+			<field sortorder="30" binding="page.slug" control="autoslug" basedOn="title" required="true" />
 		</fieldset>
 		<fieldset id="cloneoptions" sortorder="10">
 			<field sortorder="10" name="clone_include_children" control="yesnoswitch" />

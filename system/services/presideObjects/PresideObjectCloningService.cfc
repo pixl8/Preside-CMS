@@ -18,29 +18,39 @@ component {
 	 * Clones a record for the given object, record ID
 	 * and supporting data
 	 *
-	 * @autodoc    true
-	 * @objectName Name of the object whose record you wish to clone
-	 * @recordId   ID of the record to clone
-	 * @data       Data to overwrite any data for the existing record
-	 * @isDraft    Whether or not the clone is to be a draft record
+	 * @autodoc       true
+	 * @objectName    Name of the object whose record you wish to clone
+	 * @recordId      ID of the record to clone
+	 * @data          Data to overwrite any data for the existing record
+	 * @isDraft       Whether or not the clone is to be a draft record
+	 * @versionNumber Specific version number to use when versioning the new record
 	 */
 	public string function cloneRecord(
 		  required string  objectName
 		, required string  recordId
 		, required struct  data
 		,          boolean isDraft = false
+		,          numeric versionNumber
 	) {
+		var args = {};
+
 		if ( !isCloneable( objectName=arguments.objectName ) ) {
 			throw( type="preside.cloning.not.possible", message="The object, [#arguments.objectName#], is not cloneable." );
 		}
 
 		var customHandler = getCloneHandler( objectName=arguments.objectName );
 		if ( Len( Trim( customHandler ) ) ) {
+			args = { objectName=arguments.objectName, recordId=arguments.recordId, data=arguments.data };
+
+			if ( StructKeyExists( arguments, "versionNumber" ) ) {
+				args.versionNumber = arguments.versionNumber;
+			}
+
 			var result = $getColdbox().runEvent(
 				  event          = customHandler
 				, private        = true
 				, prePostExempt  = true
-				, eventArguments = { objectName=arguments.objectName, recordId=arguments.recordId, data=arguments.data }
+				, eventArguments = args
 			);
 
 			return IsSimpleValue( result ?: {} ) ? result : "";
@@ -94,21 +104,30 @@ component {
 		}
 
 		transaction {
-			var newId = poService.insertData(
+			args = {
 				  objectName              = arguments.objectName
 				, data                    = arguments.data
 				, insertManyToManyRecords = true
 				, isDraft                 = arguments.isDraft
-			);
+			}
+			if ( StructKeyExists( arguments, "versionNumber" ) ) {
+				args.versionNumber = arguments.versionNumber
+			}
+
+			var newId = poService.insertData( argumentCollection=args );
 
 			for( var propertyName in oneToManyFields ) {
-				cloneOneToManyRecords(
+				args = {
 					  objectName   = arguments.objectName
 					, recordId     = arguments.recordId
 					, newRecordId  = newId
 					, propertyName = propertyName
 					, isDraft      = arguments.isDraft
-				);
+				}
+				if ( StructKeyExists( arguments, "versionNumber" ) ) {
+					args.versionNumber = arguments.versionNumber
+				}
+				cloneOneToManyRecords( argumentCollection=args );
 			}
 		}
 
