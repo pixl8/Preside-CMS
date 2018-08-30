@@ -32,6 +32,7 @@
 	param name="args.reorderChildrenBaseLink"     type="string" default=event.buildAdminLink( linkTo="sitetree.reorderChildren"     , queryString="id={id}"                           );
 	param name="args.previewPageBaseLink"         type="string" default=event.buildAdminLink( linkTo="sitetree.previewPage"         , queryString="id={id}"                           );
 	param name="args.clearCacheBaseLink"          type="string" default=event.buildAdminLink( linkTo="sitetree.clearPageCacheAction", queryString="id={id}"                           );
+	param name="args.cloneBaseLink"               type="string" default=event.buildAdminLink( linkTo="sitetree.clonePage"           , queryString="id={id}"                           );
 
 	permContextKeys = Duplicate( args.permission_context );
 	permContextKeys.prepend( args.id );
@@ -63,6 +64,7 @@
 		hasPageHistoryPermission = hasCmsPermission( permissionKey="sitetree.viewversions"      , context="page", contextKeys=permContextKeys );
 		hasActivatePermission    = hasCmsPermission( permissionKey="sitetree.activate"          , context="page", contextKeys=permContextKeys ) && !isSystemPage && !isDraft;
 		hasClearCachePermission  = hasCmsPermission( permissionKey="sitetree.clearcaches"       , context="page", contextKeys=permContextKeys );
+		hasClonePermission       = hasCmsPermission( permissionKey="sitetree.clone"             , context="page", contextKeys=permContextKeys ) && !isSystemPage;
 
 		hasDropdown = hasDeletePagePermission || hasSortPagesPermission || hasManagePermsPermission || hasPageHistoryPermission || hasClearCachePermission;
 
@@ -125,6 +127,14 @@
 							<i class="fa fa-caret-down"></i>
 						</a>
 						<ul class="dropdown-menu">
+							<cfif hasClonePermission>
+								<li>
+									<a href="#quickBuildLink( args.cloneBaseLink, {id=args.id} )#">
+										<i class="fa fa-fw fa-clone"></i>
+										#translateResource( "cms:sitetree.clone.page.dropdown" )#
+									</a>
+								</li>
+							</cfif>
 							<cfif hasActivatePermission>
 								<li>
 									<cfif IsTrue( args.active )>
