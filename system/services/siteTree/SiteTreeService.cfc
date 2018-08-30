@@ -939,6 +939,17 @@ component {
 		return updated;
 	}
 
+	public string function clonePage(
+		  required string  sourcePageId
+		, required struct  newPageData
+		, required boolean createAsDraft
+		, required boolean cloneChildren
+	) {
+		// TODO!
+
+		return CreateUUId();
+	}
+
 	public boolean function permanentlyDeletePage( required string id ) {
 		var pobj     = _getPObj();
 		var homepage = getSiteHomepage( [ "id" ] );

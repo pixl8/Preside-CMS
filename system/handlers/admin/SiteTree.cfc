@@ -442,7 +442,48 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function clonePageAction( event, rc, prc ) {
-		// TODO!
+		var pageId            = rc.id ?: "";
+		var saveAsDraft       = IsTrue( rc.clone_save_as_draft    ?: "" );
+		var cloneChildren     = IsTrue( rc.clone_include_children ?: "" );
+		var validationRuleset = "";
+		var validationResult  = "";
+		var newId             = "";
+		var persist           = "";
+		var formName          = "preside-objects.page.clone";
+		var formData          = "";
+		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="clone", pageId=pageId );
+
+		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+		pageType = pageTypesService.getPageType( page.page_type );
+		var mergeFormName = _getPageTypeFormName( pageType, "clone" )
+		if ( Len( Trim( mergeFormName ) ) ) {
+			formName = formsService.getMergedFormName( formName, mergeFormName );
+		}
+
+		formData = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.clonePage", querystring="id=#pageId#" ), persistStruct=persist );
+		}
+
+		newId = siteTreeService.clonePage(
+			    sourcePageId  = pageId
+			  , newPageData   = formData
+			  , createAsDraft = saveAsDraft
+			  , cloneChildren = cloneChildren
+		);
+
+		messageBox.info( translateResource( uri="cms:sitetree.pageCloned.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="sitetree.editpage", querystring="id=#newId#" ) );
 	}
 
 	public void function discardDraftsAction( event, rc, prc ) {

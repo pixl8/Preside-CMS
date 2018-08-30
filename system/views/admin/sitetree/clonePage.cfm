@@ -1,4 +1,5 @@
 <cfscript>
+	pageId           = rc.id               ?: "";
 	page             = prc.page            ?: QueryNew('');
 	mainFormName     = prc.mainFormName    ?: "";
 	mergeFormName    = prc.mergeFormName   ?: "";
@@ -17,7 +18,7 @@
 	</p>
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#formAction#">
-		<input type="hidden" name="id" value="#event.getValue( name='id', defaultValue='' )#" />
+		<input type="hidden" name="id" value="#pageId#" />
 
 		#renderForm(
 			  formName                = mainFormName
