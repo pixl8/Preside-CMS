@@ -187,6 +187,7 @@ component singleton=true {
 			, addForm              = _getConventionsBasePageTypeAddForm( arguments.id )
 			, defaultForm          = _getConventionsBasePageTypeDefaultForm( arguments.id )
 			, editForm             = _getConventionsBasePageTypeEditForm( arguments.id )
+			, cloneForm            = _getConventionsBasePageTypeCloneForm( arguments.id )
 			, presideObject        = _getConventionsBasePageTypePresideObject( arguments.id )
 			, hasHandler           = arguments.hasHandler
 			, layouts              = arguments.layouts
@@ -256,6 +257,9 @@ component singleton=true {
 	}
 	private string function _getConventionsBasePageTypeEditForm( required string id ) output=false {
 		return "page-types.#arguments.id#.edit";
+	}
+	private string function _getConventionsBasePageTypeCloneForm( required string id ) output=false {
+		return "page-types.#arguments.id#.clone";
 	}
 	private string function _getConventionsBasePageTypePresideObject( required string id ) output=false {
 		return arguments.id;

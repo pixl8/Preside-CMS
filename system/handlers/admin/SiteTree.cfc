@@ -403,6 +403,48 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function clonePage( event, rc, prc ) {
+		var pageId           = rc.id               ?: "";
+		var validationResult = rc.validationResult ?: "";
+		var pageType         = "";
+
+		_checkPermissions( argumentCollection=arguments, key="clone", pageId=pageId );
+		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+
+		if ( !prc.canPublish && !prc.canSaveDraft ) {
+			event.adminAccessDenied();
+		}
+		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		prc.childCount   = siteTreeService.getTree( rootPageId=pageId, maxDepth=0 ).recordCount ?: 0;
+
+		pageType = pageTypesService.getPageType( prc.page.page_type );
+
+		prc.mainFormName  = "preside-objects.page.clone";
+		prc.mergeFormName = _getPageTypeFormName( pageType, "clone" );
+
+		prc.page = QueryRowToStruct( prc.page );
+		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=false, allowDraftVersions=true  );
+		StructAppend( prc.page, QueryRowToStruct( savedData ) );
+
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:sitetree.clonePage.crumb")
+			, link  = ""
+		);
+		prc.pageTitle = translateResource( uri="cms:sitetree.clonePage.title", data=[ prc.page.title ] );
+		prc.pageIcon  = "clone";
+	}
+
+	public void function clonePageAction( event, rc, prc ) {
+		// TODO!
+	}
+
 	public void function discardDraftsAction( event, rc, prc ) {
 		var pageId            = event.getValue( "id", "" );
 		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
@@ -1156,6 +1198,7 @@ component extends="preside.system.base.AdminHandler" {
 			case "add"      : specificForm = pageType.getAddForm(); break;
 			case "edit"     : specificForm = pageType.getEditForm(); break;
 			case "translate": specificForm = pageType.getTranslateForm(); break;
+			case "clone"    : specificForm = pageType.getCloneForm(); break;
 			default: return "";
 		}
 
