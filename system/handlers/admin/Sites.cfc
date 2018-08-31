@@ -122,6 +122,28 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
 	}
 
+	public void function cloneSite() {
+		_checkPermissions( event );
+		var siteId       = rc.id     ?: "";
+		prc.record       = siteDao.selectData( id=siteId );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+		_addRootBreadcrumb( event );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sites.clonesite.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="sites.cloneSite", queryString="id=#siteId#" )
+		);
+
+		prc.pageIcon     = "clone";
+		prc.pageTitle    = translateResource( uri="cms:sites.clonesite.title", data=[ prc.record.name ?: "" ] );
+		prc.cancelAction = event.buildAdminLink( linkTo='sites.manage' );
+	}
+
 	public void function editPermissions( event, rc, prc ) {
 		_checkPermissions( event );
 
