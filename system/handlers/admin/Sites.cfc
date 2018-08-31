@@ -7,7 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="redirectDao"     inject="presidecms:object:site_redirect_domain";
 	property name="messagebox"      inject="messagebox@cbmessagebox";
 
-	public void function preHandler( event, rc, prc ) output=false {
+	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "sites" ) ) {
@@ -15,7 +15,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function manage( event, rc, prc ) output=false {
+	public void function manage( event, rc, prc ) {
 		_checkPermissions( event );
 		_addRootBreadcrumb( event );
 
@@ -24,7 +24,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:sites.manage.subtitle" );
 	}
 
-	public void function addSite() output=false {
+	public void function addSite() {
 		_checkPermissions( event );
 
 		_addRootBreadcrumb( event );
@@ -39,7 +39,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/addSite" );
 	}
 
-	public void function addSiteAction( event, rc, prc ) output=false {
+	public void function addSiteAction( event, rc, prc ) {
 		_checkPermissions( event );
 
 		var siteID = runEvent(
@@ -65,7 +65,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 
-	public void function editSite() output=false {
+	public void function editSite() {
 		_checkPermissions( event );
 		var siteId       = rc.id     ?: "";
 		var manageAction = rc.action ?: "";
@@ -97,7 +97,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/editSite" );
 	}
 
-	public void function editSiteAction( event, rc, prc ) output=false {
+	public void function editSiteAction( event, rc, prc ) {
 		_checkPermissions( event );
 		var siteId = rc.id ?: "";
 
@@ -122,7 +122,7 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
 	}
 
-	public void function editPermissions( event, rc, prc ) output=false {
+	public void function editPermissions( event, rc, prc ) {
 		_checkPermissions( event );
 
 		prc.record = siteDao.selectData( id=rc.id ?: "" );
@@ -145,7 +145,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/editPermissions" );
 	}
 
-	public void function saveSitePermissionsAction( event, rc, prc ) output=false {
+	public void function saveSitePermissionsAction( event, rc, prc ) {
 		var siteId = rc.id ?: "";
 
 		_checkPermissions( event );
@@ -161,7 +161,7 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#siteId#" ) );
 	}
 
-	public void function setActiveSite( event, rc, prc ) output=false {
+	public void function setActiveSite( event, rc, prc ) {
 		var activeSiteId = rc.id ?: "";
 
 		if ( !Len( Trim( activeSiteId ) ) || !hasCmsPermission( "sites.navigate", "site", [ activeSiteId ] ) ) {
@@ -180,7 +180,7 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkto="sitetree.index" ) );
 	}
 
-	public void function getSitesForAjaxDataTables( event, rc, prc ) output=false {
+	public void function getSitesForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event );
 
 		runEvent(
@@ -198,7 +198,7 @@ component extends="preside.system.base.AdminHandler" {
 
 
 // VIEWLETS
-	private string function sitePicker( event, rc, prc, struct args={} ) output=false {
+	private string function sitePicker( event, rc, prc, struct args={} ) {
 		var sites         = siteService.listSites();
 		var currentSiteId = event.getSiteId();
 
@@ -220,13 +220,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // PRIVATE HELPERS
-	private void function _checkPermissions( event ) output=false {
+	private void function _checkPermissions( event ) {
 		if ( !hasCmsPermission( "sites.manage" ) ) {
 			event.adminAccessDenied();
 		}
 	}
 
-	private void function _addRootBreadcrumb( event ) output=false {
+	private void function _addRootBreadcrumb( event ) {
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:sites.manage.breadcrumb" )
 			, link  = event.buildAdminLink( linkTo="sites.manage" )
