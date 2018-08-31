@@ -2,12 +2,13 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="siteService"     inject="siteService";
 	property name="siteTreeService" inject="siteTreeService";
+	property name="cloningService"  inject="presideObjectCloningService";
 	property name="siteDao"         inject="presidecms:object:site";
 	property name="aliasDao"        inject="presidecms:object:site_alias_domain";
 	property name="redirectDao"     inject="presidecms:object:site_redirect_domain";
 	property name="messagebox"      inject="messagebox@cbmessagebox";
 
-	public void function preHandler( event, rc, prc ) output=false {
+	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "sites" ) ) {
@@ -15,7 +16,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function manage( event, rc, prc ) output=false {
+	public void function manage( event, rc, prc ) {
 		_checkPermissions( event );
 		_addRootBreadcrumb( event );
 
@@ -24,7 +25,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:sites.manage.subtitle" );
 	}
 
-	public void function addSite() output=false {
+	public void function addSite() {
 		_checkPermissions( event );
 
 		_addRootBreadcrumb( event );
@@ -39,7 +40,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/addSite" );
 	}
 
-	public void function addSiteAction( event, rc, prc ) output=false {
+	public void function addSiteAction( event, rc, prc ) {
 		_checkPermissions( event );
 
 		var siteID = runEvent(
@@ -65,7 +66,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 
-	public void function editSite() output=false {
+	public void function editSite() {
 		_checkPermissions( event );
 		var siteId       = rc.id     ?: "";
 		var manageAction = rc.action ?: "";
@@ -97,7 +98,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/editSite" );
 	}
 
-	public void function editSiteAction( event, rc, prc ) output=false {
+	public void function editSiteAction( event, rc, prc ) {
 		_checkPermissions( event );
 		var siteId = rc.id ?: "";
 
@@ -122,7 +123,74 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
 	}
 
-	public void function editPermissions( event, rc, prc ) output=false {
+	public void function cloneSite() {
+		_checkPermissions( event );
+		var siteId       = rc.id     ?: "";
+		prc.record       = siteDao.selectData( id=siteId );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+
+		_addRootBreadcrumb( event );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sites.clonesite.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="sites.cloneSite", queryString="id=#siteId#" )
+		);
+
+		prc.pageIcon      = "clone";
+		prc.pageTitle     = translateResource( uri="cms:sites.clonesite.title", data=[ prc.record.name ?: "" ] );
+
+		prc.record.name   = "";
+		prc.cancelAction  = event.buildAdminLink( linkTo='sites.manage' );
+		prc.formAction    = event.buildAdminLink( linkTo='sites.cloneSiteAction' );
+		prc.cloneFormName = "preside-objects.site.admin.clone";
+	}
+
+	public void function cloneSiteAction( event, rc, prc ) {
+		_checkPermissions( event );
+
+		var siteId           = rc.id ?: "";
+		var formName         = "preside-objects.site.admin.clone";
+		var formData         = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="site", permissionContextKeys=[ siteId ] );
+		var validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="site", permissionContextKeys=[ siteId ] );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.clonesite", querystring="id=#siteId#" ), persistStruct=persist );
+		}
+
+		var newSiteId = cloningService.cloneRecord(
+			  objectName = "site"
+			, recordId   = siteId
+			, data       = formData
+		);
+
+		siteTreeService.clonePage(
+			  sourcePageId  = siteTreeService.getSiteHomepage( site=siteId ).id
+			, newPageData   = { site=newSiteId }
+			, createAsDraft = false
+			, cloneChildren = true
+		);
+
+		event.audit(
+			  action   = "clone_site"
+			, type     = "sitemanager"
+			, recordId = newSiteId
+			, detail   = { id=newSiteId, objectName="site" }
+		);
+
+		messageBox.info( translateResource( "cms:sites.clonesite.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", siteId=newSiteId ) );
+
+	}
+
+	public void function editPermissions( event, rc, prc ) {
 		_checkPermissions( event );
 
 		prc.record = siteDao.selectData( id=rc.id ?: "" );
@@ -145,7 +213,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/editPermissions" );
 	}
 
-	public void function saveSitePermissionsAction( event, rc, prc ) output=false {
+	public void function saveSitePermissionsAction( event, rc, prc ) {
 		var siteId = rc.id ?: "";
 
 		_checkPermissions( event );
@@ -161,7 +229,7 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#siteId#" ) );
 	}
 
-	public void function setActiveSite( event, rc, prc ) output=false {
+	public void function setActiveSite( event, rc, prc ) {
 		var activeSiteId = rc.id ?: "";
 
 		if ( !Len( Trim( activeSiteId ) ) || !hasCmsPermission( "sites.navigate", "site", [ activeSiteId ] ) ) {
@@ -180,7 +248,7 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkto="sitetree.index" ) );
 	}
 
-	public void function getSitesForAjaxDataTables( event, rc, prc ) output=false {
+	public void function getSitesForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event );
 
 		runEvent(
@@ -198,7 +266,7 @@ component extends="preside.system.base.AdminHandler" {
 
 
 // VIEWLETS
-	private string function sitePicker( event, rc, prc, struct args={} ) output=false {
+	private string function sitePicker( event, rc, prc, struct args={} ) {
 		var sites         = siteService.listSites();
 		var currentSiteId = event.getSiteId();
 
@@ -220,13 +288,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // PRIVATE HELPERS
-	private void function _checkPermissions( event ) output=false {
+	private void function _checkPermissions( event ) {
 		if ( !hasCmsPermission( "sites.manage" ) ) {
 			event.adminAccessDenied();
 		}
 	}
 
-	private void function _addRootBreadcrumb( event ) output=false {
+	private void function _addRootBreadcrumb( event ) {
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:sites.manage.breadcrumb" )
 			, link  = event.buildAdminLink( linkTo="sites.manage" )

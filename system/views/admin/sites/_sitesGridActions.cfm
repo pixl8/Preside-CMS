@@ -7,6 +7,10 @@
 			<i class="fa fa-pencil bigger-130"></i>
 		</a>
 
+		<a class="green" href="#event.buildAdminLink( linkTo="sites.cloneSite", queryString="id=#args.id#")#" data-context-key="c">
+			<i class="fa fa-clone bigger-130"></i>
+		</a>
+
 		<a class="red" data-context-key="p" href="#event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#args.id#" )#">
 			<i class="fa fa-lock bigger-130"></i>
 		</a>

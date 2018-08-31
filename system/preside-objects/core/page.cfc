@@ -9,7 +9,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="title"        type="string"  dbtype="varchar"  maxLength="200" required=true control="textinput";
 	property name="main_content" type="string"  dbtype="text"                     required=false;
 	property name="teaser"       type="string"  dbtype="varchar"  maxLength="500" required=false;
-	property name="slug"         type="string"  dbtype="varchar"  maxLength="50"  required=false uniqueindexes="slug|2" format="slug";
+	property name="slug"         type="string"  dbtype="varchar"  maxLength="50"  required=false uniqueindexes="slug|2" format="slug" cloneable=true;
 	property name="page_type"    type="string"  dbtype="varchar"  maxLength="100" required=true                                             control="pageTypePicker" indexes="pagetype" autofilter=false;
 	property name="layout"       type="string"  dbtype="varchar"  maxLength="100" required=false                                            control="pageLayoutPicker";
 	property name="sort_order"   type="numeric" dbtype="int"                      required=true                                             control="none" autofilter=false;
