@@ -221,6 +221,14 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		siteService.deleteSite( siteId );
+
+		event.audit(
+			  action   = "delete_site"
+			, type     = "sitemanager"
+			, recordId = siteId
+			, detail   = { id=siteId, objectName="site" }
+		);
+
 		messagebox.info( translateResource( "cms:sites.deletesite.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkto="sites.manage" ) );
 	}
