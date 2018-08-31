@@ -994,11 +994,10 @@ component {
 		);
 
 		if ( arguments.cloneChildren ) {
-			var children = getTree(
-				  rootPageId  = arguments.sourcePageId
-				, maxDepth    = 1
-				, useCache    = false
-				, allowDrafts = true
+			var children = _getPObj().selectData(
+				  selectFields = [ "id" ]
+				, filter       = { parent_page=arguments.sourcePageId, trashed=false }
+				, orderBy      = "sort_order"
 			);
 
 			var childPageData = { parent_page=newPageId };
