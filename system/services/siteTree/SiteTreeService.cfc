@@ -981,12 +981,12 @@ component {
 		);
 
 		var pageTypeData = StructCopy( arguments.newPageData );
-		    pageTypeData.id   = newPageId;
 		    pageTypeData.page = newPageId;
 
 		cloningService.cloneRecord(
 			  objectName    = existingPage.page_type
 			, recordId      = arguments.sourcePageId
+			, newRecordId   = newPageId
 			, data          = pageTypeData
 			, isDraft       = arguments.createAsDraft
 			, versionNumber = versionNumber

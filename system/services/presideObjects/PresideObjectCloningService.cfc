@@ -22,6 +22,7 @@ component {
 	 * @objectName    Name of the object whose record you wish to clone
 	 * @recordId      ID of the record to clone
 	 * @data          Data to overwrite any data for the existing record
+	 * @newRecordId   Used to specify an ID to use for the new record
 	 * @isDraft       Whether or not the clone is to be a draft record
 	 * @versionNumber Specific version number to use when versioning the new record
 	 * @bypassTenants Array of tenants to ignore when cloning (i.e. when cloning into an alternative tenant to the currently active one)
@@ -30,6 +31,7 @@ component {
 		  required string  objectName
 		, required string  recordId
 		, required struct  data
+		,          string  newRecordId = ""
 		,          boolean isDraft = false
 		,          numeric versionNumber
 		,          array   bypassTenants
@@ -120,6 +122,9 @@ component {
 			}
 			if ( StructKeyExists( arguments, "bypassTenants" ) ) {
 				args.bypassTenants = arguments.bypassTenants;
+			}
+			if ( Len( Trim( arguments.newRecordId ) ) ) {
+				args.data[ poService.getIdField( arguments.objectName ) ] = arguments.newRecordId;
 			}
 
 			var newId = poService.insertData( argumentCollection=args );
