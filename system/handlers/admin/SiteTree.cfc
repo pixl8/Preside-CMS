@@ -311,6 +311,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.canDeletePage      = _checkPermissions( argumentCollection=arguments, key="trash"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
 		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false ) && prc.managedChildPageTypes.len() || prc.childCount;
 		prc.canManagePagePerms = _checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId, throwOnError=false );
+		prc.canClone           = _checkPermissions( argumentCollection=arguments, key="clone"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
 
 		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
 		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageType.getPresideObject() );
