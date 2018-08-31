@@ -1015,6 +1015,19 @@ component {
 			}
 		}
 
+		var auditDetail = StructCopy( arguments.newPageData );
+		for( var p in existingPage ) {
+			StructAppend( auditDetail, p, false );
+		}
+		auditDetail.id = newPageId;
+
+		$audit(
+			  action   = "clonepage"
+			, type     = "sitetree"
+			, detail   = auditDetail
+			, recordId = newPageId
+		);
+
 		return newPageId;
 	}
 
