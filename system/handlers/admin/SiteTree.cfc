@@ -897,8 +897,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function getPagesForAjaxPicker( event, rc, prc ) {
 		var records = siteTreeService.getPagesForAjaxSelect(
-			  maxRows      = rc.maxRows      ?: 1000
-			, searchQuery  = rc.q            ?: ""
+			  maxRows      = rc.maxRows   ?: 1000
+			, searchQuery  = rc.q         ?: ""
+			, childPage    = rc.childPage ?: ""
 			, ids          = ListToArray( rc.values ?: "" )
 		);
 		var preparedPages = [];

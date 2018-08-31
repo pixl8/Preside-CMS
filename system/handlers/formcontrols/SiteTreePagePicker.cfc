@@ -3,7 +3,7 @@ component {
 	property name="presideObjectService" inject="presideObjectService";
 	property name="dataManagerService"   inject="dataManagerService";
 
-	public string function index( event, rc, prc, args={} ) output=false {
+	public string function index( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( "page" );
 
 		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
@@ -21,9 +21,10 @@ component {
 			}
 		}
 
+		args.childPage   = args.childPage ?: "";
 		args.multiple    = args.multiple ?: ( ( args.relationship ?: "" ) == "many-to-many" );
-		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="prefetchCacheBuster=#prefetchCacheBuster#" );
-		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="q=%QUERY" );
+		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="childPage=#args.childPage#&prefetchCacheBuster=#args.childPage##prefetchCacheBuster#" );
+		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="childPage=#args.childPage#&q=%QUERY" );
 
 		if ( !Len( Trim( args.placeholder ?: "" ) ) ) {
 			args.placeholder = translateResource(
