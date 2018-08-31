@@ -31,7 +31,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "formbuilder:page.title" );
 		prc.pageSubtitle = translateResource( "formbuilder:page.subtitle" );
 
-		prc.canAdd = hasCmsPermission( permissionKey="formbuilder.addform" );
+		prc.canAdd    = hasCmsPermission( permissionKey="formbuilder.addform" );
+		prc.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 	}
 
 	public void function addForm( event, rc, prc ) {
@@ -580,13 +581,14 @@ component extends="preside.system.base.AdminHandler" {
 
 // AJAXY ACTIONS
 	public void function getFormsForAjaxDataTables( event, rc, prc ) {
+		prc.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
 				  object          = "formbuilder_form"
-				, useMultiActions = false
+				, useMultiActions = prc.canDelete
 				, gridFields      = "name,description,locked,active,active_from,active_to"
 				, actionsView     = "admin.formbuilder.formDataTableGridFields"
 			}
@@ -680,9 +682,50 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function multiRecordAction( event, rc, prc ) {
+		var action     = rc.multiAction ?: "";
+		var listingUrl = event.buildAdminLink( linkto="formbuilder" );
+
+		if ( not Len( Trim( rc.id ?: "" ) ) ) {
+			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+			setNextEvent( url=listingUrl );
+		}
+
+		switch( action ){
+			case "delete":
+				return deleteRecordAction( argumentCollection = arguments );
+			break;
+		}
+
+		messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
+		setNextEvent( url=listingUrl );
+	}
+
+	public void function deleteRecordAction( event, rc, prc ) {
+		_permissionsCheck( "deleteform", event );
+
+		var ids           = rc.id ?: "";
+		var postActionUrl = event.buildAdminLink( linkto="formbuilder" );
+		var messages      = "";
+
+		if ( listLen(ids) == 1 ) {
+			messages = translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ "Form", renderLabel( "formbuilder_form", ids ) ] ) ;
+		} else {
+			messages = translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ "Forms", listLen(ids) ] );
+		}
+
+		formBuilderService.deleteForms( ids );
+
+		messageBox.info( messages );
+
+		setNextEvent( url=postActionUrl );
+	}
+
+
 // VIEWLETS
 	private string function formDataTableGridFields( event, rc, prc, args ) {
-		args.canEdit = hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canEdit   = hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 
 		return renderView( view="/admin/formbuilder/_formGridFields", args=args );
 	}

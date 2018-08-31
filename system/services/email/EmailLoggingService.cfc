@@ -301,7 +301,7 @@ component {
 
 		var resentMessageId        = $sendEmail(
 		      template              = message.email_template
-		    , recipientId           = message[ recipientIdLogProperty ]
+		    , recipientId           = message[ recipientIdLogProperty ] ?: ""
 		    , to                    = [ message.recipient ]
 		    , from                  = message.sender
 		    , subject               = message.subject
@@ -342,8 +342,8 @@ component {
 		var sendArgs               = _getEmailTemplateService().rebuildArgsForResend( template=message.email_template, logId=id, originalArgs=originalArgs );
 		var resentMessageId        = $sendEmail(
 		      template    = message.email_template
-		    , recipientId = message[ recipientIdLogProperty ]
-		    , to          = !len( message[ recipientIdLogProperty ] ) ? [ message.recipient ] : []
+		    , recipientId = message[ recipientIdLogProperty ] ?: ""
+		    , to          = !len( message[ recipientIdLogProperty ] ?: "" ) ? [ message.recipient ] : []
 		    , args        = sendArgs
 		    , resendOf    = message.id
 		    , returnLogId = true
@@ -423,7 +423,7 @@ component {
 		, required string messageHtml
 	) {
 		var converted      = arguments.messageHtml;
-		
+
 		var linkRegex      = 'href="';
 		    linkRegex     &= "((?!javascript:void\(location.href='mailto:'";
 		    linkRegex     &= '|mailto).*?)"';

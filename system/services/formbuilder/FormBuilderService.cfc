@@ -237,6 +237,37 @@ component {
 	}
 
 	/**
+	 * Delete a form. Returns true
+	 * on success, false otherwise.
+	 *
+	 * @autodoc
+	 * @ids.hint ID of forms you wish to delete
+	 *
+	 */
+	public boolean function deleteForms( required string ids ) {
+		if ( Len( Trim( arguments.ids ) ) ) {
+			var ids = listToArray( arguments.ids );
+			$getPresideObject( "formbuilder_formitem" ).deleteData( filter={ form=ids } );
+			$getPresideObject( "formbuilder_formsubmission" ).deleteData( filter={ form=ids } );
+			$getPresideObject( "formbuilder_formaction" ).deleteData( filter={ form=ids } );
+			return $getPresideObject( "formbuilder_form" ).deleteData( filter={ id=ids } ) > 0;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns boolean value true if form is exists
+	 *
+	 * @autodoc
+	 * @id.hint ID of the form you wish to check
+	 *
+	 */
+	public boolean function formExists( required string id ) {
+		return Len( Trim( arguments.id ) ) ? $getPresideObject( "formbuilder_form" ).dataExists( id=arguments.id ) : false;
+	}
+
+	/**
 	 * Sets the sort order of items within a form. Returns the number
 	 * of items whose order has been set.
 	 *

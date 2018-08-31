@@ -175,24 +175,47 @@ component {
 	public query function getPagesForAjaxSelect(
 		  numeric maxRows     = 1000
 		, string  searchQuery = ""
+		, string  childPage   = ""
 		, array   ids         = []
 	) {
-		var filter = "( page.trashed = '0' )";
+		var filter = { "page.trashed" = false };
+		var extraFilters = []
 		var params = {};
 
 		if ( arguments.ids.len() ) {
-			filter &= " and ( page.id in (:id) )";
-			params.id = { value=ArrayToList( arguments.ids ), list=true };
+			extraFilters.append( { filter={ "page.id"=arguments.ids } } );
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			filter &= " and ( page.title like (:title) )";
-			params.title = "%#arguments.searchQuery#%";
+			extraFilters.append( {
+				  filter       = "page.title like :title"
+				, filterParams = { title="%#arguments.searchQuery#%" }
+			} );
+		}
+
+		if ( Len( Trim( arguments.childPage ) ) ) {
+			var childPageRecord = getPage( id=arguments.childPage );
+			extraFilters.append( {
+				  filter       = "page.id != :childpage and page._hierarchy_lineage not like :childpageselector"
+				, filterParams = {
+					  childPage         = { type="cf_sql_varchar", value=arguments.childPage }
+					, childpageselector = { type="cf_sql_varchar", value="%/#childPageRecord._hierarchy_id#/%" }
+				  }
+			} );
+
+			var pageTypes              = _getPageTypesService().listPageTypes( allowedAboveChild=childPageRecord.page_type );
+			var allowedParentPageTypes = [];
+
+			for( var pt in pageTypes ) {
+				allowedParentPageTypes.append( pt.getId() );
+			}
+
+			extraFilters.append( { filter={ page_type=allowedParentPageTypes } } );
 		}
 
 		return _getPobj().selectData(
 			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
 			, filter             = filter
-			, filterParams       = params
+			, extraFilters       = extraFilters
 			, maxRows            = arguments.maxRows
 			, orderBy            = "page._hierarchy_sort_order"
 			, allowDraftVersions = true
