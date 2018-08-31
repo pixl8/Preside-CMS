@@ -24,6 +24,7 @@ component {
 	 * @data          Data to overwrite any data for the existing record
 	 * @isDraft       Whether or not the clone is to be a draft record
 	 * @versionNumber Specific version number to use when versioning the new record
+	 * @bypassTenants Array of tenants to ignore when cloning (i.e. when cloning into an alternative tenant to the currently active one)
 	 */
 	public string function cloneRecord(
 		  required string  objectName
@@ -31,6 +32,7 @@ component {
 		, required struct  data
 		,          boolean isDraft = false
 		,          numeric versionNumber
+		,          array   bypassTenants
 	) {
 		var args = {};
 
@@ -44,6 +46,9 @@ component {
 
 			if ( StructKeyExists( arguments, "versionNumber" ) ) {
 				args.versionNumber = arguments.versionNumber;
+			}
+			if ( StructKeyExists( arguments, "bypassTenants" ) ) {
+				args.bypassTenants = arguments.bypassTenants;
 			}
 
 			var result = $getColdbox().runEvent(
@@ -113,6 +118,9 @@ component {
 			if ( StructKeyExists( arguments, "versionNumber" ) ) {
 				args.versionNumber = arguments.versionNumber
 			}
+			if ( StructKeyExists( arguments, "bypassTenants" ) ) {
+				args.bypassTenants = arguments.bypassTenants;
+			}
 
 			var newId = poService.insertData( argumentCollection=args );
 
@@ -126,6 +134,9 @@ component {
 				}
 				if ( StructKeyExists( arguments, "versionNumber" ) ) {
 					args.versionNumber = arguments.versionNumber
+				}
+				if ( StructKeyExists( arguments, "bypassTenants" ) ) {
+					args.bypassTenants = arguments.bypassTenants;
 				}
 				cloneOneToManyRecords( argumentCollection=args );
 			}

@@ -127,9 +127,16 @@ component {
 		, boolean getLatest    = false
 		, boolean allowDrafts  = $getRequestContext().showNonLiveContent()
 		, string  site         = ""
+		, array   bypassTenants = []
 
 	) {
-		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
+		var args = {
+			  filter             = ""
+			, filterParams       = {}
+			, useCache           = arguments.useCache
+			, allowDraftVersions = arguments.allowDrafts
+			, bypassTenants      = arguments.bypassTenants
+		};
 
 		if ( StructKeyExists( arguments, "id" ) ) {
 			args.filter = "page.id = :id";
@@ -173,20 +180,22 @@ component {
 	}
 
 	public query function getPagesForAjaxSelect(
-		  numeric maxRows     = 1000
-		, string  searchQuery = ""
-		, string  childPage   = ""
-		, array   ids         = []
+		  numeric maxRows      = 1000
+		, string  searchQuery  = ""
+		, string  childPage    = ""
+		, string  site         = ""
+		, array   ids          = []
+		, array   extraFilters = []
 	) {
 		var filter = { "page.trashed" = false };
-		var extraFilters = []
+		var extra  = Duplicate( arguments.extraFilters );
 		var params = {};
 
 		if ( arguments.ids.len() ) {
-			extraFilters.append( { filter={ "page.id"=arguments.ids } } );
+			extra.append( { filter={ "page.id"=arguments.ids } } );
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			extraFilters.append( {
+			extra.append( {
 				  filter       = "page.title like :title"
 				, filterParams = { title="%#arguments.searchQuery#%" }
 			} );
@@ -194,7 +203,7 @@ component {
 
 		if ( Len( Trim( arguments.childPage ) ) ) {
 			var childPageRecord = getPage( id=arguments.childPage );
-			extraFilters.append( {
+			extra.append( {
 				  filter       = "page.id != :childpage and page._hierarchy_lineage not like :childpageselector"
 				, filterParams = {
 					  childPage         = { type="cf_sql_varchar", value=arguments.childPage }
@@ -209,16 +218,17 @@ component {
 				allowedParentPageTypes.append( pt.getId() );
 			}
 
-			extraFilters.append( { filter={ page_type=allowedParentPageTypes } } );
+			extra.append( { filter={ page_type=allowedParentPageTypes } } );
 		}
 
 		return _getPobj().selectData(
 			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
 			, filter             = filter
-			, extraFilters       = extraFilters
+			, extraFilters       = extra
 			, maxRows            = arguments.maxRows
 			, orderBy            = "page._hierarchy_sort_order"
 			, allowDraftVersions = true
+			, bypassTenants      = Len( Trim( arguments.site ) ) ? [ "site" ] : []
 		);
 	}
 
@@ -953,10 +963,12 @@ component {
 		var existingPage   = getPage( id=arguments.sourcePageId, useCache=false, allowDrafts=true );
 		var versionNumber  = _getPresideObjectService().getNextVersionNumber();
 		var newData        = StructCopy( arguments.newPageData );
+		var bypassTenants  = Len( Trim( newPageData.site ?: "" ) ) ? [ "site" ] : [];
 
 		StructAppend( newData, _calculateSortOrderAndHierarchyFields(
-			  parent_page = newData.parent_page ?: existingPage.parent_page
-			, slug        = newData.slug        ?: existingPage.slug
+			  parent_page   = newData.parent_page ?: existingPage.parent_page
+			, slug          = newData.slug        ?: existingPage.slug
+			, site          = newData.site        ?: existingPage.site
 		) );
 
 		var newPageId = cloningService.cloneRecord(
@@ -965,6 +977,7 @@ component {
 			, data          = newData
 			, isDraft       = arguments.createAsDraft
 			, versionNumber = versionNumber
+			, bypassTenants = bypassTenants
 		);
 
 		var pageTypeData = StructCopy( arguments.newPageData );
@@ -977,6 +990,7 @@ component {
 			, data          = pageTypeData
 			, isDraft       = arguments.createAsDraft
 			, versionNumber = versionNumber
+			, bypassTenants = bypassTenants
 		);
 
 		if ( arguments.cloneChildren ) {
@@ -987,12 +1001,17 @@ component {
 				, allowDrafts = true
 			);
 
+			var childPageData = { parent_page=newPageId };
+			if ( Len( Trim( newPageData.site ) ) ) {
+				childPageData.site = newPageData.site;
+			}
 			for( var child in children ) {
 				clonePage(
 					  sourcePageId   = child.id
-					, newPageData    = { parent_page=newPageId }
+					, newPageData    = childPageData
 					, createAsDraft  = arguments.createAsDraft
 					, cloneChildren  = true
+					, bypassTenants  = bypassTenants
 				);
 			}
 		}
@@ -1290,22 +1309,31 @@ component {
 
 
 // PRIVATE HELPERS
-	private numeric function _calculateSortOrder( string parent_page ) {
-		var result       = "";
-		var filter       = "";
-		var filterParams = {};
+	private numeric function _calculateSortOrder( string parent_page="", string site="" ) {
+		var result        = "";
+		var filter        = "";
+		var filterParams  = {};
+		var extraFilters  = [];
+		var bypassTenants = [];
 
-		if ( not StructKeyExists( arguments, "parent_page" ) or not Len( Trim( arguments.parent_page ) ) ) {
-			filter       = "parent_page is null";
+		if ( !Len( Trim( arguments.parent_page ) ) ) {
+			filter = "parent_page is null";
 		} else {
 			filter = { parent_page = arguments.parent_page };
 		}
 
+		if ( Len( Trim( arguments.site ) ) ) {
+			extraFilters.append( { filter={ site=arguments.site } } );
+			bypassTenants = [ "site" ];
+		}
+
 		result = _getPObj().selectData(
-			  selectFields = [ "Max( sort_order ) as sort_order" ]
-			, filter       = filter
-			, filterParams = filterParams
-			, useCache     = false
+			  selectFields  = [ "Max( sort_order ) as sort_order" ]
+			, filter        = filter
+			, filterParams  = filterParams
+			, useCache      = false
+			, extraFilters  = extraFilters
+			, bypassTenants = bypassTenants
 		);
 
 		if ( isNull( result.sort_order ) ) {
@@ -1358,8 +1386,20 @@ component {
 		return treeArray;
 	}
 
-	private numeric function _getNextAvailableHierarchyId() {
-		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ], allowDraftVersions=true );
+	private numeric function _getNextAvailableHierarchyId( string site="" ) {
+		var filter = {};
+		var bypassTenants = [];
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			filter = { site=arguments.site };
+			bypassTenants = [ "site" ];
+		}
+		var qry = _getPObj().selectData(
+			  selectFields       = [ "Max( _hierarchy_id ) as max_id" ]
+			, allowDraftVersions = true
+			, filter             = filter
+			, bypassTenants      = bypassTenants
+		);
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
 	}
@@ -1592,20 +1632,21 @@ component {
 		return isBoolean( site.auto_redirect ) && site.auto_redirect;
 	}
 
-	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page ) {
+	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page, string site="" ) {
 		var data = {
 			  _hierarchy_child_selector = ""
 			, _hierarchy_lineage        = "/"
 			, _hierarchy_depth          = 0
 			, _hierarchy_slug           = Len( Trim( arguments.slug ) ) ? "/#arguments.slug#/" : "/"
 		};
+		var bypassTenants = Len( Trim( arguments.site ) ) ? [ "site" ] : [];
 
 		data.sort_order            = _calculateSortOrder( argumentCollection = arguments );
-		data._hierarchy_id         = _getNextAvailableHierarchyId();
+		data._hierarchy_id         = _getNextAvailableHierarchyId( site=arguments.site );
 		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
 		if ( StructKeyExists( arguments, "parent_page" ) ) {
-			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false );
+			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
 			if ( !parent.recordCount ) {
 				throw(
 					  type    = "SiteTreeService.MissingParent"

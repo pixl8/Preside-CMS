@@ -476,14 +476,14 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		newId = siteTreeService.clonePage(
-			    sourcePageId  = pageId
-			  , newPageData   = formData
-			  , createAsDraft = saveAsDraft
-			  , cloneChildren = cloneChildren
+			  sourcePageId  = pageId
+			, newPageData   = formData
+			, createAsDraft = saveAsDraft
+			, cloneChildren = cloneChildren
 		);
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageCloned.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkto="sitetree.editpage", querystring="id=#newId#" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="sitetree", querystring="selected=#newId#", siteId=( formData.site ?: "" ) ) );
 	}
 
 	public void function discardDraftsAction( event, rc, prc ) {
@@ -979,11 +979,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getPagesForAjaxPicker( event, rc, prc ) {
+		var extraFilters   = [];
+		var filterByFields = ListToArray( rc.filterByFields ?: "" );
+		for( var filterByField in filterByFields ) {
+			filterValue = rc[filterByField] ?: "";
+			if( !isEmpty( filterValue ) ){
+				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
+			}
+		}
+
 		var records = siteTreeService.getPagesForAjaxSelect(
 			  maxRows      = rc.maxRows   ?: 1000
 			, searchQuery  = rc.q         ?: ""
 			, childPage    = rc.childPage ?: ""
 			, ids          = ListToArray( rc.values ?: "" )
+			, site         = rc.site      ?: ""
+			, extraFilters = extraFilters
 		);
 		var preparedPages = [];
 
