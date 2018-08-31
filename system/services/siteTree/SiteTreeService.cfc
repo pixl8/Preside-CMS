@@ -1644,7 +1644,7 @@ component {
 		return isBoolean( site.auto_redirect ) && site.auto_redirect;
 	}
 
-	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page, string site="" ) {
+	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page="", string site="" ) {
 		var data = {
 			  _hierarchy_child_selector = ""
 			, _hierarchy_lineage        = "/"
@@ -1657,7 +1657,7 @@ component {
 		data._hierarchy_id         = _getNextAvailableHierarchyId( site=arguments.site );
 		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
-		if ( StructKeyExists( arguments, "parent_page" ) ) {
+		if ( Len( Trim( arguments.parent_page ) ) ) {
 			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
 			if ( !parent.recordCount ) {
 				throw(

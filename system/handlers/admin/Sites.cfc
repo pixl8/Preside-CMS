@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="siteService"     inject="siteService";
 	property name="siteTreeService" inject="siteTreeService";
+	property name="cloningService"  inject="presideObjectCloningService";
 	property name="siteDao"         inject="presidecms:object:site";
 	property name="aliasDao"        inject="presidecms:object:site_alias_domain";
 	property name="redirectDao"     inject="presidecms:object:site_redirect_domain";
@@ -147,6 +148,46 @@ component extends="preside.system.base.AdminHandler" {
 		prc.cancelAction  = event.buildAdminLink( linkTo='sites.manage' );
 		prc.formAction    = event.buildAdminLink( linkTo='sites.cloneSiteAction' );
 		prc.cloneFormName = "preside-objects.site.admin.clone";
+	}
+
+	public void function cloneSiteAction( event, rc, prc ) {
+		_checkPermissions( event );
+
+		var siteId           = rc.id ?: "";
+		var formName         = "preside-objects.site.admin.clone";
+		var formData         = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="site", permissionContextKeys=[ siteId ] );
+		var validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="site", permissionContextKeys=[ siteId ] );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.clonesite", querystring="id=#siteId#" ), persistStruct=persist );
+		}
+
+		var newSiteId = cloningService.cloneRecord(
+			  objectName = "site"
+			, recordId   = siteId
+			, data       = formData
+		);
+
+		siteTreeService.clonePage(
+			  sourcePageId  = siteTreeService.getSiteHomepage( site=siteId ).id
+			, newPageData   = { site=newSiteId }
+			, createAsDraft = false
+			, cloneChildren = true
+		);
+
+		event.audit(
+			  action   = "clone_site"
+			, type     = "sitemanager"
+			, recordId = newSiteId
+			, detail   = { id=newSiteId, objectName="site" }
+		);
+
+		messageBox.info( translateResource( "cms:sites.clonesite.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", siteId=newSiteId ) );
+
 	}
 
 	public void function editPermissions( event, rc, prc ) {
