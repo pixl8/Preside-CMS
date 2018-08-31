@@ -161,6 +161,29 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#siteId#" ) );
 	}
 
+	public void function deleteSite() {
+		_checkPermissions( event );
+		var siteId       = rc.id     ?: "";
+		prc.record       = siteDao.selectData( id=siteId );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+		_addRootBreadcrumb( event );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sites.deletesite.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="sites.deletesite", queryString="id=#siteId#" )
+		);
+
+		prc.pageIcon     = "trash";
+		prc.pageTitle    = translateResource( uri="cms:sites.deletesite.title", data=[ prc.record.name ?: "" ] );
+		prc.cancelAction = event.buildAdminLink( linkTo='sites.manage' );
+		prc.confirmationCode = LCase( ListFirst( CreateUUId(), "-" ) );
+	}
+
 	public void function setActiveSite( event, rc, prc ) output=false {
 		var activeSiteId = rc.id ?: "";
 

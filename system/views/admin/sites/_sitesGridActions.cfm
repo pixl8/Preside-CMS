@@ -7,8 +7,12 @@
 			<i class="fa fa-pencil bigger-130"></i>
 		</a>
 
-		<a class="red" data-context-key="p" href="#event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#args.id#" )#">
+		<a class="grey" data-context-key="p" href="#event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#args.id#" )#">
 			<i class="fa fa-lock bigger-130"></i>
+		</a>
+
+		<a class="red" data-context-key="d" href="#event.buildAdminLink( linkTo="sites.deleteSite", queryString="id=#args.id#" )#">
+			<i class="fa fa-trash bigger-130"></i>
 		</a>
 	</div>
 </cfoutput>
