@@ -11,8 +11,14 @@
 			<i class="fa fa-lock bigger-130"></i>
 		</a>
 
-		<a class="red" data-context-key="d" href="#event.buildAdminLink( linkTo="sites.deleteSite", queryString="id=#args.id#" )#">
-			<i class="fa fa-trash bigger-130"></i>
-		</a>
+		<cfif event.getSiteId() == args.id>
+			<a class="grey">
+				<i class="fa fa-trash bigger-130"></i>
+			</a>
+		<cfelse>
+			<a class="red" data-context-key="d" href="#event.buildAdminLink( linkTo="sites.deleteSite", queryString="id=#args.id#" )#">
+				<i class="fa fa-trash bigger-130"></i>
+			</a>
+		</cfif>
 	</div>
 </cfoutput>

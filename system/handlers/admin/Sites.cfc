@@ -163,9 +163,14 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function deleteSite() {
 		_checkPermissions( event );
-		var siteId       = rc.id     ?: "";
-		prc.record       = siteDao.selectData( id=siteId );
+		var siteId = rc.id     ?: "";
 
+		if ( siteId == event.getSiteId() ) {
+			messageBox.error( translateResource( uri="cms:sites.deletesite.error.active.site" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+
+		prc.record = siteDao.selectData( id=siteId );
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
@@ -181,7 +186,43 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageIcon     = "trash";
 		prc.pageTitle    = translateResource( uri="cms:sites.deletesite.title", data=[ prc.record.name ?: "" ] );
 		prc.cancelAction = event.buildAdminLink( linkTo='sites.manage' );
+		prc.formAction   = event.buildAdminLink( linkTo='sites.deleteSiteAction' );
 		prc.confirmationCode = LCase( ListFirst( CreateUUId(), "-" ) );
+	}
+
+	public void function deleteSiteAction() {
+		_checkPermissions( event );
+
+		var siteId = rc.id ?: "";
+		var site   = siteDao.selectData( id=siteId );
+
+		if ( siteId == event.getSiteId() ) {
+			messageBox.error( translateResource( uri="cms:sites.deletesite.error.active.site" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+
+		if ( !site.recordCount ) {
+			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+
+		var formName = "preside-objects.site.admin.delete";
+		var formData = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+		var userDetails = event.getAdminUserDetails();
+
+		if ( formData.deletion_confirmation_text != userDetails.login_id && formData.deletion_confirmation_text != userDetails.email_address ) {
+			validationResult.addError(
+				  fieldname = "deletion_confirmation_text"
+				, message   = "cms:sites.deletesite.confirmation.validation.mismatch"
+			);
+
+			setNextEvent( url=event.buildAdminLink( linkto="sites.deleteSite", queryString="id=#siteId#" ), persistStruct={ validationResult=validationResult } );
+		}
+
+		siteService.deleteSite( siteId );
+		messagebox.info( translateResource( "cms:sites.deletesite.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="sites.manage" ) );
 	}
 
 	public void function setActiveSite( event, rc, prc ) output=false {
@@ -214,6 +255,7 @@ component extends="preside.system.base.AdminHandler" {
 				  object      = "site"
 				, gridFields  = "name,domain,path"
 				, actionsView = "/admin/sites/_sitesGridActions"
+				, extraFilters = [ { filter="deleted is null or deleted = :deleted", filterParams={ deleted=false } } ]
 			}
 		);
 	}
