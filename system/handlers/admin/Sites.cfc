@@ -133,15 +133,20 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		prc.record = queryRowToStruct( prc.record );
 
+
 		_addRootBreadcrumb( event );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sites.clonesite.breadcrumb", data=[ prc.record.name ] )
 			, link  = event.buildAdminLink( linkTo="sites.cloneSite", queryString="id=#siteId#" )
 		);
 
-		prc.pageIcon     = "clone";
-		prc.pageTitle    = translateResource( uri="cms:sites.clonesite.title", data=[ prc.record.name ?: "" ] );
-		prc.cancelAction = event.buildAdminLink( linkTo='sites.manage' );
+		prc.pageIcon      = "clone";
+		prc.pageTitle     = translateResource( uri="cms:sites.clonesite.title", data=[ prc.record.name ?: "" ] );
+
+		prc.record.name   = "";
+		prc.cancelAction  = event.buildAdminLink( linkTo='sites.manage' );
+		prc.formAction    = event.buildAdminLink( linkTo='sites.cloneSiteAction' );
+		prc.cloneFormName = "preside-objects.site.admin.clone";
 	}
 
 	public void function editPermissions( event, rc, prc ) {
