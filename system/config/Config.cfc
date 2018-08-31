@@ -346,6 +346,7 @@ component {
 
 				return { filter=sql, filterParams=params };
 			}
+			, nonDeletedSites = { filter="site.deleted is null or site.deleted = :site.deleted", filterParams={ "site.deleted"=false } }
 			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
 			, webUserEmailTemplates = {
 				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
