@@ -208,6 +208,8 @@ component {
 			, "systemInformation"
 		];
 
+		settings.adminLoginProviders = [ "preside" ];
+
 		settings.uploads_directory = ExpandPath( "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }

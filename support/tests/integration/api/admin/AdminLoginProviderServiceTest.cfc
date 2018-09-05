@@ -39,6 +39,19 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				} ).toThrow( "preside.admin.login.provider.not.found" );
 			} );
 		});
+
+		describe( "isProviderEnabled()", function(){
+			it( "should return whether or not the provider is in list of configured providers", function(){
+				var service = _getService();
+				var providers = [ "test", "providers" ];
+
+				mockColdbox.$( "getSetting" ).$args( "adminLoginProviders" ).$results( providers );
+
+				expect( service.isProviderEnabled( "test" ) ).toBeTrue();
+				expect( service.isProviderEnabled( "providers" ) ).toBeTrue();
+				expect( service.isProviderEnabled( CreateUUId() ) ).toBeFalse();
+			} );
+		} );
 	}
 
 	private any function _getService() {

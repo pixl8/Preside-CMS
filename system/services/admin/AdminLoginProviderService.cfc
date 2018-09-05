@@ -28,4 +28,15 @@ component {
 		throw( type="preside.admin.login.provider.not.found", message="The login provider, [#provider#], has not implemented a 'admin.loginProvider.#provider#.prompt' viewlet. All providers must provide this handler to be user accessible from the login prompt." );
 	}
 
+	public boolean function isProviderEnabled( required string provider ) {
+		var providers = listProviders();
+
+		return ArrayFindNoCase( providers, arguments.provider );
+	}
+
+	public array function listProviders() {
+		var providers = $getColdbox().getSetting( "adminLoginProviders" );
+
+		return IsArray( providers ) ? providers : [];
+	}
 }

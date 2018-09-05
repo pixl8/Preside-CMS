@@ -6,6 +6,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="sessionStorage"        inject="sessionStorage";
 	property name="messageBox"            inject="messagebox@cbmessagebox";
 	property name="i18n"                  inject="i18n";
+	property name="loginProviderService"  inject="adminLoginProviderService";
+
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -18,12 +20,27 @@ component extends="preside.system.base.AdminHandler" {
 			_redirectToDefaultAdminEvent( event );
 		}
 
-		if ( loginService.isUserDatabaseNotConfigured() ) {
+		if ( loginProviderService.isProviderEnabled( "preside" ) && loginService.isUserDatabaseNotConfigured() ) {
 			event.setView( "/admin/login/firstTimeUserSetup" );
 		}
 
-		prc.isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
-		prc.rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
+		prc.loginProviders    = loginProviderService.listProviders();
+		prc.renderedProviders = {};
+
+		var position     = 0;
+		var postLoginUrl = _cleanPostLoginUrl( rc.postLoginUrl ?: "" );
+
+		for( var provider in prc.loginProviders ) {
+			prc.renderedProviders[ provider ] = loginProviderService.renderProviderLoginPrompt(
+				  provider     = provider
+				, postLoginUrl = postLoginUrl
+				, position     = ++position
+			);
+
+			if ( !Len( Trim( prc.renderedProviders[ provider ] ) ) ) {
+				prc.renderedProviders.delete( provider );
+			}
+		}
 	}
 
 	public void function login( event, rc, prc ) {
@@ -157,11 +174,18 @@ component extends="preside.system.base.AdminHandler" {
 		if ( event.isAdminUser() ){
 			_redirectToDefaultAdminEvent( event );
 		}
+		if ( !loginProviderService.isProviderEnabled( "preside" ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="login" ) );
+		}
 
 		event.setView( "/admin/login/forgottenPassword" );
 	}
 
 	public void function sendResetInstructions( event, rc, prc ) {
+		if ( !loginProviderService.isProviderEnabled( "preside" ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="login" ) );
+		}
+
 		if ( loginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
 				message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
@@ -176,6 +200,9 @@ component extends="preside.system.base.AdminHandler" {
 	public void function resetPassword( event, rc, prc ) {
 		if ( event.isAdminUser() ){
 			_redirectToDefaultAdminEvent( event );
+		}
+		if ( !loginProviderService.isProviderEnabled( "preside" ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="login" ) );
 		}
 
 		if ( !loginService.validateResetPasswordToken( rc.token ?: "" ) ) {
@@ -196,6 +223,10 @@ component extends="preside.system.base.AdminHandler" {
 		var pw           = rc.password             ?: "";
 		var confirmation = rc.passwordConfirmation ?: "";
 		var token        = rc.token                ?: "";
+
+		if ( !loginProviderService.isProviderEnabled( "preside" ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="login" ) );
+		}
 
 		if ( !loginService.validateResetPasswordToken( rc.token ?: "" ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
