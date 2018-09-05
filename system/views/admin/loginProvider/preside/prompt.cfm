@@ -3,6 +3,7 @@
 	message                = rc.message ?: "";
 	isRememberMeEnabled    = IsTrue( args.isRememberMeEnabled ?: "" );
 	rememberMeExpiryInDays = Val( args.rememberMeExpiryInDays ?: 30 );
+	loginProviderPosition  = Val( args.position ?: "" );
 
 	if ( rememberMeExpiryInDays == 1 ) {
 		rememberMeLabel = translateResource( uri="cms:login.remember.me.single.day.label" );
@@ -29,8 +30,16 @@
 		</cfcase>
 	</cfswitch>
 
+	<cfif !Len( Trim( message ) ) && loginProviderPosition gt 1>
+		<p class="text-center">
+			<a href="##preside-standard-login" data-toggle="collapse">
+				<i class="fa fa-fw fa-caret-right"></i>
+				<em>#translateResource( "cms:login.standard.login.toggle.title" )#</em>
+			</a>
+		</p>
+		<div id="preside-standard-login" class="collapse">
+	</cfif>
 	<div class="space-6"></div>
-
 	<form method="post" action="#event.buildAdminLink( linkto="login.login" )#" data-auto-focus-form="true">
 		<fieldset>
 			<input type="hidden" name="postLoginUrl" value="#postLoginUrl#" />
@@ -74,4 +83,8 @@
 			</div>
 		</fieldset>
 	</form>
+
+	<cfif !Len( Trim( message ) ) && loginProviderPosition gt 1>
+		</div>
+	</cfif>
 </cfoutput>

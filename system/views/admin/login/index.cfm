@@ -1,6 +1,7 @@
 <cfscript>
-	loginProviders    = prc.loginProviders    ?: [];
-	renderedProviders = prc.renderedProviders ?: {};
+	loginProviders        = prc.loginProviders    ?: [];
+	renderedProviders     = prc.renderedProviders ?: {};
+	renderedProviderCount = 0;
 </cfscript>
 
 <cfoutput>
@@ -15,7 +16,11 @@
 					<cfif renderedProviders.count()>
 						<cfloop array="#loginProviders#" index="i" item="provider">
 							<cfif renderedProviders.keyExists( provider )>
+								<cfif renderedProviderCount gt 0>
+									<hr>
+								</cfif>
 								#renderedProviders[ provider ]#
+								<cfset renderedProviderCount++/>
 							</cfif>
 						</cfloop>
 					<cfelse>
