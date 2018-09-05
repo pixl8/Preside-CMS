@@ -361,7 +361,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		announceInterception( "onAdminLoginSuccess" );
 
 		if ( getModel( "loginService" ).twoFactorAuthenticationRequired( ipAddress = getClientIp(), userAgent = getUserAgent() ) ) {
-			setNextEvent( url=buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
+			getController().setNextEvent( url=buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
 		}
 
 		if ( Len( Trim( postLoginUrl ) ) ) {
@@ -372,7 +372,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 			postLoginUrl = ReReplace( Trim( postLoginUrl ), "^(https?://.*?)//", "\1/" );
 
-			setNextEvent( url=postLoginUrl, persistStruct=unsavedData );
+			getController().setNextEvent( url=postLoginUrl, persistStruct=unsavedData );
 		} else {
 			getController().runEvent( event="admin.login._redirectToDefaultAdminEvent", private=true, prePostExempt=true );
 		}
