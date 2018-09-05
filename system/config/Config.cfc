@@ -102,6 +102,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                       );
 		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                        );
+		interceptorSettings.customInterceptionPoints.append( "onAdminLoginSuccess"                   );
+		interceptorSettings.customInterceptionPoints.append( "onAdminLoginFailure"                   );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                       );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                        );
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                       );

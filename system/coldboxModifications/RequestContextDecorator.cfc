@@ -320,6 +320,64 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		setIsDataManagerRequest();
 	}
 
+	public void function doAdminSsoLogin(
+		  required string  loginId
+		, required struct  userData
+		,          boolean rememberLogin        = false
+		,          numeric rememberExpiryInDays = 90
+		,          string  postLoginUrl         = getRequestContext().getValue( "postLoginUrl", "" )
+	) {
+		var loginService = getModel( "loginService" );
+		var event        = getRequestContext();
+		var rc           = event.getCollection();
+
+		loginService.getOrCreateUser(
+			  loginId = arguments.loginId
+			, data    = arguments.userData
+		);
+		loginService.login(
+			  loginId              = arguments.loginId
+			, password             = ""
+			, rememberLogin        = arguments.rememberLogin
+			, rememberExpiryInDays = arguments.rememberExpiryInDays
+			, skipPasswordCheck    = true
+		);
+
+		rc.postLoginUrl = arguments.postLoginUrl;
+
+		postAdminLogin();
+	}
+
+	public void function postAdminLogin() {
+		var user         = getAdminUserDetails();
+		var event        = getRequestContext();
+		var rc           = event.getCollection();
+		var postLoginUrl = rc.postLoginUrl ?: "";
+
+		if ( Len( Trim( user.user_language ?: "" ) ) ) {
+			getModel( "i18n" ).setFwLocale( Trim( user.user_language ) );
+		}
+
+		announceInterception( "onAdminLoginSuccess" );
+
+		if ( getModel( "loginService" ).twoFactorAuthenticationRequired( ipAddress = getClientIp(), userAgent = getUserAgent() ) ) {
+			setNextEvent( url=buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
+		}
+
+		if ( Len( Trim( postLoginUrl ) ) ) {
+			var ss           = getModel( "sessionStorage" );
+			var unsavedData  = ss.getVar( "_unsavedFormData", {} );
+
+			ss.deleteVar( "_unsavedFormData", {} );
+
+			postLoginUrl = ReReplace( Trim( postLoginUrl ), "^(https?://.*?)//", "\1/" );
+
+			setNextEvent( url=postLoginUrl, persistStruct=unsavedData );
+		} else {
+			getController().runEvent( event="admin.login._redirectToDefaultAdminEvent", private=true, prePostExempt=true );
+		}
+	}
+
 // Sticker
 	public any function include() output=false {
 		return _getSticker().include( argumentCollection = arguments );
@@ -393,7 +451,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService", "featureService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService", "featureService", "i18n", "sessionStorage" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;

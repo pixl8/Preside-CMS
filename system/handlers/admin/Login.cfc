@@ -48,7 +48,6 @@ component extends="preside.system.base.AdminHandler" {
 	public void function login( event, rc, prc ) {
 		var user                   = "";
 		var postLoginUrl           = event.getValue( name="postLoginUrl", defaultValue="" );
-		var unsavedData            = sessionStorage.getVar( "_unsavedFormData", {} );
 		var isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
 		var rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
 		var loggedIn               = loginService.logIn(
@@ -59,23 +58,9 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( loggedIn ) {
-			user = event.getAdminUserDetails();
-
-			if ( Len( Trim( user.user_language ) ) ) {
-				i18n.setFwLocale( Trim( user.user_language ) );
-			}
-
-			if ( loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
-				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
-			}
-
-			if ( Len( Trim( postLoginUrl ) ) ) {
-				sessionStorage.deleteVar( "_unsavedFormData", {} );
-				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
-			} else {
-				_redirectToDefaultAdminEvent( event );
-			}
+			event.postAdminLogin();
 		} else {
+			event.announceInterception( state="onAdminLoginFailure", interceptData={ loginid=rc.loginid ?: "" } );
 			setNextEvent( url=event.buildAdminLink( linkto="login" ), persistStruct={
 				  postLoginUrl = postLoginUrl
 				, message      = "LOGIN_FAILED"

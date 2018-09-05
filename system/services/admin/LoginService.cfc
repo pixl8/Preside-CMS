@@ -58,9 +58,15 @@ component displayName="Admin login service" {
 	 * @password.hint User provided password
 	 *
 	 */
-	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, numeric rememberExpiryInDays=90 ) {
+	public boolean function login(
+		  required string  loginId
+		, required string  password
+		,          boolean rememberLogin        = false
+		,          numeric rememberExpiryInDays = 9
+		,          boolean skipPasswordCheck    = false
+	) {
 		var usr = _getUserByLoginId( arguments.loginId );
-		var success = usr.recordCount and _getBCryptService().checkPw( arguments.password, usr.password );
+		var success = usr.recordCount && ( arguments.skipPasswordCheck || _getBCryptService().checkPw( arguments.password, usr.password ) );
 
 		if ( success ) {
 			_persistUserSession( usr );
@@ -737,6 +743,33 @@ component displayName="Admin login service" {
 				, two_step_auth_key_in_use  = ""
 			} );
 		}
+	}
+
+	/**
+	 * Allows external services to create users on the fly
+	 * if they do not already exist based on the loginId. Useful
+	 * for single sign on extensions, for example.
+	 *
+	 * @autodoc true
+	 * @loginId Login ID or email address with which to match any existing users in the system
+	 * @data    Additional fields to set on the user when creating/updating existing user
+	 */
+	public string function getOrCreateUser( required string loginId, struct data={} ) {
+		var existingUser = _getUserByLoginId( arguments.loginId );
+
+		if ( existingUser.recordCount ) {
+			_getUserDao().updateData(
+				  id   = existingUser.id
+				, data = arguments.data
+			);
+
+			return existingUser.id;
+		}
+
+		arguments.data.login_id      = arguments.data.login_id      ?: arguments.loginId;
+		arguments.data.email_address = arguments.data.email_address ?: arguments.loginId;
+
+		return _getUserDao().insertData( arguments.data );
 	}
 
 // PRIVATE HELPERS
