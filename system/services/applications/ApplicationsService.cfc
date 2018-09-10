@@ -35,7 +35,7 @@ component {
 		for( var applicationId in allApplications ) {
 			var app            = allApplications[ applicationId ];
 			var featureEnabled = $isFeatureEnabled( app.feature );
-			var userHasAccess  = !limitByCurrentUser || !$isAdminUserLoggedIn() || $hasAdminPermission( app.accessPermission );
+			var userHasAccess  = !limitByCurrentUser || !$isAdminUserLoggedIn() || !Len( Trim( app.accessPermission ) ) || $hasAdminPermission( app.accessPermission );
 
 			if ( featureEnabled && userHasAccess ) {
 				activeApplications.append( applicationId );
