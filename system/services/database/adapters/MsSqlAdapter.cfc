@@ -344,7 +344,7 @@ component extends="BaseAdapter" {
 		,          boolean unique=false
 
 	) {
-		var ix = super.getIndexSql( argumentCollect=arguments );
+		var ix = super.getIndexSql( argumentCollection=arguments );
 
 		if ( arguments.unique ) {
 			var delim = " where ";
