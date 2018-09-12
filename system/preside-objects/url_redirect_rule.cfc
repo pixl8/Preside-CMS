@@ -2,7 +2,8 @@
  * The URL Redirect rule object is used to store individual URL redirect rules. These rules
  * can use regex, etc. and are used to setup dynamic and editorial redirects.
  *
- * @dataExportFields id,label,source_url_pattern,redirect_type,exact_match_only,redirect_to_link,datecreated,datemodified
+ * @dataExportFields   id,label,source_url_pattern,redirect_type,exact_match_only,redirect_to_link,datecreated,datemodified
+ * @datamanagerEnabled true
  */
 component extends="preside.system.base.SystemPresideObject" displayName="URL Redirect rule" {
 	property name="label" uniqueindexes="redirectUrlLabel";
