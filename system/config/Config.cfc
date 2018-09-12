@@ -461,14 +461,6 @@ component {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "/#settings.appMapping#/helpers" ) ) {
-			siteUdfs = DirectoryList( "/#settings.appMapping#/helpers", true, false, "*.cfm" );
-
-			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/#settings.appMapping#/helpers" ) );
-			}
-		}
-
 		for( var ext in settings.activeExtensions ){
 			var helperDir = ext.directory & "/helpers";
 			if ( DirectoryExists( helperDir ) ) {
@@ -476,6 +468,14 @@ component {
 				for( udf in extUdfs ){
 					ArrayAppend( udfs, _getMappedPathFromFull( udf, helperDir ) );
 				}
+			}
+		}
+
+		if ( DirectoryExists( "/#settings.appMapping#/helpers" ) ) {
+			siteUdfs = DirectoryList( "/#settings.appMapping#/helpers", true, false, "*.cfm" );
+
+			for( udf in siteUdfs ){
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/#settings.appMapping#/helpers" ) );
 			}
 		}
 
