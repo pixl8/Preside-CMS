@@ -450,7 +450,13 @@ component extends="preside.system.base.AdminHandler" {
 	function uploadAssets( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		var folderId           = rc.folder ?: "";
+		var folderId = rc.folder  ?: "";
+		var folder   = prc.folder ?: queryNew("");
+		if( folder.recordCount ){
+			var allowedTypes = folder.allowed_filetypes  ?: "";
+			var maxFileSize  = folder.max_filesize_in_mb ?: 100;
+			event.includeData( { allowedExtensions : allowedTypes, maxFileSize = maxFileSize } );
+		}
 
 		prc.pageIcon     = "picture";
 		prc.pageTitle    = translateResource( "cms:assetManager" );
