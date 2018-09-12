@@ -8,6 +8,8 @@
 
 			if ( this.$originalInput.hasClass( 'configurator-add' ) ) {
 				this.setupConfiguratorAdd();
+			}
+			if ( this.$originalInput.hasClass( 'configurator-edit' ) ) {
 			 	this.setupConfiguratorEdit();
 			}
 		}
@@ -19,6 +21,8 @@
 				  allow_single_deselect  : true
 				, inherit_select_classes : true
 				, searchable             : !this.$originalInput.hasClass( 'non-searchable' )
+				, removable              : !this.$originalInput.hasClass( 'non-removable' )
+				, editable               : this.$originalInput.hasClass( 'configurator-edit' )
 			});
 			this.$uberSelect = this.$originalInput.next();
 			this.uberSelect = this.$originalInput.data( "uberSelect" );
@@ -47,17 +51,21 @@
 				if ( item.disabled ) {
 					choice.addClass('search-choice-disabled');
 				} else {
-					edit_link = $('<a />', {
-						"class": 'edit-choice-link fa fa-pencil'
-					});
-					choice.append( edit_link );
-					close_link = $('<a />', {
-						"class": 'remove-choice-link fa fa-times'
-					});
-					close_link.bind('click.chosen', function(evt) {
-						return _this.choice_destroy_link_click(evt);
-					});
-					choice.append( close_link );
+					if(_this.options.editable) {
+						edit_link = $('<a />', {
+							"class": 'edit-choice-link fa fa-pencil'
+						});
+						choice.append( edit_link );
+					}
+					if(_this.options.removable) {
+						close_link = $('<a />', {
+							"class": 'remove-choice-link fa fa-times'
+						});
+						close_link.bind('click.chosen', function(evt) {
+							return _this.choice_destroy_link_click(evt);
+						});
+						choice.append( close_link );
+					}
 				}
 
 				choice.data( "item", item );

@@ -59,6 +59,7 @@ component {
 		, required string recordId
 		,          string keyField      = "id"
 		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
+		,          array bypassTenants = []
 	) {
 
 		var labelRendererService = _getLabelRendererService();
@@ -68,6 +69,7 @@ component {
 			, filter             = { "#keyField#"=arguments.recordId }
 			, selectFields       = selectFields
 			, allowDraftVersions = $getRequestContext().showNonLiveContent()
+			, bypassTenants     = arguments.bypassTenants
 		);
 
 		if ( Len( Trim( arguments.labelRenderer ) ) ) {
