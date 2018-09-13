@@ -453,9 +453,15 @@ component extends="preside.system.base.AdminHandler" {
 		var folderId = rc.folder  ?: "";
 		var folder   = prc.folder ?: queryNew("");
 		if( folder.recordCount ){
-			var allowedTypes = folder.allowed_filetypes  ?: "";
-			var maxFileSize  = folder.max_filesize_in_mb ?: 100;
-			event.includeData( { allowedExtensions : allowedTypes, maxFileSize = maxFileSize } );
+			var maxFileSize   = folder.max_filesize_in_mb ?: 100;
+			var allowedTypes  = folder.allowed_filetypes  ?: "";
+			var extensionList = "";
+
+			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
+				extensionList = ListAppend( extensionList, ".#type#" );
+			} );
+
+			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
 		}
 
 		prc.pageIcon     = "picture";
@@ -812,11 +818,11 @@ component extends="preside.system.base.AdminHandler" {
 			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
 				extensionList = ListAppend( extensionList, ".#type#" );
 			} );
-			event.includeData( { allowedExtensions : extensionList, maxFileSize = maxFileSize } );
+			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
 		}
 
 		if ( !IsBoolean( multiple ) || !multiple ) {
-			event.includeData( { maxFiles : 1 } );
+			event.includeData( { maxFiles = 1 } );
 		}
 
 		prc.uploadCompleteView = '/admin/assetmanager/_batchUploadCompleteMessagingForAssetPicker';
