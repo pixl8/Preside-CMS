@@ -24,7 +24,7 @@ component {
 	public any function includeData()    { return _getSticker().includeData   ( argumentCollection=arguments ); }
 	public any function includeUrl()     { return _getSticker().includeUrl    ( argumentCollection=arguments ); }
 
-	public any function renderIncludes( boolean delayed=true ) {
+	public any function renderIncludes( boolean delayed=$isFeatureEnabled( "fullpageCaching" ) ) {
 		if ( delayed ) {
 			return _getDelayedStickerRendererService().renderDelayedStickerTag( argumentCollection=arguments, memento=_getSticker().getMemento() );
 		} else {
