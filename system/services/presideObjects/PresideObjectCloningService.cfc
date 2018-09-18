@@ -65,8 +65,9 @@ component {
 
 		var poService      = $getPresideObjectService();
 		var originalRecord = poService.selectData(
-			  objectName = arguments.objectName
-			, id         = arguments.recordId
+			  objectName    = arguments.objectName
+			, id            = arguments.recordId
+			, bypassTenants = arguments.bypassTenants
 		);
 		if ( !originalRecord.recordCount ) {
 			throw( type="preside.clone.record.not.found", message="Clone failed. Object record [#arguments.objectName#: #arguments.recordId#] was not found." );
@@ -93,10 +94,11 @@ component {
 				break;
 				case "many-to-many":
 					var existingValues = poService.selectManyToManyData(
-						  objectName   = arguments.objectName
-						, id           = arguments.recordId
-						, propertyName = fieldName
-						, selectFields = [ "#fieldName#.id" ]
+						  objectName    = arguments.objectName
+						, id            = arguments.recordId
+						, propertyName  = fieldName
+						, selectFields  = [ "#fieldName#.id" ]
+						, bypassTenants = arguments.bypassTenants
 					);
 
 					if ( existingValues.recordCount ) {

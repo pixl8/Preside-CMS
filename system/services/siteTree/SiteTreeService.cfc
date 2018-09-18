@@ -960,10 +960,10 @@ component {
 		, required boolean cloneChildren
 	) {
 		var cloningService = _getCloningService();
-		var existingPage   = getPage( id=arguments.sourcePageId, useCache=false, allowDrafts=true );
+		var bypassTenants  = Len( Trim( newPageData.site ?: "" ) ) ? [ "site" ] : [];
+		var existingPage   = getPage( id=arguments.sourcePageId, useCache=false, allowDrafts=true, bypassTenants=bypassTenants );
 		var versionNumber  = _getPresideObjectService().getNextVersionNumber();
 		var newData        = StructCopy( arguments.newPageData );
-		var bypassTenants  = Len( Trim( newPageData.site ?: "" ) ) ? [ "site" ] : [];
 
 		StructAppend( newData, _calculateSortOrderAndHierarchyFields(
 			  parent_page   = newData.parent_page ?: existingPage.parent_page
@@ -993,11 +993,13 @@ component {
 			, bypassTenants = bypassTenants
 		);
 
+
 		if ( arguments.cloneChildren ) {
 			var children = _getPObj().selectData(
-				  selectFields = [ "id" ]
-				, filter       = { parent_page=arguments.sourcePageId, trashed=false }
-				, orderBy      = "sort_order"
+				  selectFields  = [ "id" ]
+				, filter        = { parent_page=arguments.sourcePageId, trashed=false }
+				, bypassTenants = bypassTenants
+				, orderBy       = "sort_order"
 			);
 
 			var childPageData = { parent_page=newPageId };
