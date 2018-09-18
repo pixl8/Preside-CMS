@@ -10,6 +10,7 @@ component {
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 	property name="healthcheckService"          inject="healthcheckService";
+	property name="permissionService"           inject="permissionService";
 
 	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
 
@@ -20,6 +21,7 @@ component {
 		_configureVariousServices();
 		_populateDefaultLanguages();
 		_populateAutoRulesEngineExpressions();
+		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
 
 		announceInterception( "onApplicationStart" );
@@ -219,5 +221,9 @@ component {
 				getModel( "healthCheckHeartbeat#serviceId#" ).startInNewRequest();
 			}
 		}
+	}
+
+	private void function _setupCatchAllAdminUserGroup() {
+		permissionService.setupCatchAllGroup();
 	}
 }

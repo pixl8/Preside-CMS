@@ -6,7 +6,7 @@
 	groupRecord = prc.record ?: QueryNew('');
 
 	canEdit   = hasCmsPermission( "groupmanager.edit" );
-	canDelete = hasCmsPermission( "groupmanager.delete" );
+	canDelete = hasCmsPermission( "groupmanager.delete" ) && !IsTrue( groupRecord.is_catch_all ?: "" );
 
 	if ( canEdit ) {
 		editRecordLink = event.buildAdminLink( linkTo="usermanager.editGroup", queryString="id=#groupId#" );
