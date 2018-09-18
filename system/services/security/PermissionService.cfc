@@ -3,6 +3,7 @@
  * See [[cmspermissioning]] for a full guide to CMS users and permissions.
  *
  * @singleton
+ * @presideService
  * @autodoc
  *
  */
@@ -32,7 +33,6 @@ component displayName="Admin permissions service" {
 		_setGroupDao( arguments.groupDao );
 		_setUserDao( arguments.userDao );
 		_setContextPermDao( arguments.contextPermDao );
-
 		_denormalizeAndSaveConfiguredRolesAndPermissions( arguments.permissionsConfig, arguments.rolesConfig );
 
 		return this;
@@ -133,8 +133,15 @@ component displayName="Admin permissions service" {
 			, id           = arguments.userId
 			, selectFields = [ "groups.id" ]
 		);
+		var catchAllGroups = _getGroupDao().selectData(
+			  selectFields = [ "id" ]
+			, filter       = { is_catch_all=true }
+		);
 
-		return ValueArray( groups.id );
+		groups = ValueArray( groups.id );
+		groups.append( ValueArray( catchAllGroups.id ), true );
+
+		return groups;
 	}
 
 	public struct function getContextPermissions(
@@ -225,6 +232,21 @@ component displayName="Admin permissions service" {
 		}
 
 		return true;
+	}
+
+	public void function setupCatchAllGroup() {
+		var groupDao = _getGroupDao();
+		if ( !groupDao.dataExists( filter={ is_catch_all=true } ) ) {
+			groupDao.insertData({
+				  label        = $translateResource( "preside-objects.security_group:catch_all_group.name" )
+				, description  = $translateResource( "preside-objects.security_group:catch_all_group.description" )
+				, is_catch_all = true
+			});
+		}
+	}
+
+	public boolean function isCatchAllGroup( required string groupid ) {
+		return _getGroupDao().dataExists( id=arguments.groupid, extraFilters=[{ filter={ is_catch_all=true } }] );
 	}
 
 // PRIVATE HELPERS
