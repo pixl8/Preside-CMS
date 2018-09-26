@@ -611,7 +611,7 @@ component {
 	private struct function _getCkEditorToolbarConfig() {
 		return {
 			full     =  'Maximize,-,Source,-,Preview'
-					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
@@ -620,7 +620,7 @@ component {
 					 & '|Styles,Format',
 
 			noInserts = 'Maximize,-,Source,-,Preview'
-					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
@@ -630,7 +630,7 @@ component {
 			bolditaliconly = 'Bold,Italic',
 
 			email = 'Maximize,-,Source,'
-					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|PresideLink,PresideUnlink,-,ImagePicker,AttachmentPicker,,SpecialChar'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
