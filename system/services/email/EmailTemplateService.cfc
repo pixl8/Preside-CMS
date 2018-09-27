@@ -1123,6 +1123,8 @@ component {
 			filter = { "send_logs$activities.activity_type"="click" }
 		}];
 
+		extraFilters.append( { filter="send_logs$activities.link is not null" } );
+
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
 				  filter = "send_logs$activities.datecreated >= :dateFrom"
@@ -1139,19 +1141,17 @@ component {
 		var clickStats    = [];
 		var rawClickStats = $getPresideObject( "email_template" ).selectData(
 			  id           = arguments.templateId
-			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.extra_data as link" ]
+			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.link as link" ]
 			, extraFilters = extraFilters
 			, autoGroupBy  = true
 			, orderBy      = "click_count desc"
 		);
 
 		for( var link in rawClickStats ) {
-			try {
-				clickStats.append( {
-					  link       = DeserializeJson( link.link ).link
-					, clickCount = link.click_count
-				} );
-			} catch( any e ){}
+			clickStats.append( {
+				  link       = link.link
+				, clickCount = link.click_count
+			} );
 		}
 
 		return clickStats;
