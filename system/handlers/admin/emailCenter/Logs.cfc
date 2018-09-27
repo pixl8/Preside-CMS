@@ -87,4 +87,16 @@ component extends="preside.system.base.AdminHandler" {
 
 		return renderView( view="/admin/emailcenter/logs/_logGridActions", args=args );
 	}
+
+	public void function exportAction( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+
+		runEvent(
+			  event         = "admin.DataManager._exportDataAction"
+			, prePostExempt = true
+			, private       = true
+		);
+	}
 }

@@ -100,13 +100,12 @@ component {
 					}
 
 					switch( propertyDefinitions[ arguments.fieldName ].dbtype ?: "" ) {
-						case "datetime":
-						case "timestamp":
-							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn" );
+						case "date":
+							return DateFormat( arguments.value, "yyyy-mm-dd" );
 						case "time":
 							return TimeFormat( arguments.value, "HH:mm" );
 						default:
-							return DateFormat( arguments.value, "yyyy-mm-dd" );
+							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn:ss" );
 					}
 			}
 			return value;

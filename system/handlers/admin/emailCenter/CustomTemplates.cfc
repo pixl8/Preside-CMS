@@ -655,6 +655,23 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
 	}
 
+	public void function exportAction( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+
+		var templateId = rc.id ?: "";
+
+		runEvent(
+			  event          = "admin.DataManager._exportDataAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				extraFilters = [ { filter={ email_template=templateId } } ]
+			  }
+		);
+	}
+
 // VIEWLETS
 	private string function _customTemplateTabs( event, rc, prc, args={} ) {
 		var template        = prc.record ?: {};
