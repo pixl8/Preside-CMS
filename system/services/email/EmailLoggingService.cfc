@@ -111,6 +111,11 @@ component {
 			  sent      = true
 			, sent_date = _getNow()
 		} );
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "send"
+		);
 	}
 
 	/**
@@ -133,6 +138,12 @@ component {
 				, failed_code   = ( Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "" )
 			  }
 		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "fail"
+			, extraData = { reason=arguments.reason, code=arguments.code }
+		);
 	}
 
 
@@ -152,6 +163,11 @@ component {
 				, marked_as_spam_date = _getNow()
 			  }
 		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "markasspam"
+		);
 	}
 
 	/**
@@ -169,6 +185,11 @@ component {
 				  unsubscribed      = true
 				, unsubscribed_date = _getNow()
 			  }
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "unsubscribe"
 		);
 	}
 
@@ -220,6 +241,10 @@ component {
 
 		if ( !arguments.softMark ) {
 			data.delivered_date = _getNow();
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "deliver"
+			);
 		}
 
 		$getPresideObject( "email_template_send_log" ).updateData(
@@ -227,6 +252,7 @@ component {
 			, filterParams = { id=arguments.id, delivered=false }
 			, data         = data
 		);
+
 	}
 
 	/**
