@@ -82,6 +82,38 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, user_agent    = cgi.http_user_agent
 				} ]);
 			} );
+
+			it( "should extract known fields from extra data directly into the data model", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var activity  = "blah";
+				var extraData = { blah=CreateUUId(), test=Now() };
+				var expectedData = extraData.copy();
+
+				extraData.link = CreateUUId();
+				extraData.code = "304.2"
+				extraData.reason = "Test reason: " & CreateUUId();
+
+				mockLogActivityDao.$( "insertData", CreateUUId() );
+
+				service.recordActivity(
+					  messageId = messageId
+					, activity  = activity
+					, extraData = extraData
+				);
+
+				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockLogActivityDao.$callLog().insertData[ 1 ] ).toBe( [ {
+					  message       = messageId
+					, activity_type = activity
+					, extra_data    = SerializeJson( expectedData )
+					, user_ip       = cgi.remote_addr
+					, user_agent    = cgi.http_user_agent
+					, link          = extraData.link
+					, code          = extraData.code
+					, reason        = extraData.reason
+				} ]);
+			} );
 		} );
 
 		describe( "markAsSent()", function(){
