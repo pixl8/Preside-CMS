@@ -4,7 +4,7 @@
  * @versioned                   false
  * @labelfield                  recipient
  * @datamanagerDefaultSortOrder datecreated desc
- * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_code,activity_reason,activity_link,activity_ip,activity_user_agent
+ * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_code,activity_reason,activity_link
  * @datamanagerEnabled          true
  */
 component extends="preside.system.base.SystemPresideObject" {
