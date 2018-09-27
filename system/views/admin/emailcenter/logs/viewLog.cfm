@@ -136,8 +136,7 @@
 									<cfcase value="click">
 										<cfset logIcon    = "fa-mouse-pointer" />
 										<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.clicked.title" ) />
-										<cfset data       = DeserializeJson( prc.activity.extra_data ) />
-										<cfset link       = '<a>#Trim( data.link ?: "unknown" )#</a>' />
+										<cfset link       = '<a>#Trim( prc.activity.link ?: "unknown" )#</a>' />
 										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ link ] ) />
 									</cfcase>
 									<cfcase value="resend">
@@ -149,6 +148,9 @@
 										<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.resend.title" ) />
 										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.resend.#resendType#.message", data=[ link ] ) />
 									</cfcase>
+									<cfdefaultcase>
+										<cfcontinue/>
+									</cfdefaultcase>
 								</cfswitch>
 
 								#renderView( view="/admin/emailcenter/logs/_logActivity", args={
