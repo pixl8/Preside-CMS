@@ -270,6 +270,23 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function exportAction( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+
+		var templateId = rc.id ?: "";
+
+		runEvent(
+			  event          = "admin.DataManager._exportDataAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				extraFilters = [ { filter={ email_template=templateId } } ]
+			  }
+		);
+	}
+
 // VIEWLETS AND HELPERS
 	private string function _templateTabs( event, rc, prc, args={} ) {
 		var template     = prc.template ?: {};

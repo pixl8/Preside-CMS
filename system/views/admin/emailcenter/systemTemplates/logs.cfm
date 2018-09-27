@@ -14,11 +14,13 @@
 <cfoutput>
 	<cfsavecontent variable="body">
 		#renderView( view="/admin/datamanager/_objectDataTable", args={
-			  objectName          = "email_template_send_log"
-			, useMultiActions     = false
-			, datasourceUrl       = ajaxUrl
-			, gridFields          = gridFields
-			, noRecordMessage     = translateResource( uri="cms:datatables.emailTemplate.emptyTable" )
+			  objectName      = "email_template_send_log"
+			, useMultiActions = false
+			, datasourceUrl   = ajaxUrl
+			, gridFields      = gridFields
+			, noRecordMessage = translateResource( uri="cms:datatables.emailTemplate.emptyTable" )
+			, allowDataExport = true
+			, dataExportUrl   = event.buildAdminLink( linkTo="emailcenter.systemTemplates.exportAction", queryString="id=" & templateId )
 		} )#
 	</cfsavecontent>
 
