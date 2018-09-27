@@ -375,7 +375,7 @@ component {
 		settings.enum.emailSendQueueStatus        = [ "queued", "sending" ];
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
-		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
+		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
