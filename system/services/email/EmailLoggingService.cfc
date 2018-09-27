@@ -128,6 +128,7 @@ component {
 	 *
 	 */
 	public void function markAsFailed( required string id, required string reason, string code="" ) {
+		var errorCode = Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "";
 		$getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
 			, filterParams = { id=arguments.id, failed=false, opened=false }
@@ -135,14 +136,14 @@ component {
 				  failed        = true
 				, failed_date   = _getNow()
 				, failed_reason = arguments.reason
-				, failed_code   = ( Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "" )
+				, failed_code   = errorCode
 			  }
 		);
 
 		recordActivity(
 			  messageId = arguments.id
 			, activity  = "fail"
-			, extraData = { reason=arguments.reason, code=arguments.code }
+			, extraData = { reason=arguments.reason, code=errorCode }
 		);
 	}
 
@@ -483,13 +484,24 @@ component {
 		,          string userIp    = cgi.remote_addr
 		,          string userAgent = cgi.http_user_agent
 	) {
-		$getPresideObject( "email_template_send_log_activity" ).insertData({
+		var fieldsToAddFromExtraData = [ "link", "code", "reason" ];
+		var extra = StructCopy( arguments.extraData );
+		var data = {
 			  message       = arguments.messageId
 			, activity_type = arguments.activity
 			, user_ip       = arguments.userIp
 			, user_agent    = arguments.userAgent
-			, extra_data    = SerializeJson( arguments.extraData )
-		});
+		};
+
+		for( var field in extra ) {
+			if ( fieldsToAddFromExtraData.find( LCase( field ) ) ) {
+				data[ field ] = extra[ field ];
+				extra.delete( field );
+			}
+		}
+		data.extra_data = SerializeJson( extra );
+
+		$getPresideObject( "email_template_send_log_activity" ).insertData( data );
 	}
 
 	/**
