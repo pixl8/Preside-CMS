@@ -501,7 +501,13 @@ component {
 		}
 		data.extra_data = SerializeJson( extra );
 
-		$getPresideObject( "email_template_send_log_activity" ).insertData( data );
+		try {
+			$getPresideObject( "email_template_send_log_activity" ).insertData( data );
+		} catch( database e ) {
+			// ignore missing logs when recording activity - but record the error for
+			// info only
+			$raiseError( e );
+		}
 	}
 
 	/**
