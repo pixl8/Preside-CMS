@@ -481,6 +481,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockActionsService.$( "promoteVisitorActionsToUserActions", 1 );
 		service.$( "$recordWebsiteUserAction" );
+		service.$( "$announceInterception" );
 
 		return service;
 	}
