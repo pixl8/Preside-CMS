@@ -119,6 +119,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
+		interceptorSettings.customInterceptionPoints.append( "preSetUserSession"                     );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
