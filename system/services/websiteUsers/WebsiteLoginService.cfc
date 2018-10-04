@@ -545,6 +545,7 @@ component displayName="Website login service" {
 	}
 
 	private void function _setUserSession( required struct data ) {
+		$announceInterception( "preSetUserSession", arguments.data );
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
 	}
 
