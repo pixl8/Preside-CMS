@@ -57,6 +57,7 @@ component {
 		var restRequest  = createRestRequest( arguments.uri, arguments.requestContext );
 		var event        = $getRequestContext();
 
+		event.cachePage( false );
 		event.setRestResponse( restResponse );
 		event.setRestRequest( restRequest );
 
