@@ -880,6 +880,34 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		abort;
 	}
 
+// REST framework
+	public any function getRestRequest() {
+		var prc = getRequestContext().getCollection( private = true );
+		return prc._restRequest ?: NullValue();
+	}
+	public void function setRestRequest( required any restRequest ) {
+		var prc = getRequestContext().getCollection( private = true );
+		prc._restRequest = arguments.restRequest;
+	}
+	public string function getRestRequestUser() {
+		var restRequest = getRestRequest();
+		if ( !IsNull( restRequest ) ) {
+			return restRequest.getUser();
+		}
+
+		return "";
+	}
+
+	public any function getRestResponse() {
+		var prc = getRequestContext().getCollection( private = true );
+		return prc._restResponse ?: NullValue();
+	}
+	public void function setRestResponse( required any restResponse ) {
+		var prc = getRequestContext().getCollection( private = true );
+		prc._restResponse = arguments.restResponse;
+	}
+
+
 // private helpers
 	public string function _structToQueryString( required struct inputStruct ) output=false {
 		var qs    = "";
