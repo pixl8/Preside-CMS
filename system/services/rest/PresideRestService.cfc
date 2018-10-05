@@ -55,6 +55,11 @@ component {
 	public void function onRestRequest( required string uri, required any requestContext ) {
 		var restResponse = createRestResponse();
 		var restRequest  = createRestRequest( arguments.uri, arguments.requestContext );
+		var event        = $getRequestContext();
+
+		event.cachePage( false );
+		event.setRestResponse( restResponse );
+		event.setRestRequest( restRequest );
 
 		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse } );
 
