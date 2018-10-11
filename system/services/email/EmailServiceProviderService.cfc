@@ -257,10 +257,12 @@ component {
 		} catch ( any e ) {
 			$raiseError( e );
 			sent = false;
-			logService.markAsFailed( id=sendArgs.messageId, reason="An error occurred while sending the email. Error message: [#e.message#]. See error logs for details" );
+			if ( arguments.logSend ) {
+				logService.markAsFailed( id=sendArgs.messageId, reason="An error occurred while sending the email. Error message: [#e.message#]. See error logs for details" );
+			}
 		}
 
-		if ( sent ) {
+		if ( arguments.logSend && sent ) {
 			logService.markAsSent( sendArgs.messageId );
 			logService.logEmailContent(
 				  template = sendArgs.args.template ?: ""
