@@ -27,7 +27,7 @@ component {
 		var link      = Trim( rc.link ?: "" );
 
 		try {
-			link = ToString( ToBinary( link ) );
+			link = ReplaceNoCase( ToString( ToBinary( link ) ), "&amp;", "&", "all" );
 		} catch( any e ) {
 			logError( e );
 		}
