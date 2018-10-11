@@ -28,7 +28,7 @@ component {
 		var ignoreLinkPattern = "/e/t/[co]/"; // ignore email tracking links for reporting (i.e. we may have a double encoded link somehow)
 
 		try {
-			link = ToString( ToBinary( link ) );
+			link = ReplaceNoCase( ToString( ToBinary( link ) ), "&amp;", "&", "all" );
 		} catch( any e ) {
 			logError( e );
 			event.notFound();
