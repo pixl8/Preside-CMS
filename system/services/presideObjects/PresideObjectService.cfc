@@ -191,7 +191,6 @@ component displayName="Preside Object Service" {
 		,          array   bypassTenants           = []
 	) autodoc=true {
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
-
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
@@ -2226,119 +2225,119 @@ component displayName="Preside Object Service" {
 			return arguments;
 		}
 
-		var args        = arguments;
-		var aliasRegex  = _getAlaisedAliasRegex();
-		var systemCache = _getCache();
-
-		var findAndReplace = function( plainString ) {
-			if ( Len( aliasCache[ args.objectName ][ plainString ] ?: "" ) ) {
-				return [ {
-					  fullMatch     = plainString
-					, replaceWith   = aliasCache[ args.objectName ][ plainString ]
-					, aliasProperty = plainString
-					, realProperty  = aliasCache[ args.objectName ][ plainString ]
-				} ];
-			}
-
-			var cacheKey = "_cleanupProperyAliasesFAndR#args.objectName##arguments.plainString#";
-			var cached   = systemCache.get( cacheKey );
-			if ( !IsNull( local.cached ) ) {
-				return cached;
-			}
-
-			var matches = _reSearch( aliasRegex, plainString );
-			var results = [];
-
-			if ( matches.keyExists( "$1" ) ) {
-				for( var i=1; i<=matches.$1.len(); i++ ) {
-					var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
-					var objPath     = matches.$2[i];
-					var propName    = matches.$8[i];
-					var objFromPath = _resolveObjectNameFromColumnJoinSyntax( args.objectName, objPath );
-
-					if ( Len( aliasCache[ objFromPath ][ propName ] ?: "" ) ) {
-						results.append( {
-							  fullMatch     = fullMatch
-							, replaceWith   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & aliasCache[ objFromPath ][ propName ] & matches.$9[i]
-							, aliasProperty = aliasCache[ objFromPath ][ propName ]
-							, realProperty  = propName
-						} );
-					}
-				}
-			}
-
-			systemCache.set( cacheKey, results );
-
-			return results;
-		};
-		var structKeyReplacer = function( theStruct ){
-			for( var key in theStruct ) {
-				var fAndRResult = findAndReplace( key );
-				for( var r in fAndRResult ){
-					var newKey = key.replace( r.fullMatch, r.replaceWith, "all" );
-					theStruct[ newKey ] = theStruct[ key ];
-					theStruct.delete( key );
-				}
-			}
-		}
-		var simpleReplacer = function( plainString, addAsAlias=false ) {
-			var cacheKey = "_cleanupProperyAliasesReplacer#args.objectName##arguments.plainString##arguments.addAsAlias#";
-			var cached   = systemCache.get( cacheKey );
-
-			if( !IsNull( local.cached ) ) {
-				return cached;
-			}
-
-			var replaced    = plainString;
-			var fAndRResult = findAndReplace( plainString );
-
-			for( var r in fAndRResult ){
-				replaced = replaced.replace( r.fullMatch, r.replaceWith, "all" );
-			}
-			if ( addAsAlias && fAndRResult.len() && !plainString.findNoCase( " as " ) ) {
-				replaced &= " as " & fAndRResult[1].aliasProperty;
-			}
-
-			systemCache.set( cacheKey, replaced );
-
-			return replaced;
-		}
-
-		if ( args.keyExists( "selectFields" ) ) {
-			for( var i=1; i<=args.selectFields.len(); i++ ) {
-				args.selectFields[ i ] = simpleReplacer( args.selectFields[ i ], true );
+		if ( arguments.keyExists( "selectFields" ) ) {
+			for( var i=1; i<=arguments.selectFields.len(); i++ ) {
+				arguments.selectFields[ i ] = _simpleReplacer( arguments.selectFields[ i ], arguments.objectName, true );
 			}
 		}
 
-		if ( args.keyExists( "filter" ) ) {
-			if ( IsSimpleValue( args.filter ) ) {
-				args.filter = simpleReplacer( args.filter );
+		if ( arguments.keyExists( "filter" ) ) {
+			if ( IsSimpleValue( arguments.filter ) ) {
+				arguments.filter = _simpleReplacer( arguments.filter, arguments.objectName );
 			} else {
-				structKeyReplacer( args.filter );
+				_structKeyReplacer( arguments.filter, arguments.objectName );
 			}
 		}
 
-		if ( args.keyExists( "filterParams" ) ) {
-			structKeyReplacer( args.filterParams );
+		if ( arguments.keyExists( "filterParams" ) ) {
+			_structKeyReplacer( arguments.filterParams, arguments.objectName );
 		}
 
-		if ( args.keyExists( "data" ) ) {
-			structKeyReplacer( args.data );
+		if ( arguments.keyExists( "data" ) ) {
+			_structKeyReplacer( arguments.data, arguments.objectName );
 		}
 
-		if ( args.keyExists( "having" ) ) {
-			args.having = simpleReplacer( args.having );
+		if ( arguments.keyExists( "having" ) ) {
+			arguments.having = _simpleReplacer( arguments.having, arguments.objectName );
 		}
 
-		if ( args.keyExists( "orderBy" ) ) {
-			args.orderBy = simpleReplacer( args.orderBy );
+		if ( arguments.keyExists( "orderBy" ) ) {
+			arguments.orderBy = _simpleReplacer( arguments.orderBy, arguments.objectName );
 		}
 
-		if ( args.keyExists( "groupBy" ) ) {
-			args.groupBy = simpleReplacer( args.groupBy );
+		if ( arguments.keyExists( "groupBy" ) ) {
+			arguments.groupBy = _simpleReplacer( arguments.groupBy, arguments.objectName );
 		}
 
-		return args;
+		return arguments;
+	}
+
+	private any function _findAndReplace( plainString, objectName ) {
+		if ( Len( aliasCache[ arguments.objectName ][ plainString ] ?: "" ) ) {
+			return [ {
+				  fullMatch     = plainString
+				, replaceWith   = aliasCache[ arguments.objectName ][ plainString ]
+				, aliasProperty = plainString
+				, realProperty  = aliasCache[ arguments.objectName ][ plainString ]
+			} ];
+		}
+		var systemCache = _getCache();
+		var cacheKey = "_cleanupProperyAliasesFAndR#arguments.objectName##arguments.plainString#";
+		var cached   = systemCache.get( cacheKey );
+		if ( !IsNull( local.cached ) ) {
+			return cached;
+		}
+		var aliasRegex  = _getAlaisedAliasRegex();
+
+		var matches = _reSearch( aliasRegex, plainString );
+		var results = [];
+
+		if ( matches.keyExists( "$1" ) ) {
+			for( var i=1; i<=matches.$1.len(); i++ ) {
+				var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
+				var objPath     = matches.$2[i];
+				var propName    = matches.$8[i];
+				var objFromPath = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, objPath );
+
+				if ( Len( aliasCache[ objFromPath ][ propName ] ?: "" ) ) {
+					results.append( {
+						  fullMatch     = fullMatch
+						, replaceWith   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & aliasCache[ objFromPath ][ propName ] & matches.$9[i]
+						, aliasProperty = aliasCache[ objFromPath ][ propName ]
+						, realProperty  = propName
+					} );
+				}
+			}
+		}
+
+		systemCache.set( cacheKey, results );
+
+		return results;
+	};
+
+	private any function _structKeyReplacer( theStruct, objectName ){
+		for( var key in theStruct ) {
+			var fAndRResult = _findAndReplace( key, arguments.objectName );
+			for( var r in fAndRResult ){
+				var newKey = key.replace( r.fullMatch, r.replaceWith, "all" );
+				theStruct[ newKey ] = theStruct[ key ];
+				theStruct.delete( key );
+			}
+		}
+	}
+
+	private any function _simpleReplacer( plainString, objectName, addAsAlias=false ) {
+		var systemCache = _getCache();
+		var cacheKey = "_cleanupProperyAliasesReplacer#arguments.objectName##arguments.plainString##arguments.addAsAlias#";
+		var cached   = systemCache.get( cacheKey );
+
+		if( !IsNull( local.cached ) ) {
+			return cached;
+		}
+
+		var replaced    = plainString;
+		var fAndRResult = _findAndReplace( plainString, arguments.objectName );
+
+		for( var r in fAndRResult ){
+			replaced = replaced.replace( r.fullMatch, r.replaceWith, "all" );
+		}
+		if ( addAsAlias && fAndRResult.len() && !plainString.findNoCase( " as " ) ) {
+			replaced &= " as " & fAndRResult[1].aliasProperty;
+		}
+
+		systemCache.set( cacheKey, replaced );
+
+		return replaced;
 	}
 
 	private array function _getJoinsFromJoinTargets(
