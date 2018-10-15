@@ -2083,98 +2083,100 @@ component displayName="Preside Object Service" {
 		var args        = Duplicate( arguments );
 		var aliasRegex  = _getAlaisedAliasRegex();
 
-		var findAndReplace = function( plainString ) {
-			if ( Len( aliasCache[ args.objectName ][ plainString ] ?: "" ) ) {
-				return [ {
-					  fullMatch     = plainString
-					, replaceWith   = aliasCache[ args.objectName ][ plainString ]
-					, aliasProperty = plainString
-					, realProperty  = aliasCache[ args.objectName ][ plainString ]
-				} ];
-			}
-
-			var matches = _reSearch( aliasRegex, plainString );
-			var results = [];
-
-			if ( matches.keyExists( "$1" ) ) {
-				for( var i=1; i<=matches.$1.len(); i++ ) {
-					var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
-					var objPath     = matches.$2[i];
-					var propName    = matches.$8[i];
-					var objFromPath = _resolveObjectNameFromColumnJoinSyntax( args.objectName, objPath );
-
-					if ( Len( aliasCache[ objFromPath ][ propName ] ?: "" ) ) {
-						results.append( {
-							  fullMatch     = fullMatch
-							, replaceWith   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & aliasCache[ objFromPath ][ propName ] & matches.$9[i]
-							, aliasProperty = aliasCache[ objFromPath ][ propName ]
-							, realProperty  = propName
-						} );
-					}
-				}
-			}
-
-			return results;
-		};
-		var structKeyReplacer = function( theStruct ){
-			for( var key in theStruct ) {
-				var fAndRResult = findAndReplace( key );
-				for( var r in fAndRResult ){
-					var newKey = key.replace( r.fullMatch, r.replaceWith, "all" );
-					theStruct[ newKey ] = theStruct[ key ];
-					theStruct.delete( key );
-				}
-			}
-		}
-		var simpleReplacer = function( plainString, addAsAlias=false ) {
-			var replaced    = plainString;
-			var fAndRResult = findAndReplace( plainString );
-
-			for( var r in fAndRResult ){
-				replaced = replaced.replace( r.fullMatch, r.replaceWith, "all" );
-			}
-			if ( addAsAlias && fAndRResult.len() && !plainString.findNoCase( " as " ) ) {
-				replaced &= " as " & fAndRResult[1].aliasProperty;
-			}
-
-			return replaced;
-		}
-
 		if ( args.keyExists( "selectFields" ) ) {
 			for( var i=1; i<=args.selectFields.len(); i++ ) {
-				args.selectFields[ i ] = simpleReplacer( args.selectFields[ i ], true );
+				args.selectFields[ i ] = _simpleReplacer( args.selectFields[ i ], args.objectName, true );
 			}
 		}
 
 		if ( args.keyExists( "filter" ) ) {
 			if ( IsSimpleValue( args.filter ) ) {
-				args.filter = simpleReplacer( args.filter );
+				args.filter = _simpleReplacer( args.filter, args.objectName );
 			} else {
-				structKeyReplacer( args.filter );
+				_structKeyReplacer( args.filter, args.objectName );
 			}
 		}
 
 		if ( args.keyExists( "filterParams" ) ) {
-			structKeyReplacer( args.filterParams );
+			_structKeyReplacer( args.filterParams, args.objectName );
 		}
 
 		if ( args.keyExists( "data" ) ) {
-			structKeyReplacer( args.data );
+			_structKeyReplacer( args.data, args.objectName );
 		}
 
 		if ( args.keyExists( "having" ) ) {
-			args.having = simpleReplacer( args.having );
+			args.having = _simpleReplacer( args.having, args.objectName );
 		}
 
 		if ( args.keyExists( "orderBy" ) ) {
-			args.orderBy = simpleReplacer( args.orderBy );
+			args.orderBy = _simpleReplacer( args.orderBy, args.objectName );
 		}
 
 		if ( args.keyExists( "groupBy" ) ) {
-			args.groupBy = simpleReplacer( args.groupBy );
+			args.groupBy = _simpleReplacer( args.groupBy, args.objectName );
 		}
 
 		return args;
+	}
+
+	private any function _findAndReplace( plainString, objectName ) {
+		if ( Len( aliasCache[ arguments.objectName ][ plainString ] ?: "" ) ) {
+			return [ {
+				  fullMatch     = plainString
+				, replaceWith   = aliasCache[ arguments.objectName ][ plainString ]
+				, aliasProperty = plainString
+				, realProperty  = aliasCache[ arguments.objectName ][ plainString ]
+			} ];
+		}
+
+		var matches = _reSearch( aliasRegex, plainString );
+		var results = [];
+
+		if ( matches.keyExists( "$1" ) ) {
+			for( var i=1; i<=matches.$1.len(); i++ ) {
+				var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
+				var objPath     = matches.$2[i];
+				var propName    = matches.$8[i];
+				var objFromPath = _resolveObjectNameFromColumnJoinSyntax( args.objectName, objPath );
+
+				if ( Len( aliasCache[ objFromPath ][ propName ] ?: "" ) ) {
+					results.append( {
+						  fullMatch     = fullMatch
+						, replaceWith   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & aliasCache[ objFromPath ][ propName ] & matches.$9[i]
+						, aliasProperty = aliasCache[ objFromPath ][ propName ]
+						, realProperty  = propName
+					} );
+				}
+			}
+		}
+
+		return results;
+	};
+
+	private any function _structKeyReplacer( theStruct, objectName ){
+		for( var key in theStruct ) {
+			var fAndRResult = _findAndReplace( key, arguments.objectName );
+			for( var r in fAndRResult ){
+				var newKey = key.replace( r.fullMatch, r.replaceWith, "all" );
+				theStruct[ newKey ] = theStruct[ key ];
+				theStruct.delete( key );
+			}
+		}
+	}
+
+	private any function _simpleReplacer( plainString, objectName, addAsAlias=false ) {
+		var replaced    = plainString;
+		var fAndRResult = _findAndReplace( plainString, arguments.objectName );
+
+		for( var r in fAndRResult ){
+			replaced = replaced.replace( r.fullMatch, r.replaceWith, "all" );
+		}
+		if ( addAsAlias && fAndRResult.len() && !plainString.findNoCase( " as " ) ) {
+			replaced &= " as " & fAndRResult[1].aliasProperty;
+		}
+
+		return replaced;
 	}
 
 	private array function _getJoinsFromJoinTargets(
