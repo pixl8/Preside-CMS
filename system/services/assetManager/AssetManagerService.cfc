@@ -1068,7 +1068,7 @@ component displayName="AssetManager Service" {
 			  assetId           = arguments.assetId
 			, derivativeName    = arguments.derivativeName
 			, configHash        = configHash
-			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
+			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version", "asset_derivative.asset_type"]
 			, versionId         = version
 			, createIfNotExists = false
 		);
@@ -1266,21 +1266,19 @@ component displayName="AssetManager Service" {
 
 		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 		if ( derivative.recordCount ) {
-			if ( ( derivative.asset_type ?: "" ) == "PENDING"  ) {
-				return QueryNew( '' );
+			if ( _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" ) ) {
+				_getDerivativeDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="" } );
+				createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+				return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
+			} else {
+				return derivative;
 			}
-
-			return derivative;
 		}
 
 		if ( arguments.createIfNotExists ) {
 			lock type="exclusive" name=lockName timeout=1 {
 				derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
 				if ( derivative.recordCount ) {
-					if ( ( derivative.asset_type ?: "" ) == "PENDING"  ) {
-						return QueryNew( '' );
-					}
-
 					return derivative;
 				}
 
@@ -2146,6 +2144,11 @@ component displayName="AssetManager Service" {
 		}
 
 		return noPermissionFolders;
+	}
+
+
+	private boolean function _isPendingAssetURL(  string asset_url="", asset_type="", storage_path=""  ) {
+		return refindNoCase( 'pending-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}', arguments.asset_url ) || asset_type == "PENDING" || refindNoCase( 'pending-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}', arguments.storage_path );
 	}
 
 // GETTERS AND SETTERS
