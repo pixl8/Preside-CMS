@@ -2222,8 +2222,7 @@ component displayName="Preside Object Service" {
 	}
 
 	private struct function _cleanupPropertyAliases() {
-		var aliasCache = _getAliasCache();
-		if ( aliasCache.isEmpty() ) {
+		if ( _getAliasCache().isEmpty() ) {
 			return arguments;
 		}
 
@@ -2265,6 +2264,7 @@ component displayName="Preside Object Service" {
 	}
 
 	private any function _findAndReplace( plainString, objectName ) {
+		var aliasCache = _getAliasCache();
 		if ( Len( aliasCache[ arguments.objectName ][ plainString ] ?: "" ) ) {
 			return [ {
 				  fullMatch     = plainString

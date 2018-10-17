@@ -125,7 +125,7 @@ component {
 				), true );
 			}
 
-			var body = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+			var body = replaceParameterTokens( $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" ), params, "html" );
 			var plainTextArgs = {
 				  layout        = messageTemplate.layout
 				, emailTemplate = arguments.template
@@ -217,7 +217,7 @@ component {
 		}
 
 		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
-		var body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+		var body          = replaceParameterTokens( $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" ), params, "html" );
 		var plainTextArgs = {
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
