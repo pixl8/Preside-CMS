@@ -157,6 +157,7 @@ component singleton=true displayname="Site service" autodoc=true {
 					, domain        = cgi.server_name ?: "127.0.0.1"
 					, path          = "/"
 					, name          = "Default site"
+					, template      = "Default"
 				} );
 			}
 		}
