@@ -1264,10 +1264,12 @@ component displayName="AssetManager Service" {
 			selectFilter &= " and asset_derivative.config_hash is null";
 		}
 
+		arrayAppend( arguments.selectFields, "asset_derivative.retry_count" );
+
 		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 		if ( derivative.recordCount ) {
-			if ( _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" ) ) {
-				_getDerivativeDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="" } );
+			if ( _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" ) && derivative.retry_count < 3) {
+				_getDerivativeDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="", retry_count=( IsNumeric( derivative.retry_count ?: "" ) ? derivative.retry_count : 0 ) + 1 } );
 				createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 				return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
 			} else {
