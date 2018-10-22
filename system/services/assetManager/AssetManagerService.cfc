@@ -1266,6 +1266,10 @@ component displayName="AssetManager Service" {
 
 		arrayAppend( arguments.selectFields, "asset_derivative.retry_count" );
 
+		if( !arrayFind( arguments.selectFields, "asset_derivative.id" ) ){
+			arrayAppend( arguments.selectFields, "asset_derivative.id" );
+		}
+
 		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 		if ( derivative.recordCount ) {
 			if ( _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" ) && derivative.retry_count < 3) {

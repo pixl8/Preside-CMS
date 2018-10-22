@@ -22,7 +22,6 @@ component {
 		try {
 			if ( Len( Trim( derivativeName ) ) ) {
 				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
-				arrayAppend( assetSelectFields , "asset_derivative.id" );
 				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, selectFields=assetSelectFields );
 			} else if( Len( Trim( versionId ) ) ) {
 				arrayAppend( assetSelectFields , "asset_version.asset_type" );
