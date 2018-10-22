@@ -1068,7 +1068,7 @@ component displayName="AssetManager Service" {
 			  assetId           = arguments.assetId
 			, derivativeName    = arguments.derivativeName
 			, configHash        = configHash
-			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version", "asset_derivative.asset_type"]
+			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
 			, versionId         = version
 			, createIfNotExists = false
 		);
@@ -1266,16 +1266,18 @@ component displayName="AssetManager Service" {
 
 		arrayAppend( arguments.selectFields, "asset_derivative.retry_count" );
 
-		if( !arrayFind( arguments.selectFields, "asset_derivative.id" ) ){
-			arrayAppend( arguments.selectFields, "asset_derivative.id" );
+		for( var selectItem in [ "asset_derivative.id","asset_derivative.asset_type","asset_derivative.storage_path" ] ){
+			if( !arrayFind( arguments.selectFields, selectItem ) ){
+				arrayAppend( arguments.selectFields, selectItem );
+			}
 		}
 
 		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 		if ( derivative.recordCount ) {
 			if ( _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" ) && derivative.retry_count < 3) {
-				_getDerivativeDao().updateData( filter={ asset=arguments.assetId }, data={ asset_url="", retry_count=( IsNumeric( derivative.retry_count ?: "" ) ? derivative.retry_count : 0 ) + 1 } );
+				_getDerivativeDao().updateData( filter={ id=derivative.id }, data={ asset_url="", retry_count=( IsNumeric( derivative.retry_count ?: "" ) ? derivative.retry_count : 0 ) + 1 } );
 				createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
-				return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
+				return derivativeDao.selectData( id=derivative.id, selectFields=arguments.selectFields, useCache=false );
 			} else {
 				return derivative;
 			}
