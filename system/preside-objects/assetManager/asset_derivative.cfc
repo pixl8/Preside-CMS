@@ -16,4 +16,5 @@ component extends="preside.system.base.SystemPresideObject" displayName="Asset d
 
 	property name="is_trashed"   type="boolean" dbtype="boolean"               required=false default=false;
 	property name="trashed_path" type="string"  dbtype="varchar" maxLength=255 required=false;
+	property name="retry_count"  type="numeric" dbtype="int"                   required=false default=0;
 }
