@@ -1288,10 +1288,24 @@ component {
 			if ( existing.recordCount ) {
 				contentId = existing.id;
 			} else {
-				contentId = dao.insertData( {
-					  content      = arguments.content
-					, content_hash = contentHash
-				} );
+				try {
+					contentId = dao.insertData( {
+						  content      = arguments.content
+						, content_hash = contentHash
+					} );
+				} catch( any e ) { // i.e. a duplicate record created due to multithreading
+					existing = dao.selectData(
+						  selectFields = [ "id" ]
+						, filter       = { content_hash = contentHash }
+						, useCache     = false
+					);
+
+					if ( existing.recordCount ) {
+						contentId = existing.id;
+					} else {
+						rethrow;
+					}
+				}
 			}
 		}
 
