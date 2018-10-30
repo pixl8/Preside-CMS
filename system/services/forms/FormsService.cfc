@@ -1349,7 +1349,7 @@ component displayName="Forms service" {
 	}
 
 	private string function _getSiteTemplatePrefix() {
-		var siteTemplate = _getSiteService().getActiveSiteTemplate();
+		var siteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 

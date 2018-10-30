@@ -176,10 +176,15 @@ component singleton=true displayname="Site service" autodoc=true {
 	 * Retrieves the current active site template. This is based either on the URL, for front-end requests, or the currently
 	 * selected site when in the administrator
 	 */
-	public string function getActiveSiteTemplate() output=false autodoc=true {
+	public string function getActiveSiteTemplate( boolean emptyIfDefault=false ) output=false autodoc=true {
 		var site = _getColdbox().getRequestContext().getSite();
+		var siteTemplate = site.template ?: "";
 
-		return site.template ?: "";
+		if ( !Len( Trim( siteTemplate ) ) && !arguments.emptyIfDefault ) {
+			siteTemplate = "default";
+		}
+
+		return siteTemplate;
 	}
 
 	/**
