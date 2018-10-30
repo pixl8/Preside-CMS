@@ -1,5 +1,6 @@
 <cfscript>
 	clickStats = args.clickStats ?: [];
+	event.include( "/css/admin/specific/emailcenter/clickstatstable/" );
 </cfscript>
 <cfoutput>
 	<div class="widget-box">
@@ -14,11 +15,11 @@
 			<div class="widget-main padding-20">
 				<cfif clickStats.len()>
 					<div class="table-responsive">
-	 					<table class="table no-top-border">
+	 					<table class="table no-top-border click-stats-table">
 	 						<thead>
 	 							<tr>
 	 								<th>#translateResource( "cms:emailcenter.stats.clickstats.box.link.header"  )#</th>
-	 								<th>#translateResource( "cms:emailcenter.stats.clickstats.box.count.header" )#</th>
+	 								<th class="count-col">#translateResource( "cms:emailcenter.stats.clickstats.box.count.header" )#</th>
 	 							</tr>
 	 						</thead>
 	 						<tbody>
@@ -29,7 +30,7 @@
 												#abbreviate( clickStat.link, 75 )#
 											</a>
 										</td>
-										<td>#NumberFormat( clickStat.clickCount )#</td>
+										<td class="count-col">#NumberFormat( clickStat.clickCount )#</td>
 									</tr>
 								</cfloop>
 							</tbody>
