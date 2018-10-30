@@ -136,7 +136,7 @@ component singleton=true {
 
 	private struct function _getBundleData( required string bundleName, string language, string country ) output=false {
 		var bundleDataCache    = _getBundleDataCache();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 		var bundleCacheKey     = activeSiteTemplate & arguments.bundleName;
 		var languageCacheKey   = "";
 		var countryCacheKey    =  "";
@@ -173,7 +173,7 @@ component singleton=true {
 
 	private struct function _readBundleData( required string bundleName, string language, string country ) output=false {
 		var directories        = _getBundleDirectories();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 		var siteTemplate       = "";
 		var subDirectory       = "";
 		var files              = "";
