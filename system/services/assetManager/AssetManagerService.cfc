@@ -1266,7 +1266,7 @@ component displayName="AssetManager Service" {
 
 		arrayAppend( arguments.selectFields, "asset_derivative.retry_count" );
 
-		for( var selectItem in [ "asset_derivative.id","asset_derivative.asset_type","asset_derivative.storage_path" ] ){
+		for( var selectItem in [ "asset_derivative.id","asset_derivative.asset_type","asset_derivative.storage_path", "asset_derivative.datecreated" ] ){
 			if( !arrayFind( arguments.selectFields, selectItem ) ){
 				arrayAppend( arguments.selectFields, selectItem );
 			}
@@ -1274,10 +1274,16 @@ component displayName="AssetManager Service" {
 
 		derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 		if ( derivative.recordCount ) {
-			if ( _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" ) && derivative.retry_count < 3) {
-				_getDerivativeDao().updateData( filter={ id=derivative.id }, data={ asset_url="", retry_count=( IsNumeric( derivative.retry_count ?: "" ) ? derivative.retry_count : 0 ) + 1 } );
-				createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
-				return derivativeDao.selectData( id=derivative.id, selectFields=arguments.selectFields, useCache=false );
+			var isPending = _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" );
+			if ( isPending ) {
+				var shouldRetry = Val( derivative.retry_count ) < 3 && DateDiff( "s", derivative.datecreated, Now() ) > 20;
+				if ( shouldRetry ) {
+					_getDerivativeDao().updateData( id=derivative.id, data={ asset_url="", retry_count=Val( derivative.retry_count ?: "" ) + 1 } );
+					createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+					return derivativeDao.selectData( id=derivative.id, selectFields=arguments.selectFields, useCache=false );
+				}
+
+				return QueryNew( "" );
 			} else {
 				return derivative;
 			}
