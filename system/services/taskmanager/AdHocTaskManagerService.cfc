@@ -462,8 +462,7 @@ component displayName="Ad-hoc Task Manager Service" {
 
 	private void function _scheduleTask( required string taskId, required date nextAttemptDate ) {
 		var scheduleSettings = $getPresideCategorySettings( category="taskmanager" );
-
-		_getTaskScheduler().createTask(
+		var taskConfig = {
 			  task          = "PresideAdHocTask-" & arguments.taskId
 			, url           = getTaskRunnerUrl( taskId=taskId, siteContext=scheduleSettings.site_context ?: "" )
 			, port          = Val( scheduleSettings.http_port ?: "" ) ? scheduleSettings.http_port : 80
@@ -478,7 +477,16 @@ component displayName="Ad-hoc Task Manager Service" {
 			, interval      = "Once"
 			, hidden        = true
 			, autoDelete    = true
-		);
+		};
+
+		var isHttps = taskConfig.url.reFindNoCase( "^https:" );
+		if ( isHttps && taskConfig.port == 80 ) {
+			taskConfig.port = 443;
+		} else if ( !isHttps && taskConfig.port == 443 ) {
+			taskConfig.port = 80;
+		}
+
+		_getTaskScheduler().createTask( argumentCollection=taskConfig );
 	}
 
 // GETTERS AND SETTERS
