@@ -11,12 +11,14 @@ component {
 		var port        = settings.port        ?: "";
 		var username    = settings.username    ?: "";
 		var password    = settings.password    ?: "";
+		var useTls      = IsTrue( settings.use_tls ?: "" );
 		var params      = sendArgs.params      ?: {};
 		var attachments = sendArgs.attachments ?: [];
 
 		m.setTo( sendArgs.to.toList( ";" ) );
 		m.setFrom( sendArgs.from );
 		m.setSubject( sendArgs.subject );
+		m.setUseTls( useTls );
 
 		if ( sendArgs.cc.len()  ) {
 			m.setCc( sendArgs.cc.toList( ";" ) );
@@ -82,6 +84,7 @@ component {
 				, port     = Val( arguments.settings.port ?: "" )
 				, username = arguments.settings.username  ?: ""
 				, password = arguments.settings.password  ?: ""
+				, useTls   = IsTrue( arguments.settings.use_tls ?: "" )
 			);
 
 			if ( Len( Trim( errorMessage ) ) ) {
