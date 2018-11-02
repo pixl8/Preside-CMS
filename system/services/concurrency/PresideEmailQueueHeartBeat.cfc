@@ -45,14 +45,22 @@ component extends="AbstractHeartBeat" {
 		var startUrl = $getRequestContext().buildLink( linkTo="taskmanager.runtasks.startEmailQueueHeartbeat" );
 
 		thread name=CreateUUId() startUrl=startUrl {
-			try {
-				sleep( 5000 + ( 100 * _getInstanceNumber() ) );
-				http method="post" url=startUrl timeout=2 throwonerror=true {
-					httpparam type="formfield" name="instanceNumber" value=_getInstanceNumber();
+			var attemptLimit = 10;
+			var attempt      = 1;
+			var success      = false;
+
+			do {
+				try {
+					sleep( 5000 + ( 100 * _getInstanceNumber() ) );
+					http method="post" url=startUrl timeout=2 throwonerror=true {
+						httpparam type="formfield" name="instanceNumber" value=_getInstanceNumber();
+					}
+					success = true;
+				} catch( any e ) {
+					$raiseError( e );
+					$systemOutput( "Failed to start email queue heartbeat. Retrying...(attempt #attempt#)");
 				}
-			} catch( any e ) {
-				$raiseError( e );
-			}
+			} while ( !success && ++attempt <= 10 );
 		}
 	}
 

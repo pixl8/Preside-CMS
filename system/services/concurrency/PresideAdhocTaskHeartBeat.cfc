@@ -35,12 +35,20 @@ component extends="AbstractHeartBeat" {
 		var startUrl = $getRequestContext().buildLink( linkTo="taskmanager.runtasks.startAdhocTaskManagerHeartbeat" );
 
 		thread name=CreateUUId() startUrl=startUrl {
-			try {
-				sleep( 5000 );
-				http method="post" url=startUrl timeout=2 throwonerror=true;
-			} catch( any e ) {
-				$raiseError( e );
-			}
+			var attemptLimit = 10;
+			var attempt      = 1;
+			var success      = false;
+
+			do {
+				try {
+					sleep( 5000 );
+					http method="post" url=startUrl timeout=2 throwonerror=true;
+					success = true;
+				} catch( any e ) {
+					$raiseError( e );
+					$systemOutput( "Failed to start adhoc taskmanager heartbeat. Retrying...(attempt #attempt#)");
+				}
+			} while ( !success && ++attempt <= 10 );
 		}
 	}
 

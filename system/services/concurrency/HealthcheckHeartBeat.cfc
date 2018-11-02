@@ -48,14 +48,18 @@ component extends="AbstractHeartBeat" {
 		var startUrl = $getRequestContext().buildLink( linkTo="taskmanager.runtasks.startHealthCheckHeartbeat" );
 
 		thread name=CreateUUId() startUrl=startUrl {
-			try {
-				sleep( 10000 );
-				http method="post" url=startUrl timeout=2 throwonerror=true {
-					httpparam name="serviceId" type="formfield" value=_getServiceId();
+			do {
+				try {
+					sleep( 10000 );
+					http method="post" url=startUrl timeout=2 throwonerror=true {
+						httpparam name="serviceId" type="formfield" value=_getServiceId();
+					}
+					success = true;
+				} catch( any e ) {
+					$raiseError( e );
+					$systemOutput( "Failed to start healthcheck heartbeat. Retrying...(attempt #attempt#)");
 				}
-			} catch( any e ) {
-				$raiseError( e );
-			}
+			} while ( !success && ++attempt <= 10 );
 		}
 	}
 

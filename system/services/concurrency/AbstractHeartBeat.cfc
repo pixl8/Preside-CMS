@@ -29,9 +29,13 @@ component {
 	public void function start() {
 		if ( _isStopped() ) {
 			thread name="#_getThreadName()#-#CreateUUId()#" {
-				register();
+				lock type="exclusive" timeout=1 name=_getThreadName() {
+					if ( _isStopped() ) {
+						register();
+					}
+				}
 
-				do {
+				while( !_isStopped() ) {
 					run();
 
 					if ( _isStopped() ) {
@@ -42,7 +46,7 @@ component {
 					content reset=true;
 
 					sleep( _getIntervalInMs() );
-				} while( !_isStopped() );
+				};
 
 				$systemOutput( "The #_getThreadName()# heartbeat thread has gracefully exited after being told to stop." );
 
