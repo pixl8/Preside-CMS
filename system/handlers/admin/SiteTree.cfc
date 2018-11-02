@@ -1091,7 +1091,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId = rc.id ?: "";
 
 		if ( pageId.isEmpty() ) {
-			pageCache.clearAll();
+			getController().getCachebox().clearAll();
 
 			event.audit(
 				  action = "clear_page_cache"
