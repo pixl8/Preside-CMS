@@ -104,6 +104,10 @@ component displayName="Ad-hoc Task Manager Service" {
 			var args  = IsJson( task.event_args ?: "" ) ? DeserializeJson( task.event_args ) : {};
 			var e     = "";
 
+			if ( !task.recordCount ) {
+				return true;
+			}
+
 			if ( task.status == "running" ) {
 				$raiseError( error={
 					  type    = "AdHoTaskManagerService.task.already.running"

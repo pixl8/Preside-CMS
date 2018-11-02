@@ -11,6 +11,7 @@ This form is used for configuring the SMTP mail server and other mail related se
 			<field sortorder="20" name="port"             control="spinner"     required="false" default="25" maxValue="99999" />
 			<field sortorder="30" name="username"         control="textinput"   required="false" />
 			<field sortorder="40" name="password"         control="password"    required="false" outputSavedValue="true" />
+			<field sortorder="40" name="use_tls"          control="yesnoswitch" required="false" />
 			<field sortorder="50" name="check_connection" control="yesnoswitch" required="false" />
 		</fieldset>
 	</tab>
