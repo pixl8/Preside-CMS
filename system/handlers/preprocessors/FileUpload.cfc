@@ -10,14 +10,15 @@ component {
 
 		try {
 			uploadResult = FileUpload( tempFile, arguments.fieldName );
-			convertSetting = getSystemSetting(category = "asset-manager", setting = "tiff_conversion",default=false);
-			if ( listFindNoCase( "tif,tiff", ListLast( uploadResult.serverFile, "." ) ) AND convertSetting ) {
+			var convertTiffs = IsTrue( getSystemSetting( category="asset-manager", setting="tiff_conversion", default=false ) );
+			if ( ListFindNoCase( "tif,tiff", ListLast( uploadResult.serverFile, "." ) ) && convertTiffs ) {
 				var file = uploadResult.serverDirectory & "\" & uploadResult.serverFile;
-				var update = replaceNoCase( file,ListLast( ListLast( file,"\" ),"." ), "jpg" );
-				cfimage ( source = file, name="mySourceImg" )
-			    cfimage ( action = "convert", source = mySourceImg ,destination= update ,overwrite="true" );
-			    uploadResult.clientFile = replaceNoCase( uploadResult.clientFile ,ListLast(uploadResult.clientFile,"." ), "jpg" );
-			    uploadResult.serverFile = replaceNoCase( uploadResult.serverFile ,ListLast(uploadResult.serverFile,"." ), "jpg" );
+				var update = ReplaceNoCase( file, ListLast( ListLast( file, "\/" ), "." ), "jpg" );
+				var sourceImg = "";
+				image source=file name="sourceImg";
+			    image action="convert" source= sourceImg destination=update overwrite=true;
+			    uploadResult.clientFile = ReplaceNoCase( uploadResult.clientFile ,ListLast( uploadResult.clientFile, "." ), "jpg" );
+			    uploadResult.serverFile = ReplaceNoCase( uploadResult.serverFile ,ListLast( uploadResult.serverFile, "." ), "jpg" );
 			}
 		} catch ( any e ) {
 			logError( e );
