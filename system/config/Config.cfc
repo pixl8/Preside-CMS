@@ -521,11 +521,14 @@ component {
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
+			, svg = { serveAsAttachmemnt=false, mimeType="image/svg+xml" }
 		};
 
 		types.video = {
 			  swf = { serveAsAttachment=true, mimeType="application/x-shockwave-flash" }
 			, flv = { serveAsAttachment=true, mimeType="video/x-flv" }
+			, mp4 = { serveAsAttachment=true, mimeType="video/mp4" }
+			, avi = { serveAsAttachment=true, mimeType="video/avi" }
 		};
 
 		types.document = {
