@@ -218,9 +218,13 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	private void function _ensureDirectoryExists( required string dir ){
 		if ( arguments.dir.len() && !DirectoryExists( arguments.dir ) ) {
-			var parentDir = ListDeleteAt( arguments.dir, ListLen( arguments.dir, "/" ), "/" );
-			_ensureDirectoryExists( parentDir );
-			DirectoryCreate( arguments.dir );
+			try {
+				DirectoryCreate( arguments.dir, true, true );
+			} catch( any e ) {
+				if ( !DirectoryExists( arguments.dir ) ) {
+					rethrow;
+				}
+			}
 		}
 	}
 
