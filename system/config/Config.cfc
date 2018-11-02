@@ -229,6 +229,7 @@ component {
 			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
+		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
@@ -522,6 +523,8 @@ component {
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
 			, svg = { serveAsAttachmemnt=false, mimeType="image/svg+xml" }
+			, tiff = { serveAsAttachment=false, mimeType="image/tiff" }
+			, tif  = { serveAsAttachment=false, mimeType="image/tiff" }
 		};
 
 		types.video = {

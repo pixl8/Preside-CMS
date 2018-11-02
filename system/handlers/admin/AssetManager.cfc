@@ -504,7 +504,14 @@ component extends="preside.system.base.AdminHandler" {
 
 			assetData.delete( "asset_folder" );
 			assetData.delete( "file" );
-			assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+
+			var convertTiffs = IsTrue( getSystemSetting( category="asset-manager", setting="tiff_conversion", default=false ) );
+
+			if ( ListFindNoCase( "tif,tiff", ListLast( assetData.title, "." ) ) && convertTiffs ) {
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? ReplaceNoCase( assetData.title, ListLast( assetData.title, "." ), "jpg" ) : fileName;
+			} else {
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+			}
 
 			try {
 				var assetId = assetManagerService.addAsset(
