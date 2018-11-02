@@ -25,7 +25,7 @@
 		  objectName      = objectName
 		, useMultiActions = canDelete
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteUserManager.getUsersForAjaxDataTables" )
-		, gridFields      = [ "id", "active", "login_id", "display_name", "email_address", "last_request_made" ]
+		, gridFields      = [ "active", "login_id", "display_name", "email_address", "last_request_made" ]
 		, allowDataExport = true
 		, dataExportUrl   = event.buildAdminLink( linkTo="websiteUserManager.exportAction" )
 		, multiActionUrl  = event.buildAdminLink( linkTo="websiteUserManager.deleteUserAction" )
