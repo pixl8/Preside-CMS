@@ -160,7 +160,10 @@ component {
 			}
 
 			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
-			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+
+			if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
+				message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+			}
 
 
 		} catch( any e ) {
@@ -252,7 +255,11 @@ component {
 		}
 
 		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
-		message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+
+		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
+			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+		}
+		
 		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
 
 		if ( Len( Trim( previewRecipient ) ) ) {
