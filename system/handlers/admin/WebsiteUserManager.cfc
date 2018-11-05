@@ -22,6 +22,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	function index( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.navigate" );
+		prc.canDelete = hasCmsPermission( "websiteUserManager.delete" );
 	}
 
 	function getUsersForAjaxDataTables( event, rc, prc ) {
@@ -35,7 +36,7 @@ component extends="preside.system.base.AdminHandler" {
 				  object          = "website_user"
 				, gridFields      = "active,login_id,display_name,email_address,last_request_made"
 				, actionsView     = "/admin/websiteUserManager/_usersGridActions"
-				, useMultiActions = false
+				, useMultiActions = true
 			}
 		);
 	}

@@ -57,15 +57,15 @@ component displayName="Preside Object View Service" {
 	public any function renderView(
 		  required string  presideObject
 		, required string  view
-		,          boolean autoGroupBy  = true
-		,          string  returntype   = "string"
-		,          struct  args         = {}
-		,          boolean cache        = false
-		,          boolean cacheAutoKey = true
-		,          numeric cacheTimeout
-		,          numeric cacheLastAccessTimeout
-		,          string  cacheSuffix
-		,          string  cacheProvider = "template"
+		,          boolean autoGroupBy            = true
+		,          string  returntype             = "string"
+		,          struct  args                   = {}
+		,          boolean cache                  = false
+		,          boolean cacheAutoKey           = true
+		,          any     cacheTimeout           = ""
+		,          any     cacheLastAccessTimeout = ""
+		,          string  cacheSuffix            = ""
+		,          string  cacheProvider          = "template"
 	) {
 		if ( arguments.cache ) {
 			var cacheKey = _generateCacheKey( argumentCollection=arguments );
@@ -268,17 +268,17 @@ component displayName="Preside Object View Service" {
 	private void function _saveToCache(
 		  required string  cacheKey
 		, required any     value
-		, required string  cacheProvider = "template"
-		,          numeric cacheTimeout
-		,          numeric cacheLastAccessTimeout
+		, required string  cacheProvider          = "template"
+		,          any     cacheTimeout           = ""
+		,          any     cacheLastAccessTimeout = ""
 	) {
 		var cache    = _getCacheBox().getCache( arguments.cacheProvider );
 
 		cache.set(
 			  objectKey         = arguments.cacheKey
 			, object            = arguments.value
-			, timeout           = arguments.cacheTimeout           ?: NullValue()
-			, lastAccessTimeout = arguments.cacheLastAccessTimeout ?: NullValue()
+			, timeout           = arguments.cacheTimeout
+			, lastAccessTimeout = arguments.cacheLastAccessTimeout
 		);
 	}
 
@@ -286,8 +286,8 @@ component displayName="Preside Object View Service" {
 		  required string  presideObject
 		, required string  view
 		, required boolean cacheAutoKey
-		,          numeric cacheTimeout
-		,          numeric cacheLastAccessTimeout
+		,          any     cacheTimeout = ""
+		,          any     cacheLastAccessTimeout = ""
 		,          string  cacheSuffix
 		,          string  cacheProvider = "template"
 

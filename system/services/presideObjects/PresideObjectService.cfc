@@ -306,6 +306,7 @@ component displayName="Preside Object Service" {
 	 * @isDraft.hint                 Whether or not to save the record as a draft record
 	 * @useVersioning.hint           Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
+	 * @bypassTenants.hint           Array of tenants to ignore (i.e. when the insert data wants to create a record in an alternative tenant to the current one)
 	 * @useVersioning.docdefault     automatic
 	 */
 	public any function insertData(
@@ -315,6 +316,7 @@ component displayName="Preside Object Service" {
 		,          boolean isDraft                 = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
+		,          array   bypassTenants           = []
 
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preInsertObjectData", arguments );
@@ -3052,7 +3054,7 @@ component displayName="Preside Object Service" {
 		return _getSqlRunner().runSql( argumentCollection = arguments );
 	}
 
-	private any function _announceInterception( required string state, struct interceptData={}, boolean bufferOutput=false ) {
+	private any function _announceInterception( required string state, struct interceptData={} ) {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};

@@ -336,4 +336,24 @@ component extends="BaseAdapter" {
 	public string function getNowFunctionSql() {
 		return "GetDate()";
 	}
+
+	public string function getIndexSql(
+		  required string  indexName
+		, required string  tableName
+		, required string  fieldList
+		,          boolean unique=false
+
+	) {
+		var ix = super.getIndexSql( argumentCollection=arguments );
+
+		if ( arguments.unique ) {
+			var delim = " where ";
+			for( var field in ListToArray( arguments.fieldList ) ) {
+				ix &= delim & escapeEntity( field ) & " is not null";
+				delim = " and ";
+			}
+		}
+
+		return ix;
+	}
 }

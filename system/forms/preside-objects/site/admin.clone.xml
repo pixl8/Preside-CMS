@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Site: clone form
+
+This form is used for the "clone site" form in the site manager
+-->
+<form>
+	<tab id="clone" sortorder="10">
+		<fieldset id="clonebasic" sortorder="10">
+			<field binding="site.name"     sortorder="10" control="textinput" />
+			<field binding="site.protocol" sortorder="20" required="true"   />
+			<field binding="site.domain"   sortorder="30" control="textinput" />
+			<field binding="site.path"     sortorder="40" control="textinput" />
+		</fieldset>
+	</tab>
+</form>

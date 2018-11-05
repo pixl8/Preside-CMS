@@ -51,7 +51,6 @@ component {
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } },
 			{ class="preside.system.interceptors.PageCachingInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
 		];
@@ -102,6 +101,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                       );
 		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                        );
+		interceptorSettings.customInterceptionPoints.append( "onAdminLoginSuccess"                   );
+		interceptorSettings.customInterceptionPoints.append( "onAdminLoginFailure"                   );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                       );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                        );
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                       );
@@ -118,6 +119,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
+		interceptorSettings.customInterceptionPoints.append( "preSetUserSession"                     );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -208,6 +210,8 @@ component {
 			, "systemInformation"
 		];
 
+		settings.adminLoginProviders = [ "preside" ];
+
 		settings.uploads_directory = ExpandPath( "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
@@ -225,12 +229,13 @@ component {
 			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
+		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches", "clone" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
-			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft" ]
+			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, passwordPolicyManager  = [ "manage" ]
@@ -251,7 +256,7 @@ component {
 			, errorlogs              = [ "navigate" ]
 			, emailCenter            = {
 				  layouts          = [ "navigate", "configure" ]
-				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read" ]
+				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read", "cancelsend" ]
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
 				, serviceProviders = [ "manage" ]
 				, settings         = [ "navigate", "manage", "resend" ]
@@ -328,11 +333,13 @@ component {
 			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
 			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
+			, emailStyleInliner       = { enabled=true , siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
 			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
 			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
+			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -347,6 +354,7 @@ component {
 
 				return { filter=sql, filterParams=params };
 			}
+			, nonDeletedSites = { filter="site.deleted is null or site.deleted = :site.deleted", filterParams={ "site.deleted"=false } }
 			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
 			, webUserEmailTemplates = {
 				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
@@ -367,12 +375,13 @@ component {
 		settings.enum.siteProtocol                = [ "http", "https" ];
 		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
 		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
+		settings.enum.emailSendQueueStatus        = [ "queued", "sending" ];
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
-		settings.enum.emailActivityType           = [ "open", "click", "markasspam", "unsubscribe" ];
+		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
-		settings.enum.adhocTaskStatus             = [ "pending", "running", "requeued", "succeeded", "failed" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
@@ -423,8 +432,11 @@ component {
 		settings.dataExport = {};
 		settings.dataExport.csv = { delimiter="," };
 
-
 		settings.email = _getEmailSettings();
+
+		settings.concurrency = _getConcurrencySettings();
+
+		settings.healthCheckServices = {};
 
 		_loadConfigurationFromExtensions();
 
@@ -511,11 +523,16 @@ component {
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
+			, svg = { serveAsAttachmemnt=false, mimeType="image/svg+xml" }
+			, tiff = { serveAsAttachment=false, mimeType="image/tiff" }
+			, tif  = { serveAsAttachment=false, mimeType="image/tiff" }
 		};
 
 		types.video = {
 			  swf = { serveAsAttachment=true, mimeType="application/x-shockwave-flash" }
 			, flv = { serveAsAttachment=true, mimeType="video/x-flv" }
+			, mp4 = { serveAsAttachment=true, mimeType="video/mp4" }
+			, avi = { serveAsAttachment=true, mimeType="video/avi" }
 		};
 
 		types.document = {
@@ -743,6 +760,16 @@ component {
 			, recipientTypes       = recipientTypes
 			, serviceProviders     = serviceProviders
 			, defaultContentExpiry = 30
+			, queueConcurrency     = 1
+		};
+	}
+
+	private struct function _getConcurrencySettings(){
+		return {
+			pools = {
+				  scheduledTasks = { maxConcurrent=0, maxWorkQueueSize=10000 }
+				, adhoc          = { maxConcurrent=0, maxWorkQueueSize=10000 }
+			}
 		};
 	}
 

@@ -22,6 +22,7 @@
 	canDeletePage           = prc.canDeletePage           ?: false;
 	canSortChildren         = prc.canSortChildren         ?: false;
 	canManagePagePerms      = prc.canManagePagePerms      ?: false;
+	canClone                = prc.canClone                ?: false;
 	canActivate             = prc.canActivate             ?: false;
 	translations            = prc.translations            ?: [];
 	translateUrlBase        = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
@@ -51,6 +52,14 @@
 				<i class="fa fa-fw fa-cog"></i>&nbsp; #translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )#
 			</button>
 			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+				<cfif canClone>
+					<li>
+						<a href="#event.buildAdminLink( linkTo='sitetree.clonePage', queryString='id=' & pageId )#">
+							<i class="fa fa-fw fa-clone"></i>&nbsp;
+							#translateResource( "cms:sitetree.clone.page.dropdown" )#
+						</a>
+					</li>
+				</cfif>
 				<cfif canAddChildren>
 					<cfset addPageLinkTitle = translateResource( uri="cms:sitetree.add.child.page.link", data=[ safeTitle ] ) />
 					<li>

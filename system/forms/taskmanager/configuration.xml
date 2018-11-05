@@ -9,16 +9,7 @@ This form is used for general configuration of the task manager
 		<fieldset id="default">
 			<field name="scheduledtasks_enabled" control="yesnoswitch"  required="false"             />
 			<field name="keep_logs_for_days"     control="spinner"      required="false" default="7" />
-		</fieldset>
-		<fieldset id="server">
-			<field name="site_context"   control="objectpicker" required="true" object="site" />
-			<field name="http_port"      control="spinner"      required="false" default="80" />
-			<field name="http_username"  control="textinput"    required="false" />
-			<field name="http_password"  control="password"     required="false" outputSavedValue="true" />
-			<field name="proxy_server"   control="textinput"    required="false" />
-			<field name="proxy_port"     control="textinput"    required="false" />
-			<field name="proxy_user"     control="textinput"    required="false" />
-			<field name="proxy_password" control="password"     required="false" outputSavedValue="true"  />
+			<field name="site_context"           control="objectpicker" required="true" object="site" />
 		</fieldset>
 	</tab>
 </form>

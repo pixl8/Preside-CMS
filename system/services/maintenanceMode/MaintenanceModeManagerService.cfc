@@ -12,20 +12,17 @@ component {
 	/**
 	 * @maintenanceModeService.inject     maintenanceModeService
 	 * @systemConfigurationService.inject systemConfigurationService
-	 * @taskManagerService.inject         taskManagerService
 	 * @maintenanceModeViewlet.inject     coldbox:setting:maintenanceModeViewlet
 	 * @coldbox.inject                    coldbox
 	 */
 	public any function init(
 		  required any maintenanceModeService
 		, required any systemConfigurationService
-		, required any taskManagerService
 		, required any coldbox
 		, required string maintenanceModeViewlet
 	) {
 		_setMaintenanceModeService( arguments.maintenanceModeService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
-		_setTaskManagerService( arguments.taskManagerService );
 		_setMaintenanceModeViewlet( arguments.maintenanceModeViewlet );
 		_setColdbox( arguments.coldbox );
 	}
@@ -91,7 +88,6 @@ component {
 			, setting  = "scheduledtasks_enabled"
 			, value    = arguments.tasksEnabled
 		);
-		_getTaskManagerService().registerMasterScheduledTask();
 	}
 
 	private string function _generateMaintenanceModePage( required struct settings ) {
@@ -114,13 +110,6 @@ component {
 	}
 	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
 		_systemConfigurationService = arguments.systemConfigurationService;
-	}
-
-	private any function _getTaskManagerService() {
-		return _taskManagerService;
-	}
-	private void function _setTaskManagerService( required any taskManagerService ) {
-		_taskManagerService = arguments.taskManagerService;
 	}
 
 	private any function _getColdbox() output=false {

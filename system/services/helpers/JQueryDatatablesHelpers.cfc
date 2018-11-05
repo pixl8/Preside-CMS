@@ -24,8 +24,9 @@ component {
 		for( row in arguments.qry ){
 			record = {};
 			for( col in arguments.columns ){
-				record[ ListLast( col, "." ) ] = row[ ListLast( col, "." ) ];
+				record[ ListLast( col, "." ) ] = ReReplace( row[ ListLast( col, "." ) ], "\s+", " ", "all" );
 			}
+
 			ArrayAppend( result.aaData, record );
 		}
 

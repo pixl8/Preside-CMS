@@ -88,10 +88,10 @@
 
 				if ( !noActions ) {
 					colConfig.push( {
-						sClass    : "center",
+						sClass    : "text-right",
 						bSortable : false,
 						mData     : "_options",
-						sWidth    : "9em"
+						sWidth    : "12em"
 					} );
 				}
 				$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );

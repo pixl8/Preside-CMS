@@ -7,6 +7,8 @@
  */
 component {
 
+	variables._operationsCache = {};
+
 // CONSTRUCTOR
 
 	/**
@@ -18,6 +20,8 @@ component {
 	 * @siteService.inject          SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
 	 * @customizationService.inject datamanagerCustomizationService
+	 * @cloningService.inject       presideObjectCloningService
+	 * @multilingualService.inject  multilingualPresideObjectService
 	 */
 	public any function init(
 		  required any presideObjectService
@@ -28,6 +32,8 @@ component {
 		, required any siteService
 		, required any relationshipGuidance
 		, required any customizationService
+		, required any cloningService
+		, required any multilingualService
 	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
@@ -37,6 +43,8 @@ component {
 		_setSiteService( arguments.siteService );
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setCustomizationService( arguments.customizationService );
+		_setCloningService( arguments.cloningService );
+		_setMultilingualService( arguments.multilingualService );
 
 		return this;
 	}
@@ -211,16 +219,42 @@ component {
 			return IsBoolean( result ?: "" ) && result;
 		}
 
-		var operations = _getPresideObjectService().getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "datamanagerAllowedOperations"
-			, defaultValue  = "read,add,edit,delete,viewversions,translate"
-		);
+		return getAllowedOperationsForObject( arguments.objectName ).findNoCase( arguments.operation );
+	}
 
-		operations = operations.reReplaceNoCase( "\bview\b", "read" );
+	public array function getAllowedOperationsForObject( required string objectName ) {
+		if ( !_operationsCache.keyexists( arguments.objectName ) ) {
+			var operations           = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerAllowedOperations"   , objectName=arguments.objectName, defaultValue=getDefaultOperationsForObject( arguments.objectName ) );
+			var disallowedOperations = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerDisallowedOperations", objectName=arguments.objectName, defaultValue=""                                                    );
 
+			operations           = ListToArray( operations.reReplaceNoCase( "\bview\b", "read" ) );
+			disallowedOperations = ListToArray( disallowedOperations );
 
-		return operations != "none" && ListFindNoCase( operations, arguments.operation );
+			for( var disallowedOp in disallowedOperations ) {
+				var index = operations.findNoCase( disallowedOp );
+				if ( index ) { operations.deleteAt( index ); }
+			}
+
+			_operationsCache[ arguments.objectName ] = operations;
+		}
+
+		return _operationsCache[ arguments.objectName ];
+	}
+
+	public string function getDefaultOperationsForObject( required string objectName ) {
+		var defaults = [ "read", "add", "edit", "delete" ];
+
+		if ( _getPresideObjectService().objectIsVersioned( arguments.objectName ) ) {
+			defaults.append( "viewversions" );
+		}
+		if ( _getCloningService().isCloneable( arguments.objectName ) ) {
+			defaults.append( "clone" );
+		}
+		if ( _getMultilingualService().isMultilingual( arguments.objectName ) ) {
+			defaults.append( "translate" );
+		}
+
+		return defaults.toList();
 	}
 
 	public boolean function isSortable( required string objectName ) {
@@ -910,6 +944,20 @@ component {
 	}
 	private void function _setCustomizationService( required any customizationService ) {
 		_customizationService = arguments.customizationService;
+	}
+
+	private any function _getCloningService() {
+		return _cloningService;
+	}
+	private void function _setCloningService( required any cloningService ) {
+		_cloningService = arguments.cloningService;
+	}
+
+	private any function _getMultilingualService() {
+		return _multilingualService;
+	}
+	private void function _setMultilingualService( required any multilingualService ) {
+		_multilingualService = arguments.multilingualService;
 	}
 
 }

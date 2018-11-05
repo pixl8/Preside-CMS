@@ -61,8 +61,16 @@ component {
 			var remove   = IsBoolean( attachment.removeAfterSend ?: "" ) ? attachment.removeAfterSend : true;
 
 			if ( !FileExists( filePath ) ) {
-				DirectoryCreate( tmpDir, true, true );
-				FileWrite( filePath, attachment.binary );
+				try {
+					DirectoryCreate( tmpDir, true, true );
+					FileWrite( filePath, attachment.binary );
+				} catch( any e ) {
+					// concurrency can lead to errors here (multiple processes creating the same file)
+					// just check that it exists again
+					if ( !FileExists( filePath ) ) {
+						rethrow;
+					}
+				}
 			}
 
 			m.addParam( disposition="attachment", file=filePath, remove=remove );

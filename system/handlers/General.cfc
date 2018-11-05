@@ -1,12 +1,18 @@
 component {
-	property name="applicationReloadService"  inject="applicationReloadService";
-	property name="databaseMigrationService"  inject="databaseMigrationService";
-	property name="applicationsService"       inject="applicationsService";
-	property name="websiteLoginService"       inject="websiteLoginService";
-	property name="adminLoginService"         inject="loginService";
-	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
-	property name="expressionGenerator"       inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="applicationReloadService"    inject="applicationReloadService";
+	property name="databaseMigrationService"    inject="databaseMigrationService";
+	property name="applicationsService"         inject="applicationsService";
+	property name="websiteLoginService"         inject="websiteLoginService";
+	property name="adminLoginService"           inject="loginService";
+	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
+	property name="expressionGenerator"         inject="rulesEngineAutoPresideObjectExpressionGenerator";
+	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
+	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
+	property name="healthcheckService"          inject="healthcheckService";
+	property name="permissionService"           inject="permissionService";
+
+	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -15,6 +21,8 @@ component {
 		_configureVariousServices();
 		_populateDefaultLanguages();
 		_populateAutoRulesEngineExpressions();
+		_setupCatchAllAdminUserGroup();
+		_startHeartbeats();
 
 		announceInterception( "onApplicationStart" );
 	}
@@ -198,5 +206,24 @@ component {
 		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
 			i18n.setFwLocale( request.DefaultLocaleFromCookie );
 		}
+	}
+
+	private void function _startHeartbeats() {
+		presideTaskmanagerHeartBeat.startInNewRequest();
+		presideAdhocTaskHeartBeat.startInNewRequest();
+
+		for( var i=1; i<=emailQueueConcurrency; i++ ) {
+			getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
+		}
+
+		if ( isFeatureEnabled( "healthchecks" ) ) {
+			for( var serviceId in healthcheckService.listRegisteredServices() ) {
+				getModel( "healthCheckHeartbeat#serviceId#" ).startInNewRequest();
+			}
+		}
+	}
+
+	private void function _setupCatchAllAdminUserGroup() {
+		permissionService.setupCatchAllGroup();
 	}
 }

@@ -15,4 +15,6 @@ component extends="preside.system.base.SystemPresideObject" labelfield="name" di
 	property name="author"               type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title_prefix" type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title_suffix" type="string"  dbtype="varchar" maxLength="100"  required=false;
+
+	property name="deleted" type="boolean" dbtype="boolean" required=false default=false control="none" autofilter=false renderer="none";
 }

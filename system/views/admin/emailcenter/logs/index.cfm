@@ -12,5 +12,7 @@
 		, useMultiActions = false
 		, datasourceUrl   = ajaxUrl
 		, gridFields      = gridFields
+		, allowDataExport = true
+		, dataExportUrl   = event.buildAdminLink( linkTo="emailcenter.logs.exportAction" )
 	} )#
 </cfoutput>

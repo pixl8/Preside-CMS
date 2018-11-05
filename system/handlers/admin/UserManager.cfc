@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
 	property name="loginService"         inject="loginService";
+	property name="permissionService"    inject="permissionService";
 	property name="messageBox"           inject="messagebox@cbmessagebox";
 	property name="bCryptService"        inject="bCryptService";
 
@@ -38,7 +39,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object      = "security_group"
-				, gridFields  = "label,description"
+				, gridFields  = "label,description,is_catch_all"
 				, actionsView = "/admin/usermanager/_groupsGridActions"
 			}
 		);
@@ -99,6 +100,10 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		prc.record = queryRowToStruct( prc.record );
 
+		if ( IsTrue( prc.record.is_catch_all ?: "" ) ) {
+			prc.mergeWithFormName = "preside-objects.security_group.admin.edit.catchall"
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:usermanager.editGroup.page.title", data=[ prc.record.label ] )
 			, link  = event.buildAdminLink( linkTo="usermanager.editGroup", queryString="id=#(rc.id ?: '')#" )
@@ -124,6 +129,13 @@ component extends="preside.system.base.AdminHandler" {
 
 	function deleteGroupAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="groupmanager.delete" );
+
+		for( var groupid in ListToArray( rc.id ?: "" ) ) {
+			if ( permissionService.isCatchAllGroup( groupid ) ) {
+				messageBox.error( translateResource( "cms:usermanager.cannot.delete.catch.all" ) );
+				setNextEvent( url=event.buildAdminLink( linkto="usermanager.groups" ) );
+			}
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._deleteRecordAction"

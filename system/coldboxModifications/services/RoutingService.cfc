@@ -1,26 +1,23 @@
-component extends="coldbox.system.interceptors.SES" {
+component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
-	property name="featureService"                   inject="delayedInjector:featureService";
-	property name="systemConfigurationService"       inject="delayedInjector:systemConfigurationService";
-	property name="urlRedirectsService"              inject="delayedInjector:urlRedirectsService";
-	property name="siteService"                      inject="delayedInjector:siteService";
-	property name="tenancyService"                   inject="delayedInjector:tenancyService";
-	property name="adminRouteHandler"                inject="delayedInjector:adminRouteHandler";
-	property name="assetRouteHandler"                inject="delayedInjector:assetRouteHandler";
-	property name="plainStoredFileRouteHandler"      inject="delayedInjector:plainStoredFileRouteHandler";
-	property name="staticAssetRouteHandler"          inject="delayedInjector:staticAssetRouteHandler";
-	property name="restRouteHandler"                 inject="delayedInjector:restRouteHandler";
-	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
-	property name="multilingualIgnoredUrlPatterns"   inject="coldbox:setting:multilingual.ignoredUrlPatterns";
+	public void function onConfigurationLoad() {
+		super.onConfigurationLoad( argumentCollection=arguments );
 
-	public void function configure() output=false {
-		instance.presideRoutes = [];
-
-		super.configure( argumentCollection = arguments );
+		variables.featureService                   = wirebox.getInstance( dsl="delayedInjector:featureService"                   );
+		variables.systemConfigurationService       = wirebox.getInstance( dsl="delayedInjector:systemConfigurationService"       );
+		variables.urlRedirectsService              = wirebox.getInstance( dsl="delayedInjector:urlRedirectsService"              );
+		variables.siteService                      = wirebox.getInstance( dsl="delayedInjector:siteService"                      );
+		variables.tenancyService                   = wirebox.getInstance( dsl="delayedInjector:tenancyService"                   );
+		variables.adminRouteHandler                = wirebox.getInstance( dsl="delayedInjector:adminRouteHandler"                );
+		variables.assetRouteHandler                = wirebox.getInstance( dsl="delayedInjector:assetRouteHandler"                );
+		variables.plainStoredFileRouteHandler      = wirebox.getInstance( dsl="delayedInjector:plainStoredFileRouteHandler"      );
+		variables.staticAssetRouteHandler          = wirebox.getInstance( dsl="delayedInjector:staticAssetRouteHandler"          );
+		variables.restRouteHandler                 = wirebox.getInstance( dsl="delayedInjector:restRouteHandler"                 );
+		variables.multilingualPresideObjectService = wirebox.getInstance( dsl="delayedInjector:multilingualPresideObjectService" );
+		variables.multilingualIgnoredUrlPatterns   = wirebox.getInstance( dsl="coldbox:setting:multilingual.ignoredUrlPatterns"  );
 	}
 
-// the interceptor method
-	public void function onRequestCapture( event, interceptData ) output=false {
+	public void function onRequestCapture( event, interceptData ) {
 		_checkRedirectDomains( argumentCollection=arguments );
 		_detectIncomingSite  ( argumentCollection=arguments );
 		_setCustomTenants    ( argumentCollection=arguments );
@@ -33,9 +30,8 @@ component extends="coldbox.system.interceptors.SES" {
 		}
 	}
 
-
-	public void function onBuildLink( event, interceptData ) output=false {
-		for( var route in instance.presideRoutes ){
+	public void function onBuildLink( event, interceptData ) {
+		for( var route in _getPresideRoutes() ){
 			if ( route.reverseMatch( buildArgs=interceptData, event=event ) ) {
 				event.setValue( name="_builtLink", value=route.build( buildArgs=interceptData, event=event ), private=true );
 				return;
@@ -43,44 +39,29 @@ component extends="coldbox.system.interceptors.SES" {
 		}
 	}
 
-// public "DSL" methods (to be available to Routes.cfm config file)
-	public void function addRouteHandler( required any routeHandler ) output=false {
-		ArrayAppend( instance.presideRoutes, arguments.routeHandler );
-	}
+	private function loadRouter(){
+		var baseRouter = "coldbox.system.web.routing.Router";
 
-// overriding the import routes method and making it not catch and rethrow errors (more useful if it just lets the error throw itself with its original message and stack trace, etc.)
-	public any function includeRoutes( required string location ) output=false {
-		if( ListLast( arguments.location, "." ) != "cfm" ){
-			arguments.location &= ".cfm";
+		if( !wirebox.getBinder().mappingExists( baseRouter ) ){
+			wirebox.registerNewInstance( name=baseRouter, instancePath=baseRouter );
 		}
 
-		// Try to remove pathInfoProvider, just in case
-		StructDelete( variables, "pathInfoProvider" );
-		StructDelete( this     , "pathInfoProvider" );
+		wirebox.registerNewInstance( name="router@coldbox", instancePath="preside.system.config.Router" )
+		       .setVirtualInheritance( baseRouter )
+		       .setThreadSafe( true )
+		       .setScope( wirebox.getBinder().SCOPES.SINGLETON );
 
-		include arguments.location;
+		variables.router = wirebox.getInstance( "router@coldbox" );
+		variables.router.configure();
+		variables.router.startup();
 
 		return this;
 	}
 
-// overriding getModel() to ensure we always use delayed injector in our Routes.cfm which loads while the interceptors are loading
-	public any function getModel( string name, string dsl, struct initArguments={} ) {
-		if ( arguments.keyExists( "name" ) ) {
-			arguments.dsl = "delayedInjector:" & arguments.name;
-		} else if ( arguments.keyExists( "dsl" ) && !arguments.dsl.startsWith( "delayedInjector:" ) && !arguments.dsl.startsWith( "provider:" ) ) {
-			arguments.dsl = "delayedInjector:" & arguments.dsl;
-		}
-
-		return super.getModel(
-			  dsl           = arguments.dsl ?: NullValue()
-			, initArguments = arguments.initArguments
-		);
-	}
-
 // private utility methods
-	private void function _detectIncomingSite( event, interceptData ) output=false {
-		var pathInfo       = super.getCGIElement( "path_info", event );
-		var domain         = super.getCGIElement( "server_name", event );
+	private void function _detectIncomingSite( event, interceptData ) {
+		var pathInfo       = _getCGIElement( "path_info", event );
+		var domain         = _getCGIElement( "server_name", event );
 		var explicitSiteId = event.getValue( name="_sid", defaultValue="" ).trim();
 		var site           = {};
 
@@ -119,9 +100,9 @@ component extends="coldbox.system.interceptors.SES" {
 		tenancyService.setRequestTenantIds();
 	}
 
-	private void function _detectLanguage( event, interceptor ) output=false {
+	private void function _detectLanguage( event, interceptor ) {
 		if ( !_skipLanguageDetection( argumentCollection=arguments ) ) {
-			var path     = super.getCGIElement( "path_info", event );
+			var path     = _getCGIElement( "path_info", event );
 			var site     = event.getSite();
 			var sitePath = site.path.reReplace( "/$", "" );
 
@@ -147,7 +128,7 @@ component extends="coldbox.system.interceptors.SES" {
 		}
 	}
 
-	private boolean function _skipLanguageDetection( event, interceptor ) output=false {
+	private boolean function _skipLanguageDetection( event, interceptor ) {
 		if ( !featureService.isFeatureEnabled( "multilingual" ) ) {
 			return true;
 		}
@@ -157,7 +138,7 @@ component extends="coldbox.system.interceptors.SES" {
 			return true;
 		}
 
-		var path = super.getCGIElement( "path_info", event );
+		var path = _getCGIElement( "path_info", event );
 		if ( adminRouteHandler.match( path, event ) ) {
 			return true;
 		}
@@ -171,10 +152,10 @@ component extends="coldbox.system.interceptors.SES" {
 		return false;
 	}
 
-	private void function _setPresideUrlPath( event, interceptor ) output=false {
+	private void function _setPresideUrlPath( event, interceptor ) {
 		var site         = event.getSite();
 		var pathToRemove = ( site.path ?: "" ).reReplace( "/$", "" );
-		var fullPath     = super.getCGIElement( "path_info", event );
+		var fullPath     = _getCGIElement( "path_info", event );
 		var presidePath  = "";
 		var languageSlug = event.getLanguageSlug();
 		if ( Len( Trim( languageSlug ) ) ) {
@@ -191,10 +172,10 @@ component extends="coldbox.system.interceptors.SES" {
 		event.setCurrentPresideUrlPath( presidePath );
 	}
 
-	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
+	private boolean function _routePresideSESRequest( event, interceptData ) {
 		var path = event.getCurrentPresideUrlPath();
 
-		for( var route in instance.presideRoutes ){
+		for( var route in _getPresideRoutes() ){
 			if ( route.match( path=path, event=event ) ) {
 				route.translate( path=path, event=event );
 
@@ -207,7 +188,7 @@ component extends="coldbox.system.interceptors.SES" {
 		return false;
 	}
 
-	private void function _setEventName( event ) output=false {
+	private void function _setEventName( event ) {
 		var rc = event.getCollection();
 
 		if ( Len( Trim( rc.handler ?: "" ) ) ) {
@@ -222,7 +203,7 @@ component extends="coldbox.system.interceptors.SES" {
 		}
 	}
 
-	private void function _checkUrlRedirects( event, interceptData ) output=false {
+	private void function _checkUrlRedirects( event, interceptData ) {
 		if ( event.isAjax() ) {
 			return;
 		}
@@ -236,19 +217,19 @@ component extends="coldbox.system.interceptors.SES" {
 		);
 	}
 
-	private void function _checkRedirectDomains( event, interceptData ) output=false {
-		var domain       = super.getCGIElement( "server_name", event );
+	private void function _checkRedirectDomains( event, interceptData ) {
+		var domain       = _getCGIElement( "server_name", event );
 		var redirectSite = siteService.getRedirectSiteForDomain( domain );
 
 		if ( redirectSite.recordCount && redirectSite.domain != domain ) {
-			var path        = super.getCGIElement( 'path_info', event );
-			var qs          = super.getCGIElement( 'query_string', event );
+			var path        = _getCGIElement( 'path_info', event );
+			var qs          = _getCGIElement( 'query_string', event );
 			var redirectUrl = redirectSite.protocol & "://" & redirectSite.domain & path;
 
 			if ( Len( Trim( qs ) ) ) {
 				redirectUrl &= "?" & qs;
 			}
-			getController().setNextEvent( url=redirectUrl, statusCode=301 );
+			getController().relocate( url=redirectUrl, statusCode=301 );
 		}
 	}
 
@@ -257,5 +238,29 @@ component extends="coldbox.system.interceptors.SES" {
 		    || plainStoredFileRouteHandler.match( pathInfo, event )
 		    || staticAssetRouteHandler.match( pathInfo, event )
 		    || restRouteHandler.match( pathInfo, event );
+	}
+
+	private array function _getPresideRoutes() {
+		if ( !variables.keyExists( "_presideRoutes" ) ) {
+			var presideRoutes = controller.getSetting( "presideRoutes" );
+			if ( IsArray( presideRoutes ) && presideRoutes.len() ) {
+				variables._presideRoutes = presideRoutes;
+			} else {
+				return [];
+			}
+		}
+
+		return variables._presideRoutes;
+	}
+
+	private any function _getCGIElement( required string cgiElement, required any event ) {
+		if ( arguments.cgiElement == "path_info" ){
+			if ( StructKeyExists( request, "preside.path_info" ) ) {
+				return request[ "preside.path_info" ];
+			}
+
+			return variables.router.pathInfoProvider( event=arguments.event );
+		}
+		return CGI[ arguments.CGIElement ];
 	}
 }

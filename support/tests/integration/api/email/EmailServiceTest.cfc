@@ -33,6 +33,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, returnLogId           = false
 					, overwriteTemplateArgs = false
 					, args                  = testArgs
+					, isTest                = false
 				};
 
 				expectedSendArgs.append( testHandlerResult );
@@ -49,6 +50,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockServiceProviderService.$callLog().sendWithProvider[1] ).toBe( {
 					  provider = defaultProvider
 					, sendArgs = expectedSendArgs
+					, logSend  = true
 				} );
 			} );
 
@@ -74,6 +76,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, overwriteTemplateArgs = false
 					, recipientId           = recipientId
 					, args                  = testArgs
+					, isTest                = false
 				};
 				expectedPrepArgs = {
 					  template              = "notification"
@@ -92,6 +95,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, resendOf              = ""
 					, returnLogId           = false
 					, overwriteTemplateArgs = false
+					, isTest                = false
 				};
 
 				expectedSendArgs.append( testPreparedMessage );
@@ -109,6 +113,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockServiceProviderService.$callLog().sendWithProvider[1] ).toBe( {
 					  provider = defaultProvider
 					, sendArgs = expectedSendArgs
+					, logSend  = true
 				} );
 			} );
 
@@ -135,6 +140,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, resendOf              = ""
 					, returnLogId           = false
 					, overwriteTemplateArgs = false
+					, isTest                = false
 				};
 
 				expectedSendArgs.append( testHandlerResult );
@@ -152,6 +158,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockServiceProviderService.$callLog().sendWithProvider[1] ).toBe( {
 					  provider = defaultProvider
 					, sendArgs = expectedSendArgs
+					, logSend  = true
 				} );
 			} );
 

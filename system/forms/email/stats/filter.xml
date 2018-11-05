@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="cms:emailcenter.stats.filter.form.">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="dateFrom" control="datetimepicker" />
+			<field name="dateTo"   control="datetimepicker" relativeToField="dateFrom" relativeOperator="gte"  />
+		</fieldset>
+	</tab>
+</form>

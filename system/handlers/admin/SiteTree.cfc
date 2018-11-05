@@ -311,6 +311,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.canDeletePage      = _checkPermissions( argumentCollection=arguments, key="trash"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
 		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false ) && prc.managedChildPageTypes.len() || prc.childCount;
 		prc.canManagePagePerms = _checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId, throwOnError=false );
+		prc.canClone           = _checkPermissions( argumentCollection=arguments, key="clone"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
 
 		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
 		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageType.getPresideObject() );
@@ -401,6 +402,89 @@ component extends="preside.system.base.AdminHandler" {
 				setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
 			}
 		}
+	}
+
+	public void function clonePage( event, rc, prc ) {
+		var pageId           = rc.id               ?: "";
+		var validationResult = rc.validationResult ?: "";
+		var pageType         = "";
+
+		_checkPermissions( argumentCollection=arguments, key="clone", pageId=pageId );
+		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+
+		if ( !prc.canPublish && !prc.canSaveDraft ) {
+			event.adminAccessDenied();
+		}
+		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		prc.childCount   = siteTreeService.getTree( rootPageId=pageId, maxDepth=0 ).recordCount ?: 0;
+
+		pageType = pageTypesService.getPageType( prc.page.page_type );
+
+		prc.mainFormName  = "preside-objects.page.clone";
+		prc.mergeFormName = _getPageTypeFormName( pageType, "clone" );
+
+		prc.page = QueryRowToStruct( prc.page );
+		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=false, allowDraftVersions=true  );
+		StructAppend( prc.page, QueryRowToStruct( savedData ) );
+
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:sitetree.clonePage.crumb")
+			, link  = ""
+		);
+		prc.pageTitle = translateResource( uri="cms:sitetree.clonePage.title", data=[ prc.page.title ] );
+		prc.pageIcon  = "clone";
+	}
+
+	public void function clonePageAction( event, rc, prc ) {
+		var pageId            = rc.id ?: "";
+		var saveAsDraft       = IsTrue( rc.clone_save_as_draft    ?: "" );
+		var cloneChildren     = IsTrue( rc.clone_include_children ?: "" );
+		var validationRuleset = "";
+		var validationResult  = "";
+		var newId             = "";
+		var persist           = "";
+		var formName          = "preside-objects.page.clone";
+		var formData          = "";
+		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="clone", pageId=pageId );
+
+		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+		pageType = pageTypesService.getPageType( page.page_type );
+		var mergeFormName = _getPageTypeFormName( pageType, "clone" )
+		if ( Len( Trim( mergeFormName ) ) ) {
+			formName = formsService.getMergedFormName( formName, mergeFormName );
+		}
+
+		formData = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.clonePage", querystring="id=#pageId#" ), persistStruct=persist );
+		}
+
+		newId = siteTreeService.clonePage(
+			  sourcePageId  = pageId
+			, newPageData   = formData
+			, createAsDraft = saveAsDraft
+			, cloneChildren = cloneChildren
+		);
+
+		messageBox.info( translateResource( uri="cms:sitetree.pageCloned.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="sitetree", querystring="selected=#newId#", siteId=( formData.site ?: "" ) ) );
 	}
 
 	public void function discardDraftsAction( event, rc, prc ) {
@@ -896,10 +980,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getPagesForAjaxPicker( event, rc, prc ) {
+		var extraFilters   = [];
+		var filterByFields = ListToArray( rc.filterByFields ?: "" );
+		for( var filterByField in filterByFields ) {
+			filterValue = rc[filterByField] ?: "";
+			if( !isEmpty( filterValue ) ){
+				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
+			}
+		}
+
 		var records = siteTreeService.getPagesForAjaxSelect(
-			  maxRows      = rc.maxRows      ?: 1000
-			, searchQuery  = rc.q            ?: ""
+			  maxRows      = rc.maxRows   ?: 1000
+			, searchQuery  = rc.q         ?: ""
+			, childPage    = rc.childPage ?: ""
 			, ids          = ListToArray( rc.values ?: "" )
+			, site         = rc.site      ?: ""
+			, extraFilters = extraFilters
 		);
 		var preparedPages = [];
 
@@ -1091,7 +1187,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId = rc.id ?: "";
 
 		if ( pageId.isEmpty() ) {
-			pageCache.clearAll();
+			getController().getCachebox().clearAll();
 
 			event.audit(
 				  action = "clear_page_cache"
@@ -1156,6 +1252,7 @@ component extends="preside.system.base.AdminHandler" {
 			case "add"      : specificForm = pageType.getAddForm(); break;
 			case "edit"     : specificForm = pageType.getEditForm(); break;
 			case "translate": specificForm = pageType.getTranslateForm(); break;
+			case "clone"    : specificForm = pageType.getCloneForm(); break;
 			default: return "";
 		}
 

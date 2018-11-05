@@ -114,6 +114,7 @@ component {
 		this.mappings[ "/preside"        ] = presideroot;
 		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox";
 		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/cfconcurrent"   ] = presideroot & "/system/externals/cfconcurrent";
 		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
 		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
 
@@ -152,7 +153,7 @@ component {
 				if ( _reloadRequired() ) {
 					_announceInterception( "prePresideReload" );
 
-					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
+					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." );
 
 					_clearExistingApplication();
 					_ensureCaseSensitiveStructSettingsAreActive();
@@ -162,7 +163,7 @@ component {
 					_initColdBox();
 
 					_announceInterception( "postPresideReload" );
-					log file="application" text="Application start up complete";
+					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" );
 				}
 			}
 		} catch( lock e ) {
@@ -618,7 +619,7 @@ component {
 		var controller = _getColdboxController();
 
 		if ( !IsNull( controller ) ) {
-			controller.getInterceptorService().processState( argumentCollection=arguments, bufferOutput=false );
+			controller.getInterceptorService().processState( argumentCollection=arguments );
 		}
 	}
 

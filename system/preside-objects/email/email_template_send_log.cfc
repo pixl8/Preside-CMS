@@ -4,6 +4,8 @@
  * @versioned                   false
  * @labelfield                  recipient
  * @datamanagerDefaultSortOrder datecreated desc
+ * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_code,activity_reason,activity_link
+ * @datamanagerEnabled          true
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="email_template" relationship="many-to-one" relatedto="email_template" required=false;
@@ -41,4 +43,12 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="failed_code"   type="numeric" dbtype="int";
 
 	property name="activities" relationship="one-to-many" relatedto="email_template_send_log_activity" relationshipkey="message";
+
+	property name="activity_type"       formula="activities.activity_type";
+	property name="activity_ip"         formula="activities.user_ip";
+	property name="activity_user_agent" formula="activities.user_agent";
+	property name="activity_link"       formula="activities.link";
+	property name="activity_code"       formula="activities.code";
+	property name="activity_reason"     formula="activities.reason";
+	property name="activity_date"       formula="activities.datecreated" type="date" dbtype="datetime";
 }

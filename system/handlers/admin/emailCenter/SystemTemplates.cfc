@@ -240,6 +240,22 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function stats( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		prc.showClicks = IsTrue( prc.template.track_clicks ?: "" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.stats.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.stats", queryString="template=" & templateId )
+		);
+	}
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -254,6 +270,23 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function exportAction( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+
+		var templateId = rc.id ?: "";
+
+		runEvent(
+			  event          = "admin.DataManager._exportDataAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				extraFilters = [ { filter={ email_template=templateId } } ]
+			  }
+		);
+	}
+
 // VIEWLETS AND HELPERS
 	private string function _templateTabs( event, rc, prc, args={} ) {
 		var template     = prc.template ?: {};
@@ -263,7 +296,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.canEdit            = canSaveDraft || canPublish;
 		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.systemtemplates.configureLayout" );
-		args.stats              = renderViewlet( event="admin.emailCenter.templateStatsSummary", args={ templateId=template.id } );
 
 		return renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args=args );
 	}

@@ -73,8 +73,6 @@ component extends="preside.system.base.AdminHandler" {
 			, detail = formData
 		);
 
-		taskManagerService.registerMasterScheduledTask();
-
 		messageBox.info( translateResource( uri="cms:taskmanager.configuration.saved" ) );
 
 		setNextEvent( url=event.buildAdminLink( linkTo="taskmanager" ) );

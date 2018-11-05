@@ -7,11 +7,16 @@ component extends="coldbox.system.web.Controller" {
 		services.moduleService      = new preside.system.coldboxModifications.services.ModuleService( this );
 		services.interceptorService = new preside.system.coldboxModifications.services.InterceptorService( this );
 		services.requestService     = new preside.system.coldboxModifications.services.RequestService( this );
+		services.routingService     = new preside.system.coldboxModifications.services.RoutingService( this );
 		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
 	}
 
 	function getRenderer(){
 		return variables.wireBox.getInstance( "presideRenderer" );
+	}
+
+	public array function listHandlers( string thatStartWith="" ) {
+		return getHandlerService().listHandlers( argumentCollection=arguments );
 	}
 
 	public boolean function handlerExists( required string event ) {
@@ -27,7 +32,7 @@ component extends="coldbox.system.web.Controller" {
 
 		try {
 			handlerSvc = getHandlerService();
-			handler = handlerSvc.getRegisteredHandler( event=arguments.event );
+			handler = handlerSvc.getHandlerBean( event=arguments.event );
 
 			if ( handler.getViewDispatch() ) {
 				exists = false;
@@ -76,10 +81,15 @@ component extends="coldbox.system.web.Controller" {
 
 	public any function renderViewlet(
 		  required string  event
-		,          struct  args          = {}
-		,          boolean private       = true
-		,          boolean prepostExempt = true
-		,          boolean delayed       = _getDelayedViewletRendererService().isViewletDelayedByDefault( arguments.event )
+		,          struct  args                   = {}
+		,          boolean private                = true
+		,          boolean prepostExempt          = true
+		,          boolean delayed                = _getDelayedViewletRendererService().isViewletDelayedByDefault( arguments.event )
+		,          boolean cache                  = false
+		,          string  cacheTimeout           = ""
+		,          string  cacheLastAccessTimeout = ""
+		,          string  cacheSuffix            = ""
+		,          string  cacheProvider          = "template"
 	) {
 		if ( arguments.delayed && getRequestContext().cachePage() ) {
 			return _getDelayedViewletRendererService().renderDelayedViewletTag(
@@ -88,6 +98,25 @@ component extends="coldbox.system.web.Controller" {
 				, private       = arguments.private
 				, prepostExempt = arguments.prepostExempt
 			);
+		}
+
+		var useCache = arguments.cache && !_isAdminLoggedIn();
+		if ( useCache ) {
+			var cache    = getCachebox().getCache( arguments.cacheProvider );
+			var cacheKey = "renderViewletCache:" & arguments.event & arguments.cacheSuffix;
+			var rendered = cache.get( cacheKey );
+
+			if ( IsNull( rendered ) ) {
+				rendered = renderViewlet( argumentCollection=arguments, cache=false );
+				cache.set(
+					  objectKey         = cacheKey
+					, object            = rendered
+					, timeout           = arguments.cacheTimeout
+					, lastAccessTimeout = arguments.cacheLastAccessTimeout
+				);
+			}
+
+			return rendered;
 		}
 
 		var result        = "";
@@ -168,5 +197,9 @@ component extends="coldbox.system.web.Controller" {
 		}
 
 		return variables._delayedViewletRendererService;
+	}
+
+	private boolean function _isAdminLoggedIn() {
+		return wireBox.getInstance( "loginService" ).isLoggedIn();
 	}
 }

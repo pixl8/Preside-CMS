@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService"             inject="presideObjectService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
+	property name="cloningService"                   inject="presideObjectCloningService";
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
@@ -96,17 +97,19 @@ component extends="preside.system.base.AdminHandler" {
 			listing = renderViewlet( event="admin.datamanager._treeView", args=args );
 
 		} else {
-			args.multiActions = customizationService.runCustomization(
-				  objectName     = objectName
-				, action         = "listingMultiActions"
-				, defaultHandler = "admin.datamanager._listingMultiActions"
-				, args           = args
-			);
-			args.append( {
-				  useMultiActions = args.multiActions.len()
-				, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-				, allowDataExport = true
-			} );
+			if ( !IsBoolean( args.useMultiActions ?: "" ) || args.useMultiActions ) {
+				args.multiActions = customizationService.runCustomization(
+					  objectName     = objectName
+					, action         = "listingMultiActions"
+					, defaultHandler = "admin.datamanager._listingMultiActions"
+					, args           = args
+				);
+				args.append( {
+					  useMultiActions = args.multiActions.len()
+					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
+					, allowDataExport = args.allowDataExport ?: true
+				} );
+			}
 
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
@@ -364,6 +367,64 @@ component extends="preside.system.base.AdminHandler" {
 					  audit         = true
 					, successUrl    = successUrl
 				  }
+			);
+		}
+	}
+
+	public void function cloneRecord( event, rc, prc ) {
+		var objectName    = prc.objectName ?: "";
+		var recordId      = prc.recordId   ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="clone" );
+
+		prc.record          = queryRowToStruct( prc.record );
+		prc.cancelAction    = event.buildAdminLink( objectName=objectName, recordId=recordId )
+		prc.cloneRecordForm = customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "cloneRecordForm"
+			, defaultHandler = "admin.datamanager._cloneRecordForm"
+			, args = {
+				  objectName        = objectName
+				, cloneRecordAction = event.buildAdminLink( objectName=objectName, operation="cloneRecordAction" )
+				, recordId          = prc.recordId ?: ""
+				, draftsEnabled     = IsTrue( prc.draftsEnabled ?: "" )
+				, canSaveDraft      = IsTrue( prc.canSaveDraft  ?: "" )
+				, canPublish        = IsTrue( prc.canPublish    ?: "" )
+				, cancelAction      = prc.cancelAction ?: ""
+				, record            = prc.record
+			  }
+		);
+
+		var recordLabel         = prc.recordLabel ?: "";
+		var objectTitleSingular = prc.objectTitle ?: ""
+		var cloneRecordTitle     = translateResource( uri="cms:datamanager.clonerecord.title", data=[  objectTitleSingular , recordLabel ] );
+
+		prc.pageIcon  = "pencil";
+		prc.pageTitle = cloneRecordTitle;
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.clonerecord.breadcrumb.title" )
+			, link  = ""
+		);
+	}
+
+	public void function cloneRecordAction( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+		var recordId   = prc.recordId   ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="clone" );
+
+		if ( customizationService.objectHasCustomization( objectName, "cloneRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "cloneRecordAction"
+				, args       = { objectName=objectName, recordId=recordId }
+			);
+		} else {
+			runEvent(
+				  event          = "admin.DataManager._cloneRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = { audit=true }
 			);
 		}
 	}
@@ -1277,6 +1338,16 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
+		if ( IsTrue( prc.canClone ?: "" ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="cloneRecord", recordId=recordId )
+				, btnClass  = "btn-info"
+				, iconClass = "fa-clone"
+				, globalKey = "c"
+				, title     = translateResource( uri="cms:datamanager.cloneRecord.btn" )
+			} );
+		}
+
 		if ( IsTrue( prc.canDelete ?: "" ) ) {
 			actions.append( {
 				  link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
@@ -1347,6 +1418,16 @@ component extends="preside.system.base.AdminHandler" {
 			if ( StructCount( translationActions ?: {} ) ) {
 				actions.append( translationActions );
 			}
+		}
+
+		if ( IsTrue( prc.canClone ?: "" ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName=objectName, operation="cloneRecord", recordId=recordId )
+				, btnClass  = "btn-info"
+				, iconClass = "fa-clone"
+				, globalKey = "c"
+				, title     = translateResource( uri="cms:datamanager.cloneRecord.btn" )
+			} );
 		}
 
 		customizationService.runCustomization(
@@ -1521,10 +1602,12 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
 			var canView           = IsTrue( prc.canView         ?: "" );
 			var canEdit           = IsTrue( prc.canEdit         ?: "" );
+			var canClone          = IsTrue( prc.canClone        ?: "" );
 			var canDelete         = IsTrue( prc.canDelete       ?: "" );
 			var canViewVersions   = IsTrue( prc.canViewVersions ?: "" );
 			var canViewHistory    = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
 			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
+			var cloneRecordLink   = canClone       ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
 			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
 			var deleteRecordLink  = canDelete      ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
 			var viewHistoryLink   = canViewHistory ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
@@ -1563,6 +1646,13 @@ component extends="preside.system.base.AdminHandler" {
 							  link       = editRecordLink.replace( "{id}", record.id )
 							, icon       = "fa-pencil"
 							, contextKey = "e"
+						} );
+					}
+					if ( canClone ) {
+						actions.append( {
+							  link       = cloneRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-clone"
+							, contextKey = "c"
 						} );
 					}
 					if ( canDelete ) {
@@ -2252,6 +2342,129 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	private void function _cloneRecordAction(required any     event
+		, required struct  rc
+		, required struct  prc
+		,          string  object                  = ( rc.object ?: '' )
+		,          string  recordId                = ( rc.id     ?: '' )
+		,          string  errorAction             = ""
+		,          string  errorUrl                = ( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( objectName=arguments.object, operation="cloneRecord", recordId=arguments.recordId ) )
+		,          string  missingUrl              = event.buildAdminLink( objectname=arguments.object, operation="listing" )
+		,          string  successAction           = ""
+		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id={id}' ) : event.buildAdminLink( objectname=arguments.object, recordId="{id}" ) )
+		,          boolean redirectOnSuccess       = true
+		,          string  formName                = _getDefaultCloneFormName( arguments.object )
+		,          string  mergeWithFormName       = ""
+		,          boolean audit                   = false
+		,          string  auditAction             = ""
+		,          string  auditType               = "datamanager"
+		,          boolean draftsEnabled           = IsTrue( prc.draftsEnabled ?: "" )
+		,          boolean canPublish              = IsTrue( prc.canPublish    ?: "" )
+		,          boolean canSaveDraft            = IsTrue( prc.canSaveDraft  ?: "" )
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = arguments.object
+		,          array   permissionContextKeys   = []
+		,          any     validationResult
+	) {
+		arguments.formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
+
+		var id               = rc.id      ?: "";
+		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		var objectName       = prc.objectTitle ?: "";
+		var obj              = "";
+		var validationResult = "";
+		var persist          = "";
+		var isDraft          = false;
+		var forceVersion     = false;
+		var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
+
+		if ( !existingRecord.recordCount ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
+
+			setNextEvent( url=missingUrl );
+		}
+
+		validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+
+		var args = arguments;
+
+		args.formData         = formData;
+		args.existingRecord   = existingRecord;
+		args.validationResult = validationResult;
+		if ( customizationService.objectHasCustomization( object, "preCloneRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preCloneRecordAction"
+				, args       = args
+			);
+		}
+
+
+		if ( not validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+
+			setNextEvent( url=errorUrl, persistStruct=persist );
+		}
+
+		if ( arguments.draftsEnabled ) {
+			isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+			if ( isDraft && !arguments.canSaveDraft ) {
+				event.adminAccessDenied();
+			}
+			if ( !isDraft && !arguments.canPublish ) {
+				event.adminAccessDenied();
+			}
+		}
+
+		args.newId = cloningService.cloneRecord(
+			  objectName = object
+			, recordId   = id
+			, data       = formData
+			, isDraft    = isDraft
+		);
+
+		if ( arguments.audit ) {
+			var auditDetail = _getAuditDataFromFormData( formData );
+			auditDetail.objectName = arguments.object;
+			auditDetail.newid = args.newId;
+
+			if ( !Len( Trim( arguments.auditAction ) ) ) {
+				if ( arguments.draftsEnabled ) {
+					if ( isDraft ) {
+						arguments.auditAction = "datamanager_clone_draft_record";
+					} else {
+						arguments.auditAction = "datamanager_publish_clone_record";
+					}
+				} else {
+					arguments.auditAction = "datamanager_clone_record";
+				}
+			}
+			event.audit(
+				  action   = arguments.auditAction
+				, type     = arguments.auditType
+				, recordId = id
+				, detail   = auditDetail
+			);
+		}
+
+		if ( customizationService.objectHasCustomization( object, "postCloneRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "postCloneRecordAction"
+				, args       = args
+			);
+		}
+
+		if ( redirectOnSuccess ) {
+			messageBox.info( translateResource( uri="cms:datamanager.recordCloned.confirmation", data=[ objectName ] ) );
+
+			setNextEvent( url=successUrl.replace( "{id}", args.newId, "all" ) );
+		}
+	}
+
 	private void function _quickEditRecordAction(
 		  required any     event
 		, required struct  rc
@@ -2316,7 +2529,7 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
-		var operations      = [ "read", "add", "edit", "delete", "viewversions", "translate" ];
+		var operations      = [ "read", "add", "edit", "delete", "viewversions", "translate", "clone" ];
 		var draftOperations = [ "addRecord", "addRecordAction", "editRecord", "editRecordAction", "translateRecord", "translateRecordAction" ];
 		var permitted       = true;
 
@@ -2593,6 +2806,17 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/datamanager/_addOrEditRecordActionButtons", args=args );
 	}
 
+	private string function _cloneRecordActionButtons( event, rc, prc, args={} ) {
+		args.actionButtons = customizationService.runCustomization(
+			  objectName     = args.objectName ?: ""
+			, args           = args
+			, action         = "getCloneRecordActionButtons"
+			, defaultHandler = "admin.datamanager._getCloneRecordActionButtons"
+		);
+
+		return renderView( view="/admin/datamanager/_addOrEditRecordActionButtons", args=args );
+	}
+
 	private array function _getEditRecordActionButtons( event, rc, prc, args={} ) {
 		args.draftsEnabled = args.draftsEnabled   ?: false;
 		args.canPublish    = args.canPublish      ?: false;
@@ -2653,6 +2877,99 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		return args.actions;
+	}
+
+	private array function _getCloneRecordActionButtons( event, rc, prc, args={} ) {
+		args.draftsEnabled = args.draftsEnabled   ?: false;
+		args.canPublish    = args.canPublish      ?: false;
+		args.canSaveDraft  = args.canSaveDraft    ?: false;
+		args.cancelAction  = args.cancelAction    ?: event.buildAdminLink( objectName=args.object, recordId=args.id );
+		args.cancelLabel   = args.cancelLabel     ?: translateResource( "cms:datamanager.cancel.btn" );
+
+		if ( !Len( Trim( prc.objectTitle ?: "" ) ) ) {
+			prc.objectRootUri = presideObjectService.getResourceBundleUriRoot( args.objectName ?: "" );
+			prc.objectTitle   = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=args.objectName ?: "" );
+		}
+
+		args.actions = [{
+			  type      = "link"
+			, href      = args.cancelAction
+			, class     = "btn-default"
+			, globalKey = "c"
+			, iconClass = "fa-reply"
+			, label     = args.cancelLabel
+		}];
+
+		if ( args.draftsEnabled ) {
+			if ( args.canSaveDraft ) {
+				args.actions.append({
+					  type      = "button"
+					, class     = "btn-info"
+					, iconClass = "fa-save"
+					, name      = "_saveAction"
+					, value     = "savedraft"
+					, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.clone.record.draft.btn"  , data=[ prc.objectTitle ?: "" ] )
+				});
+			}
+			if ( args.canPublish ) {
+				args.actions.append({
+					  type      = "button"
+					, class     = "btn-warning"
+					, iconClass = "fa-globe"
+					, name      = "_saveAction"
+					, value     = "publish"
+					, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.clone.record.publish.btn", data=[ prc.objectTitle ?: "" ] )
+				});
+			}
+		} else {
+			args.actions.append({
+				  type      = "button"
+				, class     = "btn-info"
+				, iconClass = "fa-save"
+				, name      = "_saveAction"
+				, value     = "publish"
+				, label     = args.editRecordLabel ?: translateResource( uri="cms:datamanager.clone.btn", data=[ prc.objectTitle ?: "" ] )
+			});
+		}
+
+		customizationService.runCustomization(
+			  objectName = args.objectName ?: ""
+			, args       = args
+			, action     = "getExtraCloneRecordActionButtons"
+		);
+
+		return args.actions;
+	}
+
+
+	private string function _cloneRecordForm( event, rc, prc, args={} ) {
+		var objectName      = args.objectName ?: "";
+		var recordId        = args.recordId   ?: "";
+		var cloneableFields = cloningService.listCloneableFields( objectName );
+
+		args.formName = _getDefaultCloneFormName( objectName );
+		args.cloneableData = {};
+		for( var field in cloneableFields ) {
+			args.cloneableData[ field ] = args.record[ field ] ?: "";
+		}
+		args.append({
+			  object = ( args.objectName ?: "" )
+			, id     = ( args.recordId   ?: "" )
+		});
+
+		var hasPreFormCustomization  = customizationService.objectHasCustomization( objectName=objectName, action="preRenderCloneRecordForm" );
+		var hasPostFormCustomization = customizationService.objectHasCustomization( objectName=objectName, action="postRenderCloneRecordForm" );
+
+		args.preForm               = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderCloneRecordForm" , args=args ) : "";
+		args.postForm              = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderCloneRecordForm", args=args ) : "";
+		args.renderedActionButtons = customizationService.runCustomization(
+			  objectName     = objectName
+			, args           = args
+			, action         = "cloneRecordActionButtons"
+			, defaultHandler = "admin.datamanager._cloneRecordActionButtons"
+		);
+
+		return renderView( view="/admin/datamanager/_cloneRecordForm", args=args );
 	}
 
 	private string function _treeView( event, rc, prc, args={} ) {
@@ -2864,6 +3181,23 @@ component extends="preside.system.base.AdminHandler" {
 		return rootForm;
 	}
 
+	private string function _getCloneRecordFormName( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var rootForm   = "preside-objects.#objectName#";
+		var cloneForm  = "preside-objects.#objectName#.admin.clone";
+		var editForm   = "preside-objects.#objectName#.admin.edit";
+
+		if ( formsService.formExists( cloneForm ) ) {
+			return cloneForm;
+		}
+
+		if ( formsService.formExists( editForm ) ) {
+			return editForm;
+		}
+
+		return rootForm;
+	}
+
 	private void function _loadCommonVariables( event, action, eventArguments ) {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
@@ -2946,6 +3280,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canDelete             = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
 			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
 			prc.canViewVersions       = _checkPermission( argumentCollection=arguments, key="viewversions"      , throwOnError=false );
+			prc.canClone              = _checkPermission( argumentCollection=arguments, key="clone"             , throwOnError=false );
 			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
 			prc.hiddenGridFields      = _getObjectHiddenFieldsForGrid( prc.objectName );
@@ -3070,6 +3405,16 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName }
 		);
 	}
+
+	private string function _getDefaultCloneFormName( required string objectName ) {
+		return customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getCloneRecordFormName"
+			, defaultHandler = "admin.datamanager._getCloneRecordFormName"
+			, args           = { objectName=objectName }
+		);
+	}
+
 
 	private string function _getDefaultAddFormName( required string objectName ) {
 		return customizationService.runCustomization(

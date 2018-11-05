@@ -10,20 +10,19 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @taskScheduler.inject taskScheduler
-	 * @siteService.inject   siteService
-	 * @logger.inject        logbox:logger:taskmanager
+	 * @siteService.inject siteService
+	 * @threadUtil.inject  threadUtil
+	 * @logger.inject      logbox:logger:taskmanager
 	 */
 	public any function init(
-		  required any     taskScheduler
-		, required any     siteService
-		, required any     logger
-		,          numeric maxTaskTimeout = ( 60 * 60 * 24 * 365 ) // one year!
+		  required any siteService
+		, required any logger
+		, required any threadUtil
 	) {
-		_setTaskScheduler( arguments.taskScheduler );
 		_setSiteService( arguments.siteService );
 		_setLogger( arguments.logger );
-		_setMaxTimeout( arguments.maxTaskTimeout );
+		_setThreadUtil( arguments.threadUtil );
+
 
 		return this;
 	}
@@ -68,6 +67,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, admin_owner         = arguments.adminOwner
 			, web_owner           = arguments.webOwner
 			, discard_on_complete = arguments.discardOnComplete
+			, next_attempt_date   = ( arguments.runNow || !Val( arguments.runIn ) ) ? "" : DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
 			, retry_interval      = _serializeRetryInterval( arguments.retryInterval )
 			, title               = arguments.title
 			, title_data          = SerializeJson( arguments.titleData )
@@ -81,11 +81,6 @@ component displayName="Ad-hoc Task Manager Service" {
 
 		if ( arguments.runNow ) {
 			runTaskInThread( taskId=taskId );
-		} else if ( Val( arguments.runIn ) ) {
-			_scheduleTask(
-				  taskId          = taskId
-				, nextAttemptDate = DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
-			);
 		}
 
 		return taskId;
@@ -143,19 +138,37 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 
 	/**
+	 * Runs any scheduled tasks
+	 *
+	 * @autodoc true
+	 */
+	public void function runScheduledTasks() {
+		var nextTask = NullValue();
+		do {
+			var nextTask = getNextScheduledTaskToRun();
+
+			if ( !IsNull( nextTask ) ) {
+				_runTaskInNewRequest( nextTask.id );
+			}
+		} while( !IsNull( nextTask ) );
+	}
+
+
+	/**
 	 * Runs the task in a background thread
 	 *
 	 * @autodoc true
 	 * @taskId  ID of the task to run
 	 */
 	public void function runTaskInThread( required string taskId ) {
-		if ( _inChildThread() ) {
-			runTask( arguments.taskId );
-		}
+		thread name="adhocTaskThread-#CreateUUId()#" taskId=arguments.taskId {
+			var tu   = _getThreadUtil();
+			var task = getTask( attributes.taskId );
 
-		thread action="run" name="runTask-#CreateUUId()#" taskId=arguments.taskId {
-			setting requesttimeout=_getMaxTimeout();
-			runTask( taskId=attributes.taskId );
+			tu.setThreadRequestDefaults();
+			tu.setThreadName( "Preside Adhoc task #task.event#: #arguments.taskId#" );
+
+			runTask( attributes.taskId );
 		}
 	}
 
@@ -167,6 +180,39 @@ component displayName="Ad-hoc Task Manager Service" {
 	 */
 	public query function getTask( required string taskId ) {
 		return $getPresideObject( "taskmanager_adhoc_task" ).selectData( id=arguments.taskId );
+	}
+
+	/**
+	 * Returns tasks next task to run that is in the scheduled queue
+	 * @autodoc true
+	 */
+	public any function getNextScheduledTaskToRun() {
+		var schedulerLock  = CreateUUId();
+		var dao            = $getPresideObject( "taskmanager_adhoc_task" );
+		var validStatuses  = [ "pending", "requeued" ];
+		var potentialTask  = dao.selectData(
+			  selectFields = [ "id " ]
+			, filter       = "next_attempt_date < :next_attempt_date and status in (:status)"
+			, filterparams = { next_attempt_date=Now(), status=validStatuses }
+			, maxRows      = 1
+			, orderBy      = "attempt_count,datecreated"
+		);
+
+		if ( potentialTask.recordCount ) {
+			var statusUpdated = dao.updateData(
+				  filter = { id=potentialTask.id, status=validStatuses }
+				, data = { status="locked" }
+			);
+			var otherProcessHasPickedItUp = !statusUpdated;
+
+			if ( otherProcessHasPickedItUp ) {
+				return getNextScheduledTaskToRun();
+			}
+
+			return potentialTask;
+		}
+
+		return;
 	}
 
 	/**
@@ -256,8 +302,6 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          any     error = {}
 		,          numeric attemptCount = 1
 	) {
-		_scheduleTask( taskId=arguments.taskId, nextAttemptDate=arguments.nextAttemptDate );
-
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
 			, data = {
@@ -464,43 +508,16 @@ component displayName="Ad-hoc Task Manager Service" {
 		return Round( Val( arguments.input ) * secondsInADay );
 	}
 
-	private void function _scheduleTask( required string taskId, required date nextAttemptDate ) {
-		var scheduleSettings = $getPresideCategorySettings( category="taskmanager" );
-		var taskConfig = {
-			  task          = "PresideAdHocTask-" & arguments.taskId
-			, url           = getTaskRunnerUrl( taskId=taskId, siteContext=scheduleSettings.site_context ?: "" )
-			, port          = Val( scheduleSettings.http_port ?: "" ) ? scheduleSettings.http_port : 80
-			, username      = scheduleSettings.http_username  ?: ""
-			, password      = scheduleSettings.http_password  ?: ""
-			, proxyServer   = scheduleSettings.proxy_server   ?: ""
-			, proxyPort     = scheduleSettings.proxy_port     ?: ""
-			, proxyUser     = scheduleSettings.proxy_user     ?: ""
-			, proxyPassword = scheduleSettings.proxy_password ?: ""
-			, startdate     = DateFormat( arguments.nextAttemptDate, "yyyy-mm-dd" )
-			, startTime     = TimeFormat( arguments.nextAttemptDate, "HH:mm:ss" )
-			, interval      = "Once"
-			, hidden        = true
-			, autoDelete    = true
-		};
+	private void function _runTaskInNewRequest( required string taskId ) {
+		var event         = $getRequestContext();
+		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.adhocTask" );
 
-		var isHttps = taskConfig.url.reFindNoCase( "^https:" );
-		if ( isHttps && taskConfig.port == 80 ) {
-			taskConfig.port = 443;
-		} else if ( !isHttps && taskConfig.port == 443 ) {
-			taskConfig.port = 80;
+		http url=taskRunnerUrl method="post" timeout=2 throwonerror=true {
+			httpparam name="taskId" value=arguments.taskId type="formfield";
 		}
-
-		_getTaskScheduler().createTask( argumentCollection=taskConfig );
 	}
 
 // GETTERS AND SETTERS
-	private any function _getTaskScheduler() {
-		return _taskScheduler;
-	}
-	private void function _setTaskScheduler( required any taskScheduler ) {
-		_taskScheduler = arguments.taskScheduler;
-	}
-
 	private any function _getSiteService() {
 		return _siteService;
 	}
@@ -515,11 +532,10 @@ component displayName="Ad-hoc Task Manager Service" {
 		_logger = arguments.logger;
 	}
 
-	private numeric function _getMaxTimeout() {
-		return _maxTimeout;
+	private any function _getThreadUtil() {
+		return _threadUtil;
 	}
-	private void function _setMaxTimeout( required numeric maxTimeout ) {
-		_maxTimeout = arguments.maxTimeout;
+	private void function _setThreadUtil( required any threadUtil ) {
+		_threadUtil = arguments.threadUtil;
 	}
-
 }

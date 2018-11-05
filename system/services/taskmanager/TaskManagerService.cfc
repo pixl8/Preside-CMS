@@ -10,16 +10,15 @@ component displayName="Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @configWrapper.inject              taskManagerConfigurationWrapper
-	 * @controller.inject                 coldbox
-	 * @taskDao.inject                    presidecms:object:taskmanager_task
-	 * @taskHistoryDao.inject             presidecms:object:taskmanager_task_history
-	 * @systemConfigurationService.inject systemConfigurationService
-	 * @cfThreadHelper.inject             cfThreadHelper
-	 * @logger.inject                     logbox:logger:taskmanager
-	 * @errorLogService.inject            errorLogService
-	 * @siteService.inject                siteService
-	 * @taskScheduler.inject              taskScheduler
+	 * @configWrapper.inject               taskManagerConfigurationWrapper
+	 * @controller.inject                  coldbox
+	 * @taskDao.inject                     presidecms:object:taskmanager_task
+	 * @taskHistoryDao.inject              presidecms:object:taskmanager_task_history
+	 * @systemConfigurationService.inject  systemConfigurationService
+	 * @logger.inject                      logbox:logger:taskmanager
+	 * @errorLogService.inject             errorLogService
+	 * @siteService.inject                 siteService
+	 * @threadUtil.inject                  threadUtil
 	 *
 	 */
 	public any function init(
@@ -28,25 +27,24 @@ component displayName="Task Manager Service" {
 		, required any taskDao
 		, required any taskHistoryDao
 		, required any systemConfigurationService
-		, required any cfThreadHelper
 		, required any logger
 		, required any errorLogService
 		, required any siteService
-		, required any taskScheduler
+		, required any threadUtil
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
 		_setTaskDao( arguments.taskDao );
 		_setTaskHistoryDao( arguments.taskHistoryDao );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
-		_setCfThreadHelper( cfThreadHelper );
 		_setLogger( arguments.logger );
 		_setErrorLogService( arguments.errorLogService );
 		_setSiteService( arguments.siteService );
+		_setThreadUtil( arguments.threadUtil );
 		_setMachineId();
-		_setTaskScheduler( arguments.taskScheduler );
 
 		_initialiseDb();
+		_setRunningTasks({});
 
 		return this;
 	}
@@ -81,16 +79,12 @@ component displayName="Task Manager Service" {
 		var task        = getTask( arguments.taskKey );
 		var taskDetails = _getTaskDao().selectData(
 			  filter       = { task_key=arguments.taskKey }
-			, selectFields = [ "crontab_definition", "enabled", "timeout" ]
+			, selectFields = [ "crontab_definition", "enabled" ]
 		);
 
 		for( var t in taskDetails ) {
 			if ( !Len( Trim( t.crontab_definition ) ) ) {
 				t.crontab_definition = task.schedule;
-			}
-
-			if ( !Len( Trim( t.timeout ) ) ) {
-				t.timeout = task.timeout;
 			}
 
 			return t;
@@ -137,21 +131,6 @@ component displayName="Task Manager Service" {
 
 	public boolean function taskIsRunning( required string taskKey ) {
 		transaction {
-			if ( taskRunIsExpired( arguments.taskKey ) ) {
-				var logger = _getLogger( taskKey=arguments.taskKey );
-
-				if ( logger.canError() ) {
-					logger.error( "Task run has expired for task [#arguments.taskKey#]." );
-				}
-
-				markTaskAsCompleted(
-					  taskKey   = arguments.taskKey
-					, success   = false
-					, timetaken = -1
-				);
-
-				return false;
-			}
 			var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
 			if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
@@ -173,13 +152,6 @@ component displayName="Task Manager Service" {
 		}
 	}
 
-	public boolean function taskRunIsExpired( required string taskKey ) {
-		return _getTaskDao().dataExists(
-			  filter       = "task_key = :task_key and is_running = :is_running and run_expires < :run_expires"
-			, filterParams = { task_key=arguments.taskKey, is_running=true, run_expires=_getOperationDate() }
-		);
-	}
-
 	public boolean function taskThreadIsRunning( required string taskKey ) {
 		var task = _getTaskDao().selectData(
 			  selectFields = [ "running_thread", "running_machine" ]
@@ -194,11 +166,7 @@ component displayName="Task Manager Service" {
 			return true;
 		}
 
-		var threads      = _getCfThreadHelper().getRunningThreads();
-		var threadStatus = threads[ task.running_thread ].status ?: "";
-		var isRunning    = Len( Trim( threadStatus ) ) && threadStatus != "TERMINATED";
-
-		return isRunning;
+		return _taskisRunningOnLocalMachine( task );
 	}
 
 	public array function getRunnableTasks() {
@@ -242,14 +210,13 @@ component displayName="Task Manager Service" {
 	 *
 	 */
 	public void function runTask( required string taskKey, struct args={} ) {
-		var task         = getTask( arguments.taskKey );
-		var taskConfig   = getTaskConfiguration( arguments.taskKey );
-			task.timeout = taskConfig.timeout;
-		var newThreadId  = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
-		var newLogId     = createTaskHistoryLog( arguments.taskKey, newThreadId );
-		var lockName     = "runtask-#taskKey#" & Hash( ExpandPath( "/" ) );
+		var lockName = "runtask-#taskKey#" & Hash( ExpandPath( "/" ) );
 
-		lock name=lockName type="exclusive" timeout="1" {
+		lock name=lockName type="exclusive" timeout=1 {
+			var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
+			var newLogId    = createTaskHistoryLog( arguments.taskKey, newThreadId );
+			var logger      =  _getLogger( newLogId );
+
 			transaction {
 				if ( taskIsRunning( arguments.taskKey ) ) {
 					return;
@@ -258,49 +225,64 @@ component displayName="Task Manager Service" {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			thread name=newThreadId priority="low" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
-				setting requesttimeout = attributes.processTimeout;
+			thread name=newThreadId threadId=newThreadId logger=logger args=arguments.args taskKey=arguments.taskKey {
+				runTaskWithinThread(
+					  taskKey  = attributes.taskKey
+					, args     = attributes.args
+					, threadId = attributes.threadId
+					, logger   = attributes.logger
+				)
+			}
+		}
+	}
 
-				var start   = getTickCount();
-				var success = false;
+	public void function runTaskWithinThread(
+		  required string taskKey
+		, required struct args
+		, required string threadId
+		, required any    logger
+	) {
+		var task       = getTask( arguments.taskKey );
+		var start      = getTickCount();
+		var success    = false;
+		var tu         = _getThreadUtil();
 
-				try {
-					$getRequestContext().setUseQueryCache( false );
-					success = _getController().runEvent(
-						  event          = attributes.event
-						, private        = true
-						, eventArguments = { logger=attributes.logger, args=attributes.args }
-					);
-				} catch( any e ) {
-					setting requesttimeout=attributes.processTimeout+60;
+		tu.setThreadName( "Preside Scheduled Task: #taskKey#" );
+		tu.setThreadRequestDefaults();
+		markTaskAsStarted( arguments.threadId, tu.getCurrentThread() );
 
-					if ( attributes.logger.canError() ) {
-						attributes.logger.error( "An error occurred running task [#attributes.taskName#]. Message: [#e.message#], detail [#e.detail#].", e );
-					}
+		try {
+			$getRequestContext().setUseQueryCache( false );
+			success = _getController().runEvent(
+				  event          = task.event
+				, private        = true
+				, eventArguments = { logger=arguments.logger, args=arguments.args }
+			);
+		} catch( any e ) {
+			if ( logger.canError() ) {
+				logger.error( "An error occurred running task [#task.name#]. Message: [#e.message#], detail [#e.detail#].", e );
+			}
 
-					_getErrorLogService().raiseError( e );
+			_getErrorLogService().raiseError( e );
 
-					success = false;
-					rethrow;
-				} finally {
-					try {
-						markTaskAsCompleted(
-							  taskKey   = attributes.taskKey
-							, success   = success
-							, timeTaken = GetTickCount() - start
-						);
-					} catch( any e ) {
-						setting requesttimeout=attributes.processTimeout+60;
-
-						if ( attributes.logger.canError() ) {
-							attributes.logger.error( "An error occurred running task [#attributes.taskName#]. Message: [#e.message#], detail [#e.detail#].", e );
-						}
-
-						_getErrorLogService().raiseError( e );
-
-						rethrow;
-					}
+			success = false;
+			rethrow;
+		} finally {
+			try {
+				markTaskAsCompleted(
+					  taskKey   = arguments.taskKey
+					, success   = success
+					, timeTaken = GetTickCount() - start
+					, threadId  = arguments.threadId
+				);
+			} catch( any e ) {
+				if ( arguments.logger.canError() ) {
+					arguments.logger.error( "An error occurred running task [#task.name#]. Message: [#e.message#], detail [#e.detail#].", e );
 				}
+
+				_getErrorLogService().raiseError( e );
+
+				rethrow;
 			}
 		}
 	}
@@ -317,16 +299,19 @@ component displayName="Task Manager Service" {
 				logger.warn( "Task manually cancelled by user. Killing task thread now..." );
 			}
 			try {
-				_getCfThreadHelper().terminateThread( task.running_thread, arguments.timeout );
-				if ( arguments.timeout && logger.canWarn() ) {
-					logger.warn( "Thread killed" );
-				}
+				var runningTasks = _getRunningTasks();
+				var theThread    = runningTasks[ task.running_thread ].thread ?: NullValue();
 
+				if ( !IsNull( theThread ) ) {
+					_getThreadUtil().shutdownThread( theThread=theThread, logger=logger );
+				}
 			} catch( any e ) {
 				if ( logger.canError() ) {
 					logger.error( "Task errored while terminating. Error: #e.message#. Detail: #e.detail#." );
 				}
 			}
+
+			markTaskAsCompleted( taskKey=arguments.taskKey, success=false, timeTaken=0 );
 		}
 
 		return !taskIsRunning( taskKey );
@@ -338,6 +323,35 @@ component displayName="Task Manager Service" {
 				killRunningTask( taskKey, arguments.timeout );
 			}
 		}
+	}
+
+	public void function cleanupNoLongerRunningTasks() {
+		var localTaskThreads          = _getRunningTasks();
+		var runningTasksAccordingToDb = _getTaskDao().selectData(
+			  filter = { is_running=true, running_machine=_getMachineId() }
+		);
+
+		for( var task in runningTasksAccordingToDb ) {
+			if ( !_taskisRunningOnLocalMachine( task ) ) {
+				markTaskAsCompleted(
+					  taskKey   = task.task_key
+					, success   = false
+					, timetaken = -1
+				);
+			}
+		}
+
+		for( var threadId in localTaskThreads ) {
+			var markedAsRunningInDb = _getTaskDao().dataExists(
+				filter = { running_thread=threadId, is_running=true, running_machine=_getMachineId() }
+			);
+
+			if ( !markedAsRunningInDb ) {
+				localTaskThreads.delete( threadId, false );
+			}
+		}
+
+
 	}
 
 	public array function listTasksStoredInStatusDb() {
@@ -364,20 +378,33 @@ component displayName="Task Manager Service" {
 	}
 
 	public numeric function markTaskAsRunning( required string taskKey, required string threadId ) {
+		var runningTasks = _getRunningTasks();
+
+		runningTasks[ arguments.threadId ] = { status="queued", thread=NullValue() };
+
 		return _getTaskDao().updateData(
 			  filter = { task_key = arguments.taskKey }
 			, data   = {
 				  is_running      = true
 				, next_run        = getNextRunDate( arguments.taskKey )
-				, run_expires     = getTaskRunExpiry( arguments.taskKey )
 				, running_thread  = arguments.threadId
 				, running_machine = _getMachineId()
 			  }
 		);
 	}
 
+	public void function markTaskAsStarted( required string threadId, required any threadRef ) {
+		var runningTasks = _getRunningTasks();
+
+		runningTasks[ arguments.threadId ] = { status="started", thread=arguments.threadRef };
+	}
+
 	public numeric function markTaskAsCompleted( required string taskKey, required boolean success, required numeric timeTaken ) {
 		completeTaskHistoryLog( argumentCollection=arguments );
+		var runningTasks = _getRunningTasks();
+		var taskRecord   = _getTaskDao().selectData( filter={ task_key=arguments.taskKey } );
+
+		runningTasks.delete( taskRecord.running_thread ?: "", false );
 
 		var updatedRows = _getTaskDao().updateData(
 			  filter = { task_key = arguments.taskKey }
@@ -387,7 +414,6 @@ component displayName="Task Manager Service" {
 				, next_run             = getNextRunDate( arguments.taskKey )
 				, was_last_run_success = arguments.success
 				, last_run_time_taken  = arguments.timeTaken
-				, run_expires          = ""
 				, running_thread       = ""
 				, running_machine      = ""
 			  }
@@ -447,19 +473,25 @@ component displayName="Task Manager Service" {
 		var scheduledTasksEnabled = settings.scheduledtasks_enabled ?: false;
 		var site_context          = settings.site_context           ?: "";
 		var siteSvc               = _getSiteService();
+		var activeSite            = siteSvc.getActiveSiteId();
+
+		if ( !Len( Trim( activeSite ) ) ) {
+			$getRequestContext().setSite( siteSvc.getSite( site_context ) );
+			activeSite = siteSvc.getActiveSiteId();
+		}
 
 		if ( !IsBoolean( scheduledTasksEnabled ) || !scheduledTasksEnabled ) {
-			return { tasksStarted=[], error="Scheduled tasks are disabled" };
+			return { tasksStarted=[], warning="Scheduled tasks are disabled" };
 		}
 
 		if ( Len( Trim( site_context ) ) && site_context != siteSvc.getActiveSiteId() ) {
-			return { tasksStarted=[], error="Scheduled tasks are not configured to run for this site context. Please review your general task manager configuration settings" };
+			return { tasksStarted=[], warning="Scheduled tasks are not configured to run for this site context. Please review your general task manager configuration settings" };
 		}
 
 		var tasks = getRunnableTasks();
 
 		for( var taskKey in tasks ){
-			runTask( taskKey );
+			_runTaskInNewRequest( taskKey );
 		}
 
 		return { tasksStarted=tasks };
@@ -475,7 +507,6 @@ component displayName="Task Manager Service" {
 			, is_running         = false
 			, priority           = configuredTask.priority
 			, crontab_definition = configuredTask.schedule
-			, timeout            = configuredTask.timeout
 		} );
 	}
 
@@ -496,40 +527,9 @@ component displayName="Task Manager Service" {
 		var schedule   = Len( Trim( taskConfig.crontab_definition ?: "" ) ) ? taskConfig.crontab_definition : task.schedule;
 
 		var cronTabExpression = _getCrontabExpressionObject( schedule );
-		var lastRunJodaTime   = _createJodaTimeObject( DateAdd( 'n', 1, arguments.lastRun ) ); // add 1 minute to the time so that we don't get a mini loop of repeated task running due to interesting way the java lib calcs the next time
+		var lastRunJodaTime   = _createJodaTimeObject( arguments.lastRun );
 
 		return cronTabExpression.nextTimeAfter( lastRunJodaTime  ).toDate();
-	}
-
-	public void function registerMasterScheduledTask() {
-		var settings  = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
-		var enabled   = IsBoolean( settings.scheduledtasks_enabled ?: "" ) && settings.scheduledtasks_enabled;
-		var scheduler = _getTaskScheduler();
-		var task      = "PresideTaskManager_" & LCase( Hash( GetCurrentTemplatePath() ) );
-
-		if ( enabled ) {
-			scheduler.createTask(
-				  task          = task
-				, url           = _getScheduledTaskUrl( settings.site_context ?: "" )
-				, startdate     = "1900-01-01"
-				, startTime     = "00:00:00"
-				, interval      = "30"
-				, port          = Val( settings.http_port ?: "" ) ? settings.http_port : 80
-				, username      = settings.http_username  ?: ""
-				, password      = settings.http_password  ?: ""
-				, proxyServer   = settings.proxy_server   ?: ""
-				, proxyPort     = settings.proxy_port     ?: ""
-				, proxyUser     = settings.proxy_user     ?: ""
-				, proxyPassword = settings.proxy_password ?: ""
-			);
-		} else {
-			scheduler.deleteTask( task=task );
-		}
-
-		scheduler.deleteTasks(
-			  taskPattern   = "^PresideTaskManager_"
-			, preserveTasks = [ task ]
-		);
 	}
 
 	public array function getAllTaskDetails() {
@@ -616,12 +616,6 @@ component displayName="Task Manager Service" {
 		);
 	}
 
-	public date function getTaskRunExpiry( required string taskKey ) {
-		var taskConfig = getTaskConfiguration( arguments.taskKey );
-
-		return DateAdd( "s", taskConfig.timeout, _getOperationDate() );
-	}
-
 	public string function createLogHtml( required string log, numeric fetchAfterLines=0 ) {
 		var logArray = ListToArray( arguments.log, Chr(10) );
 		var outputArray = [];
@@ -686,17 +680,22 @@ component displayName="Task Manager Service" {
 		};
 	}
 
-	public void function shutdown( boolean force=false ) {
+	public boolean function canShutdown( required boolean force ) {
+		if ( !arguments.force && tasksAreRunning() ) {
+			throw(
+				  type    = "preside.reload.taskmanager.running"
+				, message = "The application has been prevented from reloading because one or more tasks are running in the task manager."
+				, detail  = "Either: reload the application with the &force URL parameter; manually stop all tasks before reloading the application; or, await their completion."
+			);
+		}
+
+		return true;
+	}
+
+	public void function shutdown() {
 		if ( tasksAreRunning() ) {
-			if ( arguments.force ) {
-				killAllRunningTasks( timeout=1000 );
-			} else {
-				throw(
-					  type    = "preside.reload.taskmanager.running"
-					, message = "The application has been prevented from reloading because one or more tasks are running in the task manager."
-					, detail  = "Either: reload the application with the &force URL parameter; manually stop all tasks before reloading the application; or, await their completion."
-				);
-			}
+			killAllRunningTasks( timeout=1000 );
+
 		}
 	}
 
@@ -741,6 +740,27 @@ component displayName="Task Manager Service" {
 		];
 	}
 
+	private boolean function _taskIsRunningOnLocalMachine( required any task ){
+		var runningTasks = _getRunningTasks();
+		var threadRef    = runningTasks[ task.running_thread ].thread ?: NullValue();
+
+		if ( IsNull( threadRef ) ) {
+			return false;
+		}
+
+		var state = threadRef.getState()
+		return !state.equals( state.TERMINATED );
+	}
+
+	private void function _runTaskInNewRequest( required string taskKey ) {
+		var event         = $getRequestContext();
+		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.scheduledTask" );
+
+		http url=taskRunnerUrl method="post" timeout=2 throwonerror=true {
+			httpparam name="taskKey" value=arguments.taskKey type="formfield";
+		}
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTasks() {
 		return _configuredTasks;
@@ -775,13 +795,6 @@ component displayName="Task Manager Service" {
 	}
 	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
 		_systemConfigurationService = arguments.systemConfigurationService;
-	}
-
-	private any function _getCfThreadHelper() {
-		return _cfThreadHelper;
-	}
-	private void function _setCfThreadHelper( required any cfThreadHelper ) {
-		_cfThreadHelper = arguments.cfThreadHelper;
 	}
 
 	private any function _getLogger( string logId="", string taskKey="" ) {
@@ -825,6 +838,20 @@ component displayName="Task Manager Service" {
 	}
 	private void function _setTaskScheduler( required any taskScheduler ) {
 		_taskScheduler = arguments.taskScheduler;
+	}
+
+	private struct function _getRunningTasks() {
+		return _runningTasks;
+	}
+	private void function _setRunningTasks( required struct runningTasks ) {
+		_runningTasks = arguments.runningTasks;
+	}
+
+	private any function _getThreadUtil() {
+		return _threadUtil;
+	}
+	private void function _setThreadUtil( required any threadUtil ) {
+		_threadUtil = arguments.threadUtil;
 	}
 
 }

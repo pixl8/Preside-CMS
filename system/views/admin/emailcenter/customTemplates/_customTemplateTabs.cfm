@@ -1,4 +1,3 @@
-<cfparam name="args.stats"                                 default="" />
 <cfparam name="args.body"                                  default="" />
 <cfparam name="args.tab"                                   default="preview" />
 <cfparam name="args.canEdit"                type="boolean" default="false" />
@@ -28,29 +27,38 @@
 		});
 	}
 
-	if ( args.canConfigureLayout ) {
-		tabs.append({
-			  id     = "layout"
-			, icon   = "fa-code"
-			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.layout" )
-			, active = ( args.tab == "layout" )
-			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.configurelayout", queryString="id=" & templateId )
-		});
-	}
 
 	if ( args.canEditSendOptions ) {
 		tabs.append({
-			  id     = "sendoptions"
-			, icon   = "fa-envelope orange"
-			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.sendOptions" )
-			, active = ( args.tab == "sendoptions" )
-			, link   = ( args.tab == "sendoptions" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=#templateId#" )
+			  id     = "settings"
+			, icon   = "fa-cogs orange"
+			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.settings" )
+			, active = ( args.tab == "settings" )
+			, link   = ( args.tab == "settings" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.settings", queryString="id=" & templateId )
+		});
+	}
+
+	if ( args.canConfigureLayout ) {
+		tabs.append({
+			  id     = "layout"
+			, icon   = "fa-align-justify grey"
+			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.layout" )
+			, active = ( args.tab == "layout" )
+			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.configureLayout", queryString="id=" & templateId )
 		});
 	}
 
 	tabs.append({
+		  id     = "stats"
+		, icon   = "fa-line-chart purple"
+		, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.stats" )
+		, active = ( args.tab == "stats" )
+		, link   = ( args.tab == "stats" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.stats", queryString="id=#templateId#" )
+	});
+
+	tabs.append({
 		  id     = "log"
-		, icon   = "fa-list-alt light-grey"
+		, icon   = "fa-list-alt yellow"
 		, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.log" )
 		, active = ( args.tab == "log" )
 		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.logs", queryString="id=#templateId#" )
@@ -69,8 +77,8 @@
 
 <cfoutput>
 	#renderViewlet( "admin.emailcenter.customtemplates._customTemplateActions" )#
+	#renderViewlet( "admin.emailcenter.customtemplates._customTemplateNotices" )#
 
-	#args.stats#
 	<div class="tabbable">
 		<ul class="nav nav-tabs">
 			<cfloop array="#tabs#" index="i" item="tab">

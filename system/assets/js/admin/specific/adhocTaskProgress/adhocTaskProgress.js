@@ -32,10 +32,12 @@
 
 	processUpdate = function( data ) {
 		var isRunning          = data.status == "running"
+		  , isPending          = data.status == "pending"
 		  , logArea            = $logArea.get(0)
 		  , isScrolledToBottom = logArea.scrollHeight - logArea.clientHeight <= logArea.scrollTop + 1;
 
 		$timeArea.html( data.timeTaken );
+
 		if ( $.trim( data.log ).length ) {
 			$logArea.html( $logArea.html() + String.fromCharCode( 10 ) + data.log );
 			lineCount = data.logLineCount;
@@ -47,7 +49,7 @@
 
 		setProgress( data.progress );
 
-		if ( !isRunning ) {
+		if ( !isRunning && !isPending ) {
 			clearInterval( intervalId );
 			$timeArea.parent().removeClass( "running blue" );
 			$timeArea.parent().addClass( "complete" );
@@ -69,6 +71,8 @@
 
 			$progressBar.removeClass( "active" );
 			$progressBar.removeClass( "progress-striped" );
+		} else if ( isRunning ) {
+			$timeArea.parent().addClass( "running blue" ).removeClass( "orange red green" );
 		}
 	};
 

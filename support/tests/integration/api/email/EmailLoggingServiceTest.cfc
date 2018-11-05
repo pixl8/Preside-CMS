@@ -82,14 +82,47 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, user_agent    = cgi.http_user_agent
 				} ]);
 			} );
+
+			it( "should extract known fields from extra data directly into the data model", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var activity  = "blah";
+				var extraData = { blah=CreateUUId(), test=Now() };
+				var expectedData = extraData.copy();
+
+				extraData.link = CreateUUId();
+				extraData.code = "304.2"
+				extraData.reason = "Test reason: " & CreateUUId();
+
+				mockLogActivityDao.$( "insertData", CreateUUId() );
+
+				service.recordActivity(
+					  messageId = messageId
+					, activity  = activity
+					, extraData = extraData
+				);
+
+				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockLogActivityDao.$callLog().insertData[ 1 ] ).toBe( [ {
+					  message       = messageId
+					, activity_type = activity
+					, extra_data    = SerializeJson( expectedData )
+					, user_ip       = cgi.remote_addr
+					, user_agent    = cgi.http_user_agent
+					, link          = extraData.link
+					, code          = extraData.code
+					, reason        = extraData.reason
+				} ]);
+			} );
 		} );
 
 		describe( "markAsSent()", function(){
-			it( "should update the log record by setting sent = true + sent_date to now(ish)", function(){
+			it( "should update the log record by setting sent = true + sent_date to now(ish) and record an activity", function(){
 				var service = _getService();
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsSent( logId );
 
@@ -97,6 +130,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
 					  id   = logId
 					, data = { sent=true, sent_date=nowish }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "send"
 				} );
 			} );
 		} );
@@ -107,6 +146,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsDelivered( logId );
 
@@ -124,6 +164,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, hard_bounced      = false
 						, hard_bounced_date = ""
 					  }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "deliver"
 				} );
 			} );
 
@@ -160,6 +206,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var code    = 610;
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsFailed( logId, reason, code );
 
@@ -168,6 +215,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
 					, filterParams = { id=logId, failed=false, opened=false }
 					, data         = { failed=true, failed_date=nowish, failed_reason=reason, failed_code=code }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "fail"
+					, extraData = { reason=reason, code=code }
 				} );
 			} );
 		} );
@@ -250,6 +304,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsMarkedAsSpam( logId );
 
@@ -258,6 +313,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  filter       = "id = :id and ( marked_as_spam is null or marked_as_spam = :marked_as_spam )"
 					, filterParams = { id=logId, marked_as_spam=false }
 					, data         = { marked_as_spam=true, marked_as_spam_date=nowish }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "markasspam"
 				} );
 			} );
 		} );
@@ -268,6 +329,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsUnsubscribed( logId );
 
@@ -276,6 +338,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  filter       = "id = :id and ( unsubscribed is null or unsubscribed = :unsubscribed )"
 					, filterParams = { id=logId, unsubscribed=false }
 					, data         = { unsubscribed=true, unsubscribed_date=nowish }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "unsubscribe"
 				} );
 			} );
 		} );
