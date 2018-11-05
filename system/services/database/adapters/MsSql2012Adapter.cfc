@@ -62,7 +62,7 @@ component extends="MsSqlAdapter" {
 		if ( arguments.maxRows ) {
 			if ( IsEmpty( Trim( arguments.orderBy ) ) ) {
 				// using offset/fetch requires 'order by'
-				sql &= " order by (select 0)";
+				sql &= " order by 1";
 			}
 			sql &= " offset #arguments.startRow-1# rows fetch next #arguments.maxRows# rows only";
 		}

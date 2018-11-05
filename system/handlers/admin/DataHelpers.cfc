@@ -141,7 +141,7 @@ component extends="preside.system.base.adminHandler" {
 		var propertyName  = args.propertyName ?: "";
 		var recordId      = args.recordId     ?: "";
 		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
-		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=[ "#propertyName#.id", "#propertyName#.${labelfield} as label" ] );
+		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=[ "#propertyName#.id", "#propertyName#.${labelfield} as label" ], forceJoins="inner" );
 		var baseLink      = event.buildadminLink( objectName=relatedObject, recordId="{recordId}" );
 		var list          = [];
 
