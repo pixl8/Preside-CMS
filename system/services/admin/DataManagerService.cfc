@@ -167,6 +167,10 @@ component {
 	}
 
 	public array function listBatchEditableFields( required string objectName ) {
+		if ( !isOperationAllowed( arguments.objectName, "edit" ) ) {
+			return [];
+		}
+
 		var fields               = [];
 		var propertyNames        = _getPresideObjectService().getObjectAttribute( objectName=objectName, attributeName="propertyNames" );
 		var props                = _getPresideObjectService().getObjectProperties( objectName );
