@@ -248,6 +248,7 @@ component {
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
 			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
+			, errorlogs              = [ "navigate" ]
 			, emailCenter            = {
 				  layouts          = [ "navigate", "configure" ]
 				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read" ]
