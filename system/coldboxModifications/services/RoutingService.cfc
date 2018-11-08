@@ -15,6 +15,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		variables.restRouteHandler                 = wirebox.getInstance( dsl="delayedInjector:restRouteHandler"                 );
 		variables.multilingualPresideObjectService = wirebox.getInstance( dsl="delayedInjector:multilingualPresideObjectService" );
 		variables.multilingualIgnoredUrlPatterns   = wirebox.getInstance( dsl="coldbox:setting:multilingual.ignoredUrlPatterns"  );
+
+		variables.controller.getInterceptorService().registerInterceptor( interceptorClass="preside.system.interceptors.PageCachingInterceptor" );
 	}
 
 	public void function onRequestCapture( event, interceptData ) {
