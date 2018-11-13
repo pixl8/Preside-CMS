@@ -251,6 +251,7 @@ component displayName="RulesEngine Expression Service" {
 		, required struct payload
 		, required struct configuredFields
 	) {
+		_lazyLoadDynamicExpressions( context=arguments.context )
 		try {
 			var expression = _getRawExpression( expressionId );
 		} catch( any e ) {
@@ -302,6 +303,8 @@ component displayName="RulesEngine Expression Service" {
 		, required struct configuredFields
 		,          string filterPrefix = ""
 	) {
+		_lazyLoadDynamicExpressions( filterObject=arguments.objectName );
+
 		var expression    = _getRawExpression( expressionid );
 		var filterObjects = expression.filterObjects ?: [];
 
@@ -492,7 +495,7 @@ component displayName="RulesEngine Expression Service" {
 		throw( type="preside.rule.expression.not.found", message="The expression [#arguments.expressionId#] could not be found." );
 	}
 
-	private void function _lazyLoadDynamicExpressions( required string context, required string filterObject ) {
+	private void function _lazyLoadDynamicExpressions( string context="", string filterObject="" ) {
 		variables._lazyLoadDone = variables._lazyLoadDone ?: {};
 
 		var objects = [];
