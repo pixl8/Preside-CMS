@@ -220,4 +220,19 @@ component extends="BaseAdapter" {
 	public boolean function autoCreatesFkIndexes(){
 		return true;
 	}
+
+	public string function getDatabaseNameSql() {
+		return "select database() as db";
+	}
+
+	public string function getAllForeignKeysSql() {
+		return "select distinct u.table_name
+		                      , u.column_name
+		                      , u.constraint_name
+		                      , u.referenced_table_name
+		                      , u.referenced_column_name
+		        from            information_schema.key_column_usage u
+		        where           u.table_schema = :databasename
+		        and             u.referenced_column_name is not null";
+	}
 }

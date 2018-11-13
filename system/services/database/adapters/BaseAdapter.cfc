@@ -479,4 +479,12 @@ component {
 	public string function getCountSql( required string originalStatement ) {
 		return "select count(1) as #EscapeEntity( 'record_count' )# from ( #arguments.originalStatement# ) #EscapeEntity( 'original_statement' )#";
 	}
+
+	public string function getDatabaseNameSql() {
+		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getDatabaseNameSql method." );
+	}
+
+	public string function getAllForeignKeysSql( required string database ) {
+		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getAllForeignKeysSql method." );
+	}
 }

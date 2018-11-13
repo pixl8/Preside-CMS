@@ -490,5 +490,25 @@ component extends="BaseAdapter" {
 			columnAlter['columnSet'] = escapeEntity( arguments.columnName ) & ( isNullable ? " Drop not null" : " Set not null" );
 			columnAlter['columnType'] = columnType;
 			return columnAlter;
-   }
+	}
+
+	public string function getDatabaseNameSql() {
+		return "select current_database() as db";
+	}
+
+	public string function getAllForeignKeysSql() {
+		return "select tc.table_name       as table_name
+	                 , kcu.column_name    as column_name
+	                 , ccu.table_name     as referenced_table_name
+	                 , ccu.column_name    as referenced_column_name
+	                 , tc.constraint_name as constraint_name
+	           from information_schema.table_constraints as tc
+	           join information_schema.key_column_usage  as kcu
+	             on tc.constraint_name = kcu.constraint_name
+	            and tc.table_schema    = kcu.table_schema
+	           join information_schema.constraint_column_usage as ccu
+	             on ccu.constraint_name = tc.constraint_name
+	            and ccu.table_schema    = tc.table_schema
+	           where constraint_type = 'foreign key'";
+	}
 }
