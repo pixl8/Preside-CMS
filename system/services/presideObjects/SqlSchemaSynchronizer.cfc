@@ -355,7 +355,6 @@ component {
 										_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
 									}
 								}
-
 								_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
 								_setDatabaseObjectVersion(
 									  entityType   = "column"
@@ -451,11 +450,14 @@ component {
 			}
 		} catch( any e ) {
 			request._fksDeleted = request._fksDeleted ?: {};
-			if ( !StructKeyExists( request._fksDeleted, arguments.tableName ) ) {
-				request._fksDelete[ arguments.tableName ];
+			if ( !StructKeyExists( request._fksDeleted, arguments.tableName ) && reFindNoCase( "fk_[0-9a-f]{32}", ( e.message ?: "" ) & ( e.detail ?: "" ) ) ) {
 				_dropAllForeignKeysForTable( columnsFromDb, arguments.tableName, arguments.dsn );
 				_updateDbTable( argumentCollection=arguments );
+				request._fksDeleted[ arguments.tableName ] = true;
+			} else {
+				rethrow;
 			}
+
 		}
 	}
 
