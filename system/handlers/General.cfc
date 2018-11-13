@@ -6,7 +6,6 @@ component {
 	property name="adminLoginService"           inject="loginService";
 	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
-	property name="expressionGenerator"         inject="rulesEngineAutoPresideObjectExpressionGenerator";
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 	property name="healthcheckService"          inject="healthcheckService";
@@ -20,7 +19,6 @@ component {
 		_performDbMigrations();
 		_configureVariousServices();
 		_populateDefaultLanguages();
-		_populateAutoRulesEngineExpressions();
 		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
 
@@ -192,10 +190,6 @@ component {
 		if ( isFeatureEnabled( "multilingual" ) ) {
 			getModel( "multilingualPresideObjectService" ).populateCoreLanguageSet();
 		}
-	}
-
-	private void function _populateAutoRulesEngineExpressions() {
-		expressionGenerator.generateAndRegisterAutoExpressions();
 	}
 
 	private void function _configureVariousServices() {

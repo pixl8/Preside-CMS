@@ -14,6 +14,7 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionReaderService.inject     rulesEngineExpressionReaderService
 	 * @fieldTypeService.inject            rulesEngineFieldTypeService
 	 * @contextService.inject              rulesEngineContextService
+	 * @autoExpressionGenerator.inject     rulesEngineAutoPresideObjectExpressionGenerator
 	 * @expressionDirectories.inject       presidecms:directories:/handlers/rules/expressions
 	 * @rulesEngineExpressionCache.inject  cachebox:rulesEngineExpressionCache
 	 * @i18n.inject                        coldbox:plugin:i18n
@@ -23,12 +24,14 @@ component displayName="RulesEngine Expression Service" {
 		  required any   expressionReaderService
 		, required any   fieldTypeService
 		, required any   contextService
+		, required any   autoExpressionGenerator
 		, required array expressionDirectories
 		, required any   rulesEngineExpressionCache
 		, required any   i18n
 	) {
 		_setFieldTypeService( fieldTypeService );
 		_setContextService( contextService );
+		_setAutoExpressionGenerator( arguments.autoExpressionGenerator );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) );
 		_setRulesEngineExpressionCache( rulesEngineExpressionCache );
 		_setI18n( i18n );
@@ -46,6 +49,8 @@ component displayName="RulesEngine Expression Service" {
 	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
 	 */
 	public array function listExpressions( string context="", string filterObject="" ) {
+		_lazyLoadDynamicExpressions( argumentCollection=arguments );
+
 		var allExpressions  = _getExpressions();
 		var list            = [];
 		var filterOnContext = arguments.context.len() > 0;
@@ -487,6 +492,36 @@ component displayName="RulesEngine Expression Service" {
 		throw( type="preside.rule.expression.not.found", message="The expression [#arguments.expressionId#] could not be found." );
 	}
 
+	private void function _lazyLoadDynamicExpressions( required string context, required string filterObject ) {
+		variables._lazyLoadDone = variables._lazyLoadDone ?: {};
+
+		var objects = [];
+		var contextService = _getContextService();
+
+		if ( Len( Trim( arguments.filterObject ) ) ) {
+			objects.append( arguments.filterObject );
+		}
+		if ( Len( Trim( arguments.context ) ) ) {
+			var contextObjects = contextService.getContextObject( arguments.context, true );
+			if ( contextObjects.len() ) {
+				objects.append( contextObjects, true );
+			}
+		}
+
+		for( var objectName in objects ) {
+			if ( !variables._lazyLoadDone.keyExists( objectName ) ) {
+				var expressions = _getAutoExpressionGenerator().getAutoExpressionsForObject( objectName );
+				if ( expressions.len() ) {
+					contextService.addContext( id="presideobject_" & objectName, object=objectName, visible=false );
+					for( var expression in expressions ) {
+						addExpression( argumentCollection=expression );
+					}
+				}
+				variables._lazyLoadDone[ objectName ] = true;
+			}
+		}
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getExpressions() {
 		return _expressions;
@@ -521,5 +556,12 @@ component displayName="RulesEngine Expression Service" {
 	}
 	private void function _setI18n( required any i18n ) {
 		_i18n = arguments.i18n;
+	}
+
+	private any function _getAutoExpressionGenerator() {
+		return _autoExpressionGenerator;
+	}
+	private void function _setAutoExpressionGenerator( required any autoExpressionGenerator ) {
+		_autoExpressionGenerator = arguments.autoExpressionGenerator;
 	}
 }
