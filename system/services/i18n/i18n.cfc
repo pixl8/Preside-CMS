@@ -1,11 +1,11 @@
 component extends="preside.system.modules.cbi18n.models.i18n" {
 
-	property name="resourceBundleService" inject="resourceBundleService";
-	property name="resourceService"       inject="resourceService@cbi18n";
-	property name="widgetsService"        inject="widgetsService";
-	property name="presideObjectService"  inject="presideObjectService";
-	property name="controller"            inject="coldbox";
-	property name="sessionStorage"        inject="sessionStorage";
+	property name="resourceBundleService" inject="delayedInjector:resourceBundleService";
+	property name="resourceService"       inject="delayedInjector:resourceService@cbi18n";
+	property name="widgetsService"        inject="delayedInjector:widgetsService";
+	property name="presideObjectService"  inject="delayedInjector:presideObjectService";
+	property name="controller"            inject="delayedInjector:coldbox";
+	property name="sessionStorage"        inject="delayedInjector:sessionStorage";
 	property name="adminLanguages"        inject="coldbox:setting:adminLanguages";
 
 	public any function init() {
@@ -39,7 +39,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		}
 
 		if ( ArrayLen( arguments.data ) ) {
-			translated = variables.controller.getWirebox().getInstance( "resourceservice@cbi18n" ).formatRBString(
+			translated = resourceservice.formatRBString(
 				  rbString         = translated
 				, substituteValues = arguments.data
 			);

@@ -96,15 +96,34 @@ component displayName="RulesEngine Context Service" {
 	}
 
 	/**
-	 * Returns the configured object (if any) for the given context
+	 * Returns the configured object(s) (if any) for the given context
 	 *
-	 * @autodoc true
-	 * @context.hint ID of the context whose configured object you wish to get
+	 * @autodoc                   true
+	 * @context.hint              ID of the context whose configured object you wish to get
+	 * @includeChildContexts.hint Whether or not to include child contexts - returns an array if true, a string if false
 	 */
-	public string function getContextObject( required string context ) {
-		var contexts = _getConfiguredContexts();
+	public any function getContextObject( required string context, boolean includeChildContexts=false ) {
+		var contexts   = _getConfiguredContexts();
+		var mainObject = contexts[ arguments.context ].object ?: "";
+		var objects    = [];
 
-		return contexts[ arguments.context ].object ?: "";
+		if ( arguments.includeChildContexts ) {
+			if ( mainObject.len() ) {
+				objects.append( mainObject );
+			}
+
+			var subContexts  = contexts[ arguments.context ].subcontexts ?: [];
+			for( var subContext in subContexts ) {
+				var subobjects = getContextObject( subContext, true );
+				if ( subobjects.len() ) {
+					objects.append( subobjects, true );
+				}
+			}
+
+			return objects;
+		}
+
+		return mainObject;
 	}
 
 	/**

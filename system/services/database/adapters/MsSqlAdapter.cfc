@@ -356,4 +356,19 @@ component extends="BaseAdapter" {
 
 		return ix;
 	}
+
+	public string function getDatabaseNameSql() {
+		return "select db_name() as db";
+	}
+
+	public string function getAllForeignKeysSql() {
+		return "select     object_name( f.parent_object_id )                            as table_name
+	                     , col_name( fc.parent_object_id, fc.parent_column_id )         as column_name
+	                     , object_name ( f.referenced_object_id )                       as referenced_table_name
+	                     , col_name( fc.referenced_object_id, fc.referenced_column_id ) as referenced_column_name
+	                     , f.name as constraint_name
+	            from       sys.foreign_keys        as f
+	            inner join sys.foreign_key_columns as fc on f.object_id = fc.constraint_object_id
+	            inner join sys.objects             as o  on o.object_id = fc.referenced_object_id";
+	}
 }

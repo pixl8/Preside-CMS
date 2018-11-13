@@ -52,7 +52,7 @@ component extends="AbstractHeartBeat" {
 			do {
 				try {
 					sleep( 5000 + ( 100 * _getInstanceNumber() ) );
-					http method="post" url=startUrl timeout=2 throwonerror=true {
+					http method="post" url=startUrl timeout=10 throwonerror=true {
 						httpparam type="formfield" name="instanceNumber" value=_getInstanceNumber();
 					}
 					success = true;

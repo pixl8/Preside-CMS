@@ -6,7 +6,6 @@ component {
 	property name="adminLoginService"           inject="loginService";
 	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
-	property name="expressionGenerator"         inject="rulesEngineAutoPresideObjectExpressionGenerator";
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 	property name="healthcheckService"          inject="healthcheckService";
@@ -20,7 +19,6 @@ component {
 		_performDbMigrations();
 		_configureVariousServices();
 		_populateDefaultLanguages();
-		_populateAutoRulesEngineExpressions();
 		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
 
@@ -194,10 +192,6 @@ component {
 		}
 	}
 
-	private void function _populateAutoRulesEngineExpressions() {
-		expressionGenerator.generateAndRegisterAutoExpressions();
-	}
-
 	private void function _configureVariousServices() {
 		var i18n = getModel( "i18n" );
 
@@ -209,9 +203,6 @@ component {
 	}
 
 	private void function _startHeartbeats() {
-		presideTaskmanagerHeartBeat.startInNewRequest();
-		presideAdhocTaskHeartBeat.startInNewRequest();
-
 		for( var i=1; i<=emailQueueConcurrency; i++ ) {
 			getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
 		}
@@ -221,6 +212,9 @@ component {
 				getModel( "healthCheckHeartbeat#serviceId#" ).startInNewRequest();
 			}
 		}
+
+		presideAdhocTaskHeartBeat.startInNewRequest();
+		presideTaskmanagerHeartBeat.startInNewRequest();
 	}
 
 	private void function _setupCatchAllAdminUserGroup() {

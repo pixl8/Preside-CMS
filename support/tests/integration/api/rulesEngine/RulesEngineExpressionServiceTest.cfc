@@ -762,14 +762,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 // PRIVATE HELPERS
 	private any function _getService( struct expressions=_getDefaultTestExpressions() ) {
-		variables.mockReaderService     = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
-		variables.mockFieldTypeService  = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineFieldTypeService" );
-		variables.mockContextService    = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineContextService" );
-		variables.mockDirectories       = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
-		variables.mockExpressionCache   = createStub();
-		variables.mockI18n              = createStub();
-		variables.mockExpressions       = arguments.expressions;
-		variables.mockColdboxController = CreateStub();
+		variables.mockReaderService       = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
+		variables.mockFieldTypeService    = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineFieldTypeService" );
+		variables.mockContextService      = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineContextService" );
+		variables.mockExpressionGenerator = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineAutoPresideObjectExpressionGenerator" );
+		variables.mockDirectories         = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
+		variables.mockExpressionCache     = createStub();
+		variables.mockI18n                = createStub();
+		variables.mockExpressions         = arguments.expressions;
+		variables.mockColdboxController   = CreateStub();
 		mockReaderService.$( "getExpressionsFromDirectories" ).$args( mockDirectories ).$results( mockExpressions );
 		mockI18n.$( "getFWLanguageCode" ).$results( "en" );
 		mockI18n.$( "getFWCountryCode" ).$results( "" );
@@ -782,12 +783,14 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			, fieldTypeService           = mockFieldTypeService
 			, expressionDirectories      = mockDirectories
 			, rulesEngineExpressionCache = mockExpressionCache
+			, autoExpressionGenerator    = mockExpressionGenerator
 			, i18n                       = mockI18n
 		);
 
 		service = createMock( object=service );
 
 		service.$( "$getColdbox", mockColdboxController );
+		service.$( "_lazyLoadDynamicExpressions" );
 		mockContextService.$( "getContextObject" ).$args( "request" ).$results( "request_object" );
 		mockContextService.$( "getContextObject" ).$args( "" ).$results( "" );
 		service.$( "translateExpressionCategory", "default" );

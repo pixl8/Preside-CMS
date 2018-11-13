@@ -307,10 +307,6 @@ component {
 		var newName         = "";
 		var colProperties   = {};
 
-		// MySQL particularly can get its knickers in a twist with foreign keys.
-		// Drop all foreign keys before messing with table modifications
-		_dropAllForeignKeysForTable( columnsFromDb, arguments.tableName, arguments.dsn );
-
 		for( column in columnsFromDb ){
 			wasDeDeprecated = false;
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
@@ -358,6 +354,14 @@ component {
 							}
 						}
 
+						if ( column.is_foreignkey ){
+							_deleteForeignKeysForColumn(
+								  primaryTableName  = column.referenced_primarykey_table
+								, foreignTableName  = arguments.tableName
+								, foreignColumnName = column.column_name
+								, dsn               = arguments.dsn
+							);
+						}
 						_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
 						_setDatabaseObjectVersion(
 							  entityType   = "column"
@@ -465,7 +469,8 @@ component {
 		var adapter = _getAdapter( dsn );
 		var dropSql = "";
 
-		keys = _getTableForeignKeys( tableName = arguments.primaryTableName, dsn = arguments.dsn );
+		keys = _getAllForeignKeys( dsn=arguments.dsn, cached=true );
+		keys = keys[ foreignTableName ] ?: {};
 
 		for( keyName in keys ){
 			key = keys[ keyName ];
@@ -473,19 +478,6 @@ component {
 				sql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
 
 				_runSql( sql = sql, dsn = arguments.dsn );
-			}
-		}
-	}
-
-	private void function _dropAllForeignKeysForTable( required query tableColumns, required string tableName, required string dsn ) {
-		for( var column in arguments.tableColumns ){
-			if ( column.is_foreignkey ){
-				_deleteForeignKeysForColumn(
-					  primaryTableName  = column.referenced_primarykey_table
-					, foreignTableName  = arguments.tableName
-					, foreignColumnName = column.column_name
-					, dsn               = arguments.dsn
-				);
 			}
 		}
 	}
@@ -506,65 +498,28 @@ component {
 		var onUpdate               = "";
 		var cascadingSupported     = "";
 		var relationship           = "";
-		var existingKeysNotToTouch = {};
+		var dsnKeys                = {};
 
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			adapter = _getAdapter( obj.meta.dsn );
-			dbKeys = _getTableForeignKeys( tableName = obj.meta.tableName, dsn = obj.meta.dsn );
+			dsnKeys[ obj.meta.dsn ] = dsnKeys[ obj.meta.dsn ] ?: _getAllForeignKeys( dsn=obj.meta.dsn );
+
+			dbKeys = dsnKeys[ obj.meta.dsn ][ obj.meta.tableName ] ?: {};
+
 			param name="obj.meta.relationships" default=StructNew();
 			param name="obj.sql.relationships"  default=StructNew();
 
 			for( dbKeyName in dbKeys ){
 				dbKey = dbKeys[ dbKeyName ];
 
-				shouldBeDeleted = true;
-				for( foreignObjName in objects ){
-					foreignObj = objects[ foreignObjName ];
-					if ( foreignObj.meta.tableName eq dbKey.fk_table ) {
-						param name="foreignObj.meta.relationships" default=StructNew();
-
-						if ( StructKeyExists( foreignObj.meta.relationships, dbKeyName ) ){
-							onDelete           = foreignObj.meta.relationships[ dbkeyname ].on_delete ?: "";
-							onUpdate           = foreignObj.meta.relationships[ dbkeyname ].on_update ?: "";
-							cascadingSupported = adapter.supportsCascadeUpdateDelete();
-							relationship       = Duplicate( foreignObj.meta.relationships[ dbKeyName ] );
-
-							if ( onDelete == "cascade-if-no-cycle-check" ) {
-								relationship.on_delete = cascadingSupported ? "cascade" : "no action";
-							}
-							if ( onUpdate == "cascade-if-no-cycle-check" ) {
-								relationship.on_update = cascadingSupported ? "cascade" : "no action";
-							}
-
-							if ( onDelete == "set-null-if-no-cycle-check" ) {
-								relationship.on_delete = cascadingSupported ? "set null" : "no action";
-							}
-							if ( onUpdate == "set-null-if-no-cycle-check" ) {
-								relationship.on_update = cascadingSupported ? "set null" : "no action";
-							}
-
-							shouldBeDeleted = false;
-							for( var param in dbKey ) {
-								if ( !relationship.keyExists( param ) || dbKey[ param ] != relationship[ param ] ) {
-									shouldBeDeleted = true;
-									break;
-								}
-							}
-
-							if ( !shouldBeDeleted ) {
-								existingKeysNotToTouch[ foreignObjName ] = ListAppend( existingKeysNotToTouch[ foreignObjName ] ?: "", dbKeyName );
-							}
-						}
-						break;
-					}
-				}
-
+				shouldBeDeleted = !StructKeyExists( obj.meta.relationships, dbKeyName ) && ReFindNoCase( "^fk_[0-9a-f]{32}$", dbKeyName );
 				if ( shouldBeDeleted ) {
 					deleteSql = adapter.getDropForeignKeySql(
 						  foreignKeyName = dbKeyName
 						, tableName      = dbKey.fk_table
 					);
+
 					try {
 						_runSql( sql = deleteSql, dsn = obj.meta.dsn );
 					} catch( any e ) {
@@ -580,25 +535,13 @@ component {
 
 		for( objName in objects ) {
 			obj = objects[ objName ];
+			dsnKeys[ obj.meta.dsn ] = dsnKeys[ obj.meta.dsn ] ?: _getAllForeignKeys( dsn=obj.meta.dsn );
+			dbKeys = dsnKeys[ obj.meta.dsn ][ obj.meta.tableName ] ?: {};
+
 			for( key in obj.sql.relationships ){
-				if ( !ListFindNoCase( existingKeysNotToTouch[ objName ] ?: "", key ) ) {
+				if ( !dbKeys.keyExists( key ) ) {
 					transaction {
-						if ( _getAutoRunScripts() ) {
-							// try and catch around a fk deletion, no native way to delete foreign key only if exists
-							// we need to do this because apparently there's some circumstances which lead to the FK already existing
-							// despite our checks above
-							try {
-								deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
-									  foreignKeyName = key
-									, tableName      = obj.meta.tableName
-								);
-								_runSql( sql = deleteSql, dsn = obj.meta.dsn );
-							} catch( any e ) {}
-						}
 						try {
-							if ( _getAdapter( obj.meta.dsn ).requiresManualCommitForTransactions() ) {
-								_runSql( sql = 'commit', dsn = obj.meta.dsn );
-							}
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
 						} catch( any e ) {
 							var message = "An error occurred while attempting to create a foreign key for the [#objName#] object.";
@@ -685,16 +628,33 @@ component {
 		}
 	}
 
-	private struct function _getTableForeignKeys() {
-		try {
-			return _getDbInfoService().getTableForeignKeys( argumentCollection = arguments );
-		} catch( any e ) {
-			if ( e.message contains "there is no table that match the following pattern" ) {
-				return {};
-			}
-
-			rethrow;
+	private struct function _getAllForeignKeys( required string dsn, boolean cached=false ) {
+		if ( arguments.cached && request.keyExists( "_allForeignKeys.#arguments.dsn#" ) ) {
+			return request[ "_allForeignKeys.#arguments.dsn#" ];
 		}
+
+		var adapter = _getAdapter( arguments.dsn );
+		var db      = _getSqlRunner().runSql( sql=adapter.getDatabaseNameSql(), dsn=arguments.dsn ).db ?: "";
+		var keys    = _getSqlRunner().runSql(
+			  sql    = adapter.getAllForeignKeysSql()
+			, dsn    = arguments.dsn
+			, params = [ { name="databasename", type="cf_sql_varchar", value=db } ]
+		);
+
+		var constraints = {};
+		for( var key in keys ){
+			constraints[ key.table_name ] = constraints[ key.table_name ] ?: {};
+			constraints[ key.table_name ][ key.constraint_name ] = {
+				  pk_table  = key.referenced_table_name
+				, fk_table  = key.table_name
+				, pk_column = key.referenced_column_name
+				, fk_column = key.column_name
+			}
+		}
+
+		request[ "_allForeignKeys.#arguments.dsn#" ] = constraints;
+
+		return constraints;
 	}
 
 	private struct function _getVersionsOfDatabaseObjects() {
