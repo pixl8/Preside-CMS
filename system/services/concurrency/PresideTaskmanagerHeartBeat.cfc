@@ -48,7 +48,7 @@ component extends="AbstractHeartBeat" {
 			do {
 				try {
 					sleep( 1000 );
-					http method="post" url=startUrl timeout=2 throwonerror=true;
+					http method="post" url=startUrl timeout=10 throwonerror=true;
 					success = true;
 				} catch( any e ) {
 					$raiseError( e );

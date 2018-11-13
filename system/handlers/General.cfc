@@ -203,9 +203,6 @@ component {
 	}
 
 	private void function _startHeartbeats() {
-		presideTaskmanagerHeartBeat.startInNewRequest();
-		presideAdhocTaskHeartBeat.startInNewRequest();
-
 		for( var i=1; i<=emailQueueConcurrency; i++ ) {
 			getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
 		}
@@ -215,6 +212,9 @@ component {
 				getModel( "healthCheckHeartbeat#serviceId#" ).startInNewRequest();
 			}
 		}
+
+		presideAdhocTaskHeartBeat.startInNewRequest();
+		presideTaskmanagerHeartBeat.startInNewRequest();
 	}
 
 	private void function _setupCatchAllAdminUserGroup() {
