@@ -406,6 +406,7 @@
 			var keys = "";
 
 			poService.dbSync();
+			request.delete( "_allForeignKeys.preside_test_suite" );
 			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship_changed/" ] );
 			poService.dbSync();
 
