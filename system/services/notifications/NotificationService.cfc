@@ -66,31 +66,31 @@ component autodoc=true displayName="Notification Service" {
 		_announceInterception( "onCreateNotification", args );
 
 		if ( IsBoolean( topicConfig.save_in_cms ?: "" ) && topicConfig.save_in_cms ) {
-			var data = {
+			var dataForDbRecord = {
 				  topic = arguments.topic
 				, type  = arguments.type
 				, data  = SerializeJson( arguments.data )
 			};
-			data.data_hash = LCase( Hash( data.data ) );
+			dataForDbRecord.data_hash = LCase( Hash( dataForDbRecord.data ) );
 
 			var existingNotification = _getNotificationDao().selectData( filter={
-				  topic     = data.topic
-				, type      = data.type
-				, data_hash = data.data_hash
+				  topic     = dataForDbRecord.topic
+				, type      = dataForDbRecord.type
+				, data_hash = dataForDbRecord.data_hash
 			} );
 
 			if ( existingNotification.recordCount ) {
-				createNotificationConsumers( existingNotification.id, args.topic, data );
+				createNotificationConsumers( existingNotification.id, args.topic, args.data );
 				return existingNotification.id;
 			}
 
 			_announceInterception( "preCreateNotification", args );
 
-			args.notificationId = _getNotificationDao().insertData( data=data );
+			args.notificationId = _getNotificationDao().insertData( data=dataForDbRecord );
 
 			_announceInterception( "postCreateNotification", args );
 
-			createNotificationConsumers( args.notificationId, topic, data );
+			createNotificationConsumers( args.notificationId, topic, args.data );
 
 			if ( Len( Trim( topicConfig.send_to_email_address ?: "" ) ) ) {
 				sendGlobalNotificationEmail(
