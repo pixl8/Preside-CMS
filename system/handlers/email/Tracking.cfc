@@ -26,6 +26,23 @@ component {
 		var messageId         = Trim( rc.mid  ?: "" );
 		var link              = Trim( rc.link ?: "" );
 		var ignoreLinkPattern = "/e/t/[co]/"; // ignore email tracking links for reporting (i.e. we may have a double encoded link somehow)
+		var getLinkFromDb     = isFeatureEnabled( "emailLinkShortener" ) && ReFindNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}", link );
+
+		if ( getLinkFromDb ) {
+			link = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
+
+			if ( link.recordCount ) {
+				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link.href ) ) {
+					try {
+						emailLoggingService.recordClick( id=messageId, link=link.id );
+					} catch( any e ) {
+						// ignore errors that will be due to original email log no longer existing
+					}
+				}
+
+				setNextEvent( url=link.href );
+			}
+		}
 
 		try {
 			link = ReplaceNoCase( ToString( ToBinary( link ) ), "&amp;", "&", "all" );
