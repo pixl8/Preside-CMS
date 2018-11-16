@@ -69,7 +69,7 @@
                 <cfoutput>#renderContent( "richeditor", args.signature_html, "email" )#</cfoutput>
             </cfif>
             <cfif Len( Trim( args.viewOnlineLink ) )>
-                <a href="#args.viewOnlineLink#">View in browser</a>
+                <cfoutput><a href="#args.viewOnlineLink#" title="View in browser">View in browser</a></cfoutput>
             </cfif>
         </div>
     </body>
