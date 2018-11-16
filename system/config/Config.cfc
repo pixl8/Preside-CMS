@@ -333,6 +333,7 @@ component {
 			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
 			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
 			, emailStyleInliner       = { enabled=true , siteTemplates=[ "*" ] }
+			, emailLinkShortener      = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }

@@ -26,9 +26,7 @@
 								<cfloop array="#clickStats#" item="clickStat" index="i">
 									<tr>
 										<td>
-											<a href="#clickStat.link#" title="#clickStat.link#">
-												#abbreviate( clickStat.link, 75 )#
-											</a>
+											#renderField( "email_template_send_log_activity", "link", clickStat.link )#
 										</td>
 										<td class="count-col">#NumberFormat( clickStat.clickCount )#</td>
 									</tr>

@@ -90,6 +90,11 @@ component {
 		}
 
 		var simpleFormatField = function( required string fieldName, required any value ){
+			var dataExportRenderer = Trim( propertyDefinitions[ arguments.fieldName ].dataExportRenderer ?: "" );
+			if ( dataExportRenderer.len() ) {
+				return $renderContent( dataExportRenderer, arguments.value, "dataexport" );
+			}
+
 			switch( propertyDefinitions[ arguments.fieldName ].type ?: "" ) {
 				case "boolean":
 					return IsBoolean( arguments.value ) ? ( arguments.value ? "true" : "false" ) : "";
@@ -108,6 +113,7 @@ component {
 							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn:ss" );
 					}
 			}
+
 			return value;
 		};
 

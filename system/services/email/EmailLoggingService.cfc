@@ -7,6 +7,9 @@
  */
 component {
 
+	variables._lib   = [];
+	variables._jsoup = "";
+
 // CONSTRUCTOR
 	/**
 	 * @recipientTypeService.inject emailRecipientTypeService
@@ -16,6 +19,7 @@ component {
 	public any function init( required any recipientTypeService, required any emailTemplateService ) {
 		_setRecipientTypeService( arguments.recipientTypeService );
 		_setEmailTemplateService( arguments.emailTemplateService );
+		_jsoup = _new( "org.jsoup.Jsoup" );
 
 		return this;
 	}
@@ -449,22 +453,63 @@ component {
 		  required string messageId
 		, required string messageHtml
 	) {
-		var converted      = arguments.messageHtml;
+		var doc             = "";
+		var links           = "";
+		var link            = "";
+		var attribs         = "";
+		var href            = "";
+		var title           = "";
+		var body            = "";
+		var linkHash        = "";
+		var shortenedLinkId = "";
+		var storeInDb       = $isFeatureEnabled( "emailLinkShortener" );
+		var baseTrackingUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
+		var linkDao         = storeInDb ? $getPresideObject( "email_template_shortened_link" ) : "";
 
-		var linkRegex      = 'href="';
-		    linkRegex     &= "((?!javascript:void\(location.href='mailto:'";
-		    linkRegex     &= '|mailto).*?)"';
-
-		var linkMatches    = converted.reMatchNoCase( linkRegex );
-		var baseTrackinUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
-
-		for( var match in linkMatches ) {
-			var link = match.reReplaceNoCase( linkRegex , "\1" );
-
-			converted = converted.replace( match, 'href="#baseTrackinUrl##ToBase64( link )#"', "all" );
+		try {
+			doc = _jsoup.parse( arguments.messageHtml );
+			links = doc.select( "A" );
+		} catch( any e ) {
+			$raiseError( e );
+			return arguments.messageHtml;
 		}
 
-		return converted;
+		for( link in links ) {
+			attribs = link.attributes();
+			href = Trim( attribs.get( "href" ) );
+
+			if ( Len( href ) && ReFindNoCase( "^https?://", href ) ) {
+				if ( storeInDb ) {
+					title           = Trim( attribs.get( "title" ) );
+					body            = Trim( link.text() );
+					linkHash        = Hash( href & title & body );
+					shortenedLinkId = linkDao.selectData( filter={ link_hash=linkhash }, selectFields=[ "id" ] ).id;
+
+					if ( !Len( shortenedLinkId ) ) {
+						try {
+							shortenedLinkId = linkDao.insertData( {
+								  link_hash = linkhash
+								, href      = href
+								, title     = title
+								, body      = body
+							} );
+						} catch( any e ) {
+							shortenedLinkId = linkDao.selectData( filter={ link_hash=linkhash }, selectFields=[ "id" ] ).id;
+
+							if ( !shortenedLinkId.len() ) {
+								rethrow;
+							}
+						}
+					}
+
+					link.attr( "href", baseTrackingUrl & shortenedLinkId );
+				} else {
+					link.attr( "href", baseTrackingUrl & ToBase64( href ) );
+				}
+			}
+		}
+
+		return doc.toString();
 	}
 
 	/**
@@ -602,6 +647,18 @@ component {
 
 	private date function _getNow() {
 		return Now(); // abstracting this makes testing easier
+	}
+
+	private any function _new( required string className ) {
+		return CreateObject( "java", arguments.className, _getLib() );
+	}
+
+	private array function _getLib() {
+		if ( !_lib.len() ) {
+			var libDir = GetDirectoryFromPath( getCurrentTemplatePath() ) & "/lib";
+			_lib = DirectoryList( libDir, false, "path", "*.jar" );
+		}
+		return _lib;
 	}
 
 // GETTERS AND SETTERS

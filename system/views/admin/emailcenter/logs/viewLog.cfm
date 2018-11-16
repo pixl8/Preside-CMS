@@ -137,7 +137,7 @@
 										<cfset logIcon    = "fa-mouse-pointer" />
 										<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.clicked.title" ) />
 										<cfset link       = '<a>#Trim( prc.activity.link ?: "unknown" )#</a>' />
-										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ link ] ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ renderField( "email_template_send_log_activity", "link", link ) ] ) />
 									</cfcase>
 									<cfcase value="resend">
 										<cfset logIcon    = "fa-refresh" />
