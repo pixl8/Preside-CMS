@@ -441,7 +441,7 @@ email content
 				var service = _getService();
 				var messageId = CreateUUId();
 				var trackingUrl = CreateUUId();
-				var links       = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
+				var links       = [ "https://#CreateUUId()#.com", "http://#CreateUUId()#.com", "http://#CreateUUId()#.com", "https://#CreateUUId()#.com" ];
 				var html        = "<!DOCTYPE html>
 <html>
 <head>
@@ -468,11 +468,17 @@ consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
 proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 </body>
 </html>";
-				var htmlMessageWithClickTrackingLinks = html;
-
-				for( var link in links ) {
-					htmlMessageWithClickTrackingLinks = htmlMessageWithClickTrackingLinks.replace( "href=""#link#""", "href=""#trackingUrl##ToBase64( link )#"""  );
-				}
+				var htmlMessageWithClickTrackingLinks = '<!doctype html>
+<html>
+ <head>
+  <title>My email</title>
+ </head>
+ <body>
+  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation <a href="#trackingUrl##ToBase64( links[ 1 ] )#">ullamco</a> laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore <a href="#trackingUrl##ToBase64( links[ 2 ] )#">eu</a> fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation <a href="#trackingUrl##ToBase64( links[ 3 ] )#">ullamco laboris</a> nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse <a href="#trackingUrl##ToBase64( links[ 4 ] )#">cillum dolore</a> eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+ </body>
+</html>';
 
 				var mockRc = CreateStub();
 				service.$( "$getRequestContext", mockRc );
@@ -481,7 +487,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 				expect( service.insertClickTrackingLinks(
 					  messageId   = messageId
 					, messageHtml = html
-				) ).toBe( htmlMessageWithClickTrackingLinks );
+				).reReplace( "\s+", " ", "all" ) ).toBe( htmlMessageWithClickTrackingLinks.reReplace( "\s+", " ", "all" ) );
 			} );
 		} );
 	}
@@ -502,6 +508,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		mockRecipientTypeService.$( "getRecipientAdditionalLogProperties", {} );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
+		service.$( "$isFeatureEnabled" ).$args( "emailLinkShortener" ).$results( false );
 
 		nowish  = Now();
 		service.$( "_getNow", nowish );
