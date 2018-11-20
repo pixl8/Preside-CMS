@@ -670,6 +670,7 @@ component extends="testbox.system.BaseSpec" {
 		tm.$( "_initialiseDb" );
 		tm.$( "$getRequestContext", mockRc );
 		tm.$( "$getErrorLogService", mockErrorLogService );
+		tm.$( "$isFeatureEnabled" ).$args( "sslInternalHttpCalls" ).$results( true );
 		mockRc.$( "setUseQueryCache" );
 
 		return tm.init(

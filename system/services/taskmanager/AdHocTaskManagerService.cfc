@@ -512,6 +512,10 @@ component displayName="Ad-hoc Task Manager Service" {
 		var event         = $getRequestContext();
 		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.adhocTask" );
 
+		if ( taskRunnerUrl.reFindNoCase( "^https" ) && !$isFeatureEnabled( "sslInternalHttpCalls" ) ) {
+			taskRunnerUrl = taskRunnerUrl.reReplaceNoCase( "^https", "http" );
+		}
+
 		http url=taskRunnerUrl method="post" timeout=2 throwonerror=true {
 			httpparam name="taskId" value=arguments.taskId type="formfield";
 		}

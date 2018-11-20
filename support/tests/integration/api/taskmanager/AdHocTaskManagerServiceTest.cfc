@@ -700,6 +700,7 @@ component extends="testbox.system.BaseSpec" {
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$getRequestContext", mockRequestContext );
+		service.$( "$isFeatureEnabled" ).$args( "sslInternalHttpCalls" ).$results( true );
 		service.$( "_now", nowish );
 
 		return service;
