@@ -136,17 +136,17 @@
 									<cfcase value="click">
 										<cfset logIcon    = "fa-mouse-pointer" />
 										<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.clicked.title" ) />
-										<cfset link       = '<a>#Trim( prc.activity.link ?: "unknown" )#</a>' />
-										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ renderField( "email_template_send_log_activity", "link", link ) ] ) />
+										<cfset renderedLink       = Trim( renderEmailTrackingLink( prc.activity.link ?: "", prc.activity.link_title ?: "", prc.activity.link_body ?: "" ) ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ renderedLink ] ) />
 									</cfcase>
 									<cfcase value="resend">
 										<cfset logIcon    = "fa-refresh" />
 										<cfset linkTitle  = translateResource( "cms:mailcenter.logs.action.resend.link.title" ) />
 										<cfset data       = DeserializeJson( prc.activity.extra_data ) />
 										<cfset resendType = data.resendType ?: "rebuild" />
-										<cfset link       = '<a class="load-in-place" href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#data.resentMessageId#" )#">#linkTitle#</a>' />
+										<cfset renderedLink       = '<a class="load-in-place" href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#data.resentMessageId#" )#">#linkTitle#</a>' />
 										<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.resend.title" ) />
-										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.resend.#resendType#.message", data=[ link ] ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.resend.#resendType#.message", data=[ renderedLink ] ) />
 									</cfcase>
 									<cfdefaultcase>
 										<cfcontinue/>
