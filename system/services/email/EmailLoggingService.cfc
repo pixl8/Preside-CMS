@@ -292,7 +292,7 @@ component {
 	 * Records a link click for an email
 	 *
 	 */
-	public void function recordClick( required string id, required string link ) {
+	public void function recordClick( required string id, required string link, string linkTitle="", string linkBody="" ) {
 		var dao     = $getPresideObject( "email_template_send_log");
 
 		transaction {
@@ -304,7 +304,7 @@ component {
 				recordActivity(
 					  messageId = arguments.id
 					, activity  = "click"
-					, extraData = { link=arguments.link }
+					, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
 				);
 
 				markAsOpened( id=id, softMark=true );
@@ -529,7 +529,7 @@ component {
 		,          string userIp    = cgi.remote_addr
 		,          string userAgent = cgi.http_user_agent
 	) {
-		var fieldsToAddFromExtraData = [ "link", "code", "reason" ];
+		var fieldsToAddFromExtraData = [ "link", "code", "reason", "link_title", "link_body" ];
 		var extra = StructCopy( arguments.extraData );
 		var data = {
 			  message       = arguments.messageId

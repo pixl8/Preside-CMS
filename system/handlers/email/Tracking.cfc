@@ -34,7 +34,12 @@ component {
 			if ( link.recordCount ) {
 				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link.href ) ) {
 					try {
-						emailLoggingService.recordClick( id=messageId, link=link.id );
+						emailLoggingService.recordClick(
+							  id        = messageId
+							, link      = link.href
+							, linkTitle = link.title
+							, linkBody  = link.body
+						);
 					} catch( any e ) {
 						// ignore errors that will be due to original email log no longer existing
 					}

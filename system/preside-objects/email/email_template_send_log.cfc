@@ -4,7 +4,7 @@
  * @versioned                   false
  * @labelfield                  recipient
  * @datamanagerDefaultSortOrder datecreated desc
- * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_code,activity_reason,activity_link
+ * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_link,activity_link_title,activity_link_body,activity_code,activity_reason
  * @datamanagerEnabled          true
  */
 component extends="preside.system.base.SystemPresideObject" {
@@ -47,7 +47,9 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="activity_type"       formula="activities.activity_type";
 	property name="activity_ip"         formula="activities.user_ip";
 	property name="activity_user_agent" formula="activities.user_agent";
-	property name="activity_link"       formula="activities.link" dataExportRenderer="emailClickedLink";
+	property name="activity_link"       formula="activities.link";
+	property name="activity_link_title" formula="activities.link_title";
+	property name="activity_link_body"  formula="activities.link_body";
 	property name="activity_code"       formula="activities.code";
 	property name="activity_reason"     formula="activities.reason";
 	property name="activity_date"       formula="activities.datecreated" type="date" dbtype="datetime";

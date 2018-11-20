@@ -259,7 +259,7 @@ component {
 		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
 			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
 		}
-		
+
 		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
 
 		if ( Len( Trim( previewRecipient ) ) ) {
@@ -1148,7 +1148,7 @@ component {
 		var clickStats    = [];
 		var rawClickStats = $getPresideObject( "email_template" ).selectData(
 			  id           = arguments.templateId
-			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.link as link" ]
+			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.link", "send_logs$activities.link_title", "send_logs$activities.link_body" ]
 			, extraFilters = extraFilters
 			, autoGroupBy  = true
 			, orderBy      = "click_count desc"
@@ -1157,6 +1157,8 @@ component {
 		for( var link in rawClickStats ) {
 			clickStats.append( {
 				  link       = link.link
+				, title      = link.link_title
+				, body       = link.link_body
 				, clickCount = link.click_count
 			} );
 		}

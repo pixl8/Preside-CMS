@@ -386,7 +386,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().markAsOpened.len() ).toBe( 1 );
 				expect( service.$callLog().markAsOpened[1] ).toBe( { id=logId, softMark=true } );
 				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
-				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="click", extraData={ link=link } } );
+				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="click", extraData={ link=link, link_title="", link_body="" } } );
 
 			} );
 		} );
