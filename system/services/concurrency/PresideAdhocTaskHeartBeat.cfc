@@ -32,7 +32,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	public void function startInNewRequest() {
-		var startUrl = $getRequestContext().buildLink( linkTo="taskmanager.runtasks.startAdhocTaskManagerHeartbeat" );
+		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startAdhocTaskManagerHeartbeat" );
 
 		thread name=CreateUUId() startUrl=startUrl {
 			var attemptLimit = 10;
