@@ -340,6 +340,7 @@ component {
 			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
 			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
 			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
+			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -787,5 +788,12 @@ component {
 		}
 
 		return "3.8.2";
+	}
+
+	private boolean function _luceeGreaterThanFour() {
+		var luceeVersion = server.lucee.version ?: "";
+		var major = Val( ListFirst( luceeVersion, "." ) );
+
+		return major > 4;
 	}
 }

@@ -103,6 +103,16 @@ component {
 		theThread.setName( "PresideAdhocTaskManagerHeartBeat" );
 	}
 
+	private string function _buildInternalLink() {
+		var link = $getRequestContext().buildLink( argumentCollection=arguments );
+
+		if ( link.reFindNoCase( "^https" ) && !$isFeatureEnabled( "sslInternalHttpCalls" ) ) {
+			return link.reReplaceNoCase( "^https", "http" );
+		}
+
+		return link;
+	}
+
 // GETTERS / SETTERS
 	private string function _getThreadName() {
 		return _threadName;

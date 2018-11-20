@@ -45,7 +45,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	public void function startInNewRequest() {
-		var startUrl = $getRequestContext().buildLink( linkTo="taskmanager.runtasks.startHealthCheckHeartbeat" );
+		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startHealthCheckHeartbeat" );
 
 		thread name=CreateUUId() startUrl=startUrl {
 			do {
