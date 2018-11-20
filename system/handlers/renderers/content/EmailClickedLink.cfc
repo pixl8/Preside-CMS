@@ -7,20 +7,20 @@ component {
 		var uuidPattern = "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}";
 
 		if ( isFeatureEnabled( "emailLinkShortener" ) && ReFindNoCase( uuidPattern, link ) ) {
-			link = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
+			var linkRecord = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
 
-			if ( link.recordCount ) {
+			if ( linkRecord.recordCount ) {
 				var linkText = "";
-				if ( Len( link.title & link.body ) ) {
-					linkText = ( Len( link.title ) ? link.title : link.body );
-					if ( Trim( linkText ) != link.href ) {
-						linkText &= " (#link.href#)";
+				if ( Len( linkRecord.title & linkRecord.body ) ) {
+					linkText = ( Len( linkRecord.title ) ? linkRecord.title : linkRecord.body );
+					if ( Trim( linkText ) != linkRecord.href ) {
+						linkText &= " (#linkRecord.href#)";
 					}
 				} else {
-					linkText = link.href;
+					linkText = linkRecord.href;
 				}
 
-				return '<a href="#link.href#" title="#link.href#">#abbreviate( linkText, 75 )#</a>';
+				return '<a href="#linkRecord.href#" title="#linkRecord.href#">#abbreviate( linkText, 75 )#</a>';
 			}
 		}
 
@@ -36,17 +36,17 @@ component {
 		var uuidPattern = "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}";
 
 		if ( isFeatureEnabled( "emailLinkShortener" ) && ReFindNoCase( uuidPattern, link ) ) {
-			link = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
+			var linkRecord = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
 
-			if ( link.recordCount ) {
+			if ( linkRecord.recordCount ) {
 				var linkText = "";
-				if ( Len( link.title & link.body ) ) {
-					linkText = ( Len( link.title ) ? link.title : link.body );
-					if ( Trim( linkText ) != link.href ) {
-						linkText &= " (#link.href#)";
+				if ( Len( linkRecord.title & linkRecord.body ) ) {
+					linkText = ( Len( linkRecord.title ) ? linkRecord.title : linkRecord.body );
+					if ( Trim( linkText ) != linkRecord.href ) {
+						linkText &= " (#linkRecord.href#)";
 					}
 				} else {
-					linkText = link.href;
+					linkText = linkRecord.href;
 				}
 
 				return linkText;
