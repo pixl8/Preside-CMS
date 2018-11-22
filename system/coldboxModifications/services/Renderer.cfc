@@ -803,14 +803,14 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var extensions  = getController().getSetting( name="activeExtensions", defaultValue=[] );
 		var site        = getRequestContext().getSite();
 
-		for( var i=extensions.len(); i > 0; i-- ){
+		for( var i=1; i<=extensions.len(); i++ ){
 			directories.append( extensions[i].directory & "/" & subDir );
 		}
 
 		directories.append( "#_getAppMapping()#/#subDir#" );
 
 		if ( Len( Trim( site.template ?: "" ) ) ) {
-			for( var i=extensions.len(); i > 0; i-- ){
+			for( var i=1; i<=extensions.len(); i++ ){
 				directories.append( extensions[i].directory & "/site-templates/#site.template#/" & subDir );
 			}
 
@@ -826,13 +826,13 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var extensions  = getController().getSetting( name="activeExtensions", defaultValue=[] );
 		var site        = getRequestContext().getSite();
 
-		for( var i=extensions.len(); i > 0; i-- ){
+		for( var i=1; i<=extensions.len(); i++ ){
 			ArrayAppend( directories, extensions[i].directory & "/" & subDir );
 		}
 
 		ArrayAppend( directories, "#_getAppMapping()#/#subDir#" );
 		if ( Len( Trim( site.template ?: "" ) ) ) {
-			for( var i=extensions.len(); i > 0; i-- ){
+			for( var i=1; i<=extensions.len(); i++ ){
 				directories.append( extensions[i].directory & "/site-templates/#site.template#/" & subDir );
 			}
 
