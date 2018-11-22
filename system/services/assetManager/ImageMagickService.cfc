@@ -327,7 +327,7 @@ component displayname="ImageMagick"  {
 				, height = ListLast( rawInfo, "x" )
 			};
 
-			if ( ( arguments.width && dimensions.width != arguments.width ) || ( arguments.height && dimensions.height != arguments.height ) ) {
+			if ( ( arguments.width && _dimensionsNotCloseEnough( dimensions.width, arguments.width ) ) || ( arguments.height && _dimensionsNotCloseEnough( dimensions.height, arguments.height ) ) ) {
 				throw( type="imagemagick.resize.failure",  message="Image resize operation failed. Expected dimensions [#arguments.width#x#arguments.height#]. Received dimensions: [#rawInfo#]" );
 			}
 		} else {
@@ -396,6 +396,10 @@ component displayname="ImageMagick"  {
 
 			return operations.count();
 		}
+	}
+
+	private boolean function _dimensionsNotCloseEnough( required numeric dimension1, required numeric dimension2 ) {
+		return abs( arguments.dimension1 - arguments.dimension2 ) > 2; // within 2px is fine
 	}
 
 // GETTERS AND SETTERS
