@@ -14,7 +14,8 @@ component extends="coldbox.system.web.services.HandlerService" {
 		ArrayAppend( handlerMappings, { invocationPath=handlersInvocationPath, handlers=getHandlerListing( handlersPath, handlersInvocationPath ) } );
 
 		_addSiteTemplateHandlerMappings( "#appMapping#/site-templates/", "#appMappingPath#.site-templates", siteTemplateHandlerMappings );
-		for( var ext in activeExtensions ) {
+		for( var i=activeExtensions.len(); i>0; i-- ) {
+			var ext = activeExtensions[ i ];
 			var extensionHandlersPath   = ExpandPath( "#appMapping#/extensions/#ext.name#/handlers" );
 			var extensionInvocationPath = "#appMappingPath#.extensions.#ext.name#.handlers";
 
