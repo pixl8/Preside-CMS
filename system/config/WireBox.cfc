@@ -35,7 +35,7 @@
 
 	private void function _mapExtensionServices() {
 		var extensions  = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
-		for( var i=extensions.len(); i > 0; i-- ){
+		for( var i=1; i<extensions.len(); i++ ){
 			var servicesDir = ListAppend( extensions[i].directory, "services", "/" )
 			if ( DirectoryExists( servicesDir ) ) {
 				mapDirectory( packagePath=servicesDir, influence=function( mapping, objectPath ) {
@@ -96,7 +96,7 @@
 		var extensions     = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
 		var appMappingPath = getColdbox().getSetting( name="appMappingPath"  , defaultValue="app" );
 
-		for( var i=extensions.len(); i > 0; i-- ){
+		for( var i=1; i<=extensions.len(); i++ ){
 			var wireboxConfigPath = ListAppend( extensions[i].directory, "config/Wirebox.cfc", "/" );
 			if ( FileExists( wireboxConfigPath ) ) {
 				CreateObject( "#appMappingPath#.extensions.#ListLast( extensions[i].directory, '\/' )#.config.Wirebox" ).configure( binder=this );
