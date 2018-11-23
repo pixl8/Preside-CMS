@@ -42,13 +42,13 @@
 	}
 
 	if ( quickAdd ) {
-		quickAdd = args.hasQuickAddPermission ?: ( hasCmsPermission( "presideobject.#object#.add" ) || hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) );
+		quickAdd = args.hasQuickAddPermission ?: runEvent( event="admin.datamanager._checkPermission", private=true, prepostexempt=true, eventArguments={ key="add", object=object, throwOnError=false } );
 		if ( quickAdd ) {
 			extraClasses = ListAppend( extraClasses, "quick-add", ' ' );
 		}
 	}
 	if ( quickEdit ) {
-		quickEdit = args.hasQuickEditPermission ?: ( hasCmsPermission( "presideobject.#object#.edit" ) || hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) );
+		quickEdit = args.hasQuickEditPermission ?: runEvent( event="admin.datamanager._checkPermission", private=true, prepostexempt=true, eventArguments={ key="edit", object=object, throwOnError=false } );
 		if ( quickEdit ) {
 			extraClasses = ListAppend( extraClasses, "quick-edit", ' ' );
 
