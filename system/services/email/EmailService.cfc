@@ -184,9 +184,10 @@ component displayName="Email service" {
 			);
 		}
 
-		for( var key in arguments ) {
-			if ( !IsSimpleValue( arguments[ key ] ) || Len( Trim( arguments[ key ] ) ) ) {
-				if ( !sendArgs.keyExists( key ) || overwriteTemplateArgs || alwaysOverwrite.findNoCase( key ) ) {
+		sendArgs.append( arguments, overwriteTemplateArgs );
+		if ( !overwriteTemplateArgs ) {
+			for( var key in alwaysOverwrite ) {
+				if ( !IsSimpleValue( arguments[ key ] ) || Len( Trim( arguments[ key ] ) ) ) {
 					sendArgs[ key ] = arguments[ key ];
 				}
 			}
