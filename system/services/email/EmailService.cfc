@@ -157,6 +157,7 @@ component displayName="Email service" {
 	private struct function _mergeArgumentsWithTemplateHandlerResult( required string template, required struct args ) {
 		var sendArgs              = {};
 		var overwriteTemplateArgs = arguments.overwriteTemplateArgs ?: false;
+		var alwaysOverwrite       = [ "from", "subject" ];
 
 		// new (as of 10.8.0) template system
 		if ( _getEmailTemplateService().templateExists( arguments.template ) ) {
@@ -184,6 +185,14 @@ component displayName="Email service" {
 		}
 
 		sendArgs.append( arguments, overwriteTemplateArgs );
+		if ( !overwriteTemplateArgs ) {
+			for( var key in alwaysOverwrite ) {
+				if ( !IsSimpleValue( arguments[ key ] ) || Len( Trim( arguments[ key ] ) ) ) {
+					sendArgs[ key ] = arguments[ key ];
+				}
+			}
+		}
+
 		sendArgs.delete( "template" );
 		sendArgs.delete( "args" );
 

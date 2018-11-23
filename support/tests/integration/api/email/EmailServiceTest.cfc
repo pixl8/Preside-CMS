@@ -252,6 +252,55 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( errorThrown ).toBe( true );
 			} );
 
+			it( "should override template 'from' and 'subject' args when explicitly passed to send() method", function(){
+				var emailService      = _getEmailService();
+				var testToAddresses   = [ "dominic.watson@test.com", "another.test.com" ];
+				var testArgs          = { some="test", data=true, template="notification" };
+				var testHandlerResult = { from="someone@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
+				var overrideSubject   = CreateUUId();
+				var overrideFrom      = CreateUUId() & "@test.com";
+				var expectedSendArgs  = {
+					  from                  = ""
+					, recipientId           = ""
+					, subject               = ""
+					, to                    = testToAddresses
+					, cc                    = []
+					, bcc                   = []
+					, replyto               = []
+					, failto                = []
+					, htmlBody              = ""
+					, textBody              = ""
+					, params                = {}
+					, template              = "notification"
+					, resendOf              = ""
+					, returnLogId           = false
+					, overwriteTemplateArgs = false
+					, args                  = testArgs
+					, isTest                = false
+				};
+
+				expectedSendArgs.append( testHandlerResult );
+				expectedSendArgs.from    = overrideFrom;
+				expectedSendArgs.subject = overrideSubject;
+
+				mockColdBox.$( "runEvent" ).$results( testHandlerResult );
+
+				emailService.send(
+					  template = "notification"
+					, to       = testToAddresses
+					, args     = testArgs
+					, subject  = overrideSubject
+					, from     = overrideFrom
+				);
+
+				expect( mockServiceProviderService.$callLog().sendWithProvider.len() ).toBe( 1 );
+				expect( mockServiceProviderService.$callLog().sendWithProvider[1] ).toBe( {
+					  provider = defaultProvider
+					, sendArgs = expectedSendArgs
+					, logSend  = true
+				} );
+			} );
+
 		} );
 	}
 
