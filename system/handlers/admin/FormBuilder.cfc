@@ -5,7 +5,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="itemTypesService"            inject="formBuilderItemTypesService";
 	property name="actionsService"              inject="formBuilderActionsService";
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
-	property name="spreadsheetLib"              inject="spreadsheetLib";
 	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
 
 

@@ -1,6 +1,5 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="urlRedirectsService" inject="urlRedirectsService";
 	property name="ruleDao"             inject="presidecms:object:url_redirect_rule";
 	property name="messageBox"          inject="messagebox@cbmessagebox";
 

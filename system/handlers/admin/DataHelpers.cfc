@@ -6,7 +6,6 @@
 component extends="preside.system.base.adminHandler" {
 
 	property name="adminDataViewsService"   inject="adminDataViewsService";
-	property name="dataManagerService"      inject="dataManagerService";
 	property name="presideObjectService"    inject="presideObjectService";
 	property name="dataExportService"       inject="dataExportService";
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";

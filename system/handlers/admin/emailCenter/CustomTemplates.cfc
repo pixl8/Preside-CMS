@@ -10,7 +10,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formsService"               inject="formsService";
 	property name="cloningService"             inject="presideObjectCloningService";
 	property name="dao"                        inject="presidecms:object:email_template";
-	property name="blueprintDao"               inject="presidecms:object:email_blueprint";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 

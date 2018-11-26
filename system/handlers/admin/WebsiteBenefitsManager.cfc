@@ -3,7 +3,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="websiteBenefitDao"        inject="presidecms:object:website_benefit";
 	property name="messageBox"               inject="messagebox@cbmessagebox";
-	property name="bCryptService"            inject="bCryptService";
 
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );

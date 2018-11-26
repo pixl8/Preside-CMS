@@ -1,4 +1,5 @@
 component {
+
 	property name="i18n"       inject="i18n";
 	property name="appMapping" inject="coldbox:setting:appMapping";
 

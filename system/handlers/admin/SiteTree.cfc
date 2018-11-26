@@ -1,9 +1,9 @@
 component extends="preside.system.base.AdminHandler" {
+
 	property name="siteTreeService"                  inject="siteTreeService";
 	property name="presideObjectService"             inject="presideObjectService";
 	property name="formsService"                     inject="formsService";
 	property name="pageTypesService"                 inject="pageTypesService";
-	property name="validationEngine"                 inject="validationEngine";
 	property name="websitePermissionService"         inject="websitePermissionService";
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="versioningService"                inject="versioningService";
