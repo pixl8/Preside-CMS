@@ -1,5 +1,4 @@
 component {
-	property name="passwordPolicyService" inject="passwordPolicyService";
 
 	private string function index( event, rc, prc, args={} ) {
 		if ( Len( Trim( args.passwordPolicyContext ?: "" ) ) ) {
@@ -9,4 +8,5 @@ component {
 
 		return renderView( view="/formcontrols/password/index", args=args );
 	}
+
 }
