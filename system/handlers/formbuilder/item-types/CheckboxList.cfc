@@ -15,4 +15,5 @@ component {
 			, labels             = ListToArray( args.labels ?: "", Chr(10) & Chr(13) )
 		);
 	}
+
 }

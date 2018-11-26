@@ -35,4 +35,5 @@ component {
 
 		return rules;
 	}
+
 }

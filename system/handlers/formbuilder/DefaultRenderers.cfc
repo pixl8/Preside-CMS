@@ -18,4 +18,5 @@ component {
 	private array function responseForExport( event, rc, prc, args={} ) {
 		return [ args.response ?: "" ];
 	}
+
 }

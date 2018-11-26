@@ -37,4 +37,5 @@ component {
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
 		return [ renderResponse( argumentCollection=arguments ) ];
 	}
+
 }

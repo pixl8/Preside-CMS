@@ -2,7 +2,7 @@ component {
 
 	private string function renderInput( event, rc, prc, args={} ) {
 		event.include( assetId="/css/frontend/formbuilder/starRating/" );
-		event.include( assetId="/js/frontend/formbuilder/starRating/" );
+		event.include( assetId="/js/frontend/formbuilder/starRating/"  );
 
 		return renderFormControl(
 			  argumentCollection = args
@@ -13,4 +13,5 @@ component {
 			, required           = IsTrue( args.mandatory ?: "" )
 		);
 	}
+
 }

@@ -1,4 +1,5 @@
 component {
+
 	property name="assetManagerService"        inject="assetManagerService";
 	property name="formBuilderStorageProvider" inject="formBuilderStorageProvider";
 
@@ -93,4 +94,5 @@ component {
 
 		return SerializeJson( response );
 	}
+
 }
