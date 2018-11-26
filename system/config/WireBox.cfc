@@ -35,7 +35,7 @@
 
 	private void function _mapExtensionServices() {
 		var extensions  = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
-		for( var i=1; i<extensions.len(); i++ ){
+		for( var i=1; i<=extensions.len(); i++ ){
 			var servicesDir = ListAppend( extensions[i].directory, "services", "/" )
 			if ( DirectoryExists( servicesDir ) ) {
 				mapDirectory( packagePath=servicesDir, influence=function( mapping, objectPath ) {
