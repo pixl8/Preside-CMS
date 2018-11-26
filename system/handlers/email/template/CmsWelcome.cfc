@@ -39,5 +39,4 @@ component {
 		return renderView( view="/email/template/cmsWelcome/defaultTextBody" );
 	}
 
-
 }

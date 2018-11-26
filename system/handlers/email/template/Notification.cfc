@@ -51,5 +51,4 @@ component {
 		return renderView( view="/email/template/notification/defaultTextBody" );
 	}
 
-
 }
