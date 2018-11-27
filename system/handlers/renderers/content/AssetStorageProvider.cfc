@@ -5,4 +5,5 @@ component {
 
 		return translateResource( uri="storage-providers.#provider#:title", defaultValue=provider );
 	}
+
 }

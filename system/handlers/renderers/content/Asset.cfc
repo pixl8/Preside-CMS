@@ -24,8 +24,6 @@ component {
 		args.renderedAsset = renderAsset( assetId=fkId, args={ derivative="icon" } );
 
 		return renderView( view="/renderers/content/asset/adminView", args=args );
-
-
 	}
 
 }

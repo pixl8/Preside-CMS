@@ -25,7 +25,6 @@ component {
 
 		return renderView( view="/renderers/content/manyToOne/adminView", args=args );
 
-
 	}
 
 }
