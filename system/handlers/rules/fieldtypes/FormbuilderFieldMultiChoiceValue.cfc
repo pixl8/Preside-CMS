@@ -1,5 +1,5 @@
 /**
- * Handler for rules engine 'boolean type'
+ * Handler for rules engine 'form builder multi-choice field' type
  *
  */
 component {
