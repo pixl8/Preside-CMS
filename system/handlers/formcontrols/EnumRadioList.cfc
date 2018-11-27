@@ -1,4 +1,5 @@
 component {
+
 	property name="enumService" inject="enumService";
 
 	public string function index( event, rc, prc, args={} ) {
@@ -11,4 +12,5 @@ component {
 
 		return renderView( view="formcontrols/enumRadioList/index", args=args );
 	}
+
 }

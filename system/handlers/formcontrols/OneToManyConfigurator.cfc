@@ -29,4 +29,5 @@ component {
 
 		return renderView( view="formcontrols/oneToManyConfigurator/index", args=args );
 	}
+
 }

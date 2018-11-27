@@ -1,4 +1,5 @@
 component {
+
 	property name="simpleColourPickerService" inject="SimpleColourPickerService";
 
 	public string function index( event, rc, prc, args={} ) {
@@ -13,4 +14,5 @@ component {
 
 		return renderView( view="/formcontrols/simpleColourPicker/index", args=args );
 	}
+
 }

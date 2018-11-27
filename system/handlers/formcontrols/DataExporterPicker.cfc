@@ -1,4 +1,5 @@
 component {
+
 	property name="dataExportService" inject="dataExportService";
 
 	public string function index( event, rc, prc, args={} ) {
@@ -6,4 +7,5 @@ component {
 
 		return renderView( view="formcontrols/dataExporterPicker/index", args=args );
 	}
+
 }

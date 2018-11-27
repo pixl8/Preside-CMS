@@ -1,4 +1,5 @@
 component {
+
 	property name="notificationService" inject="notificationService";
 
 	public string function index( event, rc, prc, args={} ) output=false {
@@ -17,4 +18,5 @@ component {
 
 		return renderView( view="formcontrols/notificationTopicPicker/index", args=args );
 	}
+
 }

@@ -39,4 +39,5 @@ component  {
 
 		return renderViewlet( event="formcontrols.objectPicker.index", args=args );
 	}
+
 }

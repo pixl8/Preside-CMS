@@ -1,4 +1,5 @@
 component {
+
 	property name="pageTypesService" inject="pageTypesService";
 
 	public string function index( event, rc, prc, args={} ) output=false {
@@ -12,4 +13,5 @@ component {
 
 		return renderView( view="formcontrols/select/index", args=args );
 	}
+
 }

@@ -34,4 +34,5 @@ component {
 
 		return renderView( view="formcontrols/pageLayoutPicker/index", args=args );
 	}
+
 }

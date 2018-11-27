@@ -1,4 +1,5 @@
 component {
+
 	property name="passwordPolicyService" inject="passwordPolicyService";
 
 	private string function index( event, rc, prc, args={} ) {
@@ -6,4 +7,5 @@ component {
 
 		return renderView( view="/formcontrols/passwordStrengthPicker/index", args=args );
 	}
+
 }

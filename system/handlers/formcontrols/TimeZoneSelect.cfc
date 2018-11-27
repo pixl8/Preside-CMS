@@ -1,11 +1,12 @@
 component {
+
 	property name="timeZoneSelectService" inject="TimeZoneSelectService";
 
 	public string function index( event, rc, prc, args={} ) {
 		var defaultToSystemTimezone = isTrue( args.defaultToSystemTimezone ?: "" );
 		var systemTimeZone          = getTimezone();
 		var timeZones               = timeZoneSelectService.getTimeZones();
-		
+
 		args.values = [ "" ];
 		args.labels = [ "" ];
 

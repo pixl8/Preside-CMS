@@ -40,4 +40,5 @@ component {
 		event.include( assetId="/css/admin/specific/assetpicker/" );
 		return renderView( view="formcontrols/assetPicker/index", args=args );
 	}
+
 }

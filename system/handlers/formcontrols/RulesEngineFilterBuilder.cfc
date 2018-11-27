@@ -1,4 +1,5 @@
 component {
+
 	property name="expressionService" inject="rulesEngineExpressionService";
 
 	private string function index( event, rc, prc, args={} ) {

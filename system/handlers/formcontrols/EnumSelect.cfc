@@ -1,4 +1,5 @@
 component {
+
 	property name="enumService" inject="enumService";
 
 	public string function index( event, rc, prc, args={} ) {

@@ -1,4 +1,5 @@
 component {
+
 	property name="storageLocationDao" inject="presidecms:object:asset_storage_location";
 
 	public string function index( event, rc, prc, args={} ) {
@@ -14,4 +15,5 @@ component {
 
 		return renderView( view="formcontrols/select/index", args=args );
 	}
+
 }

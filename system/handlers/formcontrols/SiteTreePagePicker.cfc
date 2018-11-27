@@ -38,4 +38,5 @@ component {
 
 		return renderView( view="formcontrols/sitetreePagePicker/index", args=args );
 	}
+
 }

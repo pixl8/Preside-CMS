@@ -30,4 +30,5 @@ component {
 
 		return renderFormControl( argumentCollection=args, type="objectPicker", layout="" );
 	}
+
 }

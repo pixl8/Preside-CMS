@@ -18,4 +18,5 @@ component {
 
 		return renderView( view="formcontrols/objectPicker/index", args=args );
 	}
+
 }
