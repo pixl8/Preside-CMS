@@ -1,7 +1,5 @@
 component {
 
-	property name="userDao" inject="presidecms:object:security_user";
-
 	private string function default( event, rc, prc, args={} ){
 		var link = args.data ?: "";
 		var uuidPattern = "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}";
