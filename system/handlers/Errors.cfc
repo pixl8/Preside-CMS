@@ -1,4 +1,5 @@
 component {
+
 	property name="websiteLoginService" inject="websiteLoginService";
 
 <!--- VIEWLETS --->

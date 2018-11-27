@@ -1,4 +1,5 @@
 component {
+
 	property name="applicationReloadService"    inject="applicationReloadService";
 	property name="databaseMigrationService"    inject="databaseMigrationService";
 	property name="applicationsService"         inject="applicationsService";
