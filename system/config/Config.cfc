@@ -119,6 +119,12 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
 		interceptorSettings.customInterceptionPoints.append( "preSetUserSession"                     );
+		interceptorSettings.customInterceptionPoints.append( "prePresideRequestCapture"              );
+		interceptorSettings.customInterceptionPoints.append( "postPresideRequestCapture"             );
+		interceptorSettings.customInterceptionPoints.append( "onPresideDetectIncomingSite"           );
+		interceptorSettings.customInterceptionPoints.append( "onPresideDetectLanguage"               );
+		interceptorSettings.customInterceptionPoints.append( "onPresideUrlRedirects"                 );
+		interceptorSettings.customInterceptionPoints.append( "onPresideRedirectDomains"              );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
