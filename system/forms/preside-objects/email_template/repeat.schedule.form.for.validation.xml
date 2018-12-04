@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="default">
+		<fieldset id="default" sortorder="50">
+			<field binding="email_template.schedule_measure" required="true" />
+			<field binding="email_template.schedule_unit"    required="true" />
+		</fieldset>
+	</tab>
+</form>

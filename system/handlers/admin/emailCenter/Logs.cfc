@@ -25,14 +25,19 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.logs.page.subtitle" );
 	}
 
-	public void function log( event, rc, prc ) {
-		var logId = rc.id ?: "";
+	public void function viewLog( event, rc, prc ) {
+		var logId         = rc.id ?: "";
+		var resendEnabled = isFeatureEnabled( "emailCenterResend" );
 
 		prc.log = emailLoggingService.getLog( logId );
 		if ( prc.log.isEmpty() ) {
 			event.notFound();
 		}
-		prc.activity = emailLoggingService.getActivity( logId );
+		prc.activity         = emailLoggingService.getActivity( logId );
+		prc.canResendEmails  = resendEnabled && hasCmsPermission( "emailCenter.settings.resend" );
+		prc.hasSavedHtmlBody = resendEnabled && len( prc.log.html_body ?: "" ) > 0;
+		prc.hasSavedTextBody = resendEnabled && len( prc.log.text_body ?: "" ) > 0;
+		prc.hasSavedContent  = prc.hasSavedHtmlBody || prc.hasSavedTextBody;
 
 		event.noLayout();
 	}
@@ -50,15 +55,48 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public string function resendEmailAction( event, rc, prc ) {
+		var logId   = rc.id ?: "";
+		var rebuild = isTrue( rc.rebuild ?: "" );
+
+		if ( rebuild ) {
+			emailLoggingService.rebuildAndResendEmail( logId );
+		} else {
+			emailLoggingService.resendOriginalEmail( logId );
+		}
+
+		prc.log = emailLoggingService.getLog( logId );
+		if ( prc.log.isEmpty() ) {
+			event.notFound();
+		}
+		prc.activity = emailLoggingService.getActivity( logId );
+
+		event.noLayout();
+
+		return renderView( view="/admin/emailcenter/logs/viewLog" );
+	}
+
 	private string function _logGridActions( event, rc, prc, args={} ) {
 		var logId = args.id ?: "";
 
 		args.viewlink = event.buildAdminLink(
-			  linkTo      = "emailcenter.logs.log"
+			  linkTo      = "emailcenter.logs.viewLog"
 			, queryString = "id=#logId#"
 		);
 		args.viewLogTitle = translateResource( "cms:emailcenter.logs.view.log.modal.title" );
 
 		return renderView( view="/admin/emailcenter/logs/_logGridActions", args=args );
+	}
+
+	public void function exportAction( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+
+		runEvent(
+			  event         = "admin.DataManager._exportDataAction"
+			, prePostExempt = true
+			, private       = true
+		);
 	}
 }

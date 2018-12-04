@@ -12,7 +12,7 @@
 
 CKEDITOR.editorConfig = function( config ) {
 	// activate our plugins
-	config.extraPlugins = "widgets,imagepicker,attachmentpicker,stylesheetparser,presidelink";
+	config.extraPlugins = "autogrow,widgets,imagepicker,attachmentpicker,presidelink";
 
 	// the skin we are using
 	config.skin = "bootstrapck";
@@ -27,9 +27,6 @@ CKEDITOR.editorConfig = function( config ) {
 	// auto grow config
 	config.autoGrow_onStartup = true;
 
-	// turn that damned auto P tag feature off!
-	config.autoParagraph = false;
-
 	// email obfuscation for link plugin
 	config.emailProtection = 'encode';
 
@@ -37,4 +34,8 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// To Remove the CKeditor IFrame plugin by default
 	config.removePlugins = 'iframe';
+
+	// Paste from word
+	config.pasteFromWordPromptCleanup = true;
+	config.disallowedContent = 'font;*[align];*{line-height};*{margin-bottom};';
 };

@@ -4,7 +4,7 @@
  * before all the interceptors are loaded.
  *
  */
-component extends="coldbox.system.web.services.InterceptorService" output=false {
+component extends="coldbox.system.web.services.InterceptorService" {
 
 	_registeringInterceptors       = false;
 	_currentRegisteringInterceptor = "";
@@ -28,8 +28,17 @@ component extends="coldbox.system.web.services.InterceptorService" output=false 
 		return super.registerInterceptor( argumentCollection=arguments );
 	}
 
+	public any function processState(
+		  required any     state
+		,          any     interceptData    = structNew()
+		,          boolean async            = false
+		,          boolean asyncAll         = false
+		,          boolean asyncAllJoin     = true
+		,          string  asyncPriority    = 'NORMAL'
+		,          numeric asyncJoinTimeout = 0
+	) {
+		var loc = {};
 
-	public any function processState( required string state ) {
 		if ( _registeringInterceptors && !_ignoreStatesDuringLoadCheck.findNoCase( arguments.state ) ) {
 			throw(
 				  type    = "coldbox.interceptor.panic"
@@ -37,6 +46,51 @@ component extends="coldbox.system.web.services.InterceptorService" output=false 
 			);
 		}
 
+		if( !StructKeyExists( variables.interceptionStates, arguments.state ) ){
+			return;
+		}
+
 		return super.processState( argumentCollection=arguments );
+	}
+
+
+	public any function registerInterceptionPoint(
+		  required any interceptorKey
+		, required any state
+		, required any oInterceptor
+		,          any interceptorMD
+	) {
+		var oInterceptorState = "";
+
+		// Init md if not passed
+		if( !structKeyExists( arguments, "interceptorMD") ){
+			arguments.interceptorMD = newPointRecord();
+		}
+
+		// Verify if state doesn't exist, create it
+		if ( !StructKeyExists( variables.interceptionStates, arguments.state ) ){
+			oInterceptorState = new preside.system.coldboxModifications.InterceptorState(
+				state 		= arguments.state,
+				logbox 		= controller.getLogBox(),
+				controller 	= controller
+			);
+
+			variables.interceptionStates[ arguments.state ] = oInterceptorState;
+		} else {
+			// Get the State we need to register in
+			oInterceptorState = structFind( variables.interceptionStates, arguments.state );
+		}
+
+		// Verify if the interceptor is already in the state
+		if( !oInterceptorState.exists( arguments.interceptorKey ) ){
+			//Register it
+			oInterceptorState.register(
+				interceptorKey 	= arguments.interceptorKey,
+				interceptor 	= arguments.oInterceptor,
+				interceptorMD 	= arguments.interceptorMD
+			);
+		}
+
+		return this;
 	}
 }

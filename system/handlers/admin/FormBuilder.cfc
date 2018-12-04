@@ -4,8 +4,9 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formBuilderRenderingService" inject="formBuilderRenderingService";
 	property name="itemTypesService"            inject="formBuilderItemTypesService";
 	property name="actionsService"              inject="formBuilderActionsService";
-	property name="messagebox"                  inject="coldbox:plugin:messagebox";
+	property name="messagebox"                  inject="messagebox@cbmessagebox";
 	property name="spreadsheetLib"              inject="spreadsheetLib";
+	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
 
 
 // PRE-HANDLER
@@ -30,7 +31,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "formbuilder:page.title" );
 		prc.pageSubtitle = translateResource( "formbuilder:page.subtitle" );
 
-		prc.canAdd = hasCmsPermission( permissionKey="formbuilder.addform" );
+		prc.canAdd    = hasCmsPermission( permissionKey="formbuilder.addform" );
+		prc.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 	}
 
 	public void function addForm( event, rc, prc ) {
@@ -299,10 +301,71 @@ component extends="preside.system.base.AdminHandler" {
 			event.adminNotFound();
 		}
 
-		var fileName = LCase( ReReplace( theForm.name, "[\W]", "_", "all" ) ) & "_" & DateTimeFormat( Now(), "yyyymmdd_HHnn" ) & ".xls";
-		var workbook = formBuilderService.exportResponsesToExcel( rc.formId ?: "" );
+		var taskId = createTask(
+			  event             = "admin.formbuilder.exportSubmissionsInBackgroundThread"
+			, args              = { formId=formId }
+			, runNow            = true
+			, adminOwner        = event.getAdminUserId()
+			, discardOnComplete = false
+			, title             = "cms:formbuilder.export.task.title"
+			, resultUrl         = event.buildAdminLink( linkto="formbuilder.downloadExport", querystring="taskId={taskId}" )
+			, returnUrl         = event.buildAdminLink( linkto="formbuilder.manageForm", querystring="id=" & formId )
+		);
 
-		spreadsheetLib.download( workbook, fileName );
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
+	}
+
+	private void function exportSubmissionsInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var formId = args.formId ?: "";
+
+		formBuilderService.exportResponsesToExcel(
+			  formId      = formId
+			, writeToFile = true
+			, logger      = arguments.logger   ?: NullValue()
+			, progress    = arguments.progress ?: NullValue()
+		);
+	}
+
+	public void function downloadExport( event, rc, prc ) {
+		var taskId          = rc.taskId ?: "";
+		var task            = adhocTaskManagerService.getProgress( taskId );
+		var localExportFile = task.result.filePath       ?: "";
+		var exportFileName  = task.result.exportFileName ?: "";
+		var mimetype        = task.result.mimetype       ?: "";
+
+		if ( task.isEmpty() || !localExportFile.len() || !FileExists( localExportFile ) ) {
+			event.notFound();
+		}
+
+		createTask(
+			  event             = "admin.formBuilder.discardExport"
+			, args              = { taskId=taskId }
+			, runIn             = CreateTimeSpan( 0, 0, 10, 0 )
+			, discardOnComplete = true
+		);
+
+		header name="Content-Disposition" value="attachment; filename=""#exportFileName#""";
+		content reset=true file=localExportFile deletefile=false type=mimetype;
+
+		abort;
+
+	}
+
+	private void function discardExport( event, rc, prc, args={} ) {
+		var taskId          = args.taskId ?: "";
+		var task            = adhocTaskManagerService.getProgress( taskId );
+		var localExportFile = task.result.filePath       ?: "";
+
+		if ( !task.isEmpty() ) {
+			adhocTaskManagerService.discardTask( taskId );
+
+			if ( FileExists( localExportFile ) ) {
+				FileDelete( localExportFile );
+			}
+		}
 	}
 
 // DOING STUFF ACTIONS
@@ -518,13 +581,14 @@ component extends="preside.system.base.AdminHandler" {
 
 // AJAXY ACTIONS
 	public void function getFormsForAjaxDataTables( event, rc, prc ) {
+		prc.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
 				  object          = "formbuilder_form"
-				, useMultiActions = false
+				, useMultiActions = prc.canDelete
 				, gridFields      = "name,description,locked,active,active_from,active_to"
 				, actionsView     = "admin.formbuilder.formDataTableGridFields"
 			}
@@ -543,7 +607,7 @@ component extends="preside.system.base.AdminHandler" {
 		var checkboxCol     = [];
 		var optionsCol      = [];
 		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
-		var dtHelper        = getMyPlugin( "JQueryDatatablesHelpers" );
+		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
 		var results         = formbuilderService.getSubmissionsForGridListing(
 			  formId                = formId
 			, startRow              = dtHelper.getStartRow()
@@ -618,9 +682,50 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function multiRecordAction( event, rc, prc ) {
+		var action     = rc.multiAction ?: "";
+		var listingUrl = event.buildAdminLink( linkto="formbuilder" );
+
+		if ( not Len( Trim( rc.id ?: "" ) ) ) {
+			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+			setNextEvent( url=listingUrl );
+		}
+
+		switch( action ){
+			case "delete":
+				return deleteRecordAction( argumentCollection = arguments );
+			break;
+		}
+
+		messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
+		setNextEvent( url=listingUrl );
+	}
+
+	public void function deleteRecordAction( event, rc, prc ) {
+		_permissionsCheck( "deleteform", event );
+
+		var ids           = rc.id ?: "";
+		var postActionUrl = event.buildAdminLink( linkto="formbuilder" );
+		var messages      = "";
+
+		if ( listLen(ids) == 1 ) {
+			messages = translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ "Form", renderLabel( "formbuilder_form", ids ) ] ) ;
+		} else {
+			messages = translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ "Forms", listLen(ids) ] );
+		}
+
+		formBuilderService.deleteForms( ids );
+
+		messageBox.info( messages );
+
+		setNextEvent( url=postActionUrl );
+	}
+
+
 // VIEWLETS
 	private string function formDataTableGridFields( event, rc, prc, args ) {
-		args.canEdit = hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canEdit   = hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 
 		return renderView( view="/admin/formbuilder/_formGridFields", args=args );
 	}

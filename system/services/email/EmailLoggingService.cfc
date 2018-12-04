@@ -7,13 +7,19 @@
  */
 component {
 
+	variables._lib   = [];
+	variables._jsoup = "";
+
 // CONSTRUCTOR
 	/**
 	 * @recipientTypeService.inject emailRecipientTypeService
+	 * @emailTemplateService.inject emailTemplateService
 	 *
 	 */
-	public any function init( required any recipientTypeService ) {
+	public any function init( required any recipientTypeService, required any emailTemplateService ) {
 		_setRecipientTypeService( arguments.recipientTypeService );
+		_setEmailTemplateService( arguments.emailTemplateService );
+		_jsoup = _new( "org.jsoup.Jsoup" );
 
 		return this;
 	}
@@ -38,6 +44,7 @@ component {
 		, required string recipient
 		, required string sender
 		, required string subject
+		,          string resendOf = ""
 		,          struct sendArgs = {}
 	) {
 		var data = {
@@ -45,6 +52,7 @@ component {
 			, recipient      = arguments.recipient
 			, sender         = arguments.sender
 			, subject        = arguments.subject
+			, resend_of      = arguments.resendOf
 			, send_args      = SerializeJson( arguments.sendArgs )
 		};
 
@@ -53,6 +61,46 @@ component {
 		}
 
 		return $getPresideObject( "email_template_send_log" ).insertData( data );
+	}
+
+	/**
+	 * Saves the email content of a sent email, to be used to view exact content
+	 * sent, and for resending the original email
+	 *
+	 * @autodoc            true
+	 * @template.hint      ID of the email template
+	 * @id.hint            ID of the email template log record
+	 * @htmlBody.hint      HTML content of the email
+	 * @textBody.hint      Plain-text content of the email
+	 */
+	public void function logEmailContent(
+		  required string template
+		, required string id
+		, required string htmlBody
+		, required string textBody
+	) {
+		if ( !$isFeatureEnabled( "emailCenterResend" ) ) {
+			return;
+		}
+		if ( !_getEmailTemplateService().shouldSaveContentForTemplate( arguments.template ) ) {
+			return;
+		}
+
+		var contentExpiry = _getEmailTemplateService().getSavedContentExpiry( arguments.template );
+		if ( contentExpiry <= 0 ) {
+			return;
+		}
+
+		var expires       = now().add( "d", contentExpiry );
+		var contentId     = $getPresideObject( "email_template_send_log_content" ).insertData( {
+			  html_body = arguments.htmlBody
+			, text_body = arguments.textBody
+			, expires   = expires
+		} );
+
+		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
+			content = contentId
+		} );
 	}
 
 	/**
@@ -67,6 +115,11 @@ component {
 			  sent      = true
 			, sent_date = _getNow()
 		} );
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "send"
+		);
 	}
 
 	/**
@@ -79,6 +132,7 @@ component {
 	 *
 	 */
 	public void function markAsFailed( required string id, required string reason, string code="" ) {
+		var errorCode = Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "";
 		$getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
 			, filterParams = { id=arguments.id, failed=false, opened=false }
@@ -86,8 +140,14 @@ component {
 				  failed        = true
 				, failed_date   = _getNow()
 				, failed_reason = arguments.reason
-				, failed_code   = ( Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "" )
+				, failed_code   = errorCode
 			  }
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "fail"
+			, extraData = { reason=arguments.reason, code=errorCode }
 		);
 	}
 
@@ -108,6 +168,11 @@ component {
 				, marked_as_spam_date = _getNow()
 			  }
 		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "markasspam"
+		);
 	}
 
 	/**
@@ -125,6 +190,11 @@ component {
 				  unsubscribed      = true
 				, unsubscribed_date = _getNow()
 			  }
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "unsubscribe"
 		);
 	}
 
@@ -176,6 +246,10 @@ component {
 
 		if ( !arguments.softMark ) {
 			data.delivered_date = _getNow();
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "deliver"
+			);
 		}
 
 		$getPresideObject( "email_template_send_log" ).updateData(
@@ -183,6 +257,7 @@ component {
 			, filterParams = { id=arguments.id, delivered=false }
 			, data         = data
 		);
+
 	}
 
 	/**
@@ -217,7 +292,7 @@ component {
 	 * Records a link click for an email
 	 *
 	 */
-	public void function recordClick( required string id, required string link ) {
+	public void function recordClick( required string id, required string link, string linkTitle="", string linkBody="" ) {
 		var dao     = $getPresideObject( "email_template_send_log");
 
 		transaction {
@@ -229,12 +304,118 @@ component {
 				recordActivity(
 					  messageId = arguments.id
 					, activity  = "click"
-					, extraData = { link=arguments.link }
+					, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
 				);
 
 				markAsOpened( id=id, softMark=true );
 			}
 		}
+	}
+
+	/**
+	 * Resends an email. A duplicate of the original content is sent
+	 *
+	 */
+	public void function resendOriginalEmail( required string id ) {
+		var dao                    = $getPresideObject( "email_template_send_log");
+		var message                = dao.selectData(
+			  id           = arguments.id
+			, selectFields = [
+				  "email_template_send_log.*"
+				, "content.html_body as html_body"
+				, "content.text_body as text_body"
+			  ]
+		);
+		var template               = _getEmailTemplateService().getTemplate( message.email_template );
+		var recipientIdLogProperty = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( template.recipient_type );
+		var sendArgs               = deserializeJson( message.send_args );
+
+		var resentMessageId        = $sendEmail(
+		      template              = message.email_template
+		    , recipientId           = message[ recipientIdLogProperty ] ?: ""
+		    , to                    = [ message.recipient ]
+		    , from                  = message.sender
+		    , subject               = message.subject
+		    , htmlBody              = message.html_body
+		    , textBody              = message.text_body
+		    , args                  = sendArgs
+		    , resendOf              = message.id
+		    , returnLogId           = true
+		    , overwriteTemplateArgs = true
+		);
+
+		$audit(
+			  action   = "resend_original_email"
+			, type     = "emailresend"
+			, recordId = resentMessageId
+			, detail   = { subject=message.subject, recipient=message.recipient, originalMessageId=arguments.id }
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "resend"
+			, userAgent = ""
+			, extraData = { resentMessageId=resentMessageId, resendType="original" }
+		);
+
+	}
+
+	/**
+	 * Resends an email. Email is regenerated using the original sendArgs
+	 *
+	 */
+	public void function rebuildAndResendEmail( required string id ) {
+		var dao                    = $getPresideObject( "email_template_send_log");
+		var message                = dao.selectData( id=arguments.id );
+		var template               = _getEmailTemplateService().getTemplate( message.email_template );
+		var recipientIdLogProperty = _getRecipientTypeService().getRecipientIdLogPropertyForRecipientType( template.recipient_type );
+		var originalArgs           = deserializeJson( message.send_args );
+		var sendArgs               = _getEmailTemplateService().rebuildArgsForResend( template=message.email_template, logId=id, originalArgs=originalArgs );
+		var resentMessageId        = $sendEmail(
+		      template    = message.email_template
+		    , recipientId = message[ recipientIdLogProperty ] ?: ""
+		    , to          = !len( message[ recipientIdLogProperty ] ?: "" ) ? [ message.recipient ] : []
+		    , args        = sendArgs
+		    , resendOf    = message.id
+		    , returnLogId = true
+		);
+
+		$audit(
+			  action   = "rebuild_and_resend_email"
+			, type     = "emailresend"
+			, recordId = resentMessageId
+			, detail   = { subject=message.subject, recipient=message.recipient, originalMessageId=arguments.id }
+		);
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "resend"
+			, userAgent = ""
+			, extraData = { resentMessageId=resentMessageId, resendType="rebuild" }
+		);
+
+	}
+
+	/**
+	 * Resends an email. Email is regenerated using the original sendArgs
+	 *
+	 */
+	public boolean function deleteExpiredContent( any logger ) {
+		var canLog   = arguments.keyExists( "logger" );
+		var canInfo  = canLog && logger.canInfo();
+		var canError = canLog && logger.canError();
+		var dao      = $getPresideObject( "email_template_send_log_content");
+
+		if ( canInfo ) { logger.info( "Deleting expired email content from logs..." ); }
+
+		var deleted  = dao.deleteData(
+			  filter       = "expires <= :expires"
+			, filterParams = { expires=now() }
+		);
+
+		if ( canInfo ) { logger.info( "Content of [#deleted#] emails deleted." ); }
+
+		return true;
 	}
 
 	/**
@@ -272,18 +453,63 @@ component {
 		  required string messageId
 		, required string messageHtml
 	) {
-		var converted      = arguments.messageHtml;
-		var linkRegex      = 'href="(.*?)"';
-		var linkMatches    = converted.reMatchNoCase( linkRegex );
-		var baseTrackinUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
+		var doc             = "";
+		var links           = "";
+		var link            = "";
+		var attribs         = "";
+		var href            = "";
+		var title           = "";
+		var body            = "";
+		var linkHash        = "";
+		var shortenedLinkId = "";
+		var storeInDb       = $isFeatureEnabled( "emailLinkShortener" );
+		var baseTrackingUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
+		var linkDao         = storeInDb ? $getPresideObject( "email_template_shortened_link" ) : "";
 
-		for( var match in linkMatches ) {
-			var link = match.reReplaceNoCase( linkRegex , "\1" );
-
-			converted = converted.replace( match, 'href="#baseTrackinUrl##ToBase64( link )#"', "all" );
+		try {
+			doc = _jsoup.parse( arguments.messageHtml );
+			links = doc.select( "A" );
+		} catch( any e ) {
+			$raiseError( e );
+			return arguments.messageHtml;
 		}
 
-		return converted;
+		for( link in links ) {
+			attribs = link.attributes();
+			href = Trim( attribs.get( "href" ) );
+
+			if ( Len( href ) && ReFindNoCase( "^https?://", href ) ) {
+				if ( storeInDb ) {
+					title           = Trim( attribs.get( "title" ) );
+					body            = Trim( link.text() );
+					linkHash        = Hash( href & title & body );
+					shortenedLinkId = linkDao.selectData( filter={ link_hash=linkhash }, selectFields=[ "id" ] ).id;
+
+					if ( !Len( shortenedLinkId ) ) {
+						try {
+							shortenedLinkId = linkDao.insertData( {
+								  link_hash = linkhash
+								, href      = href
+								, title     = title
+								, body      = body
+							} );
+						} catch( any e ) {
+							shortenedLinkId = linkDao.selectData( filter={ link_hash=linkhash }, selectFields=[ "id" ] ).id;
+
+							if ( !shortenedLinkId.len() ) {
+								rethrow;
+							}
+						}
+					}
+
+					link.attr( "href", baseTrackingUrl & shortenedLinkId );
+				} else {
+					link.attr( "href", baseTrackingUrl & ToBase64( href ) );
+				}
+			}
+		}
+
+		return doc.toString();
 	}
 
 	/**
@@ -300,14 +526,33 @@ component {
 		  required string messageId
 		, required string activity
 		,          struct extraData = {}
+		,          string userIp    = cgi.remote_addr
+		,          string userAgent = cgi.http_user_agent
 	) {
-		$getPresideObject( "email_template_send_log_activity" ).insertData({
+		var fieldsToAddFromExtraData = [ "link", "code", "reason", "link_title", "link_body" ];
+		var extra = StructCopy( arguments.extraData );
+		var data = {
 			  message       = arguments.messageId
 			, activity_type = arguments.activity
-			, user_ip       = cgi.remote_addr
-			, user_agent    = cgi.http_user_agent
-			, extra_data    = SerializeJson( arguments.extraData )
-		});
+			, user_ip       = arguments.userIp
+			, user_agent    = arguments.userAgent
+		};
+
+		for( var field in extra ) {
+			if ( fieldsToAddFromExtraData.find( LCase( field ) ) ) {
+				data[ field ] = extra[ field ];
+				extra.delete( field );
+			}
+		}
+		data.extra_data = SerializeJson( extra );
+
+		try {
+			$getPresideObject( "email_template_send_log_activity" ).insertData( data );
+		} catch( database e ) {
+			// ignore missing logs when recording activity - but record the error for
+			// info only
+			$raiseError( e );
+		}
 	}
 
 	/**
@@ -317,8 +562,9 @@ component {
 	 * @id.hint ID of the log record
 	 */
 	public struct function getLog( required string id ) {
-		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=[
-			  "email_template_send_log.recipient"
+		var selectFields = [
+			  "email_template_send_log.id"
+			, "email_template_send_log.recipient"
 			, "email_template_send_log.sender"
 			, "email_template_send_log.subject"
 			, "email_template_send_log.sent"
@@ -337,9 +583,16 @@ component {
 			, "email_template_send_log.click_count"
 			, "email_template_send_log.email_template"
 			, "email_template_send_log.datecreated"
+			, "email_template_send_log.resend_of"
 			, "email_template.name"
 			, "email_template.recipient_type"
-		] );
+		];
+		if ( $isFeatureEnabled( "emailCenterResend" ) ) {
+			selectFields.append( "content.html_body" );
+			selectFields.append( "content.text_body" );
+		}
+
+		var logRecord = $getPresideObject( "email_template_send_log" ).selectData( id=arguments.id, selectFields=selectFields );
 
 		for( var l in logRecord ) {
 			return l;
@@ -396,12 +649,31 @@ component {
 		return Now(); // abstracting this makes testing easier
 	}
 
+	private any function _new( required string className ) {
+		return CreateObject( "java", arguments.className, _getLib() );
+	}
+
+	private array function _getLib() {
+		if ( !_lib.len() ) {
+			var libDir = GetDirectoryFromPath( getCurrentTemplatePath() ) & "/lib";
+			_lib = DirectoryList( libDir, false, "path", "*.jar" );
+		}
+		return _lib;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getRecipientTypeService() {
 		return _recipientTypeService;
 	}
 	private void function _setRecipientTypeService( required any recipientTypeService ) {
 		_recipientTypeService = arguments.recipientTypeService;
+	}
+
+	private any function _getEmailTemplateService() {
+		return _emailTemplateService;
+	}
+	private void function _setEmailTemplateService( required any emailTemplateService ) {
+		_emailTemplateService = arguments.emailTemplateService;
 	}
 
 }

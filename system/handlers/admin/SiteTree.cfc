@@ -8,7 +8,9 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
-	property name="messageBox"                       inject="coldbox:plugin:messageBox";
+	property name="messageBox"                       inject="messagebox@cbmessagebox";
+	property name="pageCache"                        inject="cachebox:PresidePageCache";
+	property name="cookieService"                    inject="cookieService";
 
 	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -84,9 +86,9 @@ component extends="preside.system.base.AdminHandler" {
 		] );
 
 		var additionalNodeArgs = {
-			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}"                           )
+			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}&child_count={child_count}" )
 			, pageTypeDialogBaseLink      = event.buildAdminLink( linkTo="sitetree.pageTypeDialog"     , queryString="parentPage={id}"                   )
-			, addPageBaseLink             = event.buildAdminLink( linkTo='sitetree.addPage'            , querystring='parent_page={id}&page_type={type}' )
+			, addPageBaseLink             = event.buildAdminLink( linkTo="sitetree.addPage"            , querystring="parent_page={id}&page_type={type}" )
 			, trashPageBaseLink           = event.buildAdminLink( linkTo="sitetree.trashPageAction"    , queryString="id={id}"                           )
 			, pageHistoryBaseLink         = event.buildAdminLink( linkTo="sitetree.pageHistory"        , queryString="id={id}"                           )
 			, editPagePermissionsBaseLink = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id={id}"                           )
@@ -165,12 +167,12 @@ component extends="preside.system.base.AdminHandler" {
 			, selectFields    = [ "title" ]
 		);
 		if ( not prc.parentPage.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.page.not.found.error" ) );
 			setNextEvent( url = event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
 		if ( !pageTypesService.pageTypeExists( pageType ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( pageType );
@@ -203,7 +205,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( !pageTypesService.pageTypeExists( pageType ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( pageType );
@@ -219,7 +221,7 @@ component extends="preside.system.base.AdminHandler" {
 		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
-			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
 			persist = formData;
 			persist.validationResult = validationResult;
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage" ), persistStruct=persist );
@@ -238,7 +240,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
 		if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
 			persist = {
 				  _addanother = 1
@@ -264,6 +266,12 @@ component extends="preside.system.base.AdminHandler" {
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+		rc._backToEdit   = IsTrue( cookieService.getVar( "sitetree_editPage_backToEdit", "" ) );
+		prc.childCount   = rc.child_count ?: "";
+
+		if( !len( prc.childCount ) ) {
+			prc.childCount = siteTreeService.getTree( rootPageId=pageId, maxDepth=0 ).recordCount ?: 0;
+		}
 
 		var version = Val ( rc.version    ?: "" );
 
@@ -272,7 +280,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( prc.page.page_type );
@@ -301,8 +309,9 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.canAddChildren     = _checkPermissions( argumentCollection=arguments, key="add"               , pageId=pageId, throwOnError=false ) && prc.allowableChildPageTypes != "none";
 		prc.canDeletePage      = _checkPermissions( argumentCollection=arguments, key="trash"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
-		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false );
+		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false ) && prc.managedChildPageTypes.len() || prc.childCount;
 		prc.canManagePagePerms = _checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId, throwOnError=false );
+		prc.canClone           = _checkPermissions( argumentCollection=arguments, key="clone"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
 
 		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
 		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageType.getPresideObject() );
@@ -340,7 +349,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
 
 		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( page.page_type );
@@ -354,7 +363,7 @@ component extends="preside.system.base.AdminHandler" {
 		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
-			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
 			persist = formData;
 			persist.validationResult = validationResult;
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
@@ -365,7 +374,7 @@ component extends="preside.system.base.AdminHandler" {
 		} catch( "SiteTreeService.BadParent" e ) {
 			validationResult.addError( fieldname="parent_page", message="cms:sitetree.validation.badparent.error" );
 
-			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
 			persist = formData;
 			persist.validationResult = validationResult;
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
@@ -381,13 +390,101 @@ component extends="preside.system.base.AdminHandler" {
 			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
 		);
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-
-		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
-			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
+		cookieService.setVar( name="sitetree_editPage_backToEdit", value=false );
+		if ( IsTrue( rc._backToEdit ?: "" ) ) {
+			cookieService.setVar( name="sitetree_editPage_backToEdit", value=true );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persist="_backToEdit" );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+			}
 		}
+	}
+
+	public void function clonePage( event, rc, prc ) {
+		var pageId           = rc.id               ?: "";
+		var validationResult = rc.validationResult ?: "";
+		var pageType         = "";
+
+		_checkPermissions( argumentCollection=arguments, key="clone", pageId=pageId );
+		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+
+		if ( !prc.canPublish && !prc.canSaveDraft ) {
+			event.adminAccessDenied();
+		}
+		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		prc.childCount   = siteTreeService.getTree( rootPageId=pageId, maxDepth=0 ).recordCount ?: 0;
+
+		pageType = pageTypesService.getPageType( prc.page.page_type );
+
+		prc.mainFormName  = "preside-objects.page.clone";
+		prc.mergeFormName = _getPageTypeFormName( pageType, "clone" );
+
+		prc.page = QueryRowToStruct( prc.page );
+		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=false, allowDraftVersions=true  );
+		StructAppend( prc.page, QueryRowToStruct( savedData ) );
+
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:sitetree.clonePage.crumb")
+			, link  = ""
+		);
+		prc.pageTitle = translateResource( uri="cms:sitetree.clonePage.title", data=[ prc.page.title ] );
+		prc.pageIcon  = "clone";
+	}
+
+	public void function clonePageAction( event, rc, prc ) {
+		var pageId            = rc.id ?: "";
+		var saveAsDraft       = IsTrue( rc.clone_save_as_draft    ?: "" );
+		var cloneChildren     = IsTrue( rc.clone_include_children ?: "" );
+		var validationRuleset = "";
+		var validationResult  = "";
+		var newId             = "";
+		var persist           = "";
+		var formName          = "preside-objects.page.clone";
+		var formData          = "";
+		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="clone", pageId=pageId );
+
+		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+		pageType = pageTypesService.getPageType( page.page_type );
+		var mergeFormName = _getPageTypeFormName( pageType, "clone" )
+		if ( Len( Trim( mergeFormName ) ) ) {
+			formName = formsService.getMergedFormName( formName, mergeFormName );
+		}
+
+		formData = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.clonePage", querystring="id=#pageId#" ), persistStruct=persist );
+		}
+
+		newId = siteTreeService.clonePage(
+			  sourcePageId  = pageId
+			, newPageData   = formData
+			, createAsDraft = saveAsDraft
+			, cloneChildren = cloneChildren
+		);
+
+		messageBox.info( translateResource( uri="cms:sitetree.pageCloned.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="sitetree", querystring="selected=#newId#", siteId=( formData.site ?: "" ) ) );
 	}
 
 	public void function discardDraftsAction( event, rc, prc ) {
@@ -398,13 +495,13 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId );
 
 		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
 		siteTreeService.discardDrafts( pageId );
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.drafts.discarded.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.page.drafts.discarded.confirmation" ) );
 
 		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
 			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
@@ -426,7 +523,7 @@ component extends="preside.system.base.AdminHandler" {
 			, recordId = page.id
 		);
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.activated.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.page.activated.confirmation" ) );
 		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
 			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
 		} else {
@@ -447,7 +544,7 @@ component extends="preside.system.base.AdminHandler" {
 			, recordId = page.id
 		);
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.deactivated.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.page.deactivated.confirmation" ) );
 
 		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
 			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
@@ -478,7 +575,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( prc.page.page_type );
@@ -557,7 +654,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( page.page_type );
@@ -601,7 +698,7 @@ component extends="preside.system.base.AdminHandler" {
 		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
-			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
 			persist = formData;
 			persist.validationResult = validationResult;
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.translatePage", querystring="id=#pageId#&language=#languageId#" ), persistStruct=persist );
@@ -636,7 +733,7 @@ component extends="preside.system.base.AdminHandler" {
 			, recordId = auditDetail.id
 		);
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTranslated.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.pageTranslated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
 	}
 
@@ -681,7 +778,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="trash", pageId=pageId );
 
 		if ( pageId eq prc.homepage.id ) {
-			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
+			messageBox.error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
@@ -689,7 +786,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		siteTreeService.trashPage( pageId );
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTrashed.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.pageTrashed.confirmation" ) );
 		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.managedChildren", querystring="parent=#page.parent_page#&pagetype=#page.page_type#" ) );
 		} else {
@@ -703,7 +800,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="delete", pageId=pageId );
 
 		if ( pageId eq prc.homepage.id ) {
-			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
+			messageBox.error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
@@ -711,7 +808,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		siteTreeService.permanentlyDeletePage( event.getValue( "id", "" ) );
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageDeleted.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.pageDeleted.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.trash" ) );
 	}
 
@@ -720,7 +817,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		siteTreeService.emptyTrash();
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.trashEmptied.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.trashEmptied.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 	}
 
@@ -754,7 +851,7 @@ component extends="preside.system.base.AdminHandler" {
 		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
 
 		if ( not validationResult.validated() ) {
-			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
 			persist = formData;
 			persist.validationResult = validationResult;
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.restorePage", querystring="id=#pageId#" ), persistStruct=persist );
@@ -767,7 +864,7 @@ component extends="preside.system.base.AdminHandler" {
 			, active      = event.getValue( "active", "" )
 		);
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageRestored.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.pageRestored.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
 	}
 
@@ -815,7 +912,7 @@ component extends="preside.system.base.AdminHandler" {
 			, recordId = page.id
 		);
 
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );
+		messageBox.info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
 	}
 
@@ -883,10 +980,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getPagesForAjaxPicker( event, rc, prc ) {
+		var extraFilters   = [];
+		var filterByFields = ListToArray( rc.filterByFields ?: "" );
+		for( var filterByField in filterByFields ) {
+			filterValue = rc[filterByField] ?: "";
+			if( !isEmpty( filterValue ) ){
+				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
+			}
+		}
+
 		var records = siteTreeService.getPagesForAjaxSelect(
-			  maxRows      = rc.maxRows      ?: 1000
-			, searchQuery  = rc.q            ?: ""
+			  maxRows      = rc.maxRows   ?: 1000
+			, searchQuery  = rc.q         ?: ""
+			, childPage    = rc.childPage ?: ""
 			, ids          = ListToArray( rc.values ?: "" )
+			, site         = rc.site      ?: ""
+			, extraFilters = extraFilters
 		);
 		var preparedPages = [];
 
@@ -1023,7 +1132,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var optionsCol = [];
 		var statusCol  = [];
-		var dtHelper   = getMyPlugin( "JQueryDatatablesHelpers" );
+		var dtHelper   = getModel( "JQueryDatatablesHelpers" );
 		var sortOrder  = dtHelper.getSortOrder();
 		var results    = siteTreeService.getManagedChildrenForDataTable(
 			  objectName   = pageType
@@ -1072,6 +1181,40 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ), lookupDomain=true ) );
 	}
 
+	public void function clearPageCacheAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="clearcaches" );
+
+		var pageId = rc.id ?: "";
+
+		if ( pageId.isEmpty() ) {
+			getController().getCachebox().clearAll();
+
+			event.audit(
+				  action = "clear_page_cache"
+				, type   = "sitetree"
+			);
+		} else {
+			var page = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+			var pageUrl    = event.buildLink( page=pageId ).reReplace( "^https?://.*?/", "/" );
+			var sectionUrl = pageUrl.reReplace( "\.html$", "/" );
+
+			pageCache.clearByKeySnippet( pageUrl );
+			pageCache.clearByKeySnippet( sectionUrl );
+
+			event.audit(
+				  action   = "clear_cache_for_page"
+				, type     = "sitetree"
+				, detail   = QueryRowToStruct( page )
+				, recordId = page.id
+			);
+		}
+
+		messagebox.info( translateResource( "cms:sitetree.flush.cache.confirmation" ) );
+
+		setNextEvent( url=event.buildAdminLink( "sitetree" ) );
+	}
+
 <!--- private viewlets --->
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = datamanagerService.getPrefetchCachebusterForAjaxSelect( "page" );
@@ -1109,6 +1252,7 @@ component extends="preside.system.base.AdminHandler" {
 			case "add"      : specificForm = pageType.getAddForm(); break;
 			case "edit"     : specificForm = pageType.getEditForm(); break;
 			case "translate": specificForm = pageType.getTranslateForm(); break;
+			case "clone"    : specificForm = pageType.getCloneForm(); break;
 			default: return "";
 		}
 
@@ -1131,7 +1275,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( !page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			messageBox.error( translateResource( "cms:sitetree.page.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 

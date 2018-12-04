@@ -1,12 +1,14 @@
 component output="false" displayname=""  {
 
 	property name="resourceBundleService"  inject="resourceBundleService";
-	property name="i18n"                   inject="coldbox:plugin:i18n";
+	property name="i18n"                   inject="i18n";
 	property name="loginService"           inject="loginService";
+	property name="adminLanguages"         inject="coldbox:setting:adminLanguages";
 
 	public string function index( event, rc, prc, args={} ) {
-		var locales    = Duplicate( resourceBundleService.listLocales() );
-		var userDetail = loginService.getLoggedInUserDetails();
+		var locales      = Duplicate( resourceBundleService.listLocales() );
+		var adminLocales = IsTrue( args.adminLocales ?: "" );
+		var userDetail   = loginService.getLoggedInUserDetails();
 
 		if ( locales.len() ) {
 			var defaultLocale = i18n.getDefaultLocale();
@@ -15,6 +17,14 @@ component output="false" displayname=""  {
 			args.labels       = [];
 
 			locales.append( defaultLocale );
+			if ( adminLocales && adminLanguages.len() ) {
+				for( var i=locales.len(); i>0; i-- ) {
+					if ( !adminLanguages.findNoCase( locales[ i ] ) ) {
+						locales.deleteAt( i );
+					}
+				}
+			}
+
 			locales = locales.map( function( locale ){
 				var language = ListFirst( locale, "_" );
 				var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";

@@ -11,38 +11,29 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @rulesEngineExpressionService.inject rulesEngineExpressionService
-	 * @rulesEngineContextService.inject    rulesEngineContextService
+	 * @rulesEngineContextService.inject rulesEngineContextService
 	 *
 	 */
-	public any function init(
-		  required any rulesEngineExpressionService
-		, required any rulesEngineContextService
-	) {
-		_setRulesEngineExpressionService( arguments.rulesEngineExpressionService );
-		_setRulesEngineContextService( arguments.rulesEngineContextService );
-
+	public any function init( required any rulesEngineContextService ) {
+		_setRulesEngineContextService( rulesEngineContextService );
 		return this;
 	}
 
 
 // PUBLIC API
-	public void function generateAndRegisterAutoExpressions() {
-		var objects = $getPresideObjectService().listObjects();
+	public array function getAutoExpressionsForObject( required string objectName ) {
+		var properties                      = $getPresideObjectService().getObjectProperties( arguments.objectName );
+		var relatedObjectsForAutoGeneration = $getPresideObjectService().getObjectAttribute( arguments.objectName, "autoGenerateFilterExpressionsFor" ).trim();
+		var expressions                     = [];
 
-		for( var objectName in objects ) {
-			var properties = $getPresideObjectService().getObjectProperties( objectName );
-			for( var propName in properties ) {
-				var expressions = generateExpressionsForProperty( objectName, properties[ propName ] );
-				for( var expression in expressions ) {
-					_getRulesEngineExpressionService().addExpression( argumentCollection=expression );
-				}
-				if ( expressions.len() ) {
-					_getRulesEngineContextService().addContext( id="presideobject_" & objectName, object=objectName, visible=false );
-				}
-			}
-
+		for( var propName in properties ) {
+			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
 		}
+		for( var relatedObjectPath in relatedObjectsForAutoGeneration.listToArray() ) {
+			expressions.append( _createExpressionsForRelatedObjectProperties( arguments.objectName, relatedObjectPath.trim() ), true );
+		}
+
+		return expressions;
 	}
 
 	/**
@@ -104,12 +95,12 @@ component {
 
 				if ( !arguments.parentObjectName.len() ) {
 					if ( IsBoolean( propertyDefinition.autoGenerateFilterExpressions ?: "" ) && propertyDefinition.autoGenerateFilterExpressions ) {
-						expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition ), true );
+						expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition.name ), true );
 					} else {
 						var uniqueIndexes = ListToArray( propertyDefinition.uniqueIndexes ?: "" );
 						for( var ux in uniqueIndexes ) {
 							if ( ListLen( ux, "|" ) == 1 ) {
-								expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition ), true );
+								expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition.name ), true );
 								break;
 							}
 						}
@@ -485,20 +476,31 @@ component {
 
 	private array function _createExpressionsForRelatedObjectProperties(
 		  required string objectName
-		, required struct propertyDefinition
+		, required string propertyName
 	) {
-		var childObjectName    = propertyDefinition.relatedTo ?: "";
-		var parentPropertyName = propertyDefinition.name ?: "";
+		var poService          = $getPresideObjectService();
+		var propertyChain      = arguments.propertyName.listToArray( "." );
+		var currentObjectName  = arguments.objectName;
+		var parentPropertyName = arguments.propertyName.listChangeDelims( "$", "." );
 		var expressions        = [];
-		var properties         = $getPresideObjectService().getObjectProperties( childObjectName );
 
-		for( var propName in properties ) {
-			expressions.append( generateExpressionsForProperty(
-				  objectName         = childObjectName
-				, propertyDefinition = properties[ propName ]
-				, parentObjectName   = objectName
-				, parentPropertyName = parentPropertyName
-			), true );
+		for( var propName in propertyChain ) {
+			var prop = poService.getObjectProperty( currentObjectName, propName );
+
+			currentObjectName = prop.relatedto ?: "";
+		}
+
+		if ( currentObjectName.len() ) {
+			var properties = $getPresideObjectService().getObjectProperties( currentObjectName );
+
+			for( var propName in properties ) {
+				expressions.append( generateExpressionsForProperty(
+					  objectName         = currentObjectName
+					, propertyDefinition = properties[ propName ]
+					, parentObjectName   = objectName
+					, parentPropertyName = parentPropertyName
+				), true );
+			}
 		}
 
 		return expressions;
@@ -526,13 +528,6 @@ component {
 
 
 // GETTERS AND SETTERS
-	private any function _getRulesEngineExpressionService() {
-		return _rulesEngineExpressionService;
-	}
-	private void function _setRulesEngineExpressionService( required any rulesEngineExpressionService ) {
-		_rulesEngineExpressionService = arguments.rulesEngineExpressionService;
-	}
-
 	private any function _getRulesEngineContextService() {
 		return _rulesEngineContextService;
 	}

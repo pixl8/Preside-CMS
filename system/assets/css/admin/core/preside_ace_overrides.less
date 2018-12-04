@@ -254,7 +254,9 @@ span.input-icon {
 
 .tabs-left, .tabs-right {
 	.tab-content {
-		overflow : hidden;
+		overflow-x : hidden;
+		overflow-y : auto;
+		padding-bottom : 200px;
 	}
 }
 .tab-content .form-actions {
@@ -263,4 +265,13 @@ span.input-icon {
 
 input.ace[type="checkbox"] {
 	z-index : 12;
+}
+
+.btn-group > .btn,
+.btn-group + .btn {
+  border-width: 5px;
+}
+
+.widget-body .table.no-top-border {
+	border-top: none;
 }

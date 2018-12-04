@@ -49,50 +49,32 @@ component {
 	 *
 	 * @autodoc true
 	 */
-	public boolean function processQueue( any logger ) {
-		autoQueueScheduledSendouts( logger ?: NullValue() )
-
+	public void function processQueue() {
 		var rateLimit      = Val( $getPresideSetting( "email", "ratelimit", 100 ) );
 		var processedCount = 0;
 		var queuedEmail    = "";
 		var emailService   = _getEmailService();
-		var canLog         = arguments.keyExists( "logger" );
-		var canInfo        = canLog && logger.canInfo();
-		var canError       = canLog && logger.canError();
 
 		do {
 			queuedEmail = getNextQueuedEmail();
 
 			if ( !queuedEmail.count() ) {
-				if ( canInfo ) { logger.info( "The batch sending queue is empty!" ); }
 				break;
 			}
 
-			if ( canInfo ) { logger.info( "Sending email template, [#queuedEmail.template#], to recipient, [#queuedEmail.recipient#]" ); }
-
 			try {
-				var result = emailService.send(
+				emailService.send(
 					  template    = queuedEmail.template
 					, recipientId = queuedEmail.recipient
 				);
-			} catch ( Any e ) {
-				if ( e.type contains "EmailService.missing" ) {
-					result = false;
-				} else {
-					rethrow;
-				}
-			}
 
-			if ( !result && canError ) {
-				logger.error( "Sending failed. See email sending logs and error logs for detail." );
+			} catch ( Any e ) {
+				$raiseError( e );
 			}
 
 			removeFromQueue( queuedEmail.id );
-		} while( ++processedCount < rateLimit );
+		} while( ++processedCount < rateLimit && !$isInterrupted() );
 
-		if ( canInfo ) { logger.info( "Done. Processed [#NumberFormat( processedCount )#] queued emails." ); }
-
-		return true;
 	}
 
 	/**
@@ -138,9 +120,10 @@ component {
 	 * the recipients for mass sending an email
 	 *
 	 * @autodoc         true
-	 * @templateId.hint ID of the template whose filters you are to get
+	 * @templateId      ID of the template whose filters you are to get
+	 * @hideAlreadySent Whether or not to filter out recipients that have reached sending limits
 	 */
-	public array function getTemplateRecipientFilters( required string templateId ) {
+	public array function getTemplateRecipientFilters( required string templateId, boolean hideAlreadySent=true ) {
 		var template = _getEmailTemplateService().getTemplate( arguments.templateId );
 		if ( template.isEmpty() ) {
 			return [];
@@ -150,13 +133,13 @@ component {
 		if ( !recipientObject.len() ) {
 			return [];
 		}
-		var extraFilters = getFiltersForSendLimits(
+		var extraFilters = arguments.hideAlreadySent ? getFiltersForSendLimits(
 			  templateId    = arguments.templateId
 			, recipientType = template.recipient_type
 			, sendLimit     = template.sending_limit
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
-		);
+		) : [];
 		var blueprintFilter = template.blueprint_filter ?: "";
 		if ( blueprintFilter.len() ) {
 			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
@@ -211,22 +194,11 @@ component {
 	 *
 	 * @autodoc true
 	 */
-	public numeric function autoQueueScheduledSendouts( any logger ) {
+	public numeric function autoQueueScheduledSendouts() {
 		var templateService   = _getEmailTemplateService();
 		var oneTimeTemplates  = templateService.listDueOneTimeScheduleTemplates();
 		var repeatedTemplates = templateService.listDueRepeatedScheduleTemplates();
 		var totalQueued       = 0;
-		var canLog            = arguments.keyExists( "logger" );
-		var canInfo           = canLog && logger.canInfo();
-
-		if ( canInfo ) {
-			if ( oneTimeTemplates.len() ) {
-				logger.info( "Queueing [#oneTimeTemplates.len()#] one time scheduled email template(s) for sending..." );
-			}
-			if ( repeatedTemplates.len() ) {
-				logger.info( "Queueing [#repeatedTemplates.len()#] repeat scheduled email template(s) for sending..." );
-			}
-		}
 
 		for( var oneTimeTemplate in oneTimeTemplates ){
 			totalQueued += queueSendout( oneTimeTemplate );
@@ -238,11 +210,21 @@ component {
 			templateService.updateScheduledSendFields( templateId=repeatedTemplate );
 		}
 
-		if ( canInfo && ( oneTimeTemplates.len() + repeatedTemplates.len() ) ) {
-			logger.info( "[#NumberFormat( totalQueued )#] emails were queued to send" );
-		}
-
 		return totalQueued;
+	}
+
+	/**
+	 * Automatically requeues any emails that were marked as sending but have
+	 * not then completed. This may occur due to a server restart during sending, etc.
+	 *
+	 * @autodoc true
+	 */
+	public numeric function requeueHungEmails() {
+		return $getPresideObject( "email_mass_send_queue" ).updateData(
+			  data         = { status="queued" }
+			, filter       = "status = :status and datemodified < :datemodified"
+			, filterParams = { status="sending", datemodified=DateAdd( "h", -1, Now() ) }
+		);
 	}
 
 	/**
@@ -251,14 +233,35 @@ component {
 	 * @autodoc true
 	 */
 	public struct function getNextQueuedEmail() {
-		var queuedEmail = $getPresideObject( "email_mass_send_queue" ).selectData(
-			  selectFields = [ "id", "recipient", "template" ]
-			, orderby      = "id"
-			, maxRows      = 1
-		);
+		transaction {
+			var takenByOtherProcess = false;
+			var queueDao            = $getPresideObject( "email_mass_send_queue" );
+			var queuedEmail         = queueDao.selectData(
+				  selectFields = [ "id", "recipient", "template" ]
+				, filter       = "status is null or status = :status"
+				, filterParams = { status="queued" }
+				, orderby      = "datecreated"
+				, maxRows      = 1
+			);
 
-		for( var q in queuedEmail ) {
-			return q;
+			for( var q in queuedEmail ) {
+				var updated = queueDao.updateData(
+					  filter       = "id = :id and ( status is null or status = :status )"
+					, filterParams = { id=q.id, status="queued" }
+					, data         = { status = "sending" }
+				);
+
+				if ( updated ) {
+					return q;
+				}
+
+				takenByOtherProcess = true;
+				break;
+			}
+		}
+
+		if ( takenByOtherProcess ) {
+			return getNextQueuedEmail();
 		}
 
 		return {};

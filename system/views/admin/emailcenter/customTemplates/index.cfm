@@ -1,10 +1,10 @@
 <cfscript>
 	objectName          = "email_template"
-	gridFields          = [ "name", "email_blueprint", "datecreated", "datemodified" ];
+	gridFields          = [ "name", "sending_method", "send_date" ];
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
-	addRecordTitle      = translateResource( uri = "cms:datamanager.addrecord.title"            , data = [ LCase( objectTitleSingular ) ] );
+	addRecordTitle      = translateResource( uri = "cms:emailcenter.customTemplates.add.btn" );
 	canAdd              = IsTrue( prc.canAdd    ?: false );
 	canDelete           = IsTrue( prc.canDelete ?: false );
 </cfscript>

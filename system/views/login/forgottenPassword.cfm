@@ -11,13 +11,31 @@
 
     <cfswitch expression="#rc.message#">
         <cfcase value="LOGINID_NOT_FOUND">
-            <div class="alert alert-danger" role="alert">#args.loginId_not_found#</div>
+            <div class="alert alert-danger" role="alert">
+                <cfif len( trim( args.loginId_not_found ) )>
+                    #args.loginId_not_found#
+                <cfelse>
+                    #translateResource( 'cms:forgottenpassword.loginid.notfound.error' )#
+                </cfif>
+            </div>
         </cfcase>
         <cfcase value="INVALID_RESET_TOKEN">
-            <div class="alert alert-danger" role="alert">#args.invalid_reset_token#</div>
+            <div class="alert alert-danger" role="alert">
+                <cfif len( trim( args.invalid_reset_token ) )>
+                    #args.invalid_reset_token#
+                <cfelse>
+                    #translateResource( 'cms:forgottenpassword.invalid.reset.token.error' )#
+                </cfif>
+            </div>
         </cfcase>
         <cfcase value="PASSWORD_RESET_INSTRUCTIONS_SENT">
-            <div class="alert alert-success" role="alert">#args.password_reset_instructions_sent#</div>
+            <div class="alert alert-success" role="alert">
+                <cfif len( trim( args.password_reset_instructions_sent ) )>
+                    #args.password_reset_instructions_sent#
+                <cfelse>
+                    #translateResource( 'cms:forgottenpassword.instructions.sent.confirmation' )#
+                </cfif>
+            </div>
         </cfcase>
     </cfswitch>
 

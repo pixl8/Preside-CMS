@@ -4,6 +4,8 @@
  * @versioned                   false
  * @labelfield                  recipient
  * @datamanagerDefaultSortOrder datecreated desc
+ * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_link,activity_link_title,activity_link_body,activity_code,activity_reason
+ * @datamanagerEnabled          true
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="email_template" relationship="many-to-one" relatedto="email_template" required=false;
@@ -11,9 +13,12 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="website_user_recipient"  relationship="many-to-one" relatedto="website_user"  required=false;
 	property name="security_user_recipient" relationship="many-to-one" relatedto="security_user" required=false;
 
+	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenterResend";
+
 	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true;
 	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true;
 	property name="subject"   type="string" dbtype="varchar" maxlength=255;
+	property name="resend_of" type="string" dbtype="varchar" maxlength=35;
 	property name="send_args" type="string" dbtype="text" autofilter=false;
 
 	property name="sent"           type="boolean" dbtype="boolean" default=false;
@@ -38,4 +43,14 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="failed_code"   type="numeric" dbtype="int";
 
 	property name="activities" relationship="one-to-many" relatedto="email_template_send_log_activity" relationshipkey="message";
+
+	property name="activity_type"       formula="activities.activity_type";
+	property name="activity_ip"         formula="activities.user_ip";
+	property name="activity_user_agent" formula="activities.user_agent";
+	property name="activity_link"       formula="activities.link";
+	property name="activity_link_title" formula="activities.link_title";
+	property name="activity_link_body"  formula="activities.link_body";
+	property name="activity_code"       formula="activities.code";
+	property name="activity_reason"     formula="activities.reason";
+	property name="activity_date"       formula="activities.datecreated" type="date" dbtype="datetime";
 }

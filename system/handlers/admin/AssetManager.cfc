@@ -9,8 +9,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="errorLogService"                  inject="errorLogService";
 	property name="storageProviderService"           inject="storageProviderService";
 	property name="storageLocationService"           inject="storageLocationService";
-	property name="messageBox"                       inject="coldbox:plugin:messageBox";
-	property name="datatableHelper"                  inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="messageBox"                       inject="messagebox@cbmessagebox";
+	property name="datatableHelper"                  inject="jQueryDatatablesHelpers";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 
 	function preHandler( event, rc, prc ) {
@@ -450,7 +450,19 @@ component extends="preside.system.base.AdminHandler" {
 	function uploadAssets( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		var folderId           = rc.folder ?: "";
+		var folderId = rc.folder  ?: "";
+		var folder   = prc.folder ?: queryNew("");
+		if( folder.recordCount ){
+			var maxFileSize   = folder.max_filesize_in_mb ?: 100;
+			var allowedTypes  = folder.allowed_filetypes  ?: "";
+			var extensionList = "";
+
+			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
+				extensionList = ListAppend( extensionList, ".#type#" );
+			} );
+
+			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
+		}
 
 		prc.pageIcon     = "picture";
 		prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -492,7 +504,14 @@ component extends="preside.system.base.AdminHandler" {
 
 			assetData.delete( "asset_folder" );
 			assetData.delete( "file" );
-			assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+
+			var convertTiffs = IsTrue( getSystemSetting( category="asset-manager", setting="tiff_conversion", default=false ) );
+
+			if ( ListFindNoCase( "tif,tiff", ListLast( assetData.title, "." ) ) && convertTiffs ) {
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? ReplaceNoCase( assetData.title, ListLast( assetData.title, "." ), "jpg" ) : fileName;
+			} else {
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+			}
 
 			try {
 				var assetId = assetManagerService.addAsset(
@@ -542,8 +561,9 @@ component extends="preside.system.base.AdminHandler" {
 		event.include( "/js/admin/specific/owlcarousel/"  )
 		     .include( "/css/admin/specific/owlcarousel/" );
 
-		prc.versions = assetManagerService.getAssetVersions( rc.asset );
-		prc.assetType = assetManagerService.getAssetType( name=prc.asset.asset_type );
+		prc.versions     = assetManagerService.getAssetVersions( rc.asset );
+		prc.assetType    = assetManagerService.getAssetType( name=prc.asset.asset_type );
+		prc.isImageAsset = listFirst( prc.assetType.mimetype, "/" ) == "image";
 
 		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( "asset" );
 		prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="assetmanager.assets.translate" , context="assetmanagerfolder", contextKeys= prc.permissionContext );
@@ -557,7 +577,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var assetId          = rc.asset  ?: "";
 		var folderId         = rc.folder ?: "";
-		var formName         = "preside-objects.asset.admin.edit";
+		var formName         = rc.keyExists( "focal_point" ) ? formsService.getMergedFormName( "preside-objects.asset.admin.edit", "preside-objects.asset.cropping" ) : "preside-objects.asset.admin.edit";
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = "";
 		var success          = true;
@@ -805,11 +825,11 @@ component extends="preside.system.base.AdminHandler" {
 			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
 				extensionList = ListAppend( extensionList, ".#type#" );
 			} );
-			event.includeData( { allowedExtensions : extensionList, maxFileSize = maxFileSize } );
+			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
 		}
 
 		if ( !IsBoolean( multiple ) || !multiple ) {
-			event.includeData( { maxFiles : 1 } );
+			event.includeData( { maxFiles = 1 } );
 		}
 
 		prc.uploadCompleteView = '/admin/assetmanager/_batchUploadCompleteMessagingForAssetPicker';
@@ -1268,5 +1288,9 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !permitted ) {
 			event.adminAccessDenied();
 		}
+	}
+
+	private void function _editAssetLocationInBackgroundThread( event, rc, prc, args={} ){
+		assetManagerService.ensureAssetsAreInCorrectLocation( folderId=args.id ?: "" );
 	}
 }

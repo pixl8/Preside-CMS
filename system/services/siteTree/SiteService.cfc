@@ -1,14 +1,14 @@
 /**
  * The site service provides methods for interacting with the core "Site" system
  */
-component output=false singleton=true displayname="Site service" autodoc=true {
+component singleton=true displayname="Site service" autodoc=true {
 
 // CONSTRUCTOR
 	/**
 	 * @siteDao.inject               presidecms:object:site
 	 * @siteAliasDomainDao.inject    presidecms:object:site_alias_domain
 	 * @siteRedirectDomainDao.inject presidecms:object:site_redirect_domain
-	 * @sessionStorage.inject        coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject        sessionStorage
 	 * @permissionService.inject     permissionService
 	 * @coldbox.inject               coldbox
 	 *
@@ -32,7 +32,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	 * Returns a query of all the registered sites
 	 */
 	public query function listSites() output=false autodoc=true {
-		return _getSiteDao().selectData( orderBy = "name" );
+		return _getSiteDao().selectData( orderBy = "name", savedFilters=[ "nonDeletedSites" ] );
 	}
 
 	/**
@@ -41,13 +41,29 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	 * @id.hint ID of the site to get
 	 */
 	public struct function getSite( required string id ) output=false autodoc=true {
-		var site = _getSiteDao().selectData( id=arguments.id );
+		var site = _getSiteDao().selectData( id=arguments.id, savedFilters=[ "nonDeletedSites" ] );
 
 		for( var s in site ){
 			return s;
 		}
 
 		return {};
+	}
+
+	/**
+	 * "Deletes" the given site. Marks it as deleted and obfuscates the
+	 * unique index fields.
+	 *
+	 */
+	public boolean function deleteSite( required string siteId ) {
+		var site = getSite( arguments.siteId );
+
+		return _getSiteDao().updateData( id=arguments.siteId, data={
+			  deleted = true
+			, name    = Left( site.id & "-" & site.name  , 200 )
+			, domain  = Left( site.id & "-" & site.domain, 200 )
+			, path    = Left( site.id & "-" & site.path  , 200 )
+		} );
 	}
 
 	/**
@@ -63,6 +79,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			  filter       = "( domain = '*' or domain = :domain )"
 			, filterParams = { domain = arguments.domain }
 			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc, #dbAdapter.getLengthFunctionSql( 'path' )# desc"
+			, savedFilters = [ "nonDeletedSites" ]
 		);
 
 		for( var match in possibleMatches ){
@@ -74,6 +91,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 		var aliasMatch = _getSiteAliasDomainDao().selectData(
 			  selectFields = [ "site" ]
 			, filter       = { domain = arguments.domain }
+			, savedFilters = [ "nonDeletedSites" ]
 		);
 
 		if ( aliasMatch.recordCount ) {
@@ -118,6 +136,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			  filter       = "( domain = '*' or domain = :domain )"
 			, filterParams = { domain = arguments.domain }
 			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc, #dbAdapter.getLengthFunctionSql( 'path' )#"
+			, savedFilters = [ "nonDeletedSites" ]
 		);
 
 
@@ -136,7 +155,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	 * Sets the current active admin site id
 	 */
 	public void function setActiveAdminSite( required string siteId ) output=false autodoc=true {
-		var site = _getSiteDao().selectData( id=arguments.siteId );
+		var site = _getSiteDao().selectData( id=arguments.siteId, savedFilters=[ "nonDeletedSites" ] );
 
 		for( var s in site ) { // little query to struct hack
 			if ( _getPermissionService().hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ s.id ] ) ) {
@@ -176,10 +195,15 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	 * Retrieves the current active site template. This is based either on the URL, for front-end requests, or the currently
 	 * selected site when in the administrator
 	 */
-	public string function getActiveSiteTemplate() output=false autodoc=true {
+	public string function getActiveSiteTemplate( boolean emptyIfDefault=false ) output=false autodoc=true {
 		var site = _getColdbox().getRequestContext().getSite();
+		var siteTemplate = site.template ?: "";
 
-		return site.template ?: "";
+		if ( !Len( Trim( siteTemplate ) ) && !arguments.emptyIfDefault ) {
+			siteTemplate = "default";
+		}
+
+		return siteTemplate;
 	}
 
 	/**
@@ -225,6 +249,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 		return _getSiteRedirectDomainDao().selectData(
 			  selectFields = [ "site.id", "site.protocol", "site.domain" ]
 			, filter       = { domain = arguments.domain }
+			, savedFilters = [ "nonDeletedSites" ]
 		);
 	}
 

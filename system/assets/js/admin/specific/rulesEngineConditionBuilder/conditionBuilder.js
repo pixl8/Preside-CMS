@@ -217,15 +217,16 @@
 		};
 
 		RulesEngineCondition.prototype.renderExpression = function( expression, depth ) {
-			var definition = this.getExpression( expression.expression )
-			  , text       = definition.text || ""
+			var definition = this.getExpression( expression.expression );
+
+			if ( typeof definition === "undefined" || definition == null ) {
+				return '<em class="red"><i class="fa fa-fw fa-exclamation-triangle"></i> ' + i18n.translateResource( "cms:rulesEngine.invalid.expression" ) + '</em>';
+			}
+
+			var text       = definition.text || ""
 			  , indent     = ( depth * 30 )
 			  , $expression = $( '<span class="rules-engine-condition-builder-expression-text" style="margin-left:' + indent + 'px;"></span>' )
 			  , fieldName, fieldValue, fieldPatternRegex, fieldDefinition, $field;
-
-			if ( typeof definition.id === "undefined" ) {
-				return "";
-			}
 
 			for( fieldName in expression.fields ) {
 				fieldPatternRegex = new RegExp( "\{" + fieldName + "\}", "gi" );

@@ -7,15 +7,16 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @loginService.inject             loginService
-	 * @pageTypesService.inject         pageTypesService
-	 * @siteService.inject              siteService
-	 * @i18nService.inject              coldbox:plugin:i18n
-	 * @coldboxController.inject        coldbox
-	 * @presideObjectService.inject     presideObjectService
-	 * @versioningService.inject        versioningService
-	 * @websitePermissionService.inject websitePermissionService
+	 * @loginService.inject                loginService
+	 * @pageTypesService.inject            pageTypesService
+	 * @siteService.inject                 siteService
+	 * @i18nService.inject                 i18n
+	 * @coldboxController.inject           coldbox
+	 * @presideObjectService.inject        presideObjectService
+	 * @versioningService.inject           versioningService
+	 * @websitePermissionService.inject    websitePermissionService
 	 * @rulesEngineConditionService.inject rulesEngineConditionService
+	 * @cloningService.inject              presideObjectCloningService
 	 */
 	public any function init(
 		  required any loginService
@@ -27,6 +28,7 @@ component {
 		, required any versioningService
 		, required any websitePermissionService
 		, required any rulesEngineConditionService
+		, required any cloningService
 	) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
@@ -37,6 +39,7 @@ component {
 		_setVersioningService( arguments.versioningService );
 		_setWebsitePermissionService( arguments.websitePermissionService );
 		_setRulesEngineConditionService( arguments.rulesEngineConditionService );
+		_setCloningService( arguments.cloningService );
 		_setPageSlugsAreMultilingual();
 
 		_ensureSystemPagesExistInTree();
@@ -123,9 +126,17 @@ component {
 		, numeric version      = 0
 		, boolean getLatest    = false
 		, boolean allowDrafts  = $getRequestContext().showNonLiveContent()
+		, string  site         = ""
+		, array   bypassTenants = []
 
 	) {
-		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
+		var args = {
+			  filter             = ""
+			, filterParams       = {}
+			, useCache           = arguments.useCache
+			, allowDraftVersions = arguments.allowDrafts
+			, bypassTenants      = arguments.bypassTenants
+		};
 
 		if ( StructKeyExists( arguments, "id" ) ) {
 			args.filter = "page.id = :id";
@@ -144,6 +155,10 @@ component {
 				  type    = "SiteTreeService.GetPage.MissingArgument"
 				, message = "Neither [id], [system_key] nor [slug] was passed to the getPage() method. You must specify one of either argument"
 			);
+		}
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			args.tenantIds = { site=arguments.site };
 		}
 
 		if ( not arguments.includeTrash ) {
@@ -165,29 +180,55 @@ component {
 	}
 
 	public query function getPagesForAjaxSelect(
-		  numeric maxRows     = 1000
-		, string  searchQuery = ""
-		, array   ids         = []
+		  numeric maxRows      = 1000
+		, string  searchQuery  = ""
+		, string  childPage    = ""
+		, string  site         = ""
+		, array   ids          = []
+		, array   extraFilters = []
 	) {
-		var filter = "( page.trashed = '0' )";
+		var filter = { "page.trashed" = false };
+		var extra  = Duplicate( arguments.extraFilters );
 		var params = {};
 
 		if ( arguments.ids.len() ) {
-			filter &= " and ( page.id in (:id) )";
-			params.id = { value=ArrayToList( arguments.ids ), list=true };
+			extra.append( { filter={ "page.id"=arguments.ids } } );
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			filter &= " and ( page.title like (:title) )";
-			params.title = "%#arguments.searchQuery#%";
+			extra.append( {
+				  filter       = "page.title like :title"
+				, filterParams = { title="%#arguments.searchQuery#%" }
+			} );
+		}
+
+		if ( Len( Trim( arguments.childPage ) ) ) {
+			var childPageRecord = getPage( id=arguments.childPage );
+			extra.append( {
+				  filter       = "page.id != :childpage and page._hierarchy_lineage not like :childpageselector"
+				, filterParams = {
+					  childPage         = { type="cf_sql_varchar", value=arguments.childPage }
+					, childpageselector = { type="cf_sql_varchar", value="%/#childPageRecord._hierarchy_id#/%" }
+				  }
+			} );
+
+			var pageTypes              = _getPageTypesService().listPageTypes( allowedAboveChild=childPageRecord.page_type );
+			var allowedParentPageTypes = [];
+
+			for( var pt in pageTypes ) {
+				allowedParentPageTypes.append( pt.getId() );
+			}
+
+			extra.append( { filter={ page_type=allowedParentPageTypes } } );
 		}
 
 		return _getPobj().selectData(
 			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
 			, filter             = filter
-			, filterParams       = params
+			, extraFilters       = extra
 			, maxRows            = arguments.maxRows
 			, orderBy            = "page._hierarchy_sort_order"
 			, allowDraftVersions = true
+			, bypassTenants      = Len( Trim( arguments.site ) ) ? [ "site" ] : []
 		);
 	}
 
@@ -395,8 +436,9 @@ component {
 		,          array   selectFields    = []
 		,          boolean includeSiblings = false
 		,          boolean allowDrafts     = $getRequestContext().showNonLiveContent()
+		,          string  site            = ""
 	) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts );
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts, site=arguments.site );
 		var args = "";
 
 		if ( page.recordCount and page._hierarchy_lineage neq "/" ) {
@@ -425,6 +467,10 @@ component {
 				args.selectFields = arguments.selectFields;
 			}
 
+			if ( Len( Trim( arguments.site ) ) ) {
+				args.tenantIds = { site=arguments.site };
+			}
+
 			return _getPObj().selectData( argumentCollection = args );
 		}
 
@@ -437,6 +483,7 @@ component {
 		, boolean getLatest         = false
 		, boolean allowDrafts       = false
 		, numeric version           = 0
+		, string  site              = ""
 	) {
 		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
@@ -450,6 +497,10 @@ component {
 				, trashed          = false
 			  }
 		};
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			homepageArgs.tenantIds = { site=arguments.site };
+		}
 
 		if ( arguments.version ) {
 			homepageArgs.fromVersionTable = true;
@@ -477,14 +528,15 @@ component {
 	}
 
 	public array function getPagesForNavigationMenu(
-		  string  rootPage          = getSiteHomepage().id
-		, numeric depth             = 1
-		, boolean includeInactive   = false
-		, array   activeTree        = []
-		, boolean expandAllSiblings = true
-		, array   selectFields      = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
-		, boolean isSubMenu         = false
-		, boolean allowDrafts       = $getRequestContext().showNonLiveContent()
+		  string  rootPage              = getSiteHomepage().id
+		, numeric depth                 = 1
+		, boolean includeInactive       = false
+		, array   activeTree            = []
+		, boolean expandAllSiblings     = true
+		, array   selectFields          = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
+		, boolean isSubMenu             = false
+		, boolean allowDrafts           = $getRequestContext().showNonLiveContent()
+		, boolean delayConditionalItems = $isFeatureEnabled( "fullPageCaching" )
 	) {
 		var args = arguments;
 		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ];
@@ -518,7 +570,8 @@ component {
 			);
 
 			for( var child in children ){
-				var excluded = IsBoolean( child.exclude_from_navigation_when_restricted ) && child.exclude_from_navigation_when_restricted && !userHasPageAccess( child.id );
+				var hasRestrictions = IsBoolean( child.exclude_from_navigation_when_restricted ) && child.exclude_from_navigation_when_restricted;
+				var excluded        = hasRestrictions && !args.delayConditionalItems && !userHasPageAccess( child.id );
 
 				if ( excluded ) {
 					continue;
@@ -533,14 +586,15 @@ component {
 				}
 
 				var page = {
-					  id       = child.id
-					, title    = Len( Trim( child.navigation_title ?: "" ) ) ? child.navigation_title : child.title
-					, children = child.children ?: []
-					, active   = ( activeTree.find( child.id ) > 0 )
+					  id              = child.id
+					, title           = Len( Trim( child.navigation_title ?: "" ) ) ? child.navigation_title : child.title
+					, children        = child.children ?: []
+					, active          = ( activeTree.find( child.id ) > 0 )
+					, hasRestrictions = args.delayConditionalItems && hasRestrictions
 				};
 
 				for( var field in child ) {
-					if ( !requiredSelectFields.find( field ) ) {
+					if ( !page.keyExists( field ) ) {
 						page[ field ] = child[ field ];
 					}
 				}
@@ -621,34 +675,12 @@ component {
 		}
 
 		StructAppend( data, {
-			  created_by                = arguments.userId
-			, updated_by                = arguments.userId
-			, _hierarchy_child_selector = ""
-			, _hierarchy_lineage        = "/"
-			, _hierarchy_depth          = 0
-			, _hierarchy_slug           = Len( Trim( arguments.slug ) ) ? "/#arguments.slug#/" : "/"
+			  created_by = arguments.userId
+			, updated_by = arguments.userId
 		} );
 
 		transaction {
-			data.sort_order            = _calculateSortOrder( argumentCollection = arguments );
-			data._hierarchy_id         = _getNextAvailableHierarchyId();
-			data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
-
-			if ( StructKeyExists( arguments, "parent_page" ) ) {
-				parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false );
-				if ( not parent.recordCount ) {
-					throw(
-						  type    = "SiteTreeService.MissingParent"
-						, message = "Error when adding site tree page. Parent page with id, [#arguments.parent_page#], was not found."
-					);
-				}
-				data.parent_page           = arguments.parent_page;
-				data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id                & "/";
-				data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug                      & "/";
-				data._hierarchy_sort_order = parent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
-				data._hierarchy_depth      = parent._hierarchy_depth + 1;
-			}
-			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
+			StructAppend( data, _calculateSortOrderAndHierarchyFields( argumentCollection=arguments ) );
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
 
@@ -919,6 +951,86 @@ component {
 		}
 
 		return updated;
+	}
+
+	public string function clonePage(
+		  required string  sourcePageId
+		, required struct  newPageData
+		, required boolean createAsDraft
+		, required boolean cloneChildren
+	) {
+		var cloningService = _getCloningService();
+		var bypassTenants  = Len( Trim( newPageData.site ?: "" ) ) ? [ "site" ] : [];
+		var existingPage   = getPage( id=arguments.sourcePageId, useCache=false, allowDrafts=true, bypassTenants=bypassTenants );
+		var versionNumber  = _getPresideObjectService().getNextVersionNumber();
+		var newData        = StructCopy( arguments.newPageData );
+
+		StructAppend( newData, _calculateSortOrderAndHierarchyFields(
+			  parent_page   = newData.parent_page ?: existingPage.parent_page
+			, slug          = newData.slug        ?: existingPage.slug
+			, site          = newData.site        ?: existingPage.site
+		) );
+
+		var newPageId = cloningService.cloneRecord(
+			  objectName    = "page"
+			, recordId      = arguments.sourcePageId
+			, data          = newData
+			, isDraft       = arguments.createAsDraft
+			, versionNumber = versionNumber
+			, bypassTenants = bypassTenants
+		);
+
+		var pageTypeData = StructCopy( arguments.newPageData );
+		    pageTypeData.page = newPageId;
+
+		cloningService.cloneRecord(
+			  objectName    = existingPage.page_type
+			, recordId      = arguments.sourcePageId
+			, newRecordId   = newPageId
+			, data          = pageTypeData
+			, isDraft       = arguments.createAsDraft
+			, versionNumber = versionNumber
+			, bypassTenants = bypassTenants
+		);
+
+
+		if ( arguments.cloneChildren ) {
+			var children = _getPObj().selectData(
+				  selectFields  = [ "id" ]
+				, filter        = { parent_page=arguments.sourcePageId, trashed=false }
+				, bypassTenants = bypassTenants
+				, orderBy       = "sort_order"
+			);
+
+			var childPageData = { parent_page=newPageId };
+			if ( Len( Trim( newPageData.site ) ) ) {
+				childPageData.site = newPageData.site;
+			}
+			for( var child in children ) {
+				clonePage(
+					  sourcePageId   = child.id
+					, newPageData    = childPageData
+					, createAsDraft  = arguments.createAsDraft
+					, cloneChildren  = true
+					, bypassTenants  = bypassTenants
+				);
+			}
+		}
+
+		var auditDetail = StructCopy( arguments.newPageData );
+		for( var p in existingPage ) {
+			StructAppend( auditDetail, p, false );
+		}
+		auditDetail.id = newPageId;
+
+		$audit(
+			  action   = "clonepage"
+			, type     = "sitetree"
+			, detail   = auditDetail
+			, recordId = newPageId
+		);
+
+		return newPageId;
 	}
 
 	public boolean function permanentlyDeletePage( required string id ) {
@@ -1192,6 +1304,10 @@ component {
 			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
 		);
 
+		if ( !page.recordcount && _isAutoRedirectEnabled() ) {
+			_checkPageHistoryForSlug( arguments.slug );
+		}
+
 		return page.id ?: "";
 	}
 
@@ -1207,22 +1323,31 @@ component {
 
 
 // PRIVATE HELPERS
-	private numeric function _calculateSortOrder( string parent_page ) {
-		var result       = "";
-		var filter       = "";
-		var filterParams = {};
+	private numeric function _calculateSortOrder( string parent_page="", string site="" ) {
+		var result        = "";
+		var filter        = "";
+		var filterParams  = {};
+		var extraFilters  = [];
+		var bypassTenants = [];
 
-		if ( not StructKeyExists( arguments, "parent_page" ) or not Len( Trim( arguments.parent_page ) ) ) {
-			filter       = "parent_page is null";
+		if ( !Len( Trim( arguments.parent_page ) ) ) {
+			filter = "parent_page is null";
 		} else {
 			filter = { parent_page = arguments.parent_page };
 		}
 
+		if ( Len( Trim( arguments.site ) ) ) {
+			extraFilters.append( { filter={ site=arguments.site } } );
+			bypassTenants = [ "site" ];
+		}
+
 		result = _getPObj().selectData(
-			  selectFields = [ "Max( sort_order ) as sort_order" ]
-			, filter       = filter
-			, filterParams = filterParams
-			, useCache     = false
+			  selectFields  = [ "Max( sort_order ) as sort_order" ]
+			, filter        = filter
+			, filterParams  = filterParams
+			, useCache      = false
+			, extraFilters  = extraFilters
+			, bypassTenants = bypassTenants
 		);
 
 		if ( isNull( result.sort_order ) ) {
@@ -1275,8 +1400,20 @@ component {
 		return treeArray;
 	}
 
-	private numeric function _getNextAvailableHierarchyId() {
-		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ], allowDraftVersions=true );
+	private numeric function _getNextAvailableHierarchyId( string site="" ) {
+		var filter = {};
+		var bypassTenants = [];
+
+		if ( Len( Trim( arguments.site ) ) ) {
+			filter = { site=arguments.site };
+			bypassTenants = [ "site" ];
+		}
+		var qry = _getPObj().selectData(
+			  selectFields       = [ "Max( _hierarchy_id ) as max_id" ]
+			, allowDraftVersions = true
+			, filter             = filter
+			, bypassTenants      = bypassTenants
+		);
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
 	}
@@ -1481,6 +1618,66 @@ component {
 		return page.id ?: "";
 	}
 
+	private void function _checkPageHistoryForSlug( required string slug ) {
+		var versionObjectName = _getPresideObjectService().getVersionObjectName( "page" );
+		var pageFromHistory   = _getPresideObjectService().selectData(
+			  objectName   = versionObjectName
+			, selectFields = [ "#versionObjectName#.id" ]
+			, filter       = "#versionObjectName#.slug = :slug and #versionObjectName#._hierarchy_slug = :_hierarchy_slug"
+			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
+			, orderBy      = "#versionObjectName#._version_number desc"
+			, maxRows      = 1
+		);
+
+		if ( pageFromHistory.recordcount ) {
+			var currentPage = _getPObj().selectData(
+				  filter       = { id=pageFromHistory.id, trashed=false }
+				, selectFields = [ "id" ]
+			);
+			if ( currentPage.recordCount ) {
+				var redirectUrl = $getRequestContext().buildLink( page=pageFromHistory.id );
+				location addtoken=false url=redirectUrl statusCode=301;
+			}
+		}
+	}
+
+	private boolean function _isAutoRedirectEnabled() {
+		var site = $getRequestContext().getSite();
+		return isBoolean( site.auto_redirect ) && site.auto_redirect;
+	}
+
+	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page="", string site="" ) {
+		var data = {
+			  _hierarchy_child_selector = ""
+			, _hierarchy_lineage        = "/"
+			, _hierarchy_depth          = 0
+			, _hierarchy_slug           = Len( Trim( arguments.slug ) ) ? "/#arguments.slug#/" : "/"
+		};
+		var bypassTenants = Len( Trim( arguments.site ) ) ? [ "site" ] : [];
+
+		data.sort_order            = _calculateSortOrder( argumentCollection = arguments );
+		data._hierarchy_id         = _getNextAvailableHierarchyId( site=arguments.site );
+		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
+
+		if ( Len( Trim( arguments.parent_page ) ) ) {
+			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
+			if ( !parent.recordCount ) {
+				throw(
+					  type    = "SiteTreeService.MissingParent"
+					, message = "Error when adding site tree page. Parent page with id, [#arguments.parent_page#], was not found."
+				);
+			}
+			data.parent_page           = arguments.parent_page;
+			data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id                & "/";
+			data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug                      & "/";
+			data._hierarchy_sort_order = parent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
+			data._hierarchy_depth      = parent._hierarchy_depth + 1;
+		}
+		data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
+
+		return data;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLoginService() {
 		return _loginService;
@@ -1551,6 +1748,13 @@ component {
 	}
 	private void function _setRulesEngineConditionService( required any rulesEngineConditionService ) {
 		_rulesEngineConditionService = arguments.rulesEngineConditionService;
+	}
+
+	private any function _getCloningService() {
+		return _cloningService;
+	}
+	private void function _setCloningService( required any cloningService ) {
+		_cloningService = arguments.cloningService;
 	}
 
 	private void function _setPageSlugsAreMultilingual() {

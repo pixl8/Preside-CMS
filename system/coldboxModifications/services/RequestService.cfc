@@ -3,7 +3,7 @@
  * Please note: output=false required due to extending a tag based component
  *
  */
-component output=false extends="coldbox.system.web.services.RequestService" {
+component extends="coldbox.system.web.services.RequestService" {
 
 	/**
 	 * When service starts up, add a mockFlashScope to use
@@ -12,21 +12,21 @@ component output=false extends="coldbox.system.web.services.RequestService" {
 	public any function buildFlashScope() {
 		super.buildFlashScope( argumentCollection=arguments );
 
-		instance.mockFlashScope = createObject( "component", "coldbox.system.web.flash.MockFlash" ).init( controller, instance.flashData );
+		variables.mockFlashScope = createObject( "component", "coldbox.system.web.flash.MockFlash" ).init( controller, variables.flashData );
 	}
 
 	/**
 	 * Additional checks for whether or not sessions are enabled.
 	 * If not, get our mock flash scope - otherwise, proceed as normal.
 	 */
-	public any function getFlashScope() output=false {
+	public any function getFlashScope() {
 		var appSettings = GetApplicationSettings( true );
 
 		if ( IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement ) {
 			return super.getFlashScope();
 		}
 
-		return instance.mockFlashScope;
+		return variables.mockFlashScope;
 	}
 
 }

@@ -1139,11 +1139,12 @@ component extends="testbox.system.BaseSpec"{
 	}
 
 	private any function getService( ) {
-		variables.mockController    = createStub();
-		variables.mockConfigWrapper = createEmptyMock( "preside.system.services.rest.PresideRestConfigurationWrapper" );
-		variables.mockAuthService   = createEmptyMock( "preside.system.services.rest.PresideRestAuthService" );
+		variables.mockController       = createStub();
+		variables.mockRequestContext   = createStub();
+		variables.mockConfigWrapper    = createEmptyMock( "preside.system.services.rest.PresideRestConfigurationWrapper" );
+		variables.mockAuthService      = createEmptyMock( "preside.system.services.rest.PresideRestAuthService" );
 		variables.mockValidationEngine = createMock( "preside.system.services.validation.ValidationEngine" ).init();
-		variables.mockI18n = createMock( "preside.system.coldboxModifications.plugins.i18n" );
+		variables.mockI18n = createMock( "preside.system.services.i18n.i18n" );
 
 		var restService = createMock( object=new preside.system.services.rest.PresideRestService(
 			  controller           = mockController
@@ -1157,6 +1158,10 @@ component extends="testbox.system.BaseSpec"{
 		restService.$( "_announceInterception" );
 		restService.$( "$raiseError" );
 		restService.$( "authenticateRequest" );
+		restService.$( "$getRequestContext", mockRequestContext );
+		mockRequestContext.$( "cachePage" );
+		mockRequestContext.$( "setRestResponse" );
+		mockRequestContext.$( "setRestRequest" );
 
 		return restService;
 	}

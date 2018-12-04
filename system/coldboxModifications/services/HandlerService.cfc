@@ -1,7 +1,7 @@
-component extends="coldbox.system.web.services.HandlerService" output=false {
+component extends="coldbox.system.web.services.HandlerService" {
 
-	public void function registerHandlers() output=false {
-		var appMapping                   = controller.getSetting( "appMapping" );
+	public void function registerHandlers() {
+		var appMapping                   = "/" & controller.getSetting( "appMapping" ).reReplace( "^/", "" );
 		var appMappingPath               = controller.getSetting( "appMappingPath" );
 		var handlersPath                 = controller.getSetting( "HandlersPath" );
 		var handlersExternalLocationPath = controller.getSetting( "HandlersExternalLocationPath" );
@@ -12,26 +12,36 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		var siteTemplateHandlerMappings  = {};
 
 		ArrayAppend( handlerMappings, { invocationPath=handlersInvocationPath, handlers=getHandlerListing( handlersPath, handlersInvocationPath ) } );
-		controller.setSetting( name="RegisteredHandlers", value=_listHandlerNames( handlerMappings[1].handlers ) );
 
 		_addSiteTemplateHandlerMappings( "#appMapping#/site-templates/", "#appMappingPath#.site-templates", siteTemplateHandlerMappings );
-
-		for( var ext in activeExtensions ) {
+		for( var i=activeExtensions.len(); i>0; i-- ) {
+			var ext = activeExtensions[ i ];
 			var extensionHandlersPath   = ExpandPath( "#appMapping#/extensions/#ext.name#/handlers" );
 			var extensionInvocationPath = "#appMappingPath#.extensions.#ext.name#.handlers";
 
 			ArrayAppend( handlerMappings, { invocationPath=extensionInvocationPath, handlers=getHandlerListing( extensionHandlersPath, extensionInvocationPath ) } );
+
 			_addSiteTemplateHandlerMappings( "#appMapping#/extensions/#ext.name#/site-templates/", "#appMappingPath#.extensions.#ext.name#.site-templates", siteTemplateHandlerMappings );
 		}
 
-		ArrayAppend( handlerMappings, { invocationPath=handlersExternalLocation, handlers=getHandlerListing( HandlersExternalLocationPath, handlersExternalLocation ) } );
-		controller.setSetting( name="RegisteredExternalHandlers", value=_listHandlerNames( handlerMappings[handlerMappings.len()].handlers ) );
+		variables.registeredHandlers = {};
+		for( var i=1; i<=handlerMappings.len(); i++ ) {
+			for( var handlerName in _listHandlerNames( handlerMappings[i].handlers ).listToArray() ) {
+				variables.registeredHandlers[ handlerName ] = 1;
+			}
+		}
+		variables.registeredHandlers = StructKeyList( variables.registeredHandlers );
+		controller.setSetting( name="RegisteredHandlers", value=variables.registeredHandlers );
 
-		instance.handlerMappings             = handlerMappings;
-		instance.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
+		ArrayAppend( handlerMappings, { invocationPath=handlersExternalLocation, handlers=getHandlerListing( HandlersExternalLocationPath, handlersExternalLocation ) } );
+		variables.registeredExternalHandlers = _listHandlerNames( handlerMappings[handlerMappings.len()].handlers );
+		controller.setSetting( name="RegisteredExternalHandlers", value=variables.registeredExternalHandlers );
+
+		variables.handlerMappings             = handlerMappings;
+		variables.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
 	}
 
-	public array function getHandlerListing( required string directory, required string invocationPath ) output=false {
+	public array function getHandlerListing( required string directory, string invocationPath ) {
 		var i                = 1;
 		var thisAbsolutePath = "";
 		var cleanHandler     = "";
@@ -52,7 +62,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 			cleanHandler = removeChars(replacenocase(cleanHandler,"/",".","all"),1,1);
 
 			//Clean Extension
-			cleanHandler = getUtil().ripExtension(cleanhandler);
+			cleanHandler = controller.getUtil().ripExtension(cleanhandler);
 
 			//Add data to array
 			actions = _getCfcMethods( getComponentMetaData( ListAppend( arguments.invocationPath, cleanHandler, "." ) ) );
@@ -63,19 +73,19 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		return fileArray;
 	}
 
-	public any function getRegisteredHandler( required string event ) output=false {
-		var handlerBean     = new coldbox.system.web.context.EventHandlerBean( instance.handlersInvocationPath );
+	public any function getHandlerBean( required string event ) {
+		var handlerBean     = new coldbox.system.web.context.EventHandlerBean( variables.handlersInvocationPath );
 		var handlerReceived = ListLast( ReReplace( arguments.event, "\.[^.]*$", "" ), ":" );
 		var methodReceived  = ListLast( arguments.event, "." );
 		var isModuleCall    = Find( ":", arguments.event );
-		var moduleSettings  = instance.modules;
+		var moduleSettings  = variables.modules;
 		var handlerIndex    = 0;
 		var moduleReceived  = "";
 		var currentSite     = controller.getRequestContext().getSite();
 
 		if( !isModuleCall ){
-			if ( Len( Trim( currentSite.template ?: "" ) ) && instance.siteTemplateHandlerMappings.keyExists( currentSite.template ) ) {
-				for ( var handlerSource in instance.siteTemplateHandlerMappings[ currentSite.template ] ) {
+			if ( Len( Trim( currentSite.template ?: "" ) ) && variables.siteTemplateHandlerMappings.keyExists( currentSite.template ) ) {
+				for ( var handlerSource in variables.siteTemplateHandlerMappings[ currentSite.template ] ) {
 					handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
 					if ( handlerIndex ) {
@@ -87,7 +97,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 				}
 			}
 
-			for ( var handlerSource in instance.handlerMappings ) {
+			for ( var handlerSource in variables.handlerMappings ) {
 				handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
 
@@ -113,7 +123,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 				}
 			}
 
-			controller.getPlugin("Logger").error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
+			variables.log.error( "Invalid Module Event Called: #arguments.event#. The module: #moduleReceived# is not valid. Valid Modules are: #structKeyList(moduleSettings)#" );
 		}
 
 		// Do View Dispatch Check Procedures
@@ -126,28 +136,28 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 
 		// If we get here, then invalid event handler is active and we need to
 		// return an event handler bean that matches it
-		return getRegisteredHandler( handlerBean.getFullEvent() );
+		return getHandlerBean( handlerBean.getFullEvent() );
 	}
 
-	public any function getHandler( required any ehBean, required any requestContext ) output=false {
+	public any function getHandler( required any ehBean, required any requestContext ) {
 		try {
 			return super.getHandler( argumentCollection=arguments );
 		} catch( expression e ) {
 			if ( ( e.message ?: "" ) contains "has no accessible Member with name" ) {
 				invalidEvent( arguments.ehBean.getFullEvent(), arguments.ehBean );
 
-				return getHandler( getRegisteredHandler( arguments.ehBean.getFullEvent()), arguments.requestContext );
+				return getHandler( getHandlerBean( arguments.ehBean.getFullEvent()), arguments.requestContext );
 			} else {
 				rethrow;
 			}
 		}
 	}
 
-	public array function listHandlers( string thatStartWith="" ) output=false {
+	public array function listHandlers( string thatStartWith="" ) {
 		var handlers = {};
 		var startWithLen = Len( arguments.thatStartWith );
 
-		for( var source in instance.handlerMappings ) {
+		for( var source in variables.handlerMappings ) {
 			for( var handler in  source.handlers ){
 				if ( !startWithLen || Left( handler.name, startWithLen ) == arguments.thatStartWith ) {
 					handlers[ handler.name ] = 0;
@@ -162,7 +172,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 	}
 
 // helpers
-	private void function _addSiteTemplateHandlerMappings( required string siteTemplatesPath, required string siteTemplatesInvocationPath, required struct existingMappings ) output=false {
+	private void function _addSiteTemplateHandlerMappings( required string siteTemplatesPath, required string siteTemplatesInvocationPath, required struct existingMappings ) {
 		if ( !DirectoryExists( arguments.siteTemplatesPath ) ) {
 			return;
 		}
@@ -180,7 +190,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		}
 	}
 
-	private array function _getCfcMethods( required struct meta ) output=false {
+	private array function _getCfcMethods( required struct meta ) {
 		var methods = {};
 
 		if ( ( arguments.meta.extends ?: {} ).count() ) {
@@ -196,7 +206,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		return methods.keyArray();
 	}
 
-	private string function _listHandlerNames( required array handlers ) output=false {
+	private string function _listHandlerNames( required array handlers ) {
 		var names = [];
 
 		for( var handler in arguments.handlers ){
@@ -206,7 +216,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		return names.toList();
 	}
 
-	private numeric function _getHandlerIndex( required array handlers, required string handlerName, required string actionName ) output=false {
+	private numeric function _getHandlerIndex( required array handlers, required string handlerName, required string actionName ) {
 		for( var i=1; i <= arguments.handlers.len(); i++ ){
 			if ( arguments.handlers[i].name == arguments.handlerName && arguments.handlers[i].actions.findNoCase( arguments.actionName ) ) {
 				return i;

@@ -1,10 +1,5 @@
 <cfscript>
-	object              = rc.object ?: "";
-	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-
-	prc.pageIcon     = "lock";
-	prc.pageTitle    = translateResource( uri="cms:datamanager.manageperms.title", data=[  objectTitleSingular  ] );;
-	prc.pageSubTitle = translateResource( uri="cms:datamanager.manageperms.subtitle", data=[  objectTitleSingular  ] );;
+	object = rc.object ?: "";
 </cfscript>
 
 <cfoutput>
@@ -13,6 +8,6 @@
 		, context        = "datamanager"
 		, contextKey     = object
 		, saveAction     = event.buildAdminLink( linkTo="datamanager.savePermsAction", queryString="object=#object#" )
-		, cancelAction   = event.buildAdminLink( linkTo="datamanager.object"         , queryString="id=#object#"     )
+		, cancelAction   = event.buildAdminLink( objectName=object, operation="listing" )
 	} )#
 </cfoutput>

@@ -1,5 +1,5 @@
 /**
- * This class is used to provide common PresideCMS functionality to your service layer.
+ * This class is used to provide common Preside functionality to your service layer.
  * See [[presidesuperclass]] for a full guide on how to make use of this class.
  *
  * @autodoc
@@ -23,7 +23,12 @@ component displayName="Preside Super Class" {
 	 * @contentRendererService.inject     delayedInjector:contentRendererService
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
 	 * @validationEngine.inject           delayedInjector:validationEngine
+	 * @adHocTaskManagerService.inject    delayedInjector:adHocTaskManagerService
+	 * @threadUtil.inject                 delayedInjector:threadUtil
 	 * @coldbox.inject                    delayedInjector:coldbox
+	 * @i18n.inject                       delayedInjector:i18n
+	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
+	 * @healthcheckService.inject         delayedInjector:healthcheckService
 	 *
 	 */
 	public any function init(
@@ -42,7 +47,12 @@ component displayName="Preside Super Class" {
 		, required any contentRendererService
 		, required any taskmanagerService
 		, required any validationEngine
+		, required any adHocTaskManagerService
+		, required any threadUtil
 		, required any coldbox
+		, required any i18n
+		, required any htmlHelper
+		, required any healthcheckService
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -59,7 +69,12 @@ component displayName="Preside Super Class" {
 		$contentRendererService     = arguments.contentRendererService;
 		$taskmanagerService         = arguments.taskmanagerService;
 		$validationEngine           = arguments.validationEngine;
+		$adHocTaskManagerService    = arguments.adHocTaskManagerService;
+		$threadUtil                 = arguments.threadUtil;
 		$coldbox                    = arguments.coldbox;
+		$i18n                       = arguments.i18n;
+		$htmlHelper                 = arguments.htmlHelper;
+		$healthcheckService         = arguments.healthcheckService;
 
 		return this;
 	}
@@ -689,11 +704,56 @@ component displayName="Preside Super Class" {
 	 * @autodoc
 	 */
 	public any function $translateResource() {
-		return $getColdbox().getPlugin( "i18n" ).translateResource( argumentCollection=arguments );
+		return $i18n.translateResource( argumentCollection=arguments );
 	}
 
 	/**
-	 * Proxy to the core PresideCMS 'renderViewlet' method.
+	 * Proxy to the i18n `translateObjectName()` method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * translated = $translateObjectName( objectName="my_object", plural=false );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $translateObjectName() {
+		return $i18n.translateObjectName( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to the i18n `translatePropertyName()` method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * translated = $translatePropertyName( objectName="my_object", propertyName="my_property" );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $translatePropertyName() {
+		return $i18n.translatePropertyName( argumentCollection=arguments );
+	}
+
+
+	/**
+	 * Proxy to i18n service's getFWCountryCode() and getFWLanguageCode()
+	 * methods to provide the locale of the current request
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * currentLocale = $getI18nLocale()
+	 * ```
+	 */
+	public string function $getI18nLocale() {
+		return $i18n.getFWLanguageCode() & "-" & $i18n.getFWCountryCode();
+	}
+
+	/**
+	 * Proxy to the core Preside 'renderViewlet' method.
 	 * \n
 	 * ## Example
 	 * \n
@@ -720,7 +780,130 @@ component displayName="Preside Super Class" {
 	 *
 	 * @autodoc
 	 */
-	public any function $announceInterception() {
+	public any function $announceInterception(
+		  required string  state
+		,          struct  interceptData = {}
+	) {
 		return $getColdbox().getInterceptorService().processState( argumentCollection=arguments )
 	}
+
+	/**
+	 * Gets the adhoc taskmanager service
+	 *
+	 * @autodoc
+	 */
+	public any function $getAdhocTaskManagerService() {
+		return $adHocTaskManagerService;
+	}
+
+	/**
+	 * Proxy to the [[adhoctaskmanagerservice-createtask]] method of the [[api-adhoctaskmanagerservice]]
+	 * service.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var taskId = $createTask(
+	 * \t  event  = "generate.invoice"
+	 * \t, args   = { salesref=salesref }
+	 * \t, runNow = true
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $createTask() {
+		return $getAdhocTaskManagerService().createTask( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to the slugify method of Coldbox's HTMLHelper
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var slug = $slugify( "My Site: About Us" );
+	 * // Will return "my-site-about-us"
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public string function $slugify() {
+		return $htmlHelper.slugify( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns the [[api-threadutil|threadUtil] service.
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public any function $getThreadUtil() {
+		return $threadUtil;
+	}
+
+	/**
+	 * Checks to see whether or not the current thread
+	 * has been interrupted. Useful for long loops to gracefully
+	 * shutdown when asked. Proxy to [[threadutil-isinterrupted]].
+	 *
+	 * @autodoc
+	 */
+	public boolean function $isInterrupted() {
+		return $getThreadUtil().isInterrupted( argumentCollection=arguments );
+	}
+
+	/**
+	 * Logs to the Lucee system output console (either direct to console, or to
+	 * catalina.out if Tomcat, etc). This method wraps SystemOutput() and adds
+	 * a PRESIDE prefix + timestamp to every log.
+	 * \n
+	 * Example:
+	 * \n
+	 * ```
+	 * $systemOutput( "Lions and tigers and bears. Oh my!" );
+	 * ```
+	 *
+	 * @autodoc true
+	 * @message The message to send to the console/log
+	 */
+	public void function $systemOutput( required string message ) {
+		systemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" );
+	}
+
+
+	/**
+	 * Returns the [[api-healthcheckservice]] service
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public void function $getHealthcheckService() {
+		return $healthcheckService;
+	}
+
+	/**
+	 * Returns whether or not the given healthcheck
+	 * service is up (proxies to [[healthcheckservice-isup]])
+	 *
+	 * @autodoc   true
+	 * @serviceid ID of the service to check
+	 */
+	public any function $isUp( required string serviceId ) {
+		return $healthcheckService.isUp( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns whether or not the given healthcheck
+	 * service is down (proxies to [[healthcheckservice-isup]] and
+	 * reverses the result)
+	 *
+	 * @autodoc   true
+	 * @serviceid ID of the service to check
+	 */
+	public any function $isDown( required string serviceId ) {
+		return !$healthcheckService.isUp( argumentCollection=arguments );
+	}
+
+
 }

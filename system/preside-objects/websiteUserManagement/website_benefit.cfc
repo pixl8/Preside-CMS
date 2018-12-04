@@ -7,7 +7,8 @@
  * example, you could have a disk space field that can tell the system how much disk space a user has in an uploads folder or
  * some such.
  *
- *  @dataExportFields id,label,priority,description,datecreated,datemodified
+ *  @dataExportFields   id,label,priority,description,datecreated,datemodified
+ *  @datamanagerEnabled true
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Website user benefit" {
 	property name="label" uniqueindexes="benefit_name";

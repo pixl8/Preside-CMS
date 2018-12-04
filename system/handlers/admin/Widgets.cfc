@@ -1,8 +1,8 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="widgetsService" inject="widgetsService";
 	property name="siteService"    inject="siteService";
-	property name="messageBox"     inject="coldbox:plugin:messageBox";
+	property name="messageBox"     inject="messagebox@cbmessagebox";
 
 	public void function dialog( event, rc, prc ) output=false {
 		var widget            = rc.widget            ?: "";

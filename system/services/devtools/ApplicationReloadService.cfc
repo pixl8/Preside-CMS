@@ -8,31 +8,37 @@ component {
 // CONSTRUCTOR
 
 	/**
-	 * @coldbox.inject               coldbox
-	 * @presideObjectService.inject  PresideObjectService
-	 * @resourceBundleService.inject ResourceBundleService
-	 * @stickerForPreside.inject     coldbox:myplugin:stickerForPreside
-	 * @widgetsService.inject        WidgetsService
-	 * @pageTypesService.inject      PageTypesService
-	 * @formsService.inject          FormsService
+	 * @coldbox.inject                        coldbox
+	 * @presideObjectService.inject           presideObjectService
+	 * @resourceBundleService.inject          resourceBundleService
+	 * @stickerForPreside.inject              stickerForPreside
+	 * @delayedStickerRendererService.inject  delayedStickerRendererService
+	 * @widgetsService.inject                 widgetsService
+	 * @pageTypesService.inject               pageTypesService
+	 * @formsService.inject                   formsService
+	 * @itemTypesService.inject               formbuilderItemTypesService
 	 */
 	public any function init(
 		  required any coldbox
 		, required any presideObjectService
 		, required any resourceBundleService
 		, required any stickerForPreside
+		, required any delayedStickerRendererService
 		, required any widgetsService
 		, required any pageTypesService
 		, required any formsService
+		, required any itemTypesService
 	) {
 
 		_setColdbox( arguments.coldbox );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setResourceBundleService( arguments.resourceBundleService );
 		_setStickerForPreside( arguments.stickerForPreside );
+		_setDelayedStickerRendererService( arguments.delayedStickerRendererService );
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setFormsService( arguments.formsService );
+		_setItemTypesService( arguments.itemTypesService );
 
 		return this;
 	}
@@ -42,8 +48,10 @@ component {
 		var lockName = "gracefulshutdownlock-#ExpandPath( '/' )#";
 
 		lock name=lockName type="exclusive" timeout=0 {
+			$systemOutput( "Attempting graceful application shutdown..." );
 			$announceInterception( "onApplicationEnd" );
 			$getColdbox().getWirebox().shutdownSingletons( arguments.force );
+			$systemOutput( "Gracefull application shutdown complete" );
 		}
 	}
 
@@ -70,7 +78,7 @@ component {
 	}
 
 	public void function reloadStatic() {
-		_getStickerForPreside().init( _getColdbox() );
+		_getStickerForPreside().init( coldbox=_getColdbox(), delayedStickerRendererService=_getDelayedStickerRendererService() );
 	}
 
 	public void function reloadWidgets() {
@@ -83,6 +91,7 @@ component {
 
 	public void function reloadForms() {
 		_getFormsService().reload();
+		_getItemTypesService().clearCachedItemTypeConfig();
 	}
 
 
@@ -115,6 +124,13 @@ component {
 		_stickerForPreside = arguments.stickerForPreside;
 	}
 
+	private any function _getDelayedStickerRendererService() {
+		return _delayedStickerRendererService;
+	}
+	private void function _setDelayedStickerRendererService( required any delayedStickerRendererService ) {
+		_delayedStickerRendererService = arguments.delayedStickerRendererService;
+	}
+
 	private any function _getWidgetsService() {
 		return _widgetsService;
 	}
@@ -134,5 +150,12 @@ component {
 	}
 	private void function _setFormsService( required any formsService ) {
 		_formsService = arguments.formsService;
+	}
+
+	private any function _getItemTypesService() {
+		return _itemTypesService;
+	}
+	private void function _setItemTypesService( required any itemTypesService ) {
+		_itemTypesService = arguments.itemTypesService;
 	}
 }

@@ -2,7 +2,7 @@
 	object     = rc.object ?: "";
 	records    = prc.records ?: QueryNew('');
 	formId     = "sortForm-" & CreateUUId();
-	cancelLink = event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" );
+	cancelLink = event.buildAdminLink( objectName=object, operation="listing" );
 </cfscript>
 
 <cfoutput>

@@ -40,7 +40,7 @@ component displayName="Tenancy service" {
 
 			var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
 			var tenancyObject = config[ tenant ].object;
-			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade", control="none" };
+			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade", control="none", adminViewGroup="system" };
 			var indexNames    = [];
 
 			objectMeta.propertyNames    = objectMeta.propertyNames ?: [];
@@ -145,21 +145,21 @@ component displayName="Tenancy service" {
 		return request.__presideTenancy[ arguments.tenant ] ?: "";
 	}
 
-	public string function getTenancyCacheKey( required string objectName ) {
+	public string function getTenancyCacheKey( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
-		if ( tenant.len() ) {
-			return "-" & getTenantId( tenant );
+		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
+			return "-" & ( arguments.tenantIds[ tenant ] ?: getTenantId( tenant ) );
 		}
 
 		return "";
 	}
 
-	public struct function getTenancyFieldsForInsertData( required string objectName ) {
+	public struct function getTenancyFieldsForInsertData( required string objectName, array bypassTenants=[] ) {
 		var tenant = getObjectTenant( arguments.objectName );
 		var fields = {};
 
-		if ( tenant.len() ) {
+		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
 			var fk       = getTenantFkForObject( arguments.objectName );
 			var tenantId = getTenantId( tenant );
 
@@ -169,12 +169,12 @@ component displayName="Tenancy service" {
 		return fields;
 	}
 
-	public struct function getTenancyFilter( required string objectName ) {
+	public struct function getTenancyFilter( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
-		if ( tenant.len() ) {
+		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
 			var fk            = getTenantFkForObject( arguments.objectName );
-			var tenantId      = getTenantId( tenant );
+			var tenantId      = arguments.tenantIds[ tenant ] ?: getTenantId( tenant );
 			var config        = _getTenancyConfig();
 			var filterHandler = config[ tenant ].getFilterHandler ?: "tenancy.#tenant#.getFilter";
 			var coldbox       = $getColdbox();

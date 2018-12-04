@@ -3,7 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="websiteLoginService"      inject="websiteLoginService";
 	property name="presideObjectService"     inject="presideObjectService";
-	property name="messageBox"               inject="coldbox:plugin:messageBox";
+	property name="messageBox"               inject="messagebox@cbmessagebox";
 	property name="bCryptService"            inject="bCryptService";
 	property name="passwordPolicyService"    inject="passwordPolicyService";
 
@@ -22,6 +22,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	function index( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.navigate" );
+		prc.canDelete = hasCmsPermission( "websiteUserManager.delete" );
 	}
 
 	function getUsersForAjaxDataTables( event, rc, prc ) {
@@ -35,7 +36,7 @@ component extends="preside.system.base.AdminHandler" {
 				  object          = "website_user"
 				, gridFields      = "active,login_id,display_name,email_address,last_request_made"
 				, actionsView     = "/admin/websiteUserManager/_usersGridActions"
-				, useMultiActions = false
+				, useMultiActions = true
 			}
 		);
 	}
@@ -80,6 +81,24 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 		}
+	}
+
+	function viewUser( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.read" );
+
+		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+		prc.record.permissions = websitePermissionService.listUserPermissions( userId = rc.id ?: "" ).toList();
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:websiteUserManager.viewUser.page.title", data=[ prc.record.display_name ] )
+			, link  = event.buildAdminLink( linkTo="websiteUserManager.viewUser", queryString="id=#(rc.id ?: '')#" )
+		);
 	}
 
 	function editUser( event, rc, prc ) {

@@ -23,8 +23,7 @@
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
-		, useMultiActions = true
-		, multiActionUrl  = event.buildAdminLink( linkTo='userManager.deleteGroupAction' )
+		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=userManager.getGroupsForAjaxDataTables" )
 		, gridFields      = [ "label", "description" ]
 	} )#

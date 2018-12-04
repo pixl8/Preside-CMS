@@ -11,18 +11,26 @@ component {
 		var port        = settings.port        ?: "";
 		var username    = settings.username    ?: "";
 		var password    = settings.password    ?: "";
+		var useTls      = IsTrue( settings.use_tls ?: "" );
 		var params      = sendArgs.params      ?: {};
 		var attachments = sendArgs.attachments ?: [];
 
 		m.setTo( sendArgs.to.toList( ";" ) );
 		m.setFrom( sendArgs.from );
 		m.setSubject( sendArgs.subject );
+		m.setUseTls( useTls );
 
 		if ( sendArgs.cc.len()  ) {
 			m.setCc( sendArgs.cc.toList( ";" ) );
 		}
 		if ( sendArgs.bcc.len() ) {
 			m.setBCc( sendArgs.bcc.toList( ";" ) );
+		}
+		if ( sendArgs.replyTo.len() ) {
+			m.setReplyTo( sendArgs.replyTo.toList( ";" ) );
+		}
+		if ( sendArgs.failTo.len() ) {
+			m.setFailTo( sendArgs.failTo.toList( ";" ) );
 		}
 		if ( Len( Trim( sendArgs.textBody ) ) ) {
 			m.addPart( type='text', body=Trim( sendArgs.textBody ) );
@@ -53,8 +61,16 @@ component {
 			var remove   = IsBoolean( attachment.removeAfterSend ?: "" ) ? attachment.removeAfterSend : true;
 
 			if ( !FileExists( filePath ) ) {
-				DirectoryCreate( tmpDir, true, true );
-				FileWrite( filePath, attachment.binary );
+				try {
+					DirectoryCreate( tmpDir, true, true );
+					FileWrite( filePath, attachment.binary );
+				} catch( any e ) {
+					// concurrency can lead to errors here (multiple processes creating the same file)
+					// just check that it exists again
+					if ( !FileExists( filePath ) ) {
+						rethrow;
+					}
+				}
 			}
 
 			m.addParam( disposition="attachment", file=filePath, remove=remove );
@@ -62,7 +78,7 @@ component {
 
 		sendArgs.messageId = sendArgs.messageId ?: CreateUUId();
 
-		m.addParam( name="X-Mailer", value="PresideCMS" );
+		m.addParam( name="X-Mailer", value="Preside" );
 		m.addParam( name="X-Message-ID", value=sendArgs.messageId );
 		m.send();
 
@@ -76,6 +92,7 @@ component {
 				, port     = Val( arguments.settings.port ?: "" )
 				, username = arguments.settings.username  ?: ""
 				, password = arguments.settings.password  ?: ""
+				, useTls   = IsTrue( arguments.settings.use_tls ?: "" )
 			);
 
 			if ( Len( Trim( errorMessage ) ) ) {

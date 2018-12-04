@@ -24,6 +24,7 @@ component {
 	 * @emailSendingContextService.inject emailSendingContextService
 	 * @emailStyleInliner.inject          emailStyleInliner
 	 * @assetManagerService.inject        assetManagerService
+	 * @emailSettings.inject              coldbox:setting:email
 	 *
 	 */
 	public any function init(
@@ -33,6 +34,7 @@ component {
 		, required any emailSendingContextService
 		, required any assetManagerService
 		, required any emailStyleInliner
+		, required any emailSettings
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
@@ -40,6 +42,7 @@ component {
 		_setEmailSendingContextService( arguments.emailSendingContextService );
 		_setEmailStyleInliner( arguments.emailStyleInliner );
 		_setAssetManagerService( arguments.assetManagerService );
+		_setEmailSettings( arguments.emailSettings );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -60,19 +63,21 @@ component {
 	 * @bcc.hint            Optional array of addresses to bcc in to the email
 	 * @parameters.hint     Optional struct of variables for use in content token substitution in subject and body
 	 * @messageHeaders.hint Optional struct of email message headers to set
+	 * @isTest.hint         Whether or not this is for a test send
 	 */
 	public struct function prepareMessage(
-		  required string template
-		, required struct args
-		,          string recipientId    = ""
-		,          array  to             = []
-		,          array  cc             = []
-		,          array  bcc            = []
-		,          struct parameters     = {}
-		,          array  attachments    = []
-		,          struct messageHeaders = {}
+		  required string  template
+		, required struct  args
+		,          string  recipientId    = ""
+		,          array   to             = []
+		,          array   cc             = []
+		,          array   bcc            = []
+		,          struct  parameters     = {}
+		,          array   attachments    = []
+		,          struct  messageHeaders = {}
+		,          boolean isTest         = false
 	) {
-		var messageTemplate  = getTemplate( arguments.template );
+		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.isTest );
 		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
 		if ( messageTemplate.isEmpty() ) {
@@ -82,6 +87,8 @@ component {
 		_getEmailSendingContextService().setContext(
 			  recipientType = messageTemplate.recipient_type ?: ""
 			, recipientId   = arguments.recipientId
+			, templateId    = arguments.template
+			, template      = messageTemplate
 		);
 		try {
 			var params = Duplicate( arguments.parameters );
@@ -118,7 +125,7 @@ component {
 				), true );
 			}
 
-			var body = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+			var body = replaceParameterTokens( $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" ), params, "html" );
 			var plainTextArgs = {
 				  layout        = messageTemplate.layout
 				, emailTemplate = arguments.template
@@ -153,7 +160,10 @@ component {
 			}
 
 			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
-			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+
+			if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
+				message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+			}
 
 
 		} catch( any e ) {
@@ -170,24 +180,47 @@ component {
 	 * Prepares an email message ready for preview (returns a struct with
 	 * subject, htmlBody + textBody keys)
 	 *
-	 * @autodoc          true
-	 * @template.hint    The ID of the template to send
-	 * @allowDrafts.hint Whether or not to allow draft versions of the template
-	 * @version.hint     A specific version number to preview (default is latest)
+	 * @autodoc               true
+	 * @template.hint         The ID of the template to send
+	 * @allowDrafts.hint      Whether or not to allow draft versions of the template
+	 * @version.hint          A specific version number to preview (default is latest)
+	 * @previewRecipient.hint Optional ID of a recipient whose preview parameters we will fetch and whose context data to use when rendering the email content
 	 */
-	public struct function previewTemplate( required string template, boolean allowDrafts=false, numeric version=0 ) {
+	public struct function previewTemplate(
+		  required string  template
+		,          boolean allowDrafts      = false
+		,          numeric version          = 0
+		,          string  previewRecipient = ""
+	) {
 		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.allowDrafts, version=arguments.version );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
 		}
-		var params = getPreviewParameters(
-			  template      = arguments.template
-			, recipientType = messageTemplate.recipient_type
-		);
+
+		if ( Len( Trim( arguments.previewRecipient ) ) ) {
+			_getEmailSendingContextService().setContext(
+				  recipientType = messageTemplate.recipient_type ?: ""
+				, recipientId   = arguments.previewRecipient
+				, templateId    = arguments.template
+				, template      = messageTemplate
+			);
+
+			var params = prepareParameters(
+				  template      = arguments.template
+				, recipientType = messageTemplate.recipient_type
+				, recipientId   = arguments.previewRecipient
+				, args          = {}
+			);
+		} else {
+			var params = getPreviewParameters(
+				  template      = arguments.template
+				, recipientType = messageTemplate.recipient_type
+			);
+		}
 
 		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
-		var body          = $renderContent( renderer="richeditor", data=replaceParameterTokens( messageTemplate.html_body, params, "html" ), context="email" );
+		var body          = replaceParameterTokens( $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" ), params, "html" );
 		var plainTextArgs = {
 			  layout        = messageTemplate.layout
 			, emailTemplate = arguments.template
@@ -222,8 +255,16 @@ component {
 		}
 
 		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
-		message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+
+		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
+			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+		}
+
 		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
+
+		if ( Len( Trim( previewRecipient ) ) ) {
+			_getEmailSendingContextService().clearContext();
+		}
 
 		return message;
 	}
@@ -261,6 +302,54 @@ component {
 	}
 
 	/**
+	 * Returns a boolean defining whether email content for a system template should be
+	 * saved or not.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose content save setting you wish to get
+	 *
+	 */
+	public boolean function shouldSaveContentForTemplate( required string template ) {
+		var messageTemplate = getTemplate( id=arguments.template );
+
+		if ( messageTemplate.count() ) {
+			if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+				return _getSystemEmailTemplateService().shouldSaveContentForTemplate( arguments.template );
+			}
+
+			if ( isBoolean( messageTemplate.save_content ) ) {
+				return messageTemplate.save_content;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * How many days the saved content of an email should be retained for. If not
+	 * specifically configured, will return the system default.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose content expiry setting you wish to get
+	 *
+	 */
+	public numeric function getSavedContentExpiry( required string template ) {
+		var defaultExpiry    = _getEmailSettings().defaultContentExpiry;
+		var messageTemplate  = getTemplate( id=arguments.template );
+		var configuredExpiry = "";
+
+		if ( messageTemplate.count() ) {
+			if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+				configuredExpiry = _getSystemEmailTemplateService().getSavedContentExpiry( arguments.template );
+			} else {
+				configuredExpiry = messageTemplate.save_content_expiry;
+			}
+		}
+
+		return isNumeric( configuredExpiry ) ? configuredExpiry : defaultExpiry;
+	}
+
+	/**
 	 * Inserts or updates the given email template
 	 *
 	 * @autodoc  true
@@ -270,8 +359,9 @@ component {
 	 */
 	public string function saveTemplate(
 		  required struct  template
-		,          string  id       = ""
-		,          boolean isDraft  = false
+		,          string  id               = ""
+		,          boolean isDraft          = false
+		,          boolean forcePublication = false
 	) {
 		transaction {
 			if ( Len( Trim( arguments.id ) ) ) {
@@ -279,6 +369,7 @@ component {
 					  id                      = arguments.id
 					, data                    = arguments.template
 					, isDraft                 = arguments.isDraft
+					, forceVersionCreation    = !arguments.isDraft && arguments.forcePublication
 					, updateManyToManyRecords = true
 				);
 
@@ -296,7 +387,22 @@ component {
 				arguments.template.id = arguments.id;
 
 			}
+
+			if ( Len( Trim( arguments.template.email_blueprint ?: "" ) ) && !Len( Trim( arguments.template.sending_method ?: "" ) ) ) {
+				var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=arguments.template.email_blueprint );
+
+				if ( Len( Trim( blueprint.recipient_type ?: "" ) ) ) {
+					var filterObject = _getEmailRecipientTypeService().getFilterObjectForRecipientType( blueprint.recipient_type );
+					if ( Len( Trim( filterObject ) ) ) {
+						arguments.template.sending_method = "manual";
+					} else {
+						arguments.template.sending_method = "auto";
+					}
+				}
+			}
+
 			var newId = $getPresideObject( "email_template" ).insertData( data=arguments.template, isDraft=arguments.isDraft );
+			newId = newId ?: "";
 			$audit(
 				  action   = arguments.isDraft ? "createDraftEmailTemplate" : "insertEmailTemplate"
 				, type     = "emailtemplate"
@@ -424,27 +530,32 @@ component {
 	 * Prepares params (for use in replacing tokens in subject and body)
 	 * for the given email template, recipient type and sending args.
 	 *
-	 * @autodoc       true
-	 * @template      ID of the template of the email that is being prepared
-	 * @recipientType ID of the recipient type of the email that is being prepared
-	 * @recipientId   ID of the recipient
-	 * @args          Structure of variables that are being used to send / prepare the email
+	 * @autodoc        true
+	 * @template       ID of the template of the email that is being prepared
+	 * @recipientType  ID of the recipient type of the email that is being prepared
+	 * @recipientId    ID of the recipient
+	 * @args           Structure of variables that are being used to send / prepare the email
+	 * @templateDetail Structure the template record
 	 */
 	public struct function prepareParameters(
 		  required string template
 		, required string recipientType
 		, required string recipientId
 		, required struct args
+		,          struct templateDetail = {}
 	) {
 		var params = _getEmailRecipientTypeService().prepareParameters(
-			  recipientType = arguments.recipientType
-			, recipientId   = arguments.recipientId
-			, args          = arguments.args
+			  recipientType  = arguments.recipientType
+			, recipientId    = arguments.recipientId
+			, args           = arguments.args
+			, template       = arguments.template
+			, templateDetail = arguments.templateDetail
 		);
 		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
 			params.append( _getSystemEmailTemplateService().prepareParameters(
-				  template = arguments.template
-				, args     = arguments.args
+				  template       = arguments.template
+				, args           = arguments.args
+				, templateDetail = arguments.templateDetail
 			) );
 		}
 
@@ -473,6 +584,31 @@ component {
 		}
 
 		return params;
+	}
+
+	/**
+	 * Returns preview  params (for use in replacing tokens in subject and body)
+	 * for the given email template and recipient type.
+	 *
+	 * @autodoc       true
+	 * @template      ID of the template of the email that is being prepared
+	 * @logId         ID of the email template log entry
+	 * @originalArgs  The args originally used and stored in the template log
+	 */
+	public struct function rebuildArgsForResend(
+		  required string template
+		, required string logId
+		, required struct originalArgs
+	) {
+		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+			return _getSystemEmailTemplateService().rebuildArgsForResend(
+				  template     = arguments.template
+				, logId        = arguments.logId
+				, originalArgs = arguments.originalArgs
+			);
+		}
+
+		return arguments.originalArgs;
 	}
 
 	/**
@@ -511,6 +647,8 @@ component {
 
 				if ( arguments.markAsSent ) {
 					updatedData.schedule_sent = true;
+				} else if ( IsBoolean( template.schedule_sent ?: "" ) && template.schedule_sent && template.schedule_date > Now() ) {
+					updatedData.schedule_sent = false;
 				}
 			}
 		} else {
@@ -676,7 +814,7 @@ component {
 	}
 
 	/**
-	 * Gets a count of opened emails sent in the given
+	 * Gets a unique count of opened emails sent in the given
 	 * timeframe for the given template.
 	 *
 	 * @autodoc    true
@@ -684,7 +822,7 @@ component {
 	 * @dateFrom   Optional date from which to count
 	 * @dateTo     Optional date to which to count
 	 */
-	public numeric function getOpenedCount(
+	public numeric function getUniqueOpenedCount(
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
@@ -711,6 +849,82 @@ component {
 		);
 
 		return Val( result.opened_count ?: "" );
+	}
+
+	/**
+	 * Gets a comulative count of opened emails sent in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getOpenedCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs$activities.id ) as opened_count" ]
+			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="open" }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.opened_count ?: "" );
+	}
+
+	/**
+	 * Gets a count of link clicks in the given
+	 * timeframe for the given template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template to get counts for
+	 * @dateFrom   Optional date from which to count
+	 * @dateTo     Optional date to which to count
+	 */
+	public numeric function getClickCount(
+		  required string templateId
+		,          string dateFrom = ""
+		,          string dateTo   = ""
+	) {
+		var extraFilters = [];
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+		var result = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "Count( send_logs$activities.id ) as click_count" ]
+			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="click" }
+			, forceJoins   = "inner"
+			, extraFilters = extraFilters
+		);
+
+		return Val( result.click_count ?: "" );
 	}
 
 	/**
@@ -778,19 +992,178 @@ component {
 	 * @templateId ID of the template to get counts for
 	 * @dateFrom   Optional date from which to count
 	 * @dateTo     Optional date to which to count
+	 * @timePoints Optional number of points to break out the stats over time (i.e. for use in graphing)
 	 */
 	public struct function getStats(
+		  required string  templateId
+		,          string  dateFrom   = getFirstStatDate( arguments.templateId )
+		,          string  dateTo     = getLastStatDate( arguments.templateId )
+		,          numeric timePoints = 1
+		,          boolean uniqueOpens = ( arguments.timePoints == 1 )
+	) {
+		if ( arguments.timePoints == 1 ) {
+			return {
+				  sent      = getSentCount( argumentCollection=arguments )
+				, delivered = getDeliveredCount( argumentCollection=arguments )
+				, failed    = getFailedCount( argumentCollection=arguments )
+				, opened    = arguments.uniqueOpens ? getUniqueOpenedCount( argumentCollection=arguments ) : getOpenedCount( argumentCollection=arguments )
+				, queued    = getQueuedCount( templateId=arguments.templateId )
+				, clicks    = getClickCount( argumentCollection=arguments )
+			};
+		}
+
+		var stats = {
+			  sent      = []
+			, delivered = []
+			, failed    = []
+			, opened    = []
+			, clicks    = []
+			, dates     = []
+		};
+		if ( IsDate( arguments.dateFrom ) && IsDate( arguments.dateTo ) ) {
+			var timeJumps = Round( DateDiff( "s", arguments.dateFrom, arguments.dateTo ) / arguments.timePoints );
+
+			for( var i=0; i<arguments.timePoints; i++ ) {
+				var snapshot = getStats(
+					  templateId  = templateId
+					, dateFrom    = DateAdd( "s", i*timeJumps    , arguments.dateFrom )
+					, dateTo      = DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom )
+					, uniqueOpens = false
+				);
+
+				stats.sent.append( snapshot.sent );
+				stats.delivered.append( snapshot.delivered );
+				stats.failed.append( snapshot.failed );
+				stats.opened.append( snapshot.opened );
+				stats.clicks.append( snapshot.clicks );
+				stats.dates.append( DateTimeFormat( DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom ), "yyyy-mm-dd HH:nn" ) );
+			}
+		}
+
+		return stats;
+	}
+
+	/**
+	 * Retrieves the earliest date on which
+	 * there are statistics for the given
+	 * template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template
+	 *
+	 */
+	public any function getFirstStatDate( required string templateId ) {
+		var earliestRecord = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "min( send_logs.datecreated ) as earliest" ]
+			, forceJoins   = "inner"
+		);
+
+		return earliestRecord.earliest ?: "";
+	}
+
+	/**
+	 * Retrieves the latest date on which
+	 * there are statistics for the given
+	 * template.
+	 *
+	 * @autodoc    true
+	 * @templateId ID of the template
+	 *
+	 */
+	public any function getLastStatDate( required string templateId ) {
+		var dates          = [];
+		var latestActivity = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "max( send_logs$activities.datecreated ) as latest" ]
+			, forceJoins = "inner"
+		);
+		var latestKeyDates = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, forceJoins   = "inner"
+			, selectFields = [
+				  "max( send_logs.sent_date           ) as sent_date"
+				, "max( send_logs.failed_date         ) as failed_date"
+				, "max( send_logs.delivered_date      ) as delivered_date"
+				, "max( send_logs.hard_bounced_date   ) as hard_bounced_date"
+				, "max( send_logs.opened_date         ) as opened_date"
+				, "max( send_logs.marked_as_spam_date ) as marked_as_spam_date"
+				, "max( send_logs.unsubscribed_date   ) as unsubscribed_date"
+			  ]
+		);
+
+		if ( IsDate( latestActivity.latest              ) ) { dates.append( latestActivity.latest              ); }
+		if ( IsDate( latestKeyDates.sent_date           ) ) { dates.append( latestKeyDates.sent_date           ); }
+		if ( IsDate( latestKeyDates.failed_date         ) ) { dates.append( latestKeyDates.failed_date         ); }
+		if ( IsDate( latestKeyDates.delivered_date      ) ) { dates.append( latestKeyDates.delivered_date      ); }
+		if ( IsDate( latestKeyDates.hard_bounced_date   ) ) { dates.append( latestKeyDates.hard_bounced_date   ); }
+		if ( IsDate( latestKeyDates.opened_date         ) ) { dates.append( latestKeyDates.opened_date         ); }
+		if ( IsDate( latestKeyDates.marked_as_spam_date ) ) { dates.append( latestKeyDates.marked_as_spam_date ); }
+		if ( IsDate( latestKeyDates.unsubscribed_date   ) ) { dates.append( latestKeyDates.unsubscribed_date   ); }
+
+		if ( dates.len() ) {
+			dates.sort( function( a, b ){
+				return a > b ? -1 : 1;
+			} );
+
+			return dates[ 1 ];
+		}
+
+		return "";
+
+	}
+
+	/**
+	 * Returns link click stats for a given template
+	 *
+	 * @autodoc    true
+	 * @templateId Id of the template for which to get the count. If not provided, the number of queued emails will be for all templates.
+	 * @dateFrom   Optional date from which to fetch link clicking stats
+	 * @dateTo     Optional date to which to fetch link clicking stats
+	 */
+	public array function getLinkClickStats(
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
-		return {
-			  sent      = getSentCount( argumentCollection=arguments )
-			, delivered = getDeliveredCount( argumentCollection=arguments )
-			, failed    = getFailedCount( argumentCollection=arguments )
-			, opened    = getOpenedCount( argumentCollection=arguments )
-			, queued    = getQueuedCount( templateId=arguments.templateId )
-		};
+		var extraFilters = [{
+			filter = { "send_logs$activities.activity_type"="click" }
+		}];
+
+		extraFilters.append( { filter="send_logs$activities.link is not null" } );
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
+			});
+		}
+
+		var clickStats    = [];
+		var rawClickStats = $getPresideObject( "email_template" ).selectData(
+			  id           = arguments.templateId
+			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.link", "send_logs$activities.link_title", "send_logs$activities.link_body" ]
+			, extraFilters = extraFilters
+			, autoGroupBy  = true
+			, orderBy      = "click_count desc"
+		);
+
+		for( var link in rawClickStats ) {
+			clickStats.append( {
+				  link       = link.link
+				, title      = link.link_title
+				, body       = link.link_body
+				, clickCount = link.click_count
+			} );
+		}
+
+		return clickStats;
 	}
 
 	/**
@@ -924,10 +1297,24 @@ component {
 			if ( existing.recordCount ) {
 				contentId = existing.id;
 			} else {
-				contentId = dao.insertData( {
-					  content      = arguments.content
-					, content_hash = contentHash
-				} );
+				try {
+					contentId = dao.insertData( {
+						  content      = arguments.content
+						, content_hash = contentHash
+					} );
+				} catch( any e ) { // i.e. a duplicate record created due to multithreading
+					existing = dao.selectData(
+						  selectFields = [ "id" ]
+						, filter       = { content_hash = contentHash }
+						, useCache     = false
+					);
+
+					if ( existing.recordCount ) {
+						contentId = existing.id;
+					} else {
+						rethrow;
+					}
+				}
 			}
 		}
 
@@ -965,7 +1352,6 @@ component {
 		);
 	}
 
-// PRIVATE HELPERS
 	private string function _addIFrameBaseLinkTagForPreviewHtml( required string html ) {
 		return html.replace( "</head>", '<base target="_parent"></head>' );
 	}
@@ -1011,5 +1397,12 @@ component {
 	}
 	private void function _setEmailStyleInliner( required any emailStyleInliner ) {
 		_emailStyleInliner = arguments.emailStyleInliner;
+	}
+
+	private any function _getEmailSettings() {
+		return _emailSettings;
+	}
+	private void function _setEmailSettings( required any emailSettings ) {
+		_emailSettings = arguments.emailSettings;
 	}
 }

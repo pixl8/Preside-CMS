@@ -1,24 +1,49 @@
 <cfscript>
-	recordId = rc.id      ?: "";
-	version  = rc.version ?: "";
-	preview  = prc.preview  ?: {};
+	recordId                = rc.id                    ?: "";
+	version                 = rc.version               ?: "";
+	preview                 = prc.preview              ?: {};
+	canPreviewWithRecipient = IsTrue( prc.canPreviewWithRecipient ?: "" );
+	previewRecipient        = rc.previewRecipient      ?: "";
+	previewRecipientName    = prc.previewRecipientName ?: "";
+
+	if ( canPreviewWithRecipient ) {
+		previewRecipientPickerLink  = event.buildAdminLink( linkto="emailcenter.customTemplates.previewRecipientPicker", queryString="id=#rc.id#" );
+		previewRecipientPickerTitle = translateResource( "cms:emailcenter.customTemplates.preview.choose.recipient.modal.title" );
+
+		if (  Len( Trim( previewRecipientName ) ) ) {
+			previewLink = '<a class="preview-recipient-picker-link"  href="#previewRecipientPickerLink#">'
+			            & '<i class="fa fa-fw fa-user"></i> '
+			            & translateResource( uri="cms:emailcenter.customTemplates.preview.recipient.change.link", data=[ previewRecipientName ] )
+			            & '</a>';
+		} else {
+			previewLink = '<a class="preview-recipient-picker-link"  href="#previewRecipientPickerLink#">'
+			            & '<i class="fa fa-fw fa-user"></i> '
+			            & translateResource( uri="cms:emailcenter.customTemplates.preview.recipient.choose.link" )
+			            & '</a>';
+		}
+	}
 
 	event.include( "/js/admin/specific/htmliframepreview/" );
 	event.include( "/css/admin/specific/htmliframepreview/" );
+	event.include( "/js/admin/specific/emailcenter/customtemplates/preview/" );
 </cfscript>
 
 <cfsavecontent variable="body">
 	<cfoutput>
-		#renderViewlet( event='admin.datamanager.versionNavigator', args={
-			  object         = "email_template"
-			, id             = recordId
-			, version        = version
-			, isDraft        = IsTrue( prc.record._version_is_draft ?: "" )
-			, baseUrl        = event.buildAdminLink( linkto="emailCenter.customTemplates.preview", queryString="id=#recordId#&version=" )
-			, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.customTemplates.versionHistory", queryString="id=#recordId#" )
-		} )#
+		<cfif canPreviewWithRecipient>
+			<p class="light-grey">
+				<i class="fa fa-fw fa-info-circle"></i>
+				<cfif Len( Trim( previewRecipientName ) )>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.selected.hint", data=[ previewLink ] )#
+				<cfelse>
+					#translateResource( uri="cms:emailcenter.customTemplates.preview.anonymous.hint", data=[ previewLink ] )#
+				</cfif>
+			</p>
+		</cfif>
 
-		<h4 class="blue lighter">#translateResource( uri="cms:emailcenter.systemTemplates.template.preview.subject", data=[ preview.subject ] )#</h4>
+		<div class="page-header">
+			<h4 class="blue">#translateResource( uri="cms:emailcenter.systemTemplates.template.preview.subject", data=[ preview.subject ] )#</h4>
+		</div>
 
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">

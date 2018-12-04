@@ -13,13 +13,22 @@ component {
 	 * @assetRendererService.inject AssetRendererService
 	 * @widgetsService.inject       WidgetsService
 	 * @presideObjectService.inject PresideObjectService
+	 * @labelRendererService.inject labelRendererService
 	 */
-	public any function init( required any coldbox, required any cache, required any assetRendererService, required any widgetsService, required any presideObjectService ) {
+	public any function init(
+		  required any coldbox
+		, required any cache
+		, required any assetRendererService
+		, required any widgetsService
+		, required any presideObjectService
+		, required any labelRendererService
+	) {
 		_setColdbox( arguments.coldbox );
 		_setCache( arguments.cache );
 		_setAssetRendererService( arguments.assetRendererService );
 		_setWidgetsService( arguments.widgetsService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setLabelRendererService( arguments.labelRendererService );
 
 		_setRenderers( {} );
 
@@ -27,30 +36,47 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default" ) {
+	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context );
+				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
 			}
 
 			return rendered;
 		} else {
-			var args = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
-			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=args );
+			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
+			viewletArgs.append( arguments.args, false );
+			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
 	}
 
-	public string function renderLabel( required string objectName, required string recordId, string keyField="id" ) {
+	public string function renderLabel(
+		  required string objectName
+		, required string recordId
+		,          string keyField      = "id"
+		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
+		,          array bypassTenants = []
+	) {
+
+		var labelRendererService = _getLabelRendererService();
+		var selectFields = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : [ "${labelfield} as label" ]
 		var record = _getPresideObjectService().selectData(
 			  objectName         = arguments.objectName
 			, filter             = { "#keyField#"=arguments.recordId }
-			, selectFields       = [ "${labelfield} as label" ]
+			, selectFields       = selectFields
 			, allowDraftVersions = $getRequestContext().showNonLiveContent()
+			, bypassTenants     = arguments.bypassTenants
 		);
+
+		if ( Len( Trim( arguments.labelRenderer ) ) ) {
+			for( var r in record ) {
+				return labelRendererService.renderLabel( arguments.labelRenderer, r );
+			}
+		}
 
 		if ( record.recordCount ) {
 			return record.label;
@@ -66,6 +92,7 @@ component {
 		,          any     context  = "default"
 		,          boolean editable = false
 		,          string  recordId = ""
+		,          struct  record   = {}
 
 	) {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
@@ -75,6 +102,12 @@ component {
 				  renderer = renderer
 				, data     = arguments.data
 				, context  = arguments.context
+				, args     = {
+					  objectName   = arguments.object
+					, propertyName = arguments.property
+					, recordId     = arguments.recordId
+					, record       = arguments.record
+				  }
 			);
 		} else {
 			rendered = arguments.data;
@@ -193,6 +226,11 @@ component {
 		// easy, the field has explicitly defined a renderer
 		if ( Len( Trim( fieldAttributes.renderer ?: "" ) ) ) {
 			return Trim( fieldAttributes.renderer );
+		}
+
+		// enum...
+		if ( Len( Trim( fieldAttributes.enum ?: "" ) ) ) {
+			return "enumLabel";
 		}
 
 		// just the plain old type?!
@@ -329,6 +367,9 @@ component {
 
 			if ( Len( Trim( embeddedLink.page ?: "" ) ) ) {
 				renderedLink = _getColdbox().getRequestContext().buildLink( page=embeddedLink.page );
+			}
+			if ( Len( Trim( embeddedLink.asset ?: "" ) ) ) {
+				renderedLink = _getColdbox().getRequestContext().buildLink( assetId=embeddedLink.asset );
 			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
@@ -520,17 +561,21 @@ component {
 	}
 
 	private struct function _findNextEmbeddedLink( required string richContent ) {
-		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+		// The following regex is designed to match the following patterns that would be embedded in rich editor content:
 		// {{link:pageid:link}}
+		// {{asset:assetid:asset}}
 
 
-		var regex  = "{{link:(.*?):link}}";
-		var match  = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var link   = {};
+		var regex = "{{(link|asset):(.*?):(link|asset)}}";
+		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var link  = {};
+		var type  = "";
 
-		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
+		if ( ArrayLen( match.len ) eq 4 and match.len[1] and match.len[3] ) {
+			type             = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			type             = type == "link" ? "page" : type;
 			link.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-			link.page        = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			link[ type ]     = Mid( arguments.richContent, match.pos[3], match.len[3] );
 		}
 
 		return link;
@@ -577,5 +622,12 @@ component {
 	}
 	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getLabelRendererService() {
+		return _labelRendererService;
+	}
+	private void function _setLabelRendererService( required any labelRendererService ) {
+		_labelRendererService = arguments.labelRendererService;
 	}
 }

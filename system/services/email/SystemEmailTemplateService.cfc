@@ -99,21 +99,57 @@ component {
 	}
 
 	/**
+	 * Returns a boolean defining whether email content for a system template should be
+	 * saved or not.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose content save setting you wish to get
+	 *
+	 */
+	public boolean function shouldSaveContentForTemplate( required string template ) {
+		var templates = _getConfiguredTemplates();
+
+		return templates[ arguments.template ].saveContent ?: true;
+	}
+
+	/**
+	 * Returns a boolean defining whether email content for a system template should be
+	 * saved or not.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose content save setting you wish to get
+	 *
+	 */
+	public any function getSavedContentExpiry( required string template ) {
+		var templates = _getConfiguredTemplates();
+
+		return templates[ arguments.template ].contentExpiry ?: "";
+	}
+
+	/**
 	 * Runs an email template's 'prepareParameters' handler action
 	 * to prepare dynamic parameters for the email render.
 	 *
-	 * @autodoc       true
-	 * @template.hint The template whose parameters are to be prepared
-	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 * @autodoc             true
+	 * @template.hint       ID of the template whose parameters are to be prepared
+	 * @templateDetail.hint Struct with details of the template whose parameters are to be prepared
+	 * @args.hint           A struct of args that have been passed to the email sending logic that will inform the building of this email
 	 *
 	 */
-	public struct function prepareParameters( required string template, struct args={} ) {
+	public struct function prepareParameters(
+		  required string template
+		,          struct args           = {}
+		,          struct templateDetail = {}
+	) {
 		var handlerAction = "email.template.#arguments.template#.prepareParameters";
+		var prepArgs      = arguments.args.copy();
+
+		prepArgs.templateDetail = arguments.templateDetail;
 
 		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
 				  event          = handlerAction
-				, eventArguments = arguments.args
+				, eventArguments = prepArgs
 				, private        = true
 				, prePostExempt  = true
 			);
@@ -170,6 +206,34 @@ component {
 
 		return [];
 
+	}
+
+	/**
+	 * Runs an email template's 'rebuildArgsForResend' handler action
+	 * to rebuild arguments for resending an email.
+	 *
+	 * @autodoc       true
+	 * @template.hint The template whose args are to be rebuilt
+	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 *
+	 */
+	public struct function rebuildArgsForResend(
+		  required string template
+		, required string logId
+		, required struct originalArgs
+	) {
+		var handlerAction = "email.template.#arguments.template#.rebuildArgsForResend";
+
+		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = { logId=arguments.logId }
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return arguments.originalArgs;
 	}
 
 	/**

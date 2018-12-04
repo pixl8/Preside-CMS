@@ -20,6 +20,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipient      = args.recipient
 					, sender         = args.sender
 					, subject        = args.subject
+					, resend_of      = ""
 					, send_args      = Serializejson( args.sendArgs )
 				}).$results( dummyId );
 
@@ -47,6 +48,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipient      = args.recipient
 					, sender         = args.sender
 					, subject        = args.subject
+					, resend_of      = ""
 					, dummyFk        = dummyFkId
 					, send_args      = Serializejson( args.sendArgs )
 				}).$results( dummyId );
@@ -80,14 +82,47 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, user_agent    = cgi.http_user_agent
 				} ]);
 			} );
+
+			it( "should extract known fields from extra data directly into the data model", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var activity  = "blah";
+				var extraData = { blah=CreateUUId(), test=Now() };
+				var expectedData = extraData.copy();
+
+				extraData.link = CreateUUId();
+				extraData.code = "304.2"
+				extraData.reason = "Test reason: " & CreateUUId();
+
+				mockLogActivityDao.$( "insertData", CreateUUId() );
+
+				service.recordActivity(
+					  messageId = messageId
+					, activity  = activity
+					, extraData = extraData
+				);
+
+				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockLogActivityDao.$callLog().insertData[ 1 ] ).toBe( [ {
+					  message       = messageId
+					, activity_type = activity
+					, extra_data    = SerializeJson( expectedData )
+					, user_ip       = cgi.remote_addr
+					, user_agent    = cgi.http_user_agent
+					, link          = extraData.link
+					, code          = extraData.code
+					, reason        = extraData.reason
+				} ]);
+			} );
 		} );
 
 		describe( "markAsSent()", function(){
-			it( "should update the log record by setting sent = true + sent_date to now(ish)", function(){
+			it( "should update the log record by setting sent = true + sent_date to now(ish) and record an activity", function(){
 				var service = _getService();
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsSent( logId );
 
@@ -95,6 +130,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
 					  id   = logId
 					, data = { sent=true, sent_date=nowish }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "send"
 				} );
 			} );
 		} );
@@ -105,6 +146,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsDelivered( logId );
 
@@ -122,6 +164,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, hard_bounced      = false
 						, hard_bounced_date = ""
 					  }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "deliver"
 				} );
 			} );
 
@@ -158,6 +206,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var code    = 610;
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsFailed( logId, reason, code );
 
@@ -166,6 +215,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
 					, filterParams = { id=logId, failed=false, opened=false }
 					, data         = { failed=true, failed_date=nowish, failed_reason=reason, failed_code=code }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "fail"
+					, extraData = { reason=reason, code=code }
 				} );
 			} );
 		} );
@@ -248,6 +304,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsMarkedAsSpam( logId );
 
@@ -256,6 +313,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  filter       = "id = :id and ( marked_as_spam is null or marked_as_spam = :marked_as_spam )"
 					, filterParams = { id=logId, marked_as_spam=false }
 					, data         = { marked_as_spam=true, marked_as_spam_date=nowish }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "markasspam"
 				} );
 			} );
 		} );
@@ -266,6 +329,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var logId   = CreateUUId();
 
 				mockLogDao.$( "updateData" );
+				service.$( "recordActivity" );
 
 				service.markAsUnsubscribed( logId );
 
@@ -274,6 +338,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  filter       = "id = :id and ( unsubscribed is null or unsubscribed = :unsubscribed )"
 					, filterParams = { id=logId, unsubscribed=false }
 					, data         = { unsubscribed=true, unsubscribed_date=nowish }
+				} );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
+				expect( service.$callLog().recordActivity[ 1 ] ).toBe( {
+					  messageId = logId
+					, activity  = "unsubscribe"
 				} );
 			} );
 		} );
@@ -316,7 +386,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().markAsOpened.len() ).toBe( 1 );
 				expect( service.$callLog().markAsOpened[1] ).toBe( { id=logId, softMark=true } );
 				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
-				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="click", extraData={ link=link } } );
+				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="click", extraData={ link=link, link_title="", link_body="" } } );
 
 			} );
 		} );
@@ -371,7 +441,7 @@ email content
 				var service = _getService();
 				var messageId = CreateUUId();
 				var trackingUrl = CreateUUId();
-				var links       = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
+				var links       = [ "https://#CreateUUId()#.com", "http://#CreateUUId()#.com", "http://#CreateUUId()#.com", "https://#CreateUUId()#.com" ];
 				var html        = "<!DOCTYPE html>
 <html>
 <head>
@@ -398,11 +468,17 @@ consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
 proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 </body>
 </html>";
-				var htmlMessageWithClickTrackingLinks = html;
-
-				for( var link in links ) {
-					htmlMessageWithClickTrackingLinks = htmlMessageWithClickTrackingLinks.replace( "href=""#link#""", "href=""#trackingUrl##ToBase64( link )#"""  );
-				}
+				var htmlMessageWithClickTrackingLinks = '<!doctype html>
+<html>
+ <head>
+  <title>My email</title>
+ </head>
+ <body>
+  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation <a href="#trackingUrl##ToBase64( links[ 1 ] )#">ullamco</a> laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore <a href="#trackingUrl##ToBase64( links[ 2 ] )#">eu</a> fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation <a href="#trackingUrl##ToBase64( links[ 3 ] )#">ullamco laboris</a> nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse <a href="#trackingUrl##ToBase64( links[ 4 ] )#">cillum dolore</a> eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+ </body>
+</html>';
 
 				var mockRc = CreateStub();
 				service.$( "$getRequestContext", mockRc );
@@ -411,18 +487,20 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 				expect( service.insertClickTrackingLinks(
 					  messageId   = messageId
 					, messageHtml = html
-				) ).toBe( htmlMessageWithClickTrackingLinks );
+				).reReplace( "\s+", " ", "all" ) ).toBe( htmlMessageWithClickTrackingLinks.reReplace( "\s+", " ", "all" ) );
 			} );
 		} );
 	}
 
 	private any function _getService(){
 		mockRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
+		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
 		mockLogDao               = CreateStub();
 		mockLogActivityDao       = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
-			recipientTypeService = mockRecipientTypeService
+			  recipientTypeService = mockRecipientTypeService
+			, emailTemplateService = mockEmailTemplateService
 		) );
 
 		mockRecipientTypeService.$( "getRecipientId", "" );
@@ -430,6 +508,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		mockRecipientTypeService.$( "getRecipientAdditionalLogProperties", {} );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
+		service.$( "$isFeatureEnabled" ).$args( "emailLinkShortener" ).$results( false );
 
 		nowish  = Now();
 		service.$( "_getNow", nowish );

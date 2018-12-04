@@ -1,5 +1,4 @@
 <cfparam name="args.body"                              default="" />
-<cfparam name="args.stats"                             default="" />
 <cfparam name="args.tab"                               default="preview" />
 <cfparam name="args.canEdit" type="boolean"            default="false" />
 <cfparam name="args.canConfigureLayout" type="boolean" default="false" />
@@ -38,16 +37,23 @@
 	}
 
 	tabs.append({
+		  id     = "stats"
+		, icon   = "fa-line-chart purple"
+		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.stats" )
+		, active = ( args.tab == "stats" )
+		, link   = ( args.tab == "stats" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.stats", queryString="template=#templateId#" )
+	});
+
+	tabs.append({
 		  id     = "log"
 		, icon   = "fa-list-alt light-grey"
 		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.log" )
 		, active = ( args.tab == "log" )
-		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.log", queryString="template=#templateId#" )
+		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.logs", queryString="template=#templateId#" )
 	});
 </cfscript>
 
 <cfoutput>
-	#args.stats#
 	<div class="tabbable">
 		<ul class="nav nav-tabs">
 			<cfloop array="#tabs#" index="i" item="tab">

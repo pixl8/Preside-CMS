@@ -4,7 +4,7 @@
  *
  */
 
-component extends="preside.system.base.SystemPresideObject" noLabel=true output=false versioned=false displayname="Log entry" {
+component extends="preside.system.base.SystemPresideObject" noLabel=true versioned=false displayname="Log entry" {
 	property name="id"          type="numeric" dbtype="bigint"  generator="increment";
 	property name="severity"    type="string"  dbtype="varchar" maxLength="20" indexes="severity" required=true;
 	property name="category"    type="string"  dbtype="varchar" maxLength="50" indexes="category" required=false default="none";

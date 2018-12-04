@@ -19,6 +19,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.saveTemplate( template=template ) ).toBe( id );
 			} );
 
+			it( "should default the sending method to 'manual' when using a blueprint that has a recipient type tied to an object (not anonymous)", function(){
+				var service       = _getService();
+				var id            = CreateUUId();
+				var blueprint     = CreateUUId();
+				var recipientType = CreateUUId();
+				var template      = {
+					  name            = "Some template"
+					, layout          = "default"
+					, subject         = "Reset password instructions"
+					, html_body       = CreateUUId()
+					, text_body       = CreateUUId()
+					, email_blueprint = blueprint
+				};
+
+				mockBluePrintDao.$( "selectData" ).$args( id=blueprint ).$results( QueryNew( "recipient_type", "varchar", [[recipientType]]) );
+				mockTemplateDao.$( "insertData", id );
+				mockEmailRecipientTypeService.$( "getFilterObjectForRecipientType" ).$args( recipientType ).$results( "someobject" );
+
+				service.saveTemplate( template=template );
+				expect( mockTemplateDao.$callLog().insertData[1].data.sending_method ?: "" ).toBe( "manual" );
+			} );
+
 			it( "should update a record when ID is supplied", function(){
 				var service  = _getService();
 				var id       = CreateUUId();
@@ -41,6 +63,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = false
+					, forceVersionCreation    = false
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -70,6 +93,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = false
+					, forceVersionCreation    = false
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -112,6 +136,34 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                      = id
 					, data                    = template
 					, isDraft                 = true
+					, forceVersionCreation    = false
+					, updateManyToManyRecords = true
+				});
+			} );
+
+			it( "should make a forced update when 'saveDraft' is passed as false and 'forcePublication' is passed as true (for an existing template)", function(){
+				var service  = _getService();
+				var id       = CreateUUId();
+				var template = {
+					  name      = "Some template"
+					, layout    = "default"
+					, subject   = "Reset password instructions"
+					, html_body = CreateUUId()
+					, text_body = CreateUUId()
+				};
+
+				mockTemplateDao.$( "insertData", CreateUUId() );
+				mockTemplateDao.$( "updateData", 1 );
+
+				expect( service.saveTemplate( id=id, template=template, isDraft=false, forcePublication=true ) ).toBe( id );
+				expect( mockTemplateDao.$callLog().insertData.len() ).toBe( 0 );
+				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
+
+				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
+					  id                      = id
+					, data                    = template
+					, isDraft                 = false
+					, forceVersionCreation    = true
 					, updateManyToManyRecords = true
 				});
 			} );
@@ -508,6 +560,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
 				expect( service.$callLog().saveTemplate[1].template.schedule_sent ).toBe( true );
 			} );
+
+			it( "it should mark the email as not sent, when type is fixeddate, scheduled date is in the future and is sent is set to true", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "fixeddate"
+					, schedule_measure        = ""
+					, schedule_date           = DateAdd( "ww", 1, nowish )
+					, schedule_unit           = ""
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+					, schedule_sent           = true
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId=templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_sent ?: "" ).toBe( false );
+			} );
 		} );
 
 		describe( "init()", function(){
@@ -534,6 +613,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailSendingContextService = mockEmailSendingContextService
 					, assetManagerService        = mockAssetManagerService
 					, emailStyleInliner          = mockEmailStyleInliner
+					, emailSettings              = mockEmailSettings
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -658,19 +738,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockArgs            = { userId=CreateUUId(), bookingId=CreateUUId() };
 				var sysEmailParams      = { eventName="My event", bookingSummary=CreateUUId() };
 				var recipientTypeParams = { known_as="Harry" };
+				var templateDetail      = { test="template", whatever=CreateUUId() };
 				var finalParams         = Duplicate( sysEmailParams );
 
 				finalParams.append( recipientTypeParams );
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
-				mockSystemEmailTemplateService.$( "prepareParameters" ).$args( template=template, args=mockArgs ).$results( sysEmailParams );
-				mockEmailRecipientTypeService.$( "prepareParameters" ).$args( recipientType=recipientType, recipientId=recipientId, args=mockArgs ).$results( recipientTypeParams );
+				mockSystemEmailTemplateService.$( "prepareParameters" ).$args( template=template, templateDetail=templateDetail, args=mockArgs ).$results( sysEmailParams );
+				mockEmailRecipientTypeService.$( "prepareParameters" ).$args( recipientType=recipientType, recipientId=recipientId, template=template, templateDetail=templateDetail, args=mockArgs ).$results( recipientTypeParams );
 
 				expect( service.prepareParameters(
-					  template      = template
-					, recipientType = recipientType
-					, recipientId   = recipientId
-					, args          = mockArgs
+					  template       = template
+					, recipientType  = recipientType
+					, recipientId    = recipientId
+					, args           = mockArgs
+					, templateDetail = templateDetail
 				) ).toBe( finalParams );
 			} );
 		} );
@@ -723,7 +805,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, view_online     = false
 				};
 
-				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( mockTemplate );
 				service.$( "prepareParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
@@ -732,9 +814,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( mockParams );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
-				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+				service.$( "replaceParameterTokens" ).$args( mockHtmlBody, mockParams, "html" ).$results( mockHtmlBodyRendered );
 				service.$( "getAttachments", [] );
-				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBodyRendered );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockTemplate.html_body, context="email"  ).$results( mockHtmlBody );
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
 					  layout        = mockTemplate.layout
@@ -793,7 +875,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, view_online     = false
 				};
 
-				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( mockTemplate );
 				service.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( mockFrom );
 				service.$( "prepareParameters" ).$args(
 					  template      = template
@@ -804,8 +886,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "getAttachments", [] );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
-				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
-				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBody );
+				service.$( "replaceParameterTokens" ).$args( mockHtmlBody, mockParams, "html" ).$results( mockHtmlBody );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockTemplate.html_body, context="email"  ).$results( mockHtmlBody );
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
@@ -846,7 +928,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var template    = CreateUUId();
 				var errorThrown = false;
 
-				service.$( "getTemplate" ).$args( template ).$results( {} );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( {} );
 
 				try {
 					service.prepareMessage( template, {} );
@@ -889,7 +971,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.prepareMessage( template=template, recipientId=mockRecipientId, args={} );
 
 				expect( mockEmailSendingContextService.$callLog().setContext.len() ).toBe( 1 );
-				expect( mockEmailSendingContextService.$callLog().setContext[ 1 ] ).toBe( { recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId } );
+				expect( mockEmailSendingContextService.$callLog().setContext[ 1 ] ).toBe( { recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId, templateId=template, template=mockTemplate } );
 				expect( mockEmailSendingContextService.$callLog().clearContext.len() ).toBe( 1 );
 			} );
 
@@ -920,7 +1002,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				};
 
 				service.$( "getViewOnlineLink" ).$args( mockHtmlBodyWithLayout ).$results( viewOnlineLink );
-				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( mockTemplate );
 				service.$( "prepareParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
@@ -929,8 +1011,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( mockParams );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
-				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
-				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email"  ).$results( mockHtmlBodyRendered );
+				service.$( "replaceParameterTokens" ).$args( mockHtmlBody, mockParams, "html" ).$results( mockHtmlBodyRendered );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockTemplate.html_body, context="email"  ).$results( mockHtmlBody );
 				service.$( "getAttachments", [] );
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
@@ -1010,8 +1092,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( mockParams );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
-				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
-				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockHtmlBody, context="email" ).$results( mockHtmlBodyRendered );
+				service.$( "replaceParameterTokens" ).$args( mockHtmlBody, mockParams, "html" ).$results( mockHtmlBodyRendered );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockTemplate.html_body, context="email" ).$results( mockHtmlBody );
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockEmailLayoutService.$( "renderLayout" ).$args(
@@ -1036,6 +1118,83 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  subject  = mockSubject
 					, textBody = mockTextBodyWithLayout
 					, htmlBody = mockHtmlBodyWithStyles
+				} );
+			} );
+
+			it( "should render the details using passed in recipient ID as the user for preview when recipient ID is not empty", function(){
+				var service                = _getService();
+				var template               = "mytemplate";
+				var mockSubject            = CreateUUId();
+				var mockTo                 = CreateUUId();
+				var mockTextBody           = CreateUUId();
+				var mockHtmlBody           = CreateUUId();
+				var mockHtmlBodyRendered   = CreateUUId();
+				var mockTextBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithStyles = CreateUUId();
+				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
+				var mockParams             = { test=CreateUUId(), params=Now() };
+				var version                = 49545;
+				var recipientId            = CreateUUId();
+				var mockTemplate           = {
+					  layout          = "testLayout"
+					, recipient_type  = "testRecipientType"
+					, subject         = "Test subject"
+					, from_address    = "From address"
+					, html_body       = "HTML BODY HERE"
+					, text_body       = "TEXT BODY OH YEAH"
+					, email_blueprint = CreateUUId()
+					, view_online     = false
+				};
+
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=true, version=version ).$results( mockTemplate );
+				service.$( "prepareParameters" ).$args(
+					  template      = template
+					, recipientType = mockTemplate.recipient_type
+					, recipientId   = recipientId
+					, args          = {}
+				).$results( mockParams );
+
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
+				service.$( "replaceParameterTokens" ).$args( mockHtmlBody, mockParams, "html" ).$results( mockHtmlBodyRendered );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockTemplate.html_body, context="email" ).$results( mockHtmlBody );
+
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
+					, type          = "text"
+					, subject       = mockSubject
+					, body          = mockTextBody
+				).$results( mockTextBodyWithLayout );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, blueprint     = mockTemplate.email_blueprint
+					, type          = "html"
+					, subject       = mockSubject
+					, body          = mockHtmlBodyRendered
+				).$results( mockHtmlBodyWithLayout );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlBodyWithLayout ).$results( mockHtmlBodyWithStyles );
+
+				mockEmailSendingContextService.$( "setContext" );
+				mockEmailSendingContextService.$( "clearContext" );
+
+				expect( service.previewTemplate( template=template, allowDrafts=true, version=version, previewRecipient = recipientId ) ).toBe( {
+					  subject          = mockSubject
+					, textBody         = mockTextBodyWithLayout
+					, htmlBody         = mockHtmlBodyWithStyles
+				} );
+
+				expect( mockEmailSendingContextService.$callLog().clearContext.len() ).toBe( 1 );
+				expect( mockEmailSendingContextService.$callLog().setContext.len() ).toBe( 1 );
+				expect( mockEmailSendingContextService.$callLog().setContext[ 1 ] ).toBe( {
+					  recipientType = mockTemplate.recipient_type
+					, recipientId   = recipientId
+					, templateId    = template
+					, template      = mockTemplate
 				} );
 			} );
 		} );
@@ -1292,7 +1451,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "getOpenedCount()", function(){
+		describe( "getUniqueOpenedCount()", function(){
 			it( "should return count of successful opens for the given template for all time when no date range passed", function(){
 				var service    = _getService();
 				var templateId = CreateUUId();
@@ -1305,7 +1464,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extraFilters = []
 				).$results( stats );
 
-				expect( service.getOpenedCount( templateId ) ).toBe( 635 );
+				expect( service.getUniqueOpenedCount( templateId ) ).toBe( 635 );
 			} );
 
 			it( "should add date filters when dateFrom and dateTo passed", function(){
@@ -1325,7 +1484,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					]
 				).$results( stats );
 
-				expect( service.getOpenedCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
+				expect( service.getUniqueOpenedCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
 			} );
 		} );
 
@@ -1388,12 +1547,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId = CreateUUId();
 				var dateFrom   = "2017-06-12";
 				var dateTo     = "2017-07-19";
-				var stats      = { sent=4985, delivered=4980, failed=5, opened=234, queued=340 };
+				var stats      = { sent=4985, delivered=4980, failed=5, opened=234, queued=340, clicks=234 };
 
-				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.sent );
-				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.delivered );
-				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.failed );
-				service.$( "getOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ).$results( stats.opened );
+				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.sent );
+				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.delivered );
+				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.failed );
+				service.$( "getUniqueOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.opened );
+				service.$( "getClickCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.clicks );
 				service.$( "getQueuedCount" ).$args( templateId=templateId ).$results( stats.queued );
 
 				expect( service.getStats( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ) ).toBe( stats );
@@ -1430,11 +1590,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockBlueprintDao         = createStub();
 		mockViewOnlineContentDao = createStub();
 		mockRequestContext       = createStub();
+		mockEmailSettings        = { defaultContentExpiry=30 };
 
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
 		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
 		service.$( "$getPresideObject" ).$args( "email_blueprint" ).$results( mockBlueprintDao );
 		service.$( "$getPresideObject" ).$args( "email_template_view_online_content" ).$results( mockViewOnlineContentDao );
+		service.$( "$isFeatureEnabled" ).$args( "emailStyleInliner" ).$results( true );
 		service.$( "$audit" );
 		service.$( "$getRequestContext", mockRequestContext );
 
@@ -1459,6 +1621,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailSendingContextService = mockEmailSendingContextService
 				, assetManagerService        = mockAssetManagerService
 				, emailStyleInliner          = mockEmailStyleInliner
+				, emailSettings              = mockEmailSettings
 			);
 		}
 

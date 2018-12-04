@@ -13,7 +13,7 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function prePrepareObjectFilter( event, interceptData ) {
-		var filter = tenancyService.get().getTenancyFilter( interceptData.objectName ?: "" );
+		var filter = tenancyService.get().getTenancyFilter( argumentCollection=interceptData );
 		if ( filter.count() ) {
 			interceptData.extraFilters = interceptData.extraFilters ?: [];
 			interceptData.extraFilters.append( filter );
@@ -21,7 +21,7 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function onCreateSelectDataCacheKey( event, interceptData ) {
-		var tenancyCacheKey = tenancyService.get().getTenancyCacheKey( interceptData.objectName ?: "" );
+		var tenancyCacheKey = tenancyService.get().getTenancyCacheKey( argumentCollection=interceptData );
 		if ( tenancyCacheKey.len() ) {
 			interceptData.cacheKey = interceptData.cacheKey ?: "";
 			interceptData.cacheKey &= tenancyCacheKey;
@@ -29,7 +29,7 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function preInsertObjectData( event, interceptData ) {
-		var tenancyData = tenancyService.get().getTenancyFieldsForInsertData( interceptData.objectName ?: "" );
+		var tenancyData = tenancyService.get().getTenancyFieldsForInsertData( argumentCollection=interceptData );
 		if ( tenancyData.count() ) {
 			interceptData.data = interceptData.data ?: {};
 			interceptData.data.append( tenancyData );

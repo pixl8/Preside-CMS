@@ -11,7 +11,7 @@ component displayName="Admin login service" {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject      coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject      sessionStorage
 	 * @bCryptService.inject       BCryptService
 	 * @systemUserList.inject      coldbox:setting:system_users
 	 * @userDao.inject             presidecms:object:security_user
@@ -58,9 +58,15 @@ component displayName="Admin login service" {
 	 * @password.hint User provided password
 	 *
 	 */
-	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, numeric rememberExpiryInDays=90 ) {
+	public boolean function login(
+		  required string  loginId
+		, required string  password
+		,          boolean rememberLogin        = false
+		,          numeric rememberExpiryInDays = 9
+		,          boolean skipPasswordCheck    = false
+	) {
 		var usr = _getUserByLoginId( arguments.loginId );
-		var success = usr.recordCount and _getBCryptService().checkPw( arguments.password, usr.password );
+		var success = usr.recordCount && ( arguments.skipPasswordCheck || _getBCryptService().checkPw( arguments.password, usr.password ) );
 
 		if ( success ) {
 			_persistUserSession( usr );
@@ -279,6 +285,29 @@ component displayName="Admin login service" {
 		}
 
 		return false;
+	}
+
+	/**
+	 * @autodoc
+	 * Resends new token to expired token and reminds them the token is expired
+	 */
+	public boolean function resendPasswordResetInstructions( required string userId ) {
+		var tokenInfo = createLoginResetToken( arguments.userId );
+
+		_getEmailService().send(
+			  template    = "resetCmsPasswordForTokenExpiry"
+			, recipientId = arguments.userId
+			, args        = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#" }
+		);
+
+		$audit(
+			  userId   = arguments.userId
+			, source   = "login"
+			, action   = "password_reset_instructions_sent"
+			, type     = "user"
+		);
+
+		return true;
 	}
 
 	/**
@@ -716,6 +745,33 @@ component displayName="Admin login service" {
 		}
 	}
 
+	/**
+	 * Allows external services to create users on the fly
+	 * if they do not already exist based on the loginId. Useful
+	 * for single sign on extensions, for example.
+	 *
+	 * @autodoc true
+	 * @loginId Login ID or email address with which to match any existing users in the system
+	 * @data    Additional fields to set on the user when creating/updating existing user
+	 */
+	public string function getOrCreateUser( required string loginId, struct data={} ) {
+		var existingUser = _getUserByLoginId( arguments.loginId );
+
+		if ( existingUser.recordCount ) {
+			_getUserDao().updateData(
+				  id   = existingUser.id
+				, data = arguments.data
+			);
+
+			return existingUser.id;
+		}
+
+		arguments.data.login_id      = arguments.data.login_id      ?: arguments.loginId;
+		arguments.data.email_address = arguments.data.email_address ?: arguments.loginId;
+
+		return _getUserDao().insertData( arguments.data );
+	}
+
 // PRIVATE HELPERS
 	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );
@@ -889,6 +945,10 @@ component displayName="Admin login service" {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
 
+		if( isEmpty( t ) || isEmpty( k ) ){
+			return QueryNew('');
+		}
+
 		var record = _getUserDao().selectData(
 			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
 			, filter       = { reset_password_token = t }
@@ -903,6 +963,11 @@ component displayName="Admin login service" {
 				  id     = record.id
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( IsBoolean( resendToken ) && resendToken ){
+				resendPasswordResetInstructions( record.id );
+			}
 
 			return QueryNew('');
 		}

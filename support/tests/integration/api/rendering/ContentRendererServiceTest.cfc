@@ -282,6 +282,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, cache                = cache
 			, assetRendererService = getMockBox().createEmptyMock( "preside.system.services.assetManager.assetRendererService" )
 			, widgetsService       = getMockBox().createEmptyMock( "preside.system.services.widgets.widgetsService" )
+			, labelRendererService = getMockBox().createEmptyMock( "preside.system.services.rendering.LabelRendererService" )
 		);
 	}
 }

@@ -1,6 +1,8 @@
 /**
- * The notifications service provides an API to the PresideCMS administrator [[notifications|notifications system]].
+ * The notifications service provides an API to the Preside administrator [[notifications|notifications system]].
  *
+ * @singleton
+ * @presideService
  */
 component autodoc=true displayName="Notification Service" {
 
@@ -64,31 +66,31 @@ component autodoc=true displayName="Notification Service" {
 		_announceInterception( "onCreateNotification", args );
 
 		if ( IsBoolean( topicConfig.save_in_cms ?: "" ) && topicConfig.save_in_cms ) {
-			var data = {
+			var dataForDbRecord = {
 				  topic = arguments.topic
 				, type  = arguments.type
 				, data  = SerializeJson( arguments.data )
 			};
-			data.data_hash = LCase( Hash( data.data ) );
+			dataForDbRecord.data_hash = LCase( Hash( dataForDbRecord.data ) );
 
 			var existingNotification = _getNotificationDao().selectData( filter={
-				  topic     = data.topic
-				, type      = data.type
-				, data_hash = data.data_hash
+				  topic     = dataForDbRecord.topic
+				, type      = dataForDbRecord.type
+				, data_hash = dataForDbRecord.data_hash
 			} );
 
 			if ( existingNotification.recordCount ) {
-				createNotificationConsumers( existingNotification.id, args.topic, data );
+				createNotificationConsumers( existingNotification.id, args.topic, args.data );
 				return existingNotification.id;
 			}
 
 			_announceInterception( "preCreateNotification", args );
 
-			args.notificationId = _getNotificationDao().insertData( data=data );
+			args.notificationId = _getNotificationDao().insertData( data=dataForDbRecord );
 
 			_announceInterception( "postCreateNotification", args );
 
-			createNotificationConsumers( args.notificationId, topic, data );
+			createNotificationConsumers( args.notificationId, topic, args.data );
 
 			if ( Len( Trim( topicConfig.send_to_email_address ?: "" ) ) ) {
 				sendGlobalNotificationEmail(
@@ -118,6 +120,7 @@ component autodoc=true displayName="Notification Service" {
 		var queryResult = _getConsumerDao().selectData(
 			  selectFields = [ "Count(*) as notification_count" ]
 			, filter       = { security_user = arguments.userId, read = false }
+			, useCache     = false
 		);
 
 		return Val( queryResult.notification_count ?: "" );
@@ -239,6 +242,7 @@ component autodoc=true displayName="Notification Service" {
 		var result = _getConsumerDao().selectData(
 			  selectFields = [ "Count( * ) as notification_count" ]
 			, filter       = filter
+			, useCache     = false
 		);
 
 		return Val( result.notification_count ?: "" );
@@ -525,6 +529,36 @@ component autodoc=true displayName="Notification Service" {
 			, args     = emailArgs
 			, to       = ListToArray( arguments.recipient, ",;" )
 		);
+	}
+
+	public boolean function deleteOldNotifications( any logger ) {
+
+		var keepNotificationsFor = Val( $getPresideSetting( "notification", "keep_notifications_for_days", 0 ) );
+		var canLog               = arguments.keyExists( "logger" );
+		var canInfo              = canLog && logger.canInfo();
+		var canError             = canLog && logger.canError();
+
+		if( keepNotificationsFor == 0 ){
+			if ( canInfo ) { logger.info( "Notification cleanup is disabled, no notifications have been deleted." ); }
+			return true;
+		} else {
+			if ( canInfo ) { logger.info( "Deleting old notifications..." ); }
+
+			var notificationsDeleted = $getPresideObject( "admin_notification" ).deleteData(
+				  filter       = "datecreated < :datecreated"
+				, filterParams = { datecreated = dateAdd( "d", -keepNotificationsFor, DateFormat( now(), "dd-mmm-yyyy" ) ) }
+			);
+
+			if ( canInfo ) {
+				if ( notificationsDeleted ) {
+					logger.info( "Done. Deleted [#NumberFormat( notificationsDeleted )#] notifications." );
+				} else {
+					logger.info( "Done. No notifications found to delete." );
+				}
+			}
+
+			return true;
+		}
 	}
 
 // PRIVATE HELPERS

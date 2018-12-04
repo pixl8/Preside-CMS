@@ -1,4 +1,5 @@
-component output=false {
+component {
+
 	function configure(){
 		cacheBox = {
 			// core coldbox cache
@@ -42,7 +43,7 @@ component output=false {
 						, reapFrequency                  = 60
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 1
-						, maxObjects                     = 300
+						, maxObjects                     = 3000
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -103,20 +104,6 @@ component output=false {
 					}
 				},
 
-				ViewletExistsCache = {
-					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
-					, properties = {
-						  objectDefaultTimeout           = 0
-						, objectDefaultLastAccessTimeout = 0
-						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 10
-						, evictionPolicy                 = "LFU"
-						, evictCount                     = 200
-						, maxObjects                     = 1000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
-					}
-				},
-
 				LabelRendererCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
@@ -127,6 +114,21 @@ component output=false {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 10
 						, maxObjects                     = 200
+						, objectStore                    = "ConcurrentSoftReferenceStore"
+					}
+				},
+
+				PresidePageCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 1200
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 20
+						, freeMemoryPercentageThreshold  = 0
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 200
+						, maxObjects                     = 2000
 						, objectStore                    = "ConcurrentSoftReferenceStore"
 					}
 				},
