@@ -68,6 +68,7 @@ component {
 	public struct function prepareMessage(
 		  required string  template
 		, required struct  args
+		,          string  from           = ""
 		,          string  recipientId    = ""
 		,          array   to             = []
 		,          array   cc             = []
@@ -101,7 +102,7 @@ component {
 
 			var message = {
 				  subject     = replaceParameterTokens( messageTemplate.subject, params, "text" )
-				, from        = messageTemplate.from_address
+				, from        = len( trim( arguments.from ) ) ? arguments.from : messageTemplate.from_address
 				, to          = arguments.to
 				, cc          = arguments.cc
 				, bcc         = arguments.bcc
