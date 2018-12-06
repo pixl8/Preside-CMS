@@ -125,6 +125,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onPresideDetectLanguage"               );
 		interceptorSettings.customInterceptionPoints.append( "onPresideUrlRedirects"                 );
 		interceptorSettings.customInterceptionPoints.append( "onPresideRedirectDomains"              );
+		interceptorSettings.customInterceptionPoints.append( "preRoutePresideSESRequest"             );
+		interceptorSettings.customInterceptionPoints.append( "postRoutePresideSESRequest"            );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()

@@ -20,7 +20,6 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	public void function onRequestCapture( event, interceptData ) {
-
 		_announceInterception( "prePresideRequestCapture", interceptData );
 
 		_checkRedirectDomains( argumentCollection=arguments );
@@ -30,11 +29,11 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		_detectLanguage      ( argumentCollection=arguments );
 		_setPresideUrlPath   ( argumentCollection=arguments );
 
-		_announceInterception( "postPresideRequestCapture", interceptData );
-
 		if ( !_routePresideSESRequest( argumentCollection=arguments ) ) {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
+
+		_announceInterception( "postPresideRequestCapture", interceptData );
 	}
 
 	public void function onBuildLink( event, interceptData ) {
@@ -104,7 +103,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 		_announceInterception( "onPresideDetectIncomingSite", interceptData );
 
-		event.setSite( site );
+		event.setSite( interceptData.site );
 	}
 
 	private void function _setCustomTenants() {
@@ -126,6 +125,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 			interceptData.language = language;
 			_announceInterception( "onPresideDetectLanguage", interceptData );
+			language = interceptData.language ?: QueryNew( "" );
 
 			if ( language.recordCount ) {
 				event.setLanguage( language.id );
@@ -187,6 +187,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	private boolean function _routePresideSESRequest( event, interceptData ) {
+		_announceInterception( "preRoutePresideSESRequest", interceptData );
+
 		var path = event.getCurrentPresideUrlPath();
 
 		for( var route in _getPresideRoutes() ){
@@ -195,9 +197,13 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 				_setEventName( event );
 
+				_announceInterception( "postRoutePresideSESRequest", interceptData );
+
 				return true;
 			}
 		}
+
+		_announceInterception( "postRoutePresideSESRequest", interceptData );
 
 		return false;
 	}
