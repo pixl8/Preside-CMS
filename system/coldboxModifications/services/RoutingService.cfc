@@ -20,6 +20,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	public void function onRequestCapture( event, interceptData ) {
+		_announceInterception( "prePresideRequestCapture", interceptData );
+
 		_checkRedirectDomains( argumentCollection=arguments );
 		_detectIncomingSite  ( argumentCollection=arguments );
 		_setCustomTenants    ( argumentCollection=arguments );
@@ -30,6 +32,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		if ( !_routePresideSESRequest( argumentCollection=arguments ) ) {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
+
+		_announceInterception( "postPresideRequestCapture", interceptData );
 	}
 
 	public void function onBuildLink( event, interceptData ) {
@@ -95,7 +99,11 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			}
 		}
 
-		event.setSite( site );
+		interceptData.site = site;
+
+		_announceInterception( "onPresideDetectIncomingSite", interceptData );
+
+		event.setSite( interceptData.site );
 	}
 
 	private void function _setCustomTenants() {
@@ -114,6 +122,10 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 			var localeSlug = Trim( ListFirst( path, "/" ) );
 			var language   = multilingualPresideObjectService.getDetectedRequestLanguage( localeSlug=localeSlug );
+
+			interceptData.language = language;
+			_announceInterception( "onPresideDetectLanguage", interceptData );
+			language = interceptData.language ?: QueryNew( "" );
 
 			if ( language.recordCount ) {
 				event.setLanguage( language.id );
@@ -175,6 +187,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	private boolean function _routePresideSESRequest( event, interceptData ) {
+		_announceInterception( "preRoutePresideSESRequest", interceptData );
+
 		var path = event.getCurrentPresideUrlPath();
 
 		for( var route in _getPresideRoutes() ){
@@ -183,9 +197,13 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 				_setEventName( event );
 
+				_announceInterception( "postRoutePresideSESRequest", interceptData );
+
 				return true;
 			}
 		}
+
+		_announceInterception( "postRoutePresideSESRequest", interceptData );
 
 		return false;
 	}
@@ -210,12 +228,15 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			return;
 		}
 
-		var path    = event.getCurrentUrl( includeQueryString=true );
-		var fullUrl = event.getSiteUrl() & path;
+		interceptData.path    = event.getCurrentUrl( includeQueryString=true );
+		interceptData.fullUrl = event.getSiteUrl() & interceptData.path;
+
+
+		_announceInterception( "onPresideUrlRedirects", interceptData );
 
 		urlRedirectsService.redirectOnMatch(
-			  path    = path
-			, fullUrl = fullUrl
+			  path    = interceptData.path
+			, fullUrl = interceptData.fullUrl
 		);
 	}
 
@@ -231,7 +252,13 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			if ( Len( Trim( qs ) ) ) {
 				redirectUrl &= "?" & qs;
 			}
-			getController().relocate( url=redirectUrl, statusCode=301 );
+			interceptData.redirectFromDomain = domain;
+			interceptData.redirectFromSite = redirectSite;
+			interceptData.redirectUrl = redirectUrl;
+
+			_announceInterception( "onPresideRedirectDomains", interceptData );
+
+			getController().relocate( url=interceptData.redirectUrl , statusCode=301 );
 		}
 	}
 
@@ -264,5 +291,9 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			return variables.router.pathInfoProvider( event=arguments.event );
 		}
 		return CGI[ arguments.CGIElement ];
+	}
+
+	private void function _announceInterception() {
+	    return variables.controller.getInterceptorService().processState( argumentCollection=arguments );
 	}
 }

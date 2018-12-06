@@ -42,8 +42,7 @@ component {
 		var siteAssetsUrl     = settings.static.siteAssetsUrl  ?: "/assets";
 		var rootURl           = ( settings.static.rootUrl ?: "" );
 
-		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=sysAssetsPath          , config=settings )
-		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl, config=settings );
+		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=sysAssetsPath, config=settings );
 
 		for( var ext in settings.activeExtensions ) {
 			var stickerDirectory  = ( ext.directory ?: "" ) & "/assets";
@@ -53,6 +52,8 @@ component {
 				sticker.addBundle( rootDirectory=stickerDirectory, rootUrl=extensionsRootUrl & ListLast( ext.directory, "\/" ) & "/assets" );
 			}
 		}
+
+		sticker.addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl, config=settings );
 
 		sticker.load();
 
