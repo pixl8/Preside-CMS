@@ -931,11 +931,12 @@ component {
 
 		var row = 1;
 		for( var submission in submissions ) {
-			var column = 4;
+			var column      = 4;
+			var submittedBy = Len( submission.submitted_by ) ? $renderLabel( "website_user", submission.submitted_by ) : "";
 			row++;
 			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
 			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
-			spreadsheetLib.setCellValue( workbook, submission.submitted_by, row, 3, "string" );
+			spreadsheetLib.setCellValue( workbook, submittedBy, row, 3, "string" );
 			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4, "string" );
 
 			if ( itemsToRender.len() ) {
