@@ -15,10 +15,10 @@ component {
 		var dbInfoService        = coldbox.getWirebox().getInstance( "dbInfoService" );
 		var sqlRunner            = coldbox.getWirebox().getInstance( "sqlRunner" );
 		var objectName           = "email_template_send_log_activity";
-		var dbInfo               = dbInfoService.getDatabaseVersion( dsn );
 		var dbAdapter            = presideObjectService.getDbAdapterForObject( objectName );
 		var dsn                  = presideObjectService.getObjectAttribute( objectName, "dsn" );
 		var tableName            = presideObjectService.getObjectAttribute( objectName, "tablename" );
+		var dbInfo               = dbInfoService.getDatabaseVersion( dsn );
 		var escapedTableName     = dbAdapter.escapeEntity( tableName );
 		var escapedLinkCol       = dbAdapter.escapeEntity( "link" );
 		var escapedDataCol       = dbAdapter.escapeEntity( "extra_data" );
