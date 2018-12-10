@@ -330,6 +330,7 @@ component {
 			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, redirectErrorPages      = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, auditTrail              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemInformation       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
