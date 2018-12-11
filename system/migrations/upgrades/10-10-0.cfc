@@ -25,7 +25,7 @@ component {
 
 		if ( dbInfo.database_productName == "Microsoft SQL Server" ) {
 			var sql = "update #escapedTableName#
-			           set #escapedLinkCol# = Replace( Replace( #escapedDataCol#, '{""link"":""', '' ), '""}', '' )
+			           set #escapedLinkCol# = Replace( Replace( cast( #escapedDataCol# as varchar ), '{""link"":""', '' ), '""}', '' )
 			           where #escapedDataCol# is not null
 			           and cast( #escapedDataCol# as varchar ) != '{}'";
 		} else {
