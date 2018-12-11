@@ -1,6 +1,6 @@
 {
     "name":"Preside",
-    "version":"10.9.0",
+    "version":"10.10.0",
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
     "packageDirectory":"preside",
