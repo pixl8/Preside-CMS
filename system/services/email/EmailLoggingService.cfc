@@ -494,7 +494,7 @@ component {
 								, body      = body
 							} );
 						} catch( any e ) {
-							shortenedLinkId = linkDao.selectData( filter={ link_hash=linkhash }, selectFields=[ "id" ] ).id;
+							shortenedLinkId = linkDao.selectData( filter={ link_hash=linkhash }, selectFields=[ "id" ], useCache=false ).id;
 
 							if ( !shortenedLinkId.len() ) {
 								rethrow;
