@@ -7,11 +7,9 @@ component extends="preside.system.base.AdminHandler" {
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
 	property name="formsService"                     inject="formsService";
-	property name="validationEngine"                 inject="validationEngine";
 	property name="siteService"                      inject="siteService";
 	property name="versioningService"                inject="versioningService";
 	property name="rulesEngineFilterService"         inject="rulesEngineFilterService";
-	property name="adminDataViewsService"            inject="adminDataViewsService";
 	property name="dtHelper"                         inject="jqueryDatatablesHelpers";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";

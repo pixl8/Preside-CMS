@@ -1,7 +1,5 @@
 component {
 
-	property name="permissionService" inject="permissionService";
-
 	private string function default( event, rc, prc, args={} ){
 		var roles = ListToArray( args.data ?: "" );
 		var output = "<dl>";
