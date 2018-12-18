@@ -65,13 +65,12 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 // private utility methods
-	private void function _detectIncomingSite( event, interceptData ) output="true" {
+	private void function _detectIncomingSite( event, interceptData ) {
 		var pathInfo       = _getCGIElement( "path_info", event );
 		var domain         = _getCGIElement( "server_name", event );
 		var explicitSiteId = event.getValue( name="_sid", defaultValue="" ).trim();
 		var site           = {};
 		var presideSystemAssetPath = pathInfo.startsWith( "/preside/system/assets/" );
-		//var presideSystemDynamicAssetPath = pathInfo.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" );
 
 		if ( presideSystemAssetPath ) {
 			return;
