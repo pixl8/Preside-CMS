@@ -4,6 +4,11 @@
  */
 component extends="coldbox.system.web.context.RequestContextDecorator" {
 
+	// constructor
+	/**
+	 * @assetManagerService.inject assetManagerService
+	 */
+
 // URL related
 	public void function setSite( required struct site ) {
 		getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
@@ -194,7 +199,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public string function getAdminPath() {
-		var path = getController().getSetting( "preside_admin_path" );
+		var path = getController().getSetting( "preside_admin_base_path" );
+		path = path & getController().getSetting( "preside_admin_path" );
 
 		return Len( Trim( path ) ) ? "/#path#/" : "/";
 	}
@@ -860,7 +866,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		    && !event.valueExists( "fwreinit" )
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
-		    && !this.getCurrentUrl().startsWith( "/asset/" )
+		    && !this.getCurrentUrl().startsWith( assetManagerService._getAssetPath() ) /* /asset/ */
 		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 

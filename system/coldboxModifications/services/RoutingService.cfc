@@ -65,11 +65,17 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 // private utility methods
-	private void function _detectIncomingSite( event, interceptData ) {
+	private void function _detectIncomingSite( event, interceptData ) output="true" {
 		var pathInfo       = _getCGIElement( "path_info", event );
 		var domain         = _getCGIElement( "server_name", event );
 		var explicitSiteId = event.getValue( name="_sid", defaultValue="" ).trim();
 		var site           = {};
+		var presideSystemAssetPath = pathInfo.startsWith( "/preside/system/assets/" );
+		//var presideSystemDynamicAssetPath = pathInfo.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" );
+
+		if ( presideSystemAssetPath ) {
+			return;
+		}
 
 		if ( explicitSiteId.len() ) {
 			site = siteService.getSite( explicitSiteId );
@@ -171,6 +177,11 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		var pathToRemove = ( site.path ?: "" ).reReplace( "/$", "" );
 		var fullPath     = _getCGIElement( "path_info", event );
 		var presidePath  = "";
+		var adminBasePath = adminRouteHandler.getAdminBasePath();
+		if ( right( adminBasePath, 1 ) == "/" ) {
+			adminBasePath = left( adminBasePath, len( adminBasePath) -1 );
+		}
+		adminBasePath = "/" & adminBasePath;
 		var languageSlug = event.getLanguageSlug();
 		if ( Len( Trim( languageSlug ) ) ) {
 			pathToRemove = pathToRemove & "/" & languageSlug & "/";
@@ -182,8 +193,11 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			presidePath = fullPath;
 		}
 
-
-		event.setCurrentPresideUrlPath( presidePath );
+		if ( adminRouteHandler.match( adminBasePath & presidePath, fullPath ) ) {
+			event.setCurrentPresideUrlPath( adminBasePath & presidePath );
+		} else {
+			event.setCurrentPresideUrlPath(presidePath);
+		}
 	}
 
 	private boolean function _routePresideSESRequest( event, interceptData ) {

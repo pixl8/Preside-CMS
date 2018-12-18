@@ -6,7 +6,7 @@ component {
 		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
 		var assetFile       = ExpandPath( staticAssetPath );
 
-		if ( rc.staticAssetPath.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" ) ) {
+		if ( staticAssetPath.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" ) ) {
 			_serveI18nBundle( argumentCollection = arguments );
 		}
 
