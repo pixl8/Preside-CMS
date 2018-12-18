@@ -7,12 +7,14 @@ component implements="iRouteHandler" {
 // constructor
 	/**
 	 * @adminPath.inject           coldbox:setting:preside_admin_path
+	 * @adminBasePath.inject       coldbox:setting:preside_admin_base_path
 	 * @eventName.inject           coldbox:setting:eventName
 	 * @sysConfigService.inject    delayedInjector:systemConfigurationService
 	 * @applicationsService.inject delayedInjector:applicationsService
 	 * @controller.inject          coldbox
 	 */
-	public any function init( required string adminPath, required string eventName, required any applicationsService, required any sysConfigService, required any controller ) {
+	public any function init( string adminBasePath = "", required string adminPath, required string eventName, required any applicationsService, required any sysConfigService, required any controller ) {
+		_setAdminBasePath( arguments.adminBasePath );
 		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );
 		_setApplicationsService( arguments.applicationsService );
@@ -56,6 +58,11 @@ component implements="iRouteHandler" {
 		return event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
 	}
 
+	public string function getAdminBasePath() {
+		return _getAdminBasePath();
+	}
+
+
 // private helpers
 	private string function _getDefaultEvent() {
 		return _getApplicationsService().getDefaultEvent();
@@ -68,7 +75,33 @@ component implements="iRouteHandler" {
 		return Len( Trim( fromSysConfig ) ) ? fromSysConfig : _adminPath;
 	}
 	private void function _setAdminPath( required string adminPath ) {
-		_adminPath = arguments.adminPath;
+		_adminPath = _getAdminBasePath() & arguments.adminPath;
+	}
+
+	private string function _getAdminBasePath() {
+		return _adminBasePath;
+	}
+	private void function _setAdminBasePath( string adminBasePath ) {
+		var adminBasePath = "";
+
+		if ( Len( arguments.adminBasePath ) ) {
+			adminBasePath = arguments.adminBasePath;
+		} else {
+			var appSettings = getApplicationSettings();
+			adminBasePath = request._presideMappings.appBasePath;
+		}
+
+		if ( Len(adminBasePath) ) {
+			if ( left(adminBasePath, 1) == "/" ) {
+				adminBasePath = right( adminBasePath, len(adminBasePath) - 1 );
+			}
+
+			if ( right(adminBasePath, 1 ) != "/" ) {
+				adminBasePath = adminBasePath & "/";
+			}
+		}
+
+		_adminBasePath = adminBasePath;
 	}
 
 	private string function _getEventName() {

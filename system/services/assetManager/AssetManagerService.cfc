@@ -17,6 +17,8 @@ component displayName="AssetManager Service" {
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
+	 * @appBasePath.inject                coldbox:setting:appBasePath
+	 *
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
@@ -27,6 +29,7 @@ component displayName="AssetManager Service" {
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 		,          struct configuredFolders={}
+		  ,        string appBasePath=""
 	) {
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( arguments.configuredFolders );
@@ -39,6 +42,7 @@ component displayName="AssetManager Service" {
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
+		_setAssetPath( arguments.appBasePath );
 
 		return this;
 	}
@@ -1115,7 +1119,7 @@ component displayName="AssetManager Service" {
 	) {
 		if ( !arguments.trashed ) {
 			if ( Len( Trim( arguments.derivative ) ) && isDerivativePubliclyAccessible( arguments.derivative ) ) {
-				var permissions = { restricted = false }
+				var permissions = { restricted = false };
 			} else {
 				var permissions = getAssetPermissioningSettings( arguments.id );
 			}
@@ -1139,7 +1143,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function getInternalAssetUrl( required string id, string versionId="", string derivative="", boolean trashed=false ) {
-		var internalUrl = "/asset/";
+		var internalUrl = _getAssetPath();
 
 		if ( arguments.trashed ) {
 			internalUrl &= "$";
@@ -1372,7 +1376,7 @@ component displayName="AssetManager Service" {
 		,          string versionId       = ""
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 		,          string derivativeId    = ""
-	) {
+	  ) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
 			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.focal_point", "asset_version.crop_hint" ] )
@@ -1953,6 +1957,29 @@ component displayName="AssetManager Service" {
 
 		_setGroups( groups );
 		_setTypes( types );
+	}
+
+	private string function _getAssetPath() {
+		return _assetPath;
+	}
+
+	private string function _setAssetPath( string appBasePath="" ) {
+		var appSettings = getApplicationSettings();
+
+		rootUrl = request._presideMappings.appBasePath;
+		if ( Len(rootUrl) ) {
+
+			if ( right(rootUrl, 1) == "/" ) {
+				rootUrl = left( rootUrl, len(rootUrl) - 1 );
+			}
+
+			if ( left(rootUrl, 1) != "/" ) {
+				rootUrl ="/" & rootUrl;
+			}
+
+		}
+
+		_assetPath = rootUrl & "/asset/";
 	}
 
 	private void function _saveAssetMetaData( required string assetId, required struct metaData, string versionId="" ) {

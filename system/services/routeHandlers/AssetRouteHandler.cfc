@@ -43,9 +43,9 @@ component implements="iRouteHandler" singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var assetId    = buildArgs.assetId    ?: ""
-		var derivative = buildArgs.derivative ?: ""
-		var versionId  = buildArgs.versionId  ?: ""
+		var assetId    = buildArgs.assetId    ?: "";
+		var derivative = buildArgs.derivative ?: "";
+		var versionId  = buildArgs.versionId  ?: "";
 		var trashed    = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
 		var link       = "";
 
