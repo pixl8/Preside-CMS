@@ -760,7 +760,7 @@ component displayName="Task Manager Service" {
 			taskRunnerUrl = taskRunnerUrl.reReplaceNoCase( "^https", "http" );
 		}
 
-		http url=taskRunnerUrl method="post" timeout=2 throwonerror=true {
+		http url=taskRunnerUrl method="post" timeout=10 throwonerror=true {
 			httpparam name="taskKey" value=arguments.taskKey type="formfield";
 		}
 	}
