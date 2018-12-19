@@ -874,12 +874,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		};
 
 		for( var key in rc ) {
-			if ( isCacheable( rc[ key ] ) ) {
+			if ( !isNull( rc[ key ] ) && isCacheable( rc[ key ] ) ) {
 				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
 			}
 		}
 		for( var key in prc ) {
-			if ( isCacheable( prc[ key ] ) ) {
+			if ( !isNull( prc[ key ] ) && isCacheable( prc[ key ] ) ) {
 				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
 			}
 		}
