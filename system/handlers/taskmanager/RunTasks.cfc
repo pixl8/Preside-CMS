@@ -25,7 +25,7 @@ component {
 
 			event.renderData( data={ ok=true }, type="json" );
 		} else {
-			event.renderData( data={ ok=false, message="Healtcheck service ID [#serviceId#] not found!" }, type="json" );
+			event.renderData( data={ ok=false, message="Healthcheck service ID [#serviceId#] not found!" }, type="json" );
 		}
 
 	}
