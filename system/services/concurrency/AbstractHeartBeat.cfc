@@ -104,7 +104,15 @@ component {
 	}
 
 	private string function _buildInternalLink() {
-		var link = $getRequestContext().buildLink( argumentCollection=arguments );
+		var buildLinkArgs         = arguments;
+		var maintenanceModeActive = _getMaintenanceModeService().isMaintenanceModeActive();
+
+		if ( maintenanceModeActive ) {
+			var settings   = _getMaintenanceModeService().getMaintenanceModeSettings();
+			var bypassUuid = settings.bypassUuid ?: "";
+			buildLinkArgs.querystring = listAppend( buildLinkArgs.querystring ?: "", "heartbeatBypass=#bypassUuid#", "&" );
+		}
+		var link = $getRequestContext().buildLink( argumentCollection=buildLinkArgs );
 
 		if ( link.reFindNoCase( "^https" ) && !$isFeatureEnabled( "sslInternalHttpCalls" ) ) {
 			return link.reReplaceNoCase( "^https", "http" );
@@ -133,6 +141,16 @@ component {
 	}
 	private void function _setThreadUtil( required any threadUtil ) {
 		_threadUtil = arguments.threadUtil;
+	}
+
+	private any function _getMaintenanceModeService() {
+		if ( isNull( _maintenanceModeService ) ) {
+			_setMaintenanceModeService( $getColdbox().getWirebox().getInstance( "MaintenanceModeService" ) );
+		}
+		return _maintenanceModeService;
+	}
+	private void function _setMaintenanceModeService( required any maintenanceModeService ) {
+		_maintenanceModeService = arguments.maintenanceModeService;
 	}
 
 	private any function _getRunningThread() {
