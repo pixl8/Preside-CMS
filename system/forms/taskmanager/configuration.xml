@@ -9,7 +9,7 @@ This form is used for general configuration of the task manager
 		<fieldset id="default">
 			<field name="scheduledtasks_enabled" control="yesnoswitch"  required="false"             />
 			<field name="keep_logs_for_days"     control="spinner"      required="false" default="7" />
-			<field name="site_context"           control="objectpicker" required="true" object="site" />
+			<field name="site_context"           control="objectpicker" required="true" object="site" feature="sites" />
 		</fieldset>
 	</tab>
 </form>
