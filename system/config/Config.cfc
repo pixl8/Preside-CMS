@@ -183,7 +183,8 @@ component {
 		settings.showNonLiveContentByDefault = true;
 		settings.coldboxVersion              = _calculateColdboxVersion();
 
-		settings.forceSsl = IsBoolean( settings.injectedConfig.forceSsl ?: "" ) && settings.injectedConfig.forceSsl;
+		settings.forceSsl       = IsBoolean( settings.injectedConfig.forceSsl ?: "" ) && settings.injectedConfig.forceSsl;
+		settings.allowedDomains = ListToArray( LCase( settings.injectedConfig.allowedDomains  ?: "" ) );
 
 		settings.adminApplications = [ {
 			  id                 = "cms"

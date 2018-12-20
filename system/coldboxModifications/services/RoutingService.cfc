@@ -23,7 +23,9 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		_announceInterception( "prePresideRequestCapture", interceptData );
 
 		_checkRedirectDomains( argumentCollection=arguments );
-		_detectIncomingSite  ( argumentCollection=arguments );
+		if ( featureService.isFeatureEnabled( "sites" ) ) {
+			_detectIncomingSite( argumentCollection=arguments );
+		}
 		_setCustomTenants    ( argumentCollection=arguments );
 		_checkUrlRedirects   ( argumentCollection=arguments );
 		_detectLanguage      ( argumentCollection=arguments );
@@ -241,25 +243,41 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	private void function _checkRedirectDomains( event, interceptData ) {
-		var domain       = _getCGIElement( "server_name", event );
-		var redirectSite = siteService.getRedirectSiteForDomain( domain );
+		var domain = LCase( _getCGIElement( "server_name", event ) );
+		var redirectUrl = "";
 
-		if ( redirectSite.recordCount && redirectSite.domain != domain ) {
-			var path        = _getCGIElement( 'path_info', event );
-			var qs          = _getCGIElement( 'query_string', event );
-			var redirectUrl = redirectSite.protocol & "://" & redirectSite.domain & path;
+		if ( featureService.isFeatureEnabled( "sites" ) ) {
+			var redirectSite = siteService.getRedirectSiteForDomain( domain );
 
+			if ( redirectSite.recordCount && redirectSite.domain != domain ) {
+				redirectUrl = redirectSite.protocol & "://" & redirectSite.domain;
+				interceptData.redirectFromSite = redirectSite;
+			}
+		} else {
+			var allowedDomains = controller.getSetting( "allowedDomains" );
+			var allowed = !allowedDomains.len() || allowedDomains.find( domain );
+
+			if ( !allowed ) {
+				redirectUrl = controller.getSetting( "forcessl" ) ? "https" : ( ( cgi.https ?: "" ) == "on" ? "https" : "http" );
+				redirectUrl &= "://" & allowedDomains[ 1 ];
+			}
+		}
+
+		if ( redirectUrl.len() ) {
+			var path = _getCGIElement( 'path_info', event );
+			var qs   = _getCGIElement( 'query_string', event );
+			redirectUrl &= path;
 			if ( Len( Trim( qs ) ) ) {
 				redirectUrl &= "?" & qs;
 			}
 			interceptData.redirectFromDomain = domain;
-			interceptData.redirectFromSite = redirectSite;
 			interceptData.redirectUrl = redirectUrl;
 
 			_announceInterception( "onPresideRedirectDomains", interceptData );
 
 			getController().relocate( url=interceptData.redirectUrl , statusCode=301 );
 		}
+
 	}
 
 	private boolean function _isNonSiteSpecificRequest( required string pathInfo, required any event ) {
