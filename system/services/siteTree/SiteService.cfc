@@ -1,7 +1,11 @@
 /**
  * The site service provides methods for interacting with the core "Site" system
+ *
+ * @singleton      true
+ * @presideService true
+ * @autdoc         true
  */
-component singleton=true displayname="Site service" autodoc=true {
+component displayname="Site service" {
 
 // CONSTRUCTOR
 	/**
@@ -21,7 +25,9 @@ component singleton=true displayname="Site service" autodoc=true {
 		_setPermissionService( arguments.permissionService );
 		_setColdbox( arguments.coldbox );
 
-		ensureDefaultSiteExists();
+		if ( $isFeatureEnabled( "sites" ) ) {
+			ensureDefaultSiteExists();
+		}
 
 		return this;
 	}

@@ -42,7 +42,9 @@ component {
 		_setCloningService( arguments.cloningService );
 		_setPageSlugsAreMultilingual();
 
-		_ensureSystemPagesExistInTree();
+		if ( $isFeatureEnabled( "sitetree" ) ) {
+			_ensureSystemPagesExistInTree();
+		}
 
 		return this;
 	}
