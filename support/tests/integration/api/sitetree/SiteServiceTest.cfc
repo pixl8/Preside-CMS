@@ -83,7 +83,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockPermissionService = createStub();
 		mockColdbox           = createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
-		return new preside.system.services.sitetree.SiteService(
+		var svc = createMock( object=CreateObject( "preside.system.services.sitetree.SiteService" ) )
+		svc.$( "$isFeatureEnabled", true );
+
+		return svc.init(
 			  siteDao               = presideObjectService.getObject( "site" )
 			, siteAliasDomainDao    = presideObjectService.getObject( "site_alias_domain" )
 			, siteRedirectDomainDao = presideObjectService.getObject( "site_redirect_domain" )
