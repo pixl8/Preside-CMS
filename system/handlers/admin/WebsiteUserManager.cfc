@@ -4,7 +4,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="websiteLoginService"      inject="websiteLoginService";
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="messageBox"               inject="messagebox@cbmessagebox";
-	property name="bCryptService"            inject="bCryptService";
 	property name="passwordPolicyService"    inject="passwordPolicyService";
 
 	function prehandler( event, rc, prc ) {

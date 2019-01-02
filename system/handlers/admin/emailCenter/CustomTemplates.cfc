@@ -10,9 +10,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formsService"               inject="formsService";
 	property name="cloningService"             inject="presideObjectCloningService";
 	property name="dao"                        inject="presidecms:object:email_template";
-	property name="blueprintDao"               inject="presidecms:object:email_blueprint";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
-
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -776,12 +774,22 @@ component extends="preside.system.base.AdminHandler" {
 		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 
 		return formsService.createForm( basedOn="email.test.send.test", generator=function( formDefinition ){
-			formDefinition.modifyField(
-				  name     = "recipient"
-				, fieldset = "default"
-				, tab      = "default"
-				, object   = filterObject
-			);
+			if( !isEmpty( filterObject ) ){
+				formDefinition.modifyField(
+					  name     = "recipient"
+					, fieldset = "default"
+					, tab      = "default"
+					, object   = filterObject
+				);
+			} else{
+				formDefinition.modifyField(
+					  name     = "recipient"
+					, fieldset = "default"
+					, tab      = "default"
+					, control  = "hidden"
+					, required = false
+				)
+			}
 		} )
 	}
 

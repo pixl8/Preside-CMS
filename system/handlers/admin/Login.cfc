@@ -4,8 +4,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="passwordPolicyService" inject="passwordPolicyService";
 	property name="applicationsService"   inject="applicationsService";
 	property name="sessionStorage"        inject="sessionStorage";
-	property name="messageBox"            inject="messagebox@cbmessagebox";
-	property name="i18n"                  inject="i18n";
 	property name="loginProviderService"  inject="adminLoginProviderService";
 
 
