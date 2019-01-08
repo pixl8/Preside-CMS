@@ -32,8 +32,8 @@
 					</cfif>
 				</cfloop>
 			</ul>
-		</cfif>
-	</div>
+		</div>
+	</cfif>
 
 	#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={
 		  object         = pageIsMultilingual ? "page" : pageTypeObjectName
