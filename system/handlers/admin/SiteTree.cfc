@@ -618,6 +618,13 @@ component extends="preside.system.base.AdminHandler" {
 				prc.mergeFormName = "";
 			}
 
+			if ( prc.pageIsMultilingual ) {
+				version = versioningService.getLatestVersionNumber(
+					  objectName = translationPageTypeObject
+					, filter     = { _translation_source_record=pageId, _translation_language=prc.language.id }
+				);
+			}
+
 			var translation = multiLingualPresideObjectService.selectTranslation( objectName=prc.pageTypeObjectName, id=pageId, languageId=prc.language.id, useCache=false, version=version );
 			for( var t in translation ) {
 				prc.savedTranslation.append( t );
