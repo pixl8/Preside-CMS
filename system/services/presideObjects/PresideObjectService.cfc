@@ -2075,8 +2075,7 @@ component displayName="Preside Object Service" {
 	}
 
 	private struct function _cleanupPropertyAliases() {
-		var aliasCache = _getAliasCache();
-		if ( aliasCache.isEmpty() ) {
+		if ( _getAliasCache().isEmpty() ) {
 			return Duplicate( arguments );
 		}
 
@@ -2121,6 +2120,7 @@ component displayName="Preside Object Service" {
 	}
 
 	private any function _findAndReplace( plainString, objectName ) {
+		var aliasCache = _getAliasCache();
 		if ( Len( aliasCache[ arguments.objectName ][ plainString ] ?: "" ) ) {
 			return [ {
 				  fullMatch     = plainString
@@ -2130,6 +2130,7 @@ component displayName="Preside Object Service" {
 			} ];
 		}
 
+		var aliasRegex  = _getAlaisedAliasRegex();
 		var matches = _reSearch( aliasRegex, plainString );
 		var results = [];
 
@@ -2138,7 +2139,7 @@ component displayName="Preside Object Service" {
 				var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
 				var objPath     = matches.$2[i];
 				var propName    = matches.$8[i];
-				var objFromPath = _resolveObjectNameFromColumnJoinSyntax( args.objectName, objPath );
+				var objFromPath = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, objPath );
 
 				if ( Len( aliasCache[ objFromPath ][ propName ] ?: "" ) ) {
 					results.append( {
@@ -2448,10 +2449,10 @@ component displayName="Preside Object Service" {
 			entities = StructKeyList( entities, "|" );
 			aliasEntitiesOnly = StructKeyList( aliasEntitiesOnly, "|" );
 
-			_aliasedAliasRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)([`\]])?\.([`\[])?(#aliasEntitiesOnly#)(\s|$|\)|,|`|\])";
+			this._aliasedAliasRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)([`\]])?\.([`\[])?(#aliasEntitiesOnly#)(\s|$|\)|,|`|\])";
 		}
 
-		return _aliasedAliasRegex;
+		return this._aliasedAliasRegex;
 	}
 
 	private struct function _reSearch( required string regex, required string text ) {
