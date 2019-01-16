@@ -17,7 +17,11 @@ component extends="coldbox.system.Interceptor" {
 				event.restoreCachedData( cached.data ?: {} );
 				event.checkPageAccess();
 				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
+				var contentType      = cached.contentType ?: "";
 				content reset=true;
+				if ( len( contentType ) ) {
+					content type=contentType;
+				}
 				echo( delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered ) );
 				abort;
 			}
@@ -25,12 +29,17 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function preRender( event, interceptData ) {
-		var content = interceptData.renderedContent ?: "";
+		var content     = interceptData.renderedContent ?: "";
+		var contentType = interceptData.contentType     ?: "";
 
 		if ( event.cachePage() ) {
 			cache.set(
 				  objectKey = _getCacheKey( event )
-				, object    = { body=content, data=event.getCacheableRequestData() }
+				, object    = {
+					  body        = content
+					, data        = event.getCacheableRequestData()
+					, contentType = contentType
+				  }
 				, timeout   = event.getPageCacheTimeout()
 			);
 		}
