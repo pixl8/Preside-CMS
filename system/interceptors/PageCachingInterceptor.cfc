@@ -65,8 +65,9 @@ component extends="coldbox.system.Interceptor" {
 	private string function _getCacheKey( event ) {
 		var isLoggedIn = loginService.get().isLoggedIn();
 		var fullUrl    = event.getBaseUrl() & event.getCurrentUrl();
+		var isAjax     = event.isAjax();
 
-		return "pagecache" & fullUrl & ( isLoggedIn ? "$loggedin" : "" );
+		return "pagecache" & fullUrl & ( isLoggedIn ? "$loggedin" : "" ) & ( isAjax ? "$ajax" : "" );
 	}
 
 	private void function _clearCaches( event, interceptData ) {
