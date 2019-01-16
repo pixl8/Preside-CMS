@@ -8,7 +8,7 @@ component {
 		return {
 			  welcome_message     = { text=arguments.welcomeMessage ?: "", html=renderView( view="/email/template/cmsWelcome/_welcomeMessage", args=arguments ) }
 			, created_by          = ( arguments.createdBy   ?: "" )
-			, site_url            = event.getSite().domain
+			, site_url            = event.getBaseUrl()
 			, reset_password_link = event.buildAdminLink(
 				  linkto      = "login.resetpassword"
 				, querystring = "token=" & ( arguments.resetToken ?: "" )
@@ -22,8 +22,8 @@ component {
 		return {
 			  welcome_message     = { text=welcomeMessage, html=renderView( view="/email/template/cmsWelcome/_welcomeMessage", args={ welcomeMessage=welcomeMessage } ) }
 			, created_by          = "Mia Thornstone"
-			, site_url            = event.getSite().domain
-			, reset_password_link = event.getSite().protocol & "://" & event.getSite().domain & "/dummy/reset/passwordlink/"
+			, site_url            = event.getBaseUrl()
+			, reset_password_link = event.getBaseUrl() & "/dummy/reset/passwordlink/"
 		};
 	}
 

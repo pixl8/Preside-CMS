@@ -33,7 +33,7 @@ component {
 
 	private struct function getPreviewParameters() {
 		return {
-			  admin_link           = event.getSite().protocol & "://" & event.getSite().domain & "/dummy/notification/url/"
+			  admin_link           = event.getBaseUrl() & "/dummy/notification/url/"
 			, notification_body    = { text="This is a dummy notification.", html="<p>This is a dummy notification.</p>" }
 			, notification_subject = "Something happened"
 		};
