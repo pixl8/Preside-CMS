@@ -139,7 +139,8 @@ component extends="coldbox.system.Bootstrap" {
 
 					//****** PRE-RENDER EVENTS *******/
 					var interceptorData = {
-						renderedContent = renderedContent
+						  renderedContent = renderedContent
+						, contentType     = renderData.contentType ?: ""
 					};
 					interceptorService.processState( "preRender", interceptorData );
 					// replace back content in case of modification, strings passed by value
