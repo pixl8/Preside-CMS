@@ -766,10 +766,15 @@ component {
 			var fieldRelationship = objectProps[ orderByField ].relationship ?: "";
 
 			if ( fieldRelationship == "many-to-one" ) {
-				var relatedLabelField = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
-				var delim             = relatedLabelField.find( "$" ) ? "$" : ".";
+				var relatedLabelField       = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+				var foreignObject           = _getPresideObjectService().getObjectProperties( objectProps[ orderByField ].relatedTo );
+				var foreignObjectLabelField = _getPresideObjectService().getLabelField(       objectProps[ orderByField ].relatedTo );
 
-				relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
+				if ( !structKeyExists( foreignObject[ foreignObjectLabelField ], "formula" ) ) {
+					var delim = relatedLabelField.find( "$" ) ? "$" : ".";
+					
+					relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
+				}
 
 				newOrderBy.append( relatedLabelField & " " & orderDirection );
 			} else {
