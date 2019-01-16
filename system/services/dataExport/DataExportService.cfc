@@ -70,11 +70,11 @@ component {
 		selectDataArgs.delete( "meta" );
 		selectDataArgs.delete( "fieldTitles" );
 		selectDataArgs.delete( "exportPagingSize" );
-		selectDataArgs.maxRows   = arguments.exportPagingSize;
-		selectDataArgs.startRow  = 1;
-		selectDataArgs.autoGroup = true;
-		selectDataArgs.useCache  = false;
-		selectDataArgs.orderBy   = presideObjectService.getObjectAttribute(
+		selectDataArgs.maxRows     = arguments.exportPagingSize;
+		selectDataArgs.startRow    = 1;
+		selectDataArgs.autoGroupBy = true;
+		selectDataArgs.useCache    = false;
+		selectDataArgs.orderBy     = presideObjectService.getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "dataExportDefaultSortOrder"
 		);

@@ -21,7 +21,7 @@ component {
 	}
 
 	private struct function getPreviewParameters() {
-		var link      = event.getSite().protocol & "://" & event.getSite().domain & "/dummy/formsubmission/url/"
+		var link      = event.getBaseUrl() & "/dummy/formsubmission/url/"
 		var linkTitle = translateResource( "formbuilder:email.notificatio.admin.link.text" );
 		var args      = { submissionData={
 			  submitted_by    = ""

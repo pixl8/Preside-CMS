@@ -106,7 +106,21 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public string function getBaseUrl() {
-		return getProtocol() & "://" & getServerName() & ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ":" & cgi.SERVER_PORT : "" );
+		var sitesEnabled = this.getModel( "featureService" ).isFeatureEnabled( "sites" );
+
+		if ( sitesEnabled ) {
+			return this.getSiteUrl( site="", includePath=false, includeLanguageSlug=false );
+		}
+
+		var allowedDomains = getController().getSetting( "allowedDomains" );
+		var protocol       = getProtocol() & "://";
+		var port           = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
+
+		if ( IsArray( allowedDomains ) && allowedDomains.len() ) {
+			return protocol & allowedDomains[1] & port;
+		}
+
+		return protocol & getServerName() & port;
 	}
 
 	public string function getCurrentUrl( boolean includeQueryString=true ) {
