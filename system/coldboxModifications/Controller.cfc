@@ -10,7 +10,7 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public boolean function handlerExists( required string event ) output=false {
-		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
+		var cache      = _getViewletExistsCache();
 		var handlerSvc = "";
 		var handler    = "";
 		var action     = ListLast( arguments.event, "." );
@@ -53,7 +53,7 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public boolean function viewExists( required string view ) output=false {
-		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
+		var cache      = _getViewletExistsCache();
 		var cacheKey   = "view exists: " & arguments.view;
 		var exists     = cache.get( cacheKey );
 		var targetView = "";
@@ -104,7 +104,7 @@ component extends="coldbox.system.web.Controller" output=false {
 				, args = arguments.args
 			);
 		} catch ( "missinginclude" e ) {
-			var cache             = getCacheBox().getCache( "ViewletExistsCache" );
+			var cache             = _getViewletExistsCache();
 			var missingCheckedKey = "doublecheckmissing" & arguments.event;
 			var checkedAlready    = cache.get( missingCheckedKey );
 
@@ -159,5 +159,13 @@ component extends="coldbox.system.web.Controller" output=false {
 		}
 
 		return false;
+	}
+
+	private any function _getViewletExistsCache() {
+		if ( !StructKeyExists( variables, "_viewletExistsCache" ) ) {
+			variables._viewletExistsCache = getCacheBox().getCache( "ViewletExistsCache" );
+		}
+
+		return variables._viewletExistsCache;
 	}
 }
