@@ -33,11 +33,11 @@ component extends="coldbox.system.web.routing.Router" {
 
 	function pathInfoProvider( event ) {
 		var requestData = GetHttpRequestData();
-		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: cgi.path_info ), '?' );
+		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: request[ "javax.servlet.forward.request_uri" ] ), '?' );
 		var qs          = "";
 
 		if ( !Len( Trim( uri ) ) ) {
-			uri = request[ "javax.servlet.forward.request_uri" ] ?: "";
+			uri = cgi.path_info ?: "";
 
 			if ( !Len( Trim( uri ) ) ) {
 				uri = ReReplace( ( cgi.request_url ?: "" ), "^https?://(.*?)/(.*?)(\?.*)?$", "/\2" );
