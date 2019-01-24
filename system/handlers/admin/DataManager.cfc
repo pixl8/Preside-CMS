@@ -3399,6 +3399,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	private void function _overrideAdminLayout( event, action, eventArguments ) {
 		var objectName       = prc.objectName ?: "";
+
+		if ( !len( objectName ) ) {
+			return;
+		}
+
 		var adminApplication = presideObjectService.getObjectAttribute( objectName=objectName, attributeName="dataManagerAdminApplication", defaultValue="" );
 
 		if ( !len( adminApplication ) ) {
