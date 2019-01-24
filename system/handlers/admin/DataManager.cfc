@@ -13,6 +13,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dtHelper"                         inject="jqueryDatatablesHelpers";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";
+	property name="applicationsService"              inject="applicationsService";
 
 
 	public void function preHandler( event, action, eventArguments ) {
@@ -26,6 +27,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !ReFindNoCase( "action$", arguments.action ) ) {
 			_loadCommonBreadCrumbs( argumentCollection=arguments );
 			_loadTopRightButtons( argumentCollection=arguments );
+			_overrideAdminLayout( argumentCollection=arguments );
 		}
 	}
 
@@ -3258,7 +3260,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( Len( Trim( prc.objectName ) ) ) {
 			_checkObjectExists( argumentCollection=arguments, object=prc.objectName );
-			_checkPermission( argumentCollection=arguments, key="navigate" )
+			_checkPermission( argumentCollection=arguments, key="navigate" );
 
 			if ( !useAnyWhereActions.findNoCase( arguments.action ) ) {
 				_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
@@ -3393,6 +3395,23 @@ component extends="preside.system.base.AdminHandler" {
 			, defaultHandler = "admin.datamanager.topRightButtons"
 			, args           = { objectName=objectName, action=arguments.action }
 		);
+	}
+
+	private void function _overrideAdminLayout( event, action, eventArguments ) {
+		var objectName       = prc.objectName ?: "";
+
+		if ( !len( objectName ) ) {
+			return;
+		}
+
+		var adminApplication = presideObjectService.getObjectAttribute( objectName=objectName, attributeName="dataManagerAdminApplication", defaultValue="" );
+
+		if ( !len( adminApplication ) ) {
+			return;
+		}
+
+		event.setLayout( applicationsService.getLayout( adminApplication ) );
+		event.getAdminBreadCrumbs()[ 1 ].link = event.buildLink( linkTo=applicationsService.getDefaultEvent( adminApplication ) );
 	}
 
 	private string function _getDefaultEditFormName( required string objectName ) {
