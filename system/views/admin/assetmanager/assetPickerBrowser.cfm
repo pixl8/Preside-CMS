@@ -16,7 +16,7 @@
 	);
 
 
-	assetFilter = { asset_folder = activeFolder };
+	assetFilter = { asset_folder = activeFolder, is_trashed=0 };
 	if ( allowedTypes.len() ){
 		assetFilter.asset_type = allowedTypes;
 	}
