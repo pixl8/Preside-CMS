@@ -26,6 +26,8 @@ component extends="coldbox.system.Interceptor" {
 				abort;
 			}
 		}
+
+		event.setNonCacheableRequestData();
 	}
 
 	public void function preRender( event, interceptData ) {
