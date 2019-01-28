@@ -816,17 +816,31 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 
-	public struct function getCacheableRequestData() output=false {
-		var event         = getRequestContext();
-		var rc            = event.getCollection( private=false );
-		var prc           = event.getCollection( private=true  );
-		var cacheableVars = { prc={}, rc={} };
-		var isCacheable   = function( value ) {
-			return IsSimpleValue( value ) || IsArray( value ) || IsStruct( value ) || IsQuery( value );
-		};
+	public void function setNonCacheableRequestData() {
+		var event           = getRequestContext();
+		var rc              = event.getCollection( private=false );
+		var prc             = event.getCollection( private=true  );
+		var flashCache      = getController().getRequestService().getFlashScope().getFlash();
+		var uncacheableKeys = StructKeyArray( flashCache );
+
+		ArrayAppend( uncacheableKeys, StructKeyArray( rc ), true );
+
+		prc._fullPageCachingUncacheableKeys = ListToArray( LCase( ArrayToList( uncacheableKeys ) ) );
+	}
+
+	private boolean function isCacheable( required any value ) {
+		return IsSimpleValue( arguments.value ) || IsArray( arguments.value ) || IsStruct( arguments.value ) || IsQuery( arguments.value );
+	}
+
+	public struct function getCacheableRequestData() {
+		var event           = getRequestContext();
+		var rc              = event.getCollection( private=false );
+		var prc             = event.getCollection( private=true  );
+		var unCacheableKeys = prc._fullPageCachingUncacheableKeys ?: [];
+		var cacheableVars   = { prc={}, rc={} };
 
 		for( var key in rc ) {
-			if ( isCacheable( rc[ key ] ) ) {
+			if ( !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
 				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
 			}
 		}
