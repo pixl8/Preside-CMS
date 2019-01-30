@@ -488,6 +488,7 @@ component extends="preside.system.base.AdminHandler" {
 		var fileExtension   = ListLast( tempFileInfo.serverFile, "." );
 		var result          = { success=true, message="",  id="" };
 		var fileName        = tempFileInfo.clientFile ?: "";
+		var useImageMagick  = IsTrue( getSystemSetting( category="asset-manager", setting="use_imagemagick", default=false ) ) ;
 
 		if ( !Len( Trim( fileName ) ) ) {
 			result.success = false;
@@ -495,7 +496,7 @@ component extends="preside.system.base.AdminHandler" {
 		} else if ( !Len( Trim( rc.asset_folder ?: "" ) ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.folder" );
-		} else if( imageExtensions.findNoCase( fileExtension ) && !isImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) {
+		} else if( imageExtensions.findNoCase( fileExtension ) && ( !useImageMagick && !isImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.uploader.image.format.failure" );
 
