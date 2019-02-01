@@ -33,7 +33,7 @@ component extends="coldbox.system.web.routing.Router" {
 
 	function pathInfoProvider( event ) {
 		var requestData = GetHttpRequestData();
-		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: request[ "javax.servlet.forward.request_uri" ] ), '?' );
+		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: (request[ "javax.servlet.forward.request_uri" ] ?: "") ), '?' );
 		var qs          = "";
 
 		if ( !Len( Trim( uri ) ) ) {
