@@ -3,12 +3,17 @@
 .presidecms {
 
 	.edit-asset-preview {
-		background-color : @white;
+		background : @white;
 		img {
 			padding            : 5px;
 			-webkit-box-shadow : 3px 3px 3px 0px rgba(50, 50, 50, 0.3);
 			-moz-box-shadow    : 3px 3px 3px 0px rgba(50, 50, 50, 0.3);
 			box-shadow         : 3px 3px 3px 0px rgba(50, 50, 50, 0.3);
+
+			&.transparent-image-bg {
+				background : url(../../../../../images/backgrounds/asset-preview.png) repeat top left;
+				padding    : 0;
+			}
 		}
 
 	}
