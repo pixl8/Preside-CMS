@@ -840,12 +840,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var cacheableVars   = { prc={}, rc={} };
 
 		for( var key in rc ) {
-			if ( !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
+			if ( !isNull( rc[ key ] ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
 				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
 			}
 		}
 		for( var key in prc ) {
-			if ( isCacheable( prc[ key ] ) ) {
+			if ( !isNull( prc[ key ] ) && isCacheable( prc[ key ] ) ) {
 				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
 			}
 		}
