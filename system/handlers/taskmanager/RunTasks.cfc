@@ -7,6 +7,10 @@ component {
 	property name="adhocTaskManagerService"     inject="adhocTaskManagerService";
 	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
 
+	public void function preHandler( event, action, eventArguments ) {
+		event.setUseQueryCache( false );
+	}
+
 	public void function startTaskManagerHeartbeat( event, rc, prc ) {
 		presideTaskmanagerHeartBeat.start();
 		event.renderData( data={ ok=true }, type="json" );
