@@ -96,8 +96,10 @@ component displayname="Site service" {
 
 		var aliasMatch = _getSiteAliasDomainDao().selectData(
 			  selectFields = [ "site" ]
-			, filter       = { domain = arguments.domain }
+			, filter       = "( domain = '*' or domain = :domain )"
+			, filterParams = { domain = arguments.domain }
 			, savedFilters = [ "nonDeletedSites" ]
+			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc"
 		);
 
 		if ( aliasMatch.recordCount ) {
