@@ -1780,7 +1780,7 @@ component displayName="Preside Object Service" {
 			cache.clearByKeySnippet(
 				  keySnippet = key
 				, regex      = false
-				, async      = true
+				, async      = false
 			);
 		}
 
@@ -1790,7 +1790,7 @@ component displayName="Preside Object Service" {
 			cache.clearByKeySnippet(
 				  keySnippet = "#relatedObject#."
 				, regex      = false
-				, async      = true
+				, async      = false
 			);
 		}
 
