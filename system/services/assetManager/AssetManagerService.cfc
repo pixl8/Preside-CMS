@@ -1276,7 +1276,7 @@ component displayName="AssetManager Service" {
 		if ( derivative.recordCount ) {
 			var isPending = _isPendingAssetURL( asset_url=derivative.asset_url ?: "", asset_type=derivative.asset_type ?: "", storage_path=derivative.storage_path ?: "" );
 			if ( isPending ) {
-				var shouldRetry = Val( derivative.retry_count ) < 3 && DateDiff( "s", derivative.datecreated, Now() ) > 20;
+				var shouldRetry = arguments.createIfNotExists && Val( derivative.retry_count ) < 3 && DateDiff( "s", derivative.datecreated, Now() ) > 20;
 				if ( shouldRetry ) {
 					_getDerivativeDao().updateData( id=derivative.id, data={ asset_url="", retry_count=Val( derivative.retry_count ?: "" ) + 1 } );
 					createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
