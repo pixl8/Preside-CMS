@@ -2993,16 +2993,16 @@
 			obja.insertData( data={ label="Hello world 3" } );
 			obja.insertData( data={ label="Hello world 4" } );
 
-			super.assertEquals( 4, obja.selectData().recordCount );
-			super.assertEquals( 0, objb.selectData().recordCount );
+			super.assertEquals( 4, obja.selectData( useCache=false ).recordCount );
+			super.assertEquals( 0, objb.selectData( useCache=false ).recordCount );
 
 			var insertedCount = objb.insertDataFromSelect( fieldList=[ "id", "label", "datecreated", "datemodified" ], selectDataArgs={
 				  objectName   = "lookup_a"
 				, selectFields = [ "id", "label", "Now()", "Now()" ]
 			} );
 
-			super.assertEquals( 4, insertedCount);
-			super.assertEquals( 4, objb.selectData().recordCount );
+			super.assertEquals( 4, insertedCount );
+			super.assertEquals( 4, objb.selectData( useCache=false ).recordCount );
 		</cfscript>
 	</cffunction>
 
