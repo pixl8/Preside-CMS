@@ -1174,7 +1174,13 @@ component displayName="AssetManager Service" {
 			return false;
 		}
 
-		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( path=asset.storage_path, private=private );
+		try {
+			trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( path=asset.storage_path, private=private );
+		} catch( any e ) {
+			$raiseError( e );
+			trashedPath = asset.storage_path;
+		}
+
 		if( asset.active_version.len() ) {
 			_getAssetVersionDao().updateData(
 				  id   = asset.active_version
@@ -1182,12 +1188,17 @@ component displayName="AssetManager Service" {
 			);
 		}
 
-		_deleteAssociatedFiles(
-			  assetId    = arguments.id
-			, folderId   = asset.asset_folder
-			, softDelete = true
-			, private    = private
-		);
+		try {
+			_deleteAssociatedFiles(
+				  assetId    = arguments.id
+				, folderId   = asset.asset_folder
+				, softDelete = true
+				, private    = private
+			);
+		} catch( any e ) {
+			// ignore errors due to missing files
+			$raiseError( e );
+		}
 
 		var result = assetDao.updateData( id=arguments.id, data={
 			  trashed_path   = trashedPath
@@ -1217,8 +1228,16 @@ component displayName="AssetManager Service" {
 			return false;
 		}
 
-		_getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
-		_deleteAssociatedFiles( arguments.id, asset.asset_folder );
+		try {
+			_getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
+		} catch( any e ) {
+			$raiseError( e );
+		}
+		try {
+			_deleteAssociatedFiles( arguments.id, asset.asset_folder );
+		} catch( any e ) {
+			$raiseError( e );
+		}
 
 		for( var a in asset ) { var auditDetail = a; }
 		$audit(
