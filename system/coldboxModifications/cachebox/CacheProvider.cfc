@@ -37,4 +37,17 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 
 		return request[ _requestKey ][ arguments.objectKey ] ?: NullValue();
 	}
+
+	public any function set(
+		  required any     objectKey
+		, required any     object
+		,          any     timeout           = ""
+		,          any     lastAccessTimeout = ""
+		,          any     extra             = {}
+	) {
+		setQuiet( arguments.objectKey, arguments.object, arguments.timeout, arguments.lastAccessTimeout );
+
+		return true;
+	}
+
 }
