@@ -150,6 +150,21 @@ component validationProvider=true {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
 	}
 
+	public boolean function fileType( required string fieldName, any value={}, required string allowedTypes, required string allowedExtensions ) validatorMessage="cms:validation.fileType.default" {
+		if ( !IsStruct( arguments.value ) ) {
+			return true;
+		}
+		var serverfileext  = arguments.value.tempFileInfo.serverfileext  ?: "";
+		var contentsubtype = arguments.value.tempFileInfo.contentsubtype ?: "";
+
+		for( var ext in listToArray( arguments.allowedExtensions ) ) {
+			if ( ext == serverfileext || ext == contentsubtype ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
 		if ( !IsDate( arguments.value ) ) {
 			return true;
