@@ -151,7 +151,6 @@ component validationProvider=true {
 		var contentsubtype = arguments.value.tempFileInfo.contentsubtype ?: "";
 
 		for( var ext in listToArray( arguments.allowedExtensions ) ) {
-			WriteDump( var={ext=ext,serverfileext=serverfileext,contentsubtype=contentsubtype}, output="/dump/loop-#getTickCount()#.html", format="html" );
 			if ( ext == serverfileext || ext == contentsubtype ) {
 				return true;
 			}
