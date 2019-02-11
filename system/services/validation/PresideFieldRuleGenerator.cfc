@@ -4,10 +4,16 @@ component output="false" singleton=true {
 	/**
 	 * @resourceBundleService.inject ResourceBundleService
 	 * @presideObjectService.inject  PresideObjectService
+	 * @assetManagerService.inject   AssetManagerService
 	 */
-	public any function init( required any resourceBundleService, required any presideObjectService ) output=false {
+	public any function init(
+		  required any resourceBundleService
+		, required any presideObjectService
+		, required any assetManagerService
+	) output=false {
 		_setResourceBundleService( arguments.resourceBundleService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setAssetManagerService( arguments.assetManagerService );
 
 		return this;
 	}
@@ -176,6 +182,13 @@ component output="false" singleton=true {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum, multiple=( IsBoolean( field.multiple ?: "" ) && field.multiple ) } } );
 		}
 
+		// filetype
+		if ( ( field.control ?: "" ) == "fileupload" && Len( Trim( field.allowedTypes ?: "" ) ) ) {
+			var allowedExtensions = _getAssetManagerService().expandTypeList( ListToArray( field.allowedTypes ) ).toList();
+			var allowedTypes      = listChangeDelims( field.allowedTypes, ", " );
+		 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="fileType", params={ allowedTypes=allowedTypes, allowedExtensions=allowedExtensions } } );
+		}
+
 		for( rule in rules ){
 			if ( not StructKeyExists( rule, "message" ) ) {
 				conventionBasedMessageKey =  poService.getResourceBundleUriRoot( arguments.objectName ) & "validation.#arguments.fieldName#.#rule.validator#.message";
@@ -252,5 +265,12 @@ component output="false" singleton=true {
 	}
 	private void function _setPresideObjectService( required any presideObjectService ) output=false {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getAssetManagerService() output=false {
+		return _assetManagerService;
+	}
+	private void function _setAssetManagerService( required any assetManagerService ) output=false {
+		_assetManagerService = arguments.assetManagerService;
 	}
 }
