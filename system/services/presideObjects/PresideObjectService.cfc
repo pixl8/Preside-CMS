@@ -1745,6 +1745,7 @@ component displayName="Preside Object Service" {
 		var idField     = getIdField( objectName );
 		var keyPrefixes = [ LCase( "#arguments.objectName#.complex_" ) ];
 		var recordIds   = [];
+		var lockname    = "preside-object-query-cache-clearing-lock-#GetCurrentTemplatePath()#";
 
 		for( var relatedObject in relatedObjectsToClear ) {
 			keyPrefixes.append( LCase( "#relatedObject#." ) );
@@ -1782,10 +1783,12 @@ component displayName="Preside Object Service" {
 			keyPrefixes.append( LCase( "#arguments.objectName#.single." ) );
 		}
 
-		// attempting to get the keys of struct while its size may be changing
-		// can lead to errors - need to lock this operation
-		lock type="exclusive" timeout=10 name="preside-object-query-cache-clearing-lock-#GetCurrentTemplatePath()#" {
+		try {
 			var cacheKeys = cache.getKeys();
+		} catch( any e ) {
+			// just in case - need to eliminate these errors fast
+			// TODO: revisit this entirely
+			return;
 		}
 
 		if ( !ArrayLen( cacheKeys ) ) {
