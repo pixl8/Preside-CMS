@@ -1783,16 +1783,12 @@ component displayName="Preside Object Service" {
 			keyPrefixes.append( LCase( "#arguments.objectName#.single." ) );
 		}
 
-		// attempting to get the keys of struct while its size may be changing
-		// can lead to errors - need to lock this operation
-		lock type="exclusive" timeout=10 name=lockname {
-			try {
-				var cacheKeys = cache.getKeys();
-			} catch( any e ) {
-				// just in case - need to eliminate these errors fast
-				// TODO: revisit this entirely
-				return;
-			}
+		try {
+			var cacheKeys = cache.getKeys();
+		} catch( any e ) {
+			// just in case - need to eliminate these errors fast
+			// TODO: revisit this entirely
+			return;
 		}
 
 		if ( !ArrayLen( cacheKeys ) ) {
@@ -1818,9 +1814,7 @@ component displayName="Preside Object Service" {
 				if ( comparison == 0 ) {
 					try {
 						deleted.append( i );
-						lock type="exclusive" timeout=10 name=lockname {
-							cache.clearQuiet( cacheKeys[ i ] );
-						}
+						cache.clearQuiet( cacheKeys[ i ] );
 					} catch( any e ) {
 						// do nothing, multiple processes could attempt clearing the same key
 					}
