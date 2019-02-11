@@ -1816,12 +1816,15 @@ component displayName="Preside Object Service" {
 						// do nothing, multiple processes could attempt clearing the same key
 					}
 				} else if ( comparison == 1 ) {
-					continue;
+					break;
 				}
 			}
 
 			for( var i=ArrayLen( deleted ); i>0; i-- ) {
 				cacheKeys.deleteAt( deleted[ i ] );
+			}
+			if ( !ArrayLen( cacheKeys ) ) {
+				break;
 			}
 		}
 
