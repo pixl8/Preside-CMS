@@ -1745,6 +1745,7 @@ component displayName="Preside Object Service" {
 		var idField     = getIdField( objectName );
 		var keyPrefixes = [ LCase( "#arguments.objectName#.complex_" ) ];
 		var recordIds   = [];
+		var lockname    = "preside-object-query-cache-clearing-lock-#GetCurrentTemplatePath()#";
 
 		for( var relatedObject in relatedObjectsToClear ) {
 			keyPrefixes.append( LCase( "#relatedObject#." ) );
@@ -1784,8 +1785,14 @@ component displayName="Preside Object Service" {
 
 		// attempting to get the keys of struct while its size may be changing
 		// can lead to errors - need to lock this operation
-		lock type="exclusive" timeout=10 name="preside-object-query-cache-clearing-lock-#GetCurrentTemplatePath()#" {
-			var cacheKeys = cache.getKeys();
+		lock type="exclusive" timeout=10 name=lockname {
+			try {
+				var cacheKeys = cache.getKeys();
+			} catch( any e ) {
+				// just in case - need to eliminate these errors fast
+				// TODO: revisit this entirely
+				return;
+			}
 		}
 
 		if ( !ArrayLen( cacheKeys ) ) {
@@ -1811,7 +1818,9 @@ component displayName="Preside Object Service" {
 				if ( comparison == 0 ) {
 					try {
 						deleted.append( i );
-						cache.clearQuiet( cacheKeys[ i ] );
+						lock type="exclusive" timeout=10 name=lockname {
+							cache.clearQuiet( cacheKeys[ i ] );
+						}
 					} catch( any e ) {
 						// do nothing, multiple processes could attempt clearing the same key
 					}
