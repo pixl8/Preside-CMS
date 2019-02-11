@@ -176,6 +176,11 @@ component output="false" singleton=true {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum, multiple=( IsBoolean( field.multiple ?: "" ) && field.multiple ) } } );
 		}
 
+		// email
+		if ( ( field.control ?: "" ) == "emailInput" ) {
+		 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email" } );
+		}
+
 		for( rule in rules ){
 			if ( not StructKeyExists( rule, "message" ) ) {
 				conventionBasedMessageKey =  poService.getResourceBundleUriRoot( arguments.objectName ) & "validation.#arguments.fieldName#.#rule.validator#.message";

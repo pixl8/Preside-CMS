@@ -114,6 +114,13 @@ component validationProvider=true {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
 
+	public boolean function email( required string fieldName, string value="" ) validatorMessage="cms:validation.email.default" {
+		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$" );
+	}
+	public string function email_js() {
+		return "function( value ){ return !value.length || value.match( /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/ ) !== null }";
+	}
+
 	public boolean function uuid( required string value ) validatorMessage="cms:validation.uuid.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
