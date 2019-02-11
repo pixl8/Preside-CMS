@@ -114,6 +114,13 @@ component validationProvider=true {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
 
+	public boolean function email( required string fieldName, string value="" ) validatorMessage="cms:validation.email.default" {
+		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$" );
+	}
+	public string function email_js() {
+		return "function( value ){ return !value.length || value.match( /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/ ) !== null }";
+	}
+
 	public boolean function uuid( required string value ) validatorMessage="cms:validation.uuid.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
@@ -141,6 +148,21 @@ component validationProvider=true {
 	}
 	public string function fileSize_js() {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
+	}
+
+	public boolean function fileType( required string fieldName, any value={}, required string allowedTypes, required string allowedExtensions ) validatorMessage="cms:validation.fileType.default" {
+		if ( !IsStruct( arguments.value ) ) {
+			return true;
+		}
+		var serverfileext  = arguments.value.tempFileInfo.serverfileext  ?: "";
+		var contentsubtype = arguments.value.tempFileInfo.contentsubtype ?: "";
+
+		for( var ext in listToArray( arguments.allowedExtensions ) ) {
+			if ( ext == serverfileext || ext == contentsubtype ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
