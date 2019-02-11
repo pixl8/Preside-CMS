@@ -1739,10 +1739,16 @@ component displayName="Preside Object Service" {
 		,          struct  filterParams            = {}
 		,          boolean clearSingleRecordCaches = true
 	) {
+		var cacheMap = _getCacheMap();
+		var relatedObjectsToClear = StructKeyArray( cachemap[ arguments.objectName ] ?: {} );
 		var cache       = _getDefaultQueryCache();
 		var idField     = getIdField( objectName );
-		var keysToClear = [ "#arguments.objectName#.complex_" ];
+		var keyPrefixes = [ LCase( "#arguments.objectName#.complex_" ) ];
 		var recordIds   = [];
+
+		for( var relatedObject in relatedObjectsToClear ) {
+			keyPrefixes.append( LCase( "#relatedObject#." ) );
+		}
 
 		if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
 			recordIds = arguments.filter.id;
@@ -1770,28 +1776,53 @@ component displayName="Preside Object Service" {
 
 		if ( ArrayLen( recordIds ) ) {
 			for( var recordId in recordIds ) {
-				keysToClear.append( "#arguments.objectName#.single.#recordId#_" );
+				keyPrefixes.append( LCase( "#arguments.objectName#.single.#recordId#_" ) );
 			}
 		} else if ( arguments.clearSingleRecordCaches ) {
-			keysToClear.append( "#arguments.objectName#.single." );
+			keyPrefixes.append( LCase( "#arguments.objectName#.single." ) );
 		}
 
-		for( var key in keysToClear ) {
-			cache.clearByKeySnippet(
-				  keySnippet = key
-				, regex      = false
-				, async      = false
-			);
+		// attempting to get the keys of struct while its size may be changing
+		// can lead to errors - need to lock this operation
+		lock type="exclusive" timeout=10 name="preside-object-query-cache-clearing-lock-#GetCurrentTemplatePath()#" {
+			var cacheKeys = cache.getKeys();
 		}
 
-		var cacheMap = _getCacheMap();
-		var relatedObjectsToClear = StructKeyArray( cachemap[ arguments.objectName ] ?: {} );
-		for( var relatedObject in relatedObjectsToClear ) {
-			cache.clearByKeySnippet(
-				  keySnippet = "#relatedObject#."
-				, regex      = false
-				, async      = false
-			);
+		if ( !ArrayLen( cacheKeys ) ) {
+			return;
+		}
+
+		ArraySort( cacheKeys, "text" );
+		ArraySort( keyPrefixes, "text" );
+		for( var prefix in keyPrefixes ) {
+			var startPos = _seekStartPosWithBinarySort( prefix, cacheKeys );
+
+			if ( !startPos ) {
+				continue;
+			}
+
+			var deleted   = [];
+			var keyLen    = ArrayLen( cacheKeys );
+			var prefixLen = Len( prefix );
+
+			for( var i=startPos; i<=keyLen; i++ ) {
+				var comparison = Compare( Left( cacheKeys[ i ], prefixLen ), prefix );
+
+				if ( comparison == 0 ) {
+					try {
+						deleted.append( i );
+						cache.clearQuiet( cacheKeys[ i ] );
+					} catch( any e ) {
+						// do nothing, multiple processes could attempt clearing the same key
+					}
+				} else if ( comparison == 1 ) {
+					continue;
+				}
+			}
+
+			for( var i=ArrayLen( deleted ); i>0; i-- ) {
+				cacheKeys.deleteAt( deleted[ i ] );
+			}
 		}
 
 		var derivedFrom = getObjectAttribute( arguments.objectName, "derivedFrom", "" );
@@ -2043,7 +2074,8 @@ component displayName="Preside Object Service" {
 		}
 
 		if ( IsArray( recordId ) ) {
-			if ( ArrayLen( recordId ) > 1 ) {
+			var recordIdCount = ArrayLen( recordId );
+			if ( !recordIdCount || recordIdCount > 1 ) {
 				isComplex = true;
 			} else {
 				recordId = recordId[ 1 ];
@@ -3077,6 +3109,35 @@ component displayName="Preside Object Service" {
 		var objectUsesCaching = getObjectAttribute( arguments.objectName, "useCache", true );
 
 		return !IsBoolean( objectUsesCaching ) || objectUsesCaching;
+	}
+
+	private numeric function _seekStartPosWithBinarySort( required string prefix, required array target ) {
+		var prefixLen = Len( prefix );
+		var left      = 1;
+		var right     = ArrayLen( target );
+		var pos       = 0;
+
+		// prefix is less than start OR greater than end (will not be found in whole array)
+		if ( Compare( prefix, Left( target[ right ], prefixLen ) ) == 1 || Compare( prefix, Left( target[ 1 ], prefixLen ) ) == -1 ) {
+			return 0;
+		}
+
+		while( left <= right ) {
+			pos = Int( ( left+right ) / 2 );
+			var comparison = Compare( Left( target[ pos ], prefixLen ), prefix );
+			if ( comparison == -1 ) {
+				left = pos+1;
+			} else if ( comparison == 1 ) {
+				right = pos-1;
+			} else {
+				if ( pos == 1 || Compare( Left( target[ pos-1 ], prefixLen ), prefix ) != 0 ) {
+					return pos;
+				}
+				right = pos-1;
+			}
+		}
+
+		return 0;
 	}
 
 // SIMPLE PRIVATE PROXIES
