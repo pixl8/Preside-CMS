@@ -1856,18 +1856,15 @@
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
-
 			poService.updateData( objectName="object_1", data={ label="changed" }, filter={ id = objId } );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
-				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
-				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>
@@ -1905,16 +1902,15 @@
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
 
 			poService.deleteData( objectName="object_1", filter={ id = objId } );
+			sleep( 1000 );
 
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
-				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
-				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>
@@ -1953,7 +1949,7 @@
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
 
 			poService.updateData( objectName="object_1", data={ label="changed" }, filter="label is not null" );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
@@ -2002,7 +1998,7 @@
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
 
 			poService.deleteData( objectName="object_1", filter="label is not null" );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
@@ -2051,17 +2047,18 @@
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
-
 			poService.updateData( objectName="object_a", data={ label="a new label" }, filter="label is not null" );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 3, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 1, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set6, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>
@@ -2996,16 +2993,16 @@
 			obja.insertData( data={ label="Hello world 3" } );
 			obja.insertData( data={ label="Hello world 4" } );
 
-			super.assertEquals( 4, obja.selectData().recordCount );
-			super.assertEquals( 0, objb.selectData().recordCount );
+			super.assertEquals( 4, obja.selectData( useCache=false ).recordCount );
+			super.assertEquals( 0, objb.selectData( useCache=false ).recordCount );
 
 			var insertedCount = objb.insertDataFromSelect( fieldList=[ "id", "label", "datecreated", "datemodified" ], selectDataArgs={
 				  objectName   = "lookup_a"
 				, selectFields = [ "id", "label", "Now()", "Now()" ]
 			} );
 
-			super.assertEquals( 4, insertedCount);
-			super.assertEquals( 4, objb.selectData().recordCount );
+			super.assertEquals( 4, insertedCount );
+			super.assertEquals( 4, objb.selectData( useCache=false ).recordCount );
 		</cfscript>
 	</cffunction>
 
