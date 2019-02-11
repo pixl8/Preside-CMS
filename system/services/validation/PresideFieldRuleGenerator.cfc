@@ -176,21 +176,11 @@ component output="false" singleton=true {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum, multiple=( IsBoolean( field.multiple ?: "" ) && field.multiple ) } } );
 		}
 
-<<<<<<< Updated upstream
-=======
 		// email
 		if ( ( field.control ?: "" ) == "emailInput" ) {
 		 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email" } );
 		}
 
-		// filetype
-		if ( ( field.control ?: "" ) == "fileupload" && Len( Trim( field.allowedTypes ?: "" ) ) ) {
-			var allowedExtensions = _getAssetManagerService().expandTypeList( ListToArray( field.allowedTypes ) ).toList();
-			var allowedTypes      = listChangeDelims( field.allowedTypes, ", " );
-		 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="fileType", params={ allowedTypes=allowedTypes, allowedExtensions=allowedExtensions } } );
-		}
-
->>>>>>> Stashed changes
 		for( rule in rules ){
 			if ( not StructKeyExists( rule, "message" ) ) {
 				conventionBasedMessageKey =  poService.getResourceBundleUriRoot( arguments.objectName ) & "validation.#arguments.fieldName#.#rule.validator#.message";
