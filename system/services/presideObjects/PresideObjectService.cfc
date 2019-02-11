@@ -2074,7 +2074,8 @@ component displayName="Preside Object Service" {
 		}
 
 		if ( IsArray( recordId ) ) {
-			if ( ArrayLen( recordId ) > 1 ) {
+			var recordIdCount = ArrayLen( recordId );
+			if ( !recordIdCount || recordIdCount > 1 ) {
 				isComplex = true;
 			} else {
 				recordId = recordId[ 1 ];
