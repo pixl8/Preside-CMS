@@ -24,7 +24,7 @@ component extends="coldbox.system.cache.store.ConcurrentStore" implements="" {
 
 	public any function lookup( required any objectKey ) {
 		return instance.indexer.objectExists( arguments.objectKey )
-		    && instance.pool.contains( arguments.objectKey )
+		    && instance.pool.containsKey( arguments.objectKey )
 			&& !isExpired( arguments.objectKey );
 	}
 

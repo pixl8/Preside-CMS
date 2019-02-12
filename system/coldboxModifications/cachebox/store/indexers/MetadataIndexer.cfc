@@ -29,7 +29,7 @@ component extends="coldbox.system.cache.store.indexers.MetadataIndexer" {
 	}
 
 	public any function objectExists( required any objectKey ) {
-		return instance.poolMetadata.contains( arguments.objectKey );
+		return instance.poolMetadata.containsKey( arguments.objectKey );
 	}
 
 	public any function getObjectMetadataProperty( required any objectKey, required any property ) {

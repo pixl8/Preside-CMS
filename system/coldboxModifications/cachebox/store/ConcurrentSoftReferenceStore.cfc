@@ -120,7 +120,7 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 	}
 
 	public any function softRefLookup( required any softRef ) {
-		return instance.softRefKeyMap.contains( arguments.softRef );
+		return instance.softRefKeyMap.containsKey( arguments.softRef );
 	}
 
 	public any function getSoftRefKey( required any softRef ) {
