@@ -1739,13 +1739,12 @@ component displayName="Preside Object Service" {
 		,          struct  filterParams            = {}
 		,          boolean clearSingleRecordCaches = true
 	) {
-		var cacheMap = _getCacheMap();
+		var cacheMap              = _getCacheMap();
 		var relatedObjectsToClear = StructKeyArray( cachemap[ arguments.objectName ] ?: {} );
-		var cache       = _getDefaultQueryCache();
-		var idField     = getIdField( objectName );
-		var keyPrefixes = [ LCase( "#arguments.objectName#.complex_" ) ];
-		var recordIds   = [];
-		var lockname    = "preside-object-query-cache-clearing-lock-#GetCurrentTemplatePath()#";
+		var cache                 = _getDefaultQueryCache();
+		var idField               = getIdField( objectName );
+		var keyPrefixes           = [ LCase( "#arguments.objectName#.complex_" ) ];
+		var recordIds             = [];
 
 		for( var relatedObject in relatedObjectsToClear ) {
 			keyPrefixes.append( LCase( "#relatedObject#." ) );
@@ -1783,13 +1782,7 @@ component displayName="Preside Object Service" {
 			keyPrefixes.append( LCase( "#arguments.objectName#.single." ) );
 		}
 
-		try {
-			var cacheKeys = cache.getKeys();
-		} catch( any e ) {
-			// just in case - need to eliminate these errors fast
-			// TODO: revisit this entirely
-			return;
-		}
+		var cacheKeys = cache.getKeys();
 
 		if ( !ArrayLen( cacheKeys ) ) {
 			return;
@@ -1824,7 +1817,7 @@ component displayName="Preside Object Service" {
 			}
 
 			for( var i=ArrayLen( deleted ); i>0; i-- ) {
-				cacheKeys.deleteAt( deleted[ i ] );
+				ArrayDeleteAt( cacheKeys, deleted[ i ] );
 			}
 			if ( !ArrayLen( cacheKeys ) ) {
 				break;
