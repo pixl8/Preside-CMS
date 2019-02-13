@@ -30,7 +30,7 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 2
 						, maxObjects                     = 300
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -58,7 +58,7 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 50
 						, maxObjects                     = 1000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -72,7 +72,7 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 20
 						, maxObjects                     = 100
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -86,7 +86,7 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 50
 						, maxObjects                     = 500
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -100,7 +100,7 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 10
 						, maxObjects                     = 200
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -114,7 +114,7 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 10
 						, maxObjects                     = 200
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -129,7 +129,7 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 200
 						, maxObjects                     = 2000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 

@@ -50,4 +50,14 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 		return true;
 	}
 
+	private any function locateObjectStore( string store ) {
+		if ( fileExists( expandPath("/preside/system/coldboxModifications/cachebox/store/#arguments.store#.cfc") ) ) {
+			return "preside.system.coldboxModifications.cachebox.store.#arguments.store#";
+		}
+		if( fileExists( expandPath("/coldbox/system/cache/store/#arguments.store#.cfc") ) ){
+			return "coldbox.system.cache.store.#arguments.store#";
+		}
+
+		return arguments.store;
+	}
 }
