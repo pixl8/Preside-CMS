@@ -154,15 +154,34 @@ component validationProvider=true {
 		if ( !IsStruct( arguments.value ) ) {
 			return true;
 		}
-		var serverfileext  = arguments.value.tempFileInfo.serverfileext  ?: "";
-		var contentsubtype = arguments.value.tempFileInfo.contentsubtype ?: "";
 
-		for( var ext in listToArray( arguments.allowedExtensions ) ) {
-			if ( ext == serverfileext || ext == contentsubtype ) {
-				return true;
+		var allowedExtensions = listToArray( arguments.allowedExtensions );
+		var filesToCheck      = [];
+		var validFiles        = 0;
+
+		if ( isStruct( arguments.value.tempFileInfo ?: "" ) ) {
+			filesToCheck.append( arguments.value.tempFileInfo );
+		} else {
+			for( var filename in arguments.value ) {
+				if ( isStruct( arguments.value[ filename ].tempFileInfo ?: "" ) ) {
+					filesToCheck.append( arguments.value[ filename ].tempFileInfo );
+				}
 			}
 		}
-		return false;
+
+		for ( var fileInfo in filesToCheck ) {
+			var serverfileext  = fileInfo.serverfileext  ?: "";
+			var contentsubtype = fileInfo.contentsubtype ?: "";
+
+			for( var ext in allowedExtensions ) {
+				if ( ext == serverfileext || ext == contentsubtype ) {
+					validFiles++;
+					break;
+				}
+			}
+		}
+
+		return validFiles == filesToCheck.len();
 	}
 
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
