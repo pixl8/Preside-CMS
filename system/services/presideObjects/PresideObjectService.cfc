@@ -1757,7 +1757,7 @@ component displayName="Preside Object Service" {
 		} else if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "#arguments.objectName#.id" ) ) {
 			recordIds = arguments.filter[ "#arguments.objectName#.id" ];
 		} else if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "#arguments.objectName#.#idField#" ) ) {
-			recordIds = arguments.filter[ "#arguments.objectName#.#id#" ];
+			recordIds = arguments.filter[ "#arguments.objectName#.#idField#" ];
 		} else if ( StructKeyExists( arguments.filterParams, "id" ) ) {
 			recordIds = arguments.filterParams.id;
 		} else if ( StructKeyExists( arguments.filterParams, idField ) ) {
