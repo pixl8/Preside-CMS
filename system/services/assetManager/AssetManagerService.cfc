@@ -661,7 +661,7 @@ component displayName="AssetManager Service" {
 		asset.asset_type       = fileTypeInfo.typeName;
 		asset.storage_path     = newFileName;
 		asset.size             = asset.size  ?: Len( arguments.fileBinary );
-		asset.title            = asset.title ?: "";
+		asset.title            = asset.title ?: arguments.fileName;
 
 		isAssetAllowedInFolder(
 			  type       = asset.asset_type
