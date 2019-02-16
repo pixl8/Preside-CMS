@@ -672,7 +672,7 @@ component {
 			  formItems      = formItems
 			, submissionData = formData
 		);
-
+WriteDump( var=formConfiguration, output="/dump/formConfiguration-#getTickCount()#.html", format="html" );
 		if ( IsBoolean( formConfiguration.use_captcha ?: "" ) && formConfiguration.use_captcha ) {
 			if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
 				validationResult.addError( fieldName="recaptcha", message="formbuilder:recaptcha.error.message" );

@@ -158,6 +158,10 @@ component output="false" singleton=true {
 				 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="fileType", params={ allowedTypes=allowedTypes, allowedExtensions=allowedExtensions } } );
 				}
 			break;
+
+			case "captcha":
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="recaptcha" } );
+			break;
 		}
 
 		// text length
