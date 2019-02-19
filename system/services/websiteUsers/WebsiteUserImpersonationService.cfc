@@ -1,4 +1,7 @@
 /**
+ * The website user impersonation service provides methods for setting up and resolving user
+ * impersonation, even if from a sub-site with a separate domain.
+ *
  * @singleton
  * @presideservice
  * @autodoc
@@ -17,6 +20,15 @@ component displayName="Website user impersonation service" {
 	}
 
 // public api methods
+
+	/**
+	 * Sets up an in-memory impersonation record when passed a website user id and target URL. Returns the
+	 * appropriate redirect URL with impersonation key appended.
+	 *
+	 * @userId.hint     ID of the website user to impersonate
+	 * @targetUrl.hint  The URL to redirect to upon successful impersonation
+	 *
+	 */
 	public string function create( required string userId, required string targetUrl ) {
 		var impersonationId  = _addImpersonation( argumentCollection=arguments );
 		var impersonationUrl = arguments.targetUrl;
@@ -30,6 +42,12 @@ component displayName="Website user impersonation service" {
 		return impersonationUrl;
 	}
 
+	/**
+	 * Looks up an impersonation record, deletes it from memory and returns the original target URL.
+	 *
+	 * @id.hint  The impersonation ID returned by the create() method.
+	 *
+	 */
 	public string function resolve( required string id ) {
 		var impersonation = _getImpersonation( arguments.id );
 
