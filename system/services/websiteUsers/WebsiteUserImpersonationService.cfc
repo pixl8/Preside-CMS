@@ -11,9 +11,14 @@ component displayName="Website user impersonation service" {
 // constructor
 	/**
 	 * @websiteLoginService.inject   websiteLoginService
+	 * @cacheProvider.inject         cachebox:ImpersonationCache
 	 */
-	public any function init( required any websiteloginService ) {
+	public any function init(
+		  required any websiteloginService
+		, required any cacheProvider
+	) {
 		_setWebsiteLoginService( arguments.websiteLoginService );
+		_setCacheProvider( arguments.cacheProvider );
 		variables.impersonations = {};
 
 		return this;
@@ -66,20 +71,23 @@ component displayName="Website user impersonation service" {
 	private string function _addImpersonation( required string userId, required string targetUrl ) {
 		var impersonationId = createUUID();
 
-		variables.impersonations[ impersonationId ] = {
-			  userId    = arguments.userId
-			, targetUrl = arguments.targetUrl
-		};
+		_getCacheProvider().set(
+			  objectKey = impersonationId
+			, object    = {
+				  userId    = arguments.userId
+				, targetUrl = arguments.targetUrl
+			  }
+		);
 
 		return impersonationId;
 	}
 
 	private struct function _getImpersonation( required string id ) {
-		return duplicate( variables.impersonations[ id ] ?: {} );
+		return _getCacheProvider().get( arguments.id ) ?: {};
 	}
 
 	private void function _removeImpersonation( required string id ) {
-		variables.impersonations.delete( id );
+		_getCacheProvider().clear( arguments.id );
 	}
 
 // private accessors
@@ -88,5 +96,12 @@ component displayName="Website user impersonation service" {
 	}
 	private void function _setWebsiteLoginService( required any websiteLoginService ) {
 		_websiteLoginService = arguments.websiteLoginService;
+	}
+
+	private any function _getCacheProvider() {
+		return _cacheProvider;
+	}
+	private void function _setCacheProvider( required any cacheProvider ) {
+		_cacheProvider = arguments.cacheProvider;
 	}
 }
