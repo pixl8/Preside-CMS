@@ -1,23 +1,45 @@
 ( function( $ ){
 
-	var expressionLib         = cfrequest.rulesEngineExpressions           || {}
-	  , renderFieldEndpoint   = cfrequest.rulesEngineRenderFieldEndpoint   || ""
-	  , editFieldEndpoint     = cfrequest.rulesEngineEditFieldEndpoint     || ""
-	  , filterCountEndpoint   = cfrequest.rulesEngineFilterCountEndpoint   || ""
-	  , contextData           = cfrequest.rulesEngineContextData           || {}
-	  , preSavedFilters       = cfrequest.rulesEnginePreSavedFilters       || ""
-	  , preRulesEngineFilters = cfrequest.rulesEnginePreRulesEngineFilters || ""
-	  , context               = cfrequest.rulesEngineContext               || "global";
+	var defaultExpressionLib         = cfrequest.rulesEngineExpressions           || {}
+	  , defaultRenderFieldEndpoint   = cfrequest.rulesEngineRenderFieldEndpoint   || ""
+	  , defaultEditFieldEndpoint     = cfrequest.rulesEngineEditFieldEndpoint     || ""
+	  , defaultFilterCountEndpoint   = cfrequest.rulesEngineFilterCountEndpoint   || ""
+	  , defaultContextData           = cfrequest.rulesEngineContextData           || {}
+	  , defaultPreSavedFilters       = cfrequest.rulesEnginePreSavedFilters       || ""
+	  , defaultPreRulesEngineFilters = cfrequest.rulesEnginePreRulesEngineFilters || ""
+	  , defaultContext               = cfrequest.rulesEngineContext               || "global";
 
 	var RulesEngineCondition = (function() {
-		function RulesEngineCondition( $formControl, expressions, $ruleList, isFilter, $filterCount, objectName ) {
-			this.$formControl     = $formControl;
-			this.$ruleList        = $ruleList;
-			this.model            = this.deserialize( this.$formControl.val() );
-			this.expressions      = expressions;
-			this.fieldRenderCache = {};
-			this.selectedIndex    = null;
-			this.isFilter         = isFilter;
+		function RulesEngineCondition(
+			  $formControl
+			, expressions
+			, $ruleList
+			, isFilter
+			, $filterCount
+			, objectName
+			, renderFieldEndpoint
+			, editFieldEndpoint
+			, filterCountEndpoint
+			, contextData
+			, preSavedFilters
+			, preRulesEngineFilters
+			, context
+		) {
+			this.$formControl          = $formControl;
+			this.$ruleList             = $ruleList;
+			this.model                 = this.deserialize( this.$formControl.val() );
+			this.expressions           = expressions;
+			this.fieldRenderCache      = {};
+			this.selectedIndex         = null;
+			this.isFilter              = isFilter;
+			this.renderFieldEndpoint   = renderFieldEndpoint;
+			this.editFieldEndpoint     = editFieldEndpoint;
+			this.filterCountEndpoint   = filterCountEndpoint;
+			this.contextData           = contextData;
+			this.preSavedFilters       = preSavedFilters;
+			this.preRulesEngineFilters = preRulesEngineFilters;
+			this.context               = context;
+
 			if ( this.isFilter ) {
 				this.$filterCount = $filterCount;
 				this.objectName   = objectName;
@@ -149,16 +171,16 @@
 			if ( !this.isFilter || !this.$filterCount.length ) { return; }
 
 			var conditionBuilder = this
-			  , postData         = contextData;
+			  , postData         = this.contextData;
 
 			postData.condition             = this.serialize();
 			postData.objectName            = this.objectName;
-			postData.preSavedFilters       = preSavedFilters;
-			postData.preRulesEngineFilters = preRulesEngineFilters;
+			postData.preSavedFilters       = this.preSavedFilters;
+			postData.preRulesEngineFilters = this.preRulesEngineFilters;
 
 			conditionBuilder.$filterCount.html( '' ).addClass( "loading" );
 			$.post(
-				  filterCountEndpoint
+				  this.filterCountEndpoint
 				, postData
 				, function( data ){ conditionBuilder.$filterCount.html( data ).removeClass( "loading" ); }
 			);
@@ -191,8 +213,8 @@
 			};
 
 			for( fieldName in expression.fields ){
-				if ( typeof contextData[ fieldName ] !== "undefined" ) {
-					newExpression.fields[ fieldName ] = contextData[ fieldName ];
+				if ( typeof this.contextData[ fieldName ] !== "undefined" ) {
+					newExpression.fields[ fieldName ] = this.contextData[ fieldName ];
 				} else if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
 					newExpression.fields[ fieldName ] = null;
 				} else {
@@ -256,7 +278,7 @@
 				$field.addClass( "rules-engine-condition-builder-field-loading" ).html( "&hellip;" );
 
 				if ( !this.fieldRenderCache[ cacheKey ] ) {
-					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, contextData, fields, { fieldValue:fieldValue }, fieldDefinition ) );
+					this.fieldRenderCache[ cacheKey ] = $.post( this.renderFieldEndpoint, $.extend( {}, this.contextData, fields, { fieldValue:fieldValue }, fieldDefinition ) );
 				}
 
 				this.fieldRenderCache[ cacheKey ].done( function( response ){
@@ -273,7 +295,7 @@
 
 		RulesEngineCondition.prototype.setupFieldEditModal = function( fieldName, fieldValue, fieldDefinition, $field, fields ){
 			var rulesEngineCondition = this
-			  , iframeUrl            = editFieldEndpoint
+			  , iframeUrl            = this.editFieldEndpoint
 			  , qsDelim              = ( iframeUrl.search( /\?/ ) == -1 ) ? "?" : "&"
 			  , callbacks, modalOptions, iframeModal, fieldValues;
 
@@ -308,7 +330,7 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, contextData, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
+			iframeUrl += qsDelim + $.param( $.extend( {}, this.contextData, fields, { fieldValue:fieldValue, context:this.context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};
@@ -641,7 +663,6 @@
 			  , $categoryLists    = $expressionList.find( ".category-expressions" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
-			  , expressions       = expressionLib[ $formControl.attr( "id" ) ] || []
 			  , isFilter          = $formControl.data( "isFilter" ) || false
 			  , objectName        = $formControl.data( "objectName" )
 			  , $hiddenControl
@@ -652,14 +673,31 @@
 			  , prepareDragAndDrop
 			  , prepareCategoryAccordion
 			  , addExpression
-			  , sortableStop;
+			  , sortableStop
+			  , expressions
+			  , renderFieldEndpoint
+			  , editFieldEndpoint
+			  , filterCountEndpoint
+			  , contextData
+			  , preSavedFilters
+			  , preRulesEngineFilters
+			  , context;
 
 			initializeBuilder = function() {
-				var id       = $formControl.attr( "id" )
-				  , name     = $formControl.attr( "name" )
-				  , tabIndex = $formControl.attr( "tabindex" )
-				  , val      = $formControl.val();
+				var id          = $formControl.attr( "id" )
+				  , name        = $formControl.attr( "name" )
+				  , tabIndex    = $formControl.attr( "tabindex" )
+				  , val         = $formControl.val()
+				  , fieldConfig = cfrequest[ "filter-builder-" + id ] || {};
 
+				expressions           = fieldConfig.rulesEngineExpressions           || defaultExpressionLib;
+				renderFieldEndpoint   = fieldConfig.rulesEngineRenderFieldEndpoint   || defaultRenderFieldEndpoint;
+				editFieldEndpoint     = fieldConfig.rulesEngineEditFieldEndpoint     || defaultEditFieldEndpoint;
+				filterCountEndpoint   = fieldConfig.rulesEngineFilterCountEndpoint   || defaultFilterCountEndpoint;
+				contextData           = fieldConfig.rulesEngineContextData           || defaultContextData;
+				preSavedFilters       = fieldConfig.rulesEnginePreSavedFilters       || defaultPreSavedFilters;
+				preRulesEngineFilters = fieldConfig.rulesEnginePreRulesEngineFilters || defaultPreRulesEngineFilters;
+				context               = fieldConfig.rulesEngineContext               || defaultContext;
 
 				$builderContainer.removeClass( "hide" );
 				$searchInput.on( "keyup", performSearch );
@@ -671,7 +709,21 @@
 				$formControl.remove();
 				$hiddenControl.attr( "id", id );
 
-				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList, isFilter, $filterCount, objectName );
+				condition = new RulesEngineCondition(
+					  $hiddenControl
+					, expressions
+					, $ruleList
+					, isFilter
+					, $filterCount
+					, objectName
+					, renderFieldEndpoint
+					, editFieldEndpoint
+					, filterCountEndpoint
+					, contextData
+					, preSavedFilters
+					, preRulesEngineFilters
+					, context
+				);
 
 				$hiddenControl.data( "conditionBuilder", {
 					clear : function(){
