@@ -145,6 +145,25 @@ component output="false" singleton=true {
 			break;
 		}
 
+		// controls
+		switch( field.control ?: "" ){
+			case "emailInput":
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email" } );
+			break;
+
+			case "fileupload":
+				if ( Len( Trim( field.allowedTypes ?: "" ) ) ) {
+					var allowedExtensions = _getAssetManagerService().expandTypeList( ListToArray( field.allowedTypes ) ).toList();
+					var allowedTypes      = listChangeDelims( field.allowedTypes, ", " );
+				 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="fileType", params={ allowedTypes=allowedTypes, allowedExtensions=allowedExtensions } } );
+				}
+			break;
+
+			case "captcha":
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="recaptcha" } );
+			break;
+		}
+
 		// text length
 		if ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) and StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="rangeLength", params={ minLength = Val( field.minLength ), maxLength = Val( field.maxLength ) } } );
@@ -180,18 +199,6 @@ component output="false" singleton=true {
 		// enum
 		if ( Len( Trim( field.enum ?: "" ) ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum, multiple=( IsBoolean( field.multiple ?: "" ) && field.multiple ) } } );
-		}
-
-		// email
-		if ( ( field.control ?: "" ) == "emailInput" ) {
-		 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email" } );
-		 }
-
-		// filetype
-		if ( ( field.control ?: "" ) == "fileupload" && Len( Trim( field.allowedTypes ?: "" ) ) ) {
-			var allowedExtensions = _getAssetManagerService().expandTypeList( ListToArray( field.allowedTypes ) ).toList();
-			var allowedTypes      = listChangeDelims( field.allowedTypes, ", " );
-		 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="fileType", params={ allowedTypes=allowedTypes, allowedExtensions=allowedExtensions } } );
 		}
 
 		for( rule in rules ){
