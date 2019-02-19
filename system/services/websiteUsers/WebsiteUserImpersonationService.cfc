@@ -83,7 +83,13 @@ component displayName="Website user impersonation service" {
 	}
 
 	private struct function _getImpersonation( required string id ) {
-		return _getCacheProvider().get( arguments.id ) ?: {};
+		var impersonation = _getCacheProvider().get( arguments.id );
+
+		if ( isNull( local.impersonation ) ) {
+			return {};
+		}
+
+		return impersonation;
 	}
 
 	private void function _removeImpersonation( required string id ) {
