@@ -230,7 +230,7 @@
 
 			setupCheckboxBehaviour = function(){
 				var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
-				  , $multiActionBtns = $( "#multi-action-buttons" );
+				  , $multiActionBtns = $listingTable.closest( '.multi-action-form' ).find( ".multi-action-buttons" );
 
 				$selectAllCBox.on( 'click' , function(){
 					var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
@@ -273,10 +273,10 @@
 			};
 
 			setupMultiActionButtons = function(){
-				var $form              = $( '#multi-action-form' )
+				var $form              = $listingTable.closest( '.multi-action-form' )
 				  , $hiddenActionField = $form.find( '[name=multiAction]' );
 
-				$( "#multi-action-buttons button" ).click( function( e ){
+				$form.find( ".multi-action-buttons button" ).click( function( e ){
 					$hiddenActionField.val( $( this ).attr( 'name' ) );
 				} );
 			};
