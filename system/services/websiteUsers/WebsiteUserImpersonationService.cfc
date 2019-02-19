@@ -1,6 +1,8 @@
 /**
  * The website user impersonation service provides methods for setting up and resolving user
  * impersonation, even if from a sub-site with a separate domain.
+ * \n
+ * Introduced in *10.10.39*.
  *
  * @singleton
  * @presideservice
