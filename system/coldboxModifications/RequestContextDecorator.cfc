@@ -72,11 +72,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return site.id ?: "";
 	}
 
-	public string function buildLink( string siteId="", string queryString="" ) {
+	public string function buildLink( string siteId="", string queryString="", boolean forceDomain=false ) {
 		var prc = getRequestContext().getCollection( private=true );
 
 		if ( arguments.siteId.len() ) {
 			arguments.queryString = ListPrepend( arguments.queryString, "_sid=" & arguments.siteId, "&" );
+		}
+		if ( arguments.forceDomain ) {
+			prc._forceDomainLookup = true;
 		}
 
 		announceInterception(

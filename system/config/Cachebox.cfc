@@ -145,6 +145,20 @@ component {
 						, maxObjects                     = 0
 						, objectStore                    = "ConcurrentStore"
 					}
+				},
+
+				ImpersonationCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 5
+						, objectDefaultLastAccessTimeout = 5
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 10
+						, maxObjects                     = 10
+						, objectStore                    = "ConcurrentStore"
+					}
 				}
 			}
 		};
