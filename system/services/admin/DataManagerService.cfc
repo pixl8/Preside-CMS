@@ -672,6 +672,28 @@ component {
 		return IsBoolean( draftsEnabled ) && draftsEnabled;
 	}
 
+	public struct function superQuickAdd( required string objectName, required string value ) {
+		var dao        = _getPresideObjectService().getObject( arguments.objectName );
+		var labelField = _getPresideObjectService().getLabelField( arguments.objectName );
+		var labelValue = Trim( arguments.value );
+		var existing   = dao.selectData(
+			  selectFields = [ "id", labelField ]
+			, filter       = { "#labelField#"=labelValue }
+		);
+
+		if ( existing.recordCount ) {
+			return {
+				  value = existing.id
+				, text  = labelValue
+			};
+		}
+
+		return {
+			  value = dao.insertData( { "#labelField#"=labelValue } )
+			, text  = labelValue
+		};
+	}
+
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
@@ -772,7 +794,7 @@ component {
 
 				if ( !structKeyExists( foreignObject[ foreignObjectLabelField ], "formula" ) ) {
 					var delim = relatedLabelField.find( "$" ) ? "$" : ".";
-					
+
 					relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
 				}
 
