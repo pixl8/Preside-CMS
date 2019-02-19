@@ -34,7 +34,7 @@ component displayName="Website user impersonation service" {
 	 *
 	 * @userId.hint     ID of the website user to impersonate
 	 * @targetUrl.hint  The URL to redirect to upon successful impersonation
-	 *
+	 * @autodoc         true
 	 */
 	public string function create( required string userId, required string targetUrl ) {
 		var impersonationId  = _addImpersonation( argumentCollection=arguments );
@@ -53,7 +53,7 @@ component displayName="Website user impersonation service" {
 	 * Looks up an impersonation record, deletes it from memory and returns the original target URL.
 	 *
 	 * @id.hint  The impersonation ID returned by the create() method.
-	 *
+	 * @autodoc  true
 	 */
 	public string function resolve( required string id ) {
 		var impersonation = _getImpersonation( arguments.id );
