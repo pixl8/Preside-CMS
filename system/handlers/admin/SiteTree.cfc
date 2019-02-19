@@ -1184,8 +1184,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function previewPage( event, rc, prc ) {
-		prc._forceDomainLookup = true;
-		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ), lookupDomain=true ) );
+		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ), forceDomain=true ) );
 	}
 
 	public void function clearPageCacheAction( event, rc, prc ) {

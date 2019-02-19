@@ -938,6 +938,16 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function superQuickAddAction( event, rc, prc ) {
+		_checkPermission( argumentCollection=arguments, key="add" );
+
+		runEvent(
+			  event          = "admin.DataManager._superQuickAddRecordAction"
+			, prePostExempt  = true
+			, private        = true
+		);
+	}
+
 	public void function quickEditForm( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
@@ -2105,6 +2115,19 @@ component extends="preside.system.base.AdminHandler" {
 				, validationResult = translateValidationMessages( validationResult )
 			});
 		}
+	}
+
+	private void function _superQuickAddRecordAction(
+		  required any     event
+		, required struct  rc
+		, required struct  prc
+		,          string  object = ( rc.object ?: '' )
+
+	) {
+		event.renderData( type="json", data=dataManagerService.superQuickAdd(
+			  objectName = arguments.object
+			, value      = ( rc.value ?: "" )
+		) );
 	}
 
 	private void function _deleteRecordAction(
