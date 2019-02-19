@@ -29,7 +29,8 @@
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 
-	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#";
+	instanceId = CreateUUId().replace( "-", "", "all" ).lCase();
+	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	args.allowFilter = args.allowFilter && isFeatureEnabled( "rulesengine" );
 
@@ -43,6 +44,7 @@
 	}
 
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
+
 </cfscript>
 <cfoutput>
 	<div class="table-responsive<cfif args.compact> table-compact</cfif>">
@@ -52,7 +54,7 @@
 			</form>
 		</cfif>
 		<cfif args.useMultiActions>
-			<form id="multi-action-form" class="form-horizontal" method="post" action="#args.multiActionUrl#">
+			<form id="multi-action-form-#instanceId#" class="form-horizontal multi-action-form" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
 
@@ -68,7 +70,7 @@
 						<p class="grey"><i class="fa fa-fw fa-info-circle"></i> <em>#translateResource( "cms:rulesEngine.saved.filters.help" )#</em></p>
 						#renderFormControl(
 							  name         = "filters"
-							, id           = "filters"
+							, id           = "filters-#instanceId#"
 							, type         = "filterPicker"
 							, context      = "admin"
 							, filterObject = args.objectName
@@ -86,10 +88,10 @@
 					</div>
 				</div>
 
-				<div id="quick-filter-form" class="in clearfix">
+				<div id="quick-filter-form-#instanceId#" class="in clearfix">
 					#renderFormControl(
 						  name        = "filter"
-						, id          = "filter"
+						, id          = "filter-#instanceId#"
 						, type        = "rulesEngineFilterBuilder"
 						, context     = "admin"
 						, contextData = args.filterContextData
@@ -170,7 +172,7 @@
 			</tbody>
 		</table>
 		<cfif args.useMultiActions>
-				<div class="form-actions" id="multi-action-buttons">
+				<div class="form-actions multi-action-buttons" id="multi-action-buttons-#instanceId#">
 					<cfif Len( Trim( args.multiActions ) )>
 						#args.multiActions#
 					<cfelse>
