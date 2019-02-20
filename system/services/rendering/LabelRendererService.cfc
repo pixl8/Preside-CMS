@@ -33,7 +33,7 @@ component {
 
 		if ( !arguments.includeAlias ) {
 			selectFields = selectFields.map( function( item, index, arr ){
-				return listFirst( item, " " );
+				return trim( reReplaceNoCase( item, "(as)? \S+$", "" ) );
 			} );
 		}
 
