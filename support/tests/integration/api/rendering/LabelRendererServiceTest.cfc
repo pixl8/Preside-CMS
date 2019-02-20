@@ -34,8 +34,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var service         = _getService();
 				var labelRenderer   = "custom_label_renderer";
 				var selectHandler   = service.getSelectFieldsHandler( labelRenderer );
-				var selectFields    = [ "column_one", "column_two as col2", "column_three col3", "case when a then 1 else 0 end as col4" ];
-				var expectedResult  = [ "column_one", "column_two", "column_three", "case when a then 1 else 0 end" ];
+				var selectFields    = [ "column_one", "column_two as col2", "case when a then 1 else 0 end as col3", "column_four as `alias with space`", "column_five as `alias with as and space`" ];
+				var expectedResult  = [ "column_one", "column_two", "case when a then 1 else 0 end", "column_four", "column_five" ];
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
 				mockColdboxController.$( "runEvent"      ).$args(
