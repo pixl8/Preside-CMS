@@ -690,7 +690,7 @@
 				  , val         = $formControl.val()
 				  , fieldConfig = cfrequest[ "filter-builder-" + id ] || {};
 
-				expressions           = fieldConfig.rulesEngineExpressions           || defaultExpressionLib;
+				expressions           = fieldConfig.rulesEngineExpressions           || ( defaultExpressionLib[ id ] || {} );
 				renderFieldEndpoint   = fieldConfig.rulesEngineRenderFieldEndpoint   || defaultRenderFieldEndpoint;
 				editFieldEndpoint     = fieldConfig.rulesEngineEditFieldEndpoint     || defaultEditFieldEndpoint;
 				filterCountEndpoint   = fieldConfig.rulesEngineFilterCountEndpoint   || defaultFilterCountEndpoint;
