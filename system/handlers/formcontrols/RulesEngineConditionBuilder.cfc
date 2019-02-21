@@ -17,15 +17,21 @@ component {
 
 		args.expressions = expressionService.listExpressions( args.ruleContext );
 
+		var fieldId = args.id ?: "";
+		var expressionData = {
+			"filter-builder-#fieldId#" = {
+				  rulesEngineExpressions           = args.expressions
+				, rulesEngineRenderFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.ajaxRenderField" )
+				, rulesEngineEditFieldEndpoint     = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
+				, rulesEngineContext               = args.ruleContext
+				, rulesEngineContextData           = args.contextData ?: {}
+			}
+		};
+
+
 		event.include( "/js/admin/specific/rulesEngineConditionBuilder/"  )
 		     .include( "/css/admin/specific/rulesEngineConditionBuilder/" )
-		     .includeData( {
-		     	  rulesEngineExpressions         = { "#args.id#" = args.expressions }
-		     	, rulesEngineRenderFieldEndpoint = event.buildAdminLink( linkTo="rulesengine.ajaxRenderField" )
-		     	, rulesEngineEditFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
-		     	, rulesEngineContext             = args.ruleContext
-		     	, rulesEngineContextData         = args.contextData ?: {}
-		      }  );
+		     .includeData( expressionData );
 
 		return renderView( view="/formControls/rulesEngineConditionBuilder/index", args=args );
 	}

@@ -10,19 +10,19 @@ component {
 		var expressionData = {
 			"filter-builder-#fieldId#" = {
 				  rulesEngineExpressions           = args.expressions
-		     	, rulesEngineRenderFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.ajaxRenderField" )
-		     	, rulesEngineEditFieldEndpoint     = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
-		     	, rulesEngineFilterCountEndpoint   = event.buildAdminLink( linkTo="rulesengine.getFilterCount" )
-		     	, rulesEngineContext               = "global"
-		     	, rulesEngineContextData           = args.contextData ?: {}
-		     	, rulesEnginePreSavedFilters       = args.preSavedFilters ?: ""
-		     	, rulesEnginePreRulesEngineFilters = args.preRulesEngineFilters ?: ""
+				, rulesEngineRenderFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.ajaxRenderField" )
+				, rulesEngineEditFieldEndpoint     = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
+				, rulesEngineFilterCountEndpoint   = event.buildAdminLink( linkTo="rulesengine.getFilterCount" )
+				, rulesEngineContext               = "global"
+				, rulesEngineContextData           = args.contextData ?: {}
+				, rulesEnginePreSavedFilters       = args.preSavedFilters ?: ""
+				, rulesEnginePreRulesEngineFilters = args.preRulesEngineFilters ?: ""
 			}
 		};
 
 		event.include( "/js/admin/specific/rulesEngineConditionBuilder/"  )
-		     .include( "/css/admin/specific/rulesEngineConditionBuilder/" )
-		     .includeData( expressionData  );
+			 .include( "/css/admin/specific/rulesEngineConditionBuilder/" )
+			 .includeData( expressionData  );
 
 		return renderView( view="/formControls/rulesEngineConditionBuilder/index", args=args );
 	}
