@@ -52,4 +52,4 @@
 		return policyContext && policyContext.length > 0;
 	} ).passwordScoreChecker();
 
-} )( presideJQuery || jQuery );
+} )( typeof presideJQuery !== 'undefined' ? presideJQuery : jQuery );
