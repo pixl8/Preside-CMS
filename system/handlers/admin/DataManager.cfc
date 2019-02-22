@@ -3334,6 +3334,10 @@ component extends="preside.system.base.AdminHandler" {
 
 				if ( !prc.isTranslationAction ) {
 					if ( prc.useVersioning && prc.version ) {
+						if ( !presideObjectService.dataExists( objectName=prc.objectName, id=prc.recordId, useCache=false ) ) {
+							event.notFound();
+						}
+
 						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
 					} else {
 						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
