@@ -49,6 +49,7 @@ component output=false {
 
 		bundle.asset( "/js/admin/specific/assetmanager/editasset/" ).dependsOn( "/js/admin/specific/owlcarousel/" );
 		bundle.asset( "/js/frontend/formbuilder/" ).after( "*jquery*" );
+		bundle.asset( "/js/admin/specific/passwordscore/" ).after( "*jquery*" );
 	}
 
 }
