@@ -3335,7 +3335,8 @@ component extends="preside.system.base.AdminHandler" {
 				if ( !prc.isTranslationAction ) {
 					if ( prc.useVersioning && prc.version ) {
 						if ( !presideObjectService.dataExists( objectName=prc.objectName, id=prc.recordId, useCache=false ) ) {
-							event.notFound();
+							messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
+							setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="listing" ) );
 						}
 
 						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
