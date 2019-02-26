@@ -27,10 +27,10 @@ component {
 	}
 
 	public void function start() {
-		if ( _isStopped() ) {
+		if ( _isStopped() || _hasStoppedInError() ) {
 			thread name="#_getThreadName()#-#CreateUUId()#" {
 				lock type="exclusive" timeout=1 name=_getThreadName() {
-					if ( _isStopped() ) {
+					if ( _isStopped() || _hasStoppedInError() ) {
 						register();
 					}
 				}
@@ -54,6 +54,12 @@ component {
 			}
 		}
 	}
+
+	public void function startInNewRequest() {
+		// must be implemented by concrete classes
+	}
+
+
 
 	public void function shutdown(){
 		if ( !_isStopped() ) {
@@ -86,6 +92,7 @@ component {
 
 			_setRunningThread( tu.getCurrentThread() );
 			_setStopped( false );
+			_registerInApplication();
 		} catch( any e ) {
 			$systemOutput( e );
 		}
@@ -94,6 +101,14 @@ component {
 	public void function deregister() {
 		_setRunningThread( NullValue() );
 		_setStopped( true );
+		_deRegisterFromApplication();
+	}
+
+	public void function ensureAlive() {
+		if ( _hasStoppedInError() ) {
+			$systemOutput( "The #_getThreadName()# heartbeat thread has stopped in error. Attempting restart now." );
+			startInNewRequest();
+		}
 	}
 
 // PRIVATE HELPERS
@@ -119,6 +134,36 @@ component {
 		}
 
 		return link;
+	}
+
+	private void function _registerInApplication() {
+		application._presideHeartbeatThreads = application._presideHeartbeatThreads ?: {};
+		application._presideHeartbeatThreads[ _getThreadName() ] = this;
+	}
+
+	private void function _deregisterFromApplication() {
+		application._presideHeartbeatThreads = application._presideHeartbeatThreads ?: {};
+		application._presideHeartbeatThreads.delete( _getThreadName() );
+	}
+
+	private boolean function _hasStoppedInError() {
+		if ( _isStopped() ) {
+			return false;
+		}
+
+		var crashed = false;
+		try {
+			var theThread = _getRunningThread();
+			if ( IsNull( local.theThread ) ) {
+				crashed = true;
+			} else {
+				crashed = !theThread.isAlive();
+			}
+		} catch( any e ) {
+			crashed = true;
+		}
+
+		return crashed;
 	}
 
 // GETTERS / SETTERS
