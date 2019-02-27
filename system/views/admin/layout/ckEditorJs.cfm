@@ -1,8 +1,9 @@
 <cfscript>
 	ckeditorSettings = getSetting( name="ckeditor", defaultValue={} );
 	configFile       = ckeditorSettings.defaults.configFile ?: "/ckeditorExtensions/config.js";
+	configFileName   = listFirst( configFile, "?" );
 
-	if ( FileExists( "/assets" & configFile ) ) {
+	if ( FileExists( "/assets" & configFileName ) ) {
 		configFile = getSetting( name="static.siteAssetsUrl", defaultValue="/assets" ) & configFile;
 	} else {
 		configFile = event.buildLink( systemStaticAsset = configFile );
