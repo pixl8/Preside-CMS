@@ -207,7 +207,7 @@
 		emailAntiSpamRegex = /emailantispam=(\d)/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
-		presideLinkRegex = /^{{link:(.*?):link}}$/,
+		presideLinkRegex = /^{{link:(.*?):link}}(?:#([^'"]+))?$/,
 		presideAssetRegex = /^{{asset:(.*?):asset}}$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
@@ -485,11 +485,12 @@
 					anitSpamMatch && ( retval.emailantispam = decodeURIComponent( anitSpamMatch[ 1 ] ) );
 				}
 				else if ( href && ( urlMatch = href.match( presideLinkRegex ) ) ) {
-					retval.type = 'sitetreelink'
-					retval.page = urlMatch[ 1 ];
+					retval.type       = 'sitetreelink';
+					retval.page       = urlMatch[ 1 ];
+					retval.pageanchor = urlMatch[ 2 ];
 				}
 				else if ( href && ( urlMatch = href.match( presideAssetRegex ) ) ) {
-					retval.type  = 'asset'
+					retval.type  = 'asset';
 					retval.asset = urlMatch[ 1 ];
 				}
 				// urlRegex matches empty strings, so need to check for href as well.
@@ -559,7 +560,7 @@
 			// Compose the URL.
 			switch ( data.type ) {
 				case 'sitetreelink':
-					set[ 'data-cke-saved-href' ] = '{{link:' + ( data.page || '' ) + ':link}}';
+					set[ 'data-cke-saved-href' ] = '{{link:' + ( data.page || '' ) + ':link}}' + ( data.pageanchor ? '#' + data.pageanchor : '' );
 					break;
 				case 'asset':
 					set[ 'data-cke-saved-href' ] = '{{asset:' + ( data.asset || '' ) + ':asset}}';

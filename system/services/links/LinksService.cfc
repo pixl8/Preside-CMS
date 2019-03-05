@@ -69,7 +69,8 @@ component {
 	}
 
 	private string function _buildSitetreelinkHref( required query link ) {
-		return _getRequestContext().buildLink( page=link.page );
+		var anchor = len( link.page_anchor ?: "" ) ? "##" & link.page_anchor : "";
+		return _getRequestContext().buildLink( page=link.page ) & anchor;
 	}
 
 	private string function _buildAssetlinkHref( required query link ) {

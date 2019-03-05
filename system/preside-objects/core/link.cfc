@@ -8,6 +8,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="internal
 	property name="internal_title"    type="string"  dbtype="varchar" maxlength="100" required=true  uniqueindexes="linktitle";
 	property name="type"              type="string"  dbtype="varchar" maxlength="20"  required=false default="external"  enum="linkType";
 	property name="title"             type="string"  dbtype="varchar" maxlength="200" required=false;
+	property name="page_anchor"       type="string"  dbtype="varchar" maxlength="30"  required=false;
 	property name="target"            type="string"  dbtype="varchar" maxlength="20"  required=false enum="linkTarget";
 	property name="nofollow"          type="boolean" dbtype="boolean"                 required=false default=false;
 	property name="text"              type="string"  dbtype="varchar" maxlength="400" required=false;
