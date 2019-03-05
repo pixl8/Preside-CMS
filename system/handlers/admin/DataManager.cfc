@@ -938,6 +938,16 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function superQuickAddAction( event, rc, prc ) {
+		_checkPermission( argumentCollection=arguments, key="add" );
+
+		runEvent(
+			  event          = "admin.DataManager._superQuickAddRecordAction"
+			, prePostExempt  = true
+			, private        = true
+		);
+	}
+
 	public void function quickEditForm( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
@@ -2105,6 +2115,19 @@ component extends="preside.system.base.AdminHandler" {
 				, validationResult = translateValidationMessages( validationResult )
 			});
 		}
+	}
+
+	private void function _superQuickAddRecordAction(
+		  required any     event
+		, required struct  rc
+		, required struct  prc
+		,          string  object = ( rc.object ?: '' )
+
+	) {
+		event.renderData( type="json", data=dataManagerService.superQuickAdd(
+			  objectName = arguments.object
+			, value      = ( rc.value ?: "" )
+		) );
 	}
 
 	private void function _deleteRecordAction(
@@ -3311,6 +3334,11 @@ component extends="preside.system.base.AdminHandler" {
 
 				if ( !prc.isTranslationAction ) {
 					if ( prc.useVersioning && prc.version ) {
+						if ( !presideObjectService.dataExists( objectName=prc.objectName, id=prc.recordId, useCache=false ) ) {
+							messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
+							setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="listing" ) );
+						}
+
 						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
 					} else {
 						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );

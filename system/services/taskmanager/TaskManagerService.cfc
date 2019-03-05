@@ -536,7 +536,8 @@ component displayName="Task Manager Service" {
 		var tasks       = _getConfiguredTasks();
 		var taskDetails = [];
 		var dbTaskInfo  = _getTaskDao().selectData(
-			selectFields = [ "task_key", "enabled", "is_running", "last_ran", "next_run", "last_run_time_taken", "was_last_run_success", "crontab_definition" ]
+			  selectFields = [ "task_key", "enabled", "is_running", "last_ran", "next_run", "last_run_time_taken", "was_last_run_success", "crontab_definition" ]
+			, useCache     = false
 		);
 		var grouped = [];
 

@@ -94,7 +94,7 @@
 	</div>
 
 	<div class="table-responsive">
-		<form id="multi-action-form" class="form-horizontal" method="post" action="#event.buildAdminLink( linkTo='notifications.multiAction' )#">
+		<form id="multi-action-form" class="form-horizontal multi-action-form" method="post" action="#event.buildAdminLink( linkTo='notifications.multiAction' )#">
 			<input type="hidden" name="multiAction" value="" />
 
 			<table id="object-listing-table-admin_notification_consumer" class="table table-hover object-listing-table">
@@ -116,7 +116,7 @@
 				</tbody>
 			</table>
 
-			<div class="form-actions" id="multi-action-buttons">
+			<div class="form-actions multi-action-buttons" id="multi-action-buttons">
 				<button class="btn btn-danger confirmation-prompt" type="submit" name="dismiss" disabled="disabled" data-global-key="d" title="#translateResource( 'cms:notifications.multidiscard.prompt' )#">
 					<i class="fa fa-trash-o bigger-110"></i>
 					#translateResource( 'cms:notifications.dismiss.btn' )#

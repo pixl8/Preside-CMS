@@ -23,13 +23,22 @@ var onDialogEvent = ( function( $ ){
 		if ( $linkForm.valid() ) {
 			var data = $linkForm.serializeObject()
 			  , selectedPage
-			  , pageControl = $( "#page" );
+			  , pageControl = $( "#page" )
+			  , type = typeof data.type !== "undefined" ? data.type : "";
 
-			if ( pageControl.length ) {
+			if ( type == "sitetreelink" && pageControl.length ) {
 				selectedPage = pageControl.data( "uberSelect" ) && pageControl.data("uberSelect").getSelected();
 				if ( selectedPage.length ) {
 					data.defaultText = selectedPage[0].text;
 				}
+			} else {
+				$.ajax( buildAdminLink( "linkpicker.getDefaultLinkText" ), {
+					  method : "POST"
+					, cache  : false
+					, async  : false
+					, data   : data
+					, success : function( result ) { data.defaultText = result }
+				} );
 			}
 
 			dialog._plugin.updateLink( data, dialog )

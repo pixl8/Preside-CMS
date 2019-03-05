@@ -134,6 +134,7 @@
 			this.max_selected_options = this.options.max_selected_options || Infinity;
 			this.inherit_select_classes = this.options.inherit_select_classes || false;
 			this.display_selected_options = this.options.display_selected_options != null ? this.options.display_selected_options : true;
+			this.quick_add_text = this.form_field.getAttribute( "data-quick-add-text" ) || "Press ENTER to create a new tag, '{{value}}'";
 			return this.display_disabled_options = this.options.display_disabled_options != null ? this.options.display_disabled_options : true;
 		};
 
@@ -188,6 +189,7 @@
 
 			option = $.extend( {}, {
 				  disabled          : false
+				, superQuickAdd     : false
 				, classes           : ""
 				, style             : { cssText : "" }
 				, text              : ""
@@ -209,6 +211,9 @@
 			}
 			if (option.selected) {
 				classes.push("result-selected");
+			}
+			if ( option.superQuickAdd ) {
+				classes.push("result-super-quick-add-suggestion");
 			}
 			if (option.classes !== "") {
 				classes.push(option.classes);
@@ -258,6 +263,16 @@
 				var userHasChangedSearch = searchText != $uberSelect.get_search_text()
 
 				if ( !userHasChangedSearch ){
+					if ( $uberSelect.allowSuperQuickAdd() && searchText.length && ( !suggestions.length || suggestions[0].text.toLowerCase() != searchText.toLowerCase() ) ) {
+						if ( suggestions.length && suggestions[0].superQuickAdd ) {
+							suggestions.shift();
+						}
+						suggestions.unshift( {
+							  text          : $uberSelect.get_quick_add_text( searchText )
+							, value         : searchText
+							, superQuickAdd : true
+						} );
+					}
 					if ( suggestions.length < 1 && searchText.length ) {
 						$uberSelect.clear_suggestions();
 						return $uberSelect.no_results( searchText );
@@ -312,10 +327,7 @@
 					break;
 				case 13:
 					evt.preventDefault();
-					if (this.results_showing) {
-						return this.result_select(evt);
-					}
-					break;
+					return this.result_select(evt);
 				case 27:
 					if (this.results_showing) {
 						this.results_hide();
@@ -1061,7 +1073,7 @@
 		UberSelect.prototype.result_select = function(evt) {
 			var high, item, selected_index;
 
-			if ( this.result_highlight ) {
+			if ( this.result_highlight && this.result_highlight.data( 'item' ) ) {
 				high = this.result_highlight;
 				this.result_clear_highlight();
 
@@ -1082,8 +1094,15 @@
 				high.addClass( "result-selected" );
 
 				item = high.data( 'item' );
+
 				this.selected_option_count = null;
-				this.select_item( item );
+
+				if ( item.superQuickAdd ) {
+					this.super_quick_add(  item.value );
+				} else {
+					this.select_item( item );
+				}
+
 				if ( !( (evt.metaKey || evt.ctrlKey ) && this.is_multiple ) ) {
 					this.results_hide();
 				}
@@ -1393,6 +1412,41 @@
 		UberSelect.prototype.isSearchable = function(){
 			return typeof this.options.searchable === "undefined" || this.options.searchable;
 		};
+
+		UberSelect.prototype.allowSuperQuickAdd = function(){
+			return typeof this.options.superQuickAdd !== "undefined" && this.options.superQuickAddUrl !== "undefined" && this.options.superQuickAdd;
+		};
+
+		UberSelect.prototype.super_quick_add = function( newValue ) {
+			if ( !$.trim( newValue ).length ) {
+				return false;
+			}
+
+			var uberSelect = this;
+			var _addOption = function( option ){
+				if ( uberSelect.is_multiple ) {
+					uberSelect.choice_build( option );
+					uberSelect.hidden_field.val( uberSelect.hidden_field.val() + "," + option.value );
+				} else {
+					uberSelect.single_set_selected_text( Mustache.render( uberSelect.selected_template, option ) );
+					uberSelect.hidden_field.val( option.value );
+				}
+			};
+
+			$.ajax( this.options.superQuickAddUrl, {
+				  data    : { value : newValue }
+				, cache   : false
+				, method  : "post"
+				, async   : false
+				, success : function( data ){ _addOption( data ); }
+			} );
+
+			return true;
+		}
+
+		UberSelect.prototype.get_quick_add_text = function( searchText ) {
+			return Mustache.render( this.quick_add_text, { value:searchText } );
+		}
 
 		UberSelect.browser_is_supported = function() {
 			if (window.navigator.appName === "Microsoft Internet Explorer") {

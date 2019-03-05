@@ -51,7 +51,8 @@ component {
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
+			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -211,6 +212,7 @@ component {
 			, "systemConfiguration"
 			, "updateManager"
 			, "rulesEngine"
+			, "links"
 			, "urlRedirects"
 			, "errorLogs"
 			, "auditTrail"
@@ -310,9 +312,10 @@ component {
 				, minHeight     = 0
 				, maxHeight     = 300
 				, autoParagraph = false
-				, configFile    = "/ckeditorExtensions/config.js?v10.9.0a"
+				, configFile    = "/ckeditorExtensions/config.js?v10.10.0"
 			  }
-			, toolbars    = _getCkEditorToolbarConfig()
+			, linkPicker = _getRicheditorLinkPickerConfig()
+			, toolbars   = _getCkEditorToolbarConfig()
 		};
 
 		settings.static = {
@@ -396,7 +399,7 @@ component {
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
@@ -807,5 +810,9 @@ component {
 		var major = Val( ListFirst( luceeVersion, "." ) );
 
 		return major > 4;
+	}
+
+	private struct function _getRicheditorLinkPickerConfig() {
+		return { default={ types=[ "sitetreelink", "url", "email", "asset", "anchor" ] } };
 	}
 }

@@ -371,6 +371,20 @@ component {
 			if ( Len( Trim( embeddedLink.asset ?: "" ) ) ) {
 				renderedLink = _getColdbox().getRequestContext().buildLink( assetId=embeddedLink.asset );
 			}
+			if ( Len( Trim( embeddedLink.custom ?: "" ) ) ) {
+				try {
+					var linkDetails = DeserializeJson( toString( toBinary( embeddedLink.custom ) ) );
+					var linkType    = linkDetails.type ?: "";
+
+					if ( Len( Trim( linkType ) ) ) {
+						try {
+							renderedLink = _getColdbox().renderViewlet( event="admin.linkpicker.#linkType#.getHref", args=linkDetails );
+						} catch( any e ) {}
+					} else {
+						renderedLink = _getColdbox().getRequestContext().buildLink( argumentCollection=linkDetails );
+					}
+				} catch( any e ) {}
+			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
 				renderedContent = Replace( renderedContent, embeddedLink.placeholder, renderedLink, "all" );
@@ -566,7 +580,7 @@ component {
 		// {{asset:assetid:asset}}
 
 
-		var regex = "{{(link|asset):(.*?):(link|asset)}}";
+		var regex = "{{(link|asset|custom):(.*?):(link|asset|custom)}}";
 		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
 		var link  = {};
 		var type  = "";

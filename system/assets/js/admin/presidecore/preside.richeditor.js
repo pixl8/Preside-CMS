@@ -5,17 +5,18 @@ PresideRichEditor = ( function( $ ){
 	}
 
 	PresideRichEditor.prototype.init = function( elementToReplace ){
-		var $elementToReplace = $( elementToReplace )
-		  , config            = {}
-		  , toolbar           = $elementToReplace.data( "toolbar" )          || cfrequest.ckeditorDefaultToolbar
-		  , width             = $elementToReplace.data( "width" )            || cfrequest.ckeditorDefaultWidth
-		  , minHeight         = $elementToReplace.data( "minHeight" )        || cfrequest.ckeditorDefaultMinHeight
-		  , maxHeight         = $elementToReplace.data( "maxHeight" )        || cfrequest.ckeditorDefaultMaxHeight
-		  , customConfig      = $elementToReplace.data( "customConfig" )     || cfrequest.ckeditorConfig
-		  , widgetCategories  = $elementToReplace.data( "widgetCategories" ) || cfrequest.widgetCategories || ""
-		  , stylesheets       = $elementToReplace.data( "stylesheets" )
-		  , enterMode         = $elementToReplace.data( "enterMode" )
-		  , autoParagraph     = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
+		var $elementToReplace  = $( elementToReplace )
+		  , config             = {}
+		  , toolbar            = $elementToReplace.data( "toolbar" )            || cfrequest.ckeditorDefaultToolbar
+		  , width              = $elementToReplace.data( "width" )              || cfrequest.ckeditorDefaultWidth
+		  , minHeight          = $elementToReplace.data( "minHeight" )          || cfrequest.ckeditorDefaultMinHeight
+		  , maxHeight          = $elementToReplace.data( "maxHeight" )          || cfrequest.ckeditorDefaultMaxHeight
+		  , customConfig       = $elementToReplace.data( "customConfig" )       || cfrequest.ckeditorConfig
+		  , widgetCategories   = $elementToReplace.data( "widgetCategories" )   || cfrequest.widgetCategories   || ""
+		  , linkPickerCategory = $elementToReplace.data( "linkPickerCategory" ) || cfrequest.linkPickerCategory || ""
+		  , stylesheets        = $elementToReplace.data( "stylesheets" )
+		  , enterMode          = $elementToReplace.data( "enterMode" )
+		  , autoParagraph      = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
@@ -48,8 +49,9 @@ PresideRichEditor = ( function( $ ){
 					config.enterMode = CKEDITOR.ENTER_P;
 			}
 		}
-		config.autoParagraph    = autoParagraph;
-		config.widgetCategories = widgetCategories;
+		config.autoParagraph      = autoParagraph;
+		config.widgetCategories   = widgetCategories;
+		config.linkPickerCategory = linkPickerCategory;
 
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 
