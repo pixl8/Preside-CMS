@@ -2,12 +2,12 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
 
-	function index( event, rc, prc ) output=false {
+	function index( event, rc, prc ) {
 		event.setLayout( "adminModalDialog" );
 		event.setView( "admin/linkPicker/index" );
 	}
 
-	function quickAddForm( event, rc, prc ) output=false {
+	function quickAddForm( event, rc, prc ) {
 		if ( !hasCmsPermission( permissionKey="presideobject.link.add" ) ) {
 			event.adminAccessDenied();
 		}
@@ -18,7 +18,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( view="/admin/linkpicker/quickAddForm", layout="adminModalDialog" );
 	}
 
-	function quickEditForm( event, rc, prc ) output=false {
+	function quickEditForm( event, rc, prc ) {
 		var id     = rc.id     ?: "";
 
 		if ( !hasCmsPermission( permissionKey="presideobject.link.edit" ) ) {
