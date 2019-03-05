@@ -1612,23 +1612,30 @@ component extends="preside.system.base.AdminHandler" {
 		var records                       = args.records     ?: QueryNew( '' );
 		var objectName                    = args.objectName  ?: "";
 		var actionsView                   = args.actionsView ?: "";
+		var isTreeView                    = IsTrue( args.treeView ?: "" );
 		var optionsCol                    = [];
 		var objectTitleSingular           = prc.objectTitle ?: "";
 		var hasRecordActionsCustomization = !actionsView.len() && customizationService.objectHasCustomization( objectName, "getRecordActionsForGridListing" );
 
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
-			var canView           = IsTrue( prc.canView         ?: "" );
-			var canEdit           = IsTrue( prc.canEdit         ?: "" );
-			var canClone          = IsTrue( prc.canClone        ?: "" );
-			var canDelete         = IsTrue( prc.canDelete       ?: "" );
-			var canViewVersions   = IsTrue( prc.canViewVersions ?: "" );
-			var canViewHistory    = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
-			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
-			var cloneRecordLink   = canClone       ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
-			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
-			var deleteRecordLink  = canDelete      ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
-			var viewHistoryLink   = canViewHistory ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
-			var deleteRecordTitle = canDelete      ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
+			var parentProperty = isTreeView ? dataManagerService.getTreeParentProperty( objectName ) : "";
+
+			var canView                = IsTrue( prc.canView         ?: "" );
+			var canAdd                 = IsTrue( prc.canAdd          ?: "" );
+			var canEdit                = IsTrue( prc.canEdit         ?: "" );
+			var canClone               = IsTrue( prc.canClone        ?: "" );
+			var canDelete              = IsTrue( prc.canDelete       ?: "" );
+			var canSort                = IsTrue( prc.canSort         ?: "" );
+			var canViewVersions        = IsTrue( prc.canViewVersions ?: "" );
+			var canViewHistory         = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
+			var addChildRecordLink     = canAdd && isTreeView ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
+			var sortChildrenRecordLink = canEdit && isTreeView ? event.buildAdminLink( objectName=objectName, operation="sortRecords", queryString="#parentProperty#={id}" ) : "";
+			var viewRecordLink         = canView              ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
+			var cloneRecordLink        = canClone             ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
+			var editRecordLink         = canEdit              ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
+			var deleteRecordLink       = canDelete            ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
+			var viewHistoryLink        = canViewHistory       ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
+			var deleteRecordTitle      = canDelete            ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
 		}
 
 		for( var record in records ){
@@ -1648,6 +1655,7 @@ component extends="preside.system.base.AdminHandler" {
 						, args           = {
 							  record      = record
 							, objectName  = objectName
+							, treeView    = isTreeView
 						}
 					);
 				} else {
@@ -1658,11 +1666,26 @@ component extends="preside.system.base.AdminHandler" {
 							, contextKey = "v"
 						} );
 					}
+					if ( canAdd && isTreeView ) {
+						actions.append( {
+							  link       = addChildRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-plus"
+							, contextKey = "a"
+						} );
+					}
 					if ( canEdit ) {
 						actions.append( {
 							  link       = editRecordLink.replace( "{id}", record.id )
 							, icon       = "fa-pencil"
 							, contextKey = "e"
+						} );
+
+					}
+					if ( canSort && isTreeView ) {
+						actions.append( {
+							  link       = sortChildrenRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-sort-amount-asc"
+							, contextKey = "s"
 						} );
 					}
 					if ( canClone ) {
@@ -3100,6 +3123,7 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = {
 				  records     = records
 				, objectName  = objectName
+				, treeView    = true
 			}
 		);
 		QueryAddColumn( records, "_options" , optionsCol );
