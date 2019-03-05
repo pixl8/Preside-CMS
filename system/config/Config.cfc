@@ -212,6 +212,7 @@ component {
 			, "systemConfiguration"
 			, "updateManager"
 			, "rulesEngine"
+			, "links"
 			, "urlRedirects"
 			, "errorLogs"
 			, "auditTrail"
@@ -311,7 +312,7 @@ component {
 				, minHeight     = 0
 				, maxHeight     = 300
 				, autoParagraph = false
-				, configFile    = "/ckeditorExtensions/config.js?v10.9.0a"
+				, configFile    = "/ckeditorExtensions/config.js?v10.10.0"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		};

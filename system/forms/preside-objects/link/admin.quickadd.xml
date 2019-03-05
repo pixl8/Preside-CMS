@@ -13,7 +13,8 @@ This form is used for the quick add link modal
 
 		<!-- we will show/hide these fieldsets depending on the selected link type -->
 		<fieldset id="sitetree" sortorder="20">
-			<field sortorder="10" binding="link.page" />
+			<field sortorder="10" binding="link.page"        />
+			<field sortorder="20" binding="link.page_anchor" />
 		</fieldset>
 
 		<fieldset id="url" sortorder="30">

@@ -1096,15 +1096,16 @@ component {
 		var siteService        = _getSiteService();
 		var pageTypesService   = _getPageTypesService();
 		var site               = siteService.getSite( arguments.siteId );
-		var pageTypes          = pageTypesService.listPageTypes();
 		var event              = _getColdboxController().getRequestService().getContext();
 		var originalActiveSite = event.getSite();
 
 		event.setSite( site );
 
+		var pageTypes          = pageTypesService.listPageTypes();
+
 		for( var pageType in pageTypes ) {
 			var pageTypeId = pageType.getId();
-			if ( pageTypesService.isSystemPageType( pageTypeId ) && pageTypesService.isPageTypeAvailableToSiteTemplate( pageTypeId, site.template ?: "" ) ) {
+			if ( pageTypesService.isSystemPageType( pageTypeId ) ) {
 				var page = getPage( systemPage=pageTypeId, useCache=false );
 
 				if ( !page.recordCount ) {
