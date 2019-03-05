@@ -1093,6 +1093,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName        = prc.objectName        ?: "";
 		var objectTitle       = prc.objectTitle       ?: "";
 		var objectTitlePlural = prc.objectTitlePlural ?: "";
+		var getRecordsArgs    = { objectName = objectName };
 
 		if ( !datamanagerService.isSortable( objectName ) ) {
 			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectTitle  ] ) );
@@ -1101,7 +1102,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
-		prc.records = datamanagerService.getRecordsForSorting( objectName=objectName );
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "preFetchRecordsForSorting"
+			, args           = getRecordsArgs
+		);
+
+		prc.records = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )

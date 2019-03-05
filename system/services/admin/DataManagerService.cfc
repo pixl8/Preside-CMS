@@ -308,14 +308,13 @@ component {
 	}
 
 	public query function getRecordsForSorting( required string objectName ) {
-		var sortField = getSortField( arguments.objectName );
-		var idField   = _getPresideObjectService().getIdField( arguments.objectName );
+		var idField        = _getPresideObjectService().getIdField( arguments.objectName );
+		var selectDataArgs = StructCopy( arguments );
 
-		return _getPresideObjectService().selectData(
-			  objectName   = arguments.objectName
-			, selectFields = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", sortField ]
-			, orderby      = sortField
-		);
+		selectDataArgs.orderBy      = getSortField( arguments.objectName );
+		selectDataArgs.selectFields = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", selectDataArgs.orderBy ];
+
+		return _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
 	}
 
 	public void function saveSortedRecords( required string objectName, required array sortedIds ) {
