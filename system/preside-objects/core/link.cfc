@@ -5,7 +5,7 @@
  * @labelfield                      internal_title
  * @datamanagerEnabled              true
  * @datamanagerGridFields           internal_title,type,datecreated,datemodified
- * @datamanagerDisallowedOperations delete,clone,add
+ * @datamanagerDisallowedOperations delete,clone
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Link" {
 
