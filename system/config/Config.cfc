@@ -212,6 +212,7 @@ component {
 			, "systemConfiguration"
 			, "updateManager"
 			, "rulesEngine"
+			, "links"
 			, "urlRedirects"
 			, "errorLogs"
 			, "auditTrail"
