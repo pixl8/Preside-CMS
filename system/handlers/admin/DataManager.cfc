@@ -1108,6 +1108,13 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = getRecordsArgs
 		);
 
+		if ( datamanagerService.usesTreeView( objectName ) ) {
+			var treeParentProperty = datamanagerService.getTreeParentProperty( objectName );
+			getRecordsArgs.extraFilters = getRecordsArgs.extraFilters ?: [];
+
+			getRecordsArgs.extraFilters.append( { filter={ "#treeParentProperty#"=rc[ treeParentProperty ] ?: "" } } );
+		}
+
 		prc.records = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
 
 		event.addAdminBreadCrumb(
