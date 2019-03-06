@@ -1,8 +1,9 @@
 <cfscript>
-	recordId      = rc.id      ?: "";
-	version       = rc.version ?: "";
-	blueprint     = prc.blueprint ?: QueryNew('');
-	recipientType = blueprint.recordCount ? blueprint.recipient_type : ( prc.record.recipient_type ?: "" );
+	recordId           = rc.id      ?: "";
+	version            = rc.version ?: "";
+	blueprint          = prc.blueprint ?: QueryNew('');
+	additionalFormArgs = prc.additionalFormArgs ?: {};
+	recipientType      = blueprint.recordCount ? blueprint.recipient_type : ( prc.record.recipient_type ?: "" );
 </cfscript>
 
 <cfoutput>
@@ -28,6 +29,7 @@
 					, draftsEnabled    = true
 					, canPublish       = IsTrue( prc.canSaveDraft ?: "" )
 					, canSaveDraft     = IsTrue( prc.canPublish   ?: "" )
+					, additionalArgs   = additionalFormArgs
 				} )#
 			</div>
 			<div class="col-md-4 col-lg-5 col-sm-12">
