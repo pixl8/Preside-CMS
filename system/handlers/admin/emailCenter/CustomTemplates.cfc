@@ -51,6 +51,8 @@ component extends="preside.system.base.AdminHandler" {
 			event.adminAccessDenied();
 		}
 
+		prc.additionalFormArgs = _getAdditionalAddEditFormArgs( argumentCollection=arguments );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:emailcenter.customTemplates.add.page.breadcrumb" )
 			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.add" )
@@ -187,6 +189,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.edit.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.edit.page.subtitle", data=[ prc.record.name ] );
+		prc.additionalFormArgs = _getAdditionalAddEditFormArgs( argumentCollection=arguments );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.edit.page.breadcrumb", data=[ prc.record.name ] )
@@ -791,6 +794,15 @@ component extends="preside.system.base.AdminHandler" {
 				)
 			}
 		} )
+	}
+
+	private struct function _getAdditionalAddEditFormArgs( event, rc, prc ) {
+		var emailSettings = getSystemCategorySettings( "email" );
+
+		return { fields = { save_content_expiry={
+			  maxValue     = Val( emailSettings.max_content_expiry     ?: 90 )
+			, defaultValue = Val( emailSettings.default_content_expiry ?: 90 )
+		} } };
 	}
 
 }
