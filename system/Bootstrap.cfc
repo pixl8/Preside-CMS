@@ -158,6 +158,7 @@ component {
 
 					_clearExistingApplication();
 					_ensureCaseSensitiveStructSettingsAreActive();
+					_applyJavaPropToImproveXalanXmlPerformance();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
 					_preserveLocaleCookieIfPresent();
@@ -226,6 +227,18 @@ component {
 			} catch( security e ) {
 				throw( type="security", message="Preside could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
 			}
+		}
+	}
+
+	private void function _applyJavaPropToImproveXalanXmlPerformance() {
+		// see https://issues.apache.org/jira/browse/XALANJ-2540
+		var propName     = "org.apache.xml.dtm.DTMManager";
+		var desiredValue = "org.apache.xml.dtm.ref.DTMManagerDefault";
+		var javaSystem   = CreateObject( "java", "java.lang.System" );
+		var actualValue  = javaSystem.getProperty( propName );
+
+		if  ( !Len( Trim( local.actualValue ?: "" ) ) ) {
+			javaSystem.setProperty( propName, desiredValue );
 		}
 	}
 

@@ -7,5 +7,6 @@
 		, canPublish            = false
 		, canSaveDraft          = IsTrue( prc.canSaveDraft ?: "" )
 		, allowAddAnotherSwitch = true
+		, additionalArgs        = prc.additionalFormArgs ?: {}
 	} )#
 </cfoutput>
