@@ -29,7 +29,7 @@
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 
-	instanceId = CreateUUId().replace( "-", "", "all" ).lCase();
+	instanceId = LCase( Hash( CallStackGet( "string" ) ) );
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	args.allowFilter = args.allowFilter && isFeatureEnabled( "rulesengine" );
