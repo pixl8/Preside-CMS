@@ -1199,12 +1199,15 @@ component displayName="Preside Object Service" {
 				if ( isManyToManyProperty( arguments.objectName, prop ) ) {
 
 					var idField = getIdField( props[ prop ].relatedTo ?: "" );
+					var relatedVia = props[ prop ].relatedVia ?: "";
+					var sortOrder = objectExists( relatedVia ) && getObjectProperties( relatedVia ).keyExists( "sort_order" ) ? adapter.escapeEntity( "#relatedVia#.sort_order" ) : adapter.escapeEntity( "#prop#.#idField#" );
 					var records = selectData(
 						  objectName       = arguments.objectName
 						, id               = arguments.id
 						, selectFields     = [ adapter.escapeEntity( "#prop#.#idField#" ) & " as #escapedId#" ]
 						, fromVersionTable = arguments.fromVersionTable
 						, specificVersion  = arguments.specificVersion
+						, orderBy          = sortOrder
 					);
 
 					manyToManyData[ prop ] = records.recordCount ? ValueList( records.id ) : "";
