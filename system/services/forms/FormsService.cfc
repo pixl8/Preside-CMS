@@ -429,36 +429,42 @@ component displayName="Forms service" {
 	 * use `renderForm` instead of rendering individual form controls.
 	 *
 	 * @autodoc
-	 * @name.hint         The name of the field to use
-	 * @type.hint         The control type, e.g. 'richeditor'
-	 * @context.hint      The context
-	 * @id.hint           The HTML ID to use for the rendered form control
-	 * @label.hint        The label for the control. Can be an i18n resource URI.
-	 * @defaultValue.hint The default value to prepopulate the control with (e.g. a saved value from the database)
-	 * @help.hint         Help text to accompany the control. Can be an i18n resource URI.
-	 * @savedData.hint    Structure of saved data for the entire form that is being rendered.
-	 * @error.hint        Error string to display with the control
-	 * @required.hint     Whether or not the form field is required
-	 * @layout.hint       Viewlet to use to render the field's layout
+	 * @name.hint           The name of the field to use
+	 * @type.hint           The control type, e.g. 'richeditor'
+	 * @context.hint        The context
+	 * @id.hint             The HTML ID to use for the rendered form control
+	 * @label.hint          The label for the control. Can be an i18n resource URI.
+	 * @defaultValue.hint   The default value to prepopulate the control with (e.g. a saved value from the database)
+	 * @help.hint           Help text to accompany the control. Can be an i18n resource URI.
+	 * @savedData.hint      Structure of saved data for the entire form that is being rendered.
+	 * @savedDataField.hint If specified, the form control's defaultValue will be sourced from this alternate field in savedData
+	 * @error.hint          Error string to display with the control
+	 * @required.hint       Whether or not the form field is required
+	 * @layout.hint         Viewlet to use to render the field's layout
 	 */
 	public string function renderFormControl(
 		  required string  name
 		, required string  type
-		,          string  context      = _getDefaultContextName()
-		,          string  id           = arguments.name
-		,          string  label        = ""
-		,          string  savedValue   = ""
-		,          string  defaultValue = ""
-		,          string  help         = ""
-		,          struct  savedData    = {}
-		,          string  error        = ""
-		,          boolean required     = false
-		,          string  layout       = "formcontrols.layouts.field"
+		,          string  context        = _getDefaultContextName()
+		,          string  id             = arguments.name
+		,          string  label          = ""
+		,          string  savedValue     = ""
+		,          string  defaultValue   = ""
+		,          string  help           = ""
+		,          struct  savedData      = {}
+		,          string  savedDataField = ""
+		,          string  error          = ""
+		,          boolean required       = false
+		,          string  layout         = "formcontrols.layouts.field"
 
 	) {
 		var coldbox         = _getColdbox();
 		var handler         = _getFormControlHandler( type=arguments.type, context=arguments.context );
 		var renderedControl = "";
+
+		if ( len( arguments.savedDataField ) && arguments.savedData.keyExists( arguments.savedDataField ) ) {
+			arguments.defaultValue = arguments.savedData[ arguments.savedDataField ];
+		}
 
 		try {
 			renderedControl = coldbox.renderViewlet(
