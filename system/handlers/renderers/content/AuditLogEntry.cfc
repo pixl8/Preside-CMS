@@ -10,14 +10,19 @@ component {
 		var action       = args.action            ?: "";
 		var known_as     = args.known_as          ?: "";
 		var userLink     = args.userLink          ?: "";
-		var record_id    = args.record_id         ?: "";
 		var objectName   = args.detail.objectName ?: "";
+
 		var labelField   = objectName.len() ? presideObjectService.getObjectAttribute( objectName, "labelField" ) : "";
+		var record_id    = args.record_id   ?: "";
+		var recordLabel  = record_id;
+		try {
+			recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
+		} catch (PresideObjectService.no.label.field e) {}
+
 		var userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
 		var objectTitle  = translateResource( uri="preside-objects.#objectName#:title.singular" );
 		var objectUrl    = event.buildAdminLink( objectName=objectName, operation="listing" );
 		var objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
-		var recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
 		var recordUrl    = event.buildAdminLink( objectName=objectName, recordId=record_id );
 		var recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
 
