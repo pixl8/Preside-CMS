@@ -54,6 +54,7 @@ component {
 		var processedCount = 0;
 		var queuedEmail    = "";
 		var emailService   = _getEmailService();
+		var poService       = $getPresideObjectService();
 
 		do {
 			queuedEmail = getNextQueuedEmail();
@@ -73,8 +74,12 @@ component {
 			}
 
 			removeFromQueue( queuedEmail.id );
+			if ( !processedCount mod 10 ) {
+				poService.clearRelatedCaches( "email_mass_send_queue" );
+			}
 		} while( ++processedCount < rateLimit && !$isInterrupted() );
 
+		poService.clearRelatedCaches( "email_mass_send_queue" );
 	}
 
 	/**
