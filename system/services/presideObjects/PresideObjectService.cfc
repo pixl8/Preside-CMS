@@ -2324,6 +2324,7 @@ component displayName="Preside Object Service" {
 		if ( ArrayLen( objects ) ) {
 			var cacheMap = _getCacheMap();
 			for( var relatedObject in objects ) {
+				relatedObject = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, relatedObject );
 				cacheMap[ relatedObject ] = cacheMap[ relatedObject ] ?: {};
 				cacheMap[ relatedObject ][ arguments.objectName ] = 1;
 			}

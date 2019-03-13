@@ -2037,9 +2037,9 @@
 
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
-			data.set1 = poService.selectData( objectName="object_b", selectFields=[ "object_a.label as obja" ], filter={ id = objId } );
-			data.set2 = poService.selectData( objectName="object_b", selectFields=[ "object_a.label as obja" ], filter="object_b.id = :id", filterParams={id=objId} );
-			data.set3 = poService.selectData( objectName="object_b", selectFields=[ "object_a.label as obja" ], filter="object_b.id = :id", filterParams={id="meh"} );
+			data.set1 = poService.selectData( objectName="object_b", selectFields=[ "related_to_a.label as obja" ], filter={ id = objId } );
+			data.set2 = poService.selectData( objectName="object_b", selectFields=[ "related_to_a.label as obja" ], filter="object_b.id = :id", filterParams={id=objId} );
+			data.set3 = poService.selectData( objectName="object_b", selectFields=[ "related_to_a.label as obja" ], filter="object_b.id = :id", filterParams={id="meh"} );
 			data.set4 = poService.selectData( objectName="object_b", filter={ id = "meh" } );
 			data.set5 = poService.selectData( objectName="object_b" );
 			data.set6 = poService.selectData( objectName="object_a" );

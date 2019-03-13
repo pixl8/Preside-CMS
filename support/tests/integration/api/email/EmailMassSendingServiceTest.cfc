@@ -406,6 +406,39 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					expect( service.$callLog().removeFromQueue[i] ).toBe( [ emails[i].id ] );
 				}
 			} );
+
+			it( "should manually clear queue query caches because we are bypassing cache due to running in background thread", function(){
+				var service   = _getService();
+				var rateLimit = 31;
+				var emails    = [];
+
+				for( var i=1; i<=40; i++ ) {
+					emails.append({
+						  id        = CreateUUId()
+						, template  = CreateUUId()
+						, recipient = CreateUUId()
+					});
+				}
+				emails.append({});
+
+				service.$( "$getPresideSetting" ).$args( "email", "ratelimit", 100 ).$results( rateLimit );
+				service.$( "autoQueueScheduledSendouts", 345 );
+
+				var resultsList = "";
+				for( var i=1; i<=emails.len(); i++ ){
+					resultsList = resultsList.listAppend( "emails[#i#]" );
+				}
+				Evaluate( "service.$( ""getNextQueuedEmail"" ).$results( #resultsList# )" );
+
+				mockEmailService.$( "send", true );
+				service.$( "removeFromQueue", 1 );
+
+				service.processQueue();
+				expect( mockPresideObjectService.$callLog().clearRelatedCaches.len() ).toBe( 5 );
+				for( var log in mockPresideObjectService.$callLog().clearRelatedCaches ) {
+					expect( log ).toBe( [ "email_mass_send_queue" ] );
+				}
+			} );
 		} );
 
 		describe( "autoQueueScheduledSendouts()", function(){
@@ -515,6 +548,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$isInterrupted", false );
 		mockPresideObjectService.$( "getDbAdapterForObject", mockDbAdapter );
+		mockPresideObjectService.$( "clearRelatedCaches" );
 
 		mockDbAdapter.$( "getNowFunctionSql", "nowwweee()" );
 
