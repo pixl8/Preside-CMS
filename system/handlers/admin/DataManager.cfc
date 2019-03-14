@@ -1627,21 +1627,33 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
 			var parentProperty = isTreeView ? dataManagerService.getTreeParentProperty( objectName ) : "";
 
-			var canView                = IsTrue( prc.canView         ?: "" );
-			var canAdd                 = IsTrue( prc.canAdd          ?: "" );
-			var canEdit                = IsTrue( prc.canEdit         ?: "" );
-			var canClone               = IsTrue( prc.canClone        ?: "" );
-			var canDelete              = IsTrue( prc.canDelete       ?: "" );
-			var canSort                = IsTrue( prc.canSort         ?: "" );
-			var canViewVersions        = IsTrue( prc.canViewVersions ?: "" );
-			var canViewHistory         = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
+			if ( objectName == ( prc.objectName ?: "" ) ) {
+				var canView         = IsTrue( prc.canView         ?: "" );
+				var canAdd          = IsTrue( prc.canAdd          ?: "" );
+				var canEdit         = IsTrue( prc.canEdit         ?: "" );
+				var canClone        = IsTrue( prc.canClone        ?: "" );
+				var canDelete       = IsTrue( prc.canDelete       ?: "" );
+				var canSort         = IsTrue( prc.canSort         ?: "" );
+				var canViewVersions = IsTrue( prc.canViewVersions ?: "" );
+				var useVersioning   = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
+			} else {
+				var canView         = _checkPermission( argumentCollection=arguments, object=objectName, key="read"        , throwOnError=false );
+				var canAdd          = _checkPermission( argumentCollection=arguments, object=objectName, key="add"         , throwOnError=false );
+				var canEdit         = _checkPermission( argumentCollection=arguments, object=objectName, key="edit"        , throwOnError=false );
+				var canClone        = _checkPermission( argumentCollection=arguments, object=objectName, key="clone"       , throwOnError=false );
+				var canDelete       = _checkPermission( argumentCollection=arguments, object=objectName, key="delete"      , throwOnError=false );
+				var canViewVersions = _checkPermission( argumentCollection=arguments, object=objectName, key="viewversions", throwOnError=false );
+				var canSort         = datamanagerService.isSortable( objectName ) && canEdit;
+				var useVersioning   = datamanagerService.isOperationAllowed( objectName, "viewversions" ) && presideObjectService.objectIsVersioned( objectName );
+			}
+
 			var addChildRecordLink     = canAdd && isTreeView ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
 			var sortChildrenRecordLink = canEdit && isTreeView ? event.buildAdminLink( objectName=objectName, operation="sortRecords", queryString="#parentProperty#={id}" ) : "";
 			var viewRecordLink         = canView              ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
 			var cloneRecordLink        = canClone             ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
 			var editRecordLink         = canEdit              ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
 			var deleteRecordLink       = canDelete            ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
-			var viewHistoryLink        = canViewHistory       ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
+			var viewHistoryLink        = canViewVersions      ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
 			var deleteRecordTitle      = canDelete            ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
 		}
 
@@ -1711,7 +1723,7 @@ component extends="preside.system.base.AdminHandler" {
 							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
 						} );
 					}
-					if ( canViewHistory ) {
+					if ( canViewVersions ) {
 						actions.append( {
 							  link       = viewHistoryLink.replace( "{id}", record.id )
 							, icon       = "fa-history"
