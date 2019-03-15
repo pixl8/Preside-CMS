@@ -4,12 +4,13 @@ cd `dirname $0`
 CWD="`pwd`"
 NOW="`date`"
 
+echo "TRAVIS_PULL_REQUEST: $TRAVIS_PULL_REQUEST"
 if [[ $TRAVIS_JDK_VERSION == 'openjdk7' ]] ; then
 	echo "Finished (only run tests on JDK 7, builds performed in the JDK8 environment)."
 	exit 0;
 fi
 
-if  [[ $TRAVIS_PULL_REQUEST == 'true' ]] ; then
+if  [[ $TRAVIS_PULL_REQUEST != 'false' ]] ; then
 	echo "Finished (not packaging up source due to running in a pull request)."
 	exit 0;
 fi
