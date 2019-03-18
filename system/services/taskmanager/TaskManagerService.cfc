@@ -566,6 +566,7 @@ component displayName="Task Manager Service" {
 
 				grouped.append({
 					  id          = groupId
+					, slug        = $slugify( groupId )
 					, title       = $translateResource( "taskmanager.taskgroups:#groupId#.title", groupId )
 					, description = $translateResource( "taskmanager.taskgroups:#groupId#.description", "" )
 					, stats       = { total=0, success=0, fail=0, running=0, neverRun=0 }
