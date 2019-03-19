@@ -436,10 +436,11 @@ component {
 		};
 
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page" ] };
-		settings.rulesEngine.contexts.page                  = { object="page" };
-		settings.rulesEngine.contexts.user                  = { object="website_user" };
-		settings.rulesEngine.contexts.formBuilderSubmission = { subcontexts=[ "webrequest" ] };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
+		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
+		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
+		settings.rulesEngine.contexts.adminuser             = { object="security_user" };
+		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
 
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
