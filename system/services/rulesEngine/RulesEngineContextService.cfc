@@ -53,6 +53,16 @@ component displayName="RulesEngine Context Service" {
 	}
 
 	/**
+	 * Returns whether or not the given context exists
+	 *
+	 * @autodoc true
+	 * @context ID of the context whose existance you wish to check
+	 */
+	public boolean function contextExists( required string context ) {
+		return _getConfiguredContexts().keyExists( arguments.context );
+	}
+
+	/**
 	 * Returns an array of context IDs that are valid for the given parent contexts
 	 * @autodoc
 	 * @parentContext.hint IDs of the parent contexts
@@ -192,10 +202,25 @@ component displayName="RulesEngine Context Service" {
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredContexts() {
+		if ( !_getContextsHaveBeenFilteredByFeature() ) {
+			for( var contextId in _configuredContexts ) {
+				if ( Len( Trim( _configuredContexts[ contextId ].feature ?: "" ) ) && !$isFeatureEnabled( _configuredContexts[ contextId ].feature ) ) {
+					_configuredContexts.delete( contextId );
+				}
+			}
+			_setContextsHaveBeenFilteredByFeature( true );
+		}
 		return _configuredContexts;
 	}
 	private void function _setConfiguredContexts( required struct configuredContexts ) {
 		_configuredContexts = arguments.configuredContexts;
+	}
+
+	private boolean function _getContextsHaveBeenFilteredByFeature() {
+		return _contextsHaveBeenFilteredByFeature ?: false;
+	}
+	private void function _setContextsHaveBeenFilteredByFeature( required boolean contextsHaveBeenFilteredByFeature ) {
+		_contextsHaveBeenFilteredByFeature = arguments.contextsHaveBeenFilteredByFeature;
 	}
 
 }

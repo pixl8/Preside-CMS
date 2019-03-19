@@ -71,6 +71,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expressions.count() ).toBe( 0 );
 			} );
 
+			it( "should return an empty struct when the CFC file is annotated with context(s) that do not exist", function(){
+				var service  = _getService();
+				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
+				var rootPath = "resources.rulesEngine.expressions";
+				var meta     = GetComponentMetadata( cfc );
+				var dummyDefs = { test=CreateUUId() };
+
+				mockContextService.$( "contextExists" ).$args( "user" ).$results( false );
+				mockContextService.$( "contextExists" ).$args( "marketing" ).$results( false );
+
+				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
+
+				expect( expressions.count() ).toBe( 0 );
+			} );
+
 			it( "should set an array of filter objects based on the CFC file having a prepareFilters() method tagged with a @objects attribute", function(){
 				var service  = _getService();
 				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
@@ -339,6 +354,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$isFeatureEnabled", true );
 
 		mockContextService.$( "expandContexts", [ "global" ] );
+		mockContextService.$( "contextExists", true );
 
 		return service;
 	}
