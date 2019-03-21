@@ -101,13 +101,14 @@ component {
 		, required string body
 		,          string unsubscribeLink = ""
 		,          string viewOnlineLink  = ""
+		,          struct templateDetail  = {}
 	) {
 		var renderType   = arguments.type == "text" ? "text" : "html";
 		var viewletEvent = "email.layout.#arguments.layout#.#renderType#";
 		var viewletArgs  = {};
 
 		for( var key in arguments ) {
-			if ( ![ "layout", "type", "emailTemplate", "blueprint" ].findNoCase( key ) ) {
+			if ( ![ "layout", "type", "emailTemplate", "blueprint", "templateDetail" ].findNoCase( key ) ) {
 				viewletArgs[ key ] = arguments[ key ];
 			}
 		}
@@ -119,6 +120,7 @@ component {
 			, merged        = true
 		);
 		viewletArgs.append( config, false );
+		viewletArgs.append( arguments.templateDetail, false );
 
 		return $renderViewlet( event=viewletEvent, args=viewletArgs );
 	}
