@@ -303,7 +303,7 @@ component displayName="Preside Object Service" {
 	 * @bypassTenants.hint           Array of tenants to ignore (i.e. when the insert data wants to create a record in an alternative tenant to the current one)
 	 * @clearCaches.hint             Whether or not to clear caches related to the object whose record you are creating
 	 * @useVersioning.docdefault     automatic
-	 * @clearCaches.docdefault       Defaults to whether query caching is enabled/enabled for this request/object
+	 * @clearCaches.docdefault       Defaults to whether query caching is enabled or not for this object
 	 */
 	public any function insertData(
 		  required string  objectName
@@ -313,7 +313,7 @@ component displayName="Preside Object Service" {
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 		,          array   bypassTenants           = []
-		,          boolean clearCaches             = _getUseCacheDefault( arguments.objectName )
+		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
 
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preInsertObjectData", arguments );
@@ -463,13 +463,13 @@ component displayName="Preside Object Service" {
 	 * @selectDataArgs.hint    Struct of arguments that are valid to pass to the [[presideobjectservice-selectdata]] method
 	 * @fieldList.hint         Array of table field names that the select fields in the select statement should map to for the insert
 	 * @clearCaches.hint       Whether or not to clear caches related to the object whose record you are creating
-	 * @clearCaches.docdefault Defaults to whether query caching is enabled/enabled for this request/object
+	 * @clearCaches.docdefault Defaults to whether query caching is enabled or not for this object
 	 */
 	public numeric function insertDataFromSelect(
 		  required string  objectName
 		, required struct  selectDataArgs
 		, required array   fieldList
-		,          boolean clearCaches = _getUseCacheDefault( arguments.objectName )
+		,          boolean clearCaches = _objectUsesCaching( arguments.objectName )
 	) {
 		var obj       = _getObject( arguments.objectName ).meta;
 		var adapter   = _getAdapter( obj.dsn );
@@ -543,7 +543,7 @@ component displayName="Preside Object Service" {
 	 * @setDateModified.hint         If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
 	 * @clearCaches.hint             Whether or not to clear caches related to the object whose record you are updating
 	 * @useVersioning.docdefault     auto
-	 * @clearCaches.docdefault       Defaults to whether query caching is enabled/enabled for this request/object
+	 * @clearCaches.docdefault       Defaults to whether query caching is enabled or not for this object
 	 */
 	public numeric function updateData(
 		  required string  objectName
@@ -560,7 +560,7 @@ component displayName="Preside Object Service" {
 		,          numeric versionNumber           = 0
 		,          boolean forceVersionCreation    = false
 		,          boolean setDateModified         = true
-		,          boolean clearCaches             = _getUseCacheDefault( arguments.objectName )
+		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -778,7 +778,7 @@ component displayName="Preside Object Service" {
 	 * @extraFilters.hint      An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @forceDeleteAll.hint    If no id or filter supplied, this must be set to **true** in order for the delete to process
  	 * @clearCaches.hint       Whether or not to clear caches related to the object whose record you are deleting
-	 * @clearCaches.docdefault Defaults to whether query caching is enabled/enabled for this request/object
+	 * @clearCaches.docdefault Defaults to whether query caching is enabled or not for this object
 	 */
 	public numeric function deleteData(
 		  required string  objectName
@@ -788,7 +788,7 @@ component displayName="Preside Object Service" {
 		,          array   extraFilters   = []
 		,          array   savedFilters   = []
 		,          boolean forceDeleteAll = false
-		,          boolean clearCaches    = _getUseCacheDefault( arguments.objectName )
+		,          boolean clearCaches    = _objectUsesCaching( arguments.objectName )
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
 
