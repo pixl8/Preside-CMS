@@ -59,7 +59,15 @@ component displayName="RulesEngine Context Service" {
 	 * @context ID of the context whose existance you wish to check
 	 */
 	public boolean function contextExists( required string context ) {
-		return _getConfiguredContexts().keyExists( arguments.context );
+		if ( _getConfiguredContexts().keyExists( arguments.context ) ) {
+			return true;
+		}
+
+		if ( _getDisabledContexts().find( LCase( arguments.context ) ) ) {
+			return false;
+		}
+
+		return $getPresideObjectService().objectExists( arguments.context );
 	}
 
 	/**
@@ -203,11 +211,14 @@ component displayName="RulesEngine Context Service" {
 // GETTERS AND SETTERS
 	private struct function _getConfiguredContexts() {
 		if ( !_getContextsHaveBeenFilteredByFeature() ) {
+			var disabledContexts = [];
 			for( var contextId in _configuredContexts ) {
 				if ( Len( Trim( _configuredContexts[ contextId ].feature ?: "" ) ) && !$isFeatureEnabled( _configuredContexts[ contextId ].feature ) ) {
 					_configuredContexts.delete( contextId );
+					disabledContexts.append( LCase( contextId ) );
 				}
 			}
+			_setDisabledContexts( disabledContexts );
 			_setContextsHaveBeenFilteredByFeature( true );
 		}
 		return _configuredContexts;
@@ -221,6 +232,13 @@ component displayName="RulesEngine Context Service" {
 	}
 	private void function _setContextsHaveBeenFilteredByFeature( required boolean contextsHaveBeenFilteredByFeature ) {
 		_contextsHaveBeenFilteredByFeature = arguments.contextsHaveBeenFilteredByFeature;
+	}
+
+	private array function _getDisabledContexts() {
+		return _disabledContexts;
+	}
+	private void function _setDisabledContexts( required array disabledContexts ) {
+		_disabledContexts = arguments.disabledContexts;
 	}
 
 }
