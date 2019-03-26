@@ -160,6 +160,8 @@ component {
 		settings.widgets                     = {};
 		settings.templates                   = [];
 		settings.adminDefaultEvent           = "sitetree";
+		settings.adminNotificationsSticky    = true;
+		settings.adminNotificationsPosition  = "bottom-right";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
 		settings.dsn                         = "preside";
