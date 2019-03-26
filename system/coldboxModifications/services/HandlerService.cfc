@@ -171,6 +171,19 @@ component extends="coldbox.system.web.services.HandlerService" {
 		return handlers;
 	}
 
+	public void function invalidEvent(){
+		try {
+			super.invalidEvent( argumentCollection=arguments );
+		} catch( any e ) {
+			rethrow;
+		} finally {
+			controller.getRequestService().getContext().setHTTPHeader(
+				  statusCode = 200
+				, statusText = "OK"
+			);
+		}
+	}
+
 // helpers
 	private void function _addSiteTemplateHandlerMappings( required string siteTemplatesPath, required string siteTemplatesInvocationPath, required struct existingMappings ) {
 		if ( !DirectoryExists( arguments.siteTemplatesPath ) ) {
