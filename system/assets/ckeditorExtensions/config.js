@@ -37,5 +37,5 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// Paste from word
 	config.pasteFromWordPromptCleanup = true;
-	config.disallowedContent = 'font;*[align];*{line-height};*{margin-bottom};';
+	config.disallowedContent = 'font;*[align];*{line-height};*{margin*};';
 };
