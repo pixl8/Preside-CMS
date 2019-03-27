@@ -67,7 +67,7 @@ component {
 			rules.append( {
 				  fieldname = args.name ?: ""
 				, validator = "fileType"
-				, params    = { acceptFileType = args.accept }
+				, params    = { allowedTypes=args.accept, allowedExtensions=args.accept }
 			} );
 		}
 
