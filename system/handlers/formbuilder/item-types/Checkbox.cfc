@@ -2,8 +2,9 @@ component {
 
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
+
 		return renderFormControl(
-			  argumentCollection = arguments
+			  argumentCollection = args
 			, name               = controlName
 			, type               = "checkbox"
 			, context            = "formbuilder"
@@ -11,8 +12,8 @@ component {
 			, layout             = ""
 			, labels		 	 = args.labels            ?: ""
 			, checkboxLabel		 = args.checkboxLabel     ?: ""
-			, defaultValue		 = 1
-			, required           = IsTrue( args.mandatory ?: "" )
+			, defaultValue		 = IsTrue( args.defaultChecked ?: "" )
+			, required           = IsTrue( args.mandatory      ?: "" )
 		);
 	}
 }

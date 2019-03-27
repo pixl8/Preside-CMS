@@ -7,8 +7,8 @@
 	layouts      = args.layouts    ?: ArrayNew(1);
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
-		value = "";
+	if ( !IsSimpleValue( value ) || value == "" ) {
+		value = "index";
 	}
 </cfscript>
 

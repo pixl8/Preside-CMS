@@ -10,6 +10,7 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/jquery-ui/"    , path="/js/admin/lib/jquery-ui*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/ace/"          , path="/js/admin/lib/ace*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
+		bundle.addAsset( id="/js/admin/lib/plotly/"       , path="/js/admin/lib/plotly*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
 		bundle.addAsset( id="recaptcha-js"                , url="https://www.google.com/recaptcha/api.js" );
 
@@ -48,6 +49,7 @@ component output=false {
 
 		bundle.asset( "/js/admin/specific/assetmanager/editasset/" ).dependsOn( "/js/admin/specific/owlcarousel/" );
 		bundle.asset( "/js/frontend/formbuilder/" ).after( "*jquery*" );
+		bundle.asset( "/js/admin/specific/passwordscore/" ).after( "*jquery*" );
 	}
 
 }

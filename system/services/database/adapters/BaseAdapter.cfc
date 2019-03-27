@@ -96,6 +96,9 @@ component {
 			case 'no action':
 				sql &= " on delete no action";
 				break;
+			case 'set-null-if-no-cycle-check':
+				sql &= " on delete set null";
+				break;
 			default:
 				sql &= " on delete set null";
 		}
@@ -108,6 +111,9 @@ component {
 				break;
 			case 'no action':
 				sql &= " on update no action";
+				break;
+			case 'set-null-if-no-cycle-check':
+				sql &= " on update set null";
 				break;
 			default:
 				sql &= " on update set null";
@@ -173,7 +179,7 @@ component {
 		return "getDeleteSql() not implemented. Must be implemented by extended adapters.";
 	}
 
-	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) {
+	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1, string selectStatement="" ) {
 		var sql          = "insert into #escapeEntity( arguments.tableName )# (";
 		var delim        = " ";
 		var rowdelim     = " (";
@@ -186,23 +192,29 @@ component {
 			delim = ", ";
 		}
 
-		sql &= " ) values";
+		sql &= " ) ";
 
-		for( i=1; i lte arguments.noOfRows; i++ ){
-			sql &= rowDelim;
-			rowDelim = " ), (";
-			if ( arguments.noOfRows gt 1 ){
-				paramPostFix = "_" & i;
+		if ( Len( Trim( arguments.selectStatement ) ) ) {
+			sql &= arguments.selectStatement;
+		} else {
+			sql &= "values";
+
+			for( i=1; i lte arguments.noOfRows; i++ ){
+				sql &= rowDelim;
+				rowDelim = " ), (";
+				if ( arguments.noOfRows gt 1 ){
+					paramPostFix = "_" & i;
+				}
+
+				delim = " ";
+				for( col in arguments.insertColumns ){
+					sql &= delim & ":" & col & paramPostFix;
+					delim = ", ";
+				}
 			}
 
-			delim = " ";
-			for( col in arguments.insertColumns ){
-				sql &= delim & ":" & col & paramPostFix;
-				delim = ", ";
-			}
+			sql &= " )";
 		}
-
-		sql &= " )";
 
 		return [ sql ];
 	}
@@ -211,12 +223,14 @@ component {
 		  required string  tableName
 		, required array   selectColumns
 		,          any     filter        = {}
+		,          string  having        = ""
 		,          string  orderBy       = ""
 		,          string  groupBy       = ""
 		,          string  tableAlias    = ""
 		,          array   joins         = []
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
+		,          boolean distinct      = false
 
 	) {
 		return "getSelectSql() not implemented. Must be implemented by extended adapters.";
@@ -233,7 +247,16 @@ component {
 		for( join in arguments.joins ){
 			param name="join.tableAlias" default="";
 
-			for( requiredCol in ["tableName","tableColumn","joinToTable","joinToColumn"] ) {
+			if ( Len( join.subQuery ?: "" ) ) {
+				join.escapedJoinTable = "( " & join.subQuery & " )";
+				join.tableName   = join.subQuery;
+				join.tableAlias  = join.subQueryAlias ?: NullValue();
+				join.tableColumn = join.subQueryColumn ?: NullValue();
+			} else {
+				join.escapedJoinTable = escapeEntity( join.tableName ?: "" );
+			}
+
+			for( requiredCol in [ "tableName","tableColumn","joinToTable","joinToColumn" ] ) {
 				if ( not StructKeyExists( join, requiredCol ) ){
 					throw( type="MySqlAdapter.missingJoinParams", detail="[#requiredCol#] was not supplied", message="Missing param in supplied join. Required params are [tableName], [tableColumn], [joinToTable] and [joinToColumn]" );
 				}
@@ -246,7 +269,7 @@ component {
 
 		}
 		for( join in arguments.joins ){
-			sql &= " " & ( join.type eq "left" ? "left" : "inner" ) & " join " & escapeEntity( join.tableName );
+			sql &= " " & ( join.type eq "left" ? "left" : "inner" ) & " join " & join.escapedJoinTable;
 			if ( Len( join.tableAlias ) ) {
 				sql &= " " & escapeEntity( join.tableAlias );
 				sql &= " on (" & escapeEntity( join.tableAlias ) & "." & escapeEntity( join.tableColumn );
@@ -277,7 +300,11 @@ component {
 		var dottedSqlParamRegex = "([$\s]:[a-zA-Z_][a-zA-Z0-9_]*)[\.\$]([a-zA-Z_][a-zA-Z0-9_]*([\s\),]|$))";
 
 		if ( IsSimpleValue( arguments.filter ) ) {
-			return delim & " " & ReReplace( arguments.filter, dottedSqlParamRegex, "\1__\2", "all" );
+			if ( Len( Trim( arguments.filter ) ) ) {
+				return delim & " " & ReReplace( arguments.filter, dottedSqlParamRegex, "\1__\2", "all" );
+			}
+
+			return "";
 		}
 
 		filterKeys = StructKeyArray( arguments.filter );
@@ -376,6 +403,9 @@ component {
 			case "timestamp":
 				return "cf_sql_timestamp";
 
+			case "time":
+				return "cf_sql_time";
+
 			case "tinyint unsigned":
 				return "cf_sql_tinyint";
 
@@ -433,12 +463,28 @@ component {
 	public boolean function supportsRenameInAlterColumnStatement() {
 		return true;
 	}
-	
+
 	public boolean function supportsCascadeUpdateDelete() {
 		return true;
 	}
 
+	public boolean function autoCreatesFkIndexes(){
+		return false;
+	}
+
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
 		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";
+	}
+
+	public string function getCountSql( required string originalStatement ) {
+		return "select count(1) as #EscapeEntity( 'record_count' )# from ( #arguments.originalStatement# ) #EscapeEntity( 'original_statement' )#";
+	}
+
+	public string function getDatabaseNameSql() {
+		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getDatabaseNameSql method." );
+	}
+
+	public string function getAllForeignKeysSql( required string database ) {
+		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getAllForeignKeysSql method." );
 	}
 }

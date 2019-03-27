@@ -7,14 +7,14 @@
 	isTopicForm = Len( Trim( rc.topic ?: "" ) );
 	if ( isTopicForm ) {
 		savedSubscription = prc.subscription ?: {};
-		formAction = event.buildAdminLink( linkTo='notifications.saveTopicPreferencesAction' )
+		formAction = event.buildAdminLink( linkTo='notifications.saveTopicPreferencesAction' );
 	} else {
 		formAction = event.buildAdminLink( linkTo='notifications.savePreferencesAction' );
 	}
 </cfscript>
 
 <cfoutput>
-	<div class="tabbable">
+	<div class="tabbable tabs-left">
 		<ul class="nav nav-tabs">
 			<li<cfif activeTab eq "general"> class="active"</cfif>>
 				<cfset link = activeTab eq "general" ? "##" : event.buildAdminLink( linkTo="notifications.preferences" ) />

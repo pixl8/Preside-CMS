@@ -3,7 +3,6 @@ component {
 	property name="formBuilderService"           inject="formBuilderService";
 	property name="formBuilderValidationService" inject="formBuilderValidationService";
 	property name="validationEngine"             inject="validationEngine";
-	property name="storageProvider" 			 inject="formBuilderStorageProvider";
 
 	public any function submitAction( event, rc, prc ) {
 		var formId       = rc.form ?: "";
@@ -19,6 +18,7 @@ component {
 			, requestData = submission
 			, instanceId  = ( rc.instanceId ?: "" )
 		);
+
 
 		if ( event.isAjax() ) {
 			if ( validationResult.validated() ) {

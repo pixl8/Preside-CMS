@@ -1,4 +1,4 @@
-component implements="iRouteHandler" output=false singleton=true {
+component implements="iRouteHandler" singleton=true {
 
 // constructor
 	/**
@@ -16,7 +16,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public void function translate( required string path, required any event ) output=false {
-		var storagePath     = ToString( ToBinary( ReReplace( arguments.path, "^/file/(.*?)/.*$", "\1" ) ) );
+		var storagePath     = ToString( ToBinary( ReReplace( UrlDecode( arguments.path ), "^/file/(.*?)/.*$", "\1" ) ), "UTF-8" );
 		var storageProvider = ListFirst( storagePath, "/" );
 		var filename        = ListLen( storagePath, "|" ) > 1 ? ListRest( storagePath, "|" ) : ListLast( storagePath, "/" );
 		var derivativeId = "";
@@ -45,9 +45,9 @@ component implements="iRouteHandler" output=false singleton=true {
 			path &= "|" & buildArgs.filename;
 		}
 
-		var link = "/file/#ToBase64( path )#/";
+		var link = "/file/#ToBase64( path, "UTF-8" )#/";
 
-		return event.getSiteUrl() & link;
+		return event.getSiteUrl( includeLanguageSlug=false ) & link;
 	}
 
 // private getters and setters

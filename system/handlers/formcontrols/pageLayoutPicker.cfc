@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="pageTypesService" inject="pageTypesService";
 
@@ -28,7 +28,7 @@ component output=false {
 		}
 
 		args.layouts.sort( function( valueA, valueB ){
-			return valueA.label == valueB.label ? 0 : ( valueA.label > valueB.label ? 1 : -1 );
+			return valueA.label == "index" ? 1 : ( valueA.label > valueB.label ? 1 : -1 );
 		} );
 
 

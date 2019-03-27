@@ -6,6 +6,7 @@
 	defaultValue       		= args.defaultValue     			?: "";
 	multiple           		= args.multiple         			?: false;
 	sortable           		= args.sortable         			?: "";
+	deselectable            = args.deselectable                 ?: true;
 	extraClasses       		= args.extraClasses     			?: "";
 	values             		= args.values                		?: "";
 	addMissingValues   		= IsTrue( args.addMissingValues 	?: "" );
@@ -20,6 +21,10 @@
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
+	
+	if ( !deselectable ) {
+		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
+	}
 
 	value = HtmlEditFormat( value );
 	valueFound = false;
@@ -33,6 +38,7 @@
 	        data-placeholder="#translateResource( uri=placeholder, defaultValue=placeholder )#"
 	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 	        data-value="#value#"
+	        data-display-limit="0"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
 	        </cfif>

@@ -9,12 +9,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 		describe( "renderView()", function(){
 
-			it( "shouldFetchDataFromPresideObjectServiceWithFieldListDerivedFromView", function(){
+			it( "should fetch data from preside object service with field list derived from view", function(){
 				var svc = _getPresideObjectViewService( [ viewFolders[1] ] );
 				var log = "";
 				var expectedArguments = {
 					  objectName   = "object_b"
 					, selectFields = [ "label as title", "object_b.datecreated as datecreated", "object_b.id as _id" ]
+					, autoGroupBy  = true
 				};
 
 				mockPresideObjectService.$( "selectData", QueryNew('') );
@@ -31,7 +32,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( log[1].selectFields ?: "" ).toBe( expectedArguments.selectFields );
 			} );
 
-			it( "shouldForwardAllRelevantArgumentsPassedToTheSelectDataCall_soThatWeCanPassInFiltersAndSortOrdersEtc", function(){
+			it( "should forward all relevant arguments passed to the select data call so that we can pass in filters and sort order, etc.", function(){
 				var svc = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
 				var log = "";
 				var passedArgs = {
@@ -43,14 +44,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					, anything      = "really"
 				}
 				var expectedArguments = {
-					  objectName   = "object_b"
-					, selectFields = [ "label as title", "object_e.label as category", "object_b.datecreated as datecreated", "object_b.id as _id" ]
-					, sortBy = "this"
-					, filter = "fubar = :this"
-					, filterArgs = { this = "is a test" }
-					, anything = "really"
-					, returnType = "string"
-					, args       = {}
+					  objectName         = "object_b"
+					, selectFields       = [ "label as title", "object_e.label as category", "object_b.datecreated as datecreated", "object_b.id as _id" ]
+					, sortBy             = "this"
+					, filter             = "fubar = :this"
+					, filterArgs         = { this = "is a test" }
+					, anything           = "really"
+					, returnType         = "string"
+					, args               = {}
+					, allowDraftVersions = false
+					, autoGroupBy        = true
 				};
 				var actualForwardedArgs = "";
 				var expectedArgumemntNames = StructKeyArray( expectedArguments );
@@ -78,7 +81,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				}
 			} );
 
-			it( "shouldRenderEachRecordIndividually", function(){
+			it( "should render each record individually", function(){
 				var svc            = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
 				var expectedResult = "1-two-thr33";
 				var actualResult   = "";
@@ -119,9 +122,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 	private any function _getPresideObjectViewService( folders ) {
 		mockPresideObjectService = createMock( "preside.system.services.presideObjects.presideObjectViewService" );
 		mockRendererService      = createMock( "preside.system.services.rendering.ContentRendererService" );
-		mockRendererPlugin       = createMock( "preside.system.coldboxModifications.plugins.Renderer" );
+		mockRendererPlugin       = createMock( "preside.system.coldboxModifications.services.Renderer" );
+		mockColdbox              = createEmptyMock( "preside.system.coldboxModifications.Controller" );
+		mockRequestContext       = createStub();
 
-		return new preside.system.services.presideObjects.presideObjectViewService(
+		var service = new preside.system.services.presideObjects.presideObjectViewService(
 			  viewDirectories        = folders
 			, presideObjectService   = mockPresideObjectService
 			, presideContentRenderer = mockRendererService
@@ -129,5 +134,15 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			, cacheProvider          = _getCachebox().getDefaultCache()
 			, cacheBox               = _getCachebox()
 		);
+
+		service = createMock( object=service );
+		service.$( "$isAdminUserLoggedIn", false );
+		service.$( "$getColdbox", mockColdbox );
+		service.$( "$getRequestContext", mockRequestContext );
+		service.$( "_getVersioningArgsForSelectData", {} );
+
+		mockRequestContext.$( "showNonLiveContent", false );
+
+		return service;
 	}
 }

@@ -25,7 +25,7 @@ component {
 	 * Returns configuration struct for the given item type
 	 *
 	 * @autodoc
-	 * @itemType.hint the item type who's configuration you wish to retrieve
+	 * @itemType.hint the item type whose configuration you wish to retrieve
 	 */
 	public struct function getItemTypeConfig( required string itemType ) {
 		var cachedConfigurations = _getCachedItemTypeConfiguration();
@@ -141,7 +141,7 @@ component {
 	 * no configuration exists.
 	 *
 	 * @autodoc
-	 * @itemType.hint The item type who's config form name you wish to retrieve
+	 * @itemType.hint The item type whose config form name you wish to retrieve
 	 *
 	 */
 	public string function getConfigFormNameForItemType( required string itemType ) {
@@ -150,7 +150,9 @@ component {
 		return itemTypeConfig.configFormName ?: "";
 	}
 
-
+	public void function clearCachedItemTypeConfig() {
+		_setCachedItemTypeConfiguration( {} );
+	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTypesAndCategories() {

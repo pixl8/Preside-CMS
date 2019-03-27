@@ -108,6 +108,47 @@ component extends="testbox.system.BaseSpec"{
 				expect( formItems[ 1 ].configuration ).toBe( expectedResult );
 			} );
 
+			it( "should filter by item types when item types configuration supplied", function(){
+				var service        = getService();
+				var formId         = CreateUUId();
+				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
+					  [ "item1", "typea", "{}" ]
+					, [ "item2", "typeb", "{}" ]
+					, [ "item3", "typeb", "{}" ]
+					, [ "item4", "typeb", "{}" ]
+					, [ "item5", "typea", "{}" ]
+					, [ "item6", "typea", "{}" ]
+					, [ "item7", "typec", "{}" ]
+				] );
+				var types = {
+					  a = { test=true, something=CreateUUId() }
+					, b = { test=true, something=CreateUUId() }
+					, c = { test=true, something=CreateUUId() }
+				};
+				var expectedResult = [
+					  { id="item1", type=types.a, configuration={} }
+					, { id="item5", type=types.a, configuration={} }
+					, { id="item6", type=types.a, configuration={} }
+					, { id="item7", type=types.c, configuration={} }
+				];
+
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typeb" ).$results( types.b );
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typec" ).$results( types.c );
+
+				mockFormItemDao.$( "selectData" ).$args(
+					  filter       = { form=formId }
+					, orderBy      = "sort_order"
+					, selectFields = [
+						  "id"
+						, "item_type"
+						, "configuration"
+					  ]
+				).$results( dummyData );
+
+				expect( service.getFormItems( id=formId, itemtypes=[ "typea", "typec" ] ) ).toBe( expectedResult );
+			} );
+
 		} );
 
 		describe( "addItem", function(){
@@ -1061,6 +1102,56 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+		describe( "cloneForm", function(){
+			it( "It should return a new form id which cloned", function(){
+				var service       = getService();
+				var basedOnFormId = CreateUUId();
+				var name          = "name";
+				var description   = "description";
+				var form1          = QueryNew( 'id,label', 'varchar,varchar', [[basedOnFormId, "label"]] );
+				var cloneFormData = { name="name", label="label", description="description" };
+				var newFormId     = CreateUUId();
+
+				var types = {
+					  a = { test=true, id="something" }
+					, b = { test=true, id="something" }
+				};
+
+				var formItems = [
+					  { id="item1", type=types.a, configuration={} }
+					, { id="item2", type=types.b, configuration={} }
+					, { id="item3", type=types.b, configuration={} }
+					, { id="item4", type=types.b, configuration={} }
+					, { id="item5", type=types.a, configuration={} }
+					, { id="item6", type=types.a, configuration={} }
+					, { id="item7", type=types.b, configuration={} }
+				];
+
+				var formActions = [
+						{
+							  id=CreateUUId()
+							, configuration={ recipients="test@test.com", subject="Form1", send_from="test1@test1.com", itemType="email"}
+							, action={ id="email" }
+						}
+					];
+
+				service.$( "getForm" ).$args( id = basedOnFormId ).$results( form1 );
+				mockFormDao.$( "insertData" ).$args(data = cloneFormData).$results( newFormId );
+				service.$( "getFormItems" ).$args( id = basedOnFormId ).$results( formItems );
+				service.$( "addItem" ).$results( CreateUUId() );
+				mockActionsService.$( "getFormActions" ).$args( id=basedOnFormId ).$results( formActions );
+				mockActionsService.$( "addAction" ).$results( CreateUUId() );
+
+				expect(
+					service.cloneForm(
+						  basedOnFormId = basedOnFormId
+						, name          = name
+						, description  = description
+					)
+				).toBe( newFormId );
+
+			});
+		});
 	}
 
 	private function getService() {
@@ -1069,6 +1160,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockFormSubmissionDao            = CreateStub();
 		variables.mockColdbox                      = CreateStub();
 		variables.mockSpreadsheetLib               = CreateStub();
+		variables.justAStub                        = CreateStub();
 		variables.mockActionsService               = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderActionsService" );
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
@@ -1076,6 +1168,8 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockValidationEngine             = CreateEmptyMock( "preside.system.services.validation.ValidationEngine" );
 		variables.mockFormBuilderValidationService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderValidationService" );
 		variables.mockRecaptchaService             = CreateEmptyMock( "preside.system.services.formbuilder.RecaptchaService" );
+		variables.mockPresideObjectService         = CreateEmptyMock( "preside.system.services.presideObjects.presideObjectService" );
+		variables.mockRulesEngineFilterService     = CreateEmptyMock( "preside.system.services.rulesEngine.rulesEngineFilterService" );
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService(
 			  itemTypesService             = mockItemTypesService
@@ -1086,13 +1180,19 @@ component extends="testbox.system.BaseSpec"{
 			, validationEngine             = mockValidationEngine
 			, spreadsheetLib               = mockSpreadsheetLib
 			, recaptchaService             = mockRecaptchaService
+			, presideObjectService         = mockPresideObjectService
+			, rulesEngineFilterService     = mockRulesEngineFilterService
 		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
+		service.$( "$recordWebsiteUserAction", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
+		service.$( "$getRequestContext", justAStub );
+		justAStub.$( "getValue", {} );
+		justAStub.$( "setValue" );
 
 		mockRecaptchaService.$( "validate", true );
 

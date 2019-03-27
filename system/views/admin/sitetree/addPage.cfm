@@ -2,7 +2,7 @@
 	parentPage       = prc.parentPage      ?: QueryNew('');
 	mainFormName     = prc.mainFormName    ?: "";
 	mergeFormName    = prc.mergeFormName   ?: "";
-	validationResult = rc.validationResult ?: ""
+	validationResult = rc.validationResult ?: "";
 	formId           = "addForm-" & CreateUUId();
 	addPagePrompt    = translateResource( uri="preside-objects.page:addRecord.prompt", defaultValue="" );
 
@@ -13,7 +13,8 @@
 		prc.pageTitle    = translateResource( "cms:sitetree.addPage.title" );
 	}
 
-
+	canPublish   = IsTrue( prc.canPublish   ?: "" );
+	canSaveDraft = IsTrue( prc.canSaveDraft ?: "" );
 </cfscript>
 
 <cfoutput>
@@ -27,11 +28,14 @@
 		<input type="hidden" name="page_type"   value="#( rc.page_type   ?: '')#" />
 
 		#renderForm(
-			  formName          = mainFormName
-			, mergeWithFormName = mergeFormName
-			, context           = "admin"
-			, formId            = formId
-			, validationResult  = validationResult
+			  formName                = mainFormName
+			, mergeWithFormName       = mergeFormName
+			, context                 = "admin"
+			, formId                  = formId
+			, validationResult        = validationResult
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
 
 		<div class="form-actions row">
@@ -49,10 +53,16 @@
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>
 
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-check bigger-110"></i>
-					#translateResource( "cms:sitetree.addpage.btn" )#
-				</button>
+				<cfif canSaveDraft>
+					<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i> #translateResource( "cms:sitetree.addpage.draft.btn" )#
+					</button>
+				</cfif>
+				<cfif canPublish>
+					<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-globe bigger-110"></i> #translateResource( "cms:sitetree.addpage.btn" )#
+					</button>
+				</cfif>
 			</div>
 		</div>
 	</form>

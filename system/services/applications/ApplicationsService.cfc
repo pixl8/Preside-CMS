@@ -35,7 +35,7 @@ component {
 		for( var applicationId in allApplications ) {
 			var app            = allApplications[ applicationId ];
 			var featureEnabled = $isFeatureEnabled( app.feature );
-			var userHasAccess  = !limitByCurrentUser || !$isAdminUserLoggedIn() || $hasAdminPermission( app.accessPermission );
+			var userHasAccess  = !limitByCurrentUser || !$isAdminUserLoggedIn() || !Len( Trim( app.accessPermission ) ) || $hasAdminPermission( app.accessPermission );
 
 			if ( featureEnabled && userHasAccess ) {
 				activeApplications.append( applicationId );
@@ -62,7 +62,7 @@ component {
 	 * the homepage of the application.
 	 *
 	 * @autodoc
-	 * @applicationId.hint The ID of the application who's default event you wish to get. If not supplied, the default application will be used.
+	 * @applicationId.hint The ID of the application whose default event you wish to get. If not supplied, the default application will be used.
 	 *
 	 */
 	public string function getDefaultEvent( string applicationId=getDefaultApplication() ) {
@@ -76,7 +76,7 @@ component {
 	 * layout for the given application.
 	 *
 	 * @autodoc
-	 * @applicationId.hint The ID of the application who's layout you wish to get. If not supplied, the default application will be used.
+	 * @applicationId.hint The ID of the application whose layout you wish to get. If not supplied, the default application will be used.
 	 */
 	public string function getLayout( string applicationId=getDefaultApplication() ) {
 		var apps = _getConfiguredApplications();
@@ -99,7 +99,7 @@ component {
 			var app = configuredApplications[ applicationId ];
 
 			if ( arguments.event.reFindNoCase( app.activeEventPattern ) ) {
-				matches.append( { id=applicationId, patternAccuracy=app.activeEventPattern.len() } )
+				matches.append( { id=applicationId, patternAccuracy=app.activeEventPattern.len() } );
 			}
 		}
 

@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="siteTemplatesService" inject="siteTemplatesService";
 

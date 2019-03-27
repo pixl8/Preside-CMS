@@ -124,6 +124,7 @@ component extends="BaseAdapter" {
 				sql &= " on delete cascade";
 				break;
 			case 'cascade-if-no-cycle-check':
+			case 'set-null-if-no-cycle-check':
 			case 'no action':
 				sql &= " on delete no action";
 				break;
@@ -226,10 +227,10 @@ component extends="BaseAdapter" {
 		,          array   joins         = []
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
+		,          boolean distinct      = false
 
 	) {
-		var newGroupBy  = "";
-		var sql         = "select";
+		var sql         = arguments.distinct ? "select distinct" : "select";
 		var delim       = " ";
 		var col         = "";
 
@@ -237,21 +238,10 @@ component extends="BaseAdapter" {
 			sql &= delim & col;
 			delim = ", ";
 		}
-		if ( containsAggregateFunctions( sql ) ) {
-			delim = " ";
-			for( col in arguments.selectColumns ){
-				if ( !containsAggregateFunctions( col ) ) {
-					newGroupBy &= delim & REReplace(col, "as\s\w+", "", "one");
-					delim = ", ";
-				}
-			}
-		}
 
 		if ( arguments.maxRows ) {
 			if ( Len( Trim ( arguments.orderBy ) ) ) {
-				if ( !containsAggregateFunctions( sql ) ) {
-					sql &= ", row_number() over (order by " & arguments.orderBy & ") as _rownumber ";
-				}
+				sql &= ", row_number() over (order by " & arguments.orderBy & ") as _rownumber ";
 			} else {
 				sql &= ", row_number() over ( order by (SELECT 1) ) as _rownumber ";
 			}
@@ -274,11 +264,11 @@ component extends="BaseAdapter" {
 
 
 		if ( Len( Trim ( arguments.groupBy ) ) ) {
-			if ( containsAggregateFunctions( sql ) ) {
-				sql &= " group by " & newGroupBy;
-			} else {
-				sql = reCompileGroupByForMsSql( sql, arguments.selectColumns, arguments.groupBy, arguments.tableAlias );
-			}
+			sql &= " group by " & arguments.groupBy;
+		}
+
+		if ( Len( Trim ( arguments.having ) ) ) {
+			sql &= " having " & arguments.having;
 		}
 
 		if ( Len( Trim ( arguments.orderBy ) )  && !arguments.maxRows ) {
@@ -315,39 +305,6 @@ component extends="BaseAdapter" {
 		return "alter table #escapeEntity( arguments.tableName )# " & ( arguments.checksEnabled ? 'nocheck' : 'with check check' ) & " constraint all";
 	}
 
-	private string function reCompileGroupByForMsSql( string sql, array select, string groupBy, string tableAlias ) {
-		var sqlNonGroupBy      = arguments.sql;
-		var strNonGroupBy      = Replace( arguments.groupBy, "group by", "", "all" );
-		var arrColumnInGroupBy = ListToArray( strNonGroupBy, ", " );
-		var newSql             = "select";
-		var delim              = " ";
-		var col                = "";
-
-		for( col in arrColumnInGroupBy ){
-			newSql &= delim & col;
-			delim  = ", ";
-		}
-
-		newSql = REReplace( arguments.sql, "select.*?from", newSql & " from ", "one" );
-		newSql = " , ( " & newSql & " group by "  & strNonGroupBy & " ) as Temp ";
-		delim = " ";
-
-		if ( FindNoCase( "where", sqlNonGroupBy, 1 ) > 0 ) {
-			newSql = Replace( sqlNonGroupBy, "where", newSql & " where ", "one" );
-			for( col in arrColumnInGroupBy) {
-				newSql &=" and " & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
-			}
-		} else {
-			newSql &= " where ";
-			for( col in arrColumnInGroupBy ) {
-				newSql &= delim & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
-				delim = " and ";
-			}
-		}
-
-		return newSql;
-	}
-
 	private boolean function containsAggregateFunctions( required string sql ) {
 		return ReFindNoCase( "\b(SUM|COUNT|AVG|MIN|MAX)\(", arguments.sql );
 	}
@@ -357,7 +314,7 @@ component extends="BaseAdapter" {
 	}
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
-		return "#leftExpression# + #rightExpression#";
+		return "Cast( #leftExpression# as nvarchar( MAX ) ) + Cast( #rightExpression# as nvarchar( MAX ) )";
 	}
 
 
@@ -378,5 +335,40 @@ component extends="BaseAdapter" {
 
 	public string function getNowFunctionSql() {
 		return "GetDate()";
+	}
+
+	public string function getIndexSql(
+		  required string  indexName
+		, required string  tableName
+		, required string  fieldList
+		,          boolean unique=false
+
+	) {
+		var ix = super.getIndexSql( argumentCollection=arguments );
+
+		if ( arguments.unique ) {
+			var delim = " where ";
+			for( var field in ListToArray( arguments.fieldList ) ) {
+				ix &= delim & escapeEntity( field ) & " is not null";
+				delim = " and ";
+			}
+		}
+
+		return ix;
+	}
+
+	public string function getDatabaseNameSql() {
+		return "select db_name() as db";
+	}
+
+	public string function getAllForeignKeysSql() {
+		return "select     object_name( f.parent_object_id )                            as table_name
+	                     , col_name( fc.parent_object_id, fc.parent_column_id )         as column_name
+	                     , object_name ( f.referenced_object_id )                       as referenced_table_name
+	                     , col_name( fc.referenced_object_id, fc.referenced_column_id ) as referenced_column_name
+	                     , f.name as constraint_name
+	            from       sys.foreign_keys        as f
+	            inner join sys.foreign_key_columns as fc on f.object_id = fc.constraint_object_id
+	            inner join sys.objects             as o  on o.object_id = fc.referenced_object_id";
 	}
 }

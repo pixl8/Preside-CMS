@@ -1,6 +1,7 @@
 ( function( $ ){
 
-	$(".object-picker").presideObjectPicker();
+    $(".object-picker").presideObjectPicker();
+	$(".object-configurator").presideObjectConfigurator();
 	$(".asset-picker").uberAssetSelect();
 	$(".image-dimension-picker").imageDimensionPicker();
 
@@ -9,7 +10,7 @@
 		  , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
 
 		$basedOn.keyup( function(e){
-			var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).toLowerCase();
+			var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).replace( /^-/, "" ).replace( /-$/, "" ).toLowerCase();
 
 			$this.val( slug );
 		} );
@@ -30,38 +31,22 @@
 
 	$('[data-rel=popover]').popover({container:'body'});
 
-	$('.datetimepicker').datetimepicker({
-		icons: {
-            time:     'fa fa-clock-o',
-            date:     'fa fa-calendar',
-            up:       'fa fa-chevron-up',
-            down:     'fa fa-chevron-down',
-            previous: 'fa fa-chevron-left',
-            next:     'fa fa-chevron-right',
-            today:    'fa fa-screenshot',
-            clear:    'fa fa-trash'
-        },
-
-        format: 'YYYY-MM-DD HH:mm',
-
-        sideBySide:true
-	});
-
-	$('.timepicker').datetimepicker({
-		icons: {
-            time:     'fa fa-clock-o',
-            date:     'fa fa-calendar',
-            up:       'fa fa-chevron-up',
-            down:     'fa fa-chevron-down',
-            previous: 'fa fa-chevron-left',
-            next:     'fa fa-chevron-right',
-            today:    'fa fa-screenshot',
-            clear:    'fa fa-trash'
-        },
-
-        format: 'HH:mm',
-
-        sideBySide:true
+	$('.timepicker').each( function(){
+        $( this ).datetimepicker({
+    		icons: {
+                time:     'fa fa-clock-o',
+                date:     'fa fa-calendar',
+                up:       'fa fa-chevron-up',
+                down:     'fa fa-chevron-down',
+                previous: 'fa fa-chevron-left',
+                next:     'fa fa-chevron-right',
+                today:    'fa fa-screenshot',
+                clear:    'fa fa-trash'
+            },
+            format: 'HH:mm',
+            sideBySide:true,
+            locale: ( $(this).data( "language" ) || "en" )
+        });
 	});
 
     $(".derivative-select-option").each( function(){

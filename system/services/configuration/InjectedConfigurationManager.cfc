@@ -1,8 +1,8 @@
 /**
  * The injected configuration manager allows configuration to be injected intois designed to work with
- * PresideCMS through the use of environment variables.
- * In addition, the service will attempt to pull configuration from  the PresideCMS Server Manager
- * (which is not part of the core PresideCMS engine - Contact Pixl8 for more details)
+ * Preside through the use of environment variables.
+ * In addition, the service will attempt to pull configuration from  the Preside Server Manager
+ * (which is not part of the core Preside engine - Contact Pixl8 for more details)
  *
  * @autodoc
  * @singleton
@@ -92,7 +92,7 @@ component {
 	private string function _getEnvironmentVariable( required string variableName ) {
 		var result = CreateObject("java", "java.lang.System").getenv().get( arguments.variableName );
 
-		return IsNull( result ) ? "" : result;
+		return IsNull( local.result ) ? "" : result;
 	}
 
 // getters and setters

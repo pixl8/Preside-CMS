@@ -257,7 +257,7 @@
 			  url                          : $form.attr( "action" )
 			, thumbnailWidth               : 50
 			, thumbnailHeight              : 50
-			, parallelUploads              : 50
+			, parallelUploads              : cfrequest.parallelUploads || 5
 			, autoQueue                    : false
 			, clickable                    : ".choose-files-trigger"
 			, maxFilesize                  : cfrequest.maxFileSize || 100

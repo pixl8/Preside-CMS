@@ -2028,7 +2028,7 @@ pre.prettyprint {
 }
 .nav-list > li > a {
   display: block;
-  height: 39px;
+  min-height: 39px;
   line-height: 17px;
   padding-left: 7px;
   text-shadow: none !important;
@@ -14276,7 +14276,7 @@ ul.attachment-list > li {
 }
 .timeline-item {
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 30px;
 }
 .timeline-item .widget-box {
   background-color: #F2F6F9;
@@ -14292,15 +14292,8 @@ ul.attachment-list > li {
 .timeline-item .transparent .widget-header > .widget-title {
   margin-left: 8px;
 }
-.timeline-item:nth-child(even) .widget-box {
-  background-color: #F3F3F3;
-  color: #616161;
-}
-.timeline-item:nth-child(even) .widget-box.transparent {
-  border-left-color: #DBDBDB !important;
-}
-.timeline-item:nth-child(even) .widget-box.transparent .widget-header {
-  background-color: #EEE !important;
+.timeline-item .transparent .widget-header > .widget-title > .fa {
+  margin-right: 0;
 }
 .timeline-item .widget-box {
   margin: 0;
@@ -14329,10 +14322,6 @@ ul.attachment-list > li {
   text-align: center;
   position: relative;
 }
-.timeline-info img {
-  border-radius: 100%;
-  max-width: 42px;
-}
 .timeline-info .label,
 .timeline-info .badge {
   font-size: 12px;
@@ -14357,10 +14346,12 @@ ul.attachment-list > li {
   margin: 0 0 18px;
   margin-left: 34px;
 }
-.timeline-item img {
+.timeline-info img {
   border: 1px solid #AAA;
   padding: 2px;
   background-color: #FFF;
+  border-radius: 100%;
+  max-width: 42px;
 }
 .timeline-style2:before {
   display: none;
@@ -15068,7 +15059,7 @@ div.dataTables_processing {
   content: "\f00d";
   display: inline-block;
   color: #888;
-  font-family: FontAwesome;
+  font-family: PresideFontAwesome;
   font-size: 13px;
   position: absolute;
   right: 2px;
@@ -17523,7 +17514,7 @@ th[aria-selected=true] .ui-jqgrid-sortable {
   margin: 0 1px;
 }
 .ui-pg-div .ui-icon:before {
-  font-family: FontAwesome;
+  font-family: PresideFontAwesome;
   display: inline;
 }
 .ui-jqgrid .ui-icon-pencil {
@@ -18274,7 +18265,7 @@ input.typeahead.scrollable ~ .tt-menu {
 .star-half-png {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  font-family: "FontAwesome";
+  font-family: "PresideFontAwesome";
   font-style: normal;
   font-variant: normal;
   font-weight: normal;

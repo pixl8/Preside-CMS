@@ -1,7 +1,7 @@
 <cfscript>
-	objectName          = "website_benefit"
+	objectName          = "website_benefit";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
+	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
 	prioritizeBtn       = translateResource( uri="cms:websitebenefitsmanager.prioritize.btn" );
 
 	prc.pageIcon     = "unlock";
@@ -36,5 +36,7 @@
 		, multiActionUrl  = event.buildAdminLink( linkTo='websiteBenefitsManager.deleteBenefitAction' )
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteBenefitsManager.getBenefitsForAjaxDataTables" )
 		, gridFields      = [ "label", "priority", "description" ]
+		, allowDataExport = true
+		, dataExportUrl   = event.buildAdminLink( linkTo="websiteBenefitsManager.exportAction" )
 	} )#
 </cfoutput>

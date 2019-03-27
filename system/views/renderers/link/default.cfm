@@ -1,11 +1,11 @@
 <cfscript>
-	param name="args.href"   type="string" default="";
-	param name="args.title"  type="string" default="";
-	param name="args.body"   type="string" default="";
-	param name="args.target" type="string" default="";
-	param name="args.style"  type="string" default="";
-	param name="args.class"  type="string" default="";
-
+	param name="args.href"     type="string"  default="";
+	param name="args.title"    type="string"  default="";
+	param name="args.body"     type="string"  default="";
+	param name="args.target"   type="string"  default="";
+	param name="args.style"    type="string"  default="";
+	param name="args.class"    type="string"  default="";
+	param name="args.nofollow" type="boolean" default=false;
 
 	anchorTag = 'href="#args.href#"';
 
@@ -20,6 +20,9 @@
 	}
 	if ( Len( Trim( args.target ) ) && args.target != "_self" ) {
 		anchorTag &= ' target="#args.target#"';
+	}
+	if ( args.noFollow ) {
+		anchorTag &= ' rel="nofollow"';
 	}
 </cfscript>
 

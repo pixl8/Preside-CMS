@@ -1,12 +1,13 @@
 <cfscript>
-	inputName    = args.name         ?: "";
-	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
-	placeholder  = args.placeholder  ?: "";
-	defaultValue = args.defaultValue ?: "";
-	extraClasses = args.extraClasses ?: "";
-	stylesheets  = args.stylesheets ?: "";
-	maxLength    = Val( args.maxLength ?: 0 );
+	inputName     = args.name          ?: "";
+	inputId       = args.id            ?: "";
+	inputClass    = args.class         ?: "";
+	placeholder   = args.placeholder   ?: "";
+	defaultValue  = args.defaultValue  ?: "";
+	extraClasses  = args.extraClasses  ?: "";
+	stylesheets   = args.stylesheets   ?: "";
+	widgetCategories = args.widgetCategories ?: "";
+	maxLength     = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -28,6 +29,12 @@
 	          <cfif Len( Trim( args.customConfig ?: "" ) )>
 	              data-custom-config="#Trim( args.customConfig )#"
 	          </cfif>
+	          <cfif Len( Trim( args.autoParagraph ?: "" ) )>
+	              data-auto-paragraph="#isTrue( args.autoParagraph )#"
+	          </cfif>
+	          <cfif Len( Trim( args.enterMode ?: "" ) )>
+	              data-enter-mode="#Trim( args.enterMode )#"
+	          </cfif>
 	          <cfif Len( Trim( args.stylesheets ?: "" ) )>
 	              data-stylesheets="#Trim( args.stylesheets )#"
 	          </cfif>
@@ -39,6 +46,9 @@
 	          </cfif>
 	          <cfif Val( args.maxHeight ?: "" )>
 	              data-max-height="#Val( args.maxHeight )#"
+	          </cfif>
+	          <cfif Len( Trim( widgetCategories ) )>
+	              data-widget-categories="#Trim( widgetCategories )#"
 	          </cfif>
 
 	>#value#</textarea>

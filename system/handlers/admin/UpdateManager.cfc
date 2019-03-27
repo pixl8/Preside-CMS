@@ -1,7 +1,7 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="updateManagerService" inject="updateManagerService";
-	property name="messageBox"           inject="coldbox:plugin:messageBox";
+	property name="messageBox"           inject="messagebox@cbmessagebox";
 
 
 // LIFECYCLE EVENTS
@@ -106,8 +106,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 			messageBox.error( translateResource( uri="cms:updatemanager.install.version.not.found.error", data=[ rc.version ?: "" ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 
-		} catch( "UpdateManagerService.railo.admin.secured" e ) {
-			messageBox.error( translateResource( uri="cms:updatemanager.install.railo.admin.access.denied", data=[ rc.version ?: "" ] ) );
+		} catch( "UpdateManagerService.lucee.admin.secured" e ) {
+			messageBox.error( translateResource( uri="cms:updatemanager.install.lucee.admin.access.denied", data=[ rc.version ?: "" ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 
 		} catch( "presidecms.auto.schema.sync.disabled" exception ) {

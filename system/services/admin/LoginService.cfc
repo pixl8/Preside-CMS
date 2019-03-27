@@ -11,11 +11,12 @@ component displayName="Admin login service" {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject      coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject      sessionStorage
 	 * @bCryptService.inject       BCryptService
 	 * @systemUserList.inject      coldbox:setting:system_users
 	 * @userDao.inject             presidecms:object:security_user
 	 * @emailService.inject        emailService
+	 * @cookieService.inject       cookieService
 	 * @googleAuthenticator.inject googleAuthenticator
 	 * @qrCodeGenerator.inject     qrCodeGenerator
 	 */
@@ -25,6 +26,7 @@ component displayName="Admin login service" {
 		, required string systemUserList
 		, required any    userDao
 		, required any    emailService
+		, required any    cookieService
 		, required any    googleAuthenticator
 		, required any    qrCodeGenerator
 		,          string sessionKey      = "admin_user"
@@ -38,7 +40,9 @@ component displayName="Admin login service" {
 		_setTwoFaSessionKey( arguments.twoFaSessionKey );
 		_setGoogleAuthenticator( arguments.googleAuthenticator );
 		_setEmailService( arguments.emailService );
-		_setQrCodeGenerator( arguments.qrCodeGenerator )
+		_setCookieService( arguments.cookieService );
+		_setQrCodeGenerator( arguments.qrCodeGenerator );
+		_setRememberMeCookieKey( "_presidecms-admin-persist" );
 
 		return this;
 	}
@@ -54,13 +58,30 @@ component displayName="Admin login service" {
 	 * @password.hint User provided password
 	 *
 	 */
-	public boolean function login( required string loginId, required string password ) {
+	public boolean function login(
+		  required string  loginId
+		, required string  password
+		,          boolean rememberLogin        = false
+		,          numeric rememberExpiryInDays = 9
+		,          boolean skipPasswordCheck    = false
+	) {
 		var usr = _getUserByLoginId( arguments.loginId );
-		var success = usr.recordCount and _getBCryptService().checkPw( arguments.password, usr.password );
+		var success = usr.recordCount && ( arguments.skipPasswordCheck || _getBCryptService().checkPw( arguments.password, usr.password ) );
 
 		if ( success ) {
 			_persistUserSession( usr );
 			recordLogin();
+
+			if ( arguments.rememberLogin ) {
+				_setRememberMeCookie( userId=usr.id, loginId=usr.login_id, expiry=arguments.rememberExpiryInDays );
+			}
+		} else if ( usr.recordCount ) {
+			$audit(
+				  userId   = usr.id
+				, source   = "login"
+				, action   = "login_failure"
+				, type     = "user"
+			);
 		}
 
 		return success;
@@ -95,6 +116,7 @@ component displayName="Admin login service" {
 		if ( isLoggedIn() ) {
 			recordLogout();
 			_destroyUserSession();
+			_deleteRememberMeCookie();
 		}
 	}
 
@@ -106,7 +128,7 @@ component displayName="Admin login service" {
 	 * @autodoc
 	 */
 	public boolean function isLoggedIn() {
-		return _getSessionStorage().exists( name=_getSessionKey() );
+		return _getSessionStorage().exists( name=_getSessionKey() ) || _autoLogin();
 	}
 
 	/**
@@ -189,16 +211,49 @@ component displayName="Admin login service" {
 	}
 
 	public boolean function isUserDatabaseNotConfigured() {
-		var user = _getUserDao().selectData( selectFields=[ "login_id", "password" ], maxRows=2 );
+		var systemUserid = getSystemUserId();
+		var user         = _getUserDao().selectData( selectFields=[ "id", "password" ], maxRows=2 );
 
-		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.login_id == ListFirst( _getSystemUserList() );
+		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.id == systemUserid;
 	}
 
 	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) {
-		return _getUserDao().updateData( id=getSystemUserId(), data={
+		var userId = getSystemUserId();
+		var result = _getUserDao().updateData( id=getSystemUserId(), data={
 			  email_address = arguments.emailAddress
 			, password      = _getBCryptService().hashPw( arguments.password )
 		} );
+
+		$audit(
+			  userId   = userId
+			, source   = "login"
+			, action   = "firsttime_setup"
+			, type     = "user"
+		);
+
+		return result;
+	}
+
+	public boolean function isShowNonLiveEnabled() {
+		if ( isLoggedIn() ) {
+			var showDrafts = _getSessionStorage().getVar( name="_presideAdminShowNonLiveContent", default="" );
+
+			if ( IsBoolean( showDrafts ) ) {
+				return showDrafts;
+			}
+
+			showDrafts = $getColdbox().getSetting( name="showNonLiveContentByDefault", defaultValue="" );
+
+			return IsBoolean( showDrafts ) ? showDrafts : true;
+		}
+
+		return false;
+	}
+
+	public void function toggleShowNonLiveContent() {
+		if ( isLoggedIn() ) {
+			_getSessionStorage().setVar( name="_presideAdminShowNonLiveContent", value=!isShowNonLiveEnabled() );
+		}
 	}
 
 	/**
@@ -214,15 +269,45 @@ component displayName="Admin login service" {
 			var tokenInfo = createLoginResetToken( userRecord.id );
 
 			_getEmailService().send(
-				  template = "resetCMSPassword"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#", expires=tokenInfo.resetExpiry, username=userRecord.known_as }
+				  template    = "resetCMSPassword"
+				, recipientId = userRecord.id
+				, args        = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#" }
+			);
+
+			$audit(
+				  userId   = userRecord.id
+				, source   = "login"
+				, action   = "password_reset_instructions_sent"
+				, type     = "user"
 			);
 
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * @autodoc
+	 * Resends new token to expired token and reminds them the token is expired
+	 */
+	public boolean function resendPasswordResetInstructions( required string userId ) {
+		var tokenInfo = createLoginResetToken( arguments.userId );
+
+		_getEmailService().send(
+			  template    = "resetCmsPasswordForTokenExpiry"
+			, recipientId = arguments.userId
+			, args        = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#" }
+		);
+
+		$audit(
+			  userId   = arguments.userId
+			, source   = "login"
+			, action   = "password_reset_instructions_sent"
+			, type     = "user"
+		);
+
+		return true;
 	}
 
 	/**
@@ -239,16 +324,22 @@ component displayName="Admin login service" {
 			var tokenInfo = createLoginResetToken( userRecord.id );
 
 			_getEmailService().send(
-				  template = "cmsWelcome"
-				, to       = [ "#(userRecord.known_as ?: '')# <#(userRecord.email_address ?: '')#>" ]
-				, args     = {
+				  template    = "cmsWelcome"
+				, recipientId = arguments.userId
+				, args        = {
 					  resetToken     = "#tokenInfo.resetToken#-#tokenInfo.resetKey#"
 					, expires        = tokenInfo.resetExpiry
-					, username       = userRecord.known_as
 					, welcomeMessage = arguments.welcomeMessage
 					, createdBy      = arguments.createdBy
-					, loginId        = userRecord.login_id
 				}
+			);
+
+			$audit(
+				  userId = userRecord.id
+				, source = "login"
+				, action = "welcome_email_sent"
+				, type   = "user"
+				, detail = { message = arguments.welcomeMessage, createdBy=arguments.createdBy }
 			);
 
 			return true;
@@ -308,11 +399,19 @@ component displayName="Admin login service" {
 
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
-
-			return _getUserDao().updateData(
+			var updated  = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			$audit(
+				  userId   = record.id
+				, source   = "reset_password"
+				, action   = "reset_password_success"
+				, type     = "user"
+			);
+
+			return updated;
 		}
 		return false;
 	}
@@ -324,6 +423,13 @@ component displayName="Admin login service" {
 	 */
 	public boolean function recordLogin() {
 		var userId = getLoggedInUserId();
+
+		$audit(
+			  userId   = userId
+			, source   = "login"
+			, action   = "login_success"
+			, type     = "user"
+		);
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
 			last_logged_in = Now()
@@ -338,6 +444,13 @@ component displayName="Admin login service" {
 	 */
 	public boolean function recordLogout() {
 		var userId = getLoggedInUserId();
+
+		$audit(
+			  userId   = userId
+			, source   = "logout"
+			, action   = "logout_success"
+			, type     = "user"
+		);
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
 			last_logged_out = Now()
@@ -379,9 +492,9 @@ component displayName="Admin login service" {
 			return false;
 		}
 
-		var configuration = $getPresideCategorySettings( "two-factor-auth" );
-		var adminEnabled  = IsBoolean( configuration.admin_enabled  ?: "" ) && configuration.admin_enabled;
-		var adminEnforced = IsBoolean( configuration.admin_enforced ?: "" ) && configuration.admin_enforced;
+		var configuration = $getPresideCategorySettings( "admin-login-security" );
+		var adminEnabled  = IsBoolean( configuration.tfa_enabled  ?: "" ) && configuration.tfa_enabled;
+		var adminEnforced = IsBoolean( configuration.tfa_enforced ?: "" ) && configuration.tfa_enforced;
 
 		return adminEnabled && ( adminEnforced || isTwoFactorAuthenticationEnabledForUser() );
 	}
@@ -402,7 +515,7 @@ component displayName="Admin login service" {
 			return true;
 		}
 
-		var tfaTrustPeriod = Val( $getPresideSetting( "two-factor-auth", "admin_trust_period", 7 ) );
+		var tfaTrustPeriod = Val( $getPresideSetting( "admin-login-security", "tfa_trust_period", 7 ) );
 		if ( !tfaTrustPeriod ) {
 			return false;
 		}
@@ -465,7 +578,7 @@ component displayName="Admin login service" {
 	 *
 	 */
 	public boolean function isTwoFactorAuthenticationEnabled() {
-		var adminEnabled = $getPresideSetting( "two-factor-auth", "admin_enabled" );
+		var adminEnabled = $getPresideSetting( "admin-login-security", "tfa_enabled" );
 
 		return $isFeatureEnabled( "twoFactorAuthentication" ) && IsBoolean( adminEnabled ) && adminEnabled;
 	}
@@ -517,7 +630,7 @@ component displayName="Admin login service" {
 	 */
 	public string function getTwoFactorAuthenticationQrCodeImage( required string key, numeric size=125 ) {
 		var userDetails     = getLoggedInUserDetails()
-		var applicationName = $getPresideSetting( "two-factor-auth", "admin_app_name" );
+		var applicationName = $getPresideSetting( "admin-login-security", "tfa_app_name" );
 
 		if ( !Len( Trim( applicationName ) ) ) {
 			applicationName = "PresideCMS";
@@ -578,6 +691,20 @@ component displayName="Admin login service" {
 					, logged_in_date = Now()
 				});
 			}
+
+			$audit(
+				  userId = userId
+				, source = "login"
+				, action = "login_2fa_success"
+				, type   = "user"
+			);
+		} else {
+			$audit(
+				  userId = userId
+				, source = "login"
+				, action = "login_2fa_failure"
+				, type   = "user"
+			);
 		}
 
 		_getSessionStorage().setVar( name=_getTwoFaSessionKey(), value=authenticated );
@@ -618,6 +745,33 @@ component displayName="Admin login service" {
 		}
 	}
 
+	/**
+	 * Allows external services to create users on the fly
+	 * if they do not already exist based on the loginId. Useful
+	 * for single sign on extensions, for example.
+	 *
+	 * @autodoc true
+	 * @loginId Login ID or email address with which to match any existing users in the system
+	 * @data    Additional fields to set on the user when creating/updating existing user
+	 */
+	public string function getOrCreateUser( required string loginId, struct data={} ) {
+		var existingUser = _getUserByLoginId( arguments.loginId );
+
+		if ( existingUser.recordCount ) {
+			_getUserDao().updateData(
+				  id   = existingUser.id
+				, data = arguments.data
+			);
+
+			return existingUser.id;
+		}
+
+		arguments.data.login_id      = arguments.data.login_id      ?: arguments.loginId;
+		arguments.data.email_address = arguments.data.email_address ?: arguments.loginId;
+
+		return _getUserDao().insertData( arguments.data );
+	}
+
 // PRIVATE HELPERS
 	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );
@@ -636,6 +790,115 @@ component displayName="Admin login service" {
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
+		);
+	}
+
+	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
+		var cookieValue = {
+			  loginId = arguments.loginId
+			, expiry  = arguments.expiry
+			, series  = _createNewLoginTokenSeries()
+			, token   = _createNewLoginToken()
+		};
+
+		$getPresideObject( "security_user_login_token" ).insertData( data={
+			  user   = arguments.userId
+			, series = cookieValue.series
+			, token  = _getBCryptService().hashPw( cookieValue.token )
+		} );
+
+		_getCookieService().setVar(
+			  name     = _getRememberMeCookieKey()
+			, value    = cookieValue
+			, expires  = arguments.expiry
+			, httpOnly = true
+		);
+	}
+
+	private void function _deleteRememberMeCookie() {
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+
+			if ( Len( cookieValue.series ?: "" ) ) {
+				$getPresideObject( "security_user_login_token" ).deleteData( filter={ series = cookieValue.series } );
+			}
+
+			_getCookieService().deleteVar( _getRememberMeCookieKey() );
+		}
+	}
+
+	private struct function _readRememberMeCookie() {
+		var cookieValue = _getCookieService().getVar( _getRememberMeCookieKey(), {} );
+
+		if ( IsStruct( cookieValue ) ) {
+			var keys = cookieValue.keyArray()
+			keys.sort( "textNoCase" );
+
+			if ( keys.toList() == "expiry,loginId,series,token" ) {
+				return cookieValue;
+			}
+		}
+
+		return {};
+	}
+
+	private boolean function _autoLogin() {
+		if ( StructKeyExists( request, "_presideAdminAutoLoginResult" ) ) {
+			return request._presideAdminAutoLoginResult;
+		}
+
+		request._presideAdminAutoLoginResult = false;
+
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+			var user        = _getUserRecordFromCookie( cookieValue );
+
+			if ( user.recordcount ) {
+				_persistUserSession( user );
+
+				request._presideAdminAutoLoginResult = true;
+				return true;
+			}
+
+			_deleteRememberMeCookie();
+		}
+
+		return false;
+	}
+
+	private query function _getUserRecordFromCookie( required struct cookieValue ) {
+		if ( StructCount( arguments.cookieValue ) ) {
+			var tokenRecord = $getPresideObject( "security_user_login_token" ).selectData(
+				  selectFields = [ "security_user_login_token.id", "security_user_login_token.token", "security_user.login_id" ]
+				, filter       = { series = arguments.cookieValue.series }
+			);
+
+			if ( tokenRecord.recordCount && tokenRecord.login_id == arguments.cookieValue.loginId ) {
+				if ( _getBCryptService().checkPw( arguments.cookieValue.token, tokenRecord.token ) ) {
+					_recycleLoginToken( tokenRecord.id, arguments.cookieValue );
+					return _getUserByLoginId( tokenRecord.login_id );
+				}
+
+				$getPresideObject( "security_user_login_token" ).deleteData( id=tokenRecord.id );
+			}
+		}
+
+		return QueryNew('');
+	}
+
+	private void function _recycleLoginToken( required string tokenId, required struct cookieValue ) {
+		arguments.cookieValue.token = _createNewLoginToken();
+
+		$getPresideObject( "security_user_login_token" ).updateData(
+			  id   = arguments.tokenId
+			, data = { token = _getBCryptService().hashPw( arguments.cookieValue.token ) }
+		);
+
+		_getCookieService().setVar(
+			  name     = _getRememberMeCookieKey()
+			, value    = arguments.cookieValue
+			, expires  = arguments.cookieValue.expiry
+			, httpOnly = true
 		);
 	}
 
@@ -682,6 +945,10 @@ component displayName="Admin login service" {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
 
+		if( isEmpty( t ) || isEmpty( k ) ){
+			return QueryNew('');
+		}
+
 		var record = _getUserDao().selectData(
 			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
 			, filter       = { reset_password_token = t }
@@ -696,6 +963,11 @@ component displayName="Admin login service" {
 				  id     = record.id
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( IsBoolean( resendToken ) && resendToken ){
+				resendPasswordResetInstructions( record.id );
+			}
 
 			return QueryNew('');
 		}
@@ -761,6 +1033,13 @@ component displayName="Admin login service" {
 		_emailService = arguments.emailService;
 	}
 
+	private any function _getCookieService() {
+		return _cookieService;
+	}
+	private void function _setCookieService( required any cookieService ) {
+		_cookieService = arguments.cookieService;
+	}
+
 	private any function _getGoogleAuthenticator() {
 		return _googleAuthenticator;
 	}
@@ -773,6 +1052,13 @@ component displayName="Admin login service" {
 	}
 	private void function _setQrCodeGenerator( required any qrCodeGenerator ) {
 		_qrCodeGenerator = arguments.qrCodeGenerator;
+	}
+
+	private string function _getRememberMeCookieKey() {
+		return _rememberMeCookieKey;
+	}
+	private void function _setRememberMeCookieKey( required string rememberMeCookieKey ) {
+		_rememberMeCookieKey = arguments.rememberMeCookieKey;
 	}
 
 }

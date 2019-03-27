@@ -150,14 +150,16 @@ component extends="BaseAdapter" {
 		, required array   selectColumns
 		,          any     filter        = {}
 		,          string  orderBy       = ""
+		,          string  having        = ""
 		,          string  groupBy       = ""
 		,          string  tableAlias    = ""
 		,          array   joins         = []
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
+		,          boolean distinct      = false
 
 	) {
-		var sql         = "select";
+		var sql         = arguments.distinct ? "select distinct" : "select";
 		var delim       = " ";
 		var col         = "";
 
@@ -185,6 +187,10 @@ component extends="BaseAdapter" {
 			sql &= " group by " & arguments.groupBy;
 		}
 
+		if ( Len( Trim ( arguments.having ) ) ) {
+			sql &= " having " & arguments.having;
+		}
+
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
 		}
@@ -209,5 +215,24 @@ component extends="BaseAdapter" {
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
 		return "Concat( #leftExpression#, #rightExpression# )";
+	}
+
+	public boolean function autoCreatesFkIndexes(){
+		return true;
+	}
+
+	public string function getDatabaseNameSql() {
+		return "select database() as db";
+	}
+
+	public string function getAllForeignKeysSql() {
+		return "select distinct u.table_name
+		                      , u.column_name
+		                      , u.constraint_name
+		                      , u.referenced_table_name
+		                      , u.referenced_column_name
+		        from            information_schema.key_column_usage u
+		        where           u.table_schema = :databasename
+		        and             u.referenced_column_name is not null";
 	}
 }

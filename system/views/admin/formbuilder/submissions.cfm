@@ -1,7 +1,7 @@
 <cfscript>
 	theForm   = prc.form ?: QueryNew( '' );
 	formId    = theForm.id;
-	canDelete = hasCmsPermission( "formbuilder.deleteSubmissions" );
+	canDelete = prc.canDelete = hasCmsPermission( "formbuilder.deleteSubmissions" );
 </cfscript>
 
 <cfoutput>

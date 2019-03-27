@@ -4,6 +4,7 @@
  *
  * @autodoc
  * @singleton
+ * @presideService
  *
  */
 component displayName="Preside Object View Service" {
@@ -12,7 +13,7 @@ component displayName="Preside Object View Service" {
 	/**
 	 * @presideObjectService.inject   PresideObjectService
 	 * @presideContentRenderer.inject ContentRendererService
-	 * @coldboxRenderer.inject        coldbox:plugin:Renderer
+	 * @coldboxRenderer.inject        presideRenderer
 	 * @cacheProvider.inject          cachebox:PresideObjectViewCache
 	 * @cachebox.inject               cachebox
 	 */
@@ -56,20 +57,21 @@ component displayName="Preside Object View Service" {
 	public any function renderView(
 		  required string  presideObject
 		, required string  view
-		,          string  returntype   = "string"
-		,          struct  args         = {}
-		,          boolean cache        = false
-		,          boolean cacheAutoKey = true
-		,          numeric cacheTimeout
-		,          numeric cacheLastAccessTimeout
-		,          string  cacheSuffix
-		,          string  cacheProvider = "template"
+		,          boolean autoGroupBy            = true
+		,          string  returntype             = "string"
+		,          struct  args                   = {}
+		,          boolean cache                  = false
+		,          boolean cacheAutoKey           = true
+		,          any     cacheTimeout           = ""
+		,          any     cacheLastAccessTimeout = ""
+		,          string  cacheSuffix            = ""
+		,          string  cacheProvider          = "template"
 	) {
 		if ( arguments.cache ) {
 			var cacheKey = _generateCacheKey( argumentCollection=arguments );
 			var cached   = _getFromCache( cacheProvider=arguments.cacheProvider, cacheKey=cacheKey );
 
-			if ( !IsNull( cached ) ) {
+			if ( !IsNull( local.cached ) ) {
 				return cached;
 			}
 		}
@@ -92,10 +94,16 @@ component displayName="Preside Object View Service" {
 		StructDelete( selectDataArgs, "cacheSuffix"            );
 		StructDelete( selectDataArgs, "cacheTimeout"           );
 
-		selectDataArgs.objectName   = arguments.presideObject
-		selectDataArgs.selectFields = viewDetails.selectFields
+		selectDataArgs.objectName         = arguments.presideObject;
+		selectDataArgs.selectFields       = viewDetails.selectFields;
+		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $getRequestContext().showNonLiveContent();
+
+		if ( selectDataArgs.allowDraftVersions ) {
+			selectDataArgs.append( _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
+		}
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
+
 		for( record in data ) {
 			var viewArgs = _renderFields( arguments.presideObject, record, viewDetails.fieldOptions );
 			viewArgs.append( arguments.args );
@@ -114,7 +122,7 @@ component displayName="Preside Object View Service" {
 				, rendered    = rendered.toString()
 				, data        = data
 				, columnlist  = data.getColumnlist(false)
-			}
+			};
 		} else {
 			result = rendered.toString();
 		}
@@ -216,7 +224,7 @@ component displayName="Preside Object View Service" {
 							, rawContent      = record[field]
 						);
 					}
-				} elseif ( !StructIsEmpty( property ) ) {
+				} else if ( !StructIsEmpty( property ) ) {
 					rendered = rendererSvc.renderField(
 						  object   = property._object
 						, property = property.name
@@ -260,17 +268,17 @@ component displayName="Preside Object View Service" {
 	private void function _saveToCache(
 		  required string  cacheKey
 		, required any     value
-		, required string  cacheProvider = "template"
-		,          numeric cacheTimeout
-		,          numeric cacheLastAccessTimeout
+		, required string  cacheProvider          = "template"
+		,          any     cacheTimeout           = ""
+		,          any     cacheLastAccessTimeout = ""
 	) {
 		var cache    = _getCacheBox().getCache( arguments.cacheProvider );
 
 		cache.set(
 			  objectKey         = arguments.cacheKey
 			, object            = arguments.value
-			, timeout           = arguments.cacheTimeout           ?: NullValue()
-			, lastAccessTimeout = arguments.cacheLastAccessTimeout ?: NullValue()
+			, timeout           = arguments.cacheTimeout
+			, lastAccessTimeout = arguments.cacheLastAccessTimeout
 		);
 	}
 
@@ -278,8 +286,8 @@ component displayName="Preside Object View Service" {
 		  required string  presideObject
 		, required string  view
 		, required boolean cacheAutoKey
-		,          numeric cacheTimeout
-		,          numeric cacheLastAccessTimeout
+		,          any     cacheTimeout = ""
+		,          any     cacheLastAccessTimeout = ""
 		,          string  cacheSuffix
 		,          string  cacheProvider = "template"
 
@@ -311,6 +319,59 @@ component displayName="Preside Object View Service" {
 		return cacheKey;
 
 	}
+
+	private struct function _getVersioningArgsForSelectData( required string objectName, string id="", any filter={}, struct filterParams={} ) {
+		var coldbox = $getColdbox();
+		var event   = coldbox.getRequestService().getContext();
+
+		if ( event.isAdminUser() ) {
+			var currentEvent = event.getCurrentEvent();
+
+			if ( currentEvent == "core.SiteTreePageRequestHandler.index" && arguments.objectName == "page" || _getPresideObjectService().isPageType( arguments.objectName ) ) {
+				var currentPageId = event.getCurrentPageId();
+
+				if ( _isSelectDataForCurrentPage( currentPageId, arguments.id, arguments.filter, arguments.filterparams ) ) {
+					return {
+						  fromVersionTable = true
+						, specificVersion  = Val( event.getValue( "version", 0 ) )
+					};
+				}
+			}
+		}
+
+		return {};
+	}
+
+	private boolean function _isSelectDataForCurrentPage(
+		  required string currentPageId
+		, required string id
+		, required any    filter
+		, required struct filterparams
+	) {
+		if ( !Len( Trim( currentPageId ) ) ) {
+			return false;
+		}
+
+		if ( arguments.id == currentPageId ) {
+			return true;
+		}
+
+		if ( IsSimpleValue( arguments.filter.page       ?: [] ) && arguments.filter.page       == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filterParams.page ?: [] ) && arguments.filterParams.page == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filter.id         ?: [] ) && arguments.filter.id         == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filterParams.id   ?: [] ) && arguments.filterParams.id   == currentPageId ) {
+			return true;
+		}
+
+		return false;
+	}
+
 
 // getters and setters
 	private any function _getPresideObjectService() {

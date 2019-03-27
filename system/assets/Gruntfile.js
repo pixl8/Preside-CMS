@@ -30,6 +30,7 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/preside.iframe.modal.js'
 					, 'js/admin/presidecore/preside.asset.picker.js'
 					, 'js/admin/presidecore/preside.object.picker.js'
+					, 'js/admin/presidecore/preside.object.configurator.js'
 					, 'js/admin/presidecore/preside.imageDimension.picker.js'
 					, 'js/admin/presidecore/formFields.js'
 					, 'js/admin/presidecore/list.js'
@@ -83,13 +84,13 @@ module.exports = function( grunt ) {
 					  	"js/admin/lib/plugins/jquery.moment.js", // must come first
 					  	"js/admin/lib/plugins/*.js"
 					  ]
-					, dest : "js/admin/lib/plugins-1.3.000.min.js"
+					, dest : "js/admin/lib/plugins-1.7.000.min.js"
 				},{
 					  src  : ["js/admin/lib/ace/ace.js", "js/admin/lib/ace/ace-elements.js"]
 					, dest : "js/admin/lib/ace-1.0.0.min.js"
 				},{
-					  src  : "js/admin/lib/bootstrap-3.0.0.001.js"
-					, dest : "js/admin/lib/bootstrap-3.0.0.001.min.js"
+					  src  : "js/admin/lib/bootstrap-3.0.0.003.js"
+					, dest : "js/admin/lib/bootstrap-3.0.0.003.min.js"
 				},{
 					  src  : "js/admin/lib/jquery-1.10.2.js"
 					, dest : "js/admin/lib/jquery-1.10.2.min.js"

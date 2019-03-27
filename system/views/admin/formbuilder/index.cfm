@@ -1,5 +1,6 @@
 <cfscript>
-	canAdd = IsTrue( prc.canAdd ?: "" );
+	canAdd    = IsTrue( prc.canAdd ?: "" );
+	canDelete = IsTrue( prc.canDelete ?: "" );
 
 	showButtonGroup = canAdd;
 </cfscript>
@@ -20,8 +21,9 @@
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = "formbuilder_form"
-		, useMultiActions = false
 		, gridFields      = [ "name", "description", "locked", "active", "active_from", "active_to" ]
 		, datasourceUrl   = event.buildAdminLink( "formbuilder.getFormsForAjaxDataTables" )
+		, useMultiActions = canDelete
+		, multiActionUrl  = event.buildAdminLink( "formbuilder.multiRecordAction" )
 	} )#
 </cfoutput>

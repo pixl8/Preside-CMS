@@ -1,4 +1,9 @@
-component singleton=true output="false" {
+/**
+ * @presideservice
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 
@@ -8,13 +13,22 @@ component singleton=true output="false" {
 	 * @assetRendererService.inject AssetRendererService
 	 * @widgetsService.inject       WidgetsService
 	 * @presideObjectService.inject PresideObjectService
+	 * @labelRendererService.inject labelRendererService
 	 */
-	public any function init( required any coldbox, required any cache, required any assetRendererService, required any widgetsService, required any presideObjectService ) output=false {
+	public any function init(
+		  required any coldbox
+		, required any cache
+		, required any assetRendererService
+		, required any widgetsService
+		, required any presideObjectService
+		, required any labelRendererService
+	) {
 		_setColdbox( arguments.coldbox );
 		_setCache( arguments.cache );
 		_setAssetRendererService( arguments.assetRendererService );
 		_setWidgetsService( arguments.widgetsService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setLabelRendererService( arguments.labelRendererService );
 
 		_setRenderers( {} );
 
@@ -22,28 +36,47 @@ component singleton=true output="false" {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required string data, any context="default" ) output=false {
+	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context );
+				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
 			}
 
 			return rendered;
 		} else {
-			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args={ data=arguments.data } );
+			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
+			viewletArgs.append( arguments.args, false );
+			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
 	}
 
-	public string function renderLabel( required string objectName, required string recordId, string keyField="id" ) {
+	public string function renderLabel(
+		  required string objectName
+		, required string recordId
+		,          string keyField      = "id"
+		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
+		,          array bypassTenants = []
+	) {
+
+		var labelRendererService = _getLabelRendererService();
+		var selectFields = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : [ "${labelfield} as label" ]
 		var record = _getPresideObjectService().selectData(
-			  objectName   = arguments.objectName
-			, filter       = { "#keyField#"=arguments.recordId }
-			, selectFields = [ "${labelfield} as label" ]
+			  objectName         = arguments.objectName
+			, filter             = { "#keyField#"=arguments.recordId }
+			, selectFields       = selectFields
+			, allowDraftVersions = $getRequestContext().showNonLiveContent()
+			, bypassTenants     = arguments.bypassTenants
 		);
+
+		if ( Len( Trim( arguments.labelRenderer ) ) ) {
+			for( var r in record ) {
+				return labelRendererService.renderLabel( arguments.labelRenderer, r );
+			}
+		}
 
 		if ( record.recordCount ) {
 			return record.label;
@@ -59,8 +92,9 @@ component singleton=true output="false" {
 		,          any     context  = "default"
 		,          boolean editable = false
 		,          string  recordId = ""
+		,          struct  record   = {}
 
-	) output=false {
+	) {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
 		var rendered = "";
 		if ( rendererExists( renderer, arguments.context ) ) {
@@ -68,6 +102,12 @@ component singleton=true output="false" {
 				  renderer = renderer
 				, data     = arguments.data
 				, context  = arguments.context
+				, args     = {
+					  objectName   = arguments.object
+					, propertyName = arguments.property
+					, recordId     = arguments.recordId
+					, record       = arguments.record
+				  }
 			);
 		} else {
 			rendered = arguments.data;
@@ -96,7 +136,7 @@ component singleton=true output="false" {
 		, required string renderedContent
 		, required string rawContent
 		,          string control = "richeditor"
-	) output=false {
+	) {
 
 		return _getColdbox().renderViewlet( event="admin.frontendediting.renderFrontendEditor", args={
 			  control         = arguments.control
@@ -110,13 +150,13 @@ component singleton=true output="false" {
 		} );
 	}
 
-	public array function listRenderers() output=false {
+	public array function listRenderers() {
 		var renderers = StructKeyArray( _getRenderers() );
 		ArraySort( renderers, "textnocase" );
 		return renderers;
 	}
 
-	public boolean function rendererExists( required string name, any context="default" ) output=false {
+	public boolean function rendererExists( required string name, any context="default" ) {
 		var cache     = _getCache();
 		var cacheKey  = "rendererExists: " & arguments.name & " in context: " & SerializeJson( arguments.context );
 		var exists    = cache.get( cacheKey );
@@ -126,7 +166,7 @@ component singleton=true output="false" {
 			contexts.append( "default" );
 		}
 
-		if ( not IsNull( exists ) ) {
+		if ( !IsNull( local.exists ) ) {
 			return exists;
 		}
 
@@ -158,7 +198,7 @@ component singleton=true output="false" {
 		return exists;
 	}
 
-	public void function registerRenderer( required string name, string context="default", string viewlet="", array chain=[] ) output=false {
+	public void function registerRenderer( required string name, string context="default", string viewlet="", array chain=[] ) {
 		var renderers = _getRenderers();
 
 		if ( not StructKeyExists( renderers, arguments.name ) ) {
@@ -170,7 +210,7 @@ component singleton=true output="false" {
 		return;
 	}
 
-	public void function registerMissingRenderer( required string name, string context="default" ) output=false {
+	public void function registerMissingRenderer( required string name, string context="default" ) {
 		var renderers = _getRenderers();
 
 		if ( not StructKeyExists( renderers, arguments.name ) ) {
@@ -188,12 +228,20 @@ component singleton=true output="false" {
 			return Trim( fieldAttributes.renderer );
 		}
 
+		// enum...
+		if ( Len( Trim( fieldAttributes.enum ?: "" ) ) ) {
+			return "enumLabel";
+		}
+
 		// just the plain old type?!
 		if ( StructKeyExists( fieldAttributes, "type" ) ) {
 			switch( fieldAttributes.type ){
 				case "date":
 					if ( StructKeyExists( fieldAttributes, "dbType" ) and ListFindNoCase( "timestamp,datetime", fieldAttributes.dbType ) ) {
 						return "datetime";
+					}
+					if ( StructKeyExists( fieldAttributes, "dbType" ) and fieldAttributes.dbType == "date" ) {
+						return "date";
 					}
 				break;
 			}
@@ -214,7 +262,7 @@ component singleton=true output="false" {
 		return fieldAttributes.type ?: "";
 	}
 
-	public string function renderEmbeddedImages( required string richContent, string context="richeditor" ) output=false {
+	public string function renderEmbeddedImages( required string richContent, string context="richeditor" ) {
 		var embeddedImage   = "";
 		var renderedImage   = "";
 		var renderedContent = arguments.richContent;
@@ -256,7 +304,7 @@ component singleton=true output="false" {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor" ) output=false {
+	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor" ) {
 		var embeddedAttachment   = "";
 		var renderedAttachment   = "";
 		var renderedContent = arguments.richContent;
@@ -286,7 +334,7 @@ component singleton=true output="false" {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedWidgets( required string richContent, string context="" ) output=false {
+	public string function renderEmbeddedWidgets( required string richContent, string context="" ) {
 		var embeddedWidget      = "";
 		var renderedWidget      = "";
 		var renderedContent = arguments.richContent;
@@ -309,7 +357,7 @@ component singleton=true output="false" {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedLinks( required string richContent ) output=false {
+	public string function renderEmbeddedLinks( required string richContent ) {
 		var renderedContent = arguments.richContent;
 		var embeddedLink    = "";
 		var renderedLink    = "";
@@ -319,6 +367,9 @@ component singleton=true output="false" {
 
 			if ( Len( Trim( embeddedLink.page ?: "" ) ) ) {
 				renderedLink = _getColdbox().getRequestContext().buildLink( page=embeddedLink.page );
+			}
+			if ( Len( Trim( embeddedLink.asset ?: "" ) ) ) {
+				renderedLink = _getColdbox().getRequestContext().buildLink( assetId=embeddedLink.asset );
 			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
@@ -331,7 +382,7 @@ component singleton=true output="false" {
 	}
 
 // PRIVATE HELPERS
-	private ContentRenderer function _getRenderer( required string name, required any context ) output=false {
+	private ContentRenderer function _getRenderer( required string name, required any context ) {
 		var renderers            = _getRenderers();
 		var cbProxy              = _getColdbox();
 		var conventionsBasedName = "";
@@ -378,8 +429,9 @@ component singleton=true output="false" {
 		);
 	}
 
-	private any function _registerRendererByConvention( required string renderer, required string context ) output=false {
+	private any function _registerRendererByConvention( required string renderer, required string context ) {
 		var conventionsBasedName = _getConventionBasedViewletName( arguments.renderer, arguments.context );
+
 		if ( _getColdbox().viewletExists( conventionsBasedName ) ) {
 			registerRenderer( arguments.renderer, arguments.context, conventionsBasedName );
 			return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
@@ -388,18 +440,18 @@ component singleton=true output="false" {
 		}
 	}
 
-	private string function _getConventionBasedViewletName( required string renderer, required string context ) output=false {
+	private string function _getConventionBasedViewletName( required string renderer, required string context ) {
 		return "renderers.content.#arguments.renderer#.#arguments.context#";
 	}
 
-	private string function _getRendererForPresideObjectProperty( required string objectName, required string property ) output=false {
+	private string function _getRendererForPresideObjectProperty( required string objectName, required string property ) {
 		var cacheKey  = "rendererFor: #arguments.objectName#.#arguments.property#";
 		var cache     = _getCache();
 		var renderer  = cache.get( cacheKey );
 		var poService = _getPresideObjectService();
 		var fieldName = arguments.property;
 
-		if ( not IsNull( renderer ) ) {
+		if ( !IsNull( local.renderer ) ) {
 			return renderer;
 		}
 
@@ -418,12 +470,12 @@ component singleton=true output="false" {
 		return renderer;
 	}
 
-	private string function _getControlForPresideObjectProperty( required string objectName, required string property ) output=false {
+	private string function _getControlForPresideObjectProperty( required string objectName, required string property ) {
 		var cacheKey = "controlFor: #arguments.objectName#.#arguments.property#";
 		var cache    = _getCache();
 		var control  = cache.get( cacheKey );
 
-		if ( not IsNull( control ) ) {
+		if ( !IsNull( local.control ) ) {
 			return control;
 		}
 
@@ -440,7 +492,7 @@ component singleton=true output="false" {
 		return control;
 	}
 
-	private struct function _findNextEmbeddedImage( required string richContent ) output=false {
+	private struct function _findNextEmbeddedImage( required string richContent ) {
 		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
 		// {{image:{asset:"assetId",option:"value",option2:"value"}:image}}
 
@@ -465,7 +517,7 @@ component singleton=true output="false" {
 		return img;
 	}
 
-	private struct function _findNextEmbeddedAttachment( required string richContent ) output=false {
+	private struct function _findNextEmbeddedAttachment( required string richContent ) {
 		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
 		// {{attachment:{asset:"assetId",option:"value",option2:"value"}:attachment}}
 
@@ -490,7 +542,7 @@ component singleton=true output="false" {
 		return attachment;
 	}
 
-	private struct function _findNextEmbeddedWidget( required string richContent ) output=false {
+	private struct function _findNextEmbeddedWidget( required string richContent ) {
 		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
 		// {{widget:myWidgetId:{option:"value",option2:"value"}:widget}}
 
@@ -508,18 +560,22 @@ component singleton=true output="false" {
 		return widget;
 	}
 
-	private struct function _findNextEmbeddedLink( required string richContent ) output=false {
-		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+	private struct function _findNextEmbeddedLink( required string richContent ) {
+		// The following regex is designed to match the following patterns that would be embedded in rich editor content:
 		// {{link:pageid:link}}
+		// {{asset:assetid:asset}}
 
 
-		var regex  = "{{link:(.*?):link}}";
-		var match  = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var link   = {};
+		var regex = "{{(link|asset):(.*?):(link|asset)}}";
+		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var link  = {};
+		var type  = "";
 
-		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
+		if ( ArrayLen( match.len ) eq 4 and match.len[1] and match.len[3] ) {
+			type             = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			type             = type == "link" ? "page" : type;
 			link.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-			link.page        = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			link[ type ]     = Mid( arguments.richContent, match.pos[3], match.len[3] );
 		}
 
 		return link;
@@ -527,44 +583,51 @@ component singleton=true output="false" {
 
 
 // GETTERS AND SETTERS
-	private any function _getColdbox() output=false {
+	private any function _getColdbox() {
 		return _coldbox;
 	}
-	private void function _setColdbox( required any coldbox ) output=false {
+	private void function _setColdbox( required any coldbox ) {
 		_coldbox = arguments.coldbox;
 	}
-	private any function _getCache() output=false {
+	private any function _getCache() {
 		return _cache;
 	}
-	private void function _setCache( required any cache ) output=false {
+	private void function _setCache( required any cache ) {
 		_cache = arguments.cache;
 	}
 
-	private struct function _getRenderers() output=false {
+	private struct function _getRenderers() {
 		return _renderers;
 	}
-	private void function _setRenderers( required struct renderers ) output=false {
+	private void function _setRenderers( required struct renderers ) {
 		_renderers = arguments.renderers;
 	}
 
-	private any function _getAssetRendererService() output=false {
+	private any function _getAssetRendererService() {
 		return _assetRendererService;
 	}
-	private void function _setAssetRendererService( required any assetRendererService ) output=false {
+	private void function _setAssetRendererService( required any assetRendererService ) {
 		_assetRendererService = arguments.assetRendererService;
 	}
 
-	private any function _getWidgetsService() output=false {
+	private any function _getWidgetsService() {
 		return _widgetsService;
 	}
-	private void function _setWidgetsService( required any widgetsService ) output=false {
+	private void function _setWidgetsService( required any widgetsService ) {
 		_widgetsService = arguments.widgetsService;
 	}
 
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getLabelRendererService() {
+		return _labelRendererService;
+	}
+	private void function _setLabelRendererService( required any labelRendererService ) {
+		_labelRendererService = arguments.labelRendererService;
 	}
 }

@@ -1,4 +1,4 @@
-component implements="iRouteHandler" output=false singleton=true {
+component implements="iRouteHandler" singleton=true {
 
 // constructor
 	/**
@@ -18,7 +18,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public void function translate( required string path, required any event ) output=false {
-		var assetId        = UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) );
+		var assetId        = UrlDecode( UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) ) );
 		var versionId      = ListLen( assetId, "." ) > 1 ? ListRest( assetId, "." ) : "";
 		var isTrashedAsset = Left( assetId, 1 ) == "$";
 		var derivativeId   = "";
@@ -33,7 +33,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		event.setValue( _getEventName(), "core.AssetDownload.asset" );
 
 		if ( ReFind( "^/asset/.*?/(.*?)/.*$", arguments.path ) ) {
-			derivativeId = UrlDecode( ReReplace( arguments.path, "^/asset/.*?/(.*?)/.*$", "\1" ) );
+			derivativeId = UrlDecode( UrlDecode( ReReplace( arguments.path, "^/asset/.*?/(.*?)/.*$", "\1" ) ) );
 			event.setValue( "derivativeId", derivativeId );
 		}
 	}
@@ -43,31 +43,31 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var assetId    = buildArgs.assetId    ?: "";
-		var derivative = buildArgs.derivative ?: "";
-		var versionId  = buildArgs.versionId  ?: _getAssetManagerService().getCurrentVersionId( assetId );
+		var assetId    = buildArgs.assetId    ?: ""
+		var derivative = buildArgs.derivative ?: ""
+		var versionId  = buildArgs.versionId  ?: ""
 		var trashed    = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
-		var link       = "/asset/" & UrlEncodedFormat( assetId );
-
-		if ( Len( Trim( versionId ) ) ) {
-			link &= "." & UrlEncodedFormat( versionId );
-		}
-
-		link &= "/";
+		var link       = "";
 
 		if ( Len( Trim( derivative ) ) ) {
-			link &= UrlEncodedFormat( derivative ) & "/";
-			var signature = _getAssetManagerService().getDerivativeConfigSignature( derivative );
-			if ( Len( Trim( signature ) ) ) {
-				link &= "#UrlEncodedFormat( signature )#/";
-			}
+			link = _getAssetManagerService().getDerivativeUrl(
+				  assetId        = assetId
+				, derivativeName = derivative
+				, versionId      = versionId
+			);
+		} else {
+			link = _getAssetManagerService().getAssetUrl(
+				  id         = assetId
+				, versionId  = versionId
+				, trashed    = trashed
+			);
 		}
 
-		if ( trashed ) {
-			link = ReReplace( link, "^/asset/", "/asset/$" );
+		if ( !link.reFind( "^(https?:)?\/\/" ) ) {
+			link = event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
 		}
 
-		return event.getSiteUrl() & link;
+		return link;
 	}
 
 // private getters and setters

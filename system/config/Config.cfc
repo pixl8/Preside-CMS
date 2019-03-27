@@ -4,11 +4,11 @@ component {
 
 		settings = {};
 
-		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
+		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
 		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
 		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
 
-		settings.appMappingPath    = Replace( ReReplace( settings.appMapping   , "^/", "" ), "/", ".", "all" );
+		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
 
@@ -19,22 +19,23 @@ component {
 			, handlersIndexAutoReload   = false
 			, debugMode                 = false
 			, defaultEvent              = "general.index"
-			, customErrorTemplate       = ""
 			, reinitPassword            = ( applicationSettings.COLDBOX_RELOAD_PASSWORD ?: "true" )
 			, handlerCaching            = true
 			, eventCaching              = true
 			, requestContextDecorator   = "preside.system.coldboxModifications.RequestContextDecorator"
-			, UDFLibraryFile            = _getUdfFiles()
+			, applicationHelper         = _getUdfFiles()
 			, pluginsExternalLocation   = "preside.system.plugins"
 			, viewsExternalLocation     = "/preside/system/views"
 			, layoutsExternalLocation   = "/preside/system/layouts"
-			, modulesExternalLocation   = ["/preside/system/modules"]
+			, modulesExternalLocation   = [ "/app/extensions", "/preside/system/modules" ]
 			, handlersExternalLocation  = "preside.system.handlers"
 			, applicationStartHandler   = "General.applicationStart"
+			, applicationEndHandler     = "General.applicationEnd"
 			, requestStartHandler       = "General.requestStart"
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
+			, customErrorTemplate       = "/preside/system/coldboxModifications/includes/errorReport.cfm"
 		};
 
 		i18n = {
@@ -47,11 +48,11 @@ component {
 			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
-			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
+			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.EmailConfigurationSaveInterceptor"   , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -71,10 +72,13 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"                 );
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObjects"                );
 		interceptorSettings.customInterceptionPoints.append( "postRenderSiteTreePage"                );
+		interceptorSettings.customInterceptionPoints.append( "postAddSiteTreePage"                   );
+		interceptorSettings.customInterceptionPoints.append( "postEditSiteTreePage"                  );
 		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"                  );
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"                  );
 		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"                 );
 		interceptorSettings.customInterceptionPoints.append( "postPrepareTableJoins"                 );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareVersionSelect"              );
 		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"                      );
 		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"                   );
@@ -83,10 +87,12 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"                );
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"                  );
 		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"                 );
+		interceptorSettings.customInterceptionPoints.append( "postInitializePresideSiteteePage"      );
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"                  );
 		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"                    );
+		interceptorSettings.customInterceptionPoints.append( "onApplicationEnd"                      );
 		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"                  );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"                 );
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"                );
@@ -95,6 +101,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                       );
 		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                        );
+		interceptorSettings.customInterceptionPoints.append( "onAdminLoginSuccess"                   );
+		interceptorSettings.customInterceptionPoints.append( "onAdminLoginFailure"                   );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                       );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                        );
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                       );
@@ -111,6 +119,15 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
+		interceptorSettings.customInterceptionPoints.append( "preSetUserSession"                     );
+		interceptorSettings.customInterceptionPoints.append( "prePresideRequestCapture"              );
+		interceptorSettings.customInterceptionPoints.append( "postPresideRequestCapture"             );
+		interceptorSettings.customInterceptionPoints.append( "onPresideDetectIncomingSite"           );
+		interceptorSettings.customInterceptionPoints.append( "onPresideDetectLanguage"               );
+		interceptorSettings.customInterceptionPoints.append( "onPresideUrlRedirects"                 );
+		interceptorSettings.customInterceptionPoints.append( "onPresideRedirectDomains"              );
+		interceptorSettings.customInterceptionPoints.append( "preRoutePresideSESRequest"             );
+		interceptorSettings.customInterceptionPoints.append( "postRoutePresideSESRequest"            );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -124,11 +141,18 @@ component {
 		logbox = {
 			appenders = {
 				defaultLogAppender = {
-					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
-					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
+					  class      = 'coldbox.system.logging.appenders.RollingFileAppender'
+					, properties = { filePath=settings.logsMapping, filename="coldbox.log", async=true }
+				},
+				taskmanagerRequestAppender = {
+					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
+					, properties = { logName="TASKMANAGER" }
 				}
 			},
-			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' }
+			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' },
+			categories = {
+				taskmanager = { appenders='taskmanagerRequestAppender', levelMin='FATAL', levelMax='INFO' }
+			}
 		};
 
 		settings.eventName                   = "event";
@@ -151,9 +175,17 @@ component {
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
 		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics          = [];
+		settings.syncDb                      = IsBoolean( settings.injectedConfig.syncDb ?: ""  ) ? settings.injectedConfig.syncDb : true;
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
+		settings.useQueryCacheDefault        = true;
 		settings.devConsoleToggleKeyCode     = 96;
+		settings.adminLanguages              = [];
+		settings.showNonLiveContentByDefault = true;
+		settings.coldboxVersion              = _calculateColdboxVersion();
+
+		settings.forceSsl       = IsBoolean( settings.injectedConfig.forceSsl ?: "" ) && settings.injectedConfig.forceSsl;
+		settings.allowedDomains = ListToArray( LCase( settings.injectedConfig.allowedDomains  ?: "" ) );
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -170,35 +202,52 @@ component {
 			, "datamanager"
 			, "websiteUserManager"
 			, "formbuilder"
+			, "emailcenter"
 		];
 
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
+			, "notification"
 			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
+			, "rulesEngine"
+			, "links"
 			, "urlRedirects"
 			, "errorLogs"
+			, "auditTrail"
 			, "maintenanceMode"
+			, "taskmanager"
+			, "apiManager"
 			, "systemInformation"
 		];
 
+		settings.adminLoginProviders = [ "preside" ];
+
+		settings.uploads_directory = ExpandPath( "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
 		};
 		settings.assetManager = {
-			  maxFileSize       = "5"
-			, types             = _getConfiguredFileTypes()
-			, derivatives       = _getConfiguredAssetDerivatives()
-			, folders           = {}
+			  maxFileSize = "5"
+			, types       = _getConfiguredFileTypes()
+			, derivatives = _getConfiguredAssetDerivatives()
+			, folders     = {}
+			, storage     = {
+				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
+				, private   = ( settings.injectedConfig[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
+				, trash     = ( settings.injectedConfig[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
+				, publicUrl = ( settings.injectedConfig[ "assetmanager.storage.publicUrl" ] ?: "" )
+			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
+		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches", "clone" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
-			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate" ]
+			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, passwordPolicyManager  = [ "manage" ]
@@ -209,8 +258,24 @@ component {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, systemInformation      = [ "navigate" ]
-			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
-			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
+			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
+			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
+			, auditTrail             = [ "navigate" ]
+			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
+			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
+			, errorlogs              = [ "navigate" ]
+			, emailCenter            = {
+				  layouts          = [ "navigate", "configure" ]
+				, customTemplates  = [ "navigate", "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "send", "read", "cancelsend" ]
+				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
+				, serviceProviders = [ "manage" ]
+				, settings         = [ "navigate", "manage", "resend" ]
+				, blueprints       = [ "navigate", "add", "edit", "delete", "read", "configureLayout" ]
+				, logs             = [ "view" ]
+				, queue            = [ "view", "clear" ]
+			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -223,16 +288,16 @@ component {
 			, assetmanager           = {
 				  general          = [ "navigate" ]
 				, folders          = [ "add", "edit", "delete", "manageContextPerms" ]
-				, assets           = [ "upload", "edit", "delete", "download", "pick" ]
+				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
 		};
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*" ];
-		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
-		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*" ];
+		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "emailCenter.*", "!emailCenter.queue.*" ];
+		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
 
 		settings.websitePermissions = {
@@ -240,18 +305,14 @@ component {
 			, assets = [ "access" ]
 		};
 
-		// uploads directory - each site really should override this setting and provide an external location
-		settings.uploads_directory     = ExpandPath( "/uploads" );
-		settings.tmp_uploads_directory = ExpandPath( "/uploads" );
-
-
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets = [ "/css/admin/specific/richeditor/" ]
-				, width       = "auto"
-				, minHeight   = 0
-				, maxHeight   = 300
-				, configFile  = "/ckeditorExtensions/config.js"
+				  stylesheets   = [ "/css/admin/specific/richeditor/" ]
+				, width         = "auto"
+				, minHeight     = 0
+				, maxHeight     = 300
+				, autoParagraph = false
+				, configFile    = "/ckeditorExtensions/config.js?v10.10.0"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		};
@@ -268,52 +329,135 @@ component {
 			, sites                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, assetManager            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, websiteUsers            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, websiteBenefits         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, datamanager             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemConfiguration     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, redirectErrorPages      = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, auditTrail              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemInformation       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, dataexport              = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
+			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
+			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
+			, emailStyleInliner       = { enabled=true , siteTemplates=[ "*" ] }
+			, emailLinkShortener      = { enabled=false, siteTemplates=[ "*" ] }
+			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
+			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
+			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
+			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
+			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
+			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
+			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.extension"    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {
-			livePages = {
-				  filter       = "page.trashed = '0' and page.active = 1 and ( page.embargo_date is null or :now > page.embargo_date ) and ( page.expiry_date is null or :now < page.expiry_date )"
-				, filterParams = { "now" = { type="cf_sql_date", value=Now() } }
+			livePages = function(){
+				var nowish = DateTimeFormat( Now(), "yyyy-mm-dd HH:nn:00" );
+				var sql    = "page.trashed = '0' and page.active = '1' and ( page.embargo_date is null or :now >= page.embargo_date ) and ( page.expiry_date is null or :now <= page.expiry_date )";
+				var params = { "now" = { type="cf_sql_timestamp", value=nowish } };
+
+				return { filter=sql, filterParams=params };
 			}
+			, nonDeletedSites = { filter="site.deleted is null or site.deleted = :site.deleted", filterParams={ "site.deleted"=false } }
 			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
+			, webUserEmailTemplates = {
+				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
+				, filterParams = { "email_template.recipient_type" = "websiteUser" }
+			  }
 		};
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
+		settings.enum = {};
+		settings.enum.redirectType                = [ "301", "302" ];
+		settings.enum.pageAccessRestriction       = [ "inherit", "none", "full", "partial" ];
+		settings.enum.pageIframeAccessRestriction = [ "inherit", "block", "sameorigin", "allow" ];
+		settings.enum.internalSearchAccess        = [ "inherit", "allow", "block" ];
+		settings.enum.searchAccess                = [ "inherit", "allow", "block" ];
+		settings.enum.assetAccessRestriction      = [ "inherit", "none", "full" ];
+		settings.enum.linkType                    = [ "email", "url", "sitetreelink", "asset" ];
+		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
+		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://" ];
+		settings.enum.siteProtocol                = [ "http", "https" ];
+		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
+		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
+		settings.enum.emailSendQueueStatus        = [ "queued", "sending" ];
+		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
+		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
+		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
+		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
+		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
+
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
-			, policy                  = "myspace"
+			, policy                  = "preside"
 			, bypassForAdministrators = true
 		};
 
+		settings.csrf = {
+			tokenExpiryInSeconds = 1200
+		};
+
 		settings.rest = {
-			  path        = "/api"
-			, corsEnabled = false
-			, apis        = {}
+			  path          = "/api"
+			, corsEnabled   = false
+			, apis          = {}
+			, authProviders = {}
+		};
+
+		settings.rest.authProviders.token = { feature = "restTokenAuth" };
+
+		settings.multilingual = {
+			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
 		};
 
 		settings.formbuilder        = _setupFormBuilder();
 		settings.environmentMessage = "";
+
+		settings.websiteUsers = {
+			actions = {
+				  login       = [ "login", "autologin", "logout", "failedLogin", "sendPasswordResetInstructions", "changepassword" ]
+				, request     = [ "pagevisit" ]
+				, formbuilder = [ "submitform" ]
+				, asset       = [ "download" ]
+			}
+		};
+
+		settings.rulesEngine = { contexts={} };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page" ] };
+		settings.rulesEngine.contexts.page                  = { object="page" };
+		settings.rulesEngine.contexts.user                  = { object="website_user" };
+		settings.rulesEngine.contexts.formBuilderSubmission = { subcontexts=[ "webrequest" ] };
+
+		settings.tenancy = {};
+		settings.tenancy.site = { object="site", defaultfk="site" };
+
+		settings.dataExport = {};
+		settings.dataExport.csv = { delimiter="," };
+
+		settings.email = _getEmailSettings();
+
+		settings.concurrency = _getConcurrencySettings();
+
+		settings.healthCheckServices = {};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {
-			local = "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
-		}
-
+			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
+		};
 	}
 
 // ENVIRONMENT SPECIFIC
@@ -336,14 +480,6 @@ component {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "#settings.appMapping#/helpers" ) ) {
-			siteUdfs = DirectoryList( "#settings.appMapping#/helpers", true, false, "*.cfm" );
-
-			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "#settings.appMapping#/helpers" ) );
-			}
-		}
-
 		for( var ext in settings.activeExtensions ){
 			var helperDir = ext.directory & "/helpers";
 			if ( DirectoryExists( helperDir ) ) {
@@ -351,6 +487,14 @@ component {
 				for( udf in extUdfs ){
 					ArrayAppend( udfs, _getMappedPathFromFull( udf, helperDir ) );
 				}
+			}
+		}
+
+		if ( DirectoryExists( "/#settings.appMapping#/helpers" ) ) {
+			siteUdfs = DirectoryList( "/#settings.appMapping#/helpers", true, false, "*.cfm" );
+
+			for( udf in siteUdfs ){
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/#settings.appMapping#/helpers" ) );
 			}
 		}
 
@@ -365,7 +509,7 @@ component {
 	}
 
 	private string function _discoverWireboxBinder() {
-		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/WireBox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.WireBox";
 		}
 
@@ -373,7 +517,7 @@ component {
 	}
 
 	private string function _discoverCacheboxConfigurator() {
-		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
+		if ( FileExists( "/#settings.appMapping#/config/Cachebox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.Cachebox";
 		}
 
@@ -382,9 +526,8 @@ component {
 
 	private array function _loadExtensions() {
 		return new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping          = settings.appMapping
-			, extensionsDirectory = "#settings.appMapping#/extensions"
-		).listExtensions( activeOnly=true );
+			  appMapping = settings.appMapping
+		).listExtensions();
 	}
 
 	private struct function _getConfiguredFileTypes() output=false{
@@ -395,11 +538,16 @@ component {
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
+			, svg = { serveAsAttachmemnt=false, mimeType="image/svg+xml" }
+			, tiff = { serveAsAttachment=false, mimeType="image/tiff" }
+			, tif  = { serveAsAttachment=false, mimeType="image/tiff" }
 		};
 
 		types.video = {
 			  swf = { serveAsAttachment=true, mimeType="application/x-shockwave-flash" }
 			, flv = { serveAsAttachment=true, mimeType="video/x-flv" }
+			, mp4 = { serveAsAttachment=true, mimeType="video/mp4" }
+			, avi = { serveAsAttachment=true, mimeType="video/avi" }
 		};
 
 		types.document = {
@@ -431,7 +579,7 @@ component {
 			, pptm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.presentation.macroEnabled.12" }
 			, potm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.template.macroEnabled.12" }
 			, ppsm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.slideshow.macroEnabled.12" }
-		}
+		};
 
 		// TODO, more types to be defined here!
 
@@ -475,13 +623,18 @@ component {
 			, transformations = [ { method="shrinkToFit", args={ width=100, height=100 } } ]
 		};
 
+		derivatives.adminCropping = {
+			  permissions = "inherit"
+			, transformations = [ { method="shrinkToFit", args={ width=300, height=300 } } ]
+		};
+
 		return derivatives;
 	}
 
 	private struct function _getCkEditorToolbarConfig() {
 		return {
 			full     =  'Maximize,-,Source,-,Preview'
-					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
@@ -490,14 +643,22 @@ component {
 					 & '|Styles,Format',
 
 			noInserts = 'Maximize,-,Source,-,Preview'
-					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Styles,Format',
 
-			bolditaliconly = 'Bold,Italic'
+			bolditaliconly = 'Bold,Italic',
+
+			email = 'Maximize,-,Source,'
+					 & '|Cut,Copy,-,Undo,Redo'
+					 & '|Find,Replace,-,SelectAll,-,Scayt'
+					 & '|PresideLink,PresideUnlink,-,ImagePicker,AttachmentPicker,,SpecialChar'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
+					 & '|NumberedList,BulletedList,Table,HorizontalRule-,Outdent,Indent,-,Blockquote,CreateDiv'
+					 & '|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 		};
 
 	}
@@ -538,8 +699,115 @@ component {
 			, content   = { isFormField=false }
 		} };
 
-		fbSettings.actions = [ "email" ];
+		fbSettings.actions = [
+			  { id="email" }
+			, { id="anonymousCustomerEmail" }
+			, { id="loggedInUserEmail", feature="websiteUsers" }
+		];
+
+		fbSettings.export = { fieldNamesForHeaders=false };
 
 		return fbSettings;
+	}
+
+	private struct function _getEmailSettings() {
+		var templates        = {};
+		var recipientTypes   = {};
+		var serviceProviders = {};
+
+		templates.cmsWelcome = { feature="cms", recipientType="adminUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, { id="welcome_message", required=true }
+			, "created_by"
+			, "site_url"
+		] };
+		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.resetCmsPasswordForTokenExpiry = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.formbuilderSubmissionNotification = { feature="formbuilder", recipientType="anonymous", parameters=[
+			  { id="admin_link"          , required=true }
+			, { id="submission_preview"  , required=true }
+			, { id="notification_subject", required=false }
+		] };
+		templates.notification = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  { id="admin_link"          , required=true  }
+			, { id="notification_body"   , required=true  }
+			, { id="notification_subject", required=false }
+		] };
+		templates.websiteWelcome = { feature="websiteUsers", recipientType="websiteUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+		templates.resetWebsitePasswordForTokenExpiry = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
+
+		recipientTypes.anonymous   = {};
+		recipientTypes.adminUser   = {
+			  parameters             = [ "known_as", "login_id", "email_address" ]
+			, filterObject           = "security_user"
+			, gridFields             = [ "known_as", "email_address" ]
+			, recipientIdLogProperty = "security_user_recipient"
+			, feature                = "cms"
+		};
+		recipientTypes.websiteUser = {
+			  parameters             = [ "display_name", "login_id", "email_address" ]
+			, filterObject           = "website_user"
+			, gridFields             = [ "display_name", "email_address" ]
+			, recipientIdLogProperty = "website_user_recipient"
+			, feature                = "websiteUsers"
+		};
+
+		serviceProviders.smtp = {};
+
+		return {
+			  templates            = templates
+			, recipientTypes       = recipientTypes
+			, serviceProviders     = serviceProviders
+			, defaultContentExpiry = 30
+			, queueConcurrency     = 1
+		};
+	}
+
+	private struct function _getConcurrencySettings(){
+		return {
+			pools = {
+				  scheduledTasks = { maxConcurrent=0, maxWorkQueueSize=10000 }
+				, adhoc          = { maxConcurrent=0, maxWorkQueueSize=10000 }
+			}
+		};
+	}
+
+	private string function _calculateColdboxVersion() {
+		var boxJsonPath = "/coldbox/box.json";
+
+		if ( FileExists( boxJsonPath ) ) {
+			try {
+				var boxInfo = DeserializeJson( FileRead( boxJsonPath ) );
+
+				return boxInfo.version ?: "unknown";
+			} catch( any e ) {
+				return "unknown";
+			}
+		}
+
+		return "3.8.2";
+	}
+
+	private boolean function _luceeGreaterThanFour() {
+		var luceeVersion = server.lucee.version ?: "";
+		var major = Val( ListFirst( luceeVersion, "." ) );
+
+		return major > 4;
 	}
 }

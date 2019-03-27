@@ -3,7 +3,7 @@ component extends="testbox.system.BaseSpec"{
 	function run(){
 		describe( "readMeta()", function(){
 
-			it( "should read XMP metadata from an image file that has embedded XMP meta", function(){
+			it( title="should read XMP metadata from an image file that has embedded XMP meta", skip=true, body=function(){
 				var reader = new preside.system.services.assetManager.xmp.XmpMetaReader();
 				var testFile = FileReadBinary( "/resources/assetManager/xmptest.jpg" );
 				var expectedMeta = {

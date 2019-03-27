@@ -39,10 +39,20 @@
 			else if(element.is('.select2')) {
 				error.insertAfter(element.siblings('[class*="select2-container"]:eq(0)'));
 			}
+			else if(element.is('.chosen-hidden-field')) {
+				var insertAfter = element.closest('.chosen-container');
+				if ( insertAfter.next().is( '.quick-add-btn' ) ) {
+					insertAfter = insertAfter.next();
+				}
+				error.insertAfter( insertAfter );
+			}
 			else if(element.is('.chosen-select')) {
 				error.insertAfter(element.siblings('[class*="chosen-container"]:eq(0)'));
 			}
 			else error.insertAfter(element.parent());
 		}
 	} );
+
+	// kill the god-awful core "step" validator!
+	$.validator.addMethod( "step", function(){ return true; } );
 } )( presideJQuery );

@@ -1,4 +1,4 @@
-component output=false accessors=true {
+component accessors=true {
 	property name="id"                   type="string"  default="";
 	property name="name"                 type="string"  default="";
 	property name="description"          type="string"  default="";
@@ -6,6 +6,7 @@ component output=false accessors=true {
 	property name="defaultForm"          type="string"  default="";
 	property name="addForm"              type="string"  default="";
 	property name="editForm"             type="string"  default="";
+	property name="cloneForm"            type="string"  default="";
 	property name="presideObject"        type="string"  default="";
 	property name="hasHandler"           type="boolean" default=false;
 	property name="layouts"              type="string"  default="";
@@ -39,6 +40,7 @@ component output=false accessors=true {
 			, defaultForm          = getDefaultForm()
 			, addForm              = getAddForm()
 			, editForm             = getEditForm()
+			, cloneForm            = getCloneForm()
 			, presideObject        = getPresideObject()
 			, hasHandler           = hasHandler()
 			, layouts              = listLayouts()

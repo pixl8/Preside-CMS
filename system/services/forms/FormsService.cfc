@@ -1,6 +1,7 @@
 /**
  * @singleton
  * @autodoc
+ * @presideService
  */
 component displayName="Forms service" {
 
@@ -10,7 +11,7 @@ component displayName="Forms service" {
 	 * @presideObjectService.inject      PresideObjectService
 	 * @siteService.inject               SiteService
 	 * @validationEngine.inject          ValidationEngine
-	 * @i18n.inject                      coldbox:plugin:i18n
+	 * @i18n.inject                      i18n
 	 * @coldbox.inject                   coldbox
 	 * @presideFieldRuleGenerator.inject PresideFieldRuleGenerator
 	 * @featureService.inject            featureService
@@ -78,63 +79,84 @@ component displayName="Forms service" {
 	/**
 	 * Returns the raw structural definition of the given form
 	 *
-	 * @autodoc
-	 * @formName.hint          The name of the form to get
-	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
+	 * @autodoc                      true
+	 * @formName.hint                The name of the form to get
+	 * @autoMergeSiteForm.hint       Whether or not to automatically merge any matching form definitions in the current active site template
+	 * @stripPermissionedFields.hint Whether or not to strip tabs, fieldsets and fields to which the logged in admin user does not have permission
+	 * @permissionContext.hint       When checking for permissioned fields, the permission context to use. See [[permissionservice-haspermission]].
+	 * @permissionContextKeys.hint   When checking for permissioned fields, the permission context keys to use. See [[permissionservice-haspermission]].
 	 */
-	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) {
-		var forms        = _getForms();
-		var objectName   = "";
-		var form         = "";
+	public struct function getForm(
+		  required string  formName
+		,          boolean autoMergeSiteForm       = true
+		,          boolean stripPermissionedFields = false
+		,          string  permissionContext       = ""
+		,          array   permissionContextKeys   = []
+	) {
+		var forms                  = _getForms();
+		var objectName             = "";
+		var theForm                = "";
+		var siteTemplateFormName   = arguments.autoMergeSiteForm ? ( _getSiteTemplatePrefix() & arguments.formName ) : "";
+		var siteTemplateFormExists = arguments.autoMergeSiteForm ? ( siteTemplateFormName != arguments.formName && formExists( siteTemplateFormName, false ) ) : false;
 
-		if ( arguments.autoMergeSiteForm ) {
-			var siteTemplateFormName   = _getSiteTemplatePrefix() & arguments.formName;
-			var siteTemplateFormExists = siteTemplateFormName != arguments.formName && formExists( siteTemplateFormName, false );
-
-			if ( siteTemplateFormExists ) {
-				if ( formExists( arguments.formName, false )  ) {
-					return mergeForms( arguments.formName, siteTemplateFormName, false );
-				}
-
-				return forms[ siteTemplateFormName ];
+		if ( arguments.autoMergeSiteForm && siteTemplateFormExists ) {
+			if ( formExists( arguments.formName, false )  ) {
+				theForm = mergeForms( arguments.formName, siteTemplateFormName, false );
+			} else {
+				theForm = forms[ siteTemplateFormName ];
+			}
+		} else if ( formExists( arguments.formName ) ) {
+			theForm = forms[ arguments.formName ];
+		} else {
+			objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+			if ( _getPresideObjectService().objectExists( objectName ) ) {
+				theForm = getDefaultFormForPresideObject( objectName );
+			} else {
+				throw(
+					  type    = "FormsService.MissingForm"
+					, message = "The form, [#arguments.formName#], could not be found"
+				);
 			}
 		}
 
-		if ( formExists( arguments.formName ) ) {
-			return forms[ arguments.formName ];
+		if ( arguments.stripPermissionedFields ) {
+			theForm = removePermissionedFieldsFromFormDefinition(
+				  formDefinition        = theForm
+				, permissionContext     = arguments.permissionContext
+				, permissionContextKeys = arguments.permissionContextKeys
+			);
 		}
 
-		objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-		if ( _getPresideObjectService().objectExists( objectName ) ) {
-			return getDefaultFormForPresideObject( objectName );
-		}
-
-		throw(
-			  type = "FormsService.MissingForm"
-			, message = "The form, [#arguments.formName#], could not be found"
-		);
+		return theForm;
 	}
 
 	/**
-	 * Merges the definitions of two forms, register the new form and
+	 * Merges the definitions of two or more forms, register the new form and
 	 * and returns the raw structure of the merged form as the result.
 	 *
 	 * @autodoc
 	 * @formName.hint          Name of the source form
-	 * @mergeWithFormName.hint Name of the form to merge with
+	 * @mergeWithFormName.hint Name (or array of names) of the form(s) to merge with
 	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
 	 */
-	public struct function mergeForms( required string formName, required string mergeWithFormName, boolean autoMergeSiteForm=true ) {
+	public struct function mergeForms( required string formName, required any mergeWithFormName, boolean autoMergeSiteForm=true ) {
 		var mergedName = getMergedFormName( arguments.formName, arguments.mergeWithFormName, false );
+		var merged     = "";
 
 		if ( formExists( mergedName ) ) {
 			return getForm( mergedName );
 		}
 
-		var merged = _mergeForms(
-			  form1 = Duplicate( getForm( arguments.formName, arguments.autoMergeSiteForm ) )
-			, form2 = Duplicate( getForm( arguments.mergeWithFormName, arguments.autoMergeSiteForm ) )
-		);
+		if ( !isArray( arguments.mergeWithFormName ) ) {
+			arguments.mergeWithFormName = [ arguments.mergeWithFormName ];
+		}
+		merged = getForm( arguments.formName, arguments.autoMergeSiteForm );
+		for( var formNameToMerge in arguments.mergeWithFormName ) {
+			merged = _mergeForms(
+				  form1 = Duplicate( merged )
+				, form2 = Duplicate( getForm( formNameToMerge, arguments.autoMergeSiteForm ) )
+			);
+		}
 
 		_registerForm( mergedName, merged );
 
@@ -173,11 +195,13 @@ component displayName="Forms service" {
 	 * Returns an array of the field names defined in the form.
 	 *
 	 * @autodoc
-	 * @formName.hint Name of the form who's fields you wish to list.
+	 * @formName.hint Name of the form whose fields you wish to list.
 	 */
-	public array function listFields( required string formName ) {
-		var frm    = getForm( arguments.formName );
-		var fields = [];
+	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[] ) {
+		var frm            = getForm( argumentCollection=arguments );
+		var ignoreControls = [ "readonly", "oneToManyManager" ];
+		var fields         = [];
+
 
 		for( var tab in frm.tabs ){
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
@@ -188,7 +212,9 @@ component displayName="Forms service" {
 					continue;
 				}
 				for( var field in fieldset.fields ) {
-					if ( ( field.control ?: "" ) != "readonly" && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
+					var control = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
+
+					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
 						ArrayAppend( fields, field.name ?: "" );
 					}
 				}
@@ -203,11 +229,12 @@ component displayName="Forms service" {
 	 * Preside object name
 	 *
 	 * @autodoc
-	 * @objectName.hint Name of the object who's definition you wish to get
+	 * @objectName.hint Name of the object whose definition you wish to get
 	 *
 	 */
 	public struct function getDefaultFormForPresideObject( required string objectName ) {
-		var fields = _getPresideObjectService().getObjectProperties( objectName = arguments.objectName );
+		var fields     = _getPresideObjectService().getObjectProperties( objectName=arguments.objectName );
+		var fieldNames = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="propertyNames" );
 		var formLayout = {
 			tabs = [{
 				title       = "",
@@ -222,7 +249,7 @@ component displayName="Forms service" {
 			}]
 		};
 
-		for( var fieldName in fields ){
+		for( var fieldName in fieldNames ){
 			var field = fields[ fieldName ];
 			if ( ( field.control ?: "" ) != "none" ) {
 				ArrayAppend( formLayout.tabs[1].fieldsets[1].fields, field );
@@ -258,6 +285,7 @@ component displayName="Forms service" {
 	 * @validationResult.hint    An existing validation result object with which to display errors in the form (see [[validation-framework]] and [[presideforms-validation]] for more details)
 	 * @includeValidationJs.hint Whether or not to generate and include validation javascript with the form
 	 * @savedData.hint           Structure of pre-existing data with which to pre-populate values in the form
+	 * @additionalArgs.hint      Structure of additional dynamic args to be passed to the renders of fields, fieldsets and tabs. See [[presideforms-rendering]] for more details.
 	 * @fieldNamePrefix.hint     A prefix to add to each field name
 	 * @fieldNameSuffix.hint     A suffix to add to each field name
 	 * @suppressFields.hint      An array of field names to hide from the rendering
@@ -265,23 +293,28 @@ component displayName="Forms service" {
 	 */
 	public string function renderForm(
 		  required string  formName
-		,          string  mergeWithFormName    = ""
-		,          string  context              = "admin"
-		,          string  fieldLayout          = "formcontrols.layouts.field"
-		,          string  fieldsetLayout       = "formcontrols.layouts.fieldset"
-		,          string  tabLayout            = "formcontrols.layouts.tab"
-		,          string  formLayout           = "formcontrols.layouts.form"
-		,          string  formId               = ""
-		,          string  component            = ""
-		,          any     validationResult     = ""
-		,          boolean includeValidationJs  = true
-		,          struct  savedData            = {}
-		,          string  fieldNamePrefix      = ""
-		,          string  fieldNameSuffix      = ""
-		,          array   suppressFields       = []
+		,          string  mergeWithFormName       = ""
+		,          string  context                 = "admin"
+		,          string  fieldLayout             = "formcontrols.layouts.field"
+		,          string  fieldsetLayout          = "formcontrols.layouts.fieldset"
+		,          string  tabLayout               = "formcontrols.layouts.tab"
+		,          string  formLayout              = "formcontrols.layouts.form"
+		,          string  formId                  = ""
+		,          string  component               = ""
+		,          any     validationResult        = ""
+		,          boolean includeValidationJs     = true
+		,          string  validationJsJqueryRef   = "presideJQuery"
+		,          struct  savedData               = {}
+		,          struct  additionalArgs          = {}
+		,          string  fieldNamePrefix         = ""
+		,          string  fieldNameSuffix         = ""
+		,          array   suppressFields          = []
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = ""
+		,          array   permissionContextKeys   = []
 	) {
 		var mergedFormName    = Len( Trim( arguments.mergeWithFormName ) ) ? getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
-		var frm               = getForm( mergedFormName );
+		var frm               = getForm( argumentCollection=arguments, formName=mergedFormName );
 		var coldbox           = _getColdbox();
 		var i18n              = _getI18n();
 		var renderedTabs      = CreateObject( "java", "java.lang.StringBuffer" );
@@ -320,11 +353,11 @@ component displayName="Forms service" {
 							, savedData          = arguments.savedData
 						};
 
-						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( field.name ) ) {
+						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( renderArgs.name ) ) {
 							renderArgs.error = i18n.translateResource(
-								  uri          = validationResult.getError( field.name )
-								, defaultValue = validationResult.getError( field.name )
-								, data         = validationResult.listErrorParameterValues( field.name )
+								  uri          = validationResult.getError( renderArgs.name )
+								, defaultValue = validationResult.getError( renderArgs.name )
+								, data         = validationResult.listErrorParameterValues( renderArgs.name )
 							);
 						}
 
@@ -334,14 +367,17 @@ component displayName="Forms service" {
 
 						if ( StructKeyExists( arguments.savedData, field.name ) ) {
 							renderArgs.defaultValue = arguments.savedData[ field.name ];
+						} else if ( StructKeyExists( arguments.savedData, renderArgs.name ) ) {
+							renderArgs.defaultValue = arguments.savedData[ renderArgs.name ];
 						} else if ( StructKeyExists( field, "default" ) ) {
-							renderArgs.defaultValue = field.default;
+							renderArgs.defaultValue = _runDefaultValueFunction( field.sourceObject ?: "", field.default );
 						}
 
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
-						StructAppend( renderArgs, field, false );
-						StructAppend( renderArgs, _getI18nFieldAttributes( field=field ) );
+						renderArgs.append( field, false );
+						renderArgs.append( _getI18nFieldAttributes( field=field ) );
+						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
@@ -350,6 +386,7 @@ component displayName="Forms service" {
 				renderArgs = Duplicate( fieldset );
 				renderArgs.content = renderedFields.toString();
 				renderArgs.append( _getI18nTabOrFieldsetAttributes( fieldset ) );
+				renderArgs.append( arguments.additionalArgs.fieldsets[ fieldset.id ?: "" ] ?: {} );
 
 				renderedFieldSets.append( coldbox.renderViewlet(
 					  event = ( fieldset.layout ?: arguments.fieldsetLayout )
@@ -361,6 +398,7 @@ component displayName="Forms service" {
 			renderArgs.content = renderedFieldSets.toString();
 			renderArgs.active  = activeTab;
 			renderArgs.append( _getI18nTabOrFieldsetAttributes( tab ) );
+			renderArgs.append( arguments.additionalArgs.tabs[ tab.id ?: "" ] ?: {} );
 
 			tabs.append( renderArgs );
 
@@ -372,12 +410,13 @@ component displayName="Forms service" {
 		}
 
 		var formArgs = {
-			  formId             = arguments.formId
-			, formName           = mergedFormName
-			, content            = renderedTabs.toString()
-			, tabs               = tabs
-			, validationResult   = arguments.validationResult
-			, validationJs       = arguments.includeValidationJs ? getValidationJs( arguments.formName, arguments.mergeWithFormName ) : ""
+			  formId                = arguments.formId
+			, formName              = mergedFormName
+			, content               = renderedTabs.toString()
+			, tabs                  = tabs
+			, validationResult      = arguments.validationResult
+			, validationJs          = arguments.includeValidationJs ? getValidationJs( argumentCollection=arguments ) : ""
+			, validationJsJqueryRef = arguments.validationJsJqueryRef
 		};
 
 		formArgs.append( frm, false );
@@ -458,7 +497,7 @@ component displayName="Forms service" {
 	 * with the calculated form control type and any other arguments.
 	 *
 	 * @autodoc
-	 * @objectName.hint Name of the object who's field you wish to get a form control for
+	 * @objectName.hint Name of the object whose field you wish to get a form control for
 	 * @fieldName.hint  Name of the field (property) on the object that you wish to get a form control for
 	 */
 	public string function renderFormControlForObjectField( required string objectName, required string fieldName ) {
@@ -491,15 +530,23 @@ component displayName="Forms service" {
 	 * @preProcessData.hint   Whether or not to _preprocess_ form submissions (see [[validation-engine]])
 	 * @ignoreMissing.hint    Whether or not to ignore entirely missing fields in the supplied data
 	 * @validationResult.hint A pre-existing validation result to which to add any errors found during validation
+	 * @fieldNamePrefix.hint  Prefix to add to fieldnames in error messages
+	 * @fieldNameSuffix.hint  Suffix to add to fieldnames in error messages
 	 */
 	public any function validateForm(
 		  required string  formName
 		, required struct  formData
-		,          boolean preProcessData=true
-		,          boolean ignoreMissing=false
-		,          any     validationResult=_getValidationEngine().newValidationResult()
+		,          boolean preProcessData          = true
+		,          boolean ignoreMissing           = false
+		,          any     validationResult        = _getValidationEngine().newValidationResult()
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = ""
+		,          array   permissionContextKeys   = []
+		,          string  fieldNamePrefix         = ""
+		,          string  fieldNameSuffix         = ""
 	) {
-		var ruleset = _getValidationRulesetFromFormName( arguments.formName );
+		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
+		var result  = arguments.preProcessData ? preProcessForm( argumentCollection = arguments ) : "";
 		var data    = Duplicate( arguments.formData );
 
 		// add active "site" id to form data, should unique indexes require checking against a specific site
@@ -507,17 +554,21 @@ component displayName="Forms service" {
 
 		if ( arguments.preProcessData ) {
 			return _getValidationEngine().validate(
-				  ruleset       = ruleset
-				, data          = data
-				, result        = preProcessForm( argumentCollection = arguments )
-				, ignoreMissing = arguments.ignoreMissing
+				  ruleset         = ruleset
+				, data            = data
+				, result          = result
+				, ignoreMissing   = arguments.ignoreMissing
+				, fieldNamePrefix = arguments.fieldNamePrefix
+				, fieldNameSuffix = arguments.fieldNameSuffix
 			);
 		}
 
 		return _getValidationEngine().validate(
-			  ruleset = ruleset
-			, data    = data
-			, result  = arguments.validationResult
+			  ruleset         = ruleset
+			, data            = data
+			, result          = arguments.validationResult
+			, fieldNamePrefix = arguments.fieldNamePrefix
+			, fieldNameSuffix = arguments.fieldNameSuffix
 		);
 	}
 
@@ -529,11 +580,23 @@ component displayName="Forms service" {
 	 * @mergeWithFormName Secondary form name for merging with the primary form
 	 *
 	 */
-	public any function getValidationJs( required string formName, string mergeWithFormName="" ) {
+	public any function getValidationJs(
+		  required string  formName
+		,          string  mergeWithFormName     = ""
+		,          string  validationJsJqueryRef = "presideJQuery"
+		,          string  fieldNamePrefix       = ""
+		,          string  fieldNameSuffix       = ""
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = ""
+		,          array   permissionContextKeys   = []
+	) {
 		var validationFormName = Len( Trim( mergeWithFormName ) ) ? getMergedFormName( formName, mergeWithFormName ) : formName;
 
 		return _getValidationEngine().getJqueryValidateJs(
-			ruleset = _getValidationRulesetFromFormName( validationFormName )
+			  ruleset         = _getValidationRulesetFromFormName( argumentCollection=arguments, formName=validationFormName )
+			, jqueryReference = arguments.validationJsJqueryRef
+			, fieldNamePrefix = arguments.fieldNamePrefix
+			, fieldNameSuffix = arguments.fieldNameSuffix
 		);
 	}
 
@@ -600,15 +663,22 @@ component displayName="Forms service" {
 	}
 
 	/**
-	 * Returns the resultant form name that is generated when merging two form definitions
+	 * Returns the resultant form name that is generated when merging two or more form definitions
 	 *
 	 * @autodoc
 	 * @formName.hint          Name of the source form
-	 * @mergeWithFormName.hint Name of the form that is merged with the source form
+	 * @mergeWithFormName.hint Name (or array of names) of the form(s) to be merged with the source form
 	 * @createIfNotExists.hint Whether or not to create and register the form definition if it does not already exist.
 	 */
-	public string function getMergedFormName( required string formName, required string mergeWithFormName, boolean createIfNotExists=true ) {
-		var mergedName = formName & ".merged.with." & mergeWithFormName;
+	public string function getMergedFormName( required string formName, required any mergeWithFormName, boolean createIfNotExists=true ) {
+		var mergedName = _getSiteTemplatePrefix() & formName;
+
+		if ( !isArray( mergeWithFormName ) ) {
+			mergeWithFormName = [ mergeWithFormName ];
+		}
+		for( var formNameToMerge in mergeWithFormName ) {
+			mergedName &= ".merged.with." & _getSiteTemplatePrefix() & formNameToMerge;
+		}
 
 		if ( createIfNotExists && !formExists( mergedName ) ) {
 			mergeForms( formName, mergeWithFormName );
@@ -654,6 +724,72 @@ component displayName="Forms service" {
 	}
 
 	/**
+	 * Takes a form definition (struct) and removes all the tabs, fieldsets and fields
+	 * to which the currently logged in admin user does not have permission to edit.
+	 * Returns a new structure with the potentially removed elements.
+	 *
+	 * @autodoc                    true
+	 * @formDefinition.hint        Original form definition (remains untouched by this method)
+	 * @permissionContext.hint     Optional context for permission lookups (see [[permissionsservice-haspermission]])
+	 * @permissionContextKeys.hint Optional array of context keys for permission lookups (see [[permissionsservice-haspermission]])
+	 *
+	 */
+	public struct function removePermissionedFieldsFromFormDefinition(
+		  required struct formDefinition
+		,          string permissionContext     = ""
+		,          array  permissionContextKeys = []
+	) {
+		var strippedDefinition = Duplicate( formDefinition );
+		var tabs               = strippedDefinition.tabs ?: [];
+
+		for( var i=tabs.len(); i>0; i-- ) {
+			var tab           = tabs[ i ];
+			var permissionKey = ( tab.permissionKey ?: "" ).trim();
+			var removeTab     = permissionKey.len() && !$hasAdminPermission(
+				  permissionKey = permissionKey
+				, context       = arguments.permissionContext
+				, contextKeys   = arguments.permissionContextKeys
+			);
+
+			if ( removeTab ) {
+				tabs.deleteAt( i );
+			} else {
+				var fieldsets = tab.fieldsets ?: [];
+				for( var n=fieldsets.len(); n>0; n-- ) {
+					var fieldset = fieldsets[ n ];
+					var fieldsetPermissionKey = ( fieldset.permissionKey ?: "" ).trim();
+					var removeFieldset = fieldsetPermissionKey.len() && !$hasAdminPermission(
+						  permissionKey = fieldsetPermissionKey
+						, context       = arguments.permissionContext
+						, contextKeys   = arguments.permissionContextKeys
+					);
+
+					if ( removeFieldset ) {
+						fieldsets.deleteAt( n );
+					} else {
+						var fields = fieldset.fields;
+						for( var x=fields.len(); x>0; x-- ){
+							var field              = fields[ x ];
+							var fieldPermissionKey = field.permissionKey ?: "";
+							var removeField = fieldPermissionKey.len() && !$hasAdminPermission(
+								  permissionKey = fieldPermissionKey
+								, context       = arguments.permissionContext
+								, contextKeys   = arguments.permissionContextKeys
+							);
+
+							if ( removeField ) {
+								fields.deleteAt( x );
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return strippedDefinition;
+	}
+
+	/**
 	 * Reloads the form definitions from source directories
 	 *
 	 * @autodoc
@@ -665,15 +801,37 @@ component displayName="Forms service" {
 
 // PRIVATE HELPERS
 	private void function _loadForms() {
-		var dirs     = _getFormDirectories();
-		var prefix   = "";
-		var dir      = "";
-		var formName = "";
-		var files    = "";
-		var file     = "";
-		var subDir   = "";
-		var forms    = {};
-		var frm      = "";
+		var dirs               = _getFormDirectories();
+		var prefix             = "";
+		var dir                = "";
+		var formName           = "";
+		var files              = "";
+		var file               = "";
+		var subDir             = "";
+		var forms              = {};
+		var frm                = "";
+		var resolvedExtensions = {};
+		var resolveExtensions = function( formName, frmDefinition, allForms ){
+			var parentFormName = arguments.frmDefinition.extends ?: "";
+
+			if ( !Len( Trim( parentFormName ) ) || resolvedExtensions.keyExists( arguments.formName ) ) {
+				return arguments.frmDefinition;
+			}
+
+			if ( !arguments.allForms.keyExists( parentFormName ) ) {
+				throw(
+					  type    = "FormService.MissingForm"
+					, message = "The form [#parentFormName#], defined as an extension of [#arguments.formName#], could not be found."
+				);
+			}
+
+			resolvedExtensions[ arguments.formName ] = true;
+
+			return _mergeForms(
+				  form1 = resolveExtensions( parentFormName, arguments.allForms[ parentFormName ], arguments.allForms )
+				, form2 = arguments.frmDefinition
+			);
+		};
 
 		for( dir in dirs ) {
 			dir = ExpandPath( dir );
@@ -702,6 +860,11 @@ component displayName="Forms service" {
 					, form2 = forms[ formName ][ i ]
 				);
 			}
+			forms[ formName ] = frm;
+		}
+		for( formName in forms ) {
+			frm = resolveExtensions( formName, forms[ formName ], forms );
+
 			if ( _registerForm( formName, frm ) ) {
 				_applyDefaultLabellingToForm( formName );
 			}
@@ -730,7 +893,8 @@ component displayName="Forms service" {
 		var formAttributes = {};
 
 		try {
-			xml = XmlParse( arguments.filePath );
+			var xmlContent = fileread( arguments.filePath, "utf-8" );
+			xml            = XmlParse( xmlContent );
 		} catch ( any e ) {
 			throw(
 				  type = "FormsService.BadFormXml"
@@ -746,51 +910,53 @@ component displayName="Forms service" {
 		}
 		theForm.tabs = [];
 
-		tabs = XmlSearch( xml, "/form/tab" );
+		if ( !_itemBelongsToDisabledFeature( theForm ) ) {
+			tabs = XmlSearch( xml, "/form/tab" );
 
-		for ( var i=1; i lte ArrayLen( tabs ); i++ ) {
-			var attribs = tabs[i].xmlAttributes;
+			for ( var i=1; i lte ArrayLen( tabs ); i++ ) {
+				var attribs = tabs[i].xmlAttributes;
 
-			var tab = {
-				  title       = attribs.title       ?: ""
-				, description = attribs.description ?: ""
-				, id          = attribs.id          ?: ""
-				, fieldsets   = []
-			}
-			StructAppend( tab, attribs, false );
-
-			if ( StructKeyExists( tabs[i], "fieldset" ) ) {
-				for( var n=1; n lte ArrayLen( tabs[i].fieldset ); n++ ){
-					attribs = tabs[i].fieldset[n].xmlAttributes;
-
-					var fieldset = {
-						  title       = attribs.title       ?: ""
-						, description = attribs.description ?: ""
-						, id          = attribs.id          ?: ""
-						, fields      = []
-					};
-					StructAppend( fieldset, attribs, false );
-
-					if ( StructKeyExists( tabs[i].fieldset[n], "field" ) ) {
-						for( var x=1; x lte ArrayLen( tabs[i].fieldset[n].field ); x++ ){
-							var field = {};
-
-							for( var key in tabs[i].fieldset[n].field[x].xmlAttributes ){
-								field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
-							}
-
-							_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
-							field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
-
-							ArrayAppend( fieldset.fields, field );
-						}
-					}
-
-					ArrayAppend( tab.fieldsets, fieldset );
+				var tab = {
+					  title       = attribs.title       ?: ""
+					, description = attribs.description ?: ""
+					, id          = attribs.id          ?: ""
+					, fieldsets   = []
 				}
-			}
+				StructAppend( tab, attribs, false );
 
-			ArrayAppend( theForm.tabs, tab );
+				if ( StructKeyExists( tabs[i], "fieldset" ) ) {
+					for( var n=1; n lte ArrayLen( tabs[i].fieldset ); n++ ){
+						attribs = tabs[i].fieldset[n].xmlAttributes;
+
+						var fieldset = {
+							  title       = attribs.title       ?: ""
+							, description = attribs.description ?: ""
+							, id          = attribs.id          ?: ""
+							, fields      = []
+						};
+						StructAppend( fieldset, attribs, false );
+
+						if ( StructKeyExists( tabs[i].fieldset[n], "field" ) ) {
+							for( var x=1; x lte ArrayLen( tabs[i].fieldset[n].field ); x++ ){
+								var field = {};
+
+								for( var key in tabs[i].fieldset[n].field[x].xmlAttributes ){
+									field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
+								}
+
+								_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
+								field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
+
+								ArrayAppend( fieldset.fields, field );
+							}
+						}
+
+						ArrayAppend( tab.fieldsets, fieldset );
+					}
+				}
+
+				ArrayAppend( theForm.tabs, tab );
+			}
 		}
 
 		return theForm;
@@ -919,23 +1085,47 @@ component displayName="Forms service" {
 		return _getPresideObjectService().getDefaultFormControlForPropertyAttributes( argumentCollection = arguments );
 	}
 
-	private string function _getValidationRulesetFromFormName( required string formName ) {
+	private string function _getValidationRulesetFromFormName(
+		  required string  formName
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = ""
+		,          array   permissionContextKeys   = []
+	) {
 		var objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+		var rulesetName = "";
 
 		if ( formExists( arguments.formName, false ) ) {
-			return "PresideForm.#arguments.formName#";
+			rulesetName = "PresideForm.#arguments.formName#";
+		} else {
+			var siteTemplateFormName = _getSiteTemplatePrefix() & arguments.formName;
+			if ( formExists( siteTemplateFormName, false ) ) {
+				rulesetName = "PresideForm.#siteTemplateFormName#";
+			} else if ( _getPresideObjectService().objectExists( objectName ) ) {
+				rulesetName = "PresideObject.#objectName#";
+			} else {
+				return "";
+			}
 		}
 
-		var siteTemplateFormName = _getSiteTemplatePrefix() & arguments.formName;
-		if ( formExists( siteTemplateFormName, false ) ) {
-			return "PresideForm.#siteTemplateFormName#";
+		if ( arguments.stripPermissionedFields ) {
+			var fullForm           = getForm( formName=formName );
+			var modifiedForm       = getForm( argumentCollection=arguments );
+			var fullFormString     = SerializeJson( fullForm );
+			var modifiedFormString = SerializeJson( modifiedForm );
+
+			if ( fullFormString != modifiedFormString ) {
+				rulesetName &= "-permissioned-" & Hash( modifiedFormString );
+
+				if ( !_getValidationEngine().rulesetExists( rulesetName ) ) {
+					_getValidationEngine().newRuleset(
+						  name  = rulesetName
+						, rules = _getPresideFieldRuleGenerator().generateRulesFromPresideForm( modifiedForm )
+					);
+				}
+			}
 		}
 
-		if ( _getPresideObjectService().objectExists( objectName ) ) {
-			return "PresideObject.#objectName#";
-		}
-
-		return "";
+		return rulesetName;
 	}
 
 	private struct function _getI18nFieldAttributes( required struct field ) {
@@ -1056,7 +1246,7 @@ component displayName="Forms service" {
 			if ( StructIsEmpty( matchingTab ) ) {
 				ArrayAppend( form1.tabs, tab );
 				continue;
-			} elseif ( IsBoolean( tab.deleted ?: "" ) and tab.deleted ) {
+			} else if ( IsBoolean( tab.deleted ?: "" ) and tab.deleted ) {
 				ArrayDelete( form1.tabs, matchingTab );
 				continue;
 			}
@@ -1074,7 +1264,7 @@ component displayName="Forms service" {
 				if ( StructIsEmpty( matchingFieldset ) ) {
 					ArrayAppend( matchingTab.fieldsets, fieldset );
 					continue;
-				} elseif ( IsBoolean( fieldSet.deleted ?: "" ) and fieldSet.deleted ) {
+				} else if ( IsBoolean( fieldSet.deleted ?: "" ) and fieldSet.deleted ) {
 					ArrayDelete( matchingTab.fieldSets, matchingFieldset );
 					continue;
 				}
@@ -1159,7 +1349,7 @@ component displayName="Forms service" {
 	}
 
 	private string function _getSiteTemplatePrefix() {
-		var siteTemplate = _getSiteService().getActiveSiteTemplate();
+		var siteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 
@@ -1283,6 +1473,29 @@ component displayName="Forms service" {
 
 	private string function _generateFormNameFromDefinition( required struct definition ) {
 		return "dynamicform-" & LCase( Hash( SerializeJson( arguments.definition ) ) );
+	}
+
+	private string function _runDefaultValueFunction( required string objectName, required string default ) {
+		var defaultValue = arguments.default ?: "";
+
+		if ( ListLen( defaultValue, ":" ) > 1 ) {
+			switch( ListFirst( defaultValue, ":" ) ) {
+				case "cfml":
+					defaultValue = Evaluate( ListRest( defaultValue, ":" ) );
+				break;
+				case "closure":
+					var func = Evaluate( ListRest( defaultValue, ":" ) );
+					defaultValue = func( {} );
+				break;
+				case "method":
+					var obj = _getPresideObjectService().getObject( arguments.objectName );
+
+					defaultValue = obj[ ListRest( defaultValue, ":" ) ]( {} );
+				break;
+			}
+		}
+
+		return defaultValue ?: "";
 	}
 
 // GETTERS AND SETTERS

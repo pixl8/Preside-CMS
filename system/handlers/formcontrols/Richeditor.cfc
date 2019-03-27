@@ -1,7 +1,7 @@
-component output=false {
+component {
 	property name="ckeditorToolbarHelper" inject="ckeditorToolbarHelper";
 	property name="ckeditorSettings"      inject="coldbox:setting:ckeditor";
-	property name="sticker"               inject="coldbox:myPlugin:StickerForPreside";
+	property name="sticker"               inject="StickerForPreside";
 
 	public string function index( event, rc, prc, args={} ) output=false {
 		var toolbar     = args.toolbar ?: "full";

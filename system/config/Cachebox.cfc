@@ -1,4 +1,5 @@
-component output=false {
+component {
+
 	function configure(){
 		cacheBox = {
 			// core coldbox cache
@@ -29,7 +30,7 @@ component output=false {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 2
 						, maxObjects                     = 300
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -42,7 +43,7 @@ component output=false {
 						, reapFrequency                  = 60
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 1
-						, maxObjects                     = 300
+						, maxObjects                     = 3000
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -57,7 +58,7 @@ component output=false {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 50
 						, maxObjects                     = 1000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -71,7 +72,7 @@ component output=false {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 20
 						, maxObjects                     = 100
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -85,7 +86,7 @@ component output=false {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 50
 						, maxObjects                     = 500
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -99,11 +100,11 @@ component output=false {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 10
 						, maxObjects                     = 200
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
-				ViewletExistsCache = {
+				LabelRendererCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 0
@@ -111,9 +112,52 @@ component output=false {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 10
 						, evictionPolicy                 = "LFU"
+						, evictCount                     = 10
+						, maxObjects                     = 200
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
+
+				PresidePageCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 1200
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 20
+						, freeMemoryPercentageThreshold  = 0
+						, evictionPolicy                 = "LFU"
 						, evictCount                     = 200
-						, maxObjects                     = 1000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, maxObjects                     = 2000
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
+
+				rulesEngineExpressionCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 0
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 0
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 0
+						, maxObjects                     = 0
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
+
+				ImpersonationCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 5
+						, objectDefaultLastAccessTimeout = 5
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 10
+						, maxObjects                     = 10
+						, objectStore                    = "ConcurrentStore"
 					}
 				}
 			}

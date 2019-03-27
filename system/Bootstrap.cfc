@@ -4,7 +4,7 @@ component {
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
 		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
-		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|baiduspider|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
+		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
@@ -17,14 +17,14 @@ component {
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
 		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
 		this.COLDBOX_RELOAD_PASSWORD                 = arguments.reloadPassword;
-		this.name                                    = arguments.name
+		this.name                                    = arguments.name;
 		this.scriptProtect                           = arguments.scriptProtect;
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
 		this.statelessRequest                        = isStatelessRequest( _getUrl() );
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
-		this.showDbSyncScripts                       = arguments.showDbSyncScripts
+		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -33,7 +33,7 @@ component {
 // APPLICATION LIFECYCLE EVENTS
 	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
-		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
+		_readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
 			_initEveryEverything();
@@ -45,6 +45,7 @@ component {
 	public void function onRequestEnd() {
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
+		_ensureHeartbeatsAreStillRunning();
 	}
 
 	public void function onAbort() {
@@ -112,10 +113,11 @@ component {
 		var presideroot = _getPresideRoot();
 
 		this.mappings[ "/preside"        ] = presideroot;
-		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox";
+		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox";
 		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/cfconcurrent"   ] = presideroot & "/system/externals/cfconcurrent";
 		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
-		this.mappings[ "/javaloader"     ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox/system/core/javaloader"
+		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
@@ -152,16 +154,18 @@ component {
 				if ( _reloadRequired() ) {
 					_announceInterception( "prePresideReload" );
 
-
-					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
+					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." );
 
 					_clearExistingApplication();
+					_ensureCaseSensitiveStructSettingsAreActive();
+					_applyJavaPropToImproveXalanXmlPerformance();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
+					_preserveLocaleCookieIfPresent();
 					_initColdBox();
 
 					_announceInterception( "postPresideReload" );
-					log file="application" text="Application start up complete";
+					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" );
 				}
 			}
 		} catch( lock e ) {
@@ -175,7 +179,10 @@ component {
 	}
 
 	private void function _clearExistingApplication() {
+		onApplicationEnd( application );
 		application.clear();
+		request.delete( "cb_requestcontext" );
+		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
 			getPageContext().getCFMLFactory().resetPageContext();
@@ -203,6 +210,38 @@ component {
 		return application.cbBootStrap.isfwReinit();
 	}
 
+	private void function _ensureCaseSensitiveStructSettingsAreActive() {
+		var check         = { sensiTivity=true };
+		var caseSensitive = check.keyArray().find( "sensiTivity" );
+
+		if ( !caseSensitive ) {
+			var luceeCompilerSettings = "";
+
+			try {
+				admin action="getCompilerSettings" returnVariable="luceeCompilerSettings";
+				admin action               = "updateCompilerSettings"
+				      dotNotationUpperCase = false
+				      suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
+				      nullSupport          = luceeCompilerSettings.nullSupport
+				      templateCharset      = luceeCompilerSettings.templateCharset;
+			} catch( security e ) {
+				throw( type="security", message="Preside could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
+			}
+		}
+	}
+
+	private void function _applyJavaPropToImproveXalanXmlPerformance() {
+		// see https://issues.apache.org/jira/browse/XALANJ-2540
+		var propName     = "org.apache.xml.dtm.DTMManager";
+		var desiredValue = "org.apache.xml.dtm.ref.DTMManagerDefault";
+		var javaSystem   = CreateObject( "java", "java.lang.System" );
+		var actualValue  = javaSystem.getProperty( propName );
+
+		if  ( !Len( Trim( local.actualValue ?: "" ) ) ) {
+			javaSystem.setProperty( propName, desiredValue );
+		}
+	}
+
 	private void function _fetchInjectedSettings() {
 		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, configurationDirectory="#COLDBOX_APP_MAPPING#/config" );
 		var config          = settingsManager.getConfig();
@@ -215,28 +254,43 @@ component {
 		var dsnInjected = Len( Trim( config[ "datasource.user" ] ?: "" ) ) && Len( Trim( config[ "datasource.database_name" ] ?: "" ) ) && Len( Trim( config[ "datasource.host" ] ?: "" ) );
 
 		if ( dsnInjected ) {
-			var dsn                = config[ "datasource.name" ] ?: "preside";
-			var host               = config[ "datasource.host" ];
-			var port               = config[ "datasource.port" ] ?: 3306;
-			var dbName             = config[ "datasource.database_name" ];
-			var encoding           = config[ "datasource.character_encoding" ] ?: "UTF-8";
-			var username           = config[ "datasource.user"     ];
-			var password           = config[ "datasource.password" ] ?: "";
-			var luceeAdminPassword = config[ "lucee.admin.password" ] ?: "";
-
-			// use cfadmin tag here; using this.datasources proving to be unreliable
-			admin action     = "updateDatasource"
-			      type       = "web"
-			      classname  = "org.gjt.mm.mysql.Driver"
-			      dsn        = "jdbc:mysql://#host#:#port#/#dbName#?useUnicode=true&characterEncoding=#encoding#&useLegacyDatetimeCode=true"
-			      name       = dsn
-			      newName    = dsn
-			      host       = host
-			      database   = dbname
-			      port       = port
-			      dbusername = username
-			      dbpassword = password
-			      password   = luceeAdminPassword;
+			new preside.system.services.database.DatasourceManager().updateDatasource(
+				  host                              = config[ "datasource.host"                        ] ?: ""
+				, database                          = config[ "datasource.database_name"               ] ?: ""
+				, username                          = config[ "datasource.user"                        ] ?: ""
+				, name                              = config[ "datasource.name"                        ] ?: "preside"
+				, type                              = config[ "datasource.type"                        ] ?: "MySQL"
+				, port                              = config[ "datasource.port"                        ] ?: 3306
+				, password                          = config[ "datasource.password"                    ] ?: ""
+				, timezone                          = config[ "datasource.timezone"                    ] ?: ""
+				, ConnectionLimit                   = config[ "datasource.ConnectionLimit"             ] ?: -1
+				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 0
+				, metaCacheTimeout                  = config[ "datasource.metaCacheTimeout"            ] ?: 60000
+				, blob                              = config[ "datasource.blob"                        ] ?: false
+				, clob                              = config[ "datasource.clob"                        ] ?: false
+				, validate                          = config[ "datasource.validate"                    ] ?: false
+				, storage                           = config[ "datasource.storage"                     ] ?: false
+				, verify                            = config[ "datasource.verify"                      ] ?: false
+				, allowedSelect                     = config[ "datasource.allowedSelect"               ] ?: true
+				, allowedInsert                     = config[ "datasource.allowedInsert"               ] ?: true
+				, allowedUpdate                     = config[ "datasource.allowedUpdate"               ] ?: true
+				, allowedDelete                     = config[ "datasource.allowedDelete"               ] ?: true
+				, allowedAlter                      = config[ "datasource.allowedAlter"                ] ?: true
+				, allowedDrop                       = config[ "datasource.allowedDrop"                 ] ?: true
+				, allowedRevoke                     = config[ "datasource.allowedRevoke"               ] ?: false
+				, allowedCreate                     = config[ "datasource.allowedCreate"               ] ?: true
+				, allowedGrant                      = config[ "datasource.allowedGrant"                ] ?: false
+				, customUseUnicode                  = config[ "datasource.useUnicode"                  ] ?: false
+				, customCharacterEncoding           = config[ "datasource.character_encoding"          ] ?: "UTF-8"
+				, customUseOldAliasMetadataBehavior = config[ "datasource.useOldAliasMetadataBehavior" ] ?: false
+				, customAllowMultiQueries           = config[ "datasource.allowMultiQueries"           ] ?: false
+				, customZeroDateTimeBehavior        = config[ "datasource.zeroDateTimeBehavior"        ] ?: "convertToNull"
+				, customAutoReconnect               = config[ "datasource.autoReconnect"               ] ?: false
+				, customJdbcCompliantTruncation     = config[ "datasource.jdbcCompliantTruncation"     ] ?: false
+				, customTinyInt1isBit               = config[ "datasource.tinyInt1isBit"               ] ?: false
+				, customUseLegacyDatetimeCode       = config[ "datasource.useLegacyDatetimeCode"       ] ?: false
+				, luceeAdminPassword                = config[ "lucee.admin.password"                   ] ?: ""
+			);
 		}
 	}
 
@@ -258,7 +312,7 @@ component {
 		return "preside.system.config.Config";
 	}
 
-	private void function _readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
+	private void function _readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
 		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 
@@ -353,7 +407,6 @@ component {
 		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
 		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
 		var sessionsEnabled      = IsBoolean( applicationSettings.sessionManagement ) && applicationSettings.sessionManagement;
-
 		if ( sessionsEnabled ) {
 			for( var key in session ) {
 				if ( ignoreKeys.findNoCase( key ) ) {
@@ -381,35 +434,93 @@ component {
 	private void function _removeSessionCookies() {
 		var pc             = getPageContext();
 		var resp           = pc.getResponse();
-		var allCookies     = resp.getHeaders( "Set-Cookie" );
 		var cleanedCookies = [];
 
-		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
-			var cooky = allCookies[ i ];
-			if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
-				cleanedCookies.append( cooky );
-			}
+		try {
+			var allCookies = resp.getHeaders( "Set-Cookie" );
+		} catch( "java.lang.AbstractMethodError" e ) {
+			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
+			return;
 		}
 
-		resp.setHeader( "Set-Cookie", "" );
-		for( var i=1; i <= cleanedCookies.len(); i++ ) {
-			if ( i == 1 ) {
-				resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+		if ( ArrayLen( allCookies ) ) {
+			for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
+				var cooky = allCookies[ i ];
+				if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
+					cleanedCookies.append( cooky );
+				}
+			}
+
+			if ( !cleanedCookies.len() ) {
+				if ( !resp.isCommitted() ) {
+					_resetHttpResponseWithoutCookies( resp );
+				} else {
+					resp.setHeader( "Set-Cookie", "empty=cookie;HttpOnly" );
+				}
 			} else {
-				resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
+				for( var i=1; i <= cleanedCookies.len(); i++ ) {
+					if ( i == 1 ) {
+						resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+					} else {
+						resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
+					}
+				}
 			}
 		}
 	}
 
+	private void function _resetHttpResponseWithoutCookies( required any resp ) {
+		var status      = resp.getStatus();
+		var contentType = resp.getContentType();
+		var encoding    = resp.getCharacterEncoding();
+		var locale      = resp.getLocale();
+		var headerNames = resp.getHeaderNames().toArray();
+		var headers     = {};
+
+		for( var headerName in headerNames ) {
+			if ( headerName != "Set-Cookie" ) {
+				headers[ headerName ] = resp.getHeaders( headerName );
+			}
+		}
+
+		resp.reset();
+		resp.setStatus( JavaCast( "int", status ) );
+		resp.setContentType( contentType );
+		resp.setCharacterEncoding( encoding );
+		resp.setLocale( locale );
+
+		for( var headerName in headers ) {
+			for( var i=1; i<=ArrayLen( headers[ headerName ] ); i++ ){
+				if ( i == 1 ) {
+					resp.setHeader( headerName, headers[ headerName ][ i ] );
+				} else {
+					resp.addHeader( headerName, headers[ headerName ][ i ] );
+				}
+			}
+		}
+	}
+
+
 	private void function _cleanupCookies() {
-		var pc           = getPageContext();
-		var resp         = pc.getResponse();
-		var cbController = _getColdboxController();
-		var allCookies   = resp.getHeaders( "Set-Cookie" );
+		var pc             = getPageContext();
+		var resp           = pc.getResponse();
+		var cbController   = _getColdboxController();
+		var sessionCookies = [ "CFID", "CFTOKEN" ];
+
+		try {
+			var allCookies = resp.getHeaders( "Set-Cookie" );
+		} catch( "java.lang.AbstractMethodError" e ) {
+			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
+			return;
+		}
 
 		if ( IsNull( cbController ) || isStatelessRequest( _getUrl() ) ) {
 			if ( ArrayLen( allCookies ) ) {
-				resp.setHeader( "Set-Cookie", "" );
+				if ( !resp.isCommitted() ) {
+					_resetHttpResponseWithoutCookies( resp );
+				} else {
+					resp.setHeader( "Set-Cookie", "empty=cookie;HttpOnly" );
+				}
 			}
 			return;
 		}
@@ -425,6 +536,11 @@ component {
 			var cooky = allCookies[ i ];
 			if ( !Len( Trim( cooky ) ) ) {
 				continue;
+			}
+
+			if ( sessionCookies.findNoCase( cooky.listFirst( "=" ) ) ) {
+				cooky = _stripExpiryDateFromCookieToMakeASessionCookie( cooky );
+				anyCookiesChanged = true;
 			}
 
 			if ( !ReFindNoCase( httpRegex, cooky ) ) {
@@ -455,11 +571,7 @@ component {
 	}
 
 	private string function _getPresideRoot() {
-		var trace        = CallStackGet();
-		var thisFilePath = trace[ 1 ].template;
-		var dir          = GetDirectoryFromPath( thisFilePath );
-
-		return ReReplace( dir, "[\\/]system[\\/]?$", "" );
+		return ExpandPath( "/preside" );
 	}
 
 	private boolean function _clearoutDuplicateCookies( required array cookieSet ) {
@@ -482,11 +594,7 @@ component {
 	}
 
 	private string function _getApplicationRoot() {
-		var trace      = CallStackGet();
-		var appCfcPath = trace[ trace.len() ].template;
-		var dir        = GetDirectoryFromPath( appCfcPath );
-
-		return ReReplace( dir, "[\\/]$", "" );
+		return ExpandPath( "/" );
 	}
 
 	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
@@ -495,12 +603,15 @@ component {
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
 		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			new preside.system.services.errors.ErrorLogService(
-				  appMapping     = attributes.appMapping
-				, appMappingPath = attributes.appMappingPath
-				, logsMapping    = attributes.logsMapping
-				, logDirectory   = attributes.logsMapping & "/rte-logs"
-			).raiseError( attributes.e );
+			if ( !application.keyExists( "errorLogService" ) ) {
+				application.errorLogService = new preside.system.services.errors.ErrorLogService(
+					  appMapping     = attributes.appMapping
+					, appMappingPath = attributes.appMappingPath
+					, logsMapping    = attributes.logsMapping
+					, logDirectory   = attributes.logsMapping & "/rte-logs"
+				);
+			}
+			application.errorLogService.raiseError( attributes.e );
 		}
 
 		content reset=true;
@@ -575,4 +686,39 @@ component {
 		return ExpandPath( request._presideMappings.logsMapping ?: "/logs" ) & "/sqlupgrade.sql";
 	}
 
+	private string function _stripExpiryDateFromCookieToMakeASessionCookie( required string cooky ) {
+		var cookieParts = arguments.cooky.listToArray( ";" );
+		var stripped    = "";
+
+		for( var part in cookieParts ) {
+			if ( !part.reFindNoCase( "^expires" ) ) {
+				stripped = stripped.listAppend( part, ";" );
+			}
+		}
+
+		return stripped;
+	}
+
+	private void function _preserveLocaleCookieIfPresent() {
+		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
+	}
+
+	private void function _ensureHeartbeatsAreStillRunning(){
+		var lastChecked = application._ensureHeartbeatsAreStillRunningLastCheck ?: '1900-01-01';
+
+		if ( DateDiff( 'n', lastChecked, Now() ) >= 1 ) {
+			try {
+				lock type="exclusive" timeout=0 name="_ensureHeartbeatsAreStillRunning-#GetCurrentTemplatePath()#" {
+					application._ensureHeartbeatsAreStillRunningLastCheck = Now();
+
+					var beats = StructKeyArray( application._presideHeartbeatThreads ?: {} );
+					for( var beatName in beats ) {
+						try {
+							application._presideHeartbeatThreads[ beatName ].ensureAlive();
+						} catch( any e ) {}
+					}
+				}
+			} catch( any e ) {}
+		}
+	}
 }

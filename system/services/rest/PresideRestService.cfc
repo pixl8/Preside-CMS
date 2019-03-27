@@ -1,5 +1,5 @@
 /**
- * An object to provide the PresideCMS REST platform's
+ * An object to provide the Preside REST platform's
  * business logic.
  *
  * @autodoc
@@ -13,17 +13,20 @@ component {
 	 * @resourceDirectories.inject  presidecms:directories:handlers/rest-apis
 	 * @controller.inject           coldbox
 	 * @configurationWrapper.inject presideRestConfigurationWrapper
+	 * @authService.inject          presideRestAuthService
 	 * @validationEngine.inject     validationEngine
 	 */
 	public any function init(
 		required array resourceDirectories,
 		required any   controller,
 		required any   configurationWrapper,
-		required any   validationEngine,
+		required any   authService,
+		required any   validationEngine
 	) {
 		_readResourceDirectories( arguments.resourceDirectories );
 		_setController( arguments.controller );
 		_setConfigurationWrapper( arguments.configurationWrapper );
+		_setAuthService( arguments.authService );
 		_setValidationEngine( arguments.validationEngine );
 
 		_createParameterValidationRuleSets();
@@ -31,18 +34,49 @@ component {
 		return this;
 	}
 
+	public array function listApis() {
+		var apis          = Duplicate( _getApiList() );
+		var configWrapper = _getConfigurationWrapper();
+
+		for( var i=1; i<=apis.len(); i++ ) {
+			var apiId = apis[ i ];
+			var api = {
+				  id           = apiId
+				, description  = configWrapper.getSetting( "description", "", apiId )
+				, authProvider = configWrapper.getSetting( "authProvider", "", apiId )
+			};
+
+			apis[ i ] = api;
+		}
+
+		return apis;
+	}
+
 	public void function onRestRequest( required string uri, required any requestContext ) {
 		var restResponse = createRestResponse();
 		var restRequest  = createRestRequest( arguments.uri, arguments.requestContext );
+		var event        = $getRequestContext();
+
+		event.cachePage( false );
+		event.setRestResponse( restResponse );
+		event.setRestRequest( restRequest );
 
 		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse } );
 
 		if ( !restRequest.getFinished() ) {
-			processRequest(
+			authenticateRequest(
 				  restRequest    = restRequest
 				, restResponse   = restResponse
 				, requestContext = arguments.requestContext
 			);
+
+			if ( !restRequest.getFinished() ) {
+				processRequest(
+					  restRequest    = restRequest
+					, restResponse   = restResponse
+					, requestContext = arguments.requestContext
+				);
+			}
 		}
 
 		processResponse(
@@ -50,6 +84,19 @@ component {
 			, restResponse   = restResponse
 			, requestContext = arguments.requestContext
 		);
+	}
+
+	public void function authenticateRequest( required any restRequest, required any restResponse ) {
+		var api          = restRequest.getApi();
+		var authProvider = _getConfigurationWrapper().getSetting( "authProvider", "", api );
+
+		if ( authProvider.len() ) {
+			_getAuthService().authenticate(
+				  provider     = authProvider
+				, restRequest  = restRequest
+				, restResponse = restResponse
+			);
+		}
 	}
 
 	public void function processRequest( required any restRequest, required any restResponse, required any requestContext ) {
@@ -99,7 +146,7 @@ component {
 	) {
 		try {
 			var coldboxEvent = "rest-apis.#restRequest.getResource().handler#.";
-			var args         = Duplicate( requestContext.getCollection() );
+			var args         = requestContext.getCollectionWithoutSystemVars();
 			var verb         = restRequest.getVerb();
 			var resource     = restRequest.getResource();
 
@@ -153,9 +200,9 @@ component {
 		, required any restResponse
 		, required any requestContext
 	) {
-		var originHeader         = requestContext.getHttpHeader( header="Origin", default="" );
-		var requestMethodHeader  = requestContext.getHttpHeader( header="Access-Control-Request-Method", default="" );
-		var requestHeadersHeader = requestContext.getHttpHeader( header="Access-Control-Request-Headers", default="" );
+		var originHeader         = requestContext.getHttpHeader( header="Origin", defaultValue="" );
+		var requestMethodHeader  = requestContext.getHttpHeader( header="Access-Control-Request-Method", defaultValue="" );
+		var requestHeadersHeader = requestContext.getHttpHeader( header="Access-Control-Request-Headers", defaultValue="" );
 
 		if ( !Len( Trim( originHeader ) ) || !Len( Trim( requestMethodHeader ) ) ) {
 			restResponse.setError(
@@ -277,15 +324,15 @@ component {
 
 	public any function getVerb( required any requestContext ) {
 		return arguments.requestContext.getHttpHeader(
-			  header  = "X-HTTP-Method-Override"
-			, default = arguments.requestContext.getHttpMethod()
+			  header       = "X-HTTP-Method-Override"
+			, defaultValue = arguments.requestContext.getHttpMethod()
 		);
 	}
 
 	public string function getEtag( required any restResponse ) {
 		var data = restResponse.getData();
 
-		if ( !IsNull( data ) ) {
+		if ( !IsNull( local.data ) ) {
 			return LCase( Hash( Serialize( restResponse.getData() ) ) );
 		}
 
@@ -348,7 +395,7 @@ component {
 			var etag = setEtag( restResponse );
 
 			if ( Len( Trim( etag ) ) ) {
-				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match", default="" );
+				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match", defaultValue="" );
 				if ( ifNoneMatchHeader == etag  ) {
 					restResponse.noData();
 					restResponse.setStatus( 304, "Not modified" );
@@ -492,7 +539,6 @@ component {
 		_apis = arguments.apis;
 	}
 
-
 	private any function _getController() {
 		return _controller;
 	}
@@ -505,6 +551,13 @@ component {
 	}
 	private void function _setConfigurationWrapper( required any configurationWrapper ) {
 		_configurationWrapper = arguments.configurationWrapper;
+	}
+
+	private any function _getAuthService() {
+		return _authService;
+	}
+	private void function _setAuthService( required any authService ) {
+		_authService = arguments.authService;
 	}
 
 	private any function _getValidationEngine() {

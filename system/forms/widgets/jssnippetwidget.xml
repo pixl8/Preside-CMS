@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="widgets.jssnippetwidget:">
+<form i18nBaseUri="widgets.jssnippetwidget:" categories="system,js,default">
 	<tab>
 		<fieldset id="externaljs">
-			<field sortorder="10" name="source_url"      control="textinput"/>
+			<field sortorder="10" name="source_url"      control="textinput"   />
 			<field sortorder="20" name="async"           control="yesNoSwitch" />
 			<field sortorder="30" name="defer"           control="yesNoSwitch" />
+			<field sortorder="40" name="integrity"       control="textinput"   />
+			<field sortorder="50" name="crossorigin"     control="textinput"   />
 		</fieldset>
 
 		<fieldset id="inlinejs">

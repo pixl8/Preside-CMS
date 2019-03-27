@@ -1,12 +1,12 @@
-component implements="coldbox.system.ioc.dsl.IDSLBuilder" output=false {
+component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 
-	public any function init( required any injector ) output=false {
+	public any function init( required any injector ) {
 		_setInjector( arguments.injector );
 
 		return this;
 	}
 
-	public any function process( required any definition, any targetObject ) output=false {
+	public any function process( required any definition, any targetObject ) {
 		var thisType    = arguments.definition.dsl;
 		var thisTypeLen = ListLen( thisType, ":" );
 		var injectorDsl = "";
@@ -35,10 +35,10 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" output=false {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getInjector() output=false {
+	private any function _getInjector() {
 		return _injector;
 	}
-	private void function _setInjector( required any injector ) output=false {
+	private void function _setInjector( required any injector ) {
 		_injector = arguments.injector;
 	}
 

@@ -64,6 +64,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.chosen-container-single .chosen-single span.selected-text{
+    display: inline-block;
+    float: left;
+    margin-right: 5px;
+    max-width: 96%;
+}
 .chosen-container-single .chosen-single-with-deselect span {
   margin-right: 38px;
 }
@@ -292,6 +298,15 @@
   display: list-item;
   color: #ccc;
   cursor: default;
+}
+.chosen-container-multi, .chosen-container-single {
+  .chosen-drop .result-super-quick-add-suggestion {
+    font-style: italic;
+
+    &.highlighted {
+      background-color: #3ba22a;
+    }
+  }
 }
 
 /* @end */

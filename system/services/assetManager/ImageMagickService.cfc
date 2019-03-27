@@ -21,14 +21,16 @@ component displayname="ImageMagick"  {
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
+		,          string  gravity             = 'center'
+		,          string  focalPoint          = ""
+		,          struct  cropHintArea        = {}
 	) {
-		var currentImageInfo = getImageInformation( arguments.asset );
 
-		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
-			return arguments.asset;
-		}
+		var imageBinary       = arguments.asset;
+		var currentImageInfo  = getImageInformation( imageBinary );
 
-		var currentImageInfo  = {};
+		imageBinary = autoCorrectImageOrientation( imageBinary );
+
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
 		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
 
@@ -43,9 +45,13 @@ component displayname="ImageMagick"  {
 				, height          = arguments.height
 				, expand          = maintainAspectRatio
 				, crop            = maintainAspectRatio
+				, gravity         = arguments.gravity
+				, focalPoint      = arguments.focalPoint
+				, cropHintArea    = arguments.cropHintArea
+				, imageInfo       = currentImageInfo
 			);
 
-			var binary = FileReadBinary( tmpDestFilePath );
+			imageBinary = FileReadBinary( tmpDestFilePath );
 		} catch ( any e ) {
 			$raiseError( e );
 			rethrow;
@@ -54,7 +60,7 @@ component displayname="ImageMagick"  {
 			FileDelete( tmpDestFilePath   );
 		}
 
-		return binary;
+		return imageBinary;
 	}
 
 	public binary function pdfPreview(
@@ -68,7 +74,7 @@ component displayname="ImageMagick"  {
 		var imagePrefix    = CreateUUId();
 		var tmpFilePathPDF = GetTempFile( GetTempDirectory(), "mgk" );
 		var tmpFilePathJpg = GetTempFile( GetTempDirectory(), "mgk" ) & ".jpg";
-		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB "#tmpFilePathJpg#"';
+		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB -flatten "#tmpFilePathJpg#"';
 
 		FileWrite( tmpFilePathPDF, arguments.asset );
 
@@ -88,11 +94,11 @@ component displayname="ImageMagick"  {
 		, required numeric height
 		,          string  quality = "highPerformance"
 	) {
-		var currentImageInfo = getImageInformation( arguments.asset );
+		var imageBinary = arguments.asset;
 
-		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
-			return arguments.asset;
-		}
+		imageBinary = autoCorrectImageOrientation( imageBinary );
+
+		var currentImageInfo  = getImageInformation( imageBinary );
 
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
 		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
@@ -101,12 +107,17 @@ component displayname="ImageMagick"  {
 		var widthChangeRatio  = currentImageInfo.width / shrinkToWidth;
 		var heightChangeRatio = currentImageInfo.height / shrinkToHeight;
 
-		FileWrite( tmpSourceFilePath, arguments.asset );
+		FileWrite( tmpSourceFilePath, imageBinary );
 
 		if ( widthChangeRatio > heightChangeRatio ) {
 			shrinkToHeight = 0;
 		} else {
 			shrinkToWidth = 0;
+		}
+
+		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
+			shrinkToWidth  = currentImageInfo.width;
+			shrinkToHeight = currentImageInfo.height;
 		}
 
 		try {
@@ -120,7 +131,7 @@ component displayname="ImageMagick"  {
 				, crop            = false
 			);
 
-			var binary = FileReadBinary( tmpDestFilePath );
+			imageBinary = FileReadBinary( tmpDestFilePath );
 		} catch ( any e ) {
 			$raiseError( e );
 			rethrow;
@@ -129,7 +140,7 @@ component displayname="ImageMagick"  {
 			FileDelete( tmpDestFilePath   );
 		}
 
-		return binary;
+		return imageBinary;
 	}
 
 	public string function imageMagickResize(
@@ -138,24 +149,47 @@ component displayname="ImageMagick"  {
 		, required string  qualityArgs
 		, required numeric width
 		, required numeric height
-		,          boolean expand    = false
-		,          boolean crop      = false
-		,          string  gravity   = 'center'
+		,          boolean expand       = false
+		,          boolean crop         = false
+		,          string  gravity      = 'center'
+		,          string  focalPoint   = ""
+		,          struct  cropHintArea = {}
+		,          struct  imageInfo    = {}
 	) {
-		var defaultSettings = "-unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
-		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings# -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
+		var defaultSettings = "-coalesce -auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip -background none";
+		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings#{preCrop} -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
 		var interlace       = $getPresideSetting( "asset-manager", "imagemagick_interlace" );
+		var extent          = " -extent #arguments.width#x#arguments.height#";
+		var offset          = "+0+0";
+		var preCrop         = "";
 
 		if ( arguments.expand ) {
 			if ( arguments.crop ) {
 				args &= "^";
 			}
-			args &= " -gravity #arguments.gravity# -extent #arguments.width#x#arguments.height#";
+			if ( !arguments.cropHintArea.isEmpty() && !imageInfo.isEmpty() ) {
+				gravity = "NorthWest";
+				preCrop = " -extent #arguments.cropHintArea.width#x#arguments.cropHintArea.height#+#arguments.cropHintArea.x#+#arguments.cropHintArea.y#";
+				extent  = "";
+				offset  = ""
+			} else if ( len( arguments.focalPoint ) && !imageInfo.isEmpty() ) {
+				gravity = "NorthWest";
+				offset  = _calculateFocalPointOffset(
+					  originalWidth  = imageInfo.width
+					, originalHeight = imageInfo.height
+					, newWidth       = arguments.width
+					, newHeight      = arguments.height
+					, focalPoint     = arguments.focalPoint
+				);
+			}
+			args &= " -gravity #gravity##extent##offset#";
+		} else if ( arguments.width && arguments.height ) {
+			args &= "!";
 		}
+		args = args.replace( "{preCrop}", preCrop );
 
 		interlace = ( IsBoolean( interlace ) && interlace ) ? "line" : "none";
 		args &= " -interlace #interlace#";
-
 		args &= " " & '"#arguments.destinationFile#"';
 
 		_exec( command="convert", args=args );
@@ -167,10 +201,11 @@ component displayname="ImageMagick"  {
 
 	public struct function getImageInformation( required binary asset ) {
 		var tmpFilePath = GetTempFile( GetTempDirectory(), "mgk" );
+		var imageBinary = autoCorrectImageOrientation( arguments.asset );
 
-		FileWrite( tmpFilePath, arguments.asset );
+		FileWrite( tmpFilePath, imageBinary );
 
-		var rawInfo = Trim( _exec( command="identify", args='-format "%wx%h" "#tmpFilePath#"[0]' ) );
+		var rawInfo = Trim( _exec( command="identify", args='-format "%[width]x%[height]" "#tmpFilePath#"[0]' ) );
 
 		FileDelete( tmpFilePath );
 
@@ -182,6 +217,40 @@ component displayname="ImageMagick"  {
 		}
 
 		throw( type="AssetTransformer.shrinkToFit.notAnImage" );
+	}
+
+	public binary function autoCorrectImageOrientation( required binary asset ) {
+		var tmpSourceFilePath = GetTempFile( GetTempDirectory(), "mgk" );
+		var imageBinary = arguments.asset;
+
+		FileWrite( tmpSourceFilePath, imageBinary );
+		var rawOrientation = Trim( _exec( command="identify", args='-format "%[orientation]" "#tmpSourceFilePath#"' ) );
+		var convertOrientation = false;
+
+		switch ( rawOrientation ) {
+			case "BottomRight":
+				convertOrientation = true;
+				break;
+			case "RightTop":
+				convertOrientation = true;
+				break;
+			case "LeftBottom":
+				convertOrientation = true;
+				break;
+		}
+
+		if ( convertOrientation ) {
+			var tmpDestinationFilePath = GetTempFile( GetTempDirectory(), "mgk" );
+			var imageQuality = _cfToImQuality( "highestQuality" );
+			var defaultSettings = "-auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
+			_exec( command="convert", args="#tmpSourceFilePath# #imageQuality# #defaultSettings# #tmpDestinationFilePath#" );
+			imageBinary = fileReadBinary( tmpDestinationFilePath );
+			fileDelete( tmpDestinationFilePath );
+		}
+
+		fileDelete( tmpSourceFilePath );
+
+		return imageBinary;
 	}
 
 // PRIVATE HELPERS
@@ -248,7 +317,7 @@ component displayname="ImageMagick"  {
 	}
 
 	private void function _checkResize( required string destinationFile, required numeric width, required numeric height ) {
-		var rawInfo    = Trim( _exec( command="identify", args='-format "%wx%h" "#arguments.destinationFile#"[0]' ) );
+		var rawInfo    = Trim( _exec( command="identify", args='-format "%[width]x%[height]" "#arguments.destinationFile#"[0]' ) );
 		var dimensions = {};
 		var failure    = false;
 
@@ -258,12 +327,41 @@ component displayname="ImageMagick"  {
 				, height = ListLast( rawInfo, "x" )
 			};
 
-			if ( ( arguments.width && dimensions.width != arguments.width ) || ( arguments.height && dimensions.height != arguments.height ) ) {
+			if ( ( arguments.width && _dimensionsNotCloseEnough( dimensions.width, arguments.width ) ) || ( arguments.height && _dimensionsNotCloseEnough( dimensions.height, arguments.height ) ) ) {
 				throw( type="imagemagick.resize.failure",  message="Image resize operation failed. Expected dimensions [#arguments.width#x#arguments.height#]. Received dimensions: [#rawInfo#]" );
 			}
 		} else {
 			throw( type="imagemagick.resize.failure",  message="Image resize operation failed. Expected dimensions [#arguments.width#x#arguments.height#]. Generated image dimensions could not be read, received instead [#rawInfo#]" );
 		}
+	}
+
+	private string function _calculateFocalPointOffset(
+		  required numeric originalWidth
+		, required numeric originalHeight
+		, required numeric newWidth
+		, required numeric newHeight
+		, required string  focalPoint
+	) {
+		var heightRatio   = newHeight / originalHeight;
+		var widthRatio    = newWidth  / originalWidth;
+		var scale         = max( heightRatio, widthRatio );
+		var interimHeight = int( originalHeight * scale );
+		var interimWidth  = int( originalWidth  * scale );
+		var originX       = 0;
+		var originY       = 0;
+		var cropCentreX   = int( arguments.newWidth  / 2 );
+		var cropCentreY   = int( arguments.newHeight / 2 );
+		var focalPointX   = int( listFirst( arguments.focalPoint ) * interimWidth  );
+		var focalPointY   = int( listLast(  arguments.focalPoint ) * interimHeight );
+
+		if ( focalPointX > cropCentreX ) {
+			originX = min( focalPointX - cropCentreX, interimWidth - arguments.newWidth );
+		}
+		if ( focalPointY > cropCentreY ) {
+			originY = min( focalPointY - cropCentreY, interimHeight - arguments.newHeight );
+		}
+
+		return "+#originX#+#originY#";
 	}
 
 	private string function _registerOperation( required numeric timeoutInSeconds ) {
@@ -292,12 +390,16 @@ component displayname="ImageMagick"  {
 
 			for ( var key in operations ) {
 				if ( operations[ key ] < ticksNow ) {
-					operations.delete[ key ];
+					operations.delete( key );
 				}
 			}
 
 			return operations.count();
 		}
+	}
+
+	private boolean function _dimensionsNotCloseEnough( required numeric dimension1, required numeric dimension2 ) {
+		return abs( arguments.dimension1 - arguments.dimension2 ) > 2; // within 2px is fine
 	}
 
 // GETTERS AND SETTERS

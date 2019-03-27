@@ -12,6 +12,11 @@
 	resultTemplateId   = "result_template_" & CreateUUId();
 	selectedTemplateId = "selected_template_" & CreateUUId();
 
+	filterBy             = args.filterBy             ?: "";
+	filterByField        = args.filterByField        ?: filterBy;
+	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
+
+
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
@@ -35,6 +40,15 @@
 	    	data-result-template="#resultTemplateId#"
 	    	data-selected-template="#selectedTemplateId#"
 	    	data-modal-title="#translateResource( 'cms:sitetree.browser.title' )#"
+	    	<cfif !isEmpty( filterBy )>
+				data-filter-by='#filterBy#'
+			</cfif>
+			<cfif !isEmpty( filterByField )>
+				data-filter-by-field='#filterByField#'
+			</cfif>
+			<cfif !isEmpty( disabledIfUnfiltered )>
+				data-disabled-if-unfiltered='#disabledIfUnfiltered#'
+			</cfif>
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
 	        </cfif>

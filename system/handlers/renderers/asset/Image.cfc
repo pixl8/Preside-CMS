@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="assetManagerService" inject="assetManagerService";
 
@@ -16,11 +16,15 @@ component output=false {
 					transformArgs.quality = args.quality;
 				}
 
-				assetManagerService.createAssetDerivativeWhenNotExists(
-					  assetId         = ( args.id ?: "" )
-					, derivativeName  = args.derivative
-					, transformations = [ { method="resize", args=transformArgs } ]
-				);
+				try {
+					assetManagerService.createAssetDerivativeWhenNotExists(
+						  assetId         = ( args.id ?: "" )
+						, derivativeName  = args.derivative
+						, transformations = [ { method="resize", args=transformArgs } ]
+					);
+				} catch( any e ) {
+					logError ( e );
+				}
 			}
 		}
 

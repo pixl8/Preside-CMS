@@ -1,16 +1,17 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="assetManagerService"      inject="assetManagerService";
-	property name="websitePermissionService" inject="websitePermissionService";
-	property name="formsService"             inject="formsService";
-	property name="presideObjectService"     inject="presideObjectService";
-	property name="contentRendererService"   inject="contentRendererService";
-	property name="imageManipulationService" inject="imageManipulationService";
-	property name="errorLogService"          inject="errorLogService";
-	property name="storageProviderService"   inject="storageProviderService";
-	property name="storageLocationService"   inject="storageLocationService";
-	property name="messageBox"               inject="coldbox:plugin:messageBox";
-	property name="datatableHelper"          inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="assetManagerService"              inject="assetManagerService";
+	property name="websitePermissionService"         inject="websitePermissionService";
+	property name="formsService"                     inject="formsService";
+	property name="presideObjectService"             inject="presideObjectService";
+	property name="contentRendererService"           inject="contentRendererService";
+	property name="imageManipulationService"         inject="imageManipulationService";
+	property name="errorLogService"                  inject="errorLogService";
+	property name="storageProviderService"           inject="storageProviderService";
+	property name="storageLocationService"           inject="storageLocationService";
+	property name="messageBox"                       inject="messagebox@cbmessagebox";
+	property name="datatableHelper"                  inject="jQueryDatatablesHelpers";
+	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 
 	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -194,6 +195,9 @@ component extends="preside.system.base.AdminHandler" {
 			} catch( "PresideCMS.AssetManager.folder.in.different.location" e ) {
 				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
+			} catch ("PresideCMS.AssetManager.asset.file.exist.in.folder" e ){
+				messagebox.error( translateResource( "cms:assetmanager.assets.file.is.exist.in.folder.error" ) );
+				success = false;
 			}
 
 			if ( !success ) {
@@ -229,6 +233,7 @@ component extends="preside.system.base.AdminHandler" {
 				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
 			}
+
 			if ( !success ) {
 				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 			}
@@ -353,7 +358,7 @@ component extends="preside.system.base.AdminHandler" {
 			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
 		);
 
-		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ formData.label ?: '' ] ) );
+		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ prc.folder.label ?: '' ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 	}
 
@@ -407,7 +412,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.setfolderlocation", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
 		}
 
-		messageBox.info( translateResource( uri="cms:assetmanager.folder.location.set.confirmation", data=[ formData.label ?: '' ] ) );
+		messageBox.info( translateResource( uri="cms:assetmanager.folder.location.set.confirmation", data=[ prc.folder.label ?: '' ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 	}
 
@@ -445,7 +450,19 @@ component extends="preside.system.base.AdminHandler" {
 	function uploadAssets( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		var folderId           = rc.folder ?: "";
+		var folderId = rc.folder  ?: "";
+		var folder   = prc.folder ?: queryNew("");
+		if( folder.recordCount ){
+			var maxFileSize   = folder.max_filesize_in_mb ?: 100;
+			var allowedTypes  = folder.allowed_filetypes  ?: "";
+			var extensionList = "";
+
+			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
+				extensionList = ListAppend( extensionList, ".#type#" );
+			} );
+
+			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
+		}
 
 		prc.pageIcon     = "picture";
 		prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -466,9 +483,11 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prePostExempt  = true
 		);
-
-		var result   = { success=true, message="",  id="" };
-		var fileName = rc.file.tempFileInfo.clientFile ?: "";
+		var imageExtensions = [ "png", "gif", "jpg", "jpeg", "jpe", "jif", "jfif", "jfi" ];
+		var tempFileInfo    = rc.file.tempFileInfo ?: {};
+		var fileExtension   = ListLast( tempFileInfo.serverFile, "." );
+		var result          = { success=true, message="",  id="" };
+		var fileName        = tempFileInfo.clientFile ?: "";
 
 		if ( !Len( Trim( fileName ) ) ) {
 			result.success = false;
@@ -476,12 +495,22 @@ component extends="preside.system.base.AdminHandler" {
 		} else if ( !Len( Trim( rc.asset_folder ?: "" ) ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.folder" );
+		} else if( imageExtensions.findNoCase( fileExtension ) && ( !imageManipulationService.isValidImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) ) {
+			result.success = false;
+			result.message = translateResource( "cms:assetmanager.uploader.image.format.failure" );
 		} else {
 			var assetData = event.getCollectionWithoutSystemVars();
 
 			assetData.delete( "asset_folder" );
 			assetData.delete( "file" );
-			assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+
+			var convertTiffs = IsTrue( getSystemSetting( category="asset-manager", setting="tiff_conversion", default=false ) );
+
+			if ( ListFindNoCase( "tif,tiff", ListLast( assetData.title, "." ) ) && convertTiffs ) {
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? ReplaceNoCase( assetData.title, ListLast( assetData.title, "." ), "jpg" ) : fileName;
+			} else {
+				assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+			}
 
 			try {
 				var assetId = assetManagerService.addAsset(
@@ -496,10 +525,14 @@ component extends="preside.system.base.AdminHandler" {
 
 				result.id      = assetId;
 				result.message = editLink;
-			} catch ( any e ) {
+			} catch ( "assetManager.fileTypeNotFound" e ) {
 				result.success = false;
+				result.message = translateResource( uri="cms:assetmanager.uploader.messages.invalidFileType", data=[ fileExtension ] );
+
+			} catch ( any e ) {
 
 				if ( ReFindNoCase( "^PresideCMS\.AssetManager", e.type ?: "" ) ) {
+					result.success = false;
 					result.message = translateResource( ReReplace( e.type, "^PresideCMS\.", "cms:" ) );
 				} else {
 					logError( e );
@@ -527,8 +560,15 @@ component extends="preside.system.base.AdminHandler" {
 		event.include( "/js/admin/specific/owlcarousel/"  )
 		     .include( "/css/admin/specific/owlcarousel/" );
 
-		prc.versions = assetManagerService.getAssetVersions( rc.asset );
-		prc.assetType = assetManagerService.getAssetType( name=prc.asset.asset_type );
+		prc.versions     = assetManagerService.getAssetVersions( rc.asset );
+		prc.assetType    = assetManagerService.getAssetType( name=prc.asset.asset_type );
+		prc.isImageAsset = listFirst( prc.assetType.mimetype, "/" ) == "image";
+
+		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( "asset" );
+		prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="assetmanager.assets.translate" , context="assetmanagerfolder", contextKeys= prc.permissionContext );
+		if ( prc.canTranslate ) {
+			prc.assetTranslations = multilingualPresideObjectService.getTranslationStatus( "asset", rc.asset );
+		}
 	}
 
 	function editAssetAction( event, rc, prc ) {
@@ -536,7 +576,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var assetId          = rc.asset  ?: "";
 		var folderId         = rc.folder ?: "";
-		var formName         = "preside-objects.asset.admin.edit";
+		var formName         = rc.keyExists( "focal_point" ) ? formsService.getMergedFormName( "preside-objects.asset.admin.edit", "preside-objects.asset.cropping" ) : "preside-objects.asset.admin.edit";
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = "";
 		var success          = true;
@@ -580,6 +620,93 @@ component extends="preside.system.base.AdminHandler" {
 			persist = formData;
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", queryString="asset=#assetId#" ), persistStruct=persist );
 		}
+	}
+	function translateAssetRecord( event, rc, prc ) {
+		var object                = rc.object ?: "";
+		var id                    = rc.id     ?: "";
+		var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+		var record                = "";
+		prc.language              = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#id#" ) );
+		}
+		_checkPermissions( argumentCollection=arguments, key="assets.translate" );
+
+		prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+		prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false );
+
+		if ( not prc.sourceRecord.recordCount ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.recordNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", querystring="asset=#id#" ) );
+		}
+		prc.record       = queryRowToStruct( prc.record );
+		prc.recordLabel  = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield",  defaultValue="label" ) ] ?: "";
+		prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+		prc.formName     = "preside-objects.#translationObjectName#.admin.edit";
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:assetManager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
+			, link  = ""
+		);
+		prc.pageIcon  = "pencil";
+		prc.pageTitle = translateResource( uri="cms:assetManager.translaterecord.title", data=[ prc.recordLabel, prc.language.name ] );
+	}
+	function translateAssetRecordAction( event, rc, prc ) {
+		var id                    = rc.id       ?: "";
+		var object                = rc.object   ?: "";
+		var languageId            = rc.language ?: "";
+		var persist               = "";
+		var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+
+		_checkPermissions( argumentCollection=arguments, key="assets.translate" );
+		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#id#" ) );
+		}
+
+		if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.recordNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#id#" ) );
+		}
+
+		var formName         = "preside-objects.#translationObjectName#.admin.edit";
+		var formData         = event.getCollectionForForm( formName );
+		var existingTranslation = multilingualPresideObjectService.selectTranslation(
+			  objectName   = object
+			, id           = id
+			, languageId   = languageId
+			, selectFields = [ "id" ]
+		);
+
+		formData._translation_language = languageId;
+		if ( existingTranslation.recordCount ) {
+			formData.id = existingTranslation.id;
+		}
+		var validationResult = validateForm( formName=formName, formData=formData );
+
+		if ( not validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:assetManager.translation.validation.error" ) );
+			persist                  = formData;
+			persist.validationResult = validationResult;
+			persist.delete( "id" );
+
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", querystring="object=#object#&id=#id#&language=#languageId#" ), persistStruct=persist );
+		}
+
+		formData._translation_active = IsTrue( rc._translation_active ?: "" );
+		multilingualPresideObjectService.saveTranslation(
+			  objectName = object
+			, id         = id
+			, data       = formData
+			, languageId = languageId
+		);
+
+		messageBox.info( translateResource( uri="cms:assetManager.recordTranslated.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", querystring="asset=#id#" ) );
 	}
 
 	function makeVersionActiveAction( event, rc, prc ) {
@@ -654,8 +781,9 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="assets.pick" );
 
 		var allowedTypes = rc.allowedTypes ?: "";
-		var multiple     = rc.multiple ?: "";
+		var multiple     = rc.multiple     ?: "";
 
+		prc.savedFilters = rc.savedFilters ?: "";
 		prc.allowedTypes = assetManagerService.expandTypeList( ListToArray( allowedTypes ) );
 
 		event.setLayout( "adminModalDialog" );
@@ -663,14 +791,14 @@ component extends="preside.system.base.AdminHandler" {
 		prc._adminBreadCrumbs = [];
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:home.title" )
-			, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#&savedFilters=#prc.savedFilters#" )
 		);
 		if ( Len( Trim( rc.folder ?: "" ) ) ) {
 			prc.folderAncestors = assetManagerService.getFolderAncestors( id=rc.folder );
 			for( var f in prc.folderAncestors ){
 				event.addAdminBreadCrumb(
 					  title = f.label
-					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#f.id#&allowedTypes=#allowedTypes#&multiple=#multiple#" )
+					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#f.id#&allowedTypes=#allowedTypes#&savedFilters=#prc.savedFilters#&multiple=#multiple#" )
 				);
 			}
 
@@ -678,7 +806,7 @@ component extends="preside.system.base.AdminHandler" {
 			if ( prc.folder.recordCount ){
 				event.addAdminBreadCrumb(
 					  title = prc.folder.label
-					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#prc.folder.id#&allowedTypes=#allowedTypes#&multiple=#multiple#" )
+					, link  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="folder=#prc.folder.id#&allowedTypes=#allowedTypes#&savedFilters=#prc.savedFilters#&multiple=#multiple#" )
 				);
 			}
 		}
@@ -696,11 +824,11 @@ component extends="preside.system.base.AdminHandler" {
 			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
 				extensionList = ListAppend( extensionList, ".#type#" );
 			} );
-			event.includeData( { allowedExtensions : extensionList, maxFileSize = maxFileSize } );
+			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
 		}
 
 		if ( !IsBoolean( multiple ) || !multiple ) {
-			event.includeData( { maxFiles : 1 } );
+			event.includeData( { maxFiles = 1 } );
 		}
 
 		prc.uploadCompleteView = '/admin/assetmanager/_batchUploadCompleteMessagingForAssetPicker';
@@ -711,16 +839,25 @@ component extends="preside.system.base.AdminHandler" {
 
 	function ajaxSearchAssets( event, rc, prc ) {
 		var records = assetManagerService.searchAssets(
-			  maxRows      = rc.maxRows      ?: 1000
+			  maxRows      = rc.maxRows      ?: 100
 			, searchQuery  = rc.q            ?: ""
+			, savedFilters = rc.savedFilters ?: ""
 			, ids          = ListToArray( rc.values       ?: "" )
 			, allowedTypes = ListToArray( rc.allowedTypes ?: "" )
 		);
 		var rootFolderName   = translateResource( "cms:assetmanager.root.folder" );
 		var processedRecords = [];
 
-		for ( record in records ) {
-			record.icon = renderAsset( record.value, "pickerIcon" );
+		for( var record in records ) {
+			record.icon        = renderAsset( record.value, "pickerIcon" );
+			record.largerImage = event.buildLink( assetId=record.value, derivative='adminThumbnail' );
+
+			if ( Val( record.width ) && Val( record.height ) ) {
+				record.dimension =  "(" & record.width & "x" & record.height & ")";
+			} else {
+				record.dimension =  "";
+			}
+
 			if ( record.folder == "$root" ) {
 				record.folder = rootFolderName;
 			}
@@ -733,7 +870,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	function getFoldersForAjaxSelectControl( event, rc, prc ) {
 		var records = assetManagerService.getFoldersForSelectList(
-			  maxRows      = rc.maxRows ?: 1000
+			  maxRows      = rc.maxRows ?: 100
 			, searchQuery  = rc.q       ?: ""
 			, ids          = ListToArray( rc.values ?: "" )
 		);
@@ -802,7 +939,12 @@ component extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
-					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> " & records[ field ][ records.currentRow ];
+					var type = assetManagerService.getAssetType( name=record.asset_type );
+					if ( ( type.groupName ?: "" ) == "image" ) {
+						records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> ' & records[ field ][ records.currentRow ];
+					} else {
+						records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickerIcon" ) & '</span> ' & records[ field ][ records.currentRow ];
+					}
 				}
 			}
 
@@ -856,7 +998,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( asset.recordCount ) {
 			asset = QueryRowToStruct( asset );
 
-			if ( !IsNull( binary ) ) {
+			if ( !IsNull( local.binary ) ) {
 				asset.append( imageManipulationService.getImageInformation( binary ) );
 				StructDelete( asset, "metadata" );
 				StructDelete( asset, "colormodel" );
@@ -910,6 +1052,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="folders.manageContextPerms" );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			event.audit(
+				  action   = "edit_asset_folder_admin_permissions"
+				, type     = "assetmanager"
+				, detail   = QueryRowToStruct( folderRecord )
+				, recordId = folderId
+			);
 			messageBox.info( translateResource( uri="cms:assetmanager.permsSaved.confirmation", data=[ folderRecord.label ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.index", queryString="folder=#folderId#" ) );
 		}
@@ -1139,5 +1287,9 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !permitted ) {
 			event.adminAccessDenied();
 		}
+	}
+
+	private void function _editAssetLocationInBackgroundThread( event, rc, prc, args={} ){
+		assetManagerService.ensureAssetsAreInCorrectLocation( folderId=args.id ?: "" );
 	}
 }

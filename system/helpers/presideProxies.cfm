@@ -13,24 +13,16 @@
 		<cfreturn getSingleton( "systemConfigurationService" ).getSetting( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="getSystemCategorySettings" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "systemConfigurationService" ).getCategorySettings( argumentCollection = arguments ) />
+	</cffunction>
+
 <!--- preside objects --->
 	<cffunction name="getPresideObject" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "PresideObjectService" ).getObject( argumentCollection = arguments ) />
 	</cffunction>
 
 <!--- rendering --->
-	<cffunction name="renderView" access="public" returntype="any" output="false">
-		<cfscript>
-			if ( Len( Trim( arguments.presideObject ?: "" ) ) ) {
-				return getSingleton( "presideObjectViewService" ).renderView(
-					argumentCollection = arguments
-				);
-			}
-
-			return getPlugin( "Renderer" ).renderView( argumentCollection=arguments );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="renderViewlet" access="public" returntype="any" output="false">
 		<cfreturn getController().renderViewlet( argumentCollection = arguments ) />
 	</cffunction>
@@ -68,7 +60,13 @@
 		<cfreturn getSingleton( "notificationService" ).renderNotification( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="renderAuditLog" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "AuditService" ).renderAuditLog( argumentCollection = arguments ) />
+	</cffunction>
 
+	<cffunction name="renderLogMessage" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "AuditService" ).renderLogMessage( argumentCollection = arguments ) />
+	</cffunction>
 
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false">
@@ -82,7 +80,15 @@
 
 <!--- FORMS --->
 	<cffunction name="renderForm" access="public" returntype="any" output="false">
-		<cfreturn getSingleton( "formsService" ).renderForm( argumentCollection=arguments ) />
+		<cfscript>
+			if ( !arguments.keyExists( "validationJsJqueryRef" ) ) {
+				var event = getController().getRequestContext();
+
+				arguments.validationJsJqueryRef = event.isAdminRequest() ? "presideJQuery" : "jQuery";
+			}
+
+			return getSingleton( "formsService" ).renderForm( argumentCollection=arguments );
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="renderFormControl" access="public" returntype="any" output="false">
@@ -130,7 +136,29 @@
 			var cacheKey = "translateResource" & SerializeJson( args );
 
 			return simpleRequestCache( cacheKey, function(){
-				return getPlugin( "i18n" ).translateResource( argumentCollection = args )
+				return getSingleton( "i18n" ).translateResource( argumentCollection = args )
+			} );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translateObjectName" access="public" returntype="any" output="false">
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translateObjectName" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getSingleton( "i18n" ).translateObjectName( argumentCollection = args )
+			} );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translatePropertyName" access="public" returntype="any" output="false">
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translatePropertyName" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getSingleton( "i18n" ).translatePropertyName( argumentCollection = args )
 			} );
 		</cfscript>
 	</cffunction>
@@ -151,6 +179,33 @@
 			}
 
 			return translated;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translateObjectProperty" access="public" returntype="any" output="false">
+		<cfargument name="objectName"   type="string" required="true" />
+		<cfargument name="propertyname" type="string" required="true" />
+		<cfargument name="defaultValue" type="string" required="false" default="#arguments.propertyName#" />
+
+		<cfscript>
+			var baseUri      = getSingleton( "presideObjectService" ).getResourceBundleUriRoot( arguments.objectName );
+			var fullUri      = baseUri & "field.#propertyName#.title";
+			var defaultValue = translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=arguments.defaultValue );
+
+			return translateResource( uri=fullUri, defaultValue=defaultValue );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translateObjectName" access="public" returntype="any" output="false">
+		<cfargument name="objectName"   type="string" required="true" />
+
+		<cfscript>
+			var poService    = getSingleton( "presideObjectService" );
+			var baseUri      = poService.getResourceBundleUriRoot( arguments.objectName );
+			var isPageType   = poService.isPageType( arguments.objectName );
+			var fullUri      = baseUri & ( isPageType ? "name" : "title.singular" );
+
+			return translateResource( uri=fullUri, defaultValue=arguments.objectName );
 		</cfscript>
 	</cffunction>
 
@@ -196,6 +251,46 @@
 		<cfreturn getController().getWireBox().getInstance( "errorLogService" ).raiseError( argumentCollection=arguments ) />
 	</cffunction>
 
+<!--- tasks --->
+	<cffunction name="createTask" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "adHocTaskManagerService" ).createTask( argumentCollection=arguments ) />
+	</cffunction>
+
+<!--- utils --->
+	<cffunction name="slugify" access="public" returntype="string" output="false">
+		<cfreturn getSingleton( "PresideObjectService" ).slugify( argumentCollection=arguments )>
+	</cffunction>
+
+<!--- datamanager --->
+	<cffunction name="objectDataTable" access="public" returntype="string" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+		<cfargument name="args"       type="struct" required="false" default="#StructNew()#" />
+
+		<cfscript>
+			arguments.args.objectName = arguments.objectName;
+
+			return getSingleton( "dataManagerCustomizationService" ).runCustomization(
+				  objectName     = arguments.objectName
+				, args           = arguments.args
+				, action         = "listingViewlet"
+				, defaultHandler = "admin.DataManager._objectListingViewlet"
+			);
+		</cfscript>
+	</cffunction>
+
+<!--- healthchecks --->
+	<cffunction name="isUp" access="public" returntype="any" output="false">
+		<cfargument name="serviceId" type="string" required="true" />
+
+		<cfreturn getSingleton( "healthcheckService" ).isUp( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="isDown" access="public" returntype="any" output="false">
+		<cfargument name="serviceId" type="string" required="true" />
+
+		<cfreturn !getSingleton( "healthcheckService" ).isUp( argumentCollection=arguments ) />
+	</cffunction>
+
 <!--- helpers --->
 	<cffunction name="simpleRequestCache" access="public" returntype="any" output="false">
 		<cfargument name="key" type="string" required="true" />
@@ -218,16 +313,6 @@
 			var args = arguments;
 			return simpleRequestCache( "getSingleton" & args.objectName, function(){
 				return getController().getWireBox().getInstance( args.objectName );
-			} );
-		</cfscript>
-	</cffunction>
-	<cffunction name="getPlugin" access="public" returntype="any" output="false">
-		<cfargument name="pluginName" type="string" required="true" />
-
-		<cfscript>
-			var args = arguments;
-			return simpleRequestCache( "getPlugin" & args.pluginName, function(){
-				return getController().getPlugin( args.pluginName );
 			} );
 		</cfscript>
 	</cffunction>

@@ -31,7 +31,7 @@ component {
 	 */
 	public array function listPossibleViewlets( string filter="" ) {
 		var cachedResults = _getCachedResults();
-		var cacheKey      = _getSiteService().getActiveSiteTemplate() & arguments.filter;
+		var cacheKey      = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) & arguments.filter;
 
 		if ( !cachedResults.keyExists( cacheKey ) ) {
 			var viewlets = Duplicate( _getCoreViewlets() );
@@ -68,7 +68,7 @@ component {
 			}
 
 			if ( arguments.viewletName.reFindNoCase( "\.index$" ) ) {
-				arguments.viewletName = arguments.viewletName.reReplaceNoCase( "\.index$", "" )
+				arguments.viewletName = arguments.viewletName.reReplaceNoCase( "\.index$", "" );
 
 				if ( arguments.siteTemplate == "" ) {
 					viewlets.core[ arguments.viewletName ] = true;
@@ -179,7 +179,7 @@ component {
 	}
 
 	private array function _getSiteTemplateViewlets() {
-		return _siteTemplateViewlets[ _getSiteService().getActiveSiteTemplate() ] ?: [];
+		return _siteTemplateViewlets[ _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) ] ?: [];
 	}
 	private void function _setSiteTemplateViewlets( required struct siteTemplateViewlets ) {
 		_siteTemplateViewlets = arguments.siteTemplateViewlets;

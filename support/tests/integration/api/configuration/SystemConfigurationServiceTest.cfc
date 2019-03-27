@@ -1,167 +1,304 @@
-component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
+component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
-// SETUP, TEARDOWN, ETC.
-	function setup() {
-		mockDao  = getMockbox().createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
-		testDirs = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
-	}
+	function run(){
 
-// TESTS
-	function test01_listConfigCategories_shouldReturnEmptyArray_whenNoConfigurationCategoriesConfigured() {
-		super.assertEquals( [], _getConfigSvc().listConfigCategories() );
-	}
+		describe( "listConfigCategories", function(){
 
-	function test02_listConfigCategories_shouldReturnAnArrayOfCategoriesThatHaveBeenAutoDiscoveredThroughTheConfiguredDirectories() {
-		var expected     = [ "blog_settings", "client_settings", "mail_settings", "security_settings" ];
-		var categories   = _getConfigSvc( testDirs ).listConfigCategories();
-		var ids          = [];
+			it( "should return empty array when no configuration categories defined", function(){
+				expect( _getConfigSvc().listConfigCategories() ).toBe( [] );
+			} );
 
-		for( var cat in categories ){
-			ArrayAppend( ids, cat.getid() );
-		}
+			it( "should return an array of categories that have been auto discovered through the configured directories", function(){
+				var expected     = [ "blog_settings", "client_settings", "mail_settings", "security_settings" ];
+				var categories   = _getConfigSvc( testDirs ).listConfigCategories();
+				var ids          = [];
 
-		ids.sort( "textnocase" );
-		super.assertEquals( expected, ids );
-	}
+				for( var cat in categories ){
+					ArrayAppend( ids, cat.getid() );
+				}
 
-	function test03_getConfigCategory_shouldReturnConfigCategoryBeanForGivenCategory() {
-		var cat = _getConfigSvc( testDirs ).getConfigCategory( id="blog_settings" );
+				ids.sort( "textnocase" );
+				expect( ids ).toBe( expected );
+			} );
 
-		super.assertEquals( "system-config.blog_settings:name"       , cat.getName()        );
-		super.assertEquals( "system-config.blog_settings:description", cat.getDescription() );
-		super.assertEquals( "system-config.blog_settings"            , cat.getForm( )       );
-	}
-
-	function test04_getConfigCategory_shouldThrowInformativeError_whenCategoryDoesNotExist() {
-		var errorThrown = false;
-
-		try {
-			_getConfigSvc( testDirs ).getConfigCategory( id="meh" );
-		} catch( "SystemConfigurationService.category.notfound" e ){
-			super.assertEquals( 'The configuration category [meh] could not be found. Configured categories are: ["blog_settings","client_settings","mail_settings","security_settings"]', e.message );
-			errorThrown = true;
-		} catch ( any e ) {}
-
-		super.assert( errorThrown, "A suitable error was not thrown" );
-	}
-
-	function test05_saveSetting_shouldInsertANewDbRecord_whenNoExistingRecordExistsForTheGivenConfigKey() {
-		mockDao.$( "selectData" )
-			.$args( filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
-			.$results( QueryNew('id') );
-
-		mockDao.$( "insertData", CreateUUId() );
-
-		_getConfigSvc( testDirs ).saveSetting(
-			  category = "mycategory"
-			, setting  = "mysetting"
-			, value    = "this is the value of my setting"
-		);
-
-		var log = mockDao.$callLog().insertData;
-
-		super.assertEquals( 1, log.len() );
-		super.assertEquals( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting" } }, log[1] );
-	}
-
-	function test06_saveSetting_shouldUpdateExistingDbRecord_whenRecordAlreadyExistsInDb() {
-		mockDao.$( "selectData" )
-			.$args( filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
-			.$results( QueryNew('id', "varchar", ["someid"] ) );
-
-		mockDao.$( "insertData", CreateUUId() );
-		mockDao.$( "updateData", 1 );
-
-		_getConfigSvc( testDirs ).saveSetting(
-			  category = "mycategory"
-			, setting  = "mysetting"
-			, value    = "this is the value of my setting"
-		);
-
-		var log = mockDao.$callLog().insertData;
-		super.assertEquals( 0, log.len() );
-
-		log = mockDao.$callLog().updateData;
-		super.assertEquals( 1, log.len() );
-		super.assertEquals( { data = {  value="this is the value of my setting" }, id = "someid" }, log[1] );
-	}
-
-	function test07_getSetting_shouldReturnValueAsSavedInTheDatabaseForGivenCategoryAndSetting() {
-		mockDao.$( "selectData" )
-			.$args( filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
-			.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
-
-		super.assertEquals( "this is the correct result", _getConfigSvc( testDirs ).getSetting(
-			  category = "somecategory"
-			, setting  = "asetting"
-		) );
-	}
-
-	function test08_getSetting_shouldReturnPassedDefault_whenNoRecordExists() {
-		mockDao.$( "selectData" )
-			.$args( filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
-			.$results( QueryNew('value') );
-
-		super.assertEquals( "defaultResult", _getConfigSvc( testDirs ).getSetting(
-			  category = "somecategory"
-			, setting  = "asetting"
-			, default  = "defaultResult"
-		) );
-	}
-
-	function test09_getCategorySettings_shouldReturnAStructureOfAllSavedSettingsForAGivenCategory() {
-		mockDao.$( "selectData" )
-			.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
-			.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ], [ "setting3", "value3" ] ] ) );
-
-		super.assertEquals( {
-			  setting1 = "value1"
-			, setting2 = "value2"
-			, setting3 = "value3"
-		}, _getConfigSvc().getCategorySettings( category="mycategory" ) );
-	}
-
-	function test10_getSetting_shouldFallBackToInjectedSetting_whenSettingDoesNotExist() {
-		var configService = _getConfigSvc( injectedConfig = { "injectedCat.injectedSetting" = "test value for injected settings" } );
-
-		mockDao.$( "selectData" )
-			.$args( filter={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
-			.$results( QueryNew('value') );
-
-		super.assertEquals( "test value for injected settings", configService.getSetting( category="injectedCat", setting="injectedSetting" ) );
-	}
-
-	function test11_getCategorySettings_shouldReturnAStructureOfAllSavedSettingsMixedInWithInjectedSettings(){
-		var configService = _getConfigSvc( injectedConfig = {
-			  "injectedCat.injectedSetting" = "test value for injected settings"
-			, "mycategory.setting1"         = "valuex"
-			, "mycategory.setting4"         = "another value"
 		} );
 
-		mockDao.$( "selectData" )
-			.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
-			.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ], [ "setting3", "value3" ] ] ) );
+		describe( "getConfigCategory", function(){
+			it( "should return config category bean for given category", function(){
+				var cat = _getConfigSvc( testDirs ).getConfigCategory( id="blog_settings" );
 
-		super.assertEquals( {
-			  setting1 = "value1"
-			, setting2 = "value2"
-			, setting3 = "value3"
-			, setting4 = "another value"
-		}, configService.getCategorySettings( category="mycategory" ) );
+				expect( cat.getName()        ).toBe( "system-config.blog_settings:name"        );
+				expect( cat.getDescription() ).toBe( "system-config.blog_settings:description" );
+				expect( cat.getForm()        ).toBe( "system-config.blog_settings"             );
+			} );
+
+			it( "should throw informative error when category does not exist", function(){
+				var errorThrown = false;
+
+				try {
+					_getConfigSvc( testDirs ).getConfigCategory( id="meh" );
+				} catch( "SystemConfigurationService.category.notfound" e ){
+					expect( e.message ).toBe( 'The configuration category [meh] could not be found. Configured categories are: ["blog_settings","client_settings","mail_settings","security_settings"]' );
+					errorThrown = true;
+				} catch ( any e ) {}
+
+				expect( errorThrown ).toBeTrue();
+			} );
+
+		} );
+
+		describe( "saveSetting", function(){
+			it( "should insert a new db record when no existing record exists for the given config key", function(){
+				var configService = _getConfigSvc( testDirs );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
+					.$results( QueryNew('id') );
+
+				mockDao.$( "insertData", CreateUUId() );
+
+				configService.saveSetting(
+					  category = "mycategory"
+					, setting  = "mysetting"
+					, value    = "this is the value of my setting"
+				);
+
+				var log = mockDao.$callLog().insertData;
+
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site="" } } );
+			} );
+
+			it( "should update existing db record when record already exists in db", function(){
+				var configService = _getConfigSvc( testDirs );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
+					.$results( QueryNew('id', "varchar", ["someid"] ) );
+
+				mockDao.$( "insertData", CreateUUId() );
+				mockDao.$( "updateData", 1 );
+
+				configService.saveSetting(
+					  category = "mycategory"
+					, setting  = "mysetting"
+					, value    = "this is the value of my setting"
+				);
+
+				var log = mockDao.$callLog().insertData;
+				expect( log.len() ).toBe( 0 );
+
+				log = mockDao.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { data = {  value="this is the value of my setting" }, id = "someid" } );
+			} );
+
+			it( "should insert a new db record with site ID when site id passed", function(){
+				var configService = _getConfigSvc( testDirs );
+				var siteId        = CreateUUId();
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category="mycategory", setting="mysetting", site=siteId }, selectFields=["id"] )
+					.$results( QueryNew('id') );
+
+				mockDao.$( "insertData", CreateUUId() );
+
+				configService.saveSetting(
+					  category = "mycategory"
+					, setting  = "mysetting"
+					, value    = "this is the value of my setting"
+					, siteId   = siteId
+				);
+
+				var log = mockDao.$callLog().insertData;
+
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site=siteId } } );
+			} );
+
+		} );
+
+		describe( "getSetting", function(){
+
+			it( "should return values as saved in the database for given category and setting that are saved against the currently active site", function(){
+				var configService = _getConfigSvc( testDirs );
+
+				mockDao.$( "selectData" )
+					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
+					.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
+
+				expect( configService.getSetting(
+					  category = "somecategory"
+					, setting  = "asetting"
+				) ).toBe( "this is the correct result" );
+			} );
+
+			it( "should return global default values as saved in the database for given category and setting when no setting found for active site", function(){
+				var configService = _getConfigSvc( testDirs );
+
+				mockDao.$( "selectData" )
+					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
+					.$results( QueryNew( 'value' ) );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
+
+				expect( configService.getSetting(
+					  category = "somecategory"
+					, setting  = "asetting"
+				) ).toBe( "this is the correct result" );
+			} );
+
+			it( "should return passed default when no record exists for either site or global default", function(){
+				var configService = _getConfigSvc( testDirs );
+
+				mockDao.$( "selectData" )
+					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
+					.$results( QueryNew('value') );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$results( QueryNew('value') );
+
+				expect( configService.getSetting(
+					  category = "somecategory"
+					, setting  = "asetting"
+					, default  = "defaultResult"
+				) ).toBe( "defaultResult");
+			} );
+
+			it( "should fall back to injected setting when setting does not exist", function(){
+				var configService = _getConfigSvc( injectedConfig = { "injectedCat.injectedSetting" = "test value for injected settings" } );
+
+				mockDao.$( "selectData" )
+					.$args( filter={ category="injectedCat", setting="injectedSetting", site=activeSite }, selectFields=["value"] )
+					.$results( QueryNew('value') );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
+					.$results( QueryNew('value') );
+
+				expect( configService.getSetting( category="injectedCat", setting="injectedSetting" ) ).toBe( "test value for injected settings" );
+			} );
+
+		} );
+
+		describe( "getCategorySettings", function(){
+
+			it( "should return a struct of all saved setting for a given category for the currently active site merged with those from global settings", function(){
+				var configService = _getConfigSvc();
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ] ] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
+
+				expect( configService.getCategorySettings( category="mycategory" ) ).toBe( {
+					  setting1 = "value1"
+					, setting2 = "value2"
+					, setting3 = "value3global"
+				} );
+			} );
+
+			it( "should return a structure of all saved settings mixed in with injected settings", function(){
+				var configService = _getConfigSvc( injectedConfig = {
+					  "injectedCat.injectedSetting" = "test value for injected settings"
+					, "mycategory.setting1"         = "valuex"
+					, "mycategory.setting4"         = "another value"
+				} );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
+
+
+				expect( configService.getCategorySettings( category="mycategory" ) ).toBe( {
+					  setting1 = "value1"
+					, setting2 = "value2global"
+					, setting3 = "value3"
+					, setting4 = "another value"
+				} );
+			} );
+
+			it( "should not mixin global or injected settings when explicitly asked not to do so with the includeDefaults argument", function(){
+				var configService = _getConfigSvc( injectedConfig = {
+					  "injectedCat.injectedSetting" = "test value for injected settings"
+					, "mycategory.setting1"         = "valuex"
+					, "mycategory.setting4"         = "another value"
+				} );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
+
+
+				expect( configService.getCategorySettings( category="mycategory", includeDefaults=false ) ).toBe( {
+					  setting1 = "value1"
+					, setting3 = "value3"
+				} );
+			} );
+
+			it( "should only retreive global and injected when explicitly asked to do so with the globalDefaultsOnly argument", function(){
+				var configService = _getConfigSvc( injectedConfig = {
+					  "injectedCat.injectedSetting" = "test value for injected settings"
+					, "mycategory.setting1"         = "valuex"
+					, "mycategory.setting4"         = "another value"
+				} );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ], [ "setting5", "value5" ] ] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
+
+
+				expect( configService.getCategorySettings( category="mycategory", globalDefaultsOnly=true ) ).toBe( {
+					  setting1 = "value1global"
+					, setting2 = "value2global"
+					, setting3 = "value3global"
+					, setting4 = "another value"
+				} );
+			} );
+
+		} );
 	}
 
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[], struct injectedConfig={} ) ouput=false {
-		mockFormsService = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockDao          = createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
+		testDirs         = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
+		mockFormsService = createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockSiteService  = createEmptyMock( "preside.system.services.siteTree.SiteService" );
 
 		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
 		mockFormsService.$( "formExists", true );
+		mockFormsService.$( "createForm", CreateUUId() );
+
+		activeSite = CreateUUId();
+		mockSiteService.$( "getActiveSiteId", activeSite );
+
 
 		return new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
 			, injectedConfig          = arguments.injectedConfig
 			, formsService            = mockFormsService
+			, siteService             = mockSiteService
 		);
 	}
+
 }

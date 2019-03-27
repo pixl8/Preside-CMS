@@ -1,7 +1,7 @@
 <cfscript>
-	objectName          = "security_group"
+	objectName          = "security_group";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
+	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
 
 	prc.pageIcon     = "group";
 	prc.pageTitle    = translateResource( "cms:usermanager.groupspage.title");
@@ -23,8 +23,7 @@
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
-		, useMultiActions = true
-		, multiActionUrl  = event.buildAdminLink( linkTo='userManager.deleteGroupAction' )
+		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=userManager.getGroupsForAjaxDataTables" )
 		, gridFields      = [ "label", "description" ]
 	} )#

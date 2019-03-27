@@ -10,7 +10,7 @@ component {
 	 * @formsService.inject            FormsService
 	 * @coldbox.inject                 coldbox
 	 * @autoDiscoverDirectories.inject presidecms:directories
-	 * @i18nPlugin.inject              coldbox:plugin:i18n
+	 * @i18nPlugin.inject              i18n
 	 * @featureService.inject          featureService
 	 * @siteService.inject             siteService
 	 */
@@ -38,11 +38,11 @@ component {
 	}
 
 // PUBLIC API
-	public struct function getWidgets() {
+	public struct function getWidgets( array categories=[] ) {
 		var widgets = Duplicate( _getWidgets() );
 
 		for( var widgetId in widgets ) {
-			if ( !_isWidgetEnabled( widgetId, true ) ) {
+			if ( !_isWidgetEnabled( widgetId, true ) || !_isWidgetInCategories( widgetId, arguments.categories ) ) {
 				widgets.delete( widgetId );
 			}
 		}
@@ -192,7 +192,7 @@ component {
 				var id = "";
 				if ( views.type eq "Dir" ) {
 					id = views.name;
-				} elseif ( views.type == "File" && ReFindNoCase( "\.cfm$", views.name ) && !views.name.startsWith( "_" ) ) {
+				} else if ( views.type == "File" && ReFindNoCase( "\.cfm$", views.name ) && !views.name.startsWith( "_" ) ) {
 					id = ReReplaceNoCase( views.name, "\.cfm$", "" );
 				} else {
 					continue;
@@ -225,6 +225,7 @@ component {
 					, title              = _getTitleByConvention( id )
 					, description        = _getDescriptionByConvention( id )
 					, siteTemplates      = _mergeSiteTemplates( siteTemplateMap[id] )
+					, categories         = _getWidgetCategoriesFromForm( id )
 				};
 			}
 		}
@@ -262,6 +263,18 @@ component {
 
 	private string function _getFormNameByConvention( required string widgetId ) {
 		return "widgets." & widgetId;
+	}
+
+	private array function _getWidgetCategoriesFromForm( required string widgetId ) {
+		var formName = _getFormNameByConvention( arguments.widgetId );
+
+		if ( _getFormsService().formExists( formName ) ) {
+			var theForm = _getFormsService().getForm( formName );
+
+			return ListToArray( theForm.categories ?: "" );
+		}
+
+		return [];
 	}
 
 	private string function _getViewletEventByConvention( required string widgetId ) {
@@ -319,6 +332,26 @@ component {
 		}
 
 		return true;
+	}
+
+	private boolean function _isWidgetInCategories( required string widgetId, required array categories ) {
+		var widgetCategories = getWidget( arguments.widgetId ).categories ?: [];
+
+		if ( !widgetCategories.len() ) {
+			widgetCategories = [ "default" ];
+		}
+
+		if ( !arguments.categories.len() ) {
+			arguments.categories = [ "default" ];
+		}
+
+		for( var widgetCategory in widgetCategories ) {
+			if ( arguments.categories.findNoCase( widgetCategory ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 

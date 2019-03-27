@@ -1,7 +1,8 @@
 <cfscript>
 	configFormName = prc.actionConfig.configFormName ?: "";
 	savedData      = prc.savedData ?: {};
-	action         = rc.action   ?: "";
+	action         = rc.action     ?: "";
+	fbFormId       = rc.formId     ?: "";
 	formId         = "configform-" & CreateUUId();
 </cfscript>
 
@@ -10,10 +11,12 @@
 		<input type="hidden" name="action" value="#action#">
 
 		#renderForm(
-			  formName          = configFormName
+			  formName          = "formbuilder.actions._baseActionConfig"
+			, mergeWithFormName = configFormName
 			, context           = "admin"
 			, formId            = formId
 			, savedData         = savedData
+			, additionalArgs    = { fields={ condition={ rulesEngineContextData={ fbform=fbFormId } } } }
 		)#
 	</form>
 </cfoutput>

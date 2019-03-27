@@ -483,7 +483,7 @@
 			pagesThatShouldBeDeleted = poService.selectData(
 				  objectName   = "page"
 				, orderBy      = "_hierarchy_sort_order"
-				, filter       = "trashed = 0 and ( _hierarchy_lineage like :_hierarchy_lineage or id = :id )"
+				, filter       = "trashed = '0' and ( _hierarchy_lineage like :_hierarchy_lineage or id = :id )"
 				, filterParams = { id = dummyPages[1].children[3].id, _hierarchy_lineage="/#dummyPages[1]._hierarchy_id#/#dummyPages[1].children[3]._hierarchy_id#/%" }
 				, useCache     = false
 			);
@@ -548,7 +548,7 @@
 
 			restoredPages = poService.selectData(
 				  objectName   = "page"
-				, filter       = "trashed = 0 and ( id = :id or _hierarchy_lineage like :_hierarchy_lineage )"
+				, filter       = "trashed = '0' and ( id = :id or _hierarchy_lineage like :_hierarchy_lineage )"
 				, filterParams = { id = page.id, _hierarchy_lineage = "/#dummyPages[1]._hierarchy_id#/#page._hierarchy_id#/%" }
 				, useCache     = false
 				, orderBy      = "_hierarchy_sort_order"

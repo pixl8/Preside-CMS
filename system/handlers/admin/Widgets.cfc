@@ -1,8 +1,8 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="widgetsService" inject="widgetsService";
 	property name="siteService"    inject="siteService";
-	property name="messageBox"     inject="coldbox:plugin:messageBox";
+	property name="messageBox"     inject="messagebox@cbmessagebox";
 
 	public void function dialog( event, rc, prc ) output=false {
 		var widget            = rc.widget            ?: "";
@@ -20,13 +20,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 			event.includeData( { widgetSavedConfig = "{{widget:#Trim( widget )#:#Trim( UrlEncodedFormat( SerializeJson( savedConfig ) ) )#:widget}}" } );
 			event.setView( "admin/widgets/configSavedDialog" );
 
-		} elseif ( Len( Trim( rc.widget ?: "" ) ) ) {
+		} else if ( Len( Trim( rc.widget ?: "" ) ) ) {
 			prc.widget = widgetsService.getWidget( rc.widget );
 
 			event.setView( "admin/widgets/formDialog" );
 
 		} else {
-			prc.widgets = _getSortedAndTranslatedWidgets();
+			prc.widgets = _getSortedAndTranslatedWidgets( rc.widgetCategories ?: "" );
 
 			event.setView( "admin/widgets/browserDialog" );
 		}
@@ -69,9 +69,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // private helpers
-	private query function _getSortedAndTranslatedWidgets() output=false {
+	private query function _getSortedAndTranslatedWidgets( required string categories ) output=false {
 		// todo, cache this operation (per locale)
-		var unsortedOrTranslated = widgetsService.getWidgets();
+		var unsortedOrTranslated = widgetsService.getWidgets( categories=ListToArray( arguments.categories ) );
 		var tempArray            = [];
 		var activeSiteTemplate   = siteService.getActiveSiteTemplate();
 

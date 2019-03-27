@@ -66,7 +66,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 				, params    = { justTesting=true }
 			);
 		} catch ( "ValidationProvider.missingValidator" e ) {
-			super.assertEquals( "The validator, [test], does not exist for this Validation Provider" , e.message )
+			super.assertEquals( "The validator, [test], does not exist for this Validation Provider" , e.message );
 			errorThrown = true;
 		}
 

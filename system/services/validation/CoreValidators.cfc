@@ -83,10 +83,10 @@ component validationProvider=true {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
-		return ReFind( "^[a-zA-Z]{2}([_][a-zA-Z]{2})?$", arguments.value );
+		return ReFind( "^[a-zA-Z]{2,3}([_][a-zA-Z]{2,4})?([_][a-zA-Z]{2})?$", arguments.value );
 	}
 	public string function languageCode_js() {
-		return "function( value, el, params ){ return !value.length || value.match( /^[a-zA-Z]{2}([_][a-zA-Z]{2})?$/ ) !== null }";
+		return "function( value, el, params ){ return !value.length || value.match( /^[a-zA-Z]{2,3}([_][a-zA-Z]{2,4})?([_][a-zA-Z]{2})?$/ ) !== null }";
 	}
 
 	public boolean function match( required string fieldName, string value="", required string regex ) validatorMessage="cms:validation.match.default" {
@@ -112,6 +112,13 @@ component validationProvider=true {
 	}
 	public string function slug_js() {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
+	}
+
+	public boolean function email( required string fieldName, string value="" ) validatorMessage="cms:validation.email.default" {
+		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$" );
+	}
+	public string function email_js() {
+		return "function( value ){ return !value.length || value.match( /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/ ) !== null }";
 	}
 
 	public boolean function uuid( required string value ) validatorMessage="cms:validation.uuid.default" {
@@ -143,16 +150,38 @@ component validationProvider=true {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
 	}
 
-	public boolean function fileType( required string fieldName, any value={}, required string acceptFileType ) validatorMessage="cms:validation.fileType.default" {
-
-		if ( !IsStruct( arguments.value ) || !arguments.value.keyExists( "tempFileInfo" ) || !Len( arguments.value.tempFileInfo ) ) {
+	public boolean function fileType( required string fieldName, any value={}, required string allowedTypes, required string allowedExtensions ) validatorMessage="cms:validation.fileType.default" {
+		if ( !IsStruct( arguments.value ) ) {
 			return true;
 		}
 
-		var clientFileExt  = arguments.value.tempFileInfo.clientfileext ?: "";
-		var typeDisallowed = arguments.acceptFileType.len() && !ListFindNoCase( arguments.acceptFileType, clientFileExt );
+		var allowedExtensions = listToArray( arguments.allowedExtensions );
+		var filesToCheck      = [];
+		var validFiles        = 0;
 
-		return !typeDisallowed;
+		if ( isStruct( arguments.value.tempFileInfo ?: "" ) ) {
+			filesToCheck.append( arguments.value.tempFileInfo );
+		} else {
+			for( var filename in arguments.value ) {
+				if ( isStruct( arguments.value[ filename ].tempFileInfo ?: "" ) ) {
+					filesToCheck.append( arguments.value[ filename ].tempFileInfo );
+				}
+			}
+		}
+
+		for ( var fileInfo in filesToCheck ) {
+			var serverfileext  = fileInfo.serverfileext  ?: "";
+			var contentsubtype = fileInfo.contentsubtype ?: "";
+
+			for( var ext in allowedExtensions ) {
+				if ( ext == serverfileext || ext == contentsubtype ) {
+					validFiles++;
+					break;
+				}
+			}
+		}
+
+		return validFiles == filesToCheck.len();
 	}
 
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
@@ -160,10 +189,10 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value >= arguments.minimumDate );
+		return ( DateCompare( arguments.value, arguments.minimumDate ) >= 0 );
 	}
 	public string function minimumDate_js() {
-		return "function( value, el, params ){ return value >= params[0]; }";
+		return "function( value, el, params ){ return !value.length || value >= params[0]; }";
 	}
 
 	public boolean function maximumDate( required string value, required date maximumDate ) validatorMessage="cms:validation.maximumDate.default" {
@@ -171,10 +200,10 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value <= arguments.maximumDate );
+		return ( DateCompare( arguments.value, arguments.maximumDate ) <= 0 );
 	}
 	public string function maximumDate_js() {
-		return "function( value, el, params ){ return value <= params[0]; }";
+		return "function( value, el, params ){ return !value.length || value <= params[0]; }";
 	}
 
 	public boolean function laterThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanField.default" {
@@ -182,10 +211,10 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value > arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) > 0 );
 	}
 	public string function laterThanField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value > $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value > $field.val(); }";
 	}
 
 	public boolean function laterThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanOrSameAsField.default" {
@@ -193,10 +222,10 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value >= arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) >= 0 );
 	}
 	public string function laterThanOrSameAsField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value >= $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value >= $field.val(); }";
 	}
 
 	public boolean function earlierThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanField.default" {
@@ -204,10 +233,10 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value < arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) < 0 );
 	}
 	public string function earlierThanField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value < $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value < $field.val(); }";
 	}
 
 	public boolean function earlierThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanOrSameAsField.default" {
@@ -215,9 +244,9 @@ component validationProvider=true {
 			return true;
 		}
 
-		return ( arguments.value <= arguments.data[ arguments.field ] );
+		return ( DateCompare( arguments.value, arguments.data[ arguments.field ] ) <= 0 );
 	}
 	public string function earlierThanOrSameAsField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value <= $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
 	}
 }

@@ -17,17 +17,47 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 		return result;
 	}
 
-	public any function get( required string objectKey ) output=false {
+	public any function clearQuiet( required any objectKey ) output=false {
+		request[ _requestKey ] = request[ _requestKey ] ?: {};
+		request[ _requestKey ].delete( arguments.objectKey );
+
+		return super.clearQuiet( argumentCollection=arguments );
+	}
+
+	public any function get( required any objectKey ) output=false {
 		request[ _requestKey ] = request[ _requestKey ] ?: {};
 
 		if ( !request[ _requestKey ].keyExists( arguments.objectKey ) ) {
 			var fromSharedCache = super.get( argumentCollection=arguments );
 
-			if ( !IsNull( fromSharedCache ) ) {
+			if ( !IsNull( local.fromSharedCache ) ) {
 				request[ _requestKey ][ arguments.objectKey ] = fromSharedCache;
 			}
 		}
 
 		return request[ _requestKey ][ arguments.objectKey ] ?: NullValue();
+	}
+
+	public any function set(
+		  required any     objectKey
+		, required any     object
+		,          any     timeout           = ""
+		,          any     lastAccessTimeout = ""
+		,          any     extra             = {}
+	) {
+		setQuiet( arguments.objectKey, arguments.object, arguments.timeout, arguments.lastAccessTimeout );
+
+		return true;
+	}
+
+	private any function locateObjectStore( string store ) {
+		if ( fileExists( expandPath("/preside/system/coldboxModifications/cachebox/store/#arguments.store#.cfc") ) ) {
+			return "preside.system.coldboxModifications.cachebox.store.#arguments.store#";
+		}
+		if( fileExists( expandPath("/coldbox/system/cache/store/#arguments.store#.cfc") ) ){
+			return "coldbox.system.cache.store.#arguments.store#";
+		}
+
+		return arguments.store;
 	}
 }

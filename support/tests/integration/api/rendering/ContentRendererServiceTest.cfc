@@ -122,7 +122,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var expectedRender = "another testing rendering";
 
 		// mocking the coldbox calls
-		mockColdBox.$( "viewletExists", false )
+		mockColdBox.$( "viewletExists", false );
 		mockColdBox.$( "renderViewlet" )
 			.$args( event="admin.viewlet.money", args={ data="8334" } ).$results( expectedRender );
 
@@ -282,6 +282,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, cache                = cache
 			, assetRendererService = getMockBox().createEmptyMock( "preside.system.services.assetManager.assetRendererService" )
 			, widgetsService       = getMockBox().createEmptyMock( "preside.system.services.widgets.widgetsService" )
+			, labelRendererService = getMockBox().createEmptyMock( "preside.system.services.rendering.LabelRendererService" )
 		);
 	}
 }

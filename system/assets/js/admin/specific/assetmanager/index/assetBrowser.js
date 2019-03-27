@@ -60,13 +60,28 @@
 
 			$allCBoxes.each( function(){
 				this.checked = $selectAllCBox.is( ':checked' );
-				$(this).closest('tr').toggleClass('selected');
+				if( this.checked ) {
+					$( this ).closest( 'tr' ).addClass( 'selected' );
+				} else {
+					$( this ).closest( 'tr' ).removeClass( 'selected' );
+				}
 			});
+		});
+
+		$listingTable.on( 'click', 'tbody :checkbox', function(){
+			var $cbox = $( this );
+			$cbox.closest( 'tr' ).toggleClass( 'selected', $cbox.is( ':checked' ) );
 		});
 
 		$multiActionBtns.data( 'hidden', true );
 		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
 			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
+
+			if( anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length ) {
+				$selectAllCBox.prop( 'checked', true );
+			} else {
+				$selectAllCBox.prop( 'checked', false );
+			}
 
 			enabledContextHotkeys( !anyBoxesTicked );
 
@@ -118,8 +133,9 @@
 	} );
 	for( i=1; i < $tableHeaders.length-1; i++ ){
 		colConfig.push( {
-			  mData  : $( $tableHeaders.get(i) ).data( 'field' )
-			, sWidth : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
+			  mData     : $( $tableHeaders.get(i) ).data( 'field' )
+			, sWidth    : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
+			, bSortable : true
 		} );
 	}
 	colConfig.push( {
@@ -137,11 +153,11 @@
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
 		processing    : true,
-		bStateSave    : false,
-		bPaginate     : false,
-		bLengthChange : false,
+		bStateSave    : true,
+		bPaginate     : true,
+		bLengthChange : true,
 		aaSorting     : [],
-		sDom          : "t",
+		sDom          : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system

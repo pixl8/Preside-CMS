@@ -55,12 +55,7 @@
 			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
 				var mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
-				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
-					  dsn = application.dsn
-					, tablePrefix = arguments.defaultPrefix
-					, interceptorService = arguments.interceptorService
-					, featureService = mockFeatureService
-				);
+				var mockRequestContext = getMockBox().createStub();
 				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
 				var dbInfoService  = new preside.system.services.database.DbInfoService();
 				var sqlRunner      = new preside.system.services.database.sqlRunner( logger = logger );
@@ -68,6 +63,13 @@
 				var adapterFactory = new preside.system.services.database.adapters.AdapterFactory(
 					  cache         = cachebox.getCache( "PresideSystemCache" )
 					, dbInfoService = dbInfoService
+				);
+				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
+					  dsn = application.dsn
+					, tablePrefix = arguments.defaultPrefix
+					, interceptorService = arguments.interceptorService
+					, featureService = mockFeatureService
+					, adapterFactory = adapterFactory
 				);
 				var schemaVersioning = new preside.system.services.presideObjects.sqlSchemaVersioning(
 					  adapterFactory = adapterFactory
@@ -88,17 +90,23 @@
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
 				var coldbox = arguments.coldbox ?: getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+				var versioningService = getMockBox().createMock( object=new preside.system.services.presideObjects.VersioningService() );
+
+				var mockLabelRendererCache = getMockBox().createStub();
+				var labelRendererService = getMockBox().createMock( object= new preside.system.services.rendering.LabelRendererService(
+					labelRendererCache = mockLabelRendererCache
+				) );
 
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
 				mockFeatureService.$( "isFeatureEnabled", true );
 
-				if ( !StructKeyExists( arguments, "coldbox" ) ) {
-					var event   = getMockbox().createStub();
+				mockRequestContext.$( "isAdminUser", true );
+				mockRequestContext.$( "getAdminUserId", "" );
+				mockRequestContext.$( "getUseQueryCache", true );
 
-					event.$( "isAdminUser", true );
-					event.$( "getAdminUserId", "" );
-					coldbox.$( "getRequestContext", event );
+				if ( !StructKeyExists( arguments, "coldbox" ) ) {
+					coldbox.$( "getRequestContext", mockRequestContext );
 				}
 
 				request[ key ] = new preside.system.services.presideObjects.PresideObjectService(
@@ -109,6 +117,8 @@
 					, sqlRunner              = sqlRunner
 					, relationshipGuidance   = relationshipGuidance
 					, presideObjectDecorator = presideObjectDecorator
+					, versioningService      = versioningService
+					, labelRendererService   = labelRendererService
 					, filterService          = mockFilterService
 					, cache                  = cachebox.getCache( "PresideSystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
@@ -116,6 +126,14 @@
 					, interceptorService     = arguments.interceptorService
 					, reloadDb               = false
 				);
+
+				request[ key ] = getMockbox().createMock( object=request[ key ] );
+
+				versioningService.$( "$getPresideObjectService", request[ key ] );
+				versioningService.$( "$getAdminLoggedInUserId", "" );
+				request[ key ].$( "$isAdminUserLoggedIn", false );
+				request[ key ].$( "$getRequestContext", mockRequestContext );
+				mockRequestContext.$( "showNonLiveContent", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];

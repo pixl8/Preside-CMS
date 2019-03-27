@@ -6,12 +6,13 @@
 		  , pickerConfig     = $thisPicker.data()
 		  , relativeToField  = pickerConfig.relativeToField
 		  , relativeOperator = pickerConfig.relativeOperator
-		  , conf, form, relativeField, datePicker;
+		  , conf, $form, relativeField, datePicker;
 
 		conf = {
 			  autoclose : true
 			, startDate : pickerConfig.startDate || null
 			, endDate   : pickerConfig.endDate   || null
+			, language  : $thisPicker.data( "language" ) || "en"
 			, onRender : function( date ){
 				var dateValue  = date.valueOf()
 				  , startDate  = this.startDate
@@ -33,6 +34,12 @@
 			$( this ).prev().focus();
 		});
 
+		$thisPicker.on("changeDate", function(){
+			if ( typeof $.validator !== 'undefined' ) {
+				$thisPicker.valid();
+			}
+		});
+
 		datePicker = $thisPicker.data( "datepicker" );
 
 		if ( relativeToField.length || relativeOperator.length ) {
@@ -46,7 +53,7 @@
 					currentDate = new Date( currentDate );
 					switch( relativeOperator ) {
 						case "lt":
-							currentDate.setDate( currentDate - 1 );
+							currentDate.setDate( currentDate.getDate() - 1 );
 						case "lte":
 							datePicker.setEndDate( currentDate );
 						break;
