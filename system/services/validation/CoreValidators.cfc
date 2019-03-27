@@ -143,6 +143,18 @@ component validationProvider=true {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
 	}
 
+	public boolean function fileType( required string fieldName, any value={}, required string acceptFileType ) validatorMessage="cms:validation.fileType.default" {
+
+		if ( !IsStruct( arguments.value ) || !arguments.value.keyExists( "tempFileInfo" ) || !Len( arguments.value.tempFileInfo ) ) {
+			return true;
+		}
+
+		var clientFileExt  = arguments.value.tempFileInfo.clientfileext ?: "";
+		var typeDisallowed = arguments.acceptFileType.len() && !ListFindNoCase( arguments.acceptFileType, clientFileExt );
+
+		return !typeDisallowed;
+	}
+
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
 		if ( !IsDate( arguments.value ) ) {
 			return true;

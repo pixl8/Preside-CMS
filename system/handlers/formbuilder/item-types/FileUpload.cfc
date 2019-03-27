@@ -63,6 +63,14 @@ component {
 			} );
 		}
 
+		if( Len( Trim( args.accept ?: "" ) ) ){
+			rules.append( {
+				  fieldname = args.name ?: ""
+				, validator = "fileType"
+				, params    = { acceptFileType = args.accept }
+			} );
+		}
+
 		return rules;
 	}
 
