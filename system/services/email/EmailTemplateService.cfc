@@ -153,6 +153,7 @@ component {
 				plainTextArgs.viewOnlineLink = htmlArgs.viewOnlineLink;
 
 				message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
+				message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
 			}
 
 			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
@@ -243,6 +244,7 @@ component {
 		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
 			htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
 			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
+			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
 		}
 
 		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
