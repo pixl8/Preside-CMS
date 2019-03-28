@@ -150,8 +150,6 @@ component {
 
 			if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
 				htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
-				plainTextArgs.viewOnlineLink = htmlArgs.viewOnlineLink;
-
 				message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 				message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
 			}

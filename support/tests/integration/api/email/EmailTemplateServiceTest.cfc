@@ -989,22 +989,23 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should build a view online link and pass to layout when 'view online' is set to true for the template", function(){
-				var service                = _getService();
-				var template               = "mytemplate";
-				var mockSubject            = CreateUUId();
-				var mockTo                 = CreateUUId();
-				var mockTextBody           = CreateUUId();
-				var mockTextBodyWithLayout = CreateUUId();
-				var mockHtmlBody           = CreateUUId();
-				var mockHtmlBodyRendered   = CreateUUId();
-				var mockHtmlBodyWithLayout = CreateUUId();
-				var mockHtmlBodyWithStyles = CreateUUId();
-				var mockRecipientId        = CreateUUId();
-				var viewOnlineLink         = CreateUUId();
-				var mockHtmlWithViewOnline = CreateUUId();
-				var mockArgs               = { bookingId = CreateUUId() };
-				var mockParams             = { test=CreateUUId(), params=Now() };
-				var mockTemplate           = {
+				var service                        = _getService();
+				var template                       = "mytemplate";
+				var mockSubject                    = CreateUUId();
+				var mockTo                         = CreateUUId();
+				var mockTextBody                   = CreateUUId();
+				var mockTextBodyWithLayout         = CreateUUId();
+				var mockHtmlBody                   = CreateUUId();
+				var mockHtmlBodyRendered           = CreateUUId();
+				var mockHtmlBodyWithLayout         = CreateUUId();
+				var mockHtmlBodyWithStyles         = CreateUUId();
+				var mockRecipientId                = CreateUUId();
+				var viewOnlineLink                 = CreateUUId();
+				var mockHtmlWithViewOnline         = CreateUUId();
+				var mockHtmlWithViewOnlineRendered = CreateUUId();
+				var mockArgs                       = { bookingId = CreateUUId() };
+				var mockParams                     = { test=CreateUUId(), params=Now() };
+				var mockTemplate                   = {
 					  layout          = "testLayout"
 					, recipient_type  = "testRecipientType"
 					, subject         = "Test subject"
@@ -1048,6 +1049,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "replaceParameterTokens" ).$args( mockTextBodyWithLayout, mockParams, "text" ).$results( mockTextBody );
 				service.$( "replaceParameterTokens" ).$args( mockHtmlBodyWithLayout, mockParams, "html" ).$results( mockHtmlBodyRendered );
+				service.$( "replaceParameterTokens" ).$args( mockHtmlWithViewOnline, mockParams, "html" ).$results( mockHtmlWithViewOnlineRendered );
 				service.$( "getAttachments", [] );
 
 				service.$( "getViewOnlineLink" ).$args( mockHtmlBodyRendered ).$results( viewOnlineLink );
@@ -1064,7 +1066,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( mockHtmlWithViewOnline );
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
-				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlWithViewOnline ).$results( mockHtmlBodyWithStyles );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlWithViewOnlineRendered ).$results( mockHtmlBodyWithStyles );
 
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
 
