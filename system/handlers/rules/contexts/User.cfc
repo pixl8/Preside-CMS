@@ -10,6 +10,7 @@ component {
 		var emailPayload = emailSendingContextService.getContextPayload();
 
 		if ( emailPayload.keyExists( "website_user" ) ) {
+			emailPayload.user = emailPayload.website_user; // backward compat
 			return emailPayload;
 		}
 

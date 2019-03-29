@@ -128,6 +128,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onPresideRedirectDomains"              );
 		interceptorSettings.customInterceptionPoints.append( "preRoutePresideSESRequest"             );
 		interceptorSettings.customInterceptionPoints.append( "postRoutePresideSESRequest"            );
+		interceptorSettings.customInterceptionPoints.append( "onGetEmailContextPayload"              );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -314,7 +315,7 @@ component {
 				, minHeight     = 0
 				, maxHeight     = 300
 				, autoParagraph = false
-				, configFile    = "/ckeditorExtensions/config.js?v10.10.0"
+				, configFile    = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
 			  }
 			, linkPicker = _getRicheditorLinkPickerConfig()
 			, toolbars   = _getCkEditorToolbarConfig()
