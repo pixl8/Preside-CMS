@@ -6,8 +6,8 @@
 	defaultValue       = args.defaultValue       ?: "";
 	extraClasses       = args.extraClasses       ?: "";
 	stylesheets        = args.stylesheets        ?: "";
-	widgetCategories   = args.widgetCategories   ?: "";
-	linkPickerCategory = args.linkPickerCategory ?: "";
+	widgetCategories   = args.widgetCategories   ?: ( rc.widgetCategories ?: "" );
+	linkPickerCategory = args.linkPickerCategory ?: ( rc.linkPickerCategory ?: "" );
 	maxLength     = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
