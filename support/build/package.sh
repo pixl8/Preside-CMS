@@ -68,6 +68,7 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," box.json
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," version.json
+	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," system/config/Config.cfc
 	sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/Preside-$VERSION_NUMBER.zip," box.json
 
 	echo "";
