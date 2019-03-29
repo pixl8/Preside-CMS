@@ -7,7 +7,7 @@
 
 'use strict';
 
-( function() {
+( function( $ ) {
 	CKEDITOR.plugins.add( 'presidelink', {
 		requires: 'dialog,iframedialog,fakeobjects',
 		lang: 'en',
@@ -209,6 +209,7 @@
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
 		presideLinkRegex = /^{{link:(.*?):link}}(?:#([^'"]+))?$/,
 		presideAssetRegex = /^{{asset:(.*?):asset}}$/,
+		customRegex = /^{{custom:(.*?):custom}}$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
 		functionCallProtectedEmailLinkRegex = /^javascript:([^(]+)\(([^)]+)\)$/,
@@ -431,7 +432,7 @@
 			var href = ( element && ( element.data( 'cke-saved-href' ) || element.getAttribute( 'href' ) ) ) || '',
 				compiledProtectionFunction = editor.plugins.presidelink.compiledProtectionFunction,
 				emailProtection = editor.config.emailProtection,
-				javascriptMatch, emailMatch, anchorMatch, urlMatch,
+				javascriptMatch, emailMatch, anchorMatch, urlMatch, data,
 				retval = {};
 
 			if ( ( javascriptMatch = href.match( javascriptProtocolRegex ) ) ) {
@@ -493,12 +494,20 @@
 					retval.type  = 'asset';
 					retval.asset = urlMatch[ 1 ];
 				}
+				else if ( href && ( urlMatch = href.match( customRegex ) ) ) {
+					try{
+						retval = $.parseJSON( atob( urlMatch[ 1 ] ) );
+					} catch( e ){
+						retval = {};
+					}
+				}
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
 					retval.type = 'url';
 					retval.protocol = urlMatch[ 1 ];
 					retval.address = urlMatch[ 2 ];
 				}
+
 			}
 
 			// Load target and popup settings.
@@ -624,6 +633,9 @@
 
 					set[ 'data-cke-saved-href' ] = linkHref.join( '' );
 					break;
+
+				default:
+					set[ 'data-cke-saved-href' ] = '{{custom:' + btoa( JSON.stringify( data ) ) + ':custom}}';
 			}
 
 			// Popups and target.
@@ -790,4 +802,4 @@
 		 * @member CKEDITOR.config
 		 */
 	} );
-} )();
+} )( presideJQuery );

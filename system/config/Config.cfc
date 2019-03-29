@@ -315,7 +315,8 @@ component {
 				, autoParagraph = false
 				, configFile    = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
 			  }
-			, toolbars    = _getCkEditorToolbarConfig()
+			, linkPicker = _getRicheditorLinkPickerConfig()
+			, toolbars   = _getCkEditorToolbarConfig()
 		};
 
 		settings.static = {
@@ -810,5 +811,9 @@ component {
 		var major = Val( ListFirst( luceeVersion, "." ) );
 
 		return major > 4;
+	}
+
+	private struct function _getRicheditorLinkPickerConfig() {
+		return { default={ types=[ "sitetreelink", "url", "email", "asset", "anchor" ] } };
 	}
 }
