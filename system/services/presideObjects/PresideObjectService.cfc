@@ -1991,6 +1991,58 @@ component displayName="Preside Object Service" {
 		return $slugify( argumentCollection=arguments );
 	}
 
+	public any function getCacheStats() {
+		var cachstats = "";
+		var config = "";
+		var stats     = {
+			  objects     = 0
+			, hits        = 0
+			, misses      = 0
+			, evictions   = 0
+			, gcs         = 0
+			, lastReap    = '1900-01-01'
+			, performance = 0
+			, maxObjects  = 0
+		};
+
+		if ( $isFeatureEnabled( "queryCachePerObject" ) ) {
+			var caches = variables._objectQueryCaches ?: {};
+
+			for( var cacheName in caches ) {
+				cacheStats = caches[ cacheName ].getStats();
+				config     = caches[ cacheName ].getConfiguration();
+
+				stats.objects    += cacheStats.getObjectCount();
+				stats.hits       += cacheStats.getHits();
+				stats.misses     += cacheStats.getMisses();
+				stats.evictions  += cacheStats.getEvictionCount();
+				stats.gcs        += cacheStats.getGarbageCollections();
+				stats.maxObjects += Val( config.maxObjects ?: 0 );
+
+				if ( cacheStats.getLastReapDatetime() > stats.lastReap ) {
+					stats.lastReap = cacheStats.getLastReapDatetime();
+				}
+			}
+		} else {
+			cachstats = _getDefaultQueryCache().getStats();
+
+			stats.objects   = cacheStats.getObjectCount();
+			stats.hits      = cacheStats.getHits();
+			stats.misses    = cacheStats.getMisses();
+			stats.evictions = cacheStats.getEvictionCount();
+			stats.gcs       = cacheStats.getGarbageCollections();
+			stats.lastReap  = cacheStats.getLastReapDatetime();
+		}
+
+		stats.totalRequests = stats.hits + stats.misses;
+
+		if ( stats.totalRequests ) {
+			stats.performance = ( stats.hits / stats.totalRequests ) * 100;
+		}
+
+		return stats;
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
