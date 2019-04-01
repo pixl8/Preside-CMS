@@ -355,6 +355,7 @@ component {
 			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
 			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
 			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
+			, queryCachePerObject     = { enabled=false, siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }

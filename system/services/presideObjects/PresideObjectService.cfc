@@ -208,7 +208,7 @@ component displayName="Preside Object Service" {
 
 			_announceInterception( "onCreateSelectDataCacheKey", args );
 
-			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
+			var cachedResult = _getDefaultQueryCache( args.objectName ).get( args.cacheKey );
 			if ( !IsNull( local.cachedResult ) ) {
 				return cachedResult;
 			}
@@ -271,7 +271,7 @@ component displayName="Preside Object Service" {
 		}
 
 		if ( args.useCache ) {
-			_getDefaultQueryCache().set( args.cacheKey, args.result );
+			_getDefaultQueryCache( args.objectName ).set( args.cacheKey, args.result );
 		}
 
 		_announceInterception( "postSelectObjectData", args );
@@ -1331,7 +1331,7 @@ component displayName="Preside Object Service" {
 	 */
 	public void function reload() autodoc=true {
 		_getCache().clearAll();
-		_getDefaultQueryCache().clearAll();
+		_clearAllQueryCaches();
 		_setObjects({});
 		_loadObjects();
 	}
@@ -1744,6 +1744,11 @@ component displayName="Preside Object Service" {
 	) {
 		var cacheMap              = _getCacheMap();
 		var relatedObjectsToClear = StructKeyArray( cachemap[ arguments.objectName ] ?: {} );
+
+		if ( $isFeatureEnabled( "queryCachePerObject" ) ) {
+			_clearRelatedCachesWithQueryCachePerObject( argumentCollection=arguments, relatedObjectsToClear=relatedObjectsToClear );
+		}
+
 		var cache                 = _getDefaultQueryCache();
 		var idField               = getIdField( objectName );
 		var keyPrefixes           = [ LCase( "#arguments.objectName#.complex_" ) ];
@@ -1986,6 +1991,58 @@ component displayName="Preside Object Service" {
 		return $slugify( argumentCollection=arguments );
 	}
 
+	public any function getCacheStats() {
+		var cachstats = "";
+		var config = "";
+		var stats     = {
+			  objects     = 0
+			, hits        = 0
+			, misses      = 0
+			, evictions   = 0
+			, gcs         = 0
+			, lastReap    = '1900-01-01'
+			, performance = 0
+			, maxObjects  = 0
+		};
+
+		if ( $isFeatureEnabled( "queryCachePerObject" ) ) {
+			var caches = variables._objectQueryCaches ?: {};
+
+			for( var cacheName in caches ) {
+				cacheStats = caches[ cacheName ].getStats();
+				config     = caches[ cacheName ].getConfiguration();
+
+				stats.objects    += cacheStats.getObjectCount();
+				stats.hits       += cacheStats.getHits();
+				stats.misses     += cacheStats.getMisses();
+				stats.evictions  += cacheStats.getEvictionCount();
+				stats.gcs        += cacheStats.getGarbageCollections();
+				stats.maxObjects += Val( config.maxObjects ?: 0 );
+
+				if ( cacheStats.getLastReapDatetime() > stats.lastReap ) {
+					stats.lastReap = cacheStats.getLastReapDatetime();
+				}
+			}
+		} else {
+			cachstats = _getDefaultQueryCache().getStats();
+
+			stats.objects   = cacheStats.getObjectCount();
+			stats.hits      = cacheStats.getHits();
+			stats.misses    = cacheStats.getMisses();
+			stats.evictions = cacheStats.getEvictionCount();
+			stats.gcs       = cacheStats.getGarbageCollections();
+			stats.lastReap  = cacheStats.getLastReapDatetime();
+		}
+
+		stats.totalRequests = stats.hits + stats.misses;
+
+		if ( stats.totalRequests ) {
+			stats.performance = ( stats.hits / stats.totalRequests ) * 100;
+		}
+
+		return stats;
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
@@ -2032,62 +2089,65 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _getCacheKey( required string objectName, any filter="", struct filterParams={} ) {
-		var cacheKey    = arguments.objectName;
-		var idField     = getIdField( arguments.objectName );
-		var fullIdField = "#arguments.objectName#.#idField#";
-		var recordId    = "";
-		var isComplex   = ( IsStruct( arguments.filter ) && StructCount( arguments.filter ) > 1 )
-		                  || StructCount( arguments.filterParams ) > 1;
+		var cacheKey = arguments.objectName;
 
-		if ( !isComplex ) {
-			if ( IsStruct( arguments.filter ) ) {
-				if ( arguments.filter.keyExists( "id" ) ) {
-					recordId = arguments.filter.id;
-				} else if ( arguments.filter.keyExists( idField ) ) {
-					recordId = arguments.filter[ idField ];
-				} else if ( arguments.filter.keyExists( fullIdField ) ) {
-					recordId = arguments.filter[ fullIdField ];
-				} else if ( arguments.filter.keyExists( "#arguments.objectName#.id" ) ) {
-					recordId = arguments.filter[ "#arguments.objectName#.id" ];
+		if ( !$isFeatureEnabled( "queryCachePerObject" ) ) {
+			var idField     = getIdField( arguments.objectName );
+			var fullIdField = "#arguments.objectName#.#idField#";
+			var recordId    = "";
+			var isComplex   = ( IsStruct( arguments.filter ) && StructCount( arguments.filter ) > 1 )
+			                  || StructCount( arguments.filterParams ) > 1;
+
+			if ( !isComplex ) {
+				if ( IsStruct( arguments.filter ) ) {
+					if ( arguments.filter.keyExists( "id" ) ) {
+						recordId = arguments.filter.id;
+					} else if ( arguments.filter.keyExists( idField ) ) {
+						recordId = arguments.filter[ idField ];
+					} else if ( arguments.filter.keyExists( fullIdField ) ) {
+						recordId = arguments.filter[ fullIdField ];
+					} else if ( arguments.filter.keyExists( "#arguments.objectName#.id" ) ) {
+						recordId = arguments.filter[ "#arguments.objectName#.id" ];
+					} else {
+						isComplex = true;
+					}
+				} else {
+					if ( arguments.filterParams.keyExists( "id" ) ) {
+						recordId = arguments.filterParams.id;
+					} else if ( arguments.filterParams.keyExists( idField ) ) {
+						recordId = arguments.filterParams[ idField ];
+					} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+						recordId = arguments.filterParams[ fullIdField ];
+					} else if ( arguments.filterParams.keyExists( "#arguments.objectName#.id" ) ) {
+						recordId = arguments.filterParams[ "#arguments.objectName#.id" ];
+					} else {
+						isComplex = true;
+					}
+				}
+			}
+
+			if ( IsStruct( recordId ) ) {
+				if ( Len( Trim( recordId.value ?: "" ) ) ) {
+					recordId = ( recordId.list ?: false ) ? ListToArray( recordId.value, recordId.separator ?: "," ) : recordId.value;
 				} else {
 					isComplex = true;
 				}
-			} else {
-				if ( arguments.filterParams.keyExists( "id" ) ) {
-					recordId = arguments.filterParams.id;
-				} else if ( arguments.filterParams.keyExists( idField ) ) {
-					recordId = arguments.filterParams[ idField ];
-				} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
-					recordId = arguments.filterParams[ fullIdField ];
-				} else if ( arguments.filterParams.keyExists( "#arguments.objectName#.id" ) ) {
-					recordId = arguments.filterParams[ "#arguments.objectName#.id" ];
-				} else {
+			}
+
+			if ( IsArray( recordId ) ) {
+				var recordIdCount = ArrayLen( recordId );
+				if ( !recordIdCount || recordIdCount > 1 ) {
 					isComplex = true;
+				} else {
+					recordId = recordId[ 1 ];
 				}
 			}
-		}
 
-		if ( IsStruct( recordId ) ) {
-			if ( Len( Trim( recordId.value ?: "" ) ) ) {
-				recordId = ( recordId.list ?: false ) ? ListToArray( recordId.value, recordId.separator ?: "," ) : recordId.value;
+			if ( isComplex ) {
+				cacheKey &= ".complex";
 			} else {
-				isComplex = true;
+				cacheKey &= ".single.#recordId#";
 			}
-		}
-
-		if ( IsArray( recordId ) ) {
-			var recordIdCount = ArrayLen( recordId );
-			if ( !recordIdCount || recordIdCount > 1 ) {
-				isComplex = true;
-			} else {
-				recordId = recordId[ 1 ];
-			}
-		}
-
-		if ( isComplex ) {
-			cacheKey &= ".complex";
-		} else {
-			cacheKey &= ".single.#recordId#";
 		}
 
 		cacheKey &= "_" & Hash( LCase( Serialize( arguments ) ) );
@@ -3143,6 +3203,50 @@ component displayName="Preside Object Service" {
 		return 0;
 	}
 
+	private any function _setupObjectQueryCache( required any defaultQueryCache, required string objectName ) {
+		var cachebox      = $getColdbox().getCachebox();
+		var obj           = _getObject( arguments.objectName );
+		var defaultConfig = cachebox.getConfig().getCache( "defaultQueryCache" );
+		var newConfig     = {
+			  name       = "presideQueryCache_#arguments.objectName#"
+			, provider   = ( obj.meta.cacheProvider ?: defaultConfig.provider )
+			, properties = defaultConfig.properties
+		};
+
+		for( var attrib in obj.meta ) {
+			if ( attrib.reFindNoCase( "^cache" ) ) {
+				newConfig.properties[ attrib.reReplaceNoCase( "^cache", "" ) ] = obj.meta[ attrib ];
+			}
+		}
+
+		cachebox.createCache( argumentCollection=newConfig );
+
+		return cachebox.getCache( newConfig.name );
+	}
+
+	private void function _clearRelatedCachesWithQueryCachePerObject(
+		  required string  objectName
+		,          array   relatedObjectsToClear   = []
+	) {
+		_getDefaultQueryCache( arguments.objectName ).clearAll();
+
+		for( var relatedObjectName in relatedObjectsToClear ) {
+			_getDefaultQueryCache( relatedObjectName ).clearAll();
+		}
+	}
+
+	private void function _clearAllQueryCaches() {
+		_getDefaultQueryCache().clearAll();
+
+		if ( $isFeatureEnabled( "queryCachePerObject" ) ) {
+			var caches = variables._objectQueryCaches ?: {};
+			for( var cacheName in caches ) {
+				caches[ cacheName ].clearAll();
+			}
+		}
+	}
+
+
 // SIMPLE PRIVATE PROXIES
 	private any function _getAdapter() {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
@@ -3236,7 +3340,15 @@ component displayName="Preside Object Service" {
 		_cache = arguments.cache;
 	}
 
-	private any function _getDefaultQueryCache() {
+	private any function _getDefaultQueryCache( string objectName="" ) {
+		if ( Len( Trim( arguments.objectName ) ) && $isFeatureEnabled( "queryCachePerObject" ) ) {
+			if ( !IsDefined( "variables._objectQueryCaches.#arguments.objectName#" ) ) {
+				variables._objectQueryCaches = variables._objectQueryCaches ?: {};
+				variables._objectQueryCaches[ arguments.objectName ] = _setupObjectQueryCache( _defaultQueryCache, arguments.objectName );
+			}
+
+			return variables._objectQueryCaches[ arguments.objectName ];
+		}
 		return _defaultQueryCache;
 	}
 	private void function _setDefaultQueryCache( required any defaultQueryCache ) {

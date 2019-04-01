@@ -133,6 +133,7 @@
 				versioningService.$( "$getAdminLoggedInUserId", "" );
 				request[ key ].$( "$isAdminUserLoggedIn", false );
 				request[ key ].$( "$getRequestContext", mockRequestContext );
+				request[ key ].$( "$isFeatureEnabled" ).$args( "queryCachePerObject" ).$results( false );
 				mockRequestContext.$( "showNonLiveContent", false );
 			}
 
