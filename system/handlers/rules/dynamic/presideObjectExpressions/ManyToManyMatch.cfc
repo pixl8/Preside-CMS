@@ -45,8 +45,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		var idField       = presideObjectService.getIdField( relatedTo );
 
 		if ( _possesses ) {
-			var filterSql     = "#prefix#.#idField# in (:#paramName#)";
-			var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
+			var filterSql = "#prefix#.#idField# in (:#paramName#)";
+			var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
 			return [ { filter=filterSql, filterParams=params } ];
 		}
@@ -58,7 +58,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			, selectFields        = [ "#( relationshipIsSource ? relatedViaSourceFk : relatedViaTargetFk )# as id" ]
 			, forceJoins          = "inner"
 			, getSqlAndParamsOnly = true
-			, filter              = { "#( relationshipIsSource ? relatedViaTargetFk : relatedViaSourceFk )#" = arguments.value }
+			, filter              = { "#( relationshipIsSource ? relatedViaTargetFk : relatedViaSourceFk )#" = listToArray( arguments.value ) }
 		);
 
 		for( var param in subQuery.params ) {
