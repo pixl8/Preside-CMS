@@ -810,6 +810,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
 		    && !event.valueExists( "fwreinit" )
+		    && !this.isAdminRequest()
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
 		    && !this.getCurrentUrl().startsWith( "/asset/" )
