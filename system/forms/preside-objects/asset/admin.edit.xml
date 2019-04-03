@@ -8,6 +8,7 @@ This form is used when editing assets in the asset manager section of the admini
 	<tab id="standard" sortorder="10" title="preside-objects.asset:standard.tab.title">
 		<fieldset id="standard" sortorder="10">
 			<field sortorder="10" binding="asset.title" />
+			<field sortorder="20" binding="asset.file_name" required="true" />
 			<field sortorder="30" binding="asset.author" control="textinput" />
 			<field sortorder="40" binding="asset.description" control="textarea" />
 		</fieldset>
