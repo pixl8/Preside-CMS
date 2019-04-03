@@ -1109,10 +1109,18 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( datamanagerService.usesTreeView( objectName ) ) {
-			var treeParentProperty = datamanagerService.getTreeParentProperty( objectName );
-			getRecordsArgs.extraFilters = getRecordsArgs.extraFilters ?: [];
+			var treeParentProperty       = datamanagerService.getTreeParentProperty( objectName );
+			var firstLevelParentProperty = datamanagerService.getTreeFirstLevelParentProperty( objectName );
+			var treeFilter               = {};
+			getRecordsArgs.extraFilters  = getRecordsArgs.extraFilters ?: [];
 
-			getRecordsArgs.extraFilters.append( { filter={ "#treeParentProperty#"=rc[ treeParentProperty ] ?: "" } } );
+			if ( Len( firstLevelParentProperty ) && Len( rc[ firstLevelParentProperty ] ?: "" ) ) {
+				treeFilter[ firstLevelParentProperty ] = rc[ firstLevelParentProperty ];
+			}
+
+			treeFilter[ treeParentProperty ] = rc[ treeParentProperty ] ?: "";
+
+			getRecordsArgs.extraFilters.append( { filter=treeFilter } );
 		}
 
 		prc.records = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
