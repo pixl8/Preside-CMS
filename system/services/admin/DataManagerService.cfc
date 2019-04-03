@@ -291,6 +291,14 @@ component {
 		);
 	}
 
+	public string function getTreeFirstLevelParentProperty( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeFirstLevelParentProperty"
+			, defaultValue  = ""
+		);
+	}
+
 	public string function getTreeSortOrder( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
