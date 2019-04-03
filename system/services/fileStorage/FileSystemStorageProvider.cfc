@@ -142,10 +142,10 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public void function deleteObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			var expandedPath = _expandPath( arguments.path );
-			var dir          = GetDirectoryFromPath( path );
+			var expandedPath = _expandPath( arguments.path, arguments.trashed, arguments.private );
+			var dir          = GetDirectoryFromPath( expandedPath );
 
-			FileDelete( _expandPath( expandedPath, arguments.trashed, arguments.private ) );
+			FileDelete( expandedPath );
 		} catch ( any e ) {
 			if ( !( e.message contains "does not exist" ) ) {
 				rethrow;
