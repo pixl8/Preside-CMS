@@ -807,7 +807,12 @@ component displayName="AssetManager Service" {
 		var asset       = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
+		var fileNameChanged = arguments.data.keyExists( "file_name" ) && asset.file_name != arguments.data.file_name;
 		var updateData  = {};
+
+		if ( fileNameChanged ) {
+			processFileNameChange( arguments.id, arguments.data.file_name );
+		}
 
 		if ( len( asset.active_version ) ) {
 			if ( data.keyExists( "focal_point") ) {
@@ -836,6 +841,93 @@ component displayName="AssetManager Service" {
 		);
 
 		return result;
+	}
+
+	public void function processFileNameChange( required string id, required string newName ) {
+		var asset = getAsset( id=arguments.id );
+		if ( !asset.recordCount ) {
+			return;
+		}
+
+		for( var a in asset ) { asset = a; }
+
+		var assetDao      = _getAssetDao();
+		var derivativeDao = _getDerivativeDao();
+		var versionDao    = _getAssetVersionDao();
+		var derivatives   = derivativeDao.selectData( filter={ asset=arguments.id } );
+		var versions      = versionDao.selectData( filter={ asset=arguments.id } );
+		var filename      = arguments.newName;
+		var isPrivate     = isAssetAccessRestricted( arguments.id );
+		var provider      = _getStorageProviderForFolder( asset.asset_folder );
+
+		filename = filename.reReplaceNoCase( "\.#asset.asset_type#$", "" );
+
+		// move the asset itself
+		var oldStoragePath = asset.storage_path;
+		var newStoragePath = "/#LCase( asset.id )#/#filename#.#asset.asset_type#";
+
+		provider.moveObject(
+			  originalPath      = oldStoragePath
+			, newPath           = newStoragePath
+			, originalIsPrivate = isPrivate
+			, newIsPrivate      = isPrivate
+		);
+
+		assetDao.updateData( id=arguments.id, data={
+			  storage_path = newStoragePath
+			, asset_url    = ""
+		} );
+
+		// move versions
+		for( var version in versions ) {
+			oldStoragePath = version.storage_path;
+			newStoragePath = "/#LCase( asset.id )#/#LCase( version.id )#/#filename#.#version.asset_type#";
+
+			provider.moveObject(
+				  originalPath      = oldStoragePath
+				, newPath           = newStoragePath
+				, originalIsPrivate = isPrivate
+				, newIsPrivate      = isPrivate
+			);
+
+			versionDao.updateData( id=version.id, data={
+				  storage_path = newStoragePath
+				, asset_url    = ""
+			} );
+		}
+
+		// move derivatives
+		if ( derivatives.recordCount ) {
+			var config          = getDerivativeConfig( arguments.id );
+			var configHash      = getDerivativeConfigHash( config );
+
+			for( var derivative in derivatives ) {
+				oldStoragePath = derivative.storage_path;
+				newStoragePath = "/#LCase( asset.id )#";
+
+				if ( Len( Trim( derivative.asset_version ) ) ) {
+					newStoragePath &= "/#LCase( derivative.asset_version )#";
+				}
+
+				newStoragePath &= "/#LCase( derivative.label )#";
+				if ( Len( Trim( configHash ) ) ) {
+					newStoragePath &= "_#LCase( configHash )#";
+				}
+				newStoragePath &= "/#filename#.#derivative.asset_type#";
+
+				provider.moveObject(
+					  originalPath      = oldStoragePath
+					, newPath           = newStoragePath
+					, originalIsPrivate = isPrivate
+					, newIsPrivate      = isPrivate
+				);
+
+				derivativeDao.updateData( id=derivative.id, data={
+					  storage_path = newStoragePath
+					, asset_url    = ""
+				} );
+			}
+		}
 	}
 
 	public void function flushAssetUrlCache( required string assetId ) {
