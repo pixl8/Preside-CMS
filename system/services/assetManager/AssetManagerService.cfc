@@ -662,7 +662,7 @@ component displayName="AssetManager Service" {
 		asset.size             = asset.size  ?: Len( arguments.fileBinary );
 		asset.title            = asset.title ?: arguments.fileName;
 		asset.file_name        = asset.file_name ?: _slugifyTitleForFileName( asset.title );
-		asset.storage_path     = "/uploaded/#LCase( asset.id )#/#asset.file_name#.#fileTypeInfo.extension#";
+		asset.storage_path     = "/#LCase( asset.id )#/#asset.file_name#.#fileTypeInfo.extension#";
 
 		isAssetAllowedInFolder(
 			  type       = asset.asset_type
@@ -731,7 +731,7 @@ component displayName="AssetManager Service" {
 
 		var versionId    = CreateUUId();
 		var fileName     = Len( Trim( originalAsset.file_name ) ) ? originalAsset.file_name : _slugifyTitleForFileName( originalAsset.title );
-		var newFileName  = "/uploaded/#LCase( arguments.assetId )#/#LCase( versionId )#/#fileName#.#fileTypeInfo.extension#";
+		var newFileName  = "/#LCase( arguments.assetId )#/#LCase( versionId )#/#fileName#.#fileTypeInfo.extension#";
 		var assetVersion = {
 			  id             = versionId
 			, asset          = arguments.assetId
@@ -888,7 +888,7 @@ component displayName="AssetManager Service" {
 				var asset = getAsset( id=assetId, selectFields=[ "original_title", "file_name", "asset_type", "trashed_path", "asset_folder", "active_version" ] );
 				if ( asset.recordCount ) {
 					var fileName        = Len( Trim( asset.file_name ) ) ? asset.file_name : _slugifyTitleForFileName( asset.original_title );
-					var newPath         = "/uploaded/#LCase( assetId )#/#fileName#.#asset.asset_type#";
+					var newPath         = "/#LCase( assetId )#/#fileName#.#asset.asset_type#";
 					var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
 					var private         = isAssetAccessRestricted( assetId, arguments.folderId );
 
@@ -1397,8 +1397,8 @@ component displayName="AssetManager Service" {
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset_version.focal_point", "asset_version.crop_hint" ] )
-			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "storage_path", "asset_folder", "focal_point", "crop_hint" ] );
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset.title", "asset_version.focal_point", "asset_version.crop_hint" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint" ] );
 
 		var config          = getDerivativeConfig( arguments.assetId );
 		var configHash      = getDerivativeConfigHash( config );
@@ -1406,10 +1406,10 @@ component displayName="AssetManager Service" {
 		var fileext         = ListLast( asset.storage_path, "." );
 		var filename        = Len( Trim( asset.file_name ) ) ? asset.file_name : _slugifyTitleForFileName( asset.title );
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
-		var storagePath     = "/uploaded/#LCase( arguments.assetId )#";
+		var storagePath     = "/#LCase( arguments.assetId )#";
 
 		if ( Len( Trim( arguments.versionId ) ) ) {
-			storage_path &= "/#LCase( arguments.versionId )#";
+			storagePath &= "/#LCase( arguments.versionId )#";
 		}
 
 		storagePath &= "/#LCase( derivativeSlug )#";
