@@ -14,7 +14,7 @@ component {
 		var derivativeName    = rc.derivativeId ?: "";
 		var isTrashed         = IsTrue( rc.isTrashed ?: "" );
 		var asset             = "";
-		var assetSelectFields = [ "asset.title", "asset.is_trashed" ];
+		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
 		var passwordProtected = false;
 		var config            = assetManagerService.getDerivativeConfig( assetId );
 		var configHash        = assetManagerService.getDerivativeConfigHash( config );
@@ -65,7 +65,7 @@ component {
 					, asset          = asset
 				} );
 
-				var filename = _getFilenameForAsset( asset.title, type.extension );
+				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
 				if ( type.serveAsAttachment ) {
 					websiteUserActionService.recordAction(
 						  action     = "download"
