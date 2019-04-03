@@ -252,12 +252,41 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 // PRIVATE HELPERS
 	private void function _deleteEmptyDirs( required string dir ) {
+		if ( _isRootDir( arguments.dir ) || _dirHasFiles( arguments.dir ) ) {
+			return;
+		}
+
 		try {
 			DirectoryDelete( dir, false );
 			_deleteEmptyDirs( ListDeleteAt( dir, ListLen( dir, "\/" ), "\/" ) );
 		} catch( any e ) {
 			return;
 		}
+	}
+
+	private boolean function _isRootDir( required string dir ) {
+		var rootDirs = {
+			  trash   = LCase( ReReplaceNoCase( _getTrashDirectory(), "[\\/]$", "" ) )
+			, root    = LCase( ReReplaceNoCase( _getRootDirectory(), "[\\/]$", "" ) )
+			, private = LCase( ReReplaceNoCase( _getPrivateDirectory(), "[\\/]$", "" ) )
+		};
+
+		arguments.dir = ReReplaceNoCase( arguments.dir, "[\\/]$", "" );
+
+		for( var rootDirName in rootDirs ) {
+			var rootDir = rootDirs[ rootDirName ];
+			if ( rootDir.startsWith( LCase( arguments.dir ) ) || rootDir == LCase( arguments.dir ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean function _dirHasFiles( required string dir ) {
+		var files = DirectoryList( arguments.dir, false, "path" );
+
+		return files.len() > 0;
 	}
 
 // GETTERS AND SETTERS
