@@ -51,7 +51,7 @@ component {
 				if ( layout != "index" ) {
 					 viewlet = viewlet.reReplaceNoCase( "index$", layout );
 				}
-			} else {
+			} else if ( getController().viewletExists( viewlet & "." & layout ) ) {
 				viewlet = viewlet & "." & layout;
 			}
 		}
