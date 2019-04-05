@@ -423,6 +423,7 @@
 					});
 				}
 				uberSelect.fieldPopulatedDeferred.resolve();
+				$( uberSelect.form_field ).closest( "form" ).trigger( "uberSelectInit" );
 			} );
 		};
 
@@ -1488,7 +1489,6 @@
 					$this.removeData( 'uberSelect' );
 				} else if ( !uberSelect ) {
 					$this.data( 'uberSelect', new UberSelect( this, options ) );
-					$this.closest( "form" ).trigger( "uberSelectInit" );
 				}
 			});
 		}
