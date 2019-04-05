@@ -53,6 +53,10 @@ PresideRichEditor = ( function( $ ){
 		config.widgetCategories   = widgetCategories;
 		config.linkPickerCategory = linkPickerCategory;
 
+		CKEDITOR.on( "instanceReady", function( event ) {
+			event.editor.initialdata = event.editor.getData();
+		} );
+
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 
 		$elementToReplace.data( 'ckeditorinstance', this.editor );
