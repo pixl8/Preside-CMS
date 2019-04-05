@@ -3210,7 +3210,7 @@ component displayName="Preside Object Service" {
 		var newConfig     = {
 			  name       = "presideQueryCache_#arguments.objectName#"
 			, provider   = ( obj.meta.cacheProvider ?: defaultConfig.provider )
-			, properties = defaultConfig.properties
+			, properties = StructCopy( defaultConfig.properties )
 		};
 
 		for( var attrib in obj.meta ) {
