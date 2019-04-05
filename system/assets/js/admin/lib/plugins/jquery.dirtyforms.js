@@ -61,7 +61,7 @@
 
 			dirtyRichEditors = function() {
 				for( var i in CKEDITOR.instances ) {
-					if ( CKEDITOR.instances[i].checkDirty() ){
+					if ( CKEDITOR.instances[ i ].initialdata !== CKEDITOR.instances[ i ].getData() ) {
 						return true;
 					}
 				}
