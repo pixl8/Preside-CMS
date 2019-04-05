@@ -22,6 +22,7 @@ component hint="Interact with and report on system caches" {
 
 	private function stats( event, rc, prc ) {
 		var params           = jsonRpc2Plugin.getRequestParams();
+		var full             = ( params.commandLineArgs[ 2 ] ?: "" ) == "full"
 		var cacheName        = params[ 2 ] ?: "";
 		var cachesToShow     = cacheName.listToArray( Trim( cacheName ) );
 		var cacheStats       = [];
@@ -34,7 +35,7 @@ component hint="Interact with and report on system caches" {
 		var performanceWidth = 17;
 		var gcsWidth         = 19;
 		var lastReapWidth    = 9;
-		var doSpecialQueryCache = isFeatureEnabled( "queryCachePerObject" ) && !cacheName.listToArray( Trim( cacheName ) ).len();
+		var doSpecialQueryCache = !full && isFeatureEnabled( "queryCachePerObject" ) && !cacheName.listToArray( Trim( cacheName ) ).len();
 
 		if ( !cachesToShow.len() ) {
 			cachesToShow = cachebox.getCacheNames();
