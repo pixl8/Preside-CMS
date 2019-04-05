@@ -61,8 +61,14 @@
 
 			dirtyRichEditors = function() {
 				for( var i in CKEDITOR.instances ) {
-					if ( CKEDITOR.instances[i].checkDirty() ){
-						return true;
+					if ( CKEDITOR.instances[i].initialdata ) {
+						if ( CKEDITOR.instances[i].initialdata !== CKEDITOR.instances[i].getData() ) {
+							return true;
+						}
+					} else {
+						if ( CKEDITOR.instances[i].checkDirty() ){
+							return true;
+						}
 					}
 				}
 				return false;

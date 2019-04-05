@@ -7,6 +7,10 @@
 	CKEDITOR.plugins.addExternal( 'imagepicker'     , basePath+'plugins/imagepicker/'     , 'plugin.js' );
 	CKEDITOR.plugins.addExternal( 'attachmentpicker', basePath+'plugins/attachmentpicker/', 'plugin.js' );
 	CKEDITOR.plugins.addExternal( 'presidelink'     , basePath+'plugins/presidelink/'     , 'plugin.js' );
+
+	CKEDITOR.on( "instanceReady", function( event ) {
+		event.editor.initialdata = event.editor.getData();
+	});
 })();
 
 
