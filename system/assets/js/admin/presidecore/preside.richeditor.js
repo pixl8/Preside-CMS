@@ -51,6 +51,10 @@ PresideRichEditor = ( function( $ ){
 		config.autoParagraph    = autoParagraph;
 		config.widgetCategories = widgetCategories;
 
+		CKEDITOR.on( "instanceReady", function( event ) {
+			event.editor.initialdata = event.editor.getData();
+		} );
+
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 
 		$elementToReplace.data( 'ckeditorinstance', this.editor );
