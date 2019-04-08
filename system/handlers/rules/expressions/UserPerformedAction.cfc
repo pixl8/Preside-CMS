@@ -40,16 +40,19 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string  action
-		,          boolean _has = true
-		,          struct  _pastTime
-		,          string  filterPrefix
-		,          string  parentPropertyName
+		,          boolean _has               = true
+		,          struct  _pastTime          = {}
+		,          string  filterPrefix       = ""
+		,          string  parentPropertyName = ""
 	) {
-		return websiteUserActionService.getUserLastPerformedActionFilter(
-			  type               = ListFirst( arguments.action, "." )
-			, action             = ListRest( arguments.action, "." )
+		return websiteUserActionService.getUserPerformedActionFilter(
+			  action             = ListRest( arguments.action, "." )
+			, type               = ListFirst( arguments.action, "." )
+			, has                = arguments._has
 			, datefrom           = arguments._pastTime.from ?: ""
 			, dateto             = arguments._pastTime.to   ?: ""
+			, qty                = 0
+			, qtyOperator        = arguments._has ? "gt" : "eq"
 			, filterPrefix       = arguments.filterPrefix
 			, parentPropertyName = arguments.parentPropertyName
 		);

@@ -629,16 +629,46 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "getUserLastPerformedActionFilter()", function(){
-			it( "should return an empty array when both dateFrom and dateTo are empty", function(){
-				var service = _getService();
-				var filter  = service.getUserLastPerformedActionFilter(
-					  action   = "blah"
-					, type     = "blah"
-					, dateFrom = ""
-					, dateTo   = ""
+			it( "should return filter with no date criteria when both dateFrom and dateTo are empty", function(){
+				var service          = _getService();
+				var testAction       = CreateUUId();
+				var testType         = CreateUUId();
+				var dummySubquerySql = CreateUUId();
+				var from             = "";
+				var to               = "";
+				var expected         = [{}];
+
+				expected[ 1 ].filter       = "";
+				expected[ 1 ].filterParams = {
+					  "action#testFilterSuffix#"      = { type="cf_sql_varchar"  , value=testAction }
+					, "type#testFilterSuffix#"        = { type="cf_sql_varchar"  , value=testType   }
+				};
+				expected[ 1 ].extraJoins   = [ {
+					  type           = "inner"
+					, subQuery       = dummySubquerySql
+					, subQueryAlias  = "lastPerformed" & testFilterSuffix
+					, subQueryColumn = "id"
+					, joinToTable    = "website_user"
+					, joinToColumn   = "id"
+				} ];
+
+				mockUserDao.$( "selectData" ).$args(
+					  selectFields        = [ "Max( actions.datecreated ) as action_date", "website_user.id" ]
+					, filter              = "actions.action = :action#testFilterSuffix# and actions.type = :type#testFilterSuffix#"
+					, groupby             = "website_user.id"
+					, getSqlAndParamsOnly = true
+					, forceJoins          = "inner"
+				).$results( { sql=dummySubquerySql, params={} } );
+
+
+				var filter = service.getUserLastPerformedActionFilter(
+					  action      = testAction
+					, type        = testType
+					, dateFrom    = from
+					, dateTo      = to
 				);
 
-				expect( filter ).toBe( [] );
+				expect( filter ).toBe( expected );
 			} );
 
 			it( "should return filter for date matching the last performed date of the given action / type", function(){
@@ -658,7 +688,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, "dateto#testFilterSuffix#"      = { type="cf_sql_timestamp", value=to         }
 				};
 				expected[ 1 ].extraJoins   = [ {
-					  type           = "left"
+					  type           = "inner"
 					, subQuery       = dummySubquerySql
 					, subQueryAlias  = "lastPerformed" & testFilterSuffix
 					, subQueryColumn = "id"
@@ -704,7 +734,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, "identifier#testFilterSuffix#" = { type="cf_sql_varchar"  , value=identifier }
 				};
 				expected[ 1 ].extraJoins   = [ {
-					  type           = "left"
+					  type           = "inner"
 					, subQuery       = dummySubquerySql
 					, subQueryAlias  = "lastPerformed" & testFilterSuffix
 					, subQueryColumn = "id"
