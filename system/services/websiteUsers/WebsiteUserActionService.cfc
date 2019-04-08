@@ -333,10 +333,6 @@ component displayName="Website user action service" {
 		,          string  filterPrefix       = ""
 		,          string  parentPropertyName = ""
 	) {
-		if ( !IsDate( arguments.dateFrom ) && !IsDate( arguments.dateTo ) ) {
-			return [];
-		}
-
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var subqueryFilter = "actions.action = :action#paramSuffix# and actions.type = :type#paramSuffix#";
 		var subqueryAlias  = "lastPerformed" & paramSuffix;
@@ -370,7 +366,7 @@ component displayName="Website user action service" {
 		);
 
 		return [ { filter=overallFilter, filterParams=params, extraJoins=[ {
-			  type           = "left"
+			  type           = "inner"
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "id"
