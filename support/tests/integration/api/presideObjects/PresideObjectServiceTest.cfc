@@ -295,11 +295,13 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
-				  ix_an_object_indexa     = { unique="false", fields="field1,field2,field5" }
-				, ix_an_object_indexb     = { unique="false", fields="field6,field3"        }
-				, ix_an_object_indexc     = { unique="false", fields="field4,field1"        }
-				, ux_an_object_uniqueness = { unique="true" , fields="field2,field1"        }
-				, ux_an_object_uniq       = { unique="true" , fields="field3"               }
+				  ix_an_object_datecreated  = { unique="false", fields="datecreated" }
+				, ix_an_object_datemodified = { unique="false", fields="datemodified" }
+				, ix_an_object_indexa       = { unique="false", fields="field1,field2,field5" }
+				, ix_an_object_indexb       = { unique="false", fields="field6,field3"        }
+				, ix_an_object_indexc       = { unique="false", fields="field4,field1"        }
+				, ux_an_object_uniqueness   = { unique="true" , fields="field2,field1"        }
+				, ux_an_object_uniq         = { unique="true" , fields="field3"               }
 			}
 			var realIndexes = "";
 
@@ -317,12 +319,14 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
-				  ix_an_object_indexa     = { unique="false", fields="field1,field2,field5" }
-				, ix_an_object_indexb     = { unique="false", fields="field3,field6"        }
-				, ix_an_object_indexc     = { unique="false", fields="field4,field1"        }
-				, ix_an_object_indexd     = { unique="false", fields="field2"               }
-				, ux_an_object_uniqueness = { unique="true" , fields="field4"               }
-				, ux_an_object_uniq       = { unique="true" , fields="field3"               }
+				  ix_an_object_indexa       = { unique="false", fields="field1,field2,field5" }
+				, ix_an_object_indexb       = { unique="false", fields="field3,field6"        }
+				, ix_an_object_indexc       = { unique="false", fields="field4,field1"        }
+				, ix_an_object_indexd       = { unique="false", fields="field2"               }
+				, ix_an_object_datecreated  = { unique="false", fields="datecreated"          }
+				, ix_an_object_datemodified = { unique="false", fields="datemodified"         }
+				, ux_an_object_uniqueness   = { unique="true" , fields="field4"               }
+				, ux_an_object_uniq         = { unique="true" , fields="field3"               }
 			}
 			var realIndexes = "";
 
@@ -1528,8 +1532,8 @@
 			var result    = "";
 			var key       = "";
 			var expected  = {
-				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datecreated" }
+				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datemodified" }
 				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
 				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 				, object_d     = { name="object_d"    , control="default"  , dbtype="int"     , generator="none", generate="never" , maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade-if-no-cycle-check" }
@@ -2070,8 +2074,8 @@
 			var obj                      = poService.getObject( "object_to_be_merged" );
 			var mergedProperties         = poService.getObjectProperties( "object_to_be_merged" );
 			var expectedMergedProperties = {
-				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datecreated" }
+				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datemodified" }
 				, id                          = { name="id"                         , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
 				, label                       = { name="label"                      , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 
