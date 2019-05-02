@@ -14,6 +14,7 @@ component displayName="System configuration service" {
 	 * @injectedConfig.inject          coldbox:setting:injectedConfig
 	 * @formsService.inject            delayedInjector:formsService
 	 * @siteService.inject             delayedInjector:siteService
+	 * @settingsCache.inject           cachebox:PresideSystemSettingsCache
 	 */
 	public any function init(
 		  required array  autoDiscoverDirectories
@@ -21,12 +22,14 @@ component displayName="System configuration service" {
 		, required struct injectedConfig
 		, required any    formsService
 		, required any    siteService
+		, required any    settingsCache
 	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao );
 		_setInjectedConfig( arguments.injectedConfig );
 		_setFormsService( arguments.formsService );
 		_setSiteService( arguments.siteService );
+		_setSettingsCache( arguments.settingsCache );
 		_setLoaded( false );
 
 		return this;
@@ -45,15 +48,23 @@ component displayName="System configuration service" {
 	 */
 	public string function getSetting( required string category, required string setting, string default="" ) {
 		_reloadCheck();
+		var activeSite = _getSiteService().getActiveSiteId();
+		var cache      = _getSettingsCache();
+		var cacheKey   = "setting.#arguments.category#.#arguments.setting#.#arguments.default#.#activeSite#";
+		var fromCache  = cache.get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
 
 		var injected   = _getInjectedConfig();
-		var activeSite = _getSiteService().getActiveSiteId();
 		var result     = _getDao().selectData(
 			  selectFields = [ "value" ]
 			, filter       = { category = arguments.category, setting = arguments.setting, site=activeSite }
 		);
 
 		if ( result.recordCount ) {
+			cache.set( cacheKey, result.value );
 			return result.value;
 		}
 
@@ -64,10 +75,14 @@ component displayName="System configuration service" {
 		);
 
 		if ( result.recordCount ) {
+			cache.set( cacheKey, result.value );
 			return result.value;
 		}
 
-		return injected[ "#arguments.category#.#arguments.setting#" ] ?: arguments.default;
+		result = injected[ "#arguments.category#.#arguments.setting#" ] ?: arguments.default;
+		cache.set( cacheKey, result );
+
+		return result;
 	}
 
 	/**
@@ -87,6 +102,13 @@ component displayName="System configuration service" {
 		,          string  siteId             = _getSiteService().getActiveSiteId()
 	) {
 		_reloadCheck();
+		var cache      = _getSettingsCache();
+		var cacheKey   = "categorysetting.#arguments.category#.#arguments.includeDefaults#.#arguments.globalDefaultsOnly#.#arguments.siteId#";
+		var fromCache  = cache.get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
 
 		var result = {};
 
@@ -124,6 +146,8 @@ component displayName="System configuration service" {
 				}
 			}
 		}
+
+		cache.set( cacheKey, result );
 
 		return result;
 	}
@@ -368,5 +392,12 @@ component displayName="System configuration service" {
 	}
 	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
+	}
+
+	private any function _getSettingsCache() {
+	    return _settingsCache;
+	}
+	private void function _setSettingsCache( required any settingsCache ) {
+	    _settingsCache = arguments.settingsCache;
 	}
 }

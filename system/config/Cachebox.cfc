@@ -159,7 +159,22 @@ component {
 						, maxObjects                     = 10
 						, objectStore                    = "ConcurrentStore"
 					}
-				}
+				},
+
+				PresideSystemSettingsCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 1200
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 20
+						, freeMemoryPercentageThreshold  = 0
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 1000
+						, maxObjects                     = 1000
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
 			}
 		};
 	}

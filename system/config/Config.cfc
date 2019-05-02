@@ -52,7 +52,8 @@ component {
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
+			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
+			{ class="preside.system.interceptors.SystemConfigCacheInterceptor"        , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
