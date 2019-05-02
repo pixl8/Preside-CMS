@@ -16,16 +16,15 @@ fi
 
 if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	if [[ $TRAVIS_TAG == v* ]] ; then
-		VERSION_NUMBER="${TRAVIS_TAG//v}"
+		BUILD_NUMBER=`printf %07d $TRAVIS_BUILD_NUMBER`
+		VERSION_NUMBER="${TRAVIS_TAG//v}+${BUILD_NUMBER}"
 		RELEASE_NAME="stable"
 	elif [[ $TRAVIS_BRANCH == release* ]] ; then
-		VERSION_NUMBER="${TRAVIS_BRANCH//release-}"
+		VERSION_NUMBER="${TRAVIS_BRANCH//release-}-SNAPSHOT${TRAVIS_BUILD_NUMBER}"
 		RELEASE_NAME="bleeding-edge"
 	else
 		VERSION_NUMBER="unknown"
 	fi
-	BUILD_NUMBER=`printf %07d $TRAVIS_BUILD_NUMBER`
-	VERSION_NUMBER="${VERSION_NUMBER}.${BUILD_NUMBER}"
 
 	echo "Packaging application ${VERSION_NUMBER}...";
 	echo "";
@@ -60,11 +59,6 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 
 	rm box.json
 	cp ../box.json box.json
-
-	if [[ $TRAVIS_BRANCH == release* ]] ; then
-		sed -i 's/"slug":"presidecms"/"slug":"preside-be"/' box.json
-		sed -i 's/"name":"Preside"/"name":"Preside Bleeding Edge Build"/' box.json
-	fi
 
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," box.json
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," version.json
