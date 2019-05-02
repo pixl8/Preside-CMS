@@ -103,7 +103,7 @@ component displayName="System configuration service" {
 	) {
 		_reloadCheck();
 		var cache      = _getSettingsCache();
-		var cacheKey   = "categorysetting.#arguments.category#.#arguments.includeDefaults#.#arguments.globalDefaultsOnly#.#arguments.siteId#";
+		var cacheKey   = "setting.#arguments.category#.category.#arguments.includeDefaults#.#arguments.globalDefaultsOnly#.#arguments.siteId#";
 		var fromCache  = cache.get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
@@ -171,7 +171,8 @@ component displayName="System configuration service" {
 	)  {
 		_reloadCheck();
 
-		var dao = _getDao();
+		var dao    = _getDao();
+		var result = "";
 
 		transaction {
 			var filter = "category = :category and setting = :setting and site ";
@@ -191,12 +192,12 @@ component displayName="System configuration service" {
 			);
 
 			if ( currentRecord.recordCount ) {
-				return dao.updateData(
+				result = dao.updateData(
 					  data = { value = arguments.value }
 					, id   = currentRecord.id
 				);
 			} else {
-				return dao.insertData(
+				result = dao.insertData(
 					data = {
 						  category = arguments.category
 						, setting  = arguments.setting
@@ -206,6 +207,14 @@ component displayName="System configuration service" {
 				);
 			}
 		}
+
+		_getSettingsCache().clearByKeySnippet(
+			  keySnippet = "^setting\.#arguments.category#\."
+			, regex      = true
+			, async      = false
+		);
+
+		return result;
 	}
 
 	public any function deleteSetting(
@@ -224,10 +233,18 @@ component displayName="System configuration service" {
 			params.site = arguments.siteId;
 		}
 
-		return dao.deleteData(
+		var result = dao.deleteData(
 			  filter       = filter
 			, filterParams = params
 		);
+
+		_getSettingsCache().clearByKeySnippet(
+			  keySnippet = "^setting\.#arguments.category#\."
+			, regex      = true
+			, async      = false
+		);
+
+		return result;
 	}
 
 	public array function listConfigCategories() {
