@@ -16,10 +16,6 @@ fi
 
 if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	cd $PACKAGE_DIR
-	if [[ $TRAVIS_BRANCH == release* ]] ; then
-		sed -i 's/"slug":"presidecms"/"slug":"preside-be"/' box.json
-		sed -i 's/"name":"Preside"/"name":"Preside Bleeding Edge Build"/' box.json
-	fi
 	box forgebox login username="$FORGEBOXUSER" password="$FORGEBOXPASS" || exit 1;
 	box publish || exit 1
 else
