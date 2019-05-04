@@ -407,9 +407,10 @@ component extends="testbox.system.BaseSpec" {
 				var taskId      = CreateUUId();
 				var error       = { type="test.error", message="Something went wrong" };
 				var nextAttempt = { totalAttempts=1, nextAttemptDate="" };
+				var forceRetry  = false;
 
 				mockTaskDao.$( "updateData", 1 );
-				service.$( "getNextAttemptInfo" ).$args( taskId ).$results( nextAttempt );
+				service.$( "getNextAttemptInfo" ).$args( taskId, forceRetry ).$results( nextAttempt );
 
 				service.failTask( taskId, error );
 
@@ -426,12 +427,39 @@ component extends="testbox.system.BaseSpec" {
 				var taskId      = CreateUUId();
 				var error       = { type="test.error", message="Something went wrong" };
 				var nextAttempt = { totalAttempts=3, nextAttemptDate=DateAdd( "n", 40, Now() ) };
+				var forceRetry  = false;
 
 				mockTaskDao.$( "updateData", 1 );
-				service.$( "getNextAttemptInfo" ).$args( taskId ).$results( nextAttempt );
+				service.$( "getNextAttemptInfo" ).$args( taskId, forceRetry ).$results( nextAttempt );
 				service.$( "requeueTask" );
 
 				service.failTask( taskId, error );
+
+				var log = mockTaskDao.$callLog().updateData;
+				expect( log.len() ).toBe( 0 );
+
+				log = service.$callLog().requeueTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  taskId          = taskId
+					, error           = error
+					, attemptCount    = nextAttempt.totalAttempts
+					, nextAttemptDate = nextAttempt.nextAttemptDate
+				} );
+			} );
+
+			it( "should requeue task when forceRetry is true, even if no retry attempts defined", function(){
+				var service     = _getService();
+				var taskId      = CreateUUId();
+				var error       = { type="test.error", message="Something went wrong" };
+				var nextAttempt = { totalAttempts=0, nextAttemptDate=DateAdd( "n", 1, Now() ) };
+				var forceRetry  = true;
+
+				mockTaskDao.$( "updateData", 1 );
+				service.$( "getNextAttemptInfo" ).$args( taskId, forceRetry ).$results( nextAttempt );
+				service.$( "requeueTask" );
+
+				service.failTask( taskId, error, forceRetry );
 
 				var log = mockTaskDao.$callLog().updateData;
 				expect( log.len() ).toBe( 0 );
