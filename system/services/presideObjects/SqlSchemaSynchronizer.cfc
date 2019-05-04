@@ -550,6 +550,10 @@ component {
 								message &= " This error has been caused by existing data in the table not matching the foreign key requirements, or the foreign key field being newly added and not nullable. To fix, ensure that the foreign key column contains valid data and then reload the application once more.";
 							}
 
+							if ( ( e.detail ?: "" ) contains "errno: 150" ) {
+								message &= " This may be due to a table or column collation mismatch. To fix, ensure that the tables and columns on either side of the relationship have the same collation setting.";
+							}
+
 							throw(
 								  type    = "presideobjectservice.dbsync.error"
 								, message = message
