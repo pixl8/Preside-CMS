@@ -258,12 +258,13 @@ component displayName="Ad-hoc Task Manager Service" {
 	/**
 	 * Marks a task as failed
 	 *
-	 * @autodoc true
-	 * @taskId  ID of the task to mark as failed
-	 * @error   Error that prompted task failure
+	 * @autodoc    true
+	 * @taskId     ID of the task to mark as failed
+	 * @error      Error that prompted task failure
+	 * @forceRetry If true, will ignore retry config and automatically queue for retry
 	 */
-	public void function failTask( required string taskId, struct error={} ) {
-		var nextAttempt = getNextAttemptInfo( arguments.taskId );
+	public void function failTask( required string taskId, struct error={}, boolean forceRetry=false ) {
+		var nextAttempt = getNextAttemptInfo( arguments.taskId, arguments.forceRetry );
 
 		if ( IsDate( nextAttempt.nextAttemptDate ) ) {
 			requeueTask(
@@ -420,20 +421,26 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * Keys are: "nextAttemptDate", "totalAttempts". Returns an empty struct
 	 * if task cannot be retried.
 	 *
-	 * @autodoc true
-	 * @taskId  ID of the task
+	 * @autodoc    true
+	 * @taskId     ID of the task
+	 * @forceRetry If true, will ignore retry config and automatically queue for retry
 	 *
 	 */
-	public struct function getNextAttemptInfo( required string taskId ) {
+	public struct function getNextAttemptInfo( required string taskId, boolean forceRetry=false ) {
 		var task          = getTask( arguments.taskId );
 		var retryConfig   = IsJson( task.retry_interval ?: "" ) ? DeserializeJson( task.retry_interval ) : [];
 		var maxAttempts   = 0;
 		var nextInterval  = 0;
-		var totalAttempts = Val( task.attempt_count ) + 1;
+		var totalAttempts = arguments.forceRetry ? Val( task.attempt_count ) : Val( task.attempt_count ) + 1;
 		var info          = {
 			  totalAttempts   = totalAttempts
 			, nextAttemptDate = ""
 		};
+
+		if ( arguments.forceRetry ) {
+			info.nextAttemptDate = DateTimeFormat( DateAdd( "n", 1, _now() ), "yyyy-mm-dd HH:nn:ss" );
+			return info;
+		}
 
 		for( var interval in retryConfig ) {
 			maxAttempts += Val( interval.tries ?: "" );
@@ -511,13 +518,20 @@ component displayName="Ad-hoc Task Manager Service" {
 	private void function _runTaskInNewRequest( required string taskId ) {
 		var event         = $getRequestContext();
 		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.adhocTask" );
+		var logger        = _getTaskLogger( arguments.taskId );
 
 		if ( taskRunnerUrl.reFindNoCase( "^https" ) && !$isFeatureEnabled( "sslInternalHttpCalls" ) ) {
 			taskRunnerUrl = taskRunnerUrl.reReplaceNoCase( "^https", "http" );
 		}
 
-		http url=taskRunnerUrl method="post" timeout=2 throwonerror=true {
-			httpparam name="taskId" value=arguments.taskId type="formfield";
+		try {
+			http url=taskRunnerUrl method="post" timeout=10 throwonerror=true {
+				httpparam name="taskId" value=arguments.taskId type="formfield";
+			}
+		} catch( any e ) {
+			failTask( taskId=arguments.taskId, error=e, forceRetry=true );
+			$raiseError( error=e );
+			logger.error( "An [#( e.type ?: '' )#] error occurred running task. Error message: [#( e.message ?: '' )#]" );
 		}
 	}
 
