@@ -66,7 +66,7 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," box.json
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," version.json
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," system/config/Config.cfc
-	sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/$ZIP_FILE," box.json
+	sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/${ZIP_FILE_NAME}," box.json
 
 	echo "";
 	echo "Zipping up project...";
