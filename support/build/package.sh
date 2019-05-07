@@ -18,12 +18,15 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	if [[ $TRAVIS_TAG == v* ]] ; then
 		BUILD_NUMBER=`printf %07d $TRAVIS_BUILD_NUMBER`
 		VERSION_NUMBER="${TRAVIS_TAG//v}+${BUILD_NUMBER}"
+		ZIP_FILE_NAME="Preside-${TRAVIS_TAG//v}-${BUILD_NUMBER}.zip"
 		RELEASE_NAME="stable"
 	elif [[ $TRAVIS_BRANCH == release* ]] ; then
 		VERSION_NUMBER="${TRAVIS_BRANCH//release-}-SNAPSHOT${TRAVIS_BUILD_NUMBER}"
+		ZIP_FILE_NAME="Preside-${TRAVIS_BRANCH//release-}-SNAPSHOT${TRAVIS_BUILD_NUMBER}.zip"
 		RELEASE_NAME="bleeding-edge"
 	else
 		VERSION_NUMBER="unknown"
+		ZIP_FILE_NAME="Preside-unknown.zip"
 	fi
 
 	echo "Packaging application ${VERSION_NUMBER}...";
@@ -32,7 +35,7 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 
 	PACKAGE_DIR="${CWD}/package"
 	ARTIFACTS_DIR="${CWD}/artifacts/${RELEASE_NAME}"
-	ZIP_FILE="${ARTIFACTS_DIR}/Preside-${VERSION_NUMBER}.zip"
+	ZIP_FILE="${ARTIFACTS_DIR}/${ZIP_FILE_NAME}"
 
 	rm -rf $PACKAGE_DIR && mkdir -p $PACKAGE_DIR
 	mkdir -p $ARTIFACTS_DIR
@@ -63,7 +66,7 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," box.json
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," version.json
 	sed -i "s,VERSION_NUMBER,$VERSION_NUMBER," system/config/Config.cfc
-	sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/Preside-$VERSION_NUMBER.zip," box.json
+	sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/$ZIP_FILE," box.json
 
 	echo "";
 	echo "Zipping up project...";
