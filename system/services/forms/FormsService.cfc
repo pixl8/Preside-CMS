@@ -197,11 +197,10 @@ component displayName="Forms service" {
 	 * @autodoc
 	 * @formName.hint Name of the form whose fields you wish to list.
 	 */
-	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[] ) {
+	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[], array suppressFields =[] ) {
 		var frm            = getForm( argumentCollection=arguments );
 		var ignoreControls = [ "readonly", "oneToManyManager" ];
 		var fields         = [];
-
 
 		for( var tab in frm.tabs ){
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
@@ -214,7 +213,7 @@ component displayName="Forms service" {
 				for( var field in fieldset.fields ) {
 					var control = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
 
-					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
+					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) && !arguments.suppressFields.findNoCase( field.name ) ) {
 						ArrayAppend( fields, field.name ?: "" );
 					}
 				}
@@ -544,6 +543,7 @@ component displayName="Forms service" {
 		,          array   permissionContextKeys   = []
 		,          string  fieldNamePrefix         = ""
 		,          string  fieldNameSuffix         = ""
+		,          array   suppressFields          = []
 	) {
 		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
 		var result  = arguments.preProcessData ? preProcessForm( argumentCollection = arguments ) : "";
@@ -610,8 +610,8 @@ component displayName="Forms service" {
 	 * @formData         Submitted form data
 	 * @validationResult A pre-existing validation result to which to append any errors found during preprocessing
 	 */
-	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult() ) {
-		var formFields       = listFields( arguments.formName );
+	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult(), array suppressFields= [] ) {
+		var formFields       = listFields( arguments.formName, suppressFields=arguments.suppressFields );
 		var fieldValue       = "";
 
 		for( var field in formFields ){

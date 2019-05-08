@@ -163,6 +163,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		, array   permissionContextKeys   = []
 		, string  fieldNamePrefix         = ""
 		, string  fieldNameSuffix         = ""
+		, array   suppressFields          = []
 	) {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
