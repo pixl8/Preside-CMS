@@ -611,7 +611,7 @@ component displayName="Forms service" {
 	 * @validationResult A pre-existing validation result to which to append any errors found during preprocessing
 	 */
 	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult(), array suppressFields= [] ) {
-		var formFields       = listFields( arguments.formName, suppressFields=arguments.suppressFields );
+		var formFields       = listFields( formName=arguments.formName, suppressFields=arguments.suppressFields );
 		var fieldValue       = "";
 
 		for( var field in formFields ){
