@@ -312,7 +312,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		args.append({
 			  eventArguments = {}
 			, action         = "__custom"
-		});
+		}, false );
 
 		getController().runEvent(
 			  event          = "admin.datamanager._loadCommonVariables"
