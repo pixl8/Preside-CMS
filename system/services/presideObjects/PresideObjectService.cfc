@@ -3127,10 +3127,18 @@ component displayName="Preside Object Service" {
 	) {
 		var objMeta       = _getObject( arguments.objectName ).meta;
 		var barePropRegex = "^(" & objMeta.dbFieldList.replace( ",", "|", "all" ) & ")$";
+		var aliasRegex    = "^([^\s]+)(\s+as\s+.+)$";
+		var propName      = arguments.propertyName;
+		var propAlias     = "";
 
-		if ( arguments.propertyName.reFindNoCase( barePropRegex ) ) {
+		if ( propName.reFind( aliasRegex ) ) {
+			propName  = arguments.propertyName.reReplace( aliasRegex, "\1" );
+			propAlias = arguments.propertyName.reReplace( aliasRegex, "\2" );
+		}
+
+		if ( propName.reFindNoCase( barePropRegex ) ) {
 			if ( escapeEntities ) {
-				return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( arguments.propertyName );
+				return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( propName ) & propAlias;
 			}
 			return arguments.alias & "." & arguments.propertyName;
 		}
