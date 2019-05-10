@@ -227,7 +227,7 @@ component displayName="Preside Object Service" {
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
 		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
-		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
+		args.groupBy     = _autoPrefixBareProperty( args.objectName, args.groupBy, args.adapter );
 		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
 			args.groupBy = _autoCalculateGroupBy( args.selectFields );
 		}
@@ -1904,7 +1904,7 @@ component displayName="Preside Object Service" {
 			);
 
 			if ( arguments.includeAlias ) {
-				fields[i] = _autoAliasBareProperty(
+				fields[i] = _autoPrefixBareProperty(
 					  objectName   = arguments.objectName
 					, propertyName = fields[i]
 					, dbAdapter    = adapter
@@ -2843,7 +2843,7 @@ component displayName="Preside Object Service" {
 		for( var item in items ) {
 			var propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
 			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
-			var aliased      = _autoAliasBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
+			var aliased      = _autoPrefixBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
 
 			if ( propertyName != aliased ) {
 				item = aliased & direction;
@@ -2942,7 +2942,7 @@ component displayName="Preside Object Service" {
 
 		if ( IsStruct( result.filter ) ) {
 			for( var key in result.filter ) {
-				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
+				var aliasedKey = _autoPrefixBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
 				if ( aliasedKey != key ) {
 					result.filter[ aliasedKey ] = result.filter[ key ];
 					result.filter.delete( key );
@@ -2959,7 +2959,7 @@ component displayName="Preside Object Service" {
 
 		if ( !IsStruct( result.filter ) || result.having.len() ) {
 			for( var key in result.filterParams ) {
-				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
+				var aliasedKey = _autoPrefixBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
 				if ( aliasedKey != key ) {
 					result.filterParams[ aliasedKey ] = result.filterParams[ key ];
 					result.filterParams.delete( key );
@@ -3118,7 +3118,7 @@ component displayName="Preside Object Service" {
 		};
 	}
 
-	private string function _autoAliasBareProperty(
+	private string function _autoPrefixBareProperty(
 		  required string  objectName
 		, required string  propertyName
 		, required any     dbAdapter
@@ -3127,10 +3127,18 @@ component displayName="Preside Object Service" {
 	) {
 		var objMeta       = _getObject( arguments.objectName ).meta;
 		var barePropRegex = "^(" & objMeta.dbFieldList.replace( ",", "|", "all" ) & ")$";
+		var aliasRegex    = "^([^\s]+)(\s+as\s+.+)$";
+		var propName      = arguments.propertyName;
+		var propAlias     = "";
 
-		if ( arguments.propertyName.reFindNoCase( barePropRegex ) ) {
+		if ( propName.reFind( aliasRegex ) ) {
+			propName  = arguments.propertyName.reReplace( aliasRegex, "\1" );
+			propAlias = arguments.propertyName.reReplace( aliasRegex, "\2" );
+		}
+
+		if ( propName.reFindNoCase( barePropRegex ) ) {
 			if ( escapeEntities ) {
-				return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( arguments.propertyName );
+				return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( propName ) & propAlias;
 			}
 			return arguments.alias & "." & arguments.propertyName;
 		}
