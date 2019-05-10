@@ -3279,11 +3279,10 @@ component extends="preside.system.base.AdminHandler" {
 		return rootForm;
 	}
 
-	private void function _loadCommonVariables( event, action, eventArguments ) {
+	private void function _loadCommonVariables( event, action, eventArguments, includeAllFormulaFields=( arguments.action == "viewRecord" ) ) {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
 		var e   = "";
-		var includeAllFormulaFields  = ( arguments.action == "viewRecord" );
 		var onlyCheckForLoginActions = [ "getObjectRecordsForAjaxSelectControl" ];
 		var useAnyWhereActions       = [
 			  "getChildObjectRecordsForAjaxDataTables"
@@ -3397,9 +3396,9 @@ component extends="preside.system.base.AdminHandler" {
 							setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="listing" ) );
 						}
 
-						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
+						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=arguments.includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true, autoGroupBy=arguments.includeAllFormulaFields );
 					} else {
-						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
+						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=arguments.includeAllFormulaFields, allowDraftVersions=true, autoGroupBy=arguments.includeAllFormulaFields );
 					}
 
 					if ( !prc.record.recordCount ) {
