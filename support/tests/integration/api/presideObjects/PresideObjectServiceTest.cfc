@@ -3179,6 +3179,43 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test094_parseSelectFields_shouldCorrectlyParseTheProvidedSelectFields" returntype="void">
+		<cfscript>
+			var poService    = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents" ] );
+			var selectFields = [
+				  "id"
+				, "label"
+				, "label as labelAlias"
+				, "${labelField} as labelAlias"
+				, "object_1.label"
+				, "object_1.label as labelAlias"
+				, "undefined"
+				, "undefined as undefinedAlias"
+			];
+			var expected     = [
+				  "`object_1`.`id`"
+				, "`object_1`.`label`"
+				, "`object_1`.`label` as labelAlias"
+				, "${labelField} as labelAlias"
+				, "object_1.label"
+				, "object_1.label as labelAlias"
+				, "undefined"
+				, "undefined as undefinedAlias"
+			];
+
+			poService.dbSync();
+
+			var result = poService.parseSelectFields(
+				  objectName   = "object_1"
+				, selectFields = selectFields
+			);
+
+			for( var i=1; i<=result.len(); i++ ) {
+				super.assertEquals( result[ i ], expected[ i ], "Expected [ #expected[ i ]# ] but received [ #result[ i ]# ]" );
+			}
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories" type="array"  required="true" />
