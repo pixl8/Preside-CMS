@@ -91,6 +91,7 @@ component extends="preside.system.base.AdminHandler" {
 			, isMultilingual      = IsTrue( args.isMultilingual ?: multilingualPresideObjectService.isMultilingual( objectName ) )
 			, draftsEnabled       = IsTrue( args.draftsEnabled  ?: datamanagerService.areDraftsEnabledForObject( objectName ) )
 			, canDelete           = IsTrue( args.canDelete      ?: _checkPermission( argumentCollection=arguments, object=objectName, key="delete", throwOnError=false ) )
+			, footerEnabled       = customizationService.objectHasCustomization( objectName, "renderFooterForGridListing" )
 		} );
 
 		if ( args.treeView ) {
@@ -1620,7 +1621,22 @@ component extends="preside.system.base.AdminHandler" {
 			ArrayAppend( getRecordsArgs.gridFields, "_options" );
 		}
 
-		event.renderData( type="json", data=dtHelper.queryToResult( records, getRecordsArgs.gridFields, results.totalRecords ) );
+		var result = dtHelper.queryToResult( records, getRecordsArgs.gridFields, results.totalRecords );
+		var footer = customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "renderFooterForGridListing"
+			, args           = {
+				  records         = records
+				, objectName      = arguments.object
+				, getRecordsArgs  = getRecordsArgs
+			}
+		);
+
+		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
+			result.sFooter = footer;
+		}
+
+		event.renderData( type="json", data=result );
 	}
 
 	private array function _getActionsForAjaxDataTables( event, rc, prc, args={} ) {
