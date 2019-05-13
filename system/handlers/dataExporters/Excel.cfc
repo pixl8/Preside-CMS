@@ -17,6 +17,8 @@ component {
 		var tmpFile       = getTempFile( getTempDirectory(), "ExcelExport" );
 		var workbook      = spreadsheetLib.new( xmlformat=true );
 		var headers       = [];
+		var data          = [];
+		var dataCols      = [];
 		var row           = 1;
 		var col           = 0;
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
