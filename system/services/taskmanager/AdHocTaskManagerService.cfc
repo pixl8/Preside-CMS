@@ -94,6 +94,8 @@ component displayName="Ad-hoc Task Manager Service" {
 	 */
 	public boolean function runTask( required string taskId ) {
 		lock timeout="1" name="adhocRunTask#arguments.taskId#" {
+			$getRequestContext().setUseQueryCache( false );
+
 			var task  = getTask( arguments.taskId );
 			var event = task.event ?: "";
 			var args  = IsJson( task.event_args ?: "" ) ? DeserializeJson( task.event_args ) : {};
