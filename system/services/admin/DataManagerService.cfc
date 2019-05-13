@@ -381,7 +381,7 @@ component {
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.extraFilters.append({
-				  filter       = _buildSearchFilter(
+				  filter       = buildSearchFilter(
 					  q            = arguments.searchQuery
 					, objectName   = arguments.objectName
 					, gridFields   = arguments.gridFields
@@ -610,7 +610,7 @@ component {
 			if ( len( arguments.labelRenderer ) ) {
 				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
-			args.filter       = _buildSearchFilter(
+			args.filter       = buildSearchFilter(
 				  q            = arguments.searchQuery
 				, objectName   = arguments.objectName
 				, gridFields   = args.selectFields
@@ -692,6 +692,63 @@ component {
 			  value = dao.insertData( { "#labelField#"=labelValue } )
 			, text  = labelValue
 		};
+	}
+
+	public string function buildSearchFilter(
+		  required string q
+		, required string objectName
+		, required array  gridFields
+		,          string labelfield   = _getPresideObjectService().getLabelField( arguments.objectName )
+		,          array  searchFields = []
+	) {
+		var field                = "";
+		var fullFieldName        = "";
+		var objName              = "";
+		var filter               = "";
+		var delim                = "";
+		var poService            = _getPresideObjectService();
+		var relationshipGuidance = _getRelationshipGuidance();
+
+		if ( arguments.searchFields.len() ) {
+			var parsedFields = poService.parseSelectFields(
+				  objectName   = arguments.objectName
+				, selectFields = arguments.searchFields
+				, includeAlias = false
+			);
+			for( field in parsedFields ){
+				if ( poService.getObjectProperties( arguments.objectName ).keyExists( field ) ) {
+					field = _getFullFieldName( field,  arguments.objectName );
+				}
+				filter &= delim & field & " like :q";
+				delim = " or ";
+			}
+		} else {
+			for( field in arguments.gridFields ){
+				field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
+				objName = arguments.objectName;
+
+				if ( ListLen( field, "." ) == 2 ) {
+					objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
+						  sourceObject     = arguments.objectName
+						, relationshipPath = ListFirst( field, "." )
+					);
+					field = ListLast( field, "." );
+				}
+
+				if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
+					if ( ListLen( fullFieldName, "." ) < 2 ) {
+						fullFieldName = _getFullFieldName( field, objName );
+					}
+
+					if ( _propertyIsSearchable( field, objName ) ) {
+						filter &= delim & fullFieldName & " like :q";
+						delim = " or ";
+					}
+				}
+			}
+		}
+
+		return filter;
 	}
 
 // PRIVATE HELPERS
@@ -805,63 +862,6 @@ component {
 		}
 
 		return newOrderBy.toList();
-	}
-
-	private string function _buildSearchFilter(
-		  required string q
-		, required string objectName
-		, required array  gridFields
-		,          string labelfield   = _getPresideObjectService().getLabelField( arguments.objectName )
-		,          array  searchFields = []
-	) {
-		var field                = "";
-		var fullFieldName        = "";
-		var objName              = "";
-		var filter               = "";
-		var delim                = "";
-		var poService            = _getPresideObjectService();
-		var relationshipGuidance = _getRelationshipGuidance();
-
-		if ( arguments.searchFields.len() ) {
-			var parsedFields = poService.parseSelectFields(
-				  objectName   = arguments.objectName
-				, selectFields = arguments.searchFields
-				, includeAlias = false
-			);
-			for( field in parsedFields ){
-				if ( poService.getObjectProperties( arguments.objectName ).keyExists( field ) ) {
-					field = _getFullFieldName( field,  arguments.objectName );
-				}
-				filter &= delim & field & " like :q";
-				delim = " or ";
-			}
-		} else {
-			for( field in arguments.gridFields ){
-				field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
-				objName = arguments.objectName;
-
-				if ( ListLen( field, "." ) == 2 ) {
-					objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
-						  sourceObject     = arguments.objectName
-						, relationshipPath = ListFirst( field, "." )
-					);
-					field = ListLast( field, "." );
-				}
-
-				if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
-					if ( ListLen( fullFieldName, "." ) < 2 ) {
-						fullFieldName = _getFullFieldName( field, objName );
-					}
-
-					if ( _propertyIsSearchable( field, objName ) ) {
-						filter &= delim & fullFieldName & " like :q";
-						delim = " or ";
-					}
-				}
-			}
-		}
-
-		return filter;
 	}
 
 	private string function _getFullFieldName( required string field, required string objectName ) {
