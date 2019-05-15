@@ -52,6 +52,21 @@ PresideRichEditor = ( function( $ ){
 		config.autoParagraph      = autoParagraph;
 		config.widgetCategories   = widgetCategories;
 		config.linkPickerCategory = linkPickerCategory;
+		config.on                 = {
+			afterPasteFromWord: function( event ) {
+				var filter   = event.editor.filter.clone(),
+					fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue ),
+					writer   = new CKEDITOR.htmlParser.basicWriter();
+
+				filter.disallow( 'span' ); // Strip all span elements
+				filter.disallow( '*(*)' ); // Strip all classes
+				filter.disallow( '*{*}' ); // Strip all inline-styles
+
+				filter.applyTo( fragment );
+				fragment.writeHtml( writer );
+				event.data.dataValue = writer.getHtml();
+			}
+		};
 
 		CKEDITOR.on( "instanceReady", function( event ) {
 			event.editor.initialdata = event.editor.getData();
