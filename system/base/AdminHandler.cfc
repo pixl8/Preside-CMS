@@ -43,6 +43,7 @@ component {
 					content reset=true type="application/json";
 					header statuscode="401" statustext="Access denied";
 					echo( SerializeJson( { error="access denied"} ) );
+					abort;
 				} else if ( event.isActionRequest() ) {
 					if ( Len( Trim( cgi.http_referer ) ) ) {
 						postLoginUrl = cgi.http_referer;
