@@ -129,6 +129,9 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preRoutePresideSESRequest"             );
 		interceptorSettings.customInterceptionPoints.append( "postRoutePresideSESRequest"            );
 		interceptorSettings.customInterceptionPoints.append( "onGetEmailContextPayload"              );
+		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
+		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
+		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()

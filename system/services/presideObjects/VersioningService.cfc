@@ -327,6 +327,10 @@ component {
 					if ( trim( oldData[ field ] ?: "" ) != trim( arguments.newData[ field ] ?: "" ) ){
 						changedFields.append( field );
 					}
+				} else if ( propDbType == "int" || propDbType == "float" ){
+					if ( val( oldData[ field ] ?: "" ) != val( arguments.newData[ field ] ?: "" ) ){
+						changedFields.append( field );
+					}
 				} else if ( Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
 					changedFields.append( field );
 				}
