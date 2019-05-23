@@ -462,6 +462,14 @@ component {
 
 		settings.healthCheckServices = {};
 
+		settings.fullPageCaching = {
+			  limitCacheData = false
+			, limitCacheDataKeys = {
+				  rc  = []
+				, prc = [ "_site", "presidePage", "__presideInlineJs", "_presideUrlPath", "currentLayout", "currentView", "slug", "viewModule" ]
+			  }
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {
