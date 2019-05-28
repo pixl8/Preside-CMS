@@ -1983,7 +1983,7 @@ component displayName="AssetManager Service" {
 				  asset         = arguments.assetId
 				, asset_version = arguments.versionId
 				, key           = key
-				, value         = serializeJson(  arguments.metaData[ key ] )
+				, value         = isSimpleValue( arguments.metaData[ key ] ) ? arguments.metaData[ key ] : serializeJson( arguments.metaData[ key ] )
 			} );
 		}
 	}
