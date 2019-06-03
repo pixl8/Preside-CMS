@@ -9,7 +9,7 @@
 	<cfargument name="addTitleSpan"    type="boolean" required="false" default="false" />
 
 	<cfscript>
-		var newString = ReReplace(string, "<[^>]*>", " ", "ALL");
+		var newString = Trim( ReReplace(string, "<[^>]*>", " ", "ALL") );
 		var lastSpace = 0;
 
 		newString = ReReplace(newString, " \s*", " ", "ALL");
