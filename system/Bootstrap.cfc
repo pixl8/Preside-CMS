@@ -73,12 +73,6 @@ component {
 		_preventSessionFixation();
 	}
 
-	public void function onSessionEnd( required struct sessionScope, required struct appScope ) {
-		if ( StructKeyExists( arguments.appScope, "cbBootstrap" ) ) {
-			arguments.appScope.cbBootstrap.onSessionEnd( argumentCollection=arguments );
-		}
-	}
-
 	public boolean function onMissingTemplate( required string template ) {
 		if ( StructKeyExists( application, "cbBootstrap" ) ) {
 			return application.cbBootstrap.onMissingTemplate( argumentCollection=arguments );
