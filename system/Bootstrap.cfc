@@ -4,7 +4,7 @@ component {
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
 		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*", "^https?://(.*?)/e/t/.*" ]
-		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
+		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird" ]
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
