@@ -89,7 +89,7 @@ component {
 		var response = args.response ?: "";
 
 		if ( IsBinary( response.binary ?: "" ) ) {
-			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( response.tempFileInfo.clientFile ?: 'uploaded.file' )#";
+			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( Len( response.tempFileInfo.clientFile ?: '' ) ? urlEncode( response.tempFileInfo.clientFile ) : 'uploaded.file' )#";
 
 			formBuilderStorageProvider.putObject(
 				  object = response.binary
