@@ -64,10 +64,11 @@ component {
 		}
 
 		if( Len( Trim( args.accept ?: "" ) ) ){
+			var allowedTypes = ArrayToList( assetManagerService.expandTypeList( listToArray(args.accept) ) );
 			rules.append( {
 				  fieldname = args.name ?: ""
 				, validator = "fileType"
-				, params    = { allowedTypes=args.accept, allowedExtensions=args.accept }
+				, params    = { allowedTypes=allowedTypes, allowedExtensions=allowedTypes }
 			} );
 		}
 
