@@ -187,6 +187,7 @@ component displayName="Preside Object Service" {
 		,          array   extraJoins              = []
 		,          boolean recordCountOnly         = false
 		,          boolean getSqlAndParamsOnly     = false
+		,          boolean formatSqlParams         = false
 		,          boolean distinct                = false
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
@@ -261,7 +262,7 @@ component displayName="Preside Object Service" {
 			if ( arguments.getSqlAndParamsOnly ) {
 				return {
 					  sql    = sql
-					, params = args.preparedFilter.params
+					, params = arguments.formatSqlParams ? _formatParams( args.preparedFilter.params ) : args.preparedFilter.params
 				};
 			}
 			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
@@ -277,6 +278,14 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postSelectObjectData", args );
 
 		return args.result;
+	}
+
+	private function _formatParams( required array rawParams ) {
+		var formattedParams = {};
+		for( var param in arguments.rawParams ) {
+			formattedParams[ param.name ] = { value=param.value, type=param.type };
+		}
+		return formattedParams;
 	}
 
 	/**
