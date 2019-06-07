@@ -950,7 +950,7 @@ component displayName="Forms service" {
 									field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
 								}
 
-								_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
+								_bindAttributesFromPresideObjectField( field );
 								field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
 
 								ArrayAppend( fieldset.fields, field );
@@ -968,7 +968,7 @@ component displayName="Forms service" {
 		return theForm;
 	}
 
-	private void function _bindAttributesFromPresideObjectField( required struct field, boolean throwOnMissingObject=true ) {
+	private void function _bindAttributesFromPresideObjectField( required struct field ) {
 		var property    = "";
 		var boundObject = "";
 		var boundField  = "";
@@ -987,23 +987,11 @@ component displayName="Forms service" {
 			boundObject = ListFirst( field.binding, "." );
 
 			if ( !pobjService.objectExists( boundObject ) ) {
-				if ( arguments.throwOnMissingObject ) {
-					throw(
-						  type = "FormsService.BadBinding"
-						, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found. Valid objects are #SerializeJson( pobjService.listObjects() )#"
-					);
-				}
-
+				field.name = boundField;
 				return;
 			}
 			if ( !pobjService.fieldExists( boundObject, boundField ) ){
-				if ( arguments.throwOnMissingObject ) {
-					throw(
-						  type = "FormsService.BadBinding"
-						, message = "The field, [#boundField#], referred to in the form field binding, [#field.binding#], could not be found in Preside Object, [#boundObject#]"
-					);
-				}
-
+				field.name = boundField;
 				return;
 			}
 
@@ -1453,7 +1441,7 @@ component displayName="Forms service" {
 					var fieldBaseI18n = "";
 					if ( ListLen( field.binding ?: "", "." ) == 2 ) {
 						var objName = ListFirst( field.binding, "." );
-						if ( _getPresideObjectService().isPageType( objName ) ) {
+						if ( _getPresideObjectService().objectExists( objName ) && _getPresideObjectService().isPageType( objName ) ) {
 							fieldBaseI18n = "page-types.#objName#:";
 						} else {
 							fieldBaseI18n = "preside-objects.#objName#:";

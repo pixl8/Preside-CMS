@@ -354,6 +354,7 @@ component {
 		var resourceReader = new PresideRestResourceReader();
 		var apis           = resourceReader.readResourceDirectories( arguments.resourceDirectories );
 
+		_announceInterception( "postReadRestResourceDirectories", { apis=apis } );
 		_setApis( apis );
 	}
 
@@ -370,7 +371,7 @@ component {
 
 	private void function _announceInterception( required string state, struct interceptData={} ) {
 		try {
-			_getInterceptorService().processState( argumentCollection=arguments );
+			$announceInterception( argumentCollection=arguments );
 		} catch( any e ) {
 			$raiseError( e );
 
@@ -384,10 +385,6 @@ component {
 				_announceInterception( "onRestError", arguments.interceptData );
 			}
 		}
-	}
-
-	private any function _getInterceptorService() {
-		return _getController().getInterceptorService();
 	}
 
 	private void function _dealWithEtags( required any restRequest, required any restResponse, required any requestContext ) {

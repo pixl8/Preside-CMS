@@ -108,6 +108,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                       );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"                      );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                       );
+		interceptorSettings.customInterceptionPoints.append( "postReadRestResourceDirectories"       );
 		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                         );
 		interceptorSettings.customInterceptionPoints.append( "onRestError"                           );
 		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"                 );

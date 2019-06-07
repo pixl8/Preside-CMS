@@ -16,30 +16,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( errorThrown ).toBeTrue();
 			} );
 
-			it( "should throw informative error when object refered to in binding does not exist", function(){
-				var errorThrown = false;
+			it( "should do nothing when object referred to in binding does not exist", function(){
+				var formsService = _getFormsService( "/tests/resources/formsService/bindingWithMissingObject" );
+				var theForm      = formsService.getForm( "missing" );
 
-				try {
-					_getFormsService( "/tests/resources/formsService/bindingWithMissingObject" );
-				} catch ( "FormsService.BadBinding" e ) {
-					expect( e.message ).toBe( "The preside object, [missingObject], referred to in the form field binding, [missingObject.id], could not be found. Valid objects are #SerializeJson( poService.listObjects() )#" );
-					errorThrown = true;
-				}
-
-				expect( errorThrown ).toBeTrue();
+				expect( theForm.tabs[1].fieldsets[1].fields[2].name ?: "" ).toBe( "id" );
 			} );
 
-			it( "should throw informative error when field refered to in binding does not exist", function(){
-				var errorThrown = false;
+			it( "should do nothing when field referred to in binding does not exist", function(){
+				var formsService = _getFormsService( "/tests/resources/formsService/bindingWithMissingField" );
+				var theForm      = formsService.getForm( "missing.field" );
 
-				try {
-					_getFormsService( "/tests/resources/formsService/bindingWithMissingField" );
-				} catch ( "FormsService.BadBinding" e ) {
-					expect( e.message ).toBe( "The field, [missingField], referred to in the form field binding, [page.missingField], could not be found in Preside Object, [page]" );
-					errorThrown = true;
-				}
-
-				expect( errorThrown ).toBeTrue();
+				expect( theForm.tabs[1].fieldsets[1].fields[2].name ?: "" ).toBe( "missingField" );
 			} );
 
 		} );
