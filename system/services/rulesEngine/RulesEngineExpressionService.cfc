@@ -277,6 +277,10 @@ component displayName="RulesEngine Expression Service" {
 		eventArgs.append( expression.expressionHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
+		if ( Len( Trim( eventArgs.parentPropertyName ?: "" ) ) ) {
+			eventArgs.filterPrefix = ListAppend( eventArgs.filterPrefix ?: "", eventArgs.parentPropertyName, "$" );
+		}
+
 		var result = $getColdbox().runEvent(
 			  event          = handlerAction
 			, private        = true
