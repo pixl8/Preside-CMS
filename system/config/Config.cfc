@@ -133,6 +133,9 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
 		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
 		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
+		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
+		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
+		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
