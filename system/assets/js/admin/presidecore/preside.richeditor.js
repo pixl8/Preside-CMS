@@ -5,17 +5,18 @@ PresideRichEditor = ( function( $ ){
 	}
 
 	PresideRichEditor.prototype.init = function( elementToReplace ){
-		var $elementToReplace = $( elementToReplace )
-		  , config            = {}
-		  , toolbar           = $elementToReplace.data( "toolbar" )          || cfrequest.ckeditorDefaultToolbar
-		  , width             = $elementToReplace.data( "width" )            || cfrequest.ckeditorDefaultWidth
-		  , minHeight         = $elementToReplace.data( "minHeight" )        || cfrequest.ckeditorDefaultMinHeight
-		  , maxHeight         = $elementToReplace.data( "maxHeight" )        || cfrequest.ckeditorDefaultMaxHeight
-		  , customConfig      = $elementToReplace.data( "customConfig" )     || cfrequest.ckeditorConfig
-		  , widgetCategories  = $elementToReplace.data( "widgetCategories" ) || cfrequest.widgetCategories || ""
-		  , stylesheets       = $elementToReplace.data( "stylesheets" )
-		  , enterMode         = $elementToReplace.data( "enterMode" )
-		  , autoParagraph     = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
+		var $elementToReplace     = $( elementToReplace )
+		  , config                = {}
+		  , toolbar               = $elementToReplace.data( "toolbar" )          || cfrequest.ckeditorDefaultToolbar
+		  , width                 = $elementToReplace.data( "width" )            || cfrequest.ckeditorDefaultWidth
+		  , minHeight             = $elementToReplace.data( "minHeight" )        || cfrequest.ckeditorDefaultMinHeight
+		  , maxHeight             = $elementToReplace.data( "maxHeight" )        || cfrequest.ckeditorDefaultMaxHeight
+		  , customConfig          = $elementToReplace.data( "customConfig" )     || cfrequest.ckeditorConfig
+		  , widgetCategories      = $elementToReplace.data( "widgetCategories" ) || cfrequest.widgetCategories || ""
+		  , stylesheets           = $elementToReplace.data( "stylesheets" )
+		  , enterMode             = $elementToReplace.data( "enterMode" )
+		  , autoParagraph         = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
+		  , pasteFromWordDisallow = cfrequest.ckeditorPasteFromWordDisallow || []
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
@@ -50,24 +51,25 @@ PresideRichEditor = ( function( $ ){
 		}
 		config.autoParagraph    = autoParagraph;
 		config.widgetCategories = widgetCategories;
-		config.on               = {
-			afterPasteFromWord: function( event ) {
-				var filter   = event.editor.filter.clone(),
-					fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue ),
-					writer   = new CKEDITOR.htmlParser.basicWriter();
-
-				filter.disallow( 'span' ); // Strip all span elements
-				filter.disallow( '*(*)' ); // Strip all classes
-				filter.disallow( '*{*}' ); // Strip all inline-styles
-
-				filter.applyTo( fragment );
-				fragment.writeHtml( writer );
-				event.data.dataValue = writer.getHtml();
-			}
-		};
 
 		CKEDITOR.on( "instanceReady", function( event ) {
 			event.editor.initialdata = event.editor.getData();
+
+			if ( pasteFromWordDisallow.length ) {
+				event.editor.on( "afterPasteFromWord", function( event ) {
+					var filter   = event.editor.filter.clone()
+					  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue )
+					  , writer   = new CKEDITOR.htmlParser.basicWriter();
+
+					pasteFromWordDisallow.forEach( function( item ){
+						filter.disallow( item );
+					} );
+
+					filter.applyTo( fragment );
+					fragment.writeHtml( writer );
+					event.data.dataValue = writer.getHtml();
+				} );
+			}
 		} );
 
 		this.editor = CKEDITOR.replace( elementToReplace, config );
