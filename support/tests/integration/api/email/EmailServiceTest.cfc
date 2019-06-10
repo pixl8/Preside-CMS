@@ -301,6 +301,24 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} );
 			} );
 
+			it( "should announce onPrepareEmailSendArguments interception", function(){
+				var emailService      = _getEmailService();
+				var testToAddresses   = [ "dominic.watson@test.com", "another.test.com" ];
+				var testArgs          = { some="test", data=true, template="notification" };
+
+				mockColdBox.$( "runEvent" ).$results( { from="someone@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" } );
+
+				emailService.send(
+					  template = "notification"
+					, to       = testToAddresses
+					, args     = testArgs
+				);
+
+				expect( emailService.$callLog().$announceInterception.len() ).toBe( 1 );
+				expect( emailService.$callLog().$announceInterception[1][1] ).toBe( "onPrepareEmailSendArguments" );
+				expect( emailService.$callLog().$announceInterception[1][2].keyExists( "sendArgs") ).toBeTrue();
+			} );
+
 		} );
 	}
 
@@ -318,6 +336,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$announceInterception" );
 		mockEmailTemplateService.$( "templateExists", false );
 
 
