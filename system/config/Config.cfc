@@ -317,12 +317,17 @@ component {
 
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets   = [ "/css/admin/specific/richeditor/" ]
-				, width         = "auto"
-				, minHeight     = 0
-				, maxHeight     = 300
-				, autoParagraph = false
-				, configFile    = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
+				  stylesheets           = [ "/css/admin/specific/richeditor/" ]
+				, width                 = "auto"
+				, minHeight             = 0
+				, maxHeight             = 300
+				, autoParagraph         = false
+				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
+				, pasteFromWordDisallow = [
+					  "span"  // Strip all span elements
+					, "*(*)"  // Strip all classes
+					, "*{*}"  // Strip all inline-styles
+				  ]
 			  }
 			, linkPicker = _getRicheditorLinkPickerConfig()
 			, toolbars   = _getCkEditorToolbarConfig()
