@@ -803,8 +803,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _getTestSendFormName( event, rc, prc ) {
-		WriteDump( var=prc.template, output="/tmp/dump/template-#getTickCount()#.html", format="html" );
-
 		var filterObject  = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		var labelRenderer = presideObjectService.getObjectAttribute( filterObject, "labelRenderer" );
 		var orderBy       = "label";
