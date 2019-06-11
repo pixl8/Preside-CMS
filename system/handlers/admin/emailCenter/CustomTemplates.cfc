@@ -6,6 +6,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="emailLayoutService"         inject="emailLayoutService";
 	property name="emailMassSendingService"    inject="emailMassSendingService";
 	property name="customizationService"       inject="dataManagerCustomizationService";
+	property name="dataManagerService"         inject="dataManagerService";
+	property name="presideObjectService"       inject="presideObjectService";
 	property name="emailService"               inject="emailService";
 	property name="formsService"               inject="formsService";
 	property name="cloningService"             inject="presideObjectCloningService";
@@ -641,6 +643,33 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function getRecipientListForAjaxSelect( event, rc, prc ) {
+		_checkPermissions( event=event, key="read" );
+		_getTemplate( argumentCollection=arguments, allowDrafts=true );
+
+		var templateId      = rc.id ?: "";
+		var hideAlreadySent = IsBoolean( rc.hideAlreadySent ?: "" ) ? rc.hideAlreadySent : true;
+		var extraFilters    = emailMassSendingService.getTemplateRecipientFilters( templateId, hideAlreadySent );
+		var filterObject    = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+		var orderBy         = rc.orderBy       ?: "label";
+		var labelRenderer   = rc.labelRenderer ?: "";
+		var useCache        = IsTrue( rc.useCache ?: "" );
+
+		var records = dataManagerService.getRecordsForAjaxSelect(
+			  objectName    = filterObject
+			, maxRows       = rc.maxRows ?: 1000
+			, searchQuery   = rc.q       ?: ""
+			, savedFilters  = ListToArray( rc.savedFilters ?: "" )
+			, extraFilters  = extraFilters
+			, orderBy       = orderBy
+			, ids           = ListToArray( rc.values ?: "" )
+			, labelRenderer = labelRenderer
+			, useCache      = useCache
+		);
+
+		event.renderData( type="json", data=records );
+	}
+
 	public void function sendAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="send" );
 		_getTemplate( argumentCollection=arguments );
@@ -774,15 +803,28 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _getTestSendFormName( event, rc, prc ) {
-		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+		var filterObject  = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+		var labelRenderer = presideObjectService.getObjectAttribute( filterObject, "labelRenderer" );
+		var orderBy       = "label";
+		var cacheBuster   = createuuid();
+		var preFetchUrl   = event.buildAdminLink(
+			  linkTo      = "emailCenter.customTemplates.getRecipientListForAjaxSelect"
+			, querystring = "id=#prc.template.id#&maxRows=100&object=#filterObject#&prefetchCacheBuster=#cacheBuster#&orderBy=#orderBy#&labelRenderer=#labelRenderer#"
+		);
+		var remoteUrl     = event.buildAdminLink(
+			  linkTo      = "emailCenter.customTemplates.getRecipientListForAjaxSelect"
+			, querystring = "id=#prc.template.id#&object=#filterObject#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&q=%QUERY"
+		);
 
 		return formsService.createForm( basedOn="email.test.send.test", generator=function( formDefinition ){
 			if( !isEmpty( filterObject ) ){
 				formDefinition.modifyField(
-					  name     = "recipient"
-					, fieldset = "default"
-					, tab      = "default"
-					, object   = filterObject
+					  name        = "recipient"
+					, fieldset    = "default"
+					, tab         = "default"
+					, object      = filterObject
+					, preFetchUrl = preFetchUrl
+					, remoteUrl   = remoteUrl
 				);
 			} else{
 				formDefinition.modifyField(
