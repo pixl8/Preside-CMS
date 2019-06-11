@@ -202,4 +202,17 @@ component extends="coldbox.system.web.Controller" {
 	private boolean function _isAdminLoggedIn() {
 		return wireBox.getInstance( "loginService" ).isLoggedIn();
 	}
+
+	private function invoker(
+		  required any     target
+		, required string  method
+		,          struct  argCollection = {}
+		,          boolean private       = false
+	){
+		if ( arguments.private ) {
+			return arguments.target._privateInvoker( method=arguments.method, argCollection=arguments.argCollection );
+		} else {
+			return arguments.target[ arguments.method ]( argumentCollection=arguments.argCollection );
+		}
+	}
 }
