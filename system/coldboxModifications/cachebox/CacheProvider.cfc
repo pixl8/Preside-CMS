@@ -17,7 +17,7 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 		return result;
 	}
 
-	public any function clearQuiet( required any objectKey ) output=false {
+	public boolean function clearQuiet( required any objectKey ) output=false {
 		request[ _requestKey ] = request[ _requestKey ] ?: {};
 		request[ _requestKey ].delete( arguments.objectKey );
 
@@ -39,11 +39,11 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 	}
 
 	public any function set(
-		  required any     objectKey
-		, required any     object
-		,          any     timeout           = ""
-		,          any     lastAccessTimeout = ""
-		,          any     extra             = {}
+		  required any    objectKey
+		, required any    object
+		,          any    timeout           = ""
+		,          any    lastAccessTimeout = ""
+		,          struct extra             = {}
 	) {
 		setQuiet( arguments.objectKey, arguments.object, arguments.timeout, arguments.lastAccessTimeout );
 
