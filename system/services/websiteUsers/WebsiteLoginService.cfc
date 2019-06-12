@@ -495,9 +495,9 @@ component displayName="Website login service" {
 	 */
 	public boolean function recordLogout() autodoc=true {
 		var userDetails  = getLoggedInUserDetails();
-		var userId       = userDetails.id ?: "";
+		var userId       = trim( userDetails.id ?: "" );
 		var impersonated = isBoolean( userDetails.impersonated ?: "" ) && userDetails.impersonated;
-		var recordLogout = !impersonated && len( trim( userId ) );
+		var recordLogout = !impersonated && len( userId );
 
 		if ( recordLogout ) {
 			$recordWebsiteUserAction(
@@ -522,9 +522,10 @@ component displayName="Website login service" {
 	 */
 	public boolean function recordVisit() autodoc=true {
 		var userDetails  = getLoggedInUserDetails();
-		var userId       = userDetails.id ?: "";
+		var userId       = trim( userDetails.id ?: "" );
 		var impersonated = isBoolean( userDetails.impersonated ?: "" ) && userDetails.impersonated;
-		var recordVisit  = !impersonated && len( trim( userId ) );
+		var adminRequest = $getRequestContext().isAdminRequest();
+		var recordVisit  = !adminRequest && !impersonated && len( userId );
 
 		if ( recordVisit ) {
 			return _getUserDao().updateData( id=userId, data={
