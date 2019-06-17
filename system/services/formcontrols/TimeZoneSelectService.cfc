@@ -1,6 +1,6 @@
 /**
  * Provides methods for populating the timeZoneSelect form control.
- * 
+ *
  * @singleton
  * @presideservice
  *
@@ -19,7 +19,7 @@ component {
 
 // PUBLIC METHODS
 	public query function getTimeZones() {
-		if ( variables.keyExists( "timezoneQuery" ) ) {
+		if ( StructKeyExists( variables, "timezoneQuery" ) ) {
 			return variables.timezoneQuery;
 		}
 

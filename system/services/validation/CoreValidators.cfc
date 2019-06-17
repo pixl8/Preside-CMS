@@ -1,7 +1,7 @@
 component validationProvider=true {
 
 	public boolean function required( required string fieldName, any value="", struct data={} ) validatorMessage="cms:validation.required.default" {
-		return arguments.data.keyExists( fieldName ) && !IsEmpty( value );
+		return StructKeyExists( arguments.data, fieldName ) && !IsEmpty( value );
 	}
 
 	public boolean function minlength( required string fieldName, string value="", required numeric length, boolean list=false ) validatorMessage="cms:validation.minLength.default" {
@@ -137,7 +137,7 @@ component validationProvider=true {
 	}
 
 	public boolean function fileSize( required string fieldName, any value={}, required string maxSize ) validatorMessage="cms:validation.fileUpload.default" {
-		if ( !IsStruct( arguments.value ) || !arguments.value.keyExists( "size" ) || !IsNumeric( arguments.value.size ) ) {
+		if ( !IsStruct( arguments.value ) || !StructKeyExists( arguments.value, "size" ) || !IsNumeric( arguments.value.size ) ) {
 			return true;
 		}
 

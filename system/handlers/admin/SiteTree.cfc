@@ -1296,7 +1296,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId   = arguments.pageId ?: ( rc.id ?: "" );
 		var cacheKey = "pagePermissionContext";
 
-		if ( prc.keyExists( cacheKey ) ) {
+		if ( StructKeyExists( prc, cacheKey ) ) {
 			return prc[ cacheKey ];
 		}
 

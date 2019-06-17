@@ -189,7 +189,7 @@ component {
 			if ( Len( Trim( attributes.formula ?: "" ) ) ) {
 				return false;
 			}
-			if ( propertyName.startsWith( "_" ) ) {
+			if ( propertyName.reFind( "^_" ) ) {
 				return false;
 			}
 			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
@@ -223,7 +223,7 @@ component {
 	}
 
 	public array function getAllowedOperationsForObject( required string objectName ) {
-		if ( !_operationsCache.keyexists( arguments.objectName ) ) {
+		if ( !StructKeyExists( _operationsCache, arguments.objectName ) ) {
 			var operations           = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerAllowedOperations"   , objectName=arguments.objectName, defaultValue=getDefaultOperationsForObject( arguments.objectName ) );
 			var disallowedOperations = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerDisallowedOperations", objectName=arguments.objectName, defaultValue=""                                                    );
 
@@ -626,7 +626,7 @@ component {
 			var tmp = {};
 			for( var r in records ) { tmp[ r.id ] = transformResult( r, arguments.labelRenderer ) };
 			for( var id in arguments.ids ){
-				if ( tmp.keyExists( id ) ) {
+				if ( StructKeyExists( tmp, id ) ) {
 					result.append( tmp[id] );
 				}
 			}
@@ -643,7 +643,7 @@ component {
 		var lastModified      = Now();
 		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
 
-		if ( _getPresideObjectService().getObjectProperties( arguments.objectName ).keyExists( dmField ) ) {
+		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
 			var records = obj.selectData(
 				selectFields = [ "Max( #dmField# ) as lastmodified" ]
 			);
@@ -745,7 +745,7 @@ component {
 				continue;
 			}
 			if ( !StructKeyExists( props, field ) ) {
-				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+				if ( arguments.versiontable && field.reFind( "^_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
 				} else if ( field != labelField ) {
 					sqlFields[i] = "'' as " & field;
@@ -829,7 +829,7 @@ component {
 				, includeAlias = false
 			);
 			for( field in parsedFields ){
-				if ( poService.getObjectProperties( arguments.objectName ).keyExists( field ) ) {
+				if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
 					field = _getFullFieldName( field,  arguments.objectName );
 				}
 				filter &= delim & field & " like :q";
@@ -848,7 +848,7 @@ component {
 					field = ListLast( field, "." );
 				}
 
-				if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
+				if ( poService.objectExists( objName ) && StructKeyExists( poService.getObjectProperties( objName ), field ) ) {
 					if ( ListLen( fullFieldName, "." ) < 2 ) {
 						fullFieldName = _getFullFieldName( field, objName );
 					}

@@ -89,7 +89,7 @@ component displayname="Site service" {
 		);
 
 		for( var match in possibleMatches ){
-			if ( arguments.path.startsWith( match.path ) ) {
+			if ( arguments.path.reFindNoCase( "^" & match.path ) ) {
 				return match;
 			}
 		}

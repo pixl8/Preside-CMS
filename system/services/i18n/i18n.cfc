@@ -157,7 +157,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	}
 
 	private boolean function _isDebugMode() {
-		if ( !request.keyExists( "_i18nDebugMode" ) ) {
+		if ( !StructKeyExists( request, "_i18nDebugMode" ) ) {
 			request._i18nDebugMode = sessionStorage.getVar( "_i18nDebugMode" );
 		}
 

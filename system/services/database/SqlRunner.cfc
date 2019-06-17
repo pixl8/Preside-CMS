@@ -17,7 +17,7 @@ component singleton=true {
 		,          array  params
 		,          string returntype="recordset"
 	) output=false {
-		var q      = new query();
+		var q      = new QueryWithLuceeFixes();
 		var result = "";
 		var param  = "";
 

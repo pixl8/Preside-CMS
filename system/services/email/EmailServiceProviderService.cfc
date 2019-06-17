@@ -170,7 +170,7 @@ component {
 
 		var configuredProviders = _getConfiguredProviders();
 
-		return configuredProviders.keyExists( arguments.provider );
+		return StructKeyExists( configuredProviders, arguments.provider );
 	}
 
 	/**

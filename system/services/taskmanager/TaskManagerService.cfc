@@ -116,7 +116,7 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskExists( required string taskKey ) {
-		return 	_getConfiguredTasks().keyExists( arguments.taskKey );
+		return StructKeyExists( _getConfiguredTasks(), arguments.taskKey );
 	}
 
 	public boolean function tasksAreRunning( string exclusivityGroup="" ) {
@@ -183,7 +183,7 @@ component displayName="Task Manager Service" {
 		for( var task in nonRunningTasks ) {
 			var exclusivityGroup = taskConfiguration[ task.task_key ].exclusivityGroup ?: "";
 
-			if ( exclusivityGroup == "none" || ( !groupsToRun.keyExists( exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
+			if ( exclusivityGroup == "none" || ( !StructKeyExists( groupsToRun, exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
 				runnableTasks.append( task.task_key );
 				groupsToRun[ exclusivityGroup ] = 1;
 			}
