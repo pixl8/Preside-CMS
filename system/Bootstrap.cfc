@@ -575,7 +575,7 @@ component {
 		for( var i=arguments.cookieSet.len(); i>0; i-- ) {
 			var cookieName = ListFirst( arguments.cookieSet[ i ], "=" );
 
-			if ( existingCookies.keyExists( cookieName ) ) {
+			if ( StructKeyExists( existingCookies, cookieName ) ) {
 				arguments.cookieSet.deleteAt( i );
 				anyCleared = true;
 				continue;
