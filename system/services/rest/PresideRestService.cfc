@@ -282,7 +282,7 @@ component {
 
 	public string function getApiForUri( required string restPath ) {
 		for( var apiPath in _getApiList() ) {
-			if ( arguments.restPath.startsWith( apiPath ) ) {
+			if ( arguments.restPath.reFindNoCase( "^" & apiPath ) ) {
 				return apiPath;
 			}
 		}

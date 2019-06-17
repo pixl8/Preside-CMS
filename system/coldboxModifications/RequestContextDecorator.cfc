@@ -225,7 +225,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var currentUrl = getCurrentUrl();
 		var adminPath  = getAdminPath();
 
-		return currentUrl.startsWith( adminPath );
+		return currentUrl.left( adminPath.len() ) == adminPath;
 	}
 
 	public void function setIsDataManagerRequest() {
@@ -237,7 +237,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public boolean function isDataManagerRequest() {
-		var isDmHandler = getRequestContext().getCurrentEvent().startsWith( "admin.datamanager." );
+		var isDmHandler = getRequestContext().getCurrentEvent().reFindNoCase( "^admin\.datamanager\." );
 		var isDmRequest = getRequestContext().getValue(
 			  name         = "_isDataManagerRequest"
 			, defaultValue = false
@@ -883,7 +883,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		    && !this.isAdminRequest()
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
-		    && !this.getCurrentUrl().startsWith( "/asset/" )
+		    && !this.getCurrentUrl().reFindNoCase( "^/asset/" );
 		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 

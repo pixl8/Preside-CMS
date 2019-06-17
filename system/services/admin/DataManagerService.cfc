@@ -189,7 +189,7 @@ component {
 			if ( Len( Trim( attributes.formula ?: "" ) ) ) {
 				return false;
 			}
-			if ( propertyName.startsWith( "_" ) ) {
+			if ( propertyName.reFind( "^_" ) ) {
 				return false;
 			}
 			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
@@ -809,7 +809,7 @@ component {
 				continue;
 			}
 			if ( !StructKeyExists( props, field ) ) {
-				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+				if ( arguments.versiontable && field.reFind( "^_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
 				} else if ( field != labelField ) {
 					sqlFields[i] = "'' as " & field;

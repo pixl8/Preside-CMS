@@ -174,9 +174,9 @@ component {
 		for( var selectorToken in selectorTokens ) {
 			selectorToken = Trim( selectorToken );
 
-			if ( selectorToken.startsWith( "##" ) ) {
+			if ( selectorToken.reFind( "^##" ) ) {
 				score[ 3 ]++;
-			} else if ( selectorToken.startsWith( "." ) ) {
+			} else if ( selectorToken.reFind( "^\." ) ) {
 				score[ 4 ]++;
 			} else {
 				score[ 5 ]++;
