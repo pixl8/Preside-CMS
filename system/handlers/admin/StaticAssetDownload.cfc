@@ -28,7 +28,7 @@ component {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
 		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
 
-		if ( ( !fullPath.reFind( "^" & rootAllowedDirectory ) && !fullPath.reFind( "^" & extensionsDirectory ) ) || fullPath contains ".." ) {
+		if ( ( fullPath.left( rootAllowedDirectory.len() ) != rootAllowedDirectory && fullPath.left( extensionsDirectory.len() ) != extensionsDirectory ) || fullPath contains ".." ) {
 			return false;
 		}
 
