@@ -27,7 +27,7 @@ component output=false extends="coldbox.system.cache.providers.CacheBoxColdBoxPr
 	public any function get( required any objectKey ) output=false {
 		request[ _requestKey ] = request[ _requestKey ] ?: {};
 
-		if ( !request[ _requestKey ].keyExists( arguments.objectKey ) ) {
+		if ( !StructKeyExists( request[ _requestKey ], arguments.objectKey ) ) {
 			var fromSharedCache = super.get( argumentCollection=arguments );
 
 			if ( !IsNull( local.fromSharedCache ) ) {

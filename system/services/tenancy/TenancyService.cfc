@@ -31,7 +31,7 @@ component displayName="Tenancy service" {
 			if ( siteFiltered ) {
 			}
 
-			if ( !config.keyExists( tenant ) ) {
+			if ( !StructKeyExists( config, tenant ) ) {
 				throw(
 					  type    = "preside.tenancy.invalid.tenant"
 					, message = "The [#arguments.objectName#] object specified the tenant, [#tenant#], but this tenant is not amongst the configured tenants for the system."

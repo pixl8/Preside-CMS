@@ -197,7 +197,7 @@ component {
 	}
 
 	private boolean function _reloadRequired() {
-		if ( !application.keyExists( "cbBootstrap" ) ) {
+		if ( !StructKeyExists( application, "cbBootstrap" ) ) {
 			return _preventReloadsWhenExistingUpgradeScriptGenerated();
 		}
 
@@ -575,7 +575,7 @@ component {
 		for( var i=arguments.cookieSet.len(); i>0; i-- ) {
 			var cookieName = ListFirst( arguments.cookieSet[ i ], "=" );
 
-			if ( existingCookies.keyExists( cookieName ) ) {
+			if ( StructKeyExists( existingCookies, cookieName ) ) {
 				arguments.cookieSet.deleteAt( i );
 				anyCleared = true;
 				continue;
@@ -597,7 +597,7 @@ component {
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
 		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			if ( !application.keyExists( "errorLogService" ) ) {
+			if ( !StructKeyExists( application, "errorLogService" ) ) {
 				application.errorLogService = new preside.system.services.errors.ErrorLogService(
 					  appMapping     = attributes.appMapping
 					, appMappingPath = attributes.appMappingPath

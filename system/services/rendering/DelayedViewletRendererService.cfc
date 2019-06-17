@@ -122,7 +122,7 @@ component {
 		var cacheKey  = arguments.viewlet & ":default:" & arguments.defaultValue;
 		var isDelayed = arguments.defaultValue;
 
-		if ( _viewletDelayedLookupCache.keyExists( cacheKey ) ) {
+		if ( StructKeyExists( _viewletDelayedLookupCache, cacheKey ) ) {
 			return _viewletDelayedLookupCache[ cacheKey ];
 		}
 

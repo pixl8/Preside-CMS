@@ -164,7 +164,7 @@ component {
 		}
 
 		for( var fileKey in jsonAndZipMatches ) {
-			if ( jsonAndZipMatches[ fileKey ].keyExists( "json" ) && jsonAndZipMatches[ fileKey ].keyExists( "zip" ) ) {
+			if ( StructKeyExists( jsonAndZipMatches[ fileKey ], "json" ) && StructKeyExists( jsonAndZipMatches[ fileKey ], "zip" ) ) {
 				var versionInfo = _fetchVersionInfo( fileKey & ".json" );
 				versionInfo.path = fileKey & ".zip";
 				versionInfo.downloaded = versionIsDownloaded( versionInfo.version );

@@ -81,7 +81,7 @@ component displayname="Image Manipulation Service" {
 		catch( any e ) {
 			return false;
 		}
-		return isStruct( imageInfo ) && imageInfo.keyExists( "height" );
+		return isStruct( imageInfo ) && StructKeyExists( imageInfo, "height" );
 	}
 
 	private struct function _getCropHintArea(

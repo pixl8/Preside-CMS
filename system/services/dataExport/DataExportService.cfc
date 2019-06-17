@@ -49,9 +49,9 @@ component {
 		var exporterHandler      = "dataExporters.#arguments.exporter#.export";
 		var coldboxController    = $getColdbox();
 		var pageNumber           = 1;
-		var canLog               = arguments.keyExists( "logger" );
+		var canLog               = StructKeyExists( arguments, "logger" );
 		var canInfo              = canLog && logger.canInfo();
-		var canReportProgress    = arguments.keyExists( "progress" );
+		var canReportProgress    = StructKeyExists( arguments, "progress" );
 
 		if ( !coldboxController.handlerExists( exporterHandler ) ) {
 			throw( type="preside.dataExporter.missing.action", message="No 'export' action could be found for the [#arguments.exporter#] exporter. The exporter should provide an 'export' handler action at /handlers/dataExporters/#arguments.exporter#.cfc to process the export. See documentation for further details." );

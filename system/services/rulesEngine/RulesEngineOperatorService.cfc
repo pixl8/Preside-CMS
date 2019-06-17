@@ -39,13 +39,13 @@ component displayName="RulesEngine Operator Service" {
 			case "notcontains":
 				return !leftHandSide.findNoCase( rightHandSide ) > 0;
 			case "startsWith":
-				return leftHandSide.lCase().startsWith( rightHandSide.lCase() );
+				return leftHandSide.left( rightHandSide.len() ) == rightHandSide;
 			case "notStartsWith":
-				return !leftHandSide.lCase().startsWith( rightHandSide.lCase() );
+				return !leftHandSide.left( rightHandSide.len() ) == rightHandSide;
 			case "endsWith":
-				return leftHandSide.lCase().endsWith( rightHandSide.lCase() );
+				return leftHandSide.right( rightHandSide.len() ) == rightHandSide;
 			case "notendsWith":
-				return !leftHandSide.lCase().endsWith( rightHandSide.lCase() );
+				return !leftHandSide.right( rightHandSide.len() ) == rightHandSide;
 		}
 
 		return false;

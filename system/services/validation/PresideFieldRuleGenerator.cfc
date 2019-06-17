@@ -79,7 +79,7 @@ component output="false" singleton=true {
 						ArrayAppend( rules, rule );
 					}
 
-					if ( field.keyExists( "rules" ) ) {
+					if ( StructKeyExists( field, "rules" ) ) {
 						for( rule in field.rules ){
 							rule.fieldName = field.name;
 							ArrayAppend( rules, rule );

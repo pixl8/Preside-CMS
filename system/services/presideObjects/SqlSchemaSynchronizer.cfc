@@ -539,7 +539,7 @@ component {
 			dbKeys = dsnKeys[ obj.meta.dsn ][ obj.meta.tableName ] ?: {};
 
 			for( key in obj.sql.relationships ){
-				if ( !dbKeys.keyExists( key ) ) {
+				if ( !StructKeyExists( dbKeys, key ) ) {
 					transaction {
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
@@ -633,7 +633,7 @@ component {
 	}
 
 	private struct function _getAllForeignKeys( required string dsn, boolean cached=false ) {
-		if ( arguments.cached && request.keyExists( "_allForeignKeys.#arguments.dsn#" ) ) {
+		if ( arguments.cached && StructKeyExists( request, "_allForeignKeys.#arguments.dsn#" ) ) {
 			return request[ "_allForeignKeys.#arguments.dsn#" ];
 		}
 

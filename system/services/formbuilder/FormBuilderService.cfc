@@ -512,7 +512,7 @@ component {
 		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType, context="input" );
 		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
 
-		if ( arguments.configuration.keyExists( "layout" ) ) {
+		if ( StructKeyExists( arguments.configuration, "layout" ) ) {
 			var layoutArgs    = Duplicate( arguments.configuration );
 			var layoutViewlet = renderingService.getFormFieldLayoutViewlet(
 				  itemType = arguments.itemType
@@ -890,9 +890,9 @@ component {
 			return;
 		}
 
-		var canLog            = arguments.keyExists( "logger" );
+		var canLog            = StructKeyExists( arguments, "logger" );
 		var canInfo           = canLog && logger.canInfo();
-		var canReportProgress = arguments.keyExists( "progress" );
+		var canReportProgress = StructKeyExists( arguments, "progress" );
 		var renderingService  = _getFormBuilderRenderingService();
 		var formItems         = getFormItems( arguments.formId );
 		var spreadsheetLib    = _getSpreadsheetLib();
@@ -1013,7 +1013,7 @@ component {
 			var formItem = formItems[i];
 			var itemName = formItem.configuration.name ?: "";
 
-			if ( formItem.type.isFormField && arguments.formData.keyExists( itemName ) ) {
+			if ( formItem.type.isFormField && StructKeyExists( arguments.formData, itemName ) ) {
 				var rendererViewlet = rendererService.getItemTypeViewlet(
 					  itemType = formItem.type.id
 					, context  = "responseToPersist"

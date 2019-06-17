@@ -81,7 +81,7 @@
 <!--- FORMS --->
 	<cffunction name="renderForm" access="public" returntype="any" output="false">
 		<cfscript>
-			if ( !arguments.keyExists( "validationJsJqueryRef" ) ) {
+			if ( !StructKeyExists( arguments, "validationJsJqueryRef" ) ) {
 				var event = getController().getRequestContext();
 
 				arguments.validationJsJqueryRef = event.isAdminRequest() ? "presideJQuery" : "jQuery";
@@ -299,7 +299,7 @@
 		<cfscript>
 			request._simpleRequestCache = request._simpleRequestCache ?: {};
 
-			if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+			if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
 				request._simpleRequestCache[ arguments.key ] = arguments.generator();
 			}
 

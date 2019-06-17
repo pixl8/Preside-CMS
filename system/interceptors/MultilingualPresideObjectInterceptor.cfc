@@ -24,7 +24,7 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function postPrepareTableJoins( event, interceptData ) {
-		if ( featureService.isFeatureEnabled( "multilingual" ) && interceptData.keyExists( "tableJoins" ) && interceptData.keyExists( "preparedFilter" ) ) {
+		if ( featureService.isFeatureEnabled( "multilingual" ) && StructKeyExists( interceptData, "tableJoins" ) && StructKeyExists( interceptData, "preparedFilter" ) ) {
 			var language = event.getLanguage();
 			if ( language.len() ){
 				multilingualPresideObjectService.addLanguageClauseToTranslationJoins(
