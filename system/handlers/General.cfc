@@ -27,7 +27,7 @@ component {
 
 	public void function applicationEnd( event, rc, prc ) {
 		applicationReloadService.gracefulShutdown(
-			force = url.keyExists( "force" )
+			force = StructKeyExists( url, "force" )
 		);
 	}
 

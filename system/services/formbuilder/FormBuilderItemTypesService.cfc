@@ -30,7 +30,7 @@ component {
 	public struct function getItemTypeConfig( required string itemType ) {
 		var cachedConfigurations = _getCachedItemTypeConfiguration();
 
-		if ( !cachedConfigurations.keyExists( arguments.itemType ) ) {
+		if ( !StructKeyExists( cachedConfigurations, arguments.itemType ) ) {
 			var configured                = _getConfiguredTypesAndCategories();
 			var standardFormFieldFormName = "formbuilder.item-types.formfield";
 			var found                     = false;

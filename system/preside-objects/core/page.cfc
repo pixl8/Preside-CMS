@@ -71,7 +71,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 		q.addParam( value=Now(), cfsqltype="timestamp" );
 
 		for( var field in [ "_hierarchy_lineage", "_hierarchy_slug", "_hierarchy_depth", "_hierarchy_sort_order", "trashed" ] ) {
-			if ( arguments.newData.keyExists( field ) ) {
+			if ( StructKeyExists( arguments.newData, field ) ) {
 				switch( field ) {
 					case "_hierarchy_lineage":
 						sql &= ', _hierarchy_child_selector = #dbAdapter.getConcatenationSql( '?', 'Right( _hierarchy_child_selector, #dbAdapter.getLengthFunctionSql( '_hierarchy_child_selector' )# - ? )')#';

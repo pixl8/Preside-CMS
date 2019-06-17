@@ -453,7 +453,7 @@ component {
 	}
 
 	private numeric function _factorial( required numeric number ) {
-		if ( !_factorialCache.keyExists( number ) ) {
+		if ( !StructKeyExists( _factorialCache, number ) ) {
 			var factorialResult = 1;
 			for ( var i=2; i <= number; i++ ) {
 				factorialResult = factorialResult * i;

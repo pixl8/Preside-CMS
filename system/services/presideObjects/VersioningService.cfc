@@ -296,7 +296,7 @@ component {
 		}
 
 		for( var field in arguments.newData ) {
-			if ( ignoredFields.findNoCase( field ) || !properties.keyExists( field ) ) {
+			if ( ignoredFields.findNoCase( field ) || !StructKeyExists( properties, field ) ) {
 				continue;
 			}
 
@@ -355,7 +355,7 @@ component {
 		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
 		var extraFilters      = [];
 
-		if ( arguments.keyExists( "recordId" ) ) {
+		if ( StructKeyExists( arguments, "recordId" ) ) {
 			arguments.filter = { id = arguments.recordId };
 			arguments.filterParams = {};
 		}
@@ -416,7 +416,7 @@ component {
 		if ( record.recordCount ) {
 			for( var r in record ) { record = r; }
 			for( var field in changedFields ) {
-				if ( record.keyExists( field ) ) {
+				if ( StructKeyExists( record, field ) ) {
 					dataToPublish[ field ] = record[ field ];
 				}
 			}

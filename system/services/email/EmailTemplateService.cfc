@@ -1245,7 +1245,7 @@ component {
 		, required string  unit
 		, required any     startDate
 	) {
-		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
+		if ( !StructKeyExists( _timeUnitToCfMapping, arguments.unit ) ) {
 			return "";
 		}
 

@@ -63,7 +63,7 @@ component  {
 		renderedResponses = [];
 
 		for( var item in formItems ) {
-			if ( item.type.isFormField && responses.keyExists( item.configuration.name ?: "" ) ) {
+			if ( item.type.isFormField && StructKeyExists( responses, item.configuration.name ?: "" ) ) {
 				var inputName = item.configuration.name;
 				var rendered  = formbuilderService.renderResponse(
 					  formId     = formId

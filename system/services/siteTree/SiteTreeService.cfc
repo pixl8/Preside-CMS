@@ -411,7 +411,7 @@ component {
 
 		if ( ListLen( args.orderBy, "." ) == 1 ) {
 			var col = ListFirst( args.orderBy, " " );
-			if ( _getPresideObjectService().getObjectProperties( arguments.pageType ).keyExists( col ) ) {
+			if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.pageType ), col ) ) {
 				args.orderBy = "#arguments.pageType#.#args.orderBy#";
 			} else {
 				args.orderBy = "page.#args.orderBy#";
@@ -596,7 +596,7 @@ component {
 				};
 
 				for( var field in child ) {
-					if ( !page.keyExists( field ) ) {
+					if ( !StructKeyExists( page, field ) ) {
 						page[ field ] = child[ field ];
 					}
 				}
@@ -1196,7 +1196,7 @@ component {
 	}
 
 	public array function getDraftChangedFields( required string pageId, string pageType ) {
-		if ( !arguments.keyExists( "pageType" ) ) {
+		if ( !StructKeyExists( arguments, "pageType" ) ) {
 			var page = getPage(
 				  id          = arguments.pageId
 				, getLatest   = true
@@ -1237,7 +1237,7 @@ component {
 			var changedFields = getDraftChangedFields( page.id, page.page_type );
 			var dataToSubmit = {};
 			for( var field in changedFields ) {
-				if ( page.keyExists( field ) ) {
+				if ( StructKeyExists( page, field ) ) {
 					dataToSubmit[ field ] = page[ field ];
 				}
 			}

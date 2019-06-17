@@ -193,7 +193,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		, string queryString = ""
 		, string siteId      = this.getSiteId()
 	) {
-		if ( arguments.keyExists( "objectName" ) ) {
+		if ( StructKeyExists( arguments, "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
 				, recordId   = arguments.recordId  ?: ""
@@ -406,7 +406,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public string function renderIncludes( string type, string group="default" ) {
 		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
 
-		if ( !arguments.keyExists( "type" ) || arguments.type == "js" ) {
+		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
 			var stack    = inlineJs[ arguments.group ] ?: [];
 
@@ -451,7 +451,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	private any function _simpleRequestCache( required string key, required any generator ) {
 		request._simpleRequestCache = request._simpleRequestCache ?: {};
 
-		if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+		if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
 			request._simpleRequestCache[ arguments.key ] = arguments.generator();
 		}
 
@@ -677,7 +677,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public struct function getPageAccessRules() {
 		var prc = getRequestContext().getCollection( private = true );
 
-		if ( !prc.keyExists( "pageAccessRules" ) ) {
+		if ( !StructKeyExists( prc, "pageAccessRules" ) ) {
 			prc.pageAccessRules = getModel( "sitetreeService" ).getAccessRestrictionRulesForPage( getCurrentPageId() );
 		}
 
@@ -805,7 +805,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public string function getEditPageLink() {
 		var prc = getRequestContext().getCollection( private=true );
 
-		if ( !prc.keyExists( "_presideCmsEditPageLink" ) ) {
+		if ( !StructKeyExists( prc, "_presideCmsEditPageLink" ) ) {
 			setEditPageLink( buildAdminLink( linkTo='sitetree.editPage', queryString='id=#getCurrentPageId()#' ) );
 		}
 
@@ -873,7 +873,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var event = getRequestContext();
 		var prc   = event.getCollection( private=true );
 
-		if ( arguments.keyExists( "cache" ) ) {
+		if ( StructKeyExists( arguments, "cache" ) ) {
 			prc._cachePage = arguments.cache;
 			return arguments.cache;
 		}

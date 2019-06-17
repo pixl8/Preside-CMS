@@ -84,7 +84,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 		var currentSite     = controller.getRequestContext().getSite();
 
 		if( !isModuleCall ){
-			if ( Len( Trim( currentSite.template ?: "" ) ) && variables.siteTemplateHandlerMappings.keyExists( currentSite.template ) ) {
+			if ( Len( Trim( currentSite.template ?: "" ) ) && StructKeyExists( variables.siteTemplateHandlerMappings, currentSite.template ) ) {
 				for ( var handlerSource in variables.siteTemplateHandlerMappings[ currentSite.template ] ) {
 					handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 

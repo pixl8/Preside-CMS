@@ -111,11 +111,11 @@
 	}
 
 	private boolean function _wantsPresideInjection( required struct meta ) {
-		if ( arguments.meta.keyExists( "presideService" ) ) {
+		if ( StructKeyExists( arguments.meta, "presideService" ) ) {
 			return true;
 		}
 
-		if ( arguments.meta.keyExists( "extends" ) && arguments.meta.extends.count() ) {
+		if ( StructKeyExists( arguments.meta, "extends" ) && arguments.meta.extends.count() ) {
 			return _wantsPresideInjection( arguments.meta.extends );
 		}
 

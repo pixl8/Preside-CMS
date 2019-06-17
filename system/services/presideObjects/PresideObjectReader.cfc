@@ -179,7 +179,7 @@ component {
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
 				if ( prop.name == propName ) {
-					if ( !arguments.meta.properties.keyExists( prop.name ) ) {
+					if ( !StructKeyExists( arguments.meta.properties, prop.name ) ) {
 						arguments.meta.properties[ prop.name ] = {};
 					}
 

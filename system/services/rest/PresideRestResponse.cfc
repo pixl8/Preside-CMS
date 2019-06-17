@@ -38,11 +38,11 @@ component accessors=true displayName="Preside REST Response" {
 	 * @autodoc true
 	 */
 	public any function setStatus( numeric code, string text ) {
-		if ( arguments.keyExists( "code" ) ) {
+		if ( StructKeyExists( arguments, "code" ) ) {
 			variables.statusCode = arguments.code;
 		}
 
-		if ( arguments.keyExists( "text" ) ) {
+		if ( StructKeyExists( arguments, "text" ) ) {
 			variables.statusText = arguments.text;
 		}
 

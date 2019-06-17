@@ -124,7 +124,7 @@ component {
 			return;
 		}
 
-		if ( restRequest.getVerb() == "OPTIONS" && !restRequest.getResource().verbs.keyExists( "OPTIONS" ) ) {
+		if ( restRequest.getVerb() == "OPTIONS" && !StructKeyExists( restRequest.getResource().verbs, "OPTIONS" ) ) {
 			processOptionsRequest(
 				  restRequest    = restRequest
 				, restResponse   = restResponse
@@ -164,7 +164,7 @@ component {
 				return;
 			}
 
-			if ( verb == "HEAD" && !resource.verbs.keyExists( "HEAD" ) ) {
+			if ( verb == "HEAD" && !StructKeyExists( resource.verbs, "HEAD" ) ) {
 				coldboxEvent &= resource.verbs.GET;
 			} else {
 				coldboxEvent &= resource.verbs[ verb ];
@@ -359,7 +359,7 @@ component {
 	}
 
 	private array function _getApiList() {
-		if ( !variables.keyExists( "_apiList" ) ) {
+		if ( !StructKeyExists( variables, "_apiList" ) ) {
 			_apiList = _getApis().keyArray();
 			_apiList.sort( function( a, b ){
 				return a.len() > b.len() ? -1 : 1;
@@ -402,7 +402,7 @@ component {
 	}
 
 	private boolean function _verbCanBeHandledByResource( required string verb, required struct resource ) {
-		if ( resource.verbs.keyExists( verb ) ) {
+		if ( StructKeyExists( resource.verbs, verb ) ) {
 			return true;
 		}
 
@@ -410,7 +410,7 @@ component {
 			return true;
 		}
 
-		if ( verb == "HEAD" && resource.verbs.keyExists( "GET" ) ) {
+		if ( verb == "HEAD" && StructKeyExists( resource.verbs, "GET" ) ) {
 			return true;
 		}
 
@@ -462,7 +462,7 @@ component {
 			for ( var resource in apis[ apiRootPath ] ) {
 				for ( var verb in resource.verbs ) {
 					var rules = [];
-					if ( resource.requiredParameters.keyExists( verb ) ) {
+					if ( StructKeyExists( resource.requiredParameters, verb ) ) {
 						for ( var param in resource.requiredParameters[ verb ] ) {
 							rules.append( {
 								  fieldName = param
@@ -470,7 +470,7 @@ component {
 							} );
 						}
 					}
-					if ( resource.parameterTypes.keyExists( verb ) ) {
+					if ( StructKeyExists( resource.parameterTypes, verb ) ) {
 						for ( var param in resource.parameterTypes[ verb ] ) {
 							var type      = resource.parameterTypes[verb][param];
 							var validator = "";

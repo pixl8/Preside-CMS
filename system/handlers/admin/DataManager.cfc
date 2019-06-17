@@ -3549,7 +3549,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var key in arguments.formData ) {
 			item = formData[ key ];
-			if ( isStruct( item ) && item.keyExists( "tempFileInfo" ) ) {
+			if ( isStruct( item ) && StructkeyExists( item, "tempFileInfo" ) ) {
 				auditDetail[ key ] = {
 					  fileName = item.fileName ?: ""
 					, size     = item.size     ?: ""
