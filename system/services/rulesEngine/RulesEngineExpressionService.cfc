@@ -516,7 +516,7 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		for( var objectName in objects ) {
-			if ( !variables._lazyLoadDone.keyExists( objectName ) ) {
+			if ( !StructKeyExists( variables._lazyLoadDone, objectName ) ) {
 				var expressions = _getAutoExpressionGenerator().getAutoExpressionsForObject( objectName );
 				if ( expressions.len() ) {
 					contextService.addContext( id="presideobject_" & objectName, object=objectName, visible=false );

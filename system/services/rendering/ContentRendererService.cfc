@@ -177,7 +177,7 @@ component {
 		if ( StructKeyExists( renderers, arguments.name ) ) {
 
 			for( var cx in contexts ) {
-				if ( renderers[ arguments.name ].keyExists( cx ) ) {
+				if ( StructKeyExists( renderers[ arguments.name ], cx ) ) {
 					exists = true;
 					break;
 				}
@@ -390,7 +390,7 @@ component {
 
 		if ( StructKeyExists( renderers, arguments.name ) ) {
 			for( var cx in contexts ) {
-				if ( renderers[ arguments.name ].keyExists( cx ) && IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
+				if ( StructKeyExists( renderers[ arguments.name ], cx ) && IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
 					return renderers[ arguments.name ][ cx ];
 				} else {
 					var renderer =_registerRendererByConvention( arguments.name, cx );

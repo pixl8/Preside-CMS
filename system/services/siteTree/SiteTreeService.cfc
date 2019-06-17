@@ -411,7 +411,7 @@ component {
 
 		if ( ListLen( args.orderBy, "." ) == 1 ) {
 			var col = ListFirst( args.orderBy, " " );
-			if ( _getPresideObjectService().getObjectProperties( arguments.pageType ).keyExists( col ) ) {
+			if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.pageType ), col ) ) {
 				args.orderBy = "#arguments.pageType#.#args.orderBy#";
 			} else {
 				args.orderBy = "page.#args.orderBy#";

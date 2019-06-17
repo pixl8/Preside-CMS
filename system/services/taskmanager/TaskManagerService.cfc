@@ -116,7 +116,7 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskExists( required string taskKey ) {
-		return 	_getConfiguredTasks().keyExists( arguments.taskKey );
+		return StructKeyExists( _getConfiguredTasks(), arguments.taskKey );
 	}
 
 	public boolean function tasksAreRunning( string exclusivityGroup="" ) {

@@ -124,7 +124,7 @@ component {
 			return;
 		}
 
-		if ( restRequest.getVerb() == "OPTIONS" && !restRequest.getResource().verbs.keyExists( "OPTIONS" ) ) {
+		if ( restRequest.getVerb() == "OPTIONS" && !StructKeyExists( restRequest.getResource().verbs, "OPTIONS" ) ) {
 			processOptionsRequest(
 				  restRequest    = restRequest
 				, restResponse   = restResponse
