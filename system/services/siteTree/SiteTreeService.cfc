@@ -1564,7 +1564,7 @@ component {
 			props[ fieldObject ] = props[ fieldObject ] ?: _getPresideObjectService().getObjectProperties( fieldObject );
 
 			if ( not StructKeyExists( props[ fieldObject ], field ) ) {
-				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+				if ( arguments.versiontable && field.reFindNoCase( "^_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
 				} else {
 					sqlFields[i] = "'' as " & field;

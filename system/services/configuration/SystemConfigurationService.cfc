@@ -102,7 +102,7 @@ component displayName="System configuration service" {
 		}
 
 		if ( arguments.includeDefaults ) {
-			var injectedStartsWith = "#arguments.category#.";
+			var injectedStartsWith = "^#arguments.category#\.";
 			var rawGlobalResult    = _getDao().selectData(
 				  selectFields = [ "setting", "value" ]
 				, filter       = "category = :category and site is null"
@@ -115,7 +115,7 @@ component displayName="System configuration service" {
 				}
 			}
 
-			var injected = _getInjectedConfig().filter( function( key ){ return key.startsWith( injectedStartsWith ) } );
+			var injected = _getInjectedConfig().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
 			for( var key in injected ) {
 				var setting = ListRest( key, "." );
 

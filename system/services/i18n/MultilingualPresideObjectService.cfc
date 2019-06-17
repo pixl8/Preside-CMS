@@ -303,7 +303,7 @@ component displayName="Multilingual Preside Object Service" {
 				var join             = selectDataArgs.joins[i];
 				var latestCheckField = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
 
-				if ( join.tableAlias contains "_translations" && join.tableName.startsWith( "_version" ) ) {
+				if ( join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
 					join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = '1'";
 				}
 			}

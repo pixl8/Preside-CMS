@@ -65,7 +65,7 @@ component extends="coldbox.system.web.routing.Router" {
 	public any function getModel( string name, string dsl, struct initArguments={} ) {
 		if ( arguments.keyExists( "name" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.name;
-		} else if ( arguments.keyExists( "dsl" ) && !arguments.dsl.startsWith( "delayedInjector:" ) && !arguments.dsl.startsWith( "provider:" ) ) {
+		} else if ( arguments.keyExists( "dsl" ) && !arguments.dsl.reFindNoCase( "^delayedInjector:" ) && !arguments.dsl.reFindNoCase( "^provider:" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.dsl;
 		}
 

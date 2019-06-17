@@ -135,7 +135,7 @@ component singleton=true {
 						var layoutFiles = DirectoryList( viewDir, false, "name", "*.cfm" );
 
 						for( var file in layoutFiles ) {
-							if ( !file.startsWith( "_" ) ) {
+							if ( !file.reFind( "^_" ) ) {
 								layouts[ ReReplaceNoCase( file, "\.cfm$", "" ) ] = true;
 							}
 						}
@@ -165,7 +165,7 @@ component singleton=true {
 				var layoutFiles = DirectoryList( viewDir, false, "name", "*.cfm" );
 
 				for( var file in layoutFiles ) {
-					if ( !file.startsWith( "_" ) ) {
+					if ( !file.reFind( "^_" ) ) {
 						layouts[ ReReplaceNoCase( file, "\.cfm$", "" ) ] = true;
 					}
 				}
