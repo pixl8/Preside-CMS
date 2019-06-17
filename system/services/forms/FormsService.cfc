@@ -818,7 +818,7 @@ component displayName="Forms service" {
 				return arguments.frmDefinition;
 			}
 
-			if ( !arguments.allForms.keyExists( parentFormName ) ) {
+			if ( !StructKeyExists( arguments.allForms, parentFormName ) ) {
 				throw(
 					  type    = "FormService.MissingForm"
 					, message = "The form [#parentFormName#], defined as an extension of [#arguments.formName#], could not be found."

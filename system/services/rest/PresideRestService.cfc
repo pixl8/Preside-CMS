@@ -164,7 +164,7 @@ component {
 				return;
 			}
 
-			if ( verb == "HEAD" && !resource.verbs.keyExists( "HEAD" ) ) {
+			if ( verb == "HEAD" && !StructKeyExists( resource.verbs, "HEAD" ) ) {
 				coldboxEvent &= resource.verbs.GET;
 			} else {
 				coldboxEvent &= resource.verbs[ verb ];

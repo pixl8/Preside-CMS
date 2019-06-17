@@ -3082,7 +3082,7 @@ component displayName="Preside Object Service" {
 				var generateFrom = prop.generateFrom ?: getLabelField( arguments.objectName );
 				var idField      = getIdField( arguments.objectName );
 
-				if ( len( arguments.data[ prop.name ] ?: "" ) || !arguments.data.keyExists( generateFrom ) ) {
+				if ( len( arguments.data[ prop.name ] ?: "" ) || !StructKeyExists( arguments.data, generateFrom ) ) {
 					return;
 				}
 
