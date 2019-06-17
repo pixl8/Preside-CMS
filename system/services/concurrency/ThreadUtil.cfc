@@ -111,7 +111,7 @@ component {
 	public void function shutdownThread( any thethread=getCurrentThread(), numeric interruptWait=10000, any logger ) {
 		var maxAttempts = arguments.interruptWait / 200;
 		var attempt     = 0;
-		var canLog      = arguments.keyExists( "logger" );
+		var canLog      = StructKeyExists( arguments, "logger" );
 		var canWarn     = canLog && logger.canWarn();
 		var canError    = canLog && logger.canError();
 		var threadName  = arguments.theThread.getName();

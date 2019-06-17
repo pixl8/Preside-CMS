@@ -280,7 +280,7 @@ component displayName="Website user action service" {
 		);
 
 		if ( arguments.has ) {
-			if ( arguments.keyExists( "qty" ) ) {
+			if ( StructKeyExists( arguments, "qty" ) ) {
 				overallFilter = "#subqueryAlias#.action_count ${operator} :qty#paramSuffix#";
 				params[ "qty#paramSuffix#" ] = { type="cf_sql_integer", value=arguments.qty };
 

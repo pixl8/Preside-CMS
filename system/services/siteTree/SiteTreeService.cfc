@@ -1196,7 +1196,7 @@ component {
 	}
 
 	public array function getDraftChangedFields( required string pageId, string pageType ) {
-		if ( !arguments.keyExists( "pageType" ) ) {
+		if ( !StructKeyExists( arguments, "pageType" ) ) {
 			var page = getPage(
 				  id          = arguments.pageId
 				, getLatest   = true

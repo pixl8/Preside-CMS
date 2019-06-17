@@ -81,7 +81,7 @@
 <!--- FORMS --->
 	<cffunction name="renderForm" access="public" returntype="any" output="false">
 		<cfscript>
-			if ( !arguments.keyExists( "validationJsJqueryRef" ) ) {
+			if ( !StructKeyExists( arguments, "validationJsJqueryRef" ) ) {
 				var event = getController().getRequestContext();
 
 				arguments.validationJsJqueryRef = event.isAdminRequest() ? "presideJQuery" : "jQuery";

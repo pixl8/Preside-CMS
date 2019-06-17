@@ -192,7 +192,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		, string queryString = ""
 		, string siteId      = this.getSiteId()
 	) {
-		if ( arguments.keyExists( "objectName" ) ) {
+		if ( StructKeyExists( arguments, "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
 				, recordId   = arguments.recordId  ?: ""
@@ -405,7 +405,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public string function renderIncludes( string type, string group="default" ) {
 		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
 
-		if ( !arguments.keyExists( "type" ) || arguments.type == "js" ) {
+		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
 			var stack    = inlineJs[ arguments.group ] ?: [];
 
@@ -872,7 +872,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var event = getRequestContext();
 		var prc   = event.getCollection( private=true );
 
-		if ( arguments.keyExists( "cache" ) ) {
+		if ( StructKeyExists( arguments, "cache" ) ) {
 			prc._cachePage = arguments.cache;
 			return arguments.cache;
 		}

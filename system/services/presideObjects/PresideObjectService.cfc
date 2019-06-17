@@ -2408,13 +2408,13 @@ component displayName="Preside Object Service" {
 			return arguments;
 		}
 
-		if ( arguments.keyExists( "selectFields" ) ) {
+		if ( StructKeyExists( arguments, "selectFields" ) ) {
 			for( var i=1; i<=arguments.selectFields.len(); i++ ) {
 				arguments.selectFields[ i ] = _simpleReplacer( arguments.selectFields[ i ], arguments.objectName, true );
 			}
 		}
 
-		if ( arguments.keyExists( "filter" ) ) {
+		if ( StructKeyExists( arguments, "filter" ) ) {
 			if ( IsSimpleValue( arguments.filter ) ) {
 				arguments.filter = _simpleReplacer( arguments.filter, arguments.objectName );
 			} else {
@@ -2422,23 +2422,23 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( arguments.keyExists( "filterParams" ) ) {
+		if ( StructKeyExists( arguments, "filterParams" ) ) {
 			_structKeyReplacer( arguments.filterParams, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "data" ) ) {
+		if ( StructKeyExists( arguments, "data" ) ) {
 			_structKeyReplacer( arguments.data, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "having" ) ) {
+		if ( StructKeyExists( arguments, "having" ) ) {
 			arguments.having = _simpleReplacer( arguments.having, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "orderBy" ) ) {
+		if ( StructKeyExists( arguments, "orderBy" ) ) {
 			arguments.orderBy = _simpleReplacer( arguments.orderBy, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "groupBy" ) ) {
+		if ( StructKeyExists( arguments, "groupBy" ) ) {
 			arguments.groupBy = _simpleReplacer( arguments.groupBy, arguments.objectName );
 		}
 
@@ -2903,7 +2903,7 @@ component displayName="Preside Object Service" {
 
 		var idField = getIdField( arguments.objectName );
 		var result = {
-			  filter       = arguments.keyExists( "id" ) ? { "#idField#" = arguments.id } : arguments.filter
+			  filter       = StructKeyExists( arguments, "id" ) ? { "#idField#" = arguments.id } : arguments.filter
 			, filterParams = arguments.filterParams
 			, having       = arguments.having
 		};

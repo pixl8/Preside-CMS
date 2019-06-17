@@ -534,7 +534,7 @@ component autodoc=true displayName="Notification Service" {
 	public boolean function deleteOldNotifications( any logger ) {
 
 		var keepNotificationsFor = Val( $getPresideSetting( "notification", "keep_notifications_for_days", 0 ) );
-		var canLog               = arguments.keyExists( "logger" );
+		var canLog               = StructKeyExists( arguments, "logger" );
 		var canInfo              = canLog && logger.canInfo();
 		var canError             = canLog && logger.canError();
 

@@ -708,7 +708,7 @@ component displayName="Forms service" {
 		var basedOnDef     = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
 		var formDefinition = new FormDefinition( basedOnDef );
 
-		if ( arguments.keyExists( "generator" ) ) {
+		if ( StructKeyExists( arguments, "generator" ) ) {
 			arguments.generator( formDefinition );
 		}
 

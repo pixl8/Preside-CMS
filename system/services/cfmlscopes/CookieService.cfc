@@ -57,7 +57,7 @@ component {
 			return cookieValue;
 		}
 
-		if ( arguments.keyExists( "default" ) ) {
+		if ( StructKeyExists( arguments, "default" ) ) {
 			return arguments.default;
 		}
 

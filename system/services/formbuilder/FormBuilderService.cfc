@@ -890,9 +890,9 @@ component {
 			return;
 		}
 
-		var canLog            = arguments.keyExists( "logger" );
+		var canLog            = StructKeyExists( arguments, "logger" );
 		var canInfo           = canLog && logger.canInfo();
-		var canReportProgress = arguments.keyExists( "progress" );
+		var canReportProgress = StructKeyExists( arguments, "progress" );
 		var renderingService  = _getFormBuilderRenderingService();
 		var formItems         = getFormItems( arguments.formId );
 		var spreadsheetLib    = _getSpreadsheetLib();
