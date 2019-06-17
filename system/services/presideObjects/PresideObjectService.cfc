@@ -919,7 +919,7 @@ component displayName="Preside Object Service" {
 
 		if ( !Len( Trim( selectDataArgs.orderBy ) ) ) {
 			var relatedVia   = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
-			var hasSortOrder = Len( Trim( relatedVia ) ) && getObjectProperties( relatedVia ).keyExists( "sort_order" );
+			var hasSortOrder = Len( Trim( relatedVia ) ) && StructKeyExists( getObjectProperties( relatedVia ), "sort_order" );
 			if ( hasSortOrder ) {
 				selectDataArgs.orderBy = relatedVia & ".sort_order";
 			}
@@ -974,7 +974,7 @@ component displayName="Preside Object Service" {
 		if ( Len( Trim( pivotTable ) ) and Len( Trim( targetObject ) ) ) {
 			var newRecords      = ListToArray( arguments.targetIdList );
 			var anythingChanged = false;
-			var hasSortOrder    = getObjectProperties( pivotTable ).keyExists( "sort_order" );
+			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), "sort_order" );
 			var currentSelect   = [ "#targetFk# as targetId" ];
 
 			if ( hasSortOrder ) {
@@ -1200,7 +1200,7 @@ component displayName="Preside Object Service" {
 
 					var idField = getIdField( props[ prop ].relatedTo ?: "" );
 					var relatedVia = props[ prop ].relatedVia ?: "";
-					var sortOrder = objectExists( relatedVia ) && getObjectProperties( relatedVia ).keyExists( "sort_order" ) ? adapter.escapeEntity( "#relatedVia#.sort_order" ) : adapter.escapeEntity( "#prop#.#idField#" );
+					var sortOrder = objectExists( relatedVia ) && StructKeyExists( getObjectProperties( relatedVia ), "sort_order" ) ? adapter.escapeEntity( "#relatedVia#.sort_order" ) : adapter.escapeEntity( "#prop#.#idField#" );
 					var records = selectData(
 						  objectName       = arguments.objectName
 						, id               = arguments.id
@@ -1243,7 +1243,7 @@ component displayName="Preside Object Service" {
 		var targetFk      = arguments.relationshipKey ?: arguments.sourceObject;
 		var targetIdField = getIdField( targetObject );
 		var useVersioning = Val( arguments.specificVersion ?: "" ) && objectIsVersioned( targetObject );
-		var hasSortOrder  = getObjectProperties( targetObject ).keyExists( "sort_order" );
+		var hasSortOrder  = StructKeyExists( getObjectProperties( targetObject ), "sort_order" );
 		var orderBy       = hasSortOrder ? "sort_order" : "";
 		var labelRenderer = arguments.labelRenderer ?: getObjectAttribute( targetObject, "labelRenderer" );
 		var labelFields   = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
@@ -2861,7 +2861,7 @@ component displayName="Preside Object Service" {
 		variables._relationshipPathCalcCache = variables._relationshipPathCalcCache ?: {};
 		var cacheKey = arguments.startObject & arguments.joinSyntax;
 
-		if ( !_relationshipPathCalcCache.keyExists( cacheKey ) ) {
+		if ( !StructKeyExists( _relationshipPathCalcCache, cacheKey ) ) {
 			_relationshipPathCalcCache[ cacheKey ] = _getRelationshipGuidance().resolveRelationshipPathToTargetObject(
 				  sourceObject     = arguments.startObject
 				, relationshipPath = arguments.joinSyntax

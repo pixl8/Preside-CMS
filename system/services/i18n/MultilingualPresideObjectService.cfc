@@ -250,7 +250,7 @@ component displayName="Multilingual Preside Object Service" {
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
 			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
 
-				if ( arguments.tableJoins[ i ].keyExists( "additionalClauses" ) ) {
+				if ( StructKeyExists( arguments.tableJoins[ i ], "additionalClauses" ) ) {
 					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				} else {
 					arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
@@ -761,7 +761,7 @@ component displayName="Multilingual Preside Object Service" {
 
 		_resolveSelectFieldCache = variables._resolveSelectFieldCache ?: {};
 
-		if ( !_resolveSelectFieldCache.keyExists( cacheKey ) ) {
+		if ( !StructKeyExists( _resolveSelectFieldCache, cacheKey ) ) {
 			var fieldMinusSqlEscapes = ReReplace( arguments.selectField, "[`\[\]]", "", "all" );
 			var bareFieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*$";
 

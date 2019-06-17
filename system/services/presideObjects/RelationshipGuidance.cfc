@@ -212,10 +212,10 @@ component singleton=true {
 						objectNames.append( autoObject.name );
 					}
 
-					if ( !m2mRelationships.keyExists( objectName ) ) {
+					if ( !StructKeyExists( m2mRelationships, objectName ) ) {
 						m2mRelationships[ objectName ] = {};
 					}
-					if ( !m2mRelationships[objectName].keyExists( property.relatedTo ) ) {
+					if ( !StructKeyExists( m2mRelationships[objectName], property.relatedTo ) ) {
 						m2mRelationships[ objectName ][ property.relatedTo ] = [];
 					}
 					m2mRelationships[ objectName ][ property.relatedTo ].append( {
@@ -306,7 +306,7 @@ component singleton=true {
 					}
 					var relationshipKey = property.relationshipKey ?: objectName;
 
-					if ( ! objects[ property.relatedTo ].meta.properties.keyExists( relationshipKey ) ) {
+					if ( !StructKeyExists( objects[ property.relatedTo ].meta.properties, relationshipKey ) ) {
 						throw(
 							  type    = "RelationshipGuidance.BadRelationship"
 							, message = "Object property, [#property.relatedTo#.#relationshipKey#], could not be found"
