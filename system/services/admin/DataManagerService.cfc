@@ -223,7 +223,7 @@ component {
 	}
 
 	public array function getAllowedOperationsForObject( required string objectName ) {
-		if ( !_operationsCache.keyexists( arguments.objectName ) ) {
+		if ( !StructKeyExists( _operationsCache, arguments.objectName ) ) {
 			var operations           = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerAllowedOperations"   , objectName=arguments.objectName, defaultValue=getDefaultOperationsForObject( arguments.objectName ) );
 			var disallowedOperations = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerDisallowedOperations", objectName=arguments.objectName, defaultValue=""                                                    );
 
@@ -643,7 +643,7 @@ component {
 		var lastModified      = Now();
 		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
 
-		if ( _getPresideObjectService().getObjectProperties( arguments.objectName ).keyExists( dmField ) ) {
+		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
 			var records = obj.selectData(
 				selectFields = [ "Max( #dmField# ) as lastmodified" ]
 			);
