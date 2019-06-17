@@ -5,7 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	function index( event, rc, prc ) {
 		var configCat = rc.linkPickerCategory ?: "default";
-		if ( !linkPickerConfig.keyExists( configCat ) ) {
+		if ( !StructKeyExists( linkPickerConfig, configCat ) ) {
 			configCat = "default";
 		}
 

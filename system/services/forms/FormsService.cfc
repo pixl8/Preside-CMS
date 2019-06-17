@@ -461,7 +461,7 @@ component displayName="Forms service" {
 		var handler         = _getFormControlHandler( type=arguments.type, context=arguments.context );
 		var renderedControl = "";
 
-		if ( len( arguments.savedDataField ) && arguments.savedData.keyExists( arguments.savedDataField ) ) {
+		if ( len( arguments.savedDataField ) && StructKeyExists( arguments.savedData, arguments.savedDataField ) ) {
 			arguments.defaultValue = arguments.savedData[ arguments.savedDataField ];
 		}
 

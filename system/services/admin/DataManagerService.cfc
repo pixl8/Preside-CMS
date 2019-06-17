@@ -723,7 +723,7 @@ component {
 				, includeAlias = false
 			);
 			for( field in parsedFields ){
-				if ( poService.getObjectProperties( arguments.objectName ).keyExists( field ) ) {
+				if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
 					field = _getFullFieldName( field,  arguments.objectName );
 				}
 				filter &= delim & field & " like :q";

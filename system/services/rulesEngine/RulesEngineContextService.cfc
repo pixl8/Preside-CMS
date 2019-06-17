@@ -59,7 +59,7 @@ component displayName="RulesEngine Context Service" {
 	 * @context ID of the context whose existance you wish to check
 	 */
 	public boolean function contextExists( required string context ) {
-		if ( _getConfiguredContexts().keyExists( arguments.context ) ) {
+		if ( StructKeyExists( _getConfiguredContexts(), arguments.context ) ) {
 			return true;
 		}
 
