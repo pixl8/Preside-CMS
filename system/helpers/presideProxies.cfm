@@ -299,7 +299,7 @@
 		<cfscript>
 			request._simpleRequestCache = request._simpleRequestCache ?: {};
 
-			if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+			if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
 				request._simpleRequestCache[ arguments.key ] = arguments.generator();
 			}
 
