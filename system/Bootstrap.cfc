@@ -197,7 +197,7 @@ component {
 	}
 
 	private boolean function _reloadRequired() {
-		if ( !application.keyExists( "cbBootstrap" ) ) {
+		if ( !StructKeyExists( application, "cbBootstrap" ) ) {
 			return _preventReloadsWhenExistingUpgradeScriptGenerated();
 		}
 
@@ -597,7 +597,7 @@ component {
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
 		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			if ( !application.keyExists( "errorLogService" ) ) {
+			if ( !StructKeyExists( application, "errorLogService" ) ) {
 				application.errorLogService = new preside.system.services.errors.ErrorLogService(
 					  appMapping     = attributes.appMapping
 					, appMappingPath = attributes.appMappingPath
