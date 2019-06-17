@@ -882,7 +882,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		    && !this.isAdminRequest()
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
-		    && !this.getCurrentUrl().reFindNoCase( "^/asset/" );
+		    && !this.getCurrentUrl().reFindNoCase( "^/asset/" )
 		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 
