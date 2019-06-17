@@ -353,10 +353,10 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( dateCreatedField.len() && obj.properties.keyExists( dateCreatedField ) && !StructKeyExists( cleanedData, dateCreatedField ) ) {
+		if ( dateCreatedField.len() && StructKeyExists( obj.properties, dateCreatedField ) && !StructKeyExists( cleanedData, dateCreatedField ) ) {
 			cleanedData[ dateCreatedField ] = rightNow;
 		}
-		if ( dateModifiedField.len() && obj.properties.keyExists( dateModifiedField ) && !StructKeyExists( cleanedData, dateModifiedField ) ) {
+		if ( dateModifiedField.len() && StructKeyExists( obj.properties, dateModifiedField ) && !StructKeyExists( cleanedData, dateModifiedField ) ) {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
 		if ( ListFindNoCase( obj.dbFieldList, idField ) && StructKeyExists( obj.properties, idField ) ) {
@@ -2100,25 +2100,25 @@ component displayName="Preside Object Service" {
 
 			if ( !isComplex ) {
 				if ( IsStruct( arguments.filter ) ) {
-					if ( arguments.filter.keyExists( "id" ) ) {
+					if ( StructKeyExists( arguments.filter, "id" ) ) {
 						recordId = arguments.filter.id;
-					} else if ( arguments.filter.keyExists( idField ) ) {
+					} else if ( StructKeyExists( arguments.filter, idField ) ) {
 						recordId = arguments.filter[ idField ];
-					} else if ( arguments.filter.keyExists( fullIdField ) ) {
+					} else if ( StructKeyExists( arguments.filter, fullIdField ) ) {
 						recordId = arguments.filter[ fullIdField ];
-					} else if ( arguments.filter.keyExists( "#arguments.objectName#.id" ) ) {
+					} else if ( StructKeyExists( arguments.filter, "#arguments.objectName#.id" ) ) {
 						recordId = arguments.filter[ "#arguments.objectName#.id" ];
 					} else {
 						isComplex = true;
 					}
 				} else {
-					if ( arguments.filterParams.keyExists( "id" ) ) {
+					if ( StructKeyExists( arguments.filterParams, "id" ) ) {
 						recordId = arguments.filterParams.id;
-					} else if ( arguments.filterParams.keyExists( idField ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, idField ) ) {
 						recordId = arguments.filterParams[ idField ];
-					} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, fullIdField ) ) {
 						recordId = arguments.filterParams[ fullIdField ];
-					} else if ( arguments.filterParams.keyExists( "#arguments.objectName#.id" ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, "#arguments.objectName#.id" ) ) {
 						recordId = arguments.filterParams[ "#arguments.objectName#.id" ];
 					} else {
 						isComplex = true;
@@ -3068,7 +3068,7 @@ component displayName="Preside Object Service" {
 				if ( Len( Trim( prop.generateFrom ?: "" ) ) ) {
 					var valueToHash = "";
 					for( var field in ListToArray( prop.generateFrom ) ) {
-						if ( arguments.data.keyExists( field ) ) {
+						if ( StructKeyExists( arguments.data, field ) ) {
 							valueToHash &= arguments.data[ field ];
 						} else {
 							return;

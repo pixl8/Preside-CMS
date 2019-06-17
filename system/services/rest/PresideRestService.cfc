@@ -402,7 +402,7 @@ component {
 	}
 
 	private boolean function _verbCanBeHandledByResource( required string verb, required struct resource ) {
-		if ( resource.verbs.keyExists( verb ) ) {
+		if ( StructKeyExists( resource.verbs, verb ) ) {
 			return true;
 		}
 
@@ -410,7 +410,7 @@ component {
 			return true;
 		}
 
-		if ( verb == "HEAD" && resource.verbs.keyExists( "GET" ) ) {
+		if ( verb == "HEAD" && StructKeyExists( resource.verbs, "GET" ) ) {
 			return true;
 		}
 
@@ -462,7 +462,7 @@ component {
 			for ( var resource in apis[ apiRootPath ] ) {
 				for ( var verb in resource.verbs ) {
 					var rules = [];
-					if ( resource.requiredParameters.keyExists( verb ) ) {
+					if ( StructKeyExists( resource.requiredParameters, verb ) ) {
 						for ( var param in resource.requiredParameters[ verb ] ) {
 							rules.append( {
 								  fieldName = param
@@ -470,7 +470,7 @@ component {
 							} );
 						}
 					}
-					if ( resource.parameterTypes.keyExists( verb ) ) {
+					if ( StructKeyExists( resource.parameterTypes, verb ) ) {
 						for ( var param in resource.parameterTypes[ verb ] ) {
 							var type      = resource.parameterTypes[verb][param];
 							var validator = "";

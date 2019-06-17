@@ -178,7 +178,7 @@ component displayName="Multilingual Preside Object Service" {
 				}
 			}
 
-			if ( translationObject.indexes.keyExists( indexName ) && translationObject.indexes[ indexName ].unique ) {
+			if ( StructKeyExists( translationObject.indexes, indexName ) && translationObject.indexes[ indexName ].unique ) {
 				translationObject.indexes[ indexName ].fields = "_translation_language," & translationObject.indexes[ indexName ].fields;
 			}
 		}

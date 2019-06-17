@@ -1,7 +1,7 @@
 component validationProvider=true {
 
 	public boolean function required( required string fieldName, any value="", struct data={} ) validatorMessage="cms:validation.required.default" {
-		return arguments.data.keyExists( fieldName ) && !IsEmpty( value );
+		return StructKeyExists( arguments.data, fieldName ) && !IsEmpty( value );
 	}
 
 	public boolean function minlength( required string fieldName, string value="", required numeric length, boolean list=false ) validatorMessage="cms:validation.minLength.default" {
