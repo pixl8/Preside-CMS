@@ -67,7 +67,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editFolder( required string id, required struct data ) {
-		if ( arguments.data.keyExists( "parent_folder" ) && not Len( Trim( arguments.data.parent_folder ) ) ) {
+		if ( StructKeyExists( arguments.data, "parent_folder" ) && not Len( Trim( arguments.data.parent_folder ) ) ) {
 			arguments.data.parent_folder = getRootFolderId();
 		}
 
@@ -1540,7 +1540,7 @@ component displayName="AssetManager Service" {
 		var publicDerivatives = [];
 
 		for( var derivative in derivatives ) {
-			if ( derivatives[ derivative ].keyExists( "inEditor" ) ) {
+			if ( StructKeyExists( derivatives[ derivative ], "inEditor" ) ) {
 				if( IsBoolean( derivatives[ derivative ].inEditor ?: "" ) && derivatives[ derivative ].inEditor ){
 				    publicDerivatives.append( derivative );
 			   	}
@@ -1560,7 +1560,7 @@ component displayName="AssetManager Service" {
 		var derivatives = _getConfiguredDerivatives();
 
 		if ( StructKeyExists( derivatives, arguments.derivative ) ) {
-			if ( !derivatives[ arguments.derivative ].keyExists( "signature" ) ) {
+			if ( !StructKeyExists( derivatives[ arguments.derivative ], "signature" ) ) {
 				derivatives[ arguments.derivative ].signature = LCase( Hash( SerializeJson( derivatives[ arguments.derivative ] ) ) );
 			}
 
