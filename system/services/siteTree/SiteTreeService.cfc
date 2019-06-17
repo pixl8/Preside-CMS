@@ -1237,7 +1237,7 @@ component {
 			var changedFields = getDraftChangedFields( page.id, page.page_type );
 			var dataToSubmit = {};
 			for( var field in changedFields ) {
-				if ( page.keyExists( field ) ) {
+				if ( StructKeyExists( page, field ) ) {
 					dataToSubmit[ field ] = page[ field ];
 				}
 			}

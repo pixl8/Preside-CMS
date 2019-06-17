@@ -633,7 +633,7 @@ component {
 	}
 
 	private struct function _getAllForeignKeys( required string dsn, boolean cached=false ) {
-		if ( arguments.cached && request.keyExists( "_allForeignKeys.#arguments.dsn#" ) ) {
+		if ( arguments.cached && StructKeyExists( request, "_allForeignKeys.#arguments.dsn#" ) ) {
 			return request[ "_allForeignKeys.#arguments.dsn#" ];
 		}
 

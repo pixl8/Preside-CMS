@@ -78,7 +78,7 @@ component displayName="AssetManager Service" {
 			, updateManyToManyRecords = true
 		);
 
-		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
+		if ( StructKeyExists( data, "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
 			$createTask(
 				  event             = "admin.AssetManager._editAssetLocationInBackgroundThread"
 				, args              = { id = arguments.id }
@@ -450,7 +450,7 @@ component displayName="AssetManager Service" {
 		var types    = _getTypes();
 
 		for( var typeName in arguments.types ){
-			if ( types.keyExists( typeName ) ) {
+			if ( StructKeyExists( types, typeName ) ) {
 				expanded.append( typeName );
 			} else {
 				for( var typeName in listTypesForGroup( typeName ) ){
@@ -808,10 +808,10 @@ component displayName="AssetManager Service" {
 		var updateData  = {};
 
 		if ( len( asset.active_version ) ) {
-			if ( data.keyExists( "focal_point") ) {
+			if ( StructKeyExists( data, "focal_point") ) {
 				updateData.focal_point=data.focal_point;
 			}
-			if ( data.keyExists( "crop_hint") ) {
+			if ( StructKeyExists( data, "crop_hint") ) {
 				updateData.crop_hint=data.crop_hint;
 			}
 			if ( !updateData.isEmpty() ) {
@@ -819,7 +819,7 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
+		if ( StructKeyExists( data, "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
 			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
 		}
 
@@ -1559,7 +1559,7 @@ component displayName="AssetManager Service" {
 	public string function getDerivativeConfigSignature( required string derivative ) {
 		var derivatives = _getConfiguredDerivatives();
 
-		if ( derivatives.keyExists( arguments.derivative ) ) {
+		if ( StructKeyExists( derivatives, arguments.derivative ) ) {
 			if ( !derivatives[ arguments.derivative ].keyExists( "signature" ) ) {
 				derivatives[ arguments.derivative ].signature = LCase( Hash( SerializeJson( derivatives[ arguments.derivative ] ) ) );
 			}

@@ -174,7 +174,7 @@ component {
 		var cbProxy   = _getColdbox();
 
 		exists = false;
-		if ( renderers.keyExists( arguments.name ) ) {
+		if ( StructKeyExists( renderers, arguments.name ) ) {
 
 			for( var cx in contexts ) {
 				if ( renderers[ arguments.name ].keyExists( cx ) ) {
@@ -388,7 +388,7 @@ component {
 		var conventionsBasedName = "";
 		var contexts             = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
-		if ( renderers.keyExists( arguments.name ) ) {
+		if ( StructKeyExists( renderers, arguments.name ) ) {
 			for( var cx in contexts ) {
 				if ( renderers[ arguments.name ].keyExists( cx ) && IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
 					return renderers[ arguments.name ][ cx ];

@@ -360,7 +360,7 @@ component displayName="Admin permissions service" {
 		}
 
 		for( var key in arguments.contextKeys ){
-			if ( cachedContextPerms.keyExists( key ) ) {
+			if ( StructKeyExists( cachedContextPerms, key ) ) {
 				return cachedContextPerms[ key ];
 			}
 		}
@@ -446,7 +446,7 @@ component displayName="Admin permissions service" {
 
 			for( var group in allGroups ){
 				for ( var role in ListToArray( group.roles ) ) {
-					if ( rolesWithPerm.keyExists( role ) ) {
+					if ( StructKeyExists( rolesWithPerm, role ) ) {
 						groups.append( { id=group.id, name=group.label } );
 						break;
 					}

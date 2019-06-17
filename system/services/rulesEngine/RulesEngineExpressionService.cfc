@@ -407,7 +407,7 @@ component displayName="RulesEngine Expression Service" {
 		var processed        = {};
 
 		for( var fieldName in configuredFields ) {
-			if ( expressionFields.keyExists( fieldName ) ) {
+			if ( StructKeyExists( expressionFields, fieldName ) ) {
 				configuredFields[ fieldName ] = fieldTypeService.prepareConfiguredFieldData(
 					  fieldType          = expressionFields[ fieldName ].fieldType
 					, fieldConfiguration = expressionFields[ fieldName ]
@@ -440,7 +440,7 @@ component displayName="RulesEngine Expression Service" {
 		var expressions = _getExpressions();
 
 
-		if ( expressions.keyExists( arguments.id ) ) {
+		if ( StructKeyExists( expressions, arguments.id ) ) {
 			expressions[ arguments.id ].contexts.append( arguments.contexts, true );
 			expressions[ arguments.id ].filterObjects.append( arguments.filterObjects, true );
 		} else {
@@ -488,7 +488,7 @@ component displayName="RulesEngine Expression Service" {
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();
 
-		if ( expressions.keyExists( arguments.expressionId ) ) {
+		if ( StructKeyExists( expressions, arguments.expressionId ) ) {
 			return expressions[ arguments.expressionId ];
 		}
 

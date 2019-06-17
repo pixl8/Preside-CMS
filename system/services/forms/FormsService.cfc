@@ -814,7 +814,7 @@ component displayName="Forms service" {
 		var resolveExtensions = function( formName, frmDefinition, allForms ){
 			var parentFormName = arguments.frmDefinition.extends ?: "";
 
-			if ( !Len( Trim( parentFormName ) ) || resolvedExtensions.keyExists( arguments.formName ) ) {
+			if ( !Len( Trim( parentFormName ) ) || StructKeyExists( resolvedExtensions, arguments.formName ) ) {
 				return arguments.frmDefinition;
 			}
 

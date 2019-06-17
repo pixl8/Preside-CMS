@@ -626,7 +626,7 @@ component {
 			var tmp = {};
 			for( var r in records ) { tmp[ r.id ] = transformResult( r, arguments.labelRenderer ) };
 			for( var id in arguments.ids ){
-				if ( tmp.keyExists( id ) ) {
+				if ( StructKeyExists( tmp, id ) ) {
 					result.append( tmp[id] );
 				}
 			}

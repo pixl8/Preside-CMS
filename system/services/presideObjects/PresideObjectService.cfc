@@ -1297,7 +1297,7 @@ component displayName="Preside Object Service" {
 			, allowDraftVersions = true
 		} );
 
-		if ( args.keyExists( "fieldName" ) ) {
+		if ( StructKeyExists( args, "fieldName" ) ) {
 			args.filter       = "#idField# = :#idField# and _version_changed_fields like :_version_changed_fields";
 			args.filterParams = { "#idField#" = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
 			args.delete( "fieldName" );
@@ -1554,7 +1554,7 @@ component displayName="Preside Object Service" {
 	public any function getObjectProperty( required string objectName, required string propertyName ) {
 		var props = _getObject( arguments.objectName ).meta.properties;
 
-		if ( props.keyExists( arguments.propertyName ) ) {
+		if ( StructKeyExists( props, arguments.propertyName ) ) {
 			return props[ arguments.propertyName ];
 		}
 
@@ -2466,7 +2466,7 @@ component displayName="Preside Object Service" {
 		var matches = _reSearch( aliasRegex, plainString );
 		var results = [];
 
-		if ( matches.keyExists( "$1" ) ) {
+		if ( StructKeyExists( matches, "$1" ) ) {
 			for( var i=1; i<=matches.$1.len(); i++ ) {
 				var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
 				var objPath     = matches.$2[i];
@@ -2695,10 +2695,10 @@ component displayName="Preside Object Service" {
 
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
-				if ( manyToManyObjects.keyExists( join.joinFromObject ) ) {
+				if ( StructKeyExists( manyToManyObjects, join.joinFromObject ) ) {
 					join.joinFromObject = getVersionObjectName( join.joinFromObject );
 				}
-				if ( manyToManyObjects.keyExists( join.joinToObject ) ) {
+				if ( StructKeyExists( manyToManyObjects, join.joinToObject ) ) {
 					join.tableAlias = join.joinToObject;
 					join.joinToObject = getVersionObjectName( join.joinToObject );
 					join.addVersionClause = true;

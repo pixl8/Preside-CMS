@@ -224,7 +224,7 @@ component displayName="System configuration service" {
 
 		var categories = _getConfigCategories();
 
-		if ( categories.keyExists( arguments.id ) ) {
+		if ( StructKeyExists( categories, arguments.id ) ) {
 			return categories[ arguments.id ];
 		}
 

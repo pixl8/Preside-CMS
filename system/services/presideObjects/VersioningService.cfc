@@ -416,7 +416,7 @@ component {
 		if ( record.recordCount ) {
 			for( var r in record ) { record = r; }
 			for( var field in changedFields ) {
-				if ( record.keyExists( field ) ) {
+				if ( StructKeyExists( record, field ) ) {
 					dataToPublish[ field ] = record[ field ];
 				}
 			}
