@@ -159,7 +159,7 @@ component displayName="AssetManager Service" {
 
 		for( var folder in getFolderAncestors( arguments.id ) ) {
 			for( var setting in arguments.settings ) {
-				if ( !collectedSettings.keyExists( setting ) && Len( Trim( folder[ setting ] ?: "" ) ) ) {
+				if ( !StructKeyExists( collectedSettings, setting ) && Len( Trim( folder[ setting ] ?: "" ) ) ) {
 					collectedSettings[ setting ] = folder[ setting ];
 					if ( StructCount( collectedSettings ) == arguments.settings.len() ) {
 						return collectedSettings;

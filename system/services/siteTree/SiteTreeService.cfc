@@ -596,7 +596,7 @@ component {
 				};
 
 				for( var field in child ) {
-					if ( !page.keyExists( field ) ) {
+					if ( !StructKeyExists( page, field ) ) {
 						page[ field ] = child[ field ];
 					}
 				}

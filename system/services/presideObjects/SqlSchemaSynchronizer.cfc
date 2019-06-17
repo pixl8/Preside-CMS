@@ -539,7 +539,7 @@ component {
 			dbKeys = dsnKeys[ obj.meta.dsn ][ obj.meta.tableName ] ?: {};
 
 			for( key in obj.sql.relationships ){
-				if ( !dbKeys.keyExists( key ) ) {
+				if ( !StructKeyExists( dbKeys, key ) ) {
 					transaction {
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );

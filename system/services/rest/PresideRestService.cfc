@@ -359,7 +359,7 @@ component {
 	}
 
 	private array function _getApiList() {
-		if ( !variables.keyExists( "_apiList" ) ) {
+		if ( !StructKeyExists( variables, "_apiList" ) ) {
 			_apiList = _getApis().keyArray();
 			_apiList.sort( function( a, b ){
 				return a.len() > b.len() ? -1 : 1;

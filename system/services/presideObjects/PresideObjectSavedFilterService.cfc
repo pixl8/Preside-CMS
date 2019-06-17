@@ -23,7 +23,7 @@ component singleton=true {
 		}
 
 		if ( IsStruct( filter ) ) {
-			if ( !filter.keyExists( "filter" ) && !filter.keyExists( "filterParams" ) ) {
+			if ( !StructKeyExists( filter, "filter" ) && !StructKeyExists( filter, "filterParams" ) ) {
 				return { filter=filter, filterParams={} };
 			}
 

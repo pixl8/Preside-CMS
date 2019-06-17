@@ -35,7 +35,7 @@ component displayName="Multilingual Preside Object Service" {
 	public boolean function isMultilingual( required string objectName, string propertyName="" ) {
 		var multiLingualObjectReference = _getMultiLingualObjectReference();
 
-		if ( !multiLingualObjectReference.keyExists( arguments.objectName ) ) {
+		if ( !StructKeyExists( multiLingualObjectReference, arguments.objectName ) ) {
 			return false;
 		}
 

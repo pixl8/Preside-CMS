@@ -353,10 +353,10 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( dateCreatedField.len() && obj.properties.keyExists( dateCreatedField ) && !cleanedData.keyExists( dateCreatedField ) ) {
+		if ( dateCreatedField.len() && obj.properties.keyExists( dateCreatedField ) && !StructKeyExists( cleanedData, dateCreatedField ) ) {
 			cleanedData[ dateCreatedField ] = rightNow;
 		}
-		if ( dateModifiedField.len() && obj.properties.keyExists( dateModifiedField ) && !cleanedData.keyExists( dateModifiedField ) ) {
+		if ( dateModifiedField.len() && obj.properties.keyExists( dateModifiedField ) && !StructKeyExists( cleanedData, dateModifiedField ) ) {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
 		if ( ListFindNoCase( obj.dbFieldList, idField ) && StructKeyExists( obj.properties, idField ) ) {
@@ -2328,7 +2328,7 @@ component displayName="Preside Object Service" {
 					var matched       = true;
 
 					for( var entity in matchEntities ) {
-						if ( !entities.keyExists( entity ) ) {
+						if ( !StructKeyExists( entities, entity ) ) {
 							matched = false;
 							break;
 						}

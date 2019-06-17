@@ -166,7 +166,7 @@ component singleton=true {
 				property = object.meta.properties[ propertyName ];
 
 				if ( property.relationship eq "many-to-many" ) {
-					if ( !objects.keyExists( property.relatedTo ) ) {
+					if ( !StructKeyExists( objects, property.relatedTo ) ) {
 						throw(
 							  type    = "RelationshipGuidance.BadRelationship"
 							, message = "Object, [#property.relatedTo#], could not be found"
@@ -188,7 +188,7 @@ component singleton=true {
 						property.relatedViaTargetFk = "target_" & property.relatedViaTargetFk;
 					}
 
-					if ( !objects.keyExists( property.relatedVia ) ) {
+					if ( !StructKeyExists( objects, property.relatedVia ) ) {
 						var pivotObjArgs = {
 							  sourceObject       = object.meta
 							, targetObject       = objects[ property.relatedTo ].meta
@@ -240,10 +240,10 @@ component singleton=true {
 
 					var idField = objects[ property.relatedto ].meta.idField ?: "id";
 
-					if ( !property.keyExists( "onDelete" ) ){
+					if ( !StructKeyExists( property, "onDelete" ) ){
 						property.onDelete = ( property.required ? "error" : "set null" );
 					}
-					if ( !property.keyExists( "onUpdate" ) ){
+					if ( !StructKeyExists( property, "onUpdate" ) ){
 						property.onUpdate = "cascade";
 					}
 
@@ -495,7 +495,7 @@ component singleton=true {
 			var isSame = cleanedExistingJoin.count() == cleanedJoin.count();
 			if ( isSame ) {
 				for( var key in cleanedJoin ) {
-					if ( !cleanedExistingJoin.keyExists( key ) || cleanedExistingJoin[ key ] != cleanedJoin[ key ] ) {
+					if ( !StructKeyExists( cleanedExistingJoin, key ) || cleanedExistingJoin[ key ] != cleanedJoin[ key ] ) {
 						isSame = false;
 						break;
 					}

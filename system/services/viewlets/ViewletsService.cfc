@@ -33,7 +33,7 @@ component {
 		var cachedResults = _getCachedResults();
 		var cacheKey      = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) & arguments.filter;
 
-		if ( !cachedResults.keyExists( cacheKey ) ) {
+		if ( !StructKeyExists( cachedResults, cacheKey ) ) {
 			var viewlets = Duplicate( _getCoreViewlets() );
 			viewlets.append( _getSiteTemplateViewlets(), true );
 

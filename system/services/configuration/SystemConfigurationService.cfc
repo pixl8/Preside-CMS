@@ -110,7 +110,7 @@ component displayName="System configuration service" {
 			);
 
 			for( var record in rawGlobalResult ){
-				if ( !result.keyExists( record.setting ) ) {
+				if ( !StructKeyExists( result, record.setting ) ) {
 					result[ record.setting ] = record.value;
 				}
 			}
@@ -119,7 +119,7 @@ component displayName="System configuration service" {
 			for( var key in injected ) {
 				var setting = ListRest( key, "." );
 
-				if ( !result.keyExists( setting ) ) {
+				if ( !StructKeyExists( result, setting ) ) {
 					result[ setting ] = injected[ key ];
 				}
 			}

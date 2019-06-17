@@ -155,14 +155,14 @@ component singleton=true {
 			validTables[ obj.meta.tableName ] = obj.meta.dbFieldList;
 		}
 		for( var tableName in tables ) {
-			if ( !validTables.keyExists( tableName ) ) {
+			if ( !StructKeyExists( validTables, tableName ) ) {
 				tablesToDelete.append( tableName );
 			}
 		}
 		for( var tableName in columns ) {
 			if ( !tablesToDelete.find( tableName ) ) {
 				for( var columnName in columns[ tableName ] ) {
-					if ( !validTables.keyExists( tableName ) || !ListFindNoCase( validTables[ tableName ], columnName ) ) {
+					if ( !StructKeyExists( validTables, tableName ) || !ListFindNoCase( validTables[ tableName ], columnName ) ) {
 						columnsToDelete.append({ columnName=columnName, tableName=tableName });
 					}
 				}

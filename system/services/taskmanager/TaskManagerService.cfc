@@ -183,7 +183,7 @@ component displayName="Task Manager Service" {
 		for( var task in nonRunningTasks ) {
 			var exclusivityGroup = taskConfiguration[ task.task_key ].exclusivityGroup ?: "";
 
-			if ( exclusivityGroup == "none" || ( !groupsToRun.keyExists( exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
+			if ( exclusivityGroup == "none" || ( !StructKeyExists( groupsToRun, exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
 				runnableTasks.append( task.task_key );
 				groupsToRun[ exclusivityGroup ] = 1;
 			}
