@@ -450,7 +450,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	private any function _simpleRequestCache( required string key, required any generator ) {
 		request._simpleRequestCache = request._simpleRequestCache ?: {};
 
-		if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+		if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
 			request._simpleRequestCache[ arguments.key ] = arguments.generator();
 		}
 
@@ -676,7 +676,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public struct function getPageAccessRules() {
 		var prc = getRequestContext().getCollection( private = true );
 
-		if ( !prc.keyExists( "pageAccessRules" ) ) {
+		if ( !StructKeyExists( prc, "pageAccessRules" ) ) {
 			prc.pageAccessRules = getModel( "sitetreeService" ).getAccessRestrictionRulesForPage( getCurrentPageId() );
 		}
 
@@ -804,7 +804,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public string function getEditPageLink() {
 		var prc = getRequestContext().getCollection( private=true );
 
-		if ( !prc.keyExists( "_presideCmsEditPageLink" ) ) {
+		if ( !StructKeyExists( prc, "_presideCmsEditPageLink" ) ) {
 			setEditPageLink( buildAdminLink( linkTo='sitetree.editPage', queryString='id=#getCurrentPageId()#' ) );
 		}
 
