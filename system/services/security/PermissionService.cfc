@@ -148,32 +148,29 @@ component displayName="Admin permissions service" {
 			result[ key ] = false;
 		}
 
-		if ( !Len( Trim( arguments.userId ) ) ) {
-			return result;
-		}
-
-		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
-			for( var key in arguments.permissionKeys ) {
-				result[ key ] = true;
-			}
-			return true;
-		}
-
-		if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
-			var contextPerms = _getMultiContextPermissions( argumentCollection=arguments );
-			for( var key in result ) {
-				if ( StructKeyExists( contextPerms, key ) ) {
-					result[ key ] = IsBoolean( local.contextPerms[ key ] ) && local.contextPerms[ key ];
-				} else {
-					keysWithoutContext.append( key );
+		if ( Len( Trim( arguments.userId ) ) ) {
+			if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+				for( var key in arguments.permissionKeys ) {
+					result[ key ] = true;
 				}
-			}
-		}
+			} else {
+				if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
+					var contextPerms = _getMultiContextPermissions( argumentCollection=arguments );
+					for( var key in result ) {
+						if ( StructKeyExists( contextPerms, key ) ) {
+							result[ key ] = IsBoolean( local.contextPerms[ key ] ) && local.contextPerms[ key ];
+						} else {
+							keysWithoutContext.append( key );
+						}
+					}
+				}
 
-		if ( keysWithoutContext.len() ) {
-			request._userPermissionKeys = request._userPermissionKeys ?: listPermissionKeys( user=arguments.userId );
-			for( var key in keysWithoutContext ) {
-				local.result[ key ] = ArrayFindNoCase( request._userPermissionKeys, key );
+				if ( keysWithoutContext.len() ) {
+					request._userPermissionKeys = request._userPermissionKeys ?: listPermissionKeys( user=arguments.userId );
+					for( var key in keysWithoutContext ) {
+						local.result[ key ] = ArrayFindNoCase( request._userPermissionKeys, key );
+					}
+				}
 			}
 		}
 
