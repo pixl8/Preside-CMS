@@ -1194,24 +1194,24 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.latestVersion          = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id );
 		args.latestPublishedVersion = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id, publishedOnly=true );
-		args.versions               = presideObjectService.getRecordVersions(
-			  objectName = objectName
-			, id         = id
-		);
 
-		if ( !selectedVersion ) {
+		args.prevVersion = presideObjectService.getPreviousVersion(
+			  objectName     = objectName
+			, id             = id
+			, currentVersion = ( selectedVersion ? selectedVersion : args.latestVersion )
+		);
+		if ( !selectedVersion && args.prevVersion ) {
 			selectedVersion = args.latestVersion;
 		}
 
 		args.isLatest    = args.latestVersion == selectedVersion;
 		args.nextVersion = 0;
-		args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
-
-		for( var i=1; i <= args.versions.recordCount; i++ ){
-			if ( args.versions._version_number[i] == selectedVersion ) {
-				args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
-				args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
-			}
+		if ( !args.isLatest ) {
+			args.nextVersion = presideObjectService.getNextVersion(
+				  objectName     = objectName
+				, id             = id
+				, currentVersion = selectedVersion
+			);
 		}
 
 		return renderView( view="admin/datamanager/versionNavigator", args=args );
@@ -1244,24 +1244,23 @@ component extends="preside.system.base.AdminHandler" {
 			, filter        = { _translation_source_record=recordId, _translation_language=language }
 			, publishedOnly = true
 		);
-		args.versions = presideObjectService.getRecordVersions(
-			  objectName = translationObjectName
-			, id         = existingTranslation.id
+		args.prevVersion = presideObjectService.getPreviousVersion(
+			  objectName     = translationObjectName
+			, id             = existingTranslation.id
+			, currentVersion = ( selectedVersion ? selectedVersion : args.latestVersion )
 		);
-
-		if ( !selectedVersion && args.versions.recordCount ) {
+		if ( !selectedVersion && args.prevVersion ) {
 			selectedVersion = args.latestVersion;
 		}
 
 		args.isLatest    = args.latestVersion == selectedVersion;
 		args.nextVersion = 0;
-		args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
-
-		for( var i=1; i <= args.versions.recordCount; i++ ){
-			if ( args.versions._version_number[i] == selectedVersion ) {
-				args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
-				args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
-			}
+		if ( !args.isLatest ) {
+			args.nextVersion = presideObjectService.getNextVersion(
+				  objectName     = translationObjectName
+				, id             = existingTranslation.id
+				, currentVersion = selectedVersion
+			);
 		}
 
 		args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( objectName=args.object, operation='translateRecord', recordId=args.id, args={ language=language, version='{version}' } );
