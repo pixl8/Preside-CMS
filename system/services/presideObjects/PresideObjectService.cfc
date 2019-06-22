@@ -1759,15 +1759,15 @@ component displayName="Preside Object Service" {
 				return "oneToManyManager";
 		}
 
+		if ( arguments.enum.len() ) {
+			return "enumSelect";
+		}
+
 		switch ( arguments.type ) {
 			case "numeric":
 				return "spinner";
 			case "boolean":
 				return "yesNoSwitch";
-		}
-
-		if ( arguments.enum.len() ) {
-			return "enumSelect";
 		}
 
 		switch( arguments.dbType ){
