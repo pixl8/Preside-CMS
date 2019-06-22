@@ -1290,12 +1290,12 @@ component displayName="Preside Object Service" {
 			args[ key ] = arguments[ key ];
 		}
 
+		args.objectName = getVersionObjectName( arguments.objectName );
 		args.append( {
-			  objectName         = getVersionObjectName( arguments.objectName )
-			, orderBy            = "_version_number desc"
+			  orderBy            = "_version_number desc"
 			, useCache           = false
 			, allowDraftVersions = true
-		} );
+		}, false );
 
 		if ( StructKeyExists( args, "fieldName" ) ) {
 			args.filter       = "#idField# = :#idField# and _version_changed_fields like :_version_changed_fields";
@@ -1305,6 +1305,68 @@ component displayName="Preside Object Service" {
 		}
 
 		return selectData( argumentCollection = args );
+	}
+
+	/**
+	 * Returns the version number of the previous version of the given record ID
+	 * and existing version
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object whose record we wish to retrieve the version history for
+	 * @id.hint             ID of the record whose history we wish to view
+	 * @currentVersion.hint Current version number
+	 *
+	 */
+	public any function getPreviousVersion(
+		  required string  objectName
+		, required string  id
+		, required numeric currentVersion
+	) {
+		var extraFilters = [{
+			  filter = "_version_number < :_version_number"
+			, filterParams = { _version_number=arguments.currentVersion }
+		}];
+		var prev = getRecordVersions(
+			  argumentCollection = arguments
+			, extraFilters       = extraFilters
+			, maxRows            = 1
+			, orderBy            = "_version_number desc"
+			, selectFields       = [ "_version_number" ]
+			, useCache           = true
+		);
+
+		return Val( prev._version_number );
+	}
+
+	/**
+	 * Returns the version number of the next version of the given record ID
+	 * and existing version
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object whose record we wish to retrieve the version history for
+	 * @id.hint             ID of the record whose history we wish to view
+	 * @currentVersion.hint Current version number
+	 *
+	 */
+	public numeric function getNextVersion(
+		  required string  objectName
+		, required string  id
+		, required numeric currentVersion
+	) {
+		var extraFilters = [{
+			  filter = "_version_number > :_version_number"
+			, filterParams = { _version_number=arguments.currentVersion }
+		}];
+		var nxt = getRecordVersions(
+			  argumentCollection = arguments
+			, extraFilters       = extraFilters
+			, maxRows            = 1
+			, orderBy            = "_version_number asc"
+			, selectFields       = [ "_version_number" ]
+			, useCache           = true
+		);
+
+		return Val( nxt._version_number );
 	}
 
 	/**
@@ -1687,15 +1749,15 @@ component displayName="Preside Object Service" {
 				return "oneToManyManager";
 		}
 
+		if ( arguments.enum.len() ) {
+			return "enumSelect";
+		}
+
 		switch ( arguments.type ) {
 			case "numeric":
 				return "spinner";
 			case "boolean":
 				return "yesNoSwitch";
-		}
-
-		if ( arguments.enum.len() ) {
-			return "enumSelect";
 		}
 
 		switch( arguments.dbType ){

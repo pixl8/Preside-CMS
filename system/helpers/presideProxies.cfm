@@ -214,6 +214,10 @@
 		<cfreturn getSingleton( "permissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
 
+	<cffunction name="hasCmsPermissions" access="public" returntype="struct" output="false">
+		<cfreturn getSingleton( "permissionService" ).hasPermissions( argumentCollection=arguments ) />
+	</cffunction>
+
 	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false">
 		<cfreturn getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
