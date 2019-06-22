@@ -121,6 +121,63 @@ component displayName="Admin permissions service" {
 	}
 
 	/**
+	 * Returns whether or not the user has permission to the given
+	 * set of keys. Returns a struct with permission keys as keys
+	 * and boolean values for whether user has permission for each
+	 * key.
+	 * \n
+	 * See [[cmspermissioning]] for a full guide to CMS users and permissions.
+	 *
+	 * @autodoc
+	 * @permissionKeys.hint The permission keys as defined in `Config.cfc`
+	 * @context.hint        Optional named context
+	 * @contextKeys.hint    Array of keys for the given context (required if context supplied)
+	 * @userId.hint         ID of the user whose permissions we wish to check
+	 * @userId.docdefault   ID of logged in user
+	 *
+	 */
+	public struct function hasPermissions(
+		  required array  permissionKeys
+		,          string context       = ""
+		,          array  contextKeys   = []
+		,          string userId        = _getLoginService().getLoggedInUserId()
+	) {
+		var result = {};
+		var keysWithoutContext = [];
+		for( var key in arguments.permissionKeys ) {
+			result[ key ] = false;
+		}
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+				for( var key in arguments.permissionKeys ) {
+					result[ key ] = true;
+				}
+			} else {
+				if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
+					var contextPerms = _getMultiContextPermissions( argumentCollection=arguments );
+					for( var key in result ) {
+						if ( StructKeyExists( contextPerms, key ) ) {
+							result[ key ] = IsBoolean( local.contextPerms[ key ] ) && local.contextPerms[ key ];
+						} else {
+							keysWithoutContext.append( key );
+						}
+					}
+				}
+
+				if ( keysWithoutContext.len() ) {
+					request._userPermissionKeys = request._userPermissionKeys ?: listPermissionKeys( user=arguments.userId );
+					for( var key in keysWithoutContext ) {
+						local.result[ key ] = ArrayFindNoCase( request._userPermissionKeys, key );
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
 	 * Returns an array of user group IDs that the user is a member of
 	 *
 	 * @autodoc
@@ -366,6 +423,50 @@ component displayName="Admin permissions service" {
 		}
 
 		return;
+	}
+
+	private struct function _getMultiContextPermissions(
+		  required string userId
+		, required array  permissionKeys
+		, required string context
+		, required array  contextKeys
+	) {
+		var result             = {};
+		var args               = arguments;
+		var userGroups         = listUserGroups( arguments.userId );
+		var cacheKey           = "MultiContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKeys.toList() & userGroups.toList() );
+		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
+			var permsToCache = {};
+			var permsFromDb  = _getContextPermDao().selectData(
+				  selectFields = [ "granted", "context_key", "permission_key" ]
+				, filter       = { context = args.context, permission_key = args.permissionKeys, security_group = userGroups }
+				, orderBy      = "context_key, granted"
+				, useCache     = false
+			);
+
+			for( var perm in permsFromDb ){
+				permsToCache[ perm.context_key ] = permsToCache[ perm.context_key ] ?: {};
+				permsToCache[ perm.context_key ][ perm.permission_key ] = perm.granted;
+			}
+
+			return permsToCache;
+		} );
+
+		if ( cachedContextPerms.isEmpty() ) {
+			return result;
+		}
+
+		for( var contextKey in arguments.contextKeys ){
+			if ( StructKeyExists( cachedContextPerms, contextKey ) ) {
+				for( var permKey in cachedContextPerms[ contextKey ] ) {
+					if ( !StructKeyExists( result, permKey ) ) {
+						result[ permKey ] = cachedContextPerms[ contextKey ][ permKey ];
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 	private array function _expandPermissions( required struct permissions, string prefix="" ) {
