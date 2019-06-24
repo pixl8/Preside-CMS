@@ -253,11 +253,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public boolean function showNonLiveContent() {
-		if ( this.isAdminRequest() ) {
-			return true;
-		}
+		try {
+			return request._showNonLiveContent;
+		} catch( any e ) {
+			if ( this.isAdminRequest() ) {
+				request._showNonLiveContent = true;
+			} else {
+				request._showNonLiveContent = getModel( "loginService" ).isShowNonLiveEnabled();
+			}
 
-		return getModel( "loginService" ).isShowNonLiveEnabled();
+			return request._showNonLiveContent;
+		}
 	}
 
 	public struct function getAdminUserDetails() {
