@@ -487,7 +487,6 @@ component {
 		, numeric version           = 0
 		, string  site              = ""
 	) {
-		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
 			  maxRows            = 1
 			, orderBy            = "_hierarchy_sort_order"
@@ -518,6 +517,7 @@ component {
 			return homepage;
 		}
 
+		var loginSvc = _getLoginService();
 		homepage = addPage(
 			  title         = "Home"
 			, slug          = ""
