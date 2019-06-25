@@ -1,5 +1,7 @@
 component extends="coldbox.system.web.services.HandlerService" {
 
+	variables.handlerBeans = {};
+
 	public void function registerHandlers() {
 		var appMapping                   = "/" & controller.getSetting( "appMapping" ).reReplace( "^/", "" );
 		var appMappingPath               = controller.getSetting( "appMappingPath" );
@@ -74,14 +76,20 @@ component extends="coldbox.system.web.services.HandlerService" {
 	}
 
 	public any function getHandlerBean( required string event ) {
-		var handlerBean     = new coldbox.system.web.context.EventHandlerBean( variables.handlersInvocationPath );
+		var currentSite = controller.getRequestContext().getSite();
+		var beanKey     = arguments.event & ( currentSite.id ?: "" );
+
+		if ( StructKeyExists( variables.handlerBeans, beanKey ) ) {
+			return variables.handlerBeans[ beanKey ];
+		}
+
+		var handlerBean     = _newHandlerBean( variables.handlersInvocationPath );
 		var handlerReceived = ListLast( ReReplace( arguments.event, "\.[^.]*$", "" ), ":" );
 		var methodReceived  = ListLast( arguments.event, "." );
 		var isModuleCall    = Find( ":", arguments.event );
 		var moduleSettings  = variables.modules;
 		var handlerIndex    = 0;
 		var moduleReceived  = "";
-		var currentSite     = controller.getRequestContext().getSite();
 
 		if( !isModuleCall ){
 			if ( Len( Trim( currentSite.template ?: "" ) ) && StructKeyExists( variables.siteTemplateHandlerMappings, currentSite.template ) ) {
@@ -89,10 +97,12 @@ component extends="coldbox.system.web.services.HandlerService" {
 					handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
 					if ( handlerIndex ) {
-						return handlerBean
+						variables.handlerBeans[ beanKey ] = handlerBean
 							.setInvocationPath( handlerSource.invocationPath                )
 							.setHandler       ( handlerSource.handlers[ handlerIndex ].name )
 							.setMethod        ( methodReceived                              );
+
+						return variables.handlerBeans[ beanKey ];
 					}
 				}
 			}
@@ -100,13 +110,13 @@ component extends="coldbox.system.web.services.HandlerService" {
 			for ( var handlerSource in variables.handlerMappings ) {
 				handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
-
 				if ( handlerIndex ) {
-
-					return handlerBean
+					variables.handlerBeans[ beanKey ] = handlerBean
 						.setInvocationPath( handlerSource.invocationPath                )
 						.setHandler       ( handlerSource.handlers[ handlerIndex ].name )
 						.setMethod        ( methodReceived                              );
+
+					return variables.handlerBeans[ beanKey ];
 				}
 			}
 		} else {
@@ -115,11 +125,13 @@ component extends="coldbox.system.web.services.HandlerService" {
 			if ( StructKeyExists( moduleSettings, moduleReceived ) ) {
 				handlerIndex = ListFindNoCase( moduleSettings[ moduleReceived ].registeredHandlers, handlerReceived );
 				if ( handlerIndex ) {
-					return handlerBean
+					variables.handlerBeans[ beanKey ] = handlerBean
 						.setInvocationPath( moduleSettings[ moduleReceived ].handlerInvocationPath )
 						.setHandler( ListgetAt( moduleSettings[ moduleReceived ].registeredHandlers, handlerIndex ) )
 						.setMethod( methodReceived )
 						.setModule( moduleReceived );
+
+					return variables.handlerBeans[ beanKey ];
 				}
 			}
 
@@ -128,6 +140,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 
 		// Do View Dispatch Check Procedures
 		if ( isViewDispatch( arguments.event, handlerBean ) ) {
+			variables.handlerBeans[ beanKey ] = handlerBean;
 			return handlerBean;
 		}
 
@@ -236,5 +249,14 @@ component extends="coldbox.system.web.services.HandlerService" {
 			}
 		}
 		return 0;
+	}
+
+	private any function _newHandlerBean( required string invocationPath ) {
+		if ( !StructKeyExists( variables, "_ehBean" ) ) {
+			variables._ehBean = new coldbox.system.web.context.EventHandlerBean( "" );
+		}
+
+		var cloned = Duplicate( variables._ehBean, false );
+		return cloned.setInvocationPath( arguments.invocationPath );
 	}
 }
