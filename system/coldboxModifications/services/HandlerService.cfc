@@ -154,7 +154,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 
 	public any function getHandler( required any ehBean, required any requestContext ) {
 		try {
-			return super.getHandler( argumentCollection=arguments );
+			return _getHandler( argumentCollection=arguments );
 		} catch( expression e ) {
 			if ( ( e.message ?: "" ) contains "has no accessible Member with name" ) {
 				invalidEvent( arguments.ehBean.getFullEvent(), arguments.ehBean );
@@ -253,10 +253,92 @@ component extends="coldbox.system.web.services.HandlerService" {
 
 	private any function _newHandlerBean( required string invocationPath ) {
 		if ( !StructKeyExists( variables, "_ehBean" ) ) {
-			variables._ehBean = new coldbox.system.web.context.EventHandlerBean( "" );
+			variables._ehBean = new preside.system.coldboxModifications.services.EventHandlerBean();
 		}
 
 		var cloned = Duplicate( variables._ehBean, false );
 		return cloned.setInvocationPath( arguments.invocationPath );
+	}
+
+	private any function _getHandler( required ehBean, required requestContext ){
+		var oRequestContext = arguments.requestContext;
+		var oEventURLFacade = variables.templateCache.getEventURLFacade();
+		// Create Runnable Object via WireBox
+		var oEventHandler = newHandler( arguments.ehBean.getRunnable() );
+
+		/* ::::::::::::::::::::::::::::::::::::::::: EVENT METHOD TESTING :::::::::::::::::::::::::::::::::::::::::::: */
+
+		// Does requested method/action of execution exist in handler?
+		if( NOT oEventHandler._actionExists( arguments.ehBean.getMethod() ) ){
+
+			// Check if the handler has an onMissingAction() method, virtual Events
+			if( oEventHandler._actionExists( "onMissingAction" ) ){
+				// Override the method of execution
+				arguments.ehBean.setMissingAction( arguments.ehBean.getMethod() );
+				// Let's go execute our missing action
+				return oEventHandler;
+			}
+
+			// Test for Implicit View Dispatch
+			if( controller.getSetting( "ImplicitViews" ) AND
+				isViewDispatch( arguments.ehBean.getFullEvent(), arguments.ehBean )
+			){
+				return oEventHandler;
+			}
+
+			// Invalid Event procedures
+			invalidEvent( arguments.ehBean.getFullEvent(), arguments.ehBean );
+
+			// If we get here, then the invalid event kicked in and exists, else an exception is thrown
+			// Go retrieve the handler that will handle the invalid event so it can execute.
+			return getHandler(
+				getHandlerBean( arguments.ehBean.getFullEvent() ),
+				oRequestContext
+			);
+
+		} //method check finalized.
+
+		// Store metadata in execution bean
+		if ( !arguments.ehBean.getMetaDataIsSet() ) {
+			arguments.ehBean
+				.setActionMetadata( oEventHandler._actionMetadata( arguments.ehBean.getMethod() ) )
+				.setHandlerMetadata( getMetadata( oEventHandler ) )
+				.setMetaDataIsSet( true );
+		}
+
+		/* ::::::::::::::::::::::::::::::::::::::::: EVENT CACHING :::::::::::::::::::::::::::::::::::::::::::: */
+
+		// Event Caching Routines, if using caching, NOT a private event and we are executing the main event
+		if (
+			variables.eventCaching AND
+			!arguments.ehBean.getIsPrivate() AND
+			arguments.ehBean.getFullEvent() EQ oRequestContext.getCurrentEvent()
+		){
+
+			// Get event action caching metadata
+			var eventDictionaryEntry = getEventCachingMetadata( arguments.ehBean, oEventHandler );
+
+			// Do we need to cache this event's output after it executes??
+			if ( eventDictionaryEntry.cacheable ){
+				// Create caching data structure according to MD, as the cache key can be dynamic by execution.
+				var eventCachingData = {};
+				structAppend( eventCachingData, eventDictionaryEntry, true );
+
+				// Create the Cache Key to save
+				eventCachingData.cacheKey = oEventURLFacade.buildEventKey(
+					keySuffix 		= eventDictionaryEntry.suffix,
+					targetEvent 	= arguments.ehBean.getFullEvent(),
+					targetContext 	= oRequestContext
+				);
+
+				// Event is cacheable and we need to flag it so the Renderer caches it
+				oRequestContext.setEventCacheableEntry( eventCachingData );
+
+			} //end if md says that this event is cacheable
+
+		} //end if event caching.
+
+		//return the tested and validated event handler
+		return oEventHandler;
 	}
 }
