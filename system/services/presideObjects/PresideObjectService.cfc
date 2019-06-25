@@ -191,7 +191,7 @@ component displayName="Preside Object Service" {
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
 	) autodoc=true {
-		var args = _cleanupPropertyAliases( argumentCollection=StructCopy( arguments ) );
+		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
