@@ -175,6 +175,21 @@ component {
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
+
+				renderedAssetCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 120
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 2000
+						, maxObjects                     = 10000
+						, objectStore                    = "ConcurrentStore"
+					}
+				}
+
 			}
 		};
 	}

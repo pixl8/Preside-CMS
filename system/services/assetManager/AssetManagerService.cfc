@@ -17,6 +17,7 @@ component displayName="AssetManager Service" {
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
+	 * @renderedAssetCache.inject         cachebox:renderedAssetCache
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
@@ -24,6 +25,7 @@ component displayName="AssetManager Service" {
 		, required any    documentMetadataService
 		, required any    storageLocationService
 		, required any    storageProviderService
+		, required any    renderedAssetCache
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 		,          struct configuredFolders={}
@@ -36,6 +38,7 @@ component displayName="AssetManager Service" {
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
+		_setRenderedAssetCache( arguments.renderedAssetCache );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
@@ -767,6 +770,7 @@ component displayName="AssetManager Service" {
 			);
 		}
 
+		_invalidateRenderedAssetCache( arguments.assetId );
 		var auditDetail = assetVersion;
 		for( var a in originalAsset ) { auditDetail.append( a ); }
 		$audit(
@@ -831,6 +835,7 @@ component displayName="AssetManager Service" {
 		}
 
 		flushAssetUrlCache( arguments.id );
+		_invalidateRenderedAssetCache( arguments.id );
 
 		auditDetail.id = arguments.id;
 		$audit(
@@ -1754,6 +1759,7 @@ component displayName="AssetManager Service" {
 				, asset_url 	   = generatedAssetUrl
 			} );
 
+			_invalidateRenderedAssetCache( arguments.assetId );
 			for( var a in versionToMakeActive ) { var auditDetail = a; }
 			$audit(
 				  action   = "change_asset_version"
@@ -2293,6 +2299,13 @@ component displayName="AssetManager Service" {
 		return $slugify( arguments.title.reReplace( "\.[a-z0-9]+$", "" ) );
 	}
 
+	private void function _invalidateRenderedAssetCache( required string assetId ) {
+		_getRenderedAssetCache().clearByKeySnippet(
+			  keySnippet = "^asset-#arguments.assetId#"
+			, regex      = true
+		);
+	}
+
 // GETTERS AND SETTERS
 	private any function _getDefaultStorageProvider() {
 		return _defaultStorageProvider;
@@ -2375,5 +2388,12 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setStorageProviderService( required any storageProviderService ) {
 		_storageProviderService = arguments.storageProviderService;
+	}
+
+	private any function _getRenderedAssetCache() {
+	    return _renderedAssetCache;
+	}
+	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
+	    _renderedAssetCache = arguments.renderedAssetCache;
 	}
 }

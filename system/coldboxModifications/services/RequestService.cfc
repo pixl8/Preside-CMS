@@ -29,4 +29,8 @@ component extends="coldbox.system.web.services.RequestService" {
 		return variables.mockFlashScope;
 	}
 
+	function getContext( string classPath = "coldbox.system.web.context.RequestContext" ){
+		return request.cb_requestContext ?: createContext( classPath );
+	}
+
 }
