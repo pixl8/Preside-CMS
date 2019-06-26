@@ -175,17 +175,6 @@
 
 			configuratorArgs[ 'sourceId' ]      = $( '[name=id] ', $form ).filter( ':first' ).val();
 			configuratorArgs[ 'sourceIdField' ] = relationshipKey;
-			for( var i=0; i<fields.length; i++ ) {
-				var targetField = targetFields[ i ]
-				  , $field      = $( '[name=' + fields[ i ] + ']', this.$originalInput.closest( 'form' ) );
-
-				if ( $field.length ) {
-					configuratorArgs[ targetField ] = $field.map( function() { return $( this ).val(); } ).get().join();
-				}
-			}
-			for( var arg in configuratorArgs ) {
-				iframeSrc += '&' + arg + '=' + configuratorArgs[ arg ];
-			}
 
 			this.$configuratorAddButton = $( '<a class="btn btn-default configurator-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.$originalInput.attr( "tabindex" ) && this.$originalInput.attr( "tabindex" ) != "-1" ) {
@@ -193,7 +182,19 @@
 			}
 
 			this.$configuratorAddButton.on( "click", function( e ) {
-				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
+				var dynamicIframeSrc = iframeSrc;
+				for( var i=0; i<fields.length; i++ ) {
+					var targetField = targetFields[ i ]
+					  , $field      = $( '[name=' + fields[ i ] + ']', presideObjectConfigurator.$originalInput.closest( 'form' ) );
+
+					if ( $field.length ) {
+						configuratorArgs[ targetField ] = $field.map( function() { return $( this ).val(); } ).get().join();
+					}
+				}
+				for( var arg in configuratorArgs ) {
+					dynamicIframeSrc += '&' + arg + '=' + configuratorArgs[ arg ];
+				}
+				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( dynamicIframeSrc, "100%", "100%", callbacks, modalOptions );
 				presideObjectConfigurator.configuratorIframeModal.open();
 			} );
 
