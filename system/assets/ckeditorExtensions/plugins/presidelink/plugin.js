@@ -205,6 +205,7 @@
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
 		emailAntiSpamRegex = /emailantispam=(\d)/,
+		emailVariableRegex = /emailvariable=(\$\{[^\}]+\})/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
 		presideLinkRegex = /^{{link:(.*?):link}}(?:#([^'"]+))?$/,
@@ -507,6 +508,10 @@
 					retval.protocol = urlMatch[ 1 ];
 					retval.address = urlMatch[ 2 ];
 				}
+				else if ( href && ( emailVariableMatch = href.match( emailVariableRegex ) ) ) {
+					retval.type = 'emailvariable';
+					retval.emailvariable = emailVariableMatch[ 1 ];
+				}
 
 			}
 
@@ -583,6 +588,10 @@
 					break;
 				case 'anchor':
 					set[ 'data-cke-saved-href' ] = '#' + ( data.anchor || '' );
+
+					break;
+				case 'emailvariable':
+					set[ 'data-cke-saved-href' ] = data.emailvariable || '';
 
 					break;
 				case 'email':

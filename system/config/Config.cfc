@@ -837,6 +837,13 @@ component {
 	}
 
 	private struct function _getRicheditorLinkPickerConfig() {
-		return { default={ types=[ "sitetreelink", "url", "email", "asset", "anchor" ] } };
+		return {
+			default = {
+				types=[ "sitetreelink", "url", "email", "asset", "anchor" ]
+			}
+			, email = {
+				types=[ "sitetreelink", "url", "email", "asset", "emailvariable" ]
+			}
+		};
 	}
 }
