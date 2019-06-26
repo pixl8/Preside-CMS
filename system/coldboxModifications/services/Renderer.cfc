@@ -845,15 +845,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	}
 
 	private any function _getThreadSafeInstanceOfThisPlugin() {
-		var key = "_requestRenderer" & threadUtil.getCurrentThread().getId();
-
-		try {
-			return request[ key ];
-
-		} catch( any e ) {
-			request[ key ] = Duplicate( this, false );
-			return request[ key ];
-		}
+		return Duplicate( this, false );
 	}
 
 	private struct function _getViewMappings() {
