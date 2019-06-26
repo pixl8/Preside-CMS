@@ -1,6 +1,7 @@
 component {
 
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
+	property name="cacheboxReapHeartBeat"       inject="cacheboxReapHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 	property name="taskManagerService"          inject="taskManagerService";
 	property name="healthcheckService"          inject="healthcheckService";
@@ -13,6 +14,11 @@ component {
 
 	public void function startTaskManagerHeartbeat( event, rc, prc ) {
 		presideTaskmanagerHeartBeat.start();
+		event.renderData( data={ ok=true }, type="json" );
+	}
+
+	public void function startCacheReapHeartbeat( event, rc, prc ) {
+		cacheboxReapHeartBeat.start();
 		event.renderData( data={ ok=true }, type="json" );
 	}
 

@@ -9,6 +9,7 @@ component extends="coldbox.system.web.Controller" {
 		services.requestService     = new preside.system.coldboxModifications.services.RequestService( this );
 		services.routingService     = new preside.system.coldboxModifications.services.RoutingService( this );
 		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
+		variables.cacheBox          = CreateObject( "preside.system.coldboxModifications.cachebox.CacheFactory" );
 	}
 
 	function getRenderer(){

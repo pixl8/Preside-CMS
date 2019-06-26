@@ -7,6 +7,7 @@ component {
 	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
 	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
+	property name="cacheboxReapHeartBeat"       inject="cacheboxReapHeartBeat";
 	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
 	property name="healthcheckService"          inject="healthcheckService";
 	property name="permissionService"           inject="permissionService";
@@ -215,6 +216,7 @@ component {
 
 		presideAdhocTaskHeartBeat.startInNewRequest();
 		presideTaskmanagerHeartBeat.startInNewRequest();
+		cacheboxReapHeartBeat.startInNewRequest();
 	}
 
 	private void function _setupCatchAllAdminUserGroup() {
