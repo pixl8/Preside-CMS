@@ -14,6 +14,7 @@ component {
 	 * @widgetsService.inject       WidgetsService
 	 * @presideObjectService.inject PresideObjectService
 	 * @labelRendererService.inject labelRendererService
+	 * @renderedAssetCache.inject   cachebox:renderedAssetCache
 	 */
 	public any function init(
 		  required any coldbox
@@ -22,6 +23,7 @@ component {
 		, required any widgetsService
 		, required any presideObjectService
 		, required any labelRendererService
+		, required any renderedAssetCache
 	) {
 		_setColdbox( arguments.coldbox );
 		_setCache( arguments.cache );
@@ -29,6 +31,7 @@ component {
 		_setWidgetsService( arguments.widgetsService );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setLabelRendererService( arguments.labelRendererService );
+		_setRenderedAssetCache( arguments.renderedAssetCache );
 
 		_setRenderers( {} );
 
@@ -270,32 +273,37 @@ component {
 		do {
 			embeddedImage = _findNextEmbeddedImage( renderedContent );
 
-			if ( Len( Trim( embeddedImage.asset ?: "" ) ) ) {
-				var args       = Duplicate( embeddedImage );
-				var derivative = args.derivative ?: "";
+			if ( Len( Trim( embeddedImage.asset ?: "" ) ) && Len( Trim( embeddedImage.placeholder ?: "" ) ) ) {
+				var cacheKey = "asset-#embeddedImage.asset#-" & Serialize( embeddedImage );
 
-				args.delete( "asset" );
-				args.delete( "placeholder" );
-				args.delete( "derivative" );
+				renderedImage = _getRenderedAssetCache().get( cacheKey );
 
-				if( Len( Trim( derivative ) ) && derivative NEQ "none" ){
-					args.delete( "width" );
-					args.delete( "height" );
-					args.delete( "quality" );
-					args.delete( "dimensions" );
+				if ( IsNull( renderedImage ) ) {
+					var args       = Duplicate( embeddedImage );
+					var derivative = args.derivative ?: "";
 
-					args.derivative = derivative;
+					args.delete( "asset" );
+					args.delete( "placeholder" );
+					args.delete( "derivative" );
 
+					if( Len( Trim( derivative ) ) && derivative NEQ "none" ){
+						args.delete( "width" );
+						args.delete( "height" );
+						args.delete( "quality" );
+						args.delete( "dimensions" );
+
+						args.derivative = derivative;
+					}
+
+					renderedImage = _getAssetRendererService().renderAsset(
+						  assetId = embeddedImage.asset
+						, context = arguments.context
+						, args    = args
+					);
+
+					_getRenderedAssetCache().set( cacheKey, renderedImage );
 				}
 
-				renderedImage    = _getAssetRendererService().renderAsset(
-					  assetId    = embeddedImage.asset
-					, context    = arguments.context
-					, args       = args
-				);
-			}
-
-			if ( Len( Trim( embeddedImage.placeholder ?: "" ) ) ) {
 				renderedContent = Replace( renderedContent, embeddedImage.placeholder, renderedImage, "all" );
 			}
 
@@ -370,6 +378,20 @@ component {
 			}
 			if ( Len( Trim( embeddedLink.asset ?: "" ) ) ) {
 				renderedLink = _getColdbox().getRequestContext().buildLink( assetId=embeddedLink.asset );
+			}
+			if ( Len( Trim( embeddedLink.custom ?: "" ) ) ) {
+				try {
+					var linkDetails = DeserializeJson( toString( toBinary( embeddedLink.custom ) ) );
+					var linkType    = linkDetails.type ?: "";
+
+					if ( Len( Trim( linkType ) ) ) {
+						try {
+							renderedLink = _getColdbox().renderViewlet( event="admin.linkpicker.#linkType#.getHref", args=linkDetails );
+						} catch( any e ) {}
+					} else {
+						renderedLink = _getColdbox().getRequestContext().buildLink( argumentCollection=linkDetails );
+					}
+				} catch( any e ) {}
 			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
@@ -566,7 +588,7 @@ component {
 		// {{asset:assetid:asset}}
 
 
-		var regex = "{{(link|asset):(.*?):(link|asset)}}";
+		var regex = "{{(link|asset|custom):(.*?):(link|asset|custom)}}";
 		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
 		var link  = {};
 		var type  = "";
@@ -629,5 +651,12 @@ component {
 	}
 	private void function _setLabelRendererService( required any labelRendererService ) {
 		_labelRendererService = arguments.labelRendererService;
+	}
+
+	private any function _getRenderedAssetCache() {
+	    return _renderedAssetCache;
+	}
+	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
+	    _renderedAssetCache = arguments.renderedAssetCache;
 	}
 }

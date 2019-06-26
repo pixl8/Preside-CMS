@@ -163,6 +163,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		, array   permissionContextKeys   = []
 		, string  fieldNamePrefix         = ""
 		, string  fieldNameSuffix         = ""
+		, array   suppressFields          = []
 	) {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
@@ -253,11 +254,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public boolean function showNonLiveContent() {
-		if ( this.isAdminRequest() ) {
-			return true;
-		}
+		try {
+			return request._showNonLiveContent;
+		} catch( any e ) {
+			if ( this.isAdminRequest() ) {
+				request._showNonLiveContent = true;
+			} else {
+				request._showNonLiveContent = getModel( "loginService" ).isShowNonLiveEnabled();
+			}
 
-		return getModel( "loginService" ).isShowNonLiveEnabled();
+			return request._showNonLiveContent;
+		}
 	}
 
 	public struct function getAdminUserDetails() {
@@ -312,7 +319,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		args.append({
 			  eventArguments = {}
 			, action         = "__custom"
-		});
+		}, false );
 
 		getController().runEvent(
 			  event          = "admin.datamanager._loadCommonVariables"
@@ -903,20 +910,31 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public struct function getCacheableRequestData() {
-		var event           = getRequestContext();
-		var rc              = event.getCollection( private=false );
-		var prc             = event.getCollection( private=true  );
-		var unCacheableKeys = prc._fullPageCachingUncacheableKeys ?: [];
-		var cacheableVars   = { prc={}, rc={} };
+		var event            = getRequestContext();
+		var rc               = event.getCollection( private=false );
+		var prc              = event.getCollection( private=true  );
+		var unCacheableKeys  = prc._fullPageCachingUncacheableKeys ?: [];
+		var fpcSettings      = getController().getSetting( name="fullpagecaching", defaultValue={} );
+		var limitData        = IsBoolean( fpcSettings.limitCacheData ?: "" ) && fpcSettings.limitCacheData;
+		var cacheableVars    = { prc={}, rc={} };
 
-		for( var key in rc ) {
-			if ( !isNull( rc[ key ] ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
-				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+		if ( limitData ) {
+			var limitRc  = fpcSettings.limitCacheDataKeys.rc  ?: [];
+			var limitPrc = fpcSettings.limitCacheDataKeys.prc ?: [];
+		}
+
+		if ( !limitData || limitRc.len() ) {
+			for( var key in rc ) {
+				if ( !isNull( rc[ key ] ) && (!limitData || ArrayFind( limitRc, key ) ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
+					cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+				}
 			}
 		}
-		for( var key in prc ) {
-			if ( !isNull( prc[ key ] ) && isCacheable( prc[ key ] ) ) {
-				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+		if ( !limitData || limitPrc.len() ) {
+			for( var key in prc ) {
+				if ( !isNull( prc[ key ] ) && ( !limitData || ArrayFind( limitPrc, key ) ) && isCacheable( prc[ key ] ) ) {
+					cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+				}
 			}
 		}
 

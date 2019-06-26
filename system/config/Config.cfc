@@ -50,7 +50,6 @@ component {
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
 		];
@@ -133,6 +132,9 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
 		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
 		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
+		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
+		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
+		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -165,6 +167,8 @@ component {
 		settings.widgets                     = {};
 		settings.templates                   = [];
 		settings.adminDefaultEvent           = "sitetree";
+		settings.adminNotificationsSticky    = true;
+		settings.adminNotificationsPosition  = "bottom-right";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
 		settings.dsn                         = "preside";
@@ -324,7 +328,8 @@ component {
 					, "*{*}"  // Strip all inline-styles
 				  ]
 			  }
-			, toolbars    = _getCkEditorToolbarConfig()
+			, linkPicker = _getRicheditorLinkPickerConfig()
+			, toolbars   = _getCkEditorToolbarConfig()
 		};
 
 		settings.static = {
@@ -447,10 +452,11 @@ component {
 		};
 
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page" ] };
-		settings.rulesEngine.contexts.page                  = { object="page" };
-		settings.rulesEngine.contexts.user                  = { object="website_user" };
-		settings.rulesEngine.contexts.formBuilderSubmission = { subcontexts=[ "webrequest" ] };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
+		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
+		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
+		settings.rulesEngine.contexts.adminuser             = { object="security_user" };
+		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
 
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
@@ -463,6 +469,14 @@ component {
 		settings.concurrency = _getConcurrencySettings();
 
 		settings.healthCheckServices = {};
+
+		settings.fullPageCaching = {
+			  limitCacheData = false
+			, limitCacheDataKeys = {
+				  rc  = []
+				, prc = [ "_site", "presidePage", "__presideInlineJs", "_presideUrlPath", "currentLayout", "currentView", "slug", "viewModule" ]
+			  }
+		};
 
 		_loadConfigurationFromExtensions();
 
@@ -820,5 +834,16 @@ component {
 		var major = Val( ListFirst( luceeVersion, "." ) );
 
 		return major > 4;
+	}
+
+	private struct function _getRicheditorLinkPickerConfig() {
+		return {
+			default = {
+				types=[ "sitetreelink", "url", "email", "asset", "anchor" ]
+			}
+			, email = {
+				types=[ "sitetreelink", "url", "email", "asset", "emailvariable" ]
+			}
+		};
 	}
 }

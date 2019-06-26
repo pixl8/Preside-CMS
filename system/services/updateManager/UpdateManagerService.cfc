@@ -219,7 +219,7 @@ component {
 	}
 
 	public void function downloadVersion( required string version ) {
-		if ( _getActiveDownloads().keyExists( arguments.version ) ) {
+		if ( StructKeyExists( _getActiveDownloads(), arguments.version ) ) {
 			throw( type="UpdateManagerService.download.already.in.progress", message="Version [#arguments.version#] is already being downloaded" );
 		}
 

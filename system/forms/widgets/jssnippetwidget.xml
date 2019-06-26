@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form i18nBaseUri="widgets.jssnippetwidget:" categories="system,js,default">
-	<tab>
+	<tab id="main">
 		<fieldset id="externaljs">
 			<field sortorder="10" name="source_url"      control="textinput"   />
 			<field sortorder="20" name="async"           control="yesNoSwitch" />

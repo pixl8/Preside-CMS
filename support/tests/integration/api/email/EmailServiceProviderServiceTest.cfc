@@ -544,6 +544,48 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
 				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
 			} );
+
+			it( "should announce pre and post email send interception points", function(){
+				var service   = _getService();
+				var dummyArgs = {
+					  to       = [ "somebody@tolove.com" ]
+					, from     = "me@me.com"
+					, subject  = "blah"
+					, htmlBody = dummyHtmlBody
+					, textBody = "plain blah"
+					, args     = { test=CreateUUId() }
+				};
+				var provider      = "mailgun";
+				var sendAction    = CreateUUId() & ".send";
+				var dummySettings = { server=CreateUUId(), fu="bar", password=CreateUUId() };
+				var expectedArgs = Duplicate( dummyArgs );
+
+				expectedArgs.messageId = CreateUUId();
+				mockEmailLoggingService.$( "createEmailLog" ).$args(
+					  template      = ""
+					, recipientType = ""
+					, recipient     = dummyArgs.to[ 1 ]
+					, sender        = dummyArgs.from
+					, subject       = dummyArgs.subject
+					, sendArgs      = dummyArgs.args
+				).$results( expectedArgs.messageId );
+
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( dummySettings );
+				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs=expectedArgs, settings=dummySettings }
+				).$results( true );
+
+				expect( service.sendWithProvider( provider, dummyArgs ) ).toBe( true );
+
+				expect( service.$callLog().$announceInterception.len() ).toBe( 2 );
+				expect( service.$callLog().$announceInterception[ 1 ][ 1 ] ).toBe( "preSendEmail" );
+				expect( service.$callLog().$announceInterception[ 2 ][ 1 ] ).toBe( "postSendEmail" );
+
+			} );
 		} );
 
 		describe( "saveSettings()", function(){
@@ -695,6 +737,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		service.$( "$getPresideSetting", "" );
 		service.$( "$getPresideCategorySettings", {} );
+		service.$( "$announceInterception" );
 		service.$( "$getColdbox", mockColdbox );
 		mockColdbox.$( "handlerExists", true );
 		mockEmailLoggingService.$( "markAsSent", 1 );

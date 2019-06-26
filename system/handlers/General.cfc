@@ -1,17 +1,20 @@
 component {
-	property name="applicationReloadService"    inject="applicationReloadService";
-	property name="databaseMigrationService"    inject="databaseMigrationService";
-	property name="applicationsService"         inject="applicationsService";
-	property name="websiteLoginService"         inject="websiteLoginService";
-	property name="adminLoginService"           inject="loginService";
-	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
-	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
-	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
-	property name="healthcheckService"          inject="healthcheckService";
-	property name="permissionService"           inject="permissionService";
-
-	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
+	property name="applicationReloadService"      inject="applicationReloadService";
+	property name="databaseMigrationService"      inject="databaseMigrationService";
+	property name="applicationsService"           inject="applicationsService";
+	property name="websiteLoginService"           inject="websiteLoginService";
+	property name="adminLoginService"             inject="loginService";
+	property name="antiSamySettings"              inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"               inject="delayedInjector:antiSamyService";
+	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
+	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
+	property name="healthcheckService"            inject="healthcheckService";
+	property name="permissionService"             inject="permissionService";
+	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
+	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
+	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
+	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
+	property name="validationEngine"              inject="validationEngine";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -21,6 +24,7 @@ component {
 		_populateDefaultLanguages();
 		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
+		_setupValidators();
 
 		announceInterception( "onApplicationStart" );
 	}
@@ -219,5 +223,23 @@ component {
 
 	private void function _setupCatchAllAdminUserGroup() {
 		permissionService.setupCatchAllGroup();
+	}
+
+	private void function _setupValidators() {
+		if ( IsArray( configuredValidationProviders ) ) {
+			for ( var providerName in configuredValidationProviders ) {
+				validationEngine.newProvider( getModel( dsl=providerName ) );
+			}
+		}
+
+		for( var objName in presideObjectService.listObjects( includeGeneratedObjects=true ) ) {
+			var obj = presideObjectService.getObject( objName );
+			if ( not IsSimpleValue( obj ) ) {
+				validationEngine.newProvider( obj );
+			}
+
+			var rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName );
+			validationEngine.newRuleset( name="PresideObject.#objName#", rules=rules );
+		}
 	}
 }

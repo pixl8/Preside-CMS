@@ -12,7 +12,12 @@ component extends="coldbox.system.web.Controller" {
 	}
 
 	function getRenderer(){
-		return variables.wireBox.getInstance( "presideRenderer" );
+		try {
+			return variables._renderer;
+		} catch( any e ) {
+			variables._renderer = variables.wireBox.getInstance( "presideRenderer" );
+		}
+		return variables._renderer;
 	}
 
 	public array function listHandlers( string thatStartWith="" ) {

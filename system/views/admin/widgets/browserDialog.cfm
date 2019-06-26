@@ -1,5 +1,7 @@
 <cfscript>
 	widgets = prc.widgets ?: QueryNew('');
+	linkQs = "widgetCategories=#( rc.widgetCategories ?: '' )#&linkPickerCategory=#( rc.linkPickerCategory ?: '' )#";
+	baseLink = event.buildAdminLink( linkTo="widgets.dialog", queryString="#linkQs#&widget={widgetid}" );
 
 	prc.pageIcon     = "magic";
 	prc.pageTitle    = translateResource( uri="cms:widget.dialog.browser.title" );
@@ -27,7 +29,7 @@
 
 				<ul class="list-unstyled clearfix list" data-nav-list="1" data-nav-list-child-selector="li">
 					<cfloop query="widgets">
-						<cfset widgetLink = event.buildAdminLink( linkTo="widgets.dialog", queryString="widget=#widgets.id#") />
+						<cfset widgetLink = baseLink.replace( "{widgetid}", widgets.id ) />
 						<li>
 							<div class="pull-left widget-icon-container">
 								<a href="#widgetLink#" class="widget-image-link">

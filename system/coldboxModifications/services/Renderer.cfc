@@ -70,6 +70,8 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		variables.cacheBox = arguments.controller.getCacheBox();
 		// Register WireBox
 		variables.wireBox = arguments.controller.getWireBox();
+		// Register thread utils
+		variables.threadUtil = wirebox.getInstance( "threadUtil" );
 
 		// Set Conventions, Settings and Properties
 		variables.layoutsConvention 		= variables.controller.getSetting( "layoutsConvention", true );
@@ -124,7 +126,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	*/
 	function renderView(
 		view="",
-		struct args="#getRequestContext().getCurrentViewArgs()#",
+		struct args=getRequestContext().getCurrentViewArgs(),
 		module="",
 		boolean cache=false,
 		cacheTimeout="",
@@ -843,7 +845,15 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	}
 
 	private any function _getThreadSafeInstanceOfThisPlugin() {
-		return Duplicate( this, false );
+		var key = "_requestRenderer" & threadUtil.getCurrentThread().getId();
+
+		try {
+			return request[ key ];
+
+		} catch( any e ) {
+			request[ key ] = Duplicate( this, false );
+			return request[ key ];
+		}
 	}
 
 	private struct function _getViewMappings() {

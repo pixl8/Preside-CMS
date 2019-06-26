@@ -142,13 +142,17 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public void function deleteObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			FileDelete( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
+			var expandedPath = _expandPath( arguments.path, arguments.trashed, arguments.private );
+			var dir          = GetDirectoryFromPath( expandedPath );
+
+			FileDelete( expandedPath );
 		} catch ( any e ) {
-			if ( e.message contains "does not exist" ) {
-				return;
+			if ( !( e.message contains "does not exist" ) ) {
+				rethrow;
 			}
-			rethrow;
 		}
+
+		_deleteEmptyDirs( dir );
 	}
 
 	public string function softDeleteObject( required string path, boolean private=false ){
@@ -158,6 +162,11 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 		try {
 			FileMove( fullPath, fullTrashPath );
+
+			try {
+				_deleteEmptyDirs( GetDirectoryFromPath( fullPath ) );
+			} catch( any e ){}
+
 			return newPath;
 		} catch ( any e ) {
 			if ( e.message contains "does not exist" ) {
@@ -235,9 +244,49 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		try {
 			_ensureDirectoryExists( GetDirectoryFromPath( fullNewPath ) );
 			FileMove( fullOriginalPath, fullNewPath );
+			_deleteEmptyDirs( GetDirectoryFromPath( fullOriginalPath ) );
 		} catch( any e ) {
 			throw( type="preside.FileSystemStorageProvider.could.not.move", message="Could not move file, [#fullOriginalPath#] to [#fullnewPath#]. Error message: [#e.message#]", detail=e.detail );
 		}
+	}
+
+// PRIVATE HELPERS
+	private void function _deleteEmptyDirs( required string dir ) {
+		if ( _isRootDir( arguments.dir ) || _dirHasFiles( arguments.dir ) ) {
+			return;
+		}
+
+		try {
+			DirectoryDelete( dir, false );
+			_deleteEmptyDirs( ListDeleteAt( dir, ListLen( dir, "\/" ), "\/" ) );
+		} catch( any e ) {
+			return;
+		}
+	}
+
+	private boolean function _isRootDir( required string dir ) {
+		var rootDirs = {
+			  trash   = LCase( ReReplaceNoCase( _getTrashDirectory(), "[\\/]$", "" ) )
+			, root    = LCase( ReReplaceNoCase( _getRootDirectory(), "[\\/]$", "" ) )
+			, private = LCase( ReReplaceNoCase( _getPrivateDirectory(), "[\\/]$", "" ) )
+		};
+
+		arguments.dir = ReReplaceNoCase( arguments.dir, "[\\/]$", "" );
+
+		for( var rootDirName in rootDirs ) {
+			var rootDir = rootDirs[ rootDirName ];
+			if ( rootDir.startsWith( LCase( arguments.dir ) ) || rootDir == LCase( arguments.dir ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean function _dirHasFiles( required string dir ) {
+		var files = DirectoryList( arguments.dir, false, "path" );
+
+		return files.len() > 0;
 	}
 
 // GETTERS AND SETTERS

@@ -1,7 +1,7 @@
 <cfscript>
-	taskGroups = prc.taskGroups ?: [];
-
-	tasksEnabled = IsTrue( prc.autoRunningEnabled ?: false );
+	taskGroups        = prc.taskGroups      ?: [];
+	activeTaskGroup   = prc.activeTaskGroup ?: 1;
+	tasksEnabled      = IsTrue( prc.autoRunningEnabled ?: false );
 
 	canRunTasks       = hasCmsPermission( "taskmanager.run"          );
 	canToggleActive   = tasksEnabled && hasCmsPermission( "taskmanager.toggleactive" );
@@ -43,8 +43,8 @@
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">
 				<cfloop array="#taskGroups#" index="i" item="group">
-					<li<cfif i==1> class="active"</cfif>>
-						<a data-toggle="tab" href="##group-tab-#i#">
+					<li<cfif i==activeTaskGroup> class="active"</cfif>>
+						<a data-toggle="tab" href="##group-tab-#i#" class="task-manager-tab" data-tab-id="#group.slug#">
 							<i class="fa fa-fw #group.iconClass#"></i>
 							#group.title# (#group.stats.total#)
 						</a>
@@ -57,7 +57,7 @@
 
 	<cfloop array="#taskGroups#" index="i" item="group">
 		<cfif taskGroups.len() gt 1>
-			<div id="group-tab-#i#" class="tab-pane<cfif i==1> active</cfif>">
+			<div id="group-tab-#i#" class="tab-pane<cfif i==activeTaskGroup> active</cfif>">
 		</cfif>
 
 		<table class="table table-striped table-hover">

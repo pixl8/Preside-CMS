@@ -17,6 +17,7 @@ component displayName="AssetManager Service" {
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
+	 * @renderedAssetCache.inject         cachebox:renderedAssetCache
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
@@ -24,6 +25,7 @@ component displayName="AssetManager Service" {
 		, required any    documentMetadataService
 		, required any    storageLocationService
 		, required any    storageProviderService
+		, required any    renderedAssetCache
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 		,          struct configuredFolders={}
@@ -36,6 +38,7 @@ component displayName="AssetManager Service" {
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
+		_setRenderedAssetCache( arguments.renderedAssetCache );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
@@ -651,17 +654,18 @@ component displayName="AssetManager Service" {
 		,          boolean ensureUniqueTitle = false
 	) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
-		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
 		var fileMetaInfo = _getDocumentMetadataService().getMetaData( arguments.fileBinary );
 		var fileWidth    = fileMetaInfo.width  ?: 0;
 		var fileHeight   = fileMetaInfo.height ?: 0;
 
+		asset.id               = CreateUUId();
 		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
-		asset.storage_path     = newFileName;
 		asset.size             = asset.size  ?: Len( arguments.fileBinary );
 		asset.title            = asset.title ?: arguments.fileName;
+		asset.file_name        = asset.file_name ?: _slugifyTitleForFileName( asset.title );
+		asset.storage_path     = "/#LCase( asset.id )#/#asset.file_name#.#fileTypeInfo.extension#";
 
 		isAssetAllowedInFolder(
 			  type       = asset.asset_type
@@ -678,7 +682,7 @@ component displayName="AssetManager Service" {
 
 		_getStorageProviderForFolder( asset.asset_folder ).putObject(
 			  object  = arguments.fileBinary
-			, path    = newFileName
+			, path    = asset.storage_path
 			, private = isFolderAccessRestricted( asset.asset_folder )
 		);
 
@@ -698,13 +702,12 @@ component displayName="AssetManager Service" {
 			asset.asset_folder = getRootFolderId();
 		}
 
-		var newId = _getAssetDao().insertData( data=asset, insertManyToManyRecords=true );
+		_getAssetDao().insertData( data=asset, insertManyToManyRecords=true );
 
 		if ( _autoExtractDocumentMeta() ) {
-			_saveAssetMetaData( assetId=newId, metaData=fileMetaInfo );
+			_saveAssetMetaData( assetId=asset.id, metaData=fileMetaInfo );
 		}
 
-		asset.id = newId;
 		$audit(
 			  action   = "add_asset"
 			, type     = "assetmanager"
@@ -712,11 +715,11 @@ component displayName="AssetManager Service" {
 			, recordId = asset.id
 		);
 
-		return newId;
+		return asset.id;
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder", "focal_point", "crop_hint", "access_restriction" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "file_name", "asset_type", "asset_folder", "focal_point", "crop_hint", "access_restriction" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -729,10 +732,12 @@ component displayName="AssetManager Service" {
 			throw( type="AssetManager.mismatchedMimeType", message="The mime type of the uploaded file, [#fileTypeInfo.mimeType#], does not match that of the original version [#originalFileTypeInfo.mimeType#]." );
 		}
 
-		var newFileName          = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
-		var versionId            = "";
-		var assetVersion         = {
-			  asset          = arguments.assetId
+		var versionId    = CreateUUId();
+		var fileName     = Len( Trim( originalAsset.file_name ) ) ? originalAsset.file_name : _slugifyTitleForFileName( originalAsset.title );
+		var newFileName  = "/#LCase( arguments.assetId )#/#LCase( versionId )#/#fileName#.#fileTypeInfo.extension#";
+		var assetVersion = {
+			  id             = versionId
+			, asset          = arguments.assetId
 			, asset_type     = fileTypeInfo.typeName
 			, storage_path   = newFileName
 			, size           = Len( arguments.fileBinary )
@@ -751,7 +756,7 @@ component displayName="AssetManager Service" {
 			, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
 		);
 
-		versionId = _getAssetVersionDao().insertData( data=assetVersion );
+		_getAssetVersionDao().insertData( data=assetVersion );
 
 		if ( arguments.makeActive ) {
 			makeVersionActive( arguments.assetId, versionId );
@@ -765,6 +770,7 @@ component displayName="AssetManager Service" {
 			);
 		}
 
+		_invalidateRenderedAssetCache( arguments.assetId );
 		var auditDetail = assetVersion;
 		for( var a in originalAsset ) { auditDetail.append( a ); }
 		$audit(
@@ -805,7 +811,12 @@ component displayName="AssetManager Service" {
 		var asset       = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
+		var fileNameChanged = StructKeyExists( arguments.data, "file_name" ) && asset.file_name != arguments.data.file_name;
 		var updateData  = {};
+
+		if ( fileNameChanged ) {
+			processFileNameChange( arguments.id, arguments.data.file_name );
+		}
 
 		if ( len( asset.active_version ) ) {
 			if ( StructKeyExists( data, "focal_point") ) {
@@ -824,6 +835,7 @@ component displayName="AssetManager Service" {
 		}
 
 		flushAssetUrlCache( arguments.id );
+		_invalidateRenderedAssetCache( arguments.id );
 
 		auditDetail.id = arguments.id;
 		$audit(
@@ -834,6 +846,93 @@ component displayName="AssetManager Service" {
 		);
 
 		return result;
+	}
+
+	public void function processFileNameChange( required string id, required string newName ) {
+		var asset = getAsset( id=arguments.id );
+		if ( !asset.recordCount ) {
+			return;
+		}
+
+		for( var a in asset ) { asset = a; }
+
+		var assetDao      = _getAssetDao();
+		var derivativeDao = _getDerivativeDao();
+		var versionDao    = _getAssetVersionDao();
+		var derivatives   = derivativeDao.selectData( filter={ asset=arguments.id } );
+		var versions      = versionDao.selectData( filter={ asset=arguments.id } );
+		var filename      = arguments.newName;
+		var isPrivate     = isAssetAccessRestricted( arguments.id );
+		var provider      = _getStorageProviderForFolder( asset.asset_folder );
+
+		filename = filename.reReplaceNoCase( "\.#asset.asset_type#$", "" );
+
+		// move the asset itself
+		var oldStoragePath = asset.storage_path;
+		var newStoragePath = "/#LCase( asset.id )#/#filename#.#asset.asset_type#";
+
+		provider.moveObject(
+			  originalPath      = oldStoragePath
+			, newPath           = newStoragePath
+			, originalIsPrivate = isPrivate
+			, newIsPrivate      = isPrivate
+		);
+
+		assetDao.updateData( id=arguments.id, data={
+			  storage_path = newStoragePath
+			, asset_url    = ""
+		} );
+
+		// move versions
+		for( var version in versions ) {
+			oldStoragePath = version.storage_path;
+			newStoragePath = "/#LCase( asset.id )#/#LCase( version.id )#/#filename#.#version.asset_type#";
+
+			provider.moveObject(
+				  originalPath      = oldStoragePath
+				, newPath           = newStoragePath
+				, originalIsPrivate = isPrivate
+				, newIsPrivate      = isPrivate
+			);
+
+			versionDao.updateData( id=version.id, data={
+				  storage_path = newStoragePath
+				, asset_url    = ""
+			} );
+		}
+
+		// move derivatives
+		if ( derivatives.recordCount ) {
+			var config          = getDerivativeConfig( arguments.id );
+			var configHash      = getDerivativeConfigHash( config );
+
+			for( var derivative in derivatives ) {
+				oldStoragePath = derivative.storage_path;
+				newStoragePath = "/#LCase( asset.id )#";
+
+				if ( Len( Trim( derivative.asset_version ) ) ) {
+					newStoragePath &= "/#LCase( derivative.asset_version )#";
+				}
+
+				newStoragePath &= "/#LCase( derivative.label )#";
+				if ( Len( Trim( configHash ) ) ) {
+					newStoragePath &= "_#LCase( configHash )#";
+				}
+				newStoragePath &= "/#filename#.#derivative.asset_type#";
+
+				provider.moveObject(
+					  originalPath      = oldStoragePath
+					, newPath           = newStoragePath
+					, originalIsPrivate = isPrivate
+					, newIsPrivate      = isPrivate
+				);
+
+				derivativeDao.updateData( id=derivative.id, data={
+					  storage_path = newStoragePath
+					, asset_url    = ""
+				} );
+			}
+		}
 	}
 
 	public void function flushAssetUrlCache( required string assetId ) {
@@ -883,9 +982,10 @@ component displayName="AssetManager Service" {
 			);
 
 			for( var assetId in arguments.assetIds ) {
-				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path", "asset_folder", "active_version" ] );
+				var asset = getAsset( id=assetId, selectFields=[ "original_title", "file_name", "asset_type", "trashed_path", "asset_folder", "active_version" ] );
 				if ( asset.recordCount ) {
-					var newPath = "/uploaded/" & LCase( assetId & "." & asset.asset_type );
+					var fileName        = Len( Trim( asset.file_name ) ) ? asset.file_name : _slugifyTitleForFileName( asset.original_title );
+					var newPath         = "/#LCase( assetId )#/#fileName#.#asset.asset_type#";
 					var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
 					var private         = isAssetAccessRestricted( assetId, arguments.folderId );
 
@@ -1394,16 +1494,26 @@ component displayName="AssetManager Service" {
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.focal_point", "asset_version.crop_hint" ] )
-			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path", "asset_folder", "focal_point", "crop_hint" ] );
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset.title", "asset_version.focal_point", "asset_version.crop_hint" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint" ] );
 
 		var config          = getDerivativeConfig( arguments.assetId );
 		var configHash      = getDerivativeConfigHash( config );
 		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
 		var fileext         = ListLast( asset.storage_path, "." );
-		var filename        = arguments.assetId & ( Len( configHash ) ? "_#configHash#" : "" ) & ( Len( Trim( arguments.versionId ) ) ? ".#arguments.versionId#" : "" ) & ".#fileext#";
+		var filename        = Len( Trim( asset.file_name ) ) ? asset.file_name : _slugifyTitleForFileName( asset.title );
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
-		var storagePath     = "/derivatives/#derivativeSlug#/#filename#";
+		var storagePath     = "/#LCase( arguments.assetId )#";
+
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			storagePath &= "/#LCase( arguments.versionId )#";
+		}
+
+		storagePath &= "/#LCase( derivativeSlug )#";
+		if ( Len( Trim( configHash ) ) ) {
+			storagePath &= "_#LCase( configHash )#";
+		}
+		storagePath &= "/#filename#.#fileext#";
 
 		if( fileext == 'pdf' ){
 			var pdfAttributes = {
@@ -1649,6 +1759,7 @@ component displayName="AssetManager Service" {
 				, asset_url 	   = generatedAssetUrl
 			} );
 
+			_invalidateRenderedAssetCache( arguments.assetId );
 			for( var a in versionToMakeActive ) { var auditDetail = a; }
 			$audit(
 				  action   = "change_asset_version"
@@ -2184,6 +2295,17 @@ component displayName="AssetManager Service" {
 		return refindNoCase( 'pending-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}', arguments.asset_url ) || asset_type == "PENDING" || refindNoCase( 'pending-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}', arguments.storage_path );
 	}
 
+	private string function _slugifyTitleForFileName( required string title ) {
+		return $slugify( arguments.title.reReplace( "\.[a-z0-9]+$", "" ) );
+	}
+
+	private void function _invalidateRenderedAssetCache( required string assetId ) {
+		_getRenderedAssetCache().clearByKeySnippet(
+			  keySnippet = "^asset-#arguments.assetId#"
+			, regex      = true
+		);
+	}
+
 // GETTERS AND SETTERS
 	private any function _getDefaultStorageProvider() {
 		return _defaultStorageProvider;
@@ -2266,5 +2388,12 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setStorageProviderService( required any storageProviderService ) {
 		_storageProviderService = arguments.storageProviderService;
+	}
+
+	private any function _getRenderedAssetCache() {
+	    return _renderedAssetCache;
+	}
+	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
+	    _renderedAssetCache = arguments.renderedAssetCache;
 	}
 }
