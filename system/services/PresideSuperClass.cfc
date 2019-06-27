@@ -868,7 +868,7 @@ component displayName="Preside Super Class" {
 	 * @message The message to send to the console/log
 	 */
 	public void function $systemOutput( required string message, string appId=$getApplicationId() ) {
-		SystemOutput( "Preside System Output (#arguments.applicationId#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" & Chr( 13 ) & Chr( 10 ) );
+		SystemOutput( "Preside System Output (#arguments.appId#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" & Chr( 13 ) & Chr( 10 ) );
 	}
 
 	/**
