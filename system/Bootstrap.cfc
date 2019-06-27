@@ -258,7 +258,7 @@ component {
 				, password                          = config[ "datasource.password"                    ] ?: ""
 				, timezone                          = config[ "datasource.timezone"                    ] ?: ""
 				, ConnectionLimit                   = config[ "datasource.ConnectionLimit"             ] ?: -1
-				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 0
+				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 1
 				, metaCacheTimeout                  = config[ "datasource.metaCacheTimeout"            ] ?: 60000
 				, blob                              = config[ "datasource.blob"                        ] ?: false
 				, clob                              = config[ "datasource.clob"                        ] ?: false
