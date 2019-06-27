@@ -3289,7 +3289,9 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		cachebox.createCache( argumentCollection=newConfig );
+		try {
+			cachebox.createCache( argumentCollection=newConfig );
+		} catch ( "CacheFactory.CacheExistsException" e ) {}
 
 		return cachebox.getCache( newConfig.name );
 	}
