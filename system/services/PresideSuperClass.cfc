@@ -867,8 +867,18 @@ component displayName="Preside Super Class" {
 	 * @autodoc true
 	 * @message The message to send to the console/log
 	 */
-	public void function $systemOutput( required string message ) {
-		systemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" );
+	public void function $systemOutput( required string message, string appId=$getApplicationId() ) {
+		SystemOutput( "Preside System Output (#arguments.applicationId#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: #message#" & Chr( 13 ) & Chr( 10 ) );
+	}
+
+	/**
+	 * Returns the ID of the current Application.
+	 *
+	 * @autodoc true
+	 */
+	public string function $getApplicationId() {
+		var appSettings = getApplicationMetadata();
+		return appSettings.PRESIDE_APPLICATION_ID ?: ( appSettings.name ?: "" );
 	}
 
 
