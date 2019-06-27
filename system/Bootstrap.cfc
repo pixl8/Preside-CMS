@@ -161,6 +161,7 @@ component {
 
 				_announceInterception( "prePresideReload" );
 				_clearExistingApplication();
+				_isReloading( true );
 				_ensureCaseSensitiveStructSettingsAreActive();
 				_applyJavaPropToImproveXalanXmlPerformance();
 				_fetchInjectedSettings();
