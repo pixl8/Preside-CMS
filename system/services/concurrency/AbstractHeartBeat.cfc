@@ -116,6 +116,10 @@ component {
 		var buildLinkArgs         = arguments;
 		var maintenanceModeActive = _getMaintenanceModeService().isMaintenanceModeActive();
 
+		if ( $isFeatureEnabled( "sites" ) ) {
+			buildLinkArgs.site = _getTaskRunnerSite();
+		}
+
 		if ( maintenanceModeActive ) {
 			var settings   = _getMaintenanceModeService().getMaintenanceModeSettings();
 			var bypassUuid = settings.bypassUuid ?: "";
@@ -128,6 +132,22 @@ component {
 		}
 
 		return link;
+	}
+
+	private string function _getTaskRunnerSite() {
+		var configuredSite = $getPresideSetting( "taskmanager", "site_context" );
+
+		if ( Len( Trim( configuredSite ) ) ) {
+			return configuredSite;
+		}
+
+		var firstSite = $getPresideObject( "site" ).selectData(
+			  selectFields = [ "id" ]
+			, orderBy = "datecreated"
+			, maxRows = 1
+		);
+
+		return firstSite.id ?: "";
 	}
 
 	private void function _registerInApplication() {
