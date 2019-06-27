@@ -594,7 +594,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			return;
 		}
 
-		for( p in page ){ page = p; break; } // quick query row to struct hack
+		for( var p in page ){ page = p; break; } // quick query row to struct hack
 
 		StructAppend( page, sitetreeSvc.getExtendedPageProperties( id=page.id, pageType=page.page_type, getLatest=getLatest, allowDrafts=allowDrafts ) );
 		var ancestors = sitetreeSvc.getAncestors( id = page.id );
@@ -623,8 +623,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			}
 		}
 
-		p[ "slug" ] = p._hierarchy_slug;
-		StructDelete( p, "_hierarchy_slug" );
+		page[ "slug" ] = page._hierarchy_slug;
+		StructDelete( page, "_hierarchy_slug" );
 
 		prc.presidePage = page;
 	}
