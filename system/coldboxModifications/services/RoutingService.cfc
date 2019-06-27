@@ -21,7 +21,6 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 	public void function onRequestCapture( event, interceptData ) {
 		_announceInterception( "prePresideRequestCapture", interceptData );
-
 		_checkRedirectDomains( argumentCollection=arguments );
 		if ( featureService.isFeatureEnabled( "sites" ) ) {
 			_detectIncomingSite( argumentCollection=arguments );

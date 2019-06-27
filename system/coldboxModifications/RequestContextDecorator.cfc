@@ -2,7 +2,37 @@
  *	Helper methods and standard event method overrides that are specific to Preside
  *	live here.
  */
-component extends="coldbox.system.web.context.RequestContextDecorator" {
+component accessors=true extends="preside.system.coldboxModifications.RequestContext" {
+
+	// The original request context
+	property name="requestContext";
+
+	/**
+	* Constructor
+	*/
+	RequestContextDecorator function init( required oContext, required controller ){
+		// Set the memento state
+		setMemento( arguments.oContext.getMemento() );
+		// Set Controller
+		instance.controller = arguments.controller;
+		// Composite the original context
+		variables.requestContext = arguments.oContext;
+
+		return this;
+	}
+
+	/**
+	* Override to provide a pseudo-constructor for your decorator
+	*/
+	function configure(){}
+
+	/**
+	* Get original controller
+	*/
+	function getController(){
+		return instance.controller;
+	}
+
 
 // URL related
 	public void function setSite( required struct site ) {
