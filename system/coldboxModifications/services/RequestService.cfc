@@ -29,4 +29,17 @@ component extends="coldbox.system.web.services.RequestService" {
 		return variables.mockFlashScope;
 	}
 
+	function getContext( string classPath = "preside.system.coldboxModifications.RequestContext" ){
+		return request.cb_requestContext ?: createContext( classPath );
+	}
+
+	function createContext( required string classPath ) {
+		if ( !StructKeyExists( variables, "cb_requestContext" ) ) {
+			variables.cb_requestContext = super.createContext( arguments.classPath );
+		}
+
+		setContext( variables.cb_requestContext );
+
+		return variables.cb_requestContext;
+	}
 }
