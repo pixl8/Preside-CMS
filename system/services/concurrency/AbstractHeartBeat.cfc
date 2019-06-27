@@ -112,15 +112,13 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private void function _setThreadName() {
-		var theThread = CreateObject( "java", "java.lang.Thread" ).currentThread();
-
-		theThread.setName( "PresideAdhocTaskManagerHeartBeat" );
-	}
-
 	private string function _buildInternalLink() {
 		var buildLinkArgs         = arguments;
 		var maintenanceModeActive = _getMaintenanceModeService().isMaintenanceModeActive();
+
+		if ( $isFeatureEnabled( "sites" ) ) {
+			buildLinkArgs.site = _getTaskRunnerSite();
+		}
 
 		if ( maintenanceModeActive ) {
 			var settings   = _getMaintenanceModeService().getMaintenanceModeSettings();
@@ -134,6 +132,22 @@ component {
 		}
 
 		return link;
+	}
+
+	private string function _getTaskRunnerSite() {
+		var configuredSite = $getPresideSetting( "taskmanager", "site_context" );
+
+		if ( Len( Trim( configuredSite ) ) ) {
+			return configuredSite;
+		}
+
+		var firstSite = $getPresideObject( "site" ).selectData(
+			  selectFields = [ "id" ]
+			, orderBy = "datecreated"
+			, maxRows = 1
+		);
+
+		return firstSite.id ?: "";
 	}
 
 	private void function _registerInApplication() {
@@ -171,7 +185,9 @@ component {
 		return _threadName;
 	}
 	private void function _setThreadName( required string threadName ) {
-		_threadName = arguments.threadName;
+		var appSettings = getApplicationMetadata();
+		var appName = appSettings.PRESIDE_APPLICATION_ID ?: ( appSettings.name ?: "" );
+		_threadName = appName.len() ? "#arguments.threadName# (#appName#)" : arguments.threadName;
 	}
 
 	private any function _getIntervalInMs() {
