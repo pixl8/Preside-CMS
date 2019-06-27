@@ -112,12 +112,6 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private void function _setThreadName() {
-		var theThread = CreateObject( "java", "java.lang.Thread" ).currentThread();
-
-		theThread.setName( "PresideAdhocTaskManagerHeartBeat" );
-	}
-
 	private string function _buildInternalLink() {
 		var buildLinkArgs         = arguments;
 		var maintenanceModeActive = _getMaintenanceModeService().isMaintenanceModeActive();
@@ -171,7 +165,9 @@ component {
 		return _threadName;
 	}
 	private void function _setThreadName( required string threadName ) {
-		_threadName = arguments.threadName;
+		var appSettings = getApplicationMetadata();
+		var appName = appSettings.PRESIDE_APPLICATION_ID ?: ( appSettings.name ?: "" );
+		_threadName = appName.len() ? "#arguments.threadName# (#appName#)" : arguments.threadName;
 	}
 
 	private any function _getIntervalInMs() {
