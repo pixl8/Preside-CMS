@@ -29,7 +29,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var protocol  = ( site.protocol ?: getProtocol() );
-		var siteUrl   = protocol & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
+		var siteUrl   = protocol & "://";
+
+		if ( fetchSite && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
+			siteUrl &= site.domain;
+		} else {
+			siteUrl &= cgi.server_name;
+		}
 
 		prc.delete( "_forceDomainLookup" );
 
