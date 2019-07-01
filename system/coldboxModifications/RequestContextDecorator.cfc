@@ -225,10 +225,15 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // Admin specific
 	public string function buildAdminLink(
-		  string linkTo      = ""
-		, string queryString = ""
-		, string siteId      = this.getSiteId()
+		  string linkTo          = ""
+		, string queryString     = ""
+		, string siteId          = this.getSiteId()
+		, string operationSource = ""
 	) {
+		if ( Len( Trim( arguments.operationSource ) ) ) {
+			arguments.queryString = ListAppend( arguments.queryString, "_psource=" & arguments.operationSource, "&" );
+		}
+
 		if ( StructKeyExists( arguments, "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
@@ -430,6 +435,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		} else {
 			getController().runEvent( event="admin.login._redirectToDefaultAdminEvent", private=true, prePostExempt=true );
 		}
+	}
+
+	public string function getAdminOperationSource( string defaultValue="" ) {
+		return getModel( "sessionStorage" ).getVar( "_adminOperationSource", arguments.defaultValue );
+	}
+	public string function setAdminOperationSource( required string source ) {
+		getModel( "sessionStorage" ).setVar( "_adminOperationSource", arguments.source );
 	}
 
 // Sticker
