@@ -25,7 +25,7 @@ component serializable=false accessors=true extends="coldbox.system.web.context.
 	public boolean function getIsNoExecution() {
 	    return request.cb_is_no_execution ?: setIsNoExecution( false );
 	}
-	public void function setIsNoExecution( required boolean isNoExecution ) {
+	public boolean function setIsNoExecution( required boolean isNoExecution ) {
 	    request.cb_is_no_execution = arguments.isNoExecution;
 	    return request.cb_is_no_execution;
 	}
@@ -54,10 +54,10 @@ component serializable=false accessors=true extends="coldbox.system.web.context.
 		return this;
 	}
 
-	public boolean function getRenderingRegions() {
+	public struct function getRenderingRegions() {
 	    return request.cb_rendering_regions ?: setRenderingRegions( false );
 	}
-	public void function setRenderingRegions( required boolean renderingRegions ) {
+	public struct function setRenderingRegions( required struct renderingRegions ) {
 	    request.cb_rendering_regions = arguments.renderingRegions;
 	    return request.cb_rendering_regions;
 	}
@@ -75,7 +75,7 @@ component serializable=false accessors=true extends="coldbox.system.web.context.
 	    return request.cb_response_headers ?: setResponseHeaders( {} );
 	}
 
-	public void function setResponseHeaders( required struct responseHeaders ) {
+	public struct function setResponseHeaders( required struct responseHeaders ) {
 	    request.cb_response_headers = arguments.responseHeaders;
 	    return request.cb_response_headers;
 	}
