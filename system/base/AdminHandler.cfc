@@ -11,6 +11,11 @@ component {
 		_checkLogin( event );
 
 		var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
+		var operationSource   = event.getValue( "_psource", "" );
+
+		if ( Len( Trim( operationSource ) ) ) {
+			event.setAdminOperationSource( operationSource );
+		}
 
 		event.setXFrameOptionsHeader( "SAMEORIGIN" );
 		event.setLayout( applicationsService.getLayout( activeApplication ) );
