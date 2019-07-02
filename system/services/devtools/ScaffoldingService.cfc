@@ -44,12 +44,12 @@ component singleton=true {
 			filesCreated.append( scaffoldView( viewName=arguments.id, subDir="widgets", extension=arguments.extension, args=ListToArray( arguments.options ) ) );
 		}
 
-		i18nProps["title"]=arguments.name;
-		i18nProps["description"]=arguments.description;
-		i18nProps["iconclass"]=arguments.icon;
+		i18nProps["title"]=_convertToReadableFormat( words = arguments.name );
+		i18nProps["description"]=_convertToReadableFormat( words = arguments.description );
+		i18nProps["iconclass"]= arguments.icon;
 
 		for( var option in ListToArray( arguments.options ) ) {
-			i18nProps[ "field.#option#.title" ] = option;
+			i18nProps[ "field.#option#.title" ] = _convertToReadableFormat( words = option );
 			i18nProps[ "field.#option#.placeholder" ] = "";
 			i18nProps[ "field.#option#.help" ] = "";
 		}
@@ -81,13 +81,13 @@ component singleton=true {
 		filesCreated.append( scaffoldPageTypeForm( pagetype=arguments.id, formName=arguments.id, subDir="page-types", extension=arguments.extension, fields=ListToArray( arguments.fields ) ) );
 
 
-		i18nProps[ "name" ]        = arguments.name;
-		i18nProps[ "description" ] = arguments.description;
+		i18nProps[ "name" ]        = _convertToReadableFormat( words = arguments.name );
+		i18nProps[ "description" ] = _convertToReadableFormat( words = arguments.description );
 		i18nProps[ "iconclass" ]   = arguments.icon;
 		for( var field in ListToArray( arguments.fields ) ) {
-			i18nProps[ "field.#field#.title" ] = field;
+			i18nProps[ "field.#field#.title" ] = _convertToReadableFormat( words = field );
 		}
-		i18nProps[ "tab.#arguments.id#.title" ] = arguments.name;
+		i18nProps[ "tab.#arguments.id#.title" ] = _convertToReadableFormat( words = arguments.name );
 		i18nProps[ "tab.#arguments.id#.description" ] = "";
 		i18nProps[ "fieldset.#arguments.id#.title" ] = "";
 		i18nProps[ "fieldset.#arguments.id#.description" ] = "";
@@ -114,7 +114,7 @@ component singleton=true {
 		}
 
 		for( var field in ListToArray( arguments.properties ) ) {
-			i18nProps[ "field.#field#.title" ] = field;
+			i18nProps[ "field.#field#.title" ] = _convertToReadableFormat( words = field );
 		}
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.objectName, subDir="preside-objects", extension=arguments.extension, properties=i18nProps ) );
 
@@ -141,11 +141,11 @@ component singleton=true {
 		var filesCreated = _ensureExtensionExists( arguments.extension );
 		var i18nProps    = StructNew( "linked" );
 
-		i18nProps[ "name" ]        = arguments.name;
-		i18nProps[ "description" ] = arguments.description;
+		i18nProps[ "name" ]        = _convertToReadableFormat( words = arguments.name );
+		i18nProps[ "description" ] = _convertToReadableFormat( words = arguments.description );
 		i18nProps[ "iconclass" ]   = arguments.icon;
 		for( var field in ListToArray( arguments.fields ) ) {
-			i18nProps[ "field.#field#.title" ]       = field;
+			i18nProps[ "field.#field#.title" ]       = _convertToReadableFormat( words = field );
 			i18nProps[ "field.#field#.placeholder" ] = "";
 			i18nProps[ "field.#field#.help" ]        = "";
 		}
@@ -530,10 +530,10 @@ component singleton=true {
 		filesCreated.append( scaffoldNotificationViewletHandler( handlerName=arguments.notificationId, subDir="renderers/notifications", extension=arguments.extension ) );
 		filesCreated.append( scaffoldView( viewName="full", subDir="renderers/notifications/#arguments.notificationId#", extension=arguments.extension ) );
 
-		i18nProps["title"]=arguments.title;
-		i18nProps["description"]=arguments.description;
+		i18nProps["title"]=_convertToReadableFormat( words = arguments.title );
+		i18nProps["description"]=_convertToReadableFormat( words = arguments.description );
 		i18nProps["iconclass"]=arguments.icon;
-		i18nProps["datatabletitle"]=arguments.dataTableTitle;
+		i18nProps["datatabletitle"]=_convertToReadableFormat( words = arguments.dataTableTitle );
 
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.notificationId, subDir="notifications", extension=arguments.extension, properties=i18nProps ) );
 
@@ -603,6 +603,21 @@ component singleton=true {
 
 	private string function _tab() {
 		return Chr(9);
+	}
+
+	private string function _convertToReadableFormat( required string words ){
+		var removedNonChar = reReplace( arguments.words, "[^a-zA-Z0-9]", " ", "ALL" );
+		var words = listToArray( removedNonChar, " " );
+		var formattedWord = [];
+
+		for( var word in words ){
+			if( len( trim( word ) ) > 1 ){
+				formattedWord.append( "#UCase( left( word, 1 ) )##right( word, -1 )#" );
+			}else{
+				formattedWord.append( "#UCase( word )#" );
+			}
+		}
+		return arrayToList( formattedWord, " " );
 	}
 
 
