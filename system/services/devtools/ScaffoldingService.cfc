@@ -606,18 +606,8 @@ component singleton=true {
 	}
 
 	private string function _convertToReadableFormat( required string words ){
-		var removedNonChar = reReplace( arguments.words, "[^a-zA-Z0-9]", " ", "ALL" );
-		var words = listToArray( removedNonChar, " " );
-		var formattedWord = [];
-
-		for( var word in words ){
-			if( len( trim( word ) ) > 1 ){
-				formattedWord.append( "#UCase( left( word, 1 ) )##right( word, -1 )#" );
-			}else{
-				formattedWord.append( "#UCase( word )#" );
-			}
-		}
-		return arrayToList( formattedWord, " " );
+		var removedNonChar = reReplace( arguments.words, "[^a-zA-Z0-9]+", " ", "all" );	
+		return reReplaceNocase( removedNonChar, "\b(\w)", "\u\1", "all" );
 	}
 
 
