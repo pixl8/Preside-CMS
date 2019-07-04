@@ -5,10 +5,12 @@ component {
 
 	private void function onSubmit( event, rc, prc, args={} ) {
 		if ( !isLoggedIn() ) {
-			var template  = Trim( args.configuration.emailTemplate ?: "" );
-			var fieldItem = formBuilderService.getFormItem( Trim( args.configuration.emailField ?: "" ) );
-			var field     = fieldItem.configuration.name ?: "";
-			var data      = {};
+			var template        = Trim( args.configuration.emailTemplate ?: "" );
+			var fieldItem       = formBuilderService.getFormItem( Trim( args.configuration.emailField ?: "" ) );
+			var formBuilderForm = formBuilderService.getForm( args.formId ?: "" );
+			var field           = fieldItem.configuration.name ?: "";
+			var data            = {};
+			var emailArgs       = { form_name=formBuilderForm.name ?: "" };
 
 			try {
 				data = DeserializeJson( args.submissionData.submitted_data ?: "" );
@@ -22,6 +24,7 @@ component {
 					  template    = template
 					, recipientId = address
 					, to          = [ address ]
+					, args        = emailArgs
 				);
 			}
 		}

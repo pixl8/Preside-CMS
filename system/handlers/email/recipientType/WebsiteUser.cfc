@@ -9,6 +9,8 @@ component {
 		var user = websiteUserDao.selectData( id=arguments.recipientId );
 
 		for( var u in user ) {
+			u.form_name = arguments.args.form_name ?: "";
+
 			return u;
 		}
 
@@ -16,6 +18,9 @@ component {
 		for( var col in ListToArray( user.columnList ) ) {
 			u[ col ] = "";
 		}
+
+		u.form_name = arguments.args.form_name ?: "";
+
 		return u;
 	}
 
@@ -24,6 +29,7 @@ component {
 			  display_name  = "Sam Montoya"
 			, login_id      = "sam"
 			, email_address = "sam.montoya@test.com"
+			, form_name     = "Contact us"
 		};
 	}
 
