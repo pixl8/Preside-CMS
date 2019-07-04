@@ -3,7 +3,7 @@ component {
 	public void function setupApplication(
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
-		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*", "^https?://(.*?)/e/t/.*" ]
+		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*", "^https?://(.*?)/e/t/.*", "^https?://(.*?)/taskmanager/runtasks/.*" ]
 		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird" ]
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
@@ -148,7 +148,7 @@ component {
 				if ( _reloadRequired() ) {
 					_announceInterception( "prePresideReload" );
 
-					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." );
+					SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
 
 					_clearExistingApplication();
 					_ensureCaseSensitiveStructSettingsAreActive();
@@ -159,7 +159,7 @@ component {
 					_initColdBox();
 
 					_announceInterception( "postPresideReload" );
-					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" );
+					SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" & Chr( 13 ) & Chr( 10 ) );
 				}
 			}
 		} catch( lock e ) {
@@ -197,7 +197,7 @@ component {
 	}
 
 	private boolean function _reloadRequired() {
-		if ( !application.keyExists( "cbBootstrap" ) ) {
+		if ( !StructKeyExists( application, "cbBootstrap" ) ) {
 			return _preventReloadsWhenExistingUpgradeScriptGenerated();
 		}
 
@@ -575,7 +575,7 @@ component {
 		for( var i=arguments.cookieSet.len(); i>0; i-- ) {
 			var cookieName = ListFirst( arguments.cookieSet[ i ], "=" );
 
-			if ( existingCookies.keyExists( cookieName ) ) {
+			if ( StructKeyExists( existingCookies, cookieName ) ) {
 				arguments.cookieSet.deleteAt( i );
 				anyCleared = true;
 				continue;
@@ -597,7 +597,7 @@ component {
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
 		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			if ( !application.keyExists( "errorLogService" ) ) {
+			if ( !StructKeyExists( application, "errorLogService" ) ) {
 				application.errorLogService = new preside.system.services.errors.ErrorLogService(
 					  appMapping     = attributes.appMapping
 					, appMappingPath = attributes.appMappingPath

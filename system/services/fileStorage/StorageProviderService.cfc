@@ -23,7 +23,7 @@ component {
 	public any function getProvider( required string id, struct configuration={}, boolean skipConstructor=false ) {
 		var providers = _getConfiguredProviders();
 
-		if ( providers.keyExists( arguments.id ) ) {
+		if ( StructKeyExists( providers, arguments.id ) ) {
 			return _createObject(
 				  cfcPath         = providers[ arguments.id ].class
 				, constructorArgs = arguments.configuration

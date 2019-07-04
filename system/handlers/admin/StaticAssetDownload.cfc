@@ -6,7 +6,7 @@ component {
 		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
 		var assetFile       = ExpandPath( staticAssetPath );
 
-		if ( rc.staticAssetPath.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" ) ) {
+		if ( rc.staticAssetPath.reFindNoCase( "^/preside/system/assets/_dynamic/i18nBundle\.js" ) ) {
 			_serveI18nBundle( argumentCollection = arguments );
 		}
 
@@ -28,7 +28,7 @@ component {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
 		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
 
-		if ( ( !fullPath.startsWith( rootAllowedDirectory ) && !fullPath.startsWith( extensionsDirectory ) ) || fullPath contains ".." ) {
+		if ( ( fullPath.left( rootAllowedDirectory.len() ) != rootAllowedDirectory && fullPath.left( extensionsDirectory.len() ) != extensionsDirectory ) || fullPath contains ".." ) {
 			return false;
 		}
 

@@ -91,7 +91,7 @@ component {
 		var custom = {};
 
 		for( var key in arguments ) {
-			if ( key.startsWith( "custom" ) ) {
+			if ( key.reFindNoCase( "^custom" ) ) {
 				custom[ key.reReplace( "^custom", "" ) ] = arguments[ key ];
 			}
 		}

@@ -338,7 +338,7 @@ component {
 
 // PRIVATE HELPERS
 	private date function _getLimitDate( required string unit, required numeric measure ) {
-		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
+		if ( !StructKeyExists( _timeUnitToCfMapping, arguments.unit ) ) {
 			return '1900-01-01';
 		}
 

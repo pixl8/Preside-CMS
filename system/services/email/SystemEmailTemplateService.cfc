@@ -52,7 +52,7 @@ component {
 	 * @template.hint The ID of the template to check
 	 */
 	public boolean function templateExists( required string template ) {
-		return _getConfiguredTemplates().keyExists( arguments.template );
+		return StructKeyExists( _getConfiguredTemplates(), arguments.template );
 	}
 
 	/**

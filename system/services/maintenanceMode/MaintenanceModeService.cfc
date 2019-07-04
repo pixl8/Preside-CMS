@@ -82,7 +82,7 @@ component {
 			var scopes = [ session, cookie, form, url ];
 
 			for( var scope in scopes ){
-				if ( scope.keyExists( bypassPassword ) ) {
+				if ( StructKeyExists( scope, bypassPassword ) ) {
 					session[ bypassPassword ] = true;
 					return true;
 				}

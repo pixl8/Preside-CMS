@@ -44,7 +44,7 @@
 						<i class="fa fa-bolt"></i>
 						#translateResource( uri="cms:updateManager.install.version.btn" )#
 					</a>
-				<cfelseif downloadingVersions.keyExists( latestVersion.version )>
+				<cfelseif StructKeyExists( downloadingVersions, latestVersion.version )>
 					#translateResource( uri="cms:updateManager.latest.version.downloading", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion.version#</strong>" ] )#
 					<a class="btn pull-right btn-disabled" disabled>
 						<i class="fa fa-cloud-download"></i>
@@ -52,7 +52,7 @@
 					</a>
 					<cfset event.includeData( { downloadingVersion=latestVersion.version } ) />
 				<cfelse>
-					#translateResource( uri="cms:updateManager.latest.version.downloadable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion.version#</strong>", #dateformat(latestVersion.date,'mmmm dd, yyyy')#,  "<a href='#latestVersion.noteURL#'>#translateResource( uri="cms:updateManager.releaseNotes.th" )#</a>"] )# 
+					#translateResource( uri="cms:updateManager.latest.version.downloadable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion.version#</strong>", #dateformat(latestVersion.date,'mmmm dd, yyyy')#,  "<a href='#latestVersion.noteURL#'>#translateResource( uri="cms:updateManager.releaseNotes.th" )#</a>"] )#
 					<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.downloadVersionAction', queryString='version=#latestVersion.version#' )#">
 						<i class="fa fa-cloud-download"></i>
 						#translateResource( uri="cms:updateManager.download.version.btn" )#
@@ -138,7 +138,7 @@
 								<td>
 									<cfif version.noteURL eq '-'>
 										-
-									<cfelse>	
+									<cfelse>
 										<a href="#version.noteURL#" target="_blank">#translateResource( "cms:updateManager.notes.in" )#</a>
 									</cfif>
 								</td>
@@ -147,7 +147,7 @@
 									<td>
 										<div class="action-buttons"> <a> <i class="grey fa fa-cloud-download bigger-130"></i> </a> </div>
 									</td>
-								<cfelseif downloadingVersions.keyExists( version.version )>
+								<cfelseif StructKeyExists( downloadingVersions, version.version )>
 									<td><i class="green fa fa-download"></i>&nbsp; #translateResource( "cms:updateManager.download.in.progress" )#</td>
 									<td>
 										<div class="action-buttons"> <a> <i class="grey fa fa-cloud-download bigger-130"></i> </a> </div>

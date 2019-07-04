@@ -81,7 +81,7 @@
 <!--- FORMS --->
 	<cffunction name="renderForm" access="public" returntype="any" output="false">
 		<cfscript>
-			if ( !arguments.keyExists( "validationJsJqueryRef" ) ) {
+			if ( !StructKeyExists( arguments, "validationJsJqueryRef" ) ) {
 				var event = getController().getRequestContext();
 
 				arguments.validationJsJqueryRef = event.isAdminRequest() ? "presideJQuery" : "jQuery";
@@ -214,6 +214,10 @@
 		<cfreturn getSingleton( "permissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
 
+	<cffunction name="hasCmsPermissions" access="public" returntype="struct" output="false">
+		<cfreturn getSingleton( "permissionService" ).hasPermissions( argumentCollection=arguments ) />
+	</cffunction>
+
 	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false">
 		<cfreturn getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
@@ -299,7 +303,7 @@
 		<cfscript>
 			request._simpleRequestCache = request._simpleRequestCache ?: {};
 
-			if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+			if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
 				request._simpleRequestCache[ arguments.key ] = arguments.generator();
 			}
 

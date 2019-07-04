@@ -9,7 +9,7 @@
 	param name="args.savedData" type="struct";
 
 	hasError    = Len( Trim( args.error ) );
-	hasOverride = args.savedData.keyExists( args.name ) || rc.keyExists( args.name );
+	hasOverride = StructKeyExists( args.savedData, args.name ) || StructKeyExists( rc, args.name );
 	event.include( "/js/admin/specific/overrideform/" );
 </cfscript>
 

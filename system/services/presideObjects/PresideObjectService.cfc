@@ -353,10 +353,10 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( dateCreatedField.len() && obj.properties.keyExists( dateCreatedField ) && !cleanedData.keyExists( dateCreatedField ) ) {
+		if ( dateCreatedField.len() && StructKeyExists( obj.properties, dateCreatedField ) && !StructKeyExists( cleanedData, dateCreatedField ) ) {
 			cleanedData[ dateCreatedField ] = rightNow;
 		}
-		if ( dateModifiedField.len() && obj.properties.keyExists( dateModifiedField ) && !cleanedData.keyExists( dateModifiedField ) ) {
+		if ( dateModifiedField.len() && StructKeyExists( obj.properties, dateModifiedField ) && !StructKeyExists( cleanedData, dateModifiedField ) ) {
 			cleanedData[ dateModifiedField ] = rightNow;
 		}
 		if ( ListFindNoCase( obj.dbFieldList, idField ) && StructKeyExists( obj.properties, idField ) ) {
@@ -919,7 +919,7 @@ component displayName="Preside Object Service" {
 
 		if ( !Len( Trim( selectDataArgs.orderBy ) ) ) {
 			var relatedVia   = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
-			var hasSortOrder = Len( Trim( relatedVia ) ) && getObjectProperties( relatedVia ).keyExists( "sort_order" );
+			var hasSortOrder = Len( Trim( relatedVia ) ) && StructKeyExists( getObjectProperties( relatedVia ), "sort_order" );
 			if ( hasSortOrder ) {
 				selectDataArgs.orderBy = relatedVia & ".sort_order";
 			}
@@ -974,7 +974,7 @@ component displayName="Preside Object Service" {
 		if ( Len( Trim( pivotTable ) ) and Len( Trim( targetObject ) ) ) {
 			var newRecords      = ListToArray( arguments.targetIdList );
 			var anythingChanged = false;
-			var hasSortOrder    = getObjectProperties( pivotTable ).keyExists( "sort_order" );
+			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), "sort_order" );
 			var currentSelect   = [ "#targetFk# as targetId" ];
 
 			if ( hasSortOrder ) {
@@ -1200,7 +1200,7 @@ component displayName="Preside Object Service" {
 
 					var idField = getIdField( props[ prop ].relatedTo ?: "" );
 					var relatedVia = props[ prop ].relatedVia ?: "";
-					var sortOrder = objectExists( relatedVia ) && getObjectProperties( relatedVia ).keyExists( "sort_order" ) ? adapter.escapeEntity( "#relatedVia#.sort_order" ) : adapter.escapeEntity( "#prop#.#idField#" );
+					var sortOrder = objectExists( relatedVia ) && StructKeyExists( getObjectProperties( relatedVia ), "sort_order" ) ? adapter.escapeEntity( "#relatedVia#.sort_order" ) : adapter.escapeEntity( "#prop#.#idField#" );
 					var records = selectData(
 						  objectName       = arguments.objectName
 						, id               = arguments.id
@@ -1243,7 +1243,7 @@ component displayName="Preside Object Service" {
 		var targetFk      = arguments.relationshipKey ?: arguments.sourceObject;
 		var targetIdField = getIdField( targetObject );
 		var useVersioning = Val( arguments.specificVersion ?: "" ) && objectIsVersioned( targetObject );
-		var hasSortOrder  = getObjectProperties( targetObject ).keyExists( "sort_order" );
+		var hasSortOrder  = StructKeyExists( getObjectProperties( targetObject ), "sort_order" );
 		var orderBy       = hasSortOrder ? "sort_order" : "";
 		var labelRenderer = arguments.labelRenderer ?: getObjectAttribute( targetObject, "labelRenderer" );
 		var labelFields   = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
@@ -1290,14 +1290,14 @@ component displayName="Preside Object Service" {
 			args[ key ] = arguments[ key ];
 		}
 
+		args.objectName = getVersionObjectName( arguments.objectName );
 		args.append( {
-			  objectName         = getVersionObjectName( arguments.objectName )
-			, orderBy            = "_version_number desc"
+			  orderBy            = "_version_number desc"
 			, useCache           = false
 			, allowDraftVersions = true
-		} );
+		}, false );
 
-		if ( args.keyExists( "fieldName" ) ) {
+		if ( StructKeyExists( args, "fieldName" ) ) {
 			args.filter       = "#idField# = :#idField# and _version_changed_fields like :_version_changed_fields";
 			args.filterParams = { "#idField#" = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
 			args.delete( "fieldName" );
@@ -1305,6 +1305,68 @@ component displayName="Preside Object Service" {
 		}
 
 		return selectData( argumentCollection = args );
+	}
+
+	/**
+	 * Returns the version number of the previous version of the given record ID
+	 * and existing version
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object whose record we wish to retrieve the version history for
+	 * @id.hint             ID of the record whose history we wish to view
+	 * @currentVersion.hint Current version number
+	 *
+	 */
+	public any function getPreviousVersion(
+		  required string  objectName
+		, required string  id
+		, required numeric currentVersion
+	) {
+		var extraFilters = [{
+			  filter = "_version_number < :_version_number"
+			, filterParams = { _version_number=arguments.currentVersion }
+		}];
+		var prev = getRecordVersions(
+			  argumentCollection = arguments
+			, extraFilters       = extraFilters
+			, maxRows            = 1
+			, orderBy            = "_version_number desc"
+			, selectFields       = [ "_version_number" ]
+			, useCache           = true
+		);
+
+		return Val( prev._version_number );
+	}
+
+	/**
+	 * Returns the version number of the next version of the given record ID
+	 * and existing version
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object whose record we wish to retrieve the version history for
+	 * @id.hint             ID of the record whose history we wish to view
+	 * @currentVersion.hint Current version number
+	 *
+	 */
+	public numeric function getNextVersion(
+		  required string  objectName
+		, required string  id
+		, required numeric currentVersion
+	) {
+		var extraFilters = [{
+			  filter = "_version_number > :_version_number"
+			, filterParams = { _version_number=arguments.currentVersion }
+		}];
+		var nxt = getRecordVersions(
+			  argumentCollection = arguments
+			, extraFilters       = extraFilters
+			, maxRows            = 1
+			, orderBy            = "_version_number asc"
+			, selectFields       = [ "_version_number" ]
+			, useCache           = true
+		);
+
+		return Val( nxt._version_number );
 	}
 
 	/**
@@ -1554,7 +1616,7 @@ component displayName="Preside Object Service" {
 	public any function getObjectProperty( required string objectName, required string propertyName ) {
 		var props = _getObject( arguments.objectName ).meta.properties;
 
-		if ( props.keyExists( arguments.propertyName ) ) {
+		if ( StructKeyExists( props, arguments.propertyName ) ) {
 			return props[ arguments.propertyName ];
 		}
 
@@ -1687,15 +1749,15 @@ component displayName="Preside Object Service" {
 				return "oneToManyManager";
 		}
 
+		if ( arguments.enum.len() ) {
+			return "enumSelect";
+		}
+
 		switch ( arguments.type ) {
 			case "numeric":
 				return "spinner";
 			case "boolean":
 				return "yesNoSwitch";
-		}
-
-		if ( arguments.enum.len() ) {
-			return "enumSelect";
 		}
 
 		switch( arguments.dbType ){
@@ -2100,25 +2162,25 @@ component displayName="Preside Object Service" {
 
 			if ( !isComplex ) {
 				if ( IsStruct( arguments.filter ) ) {
-					if ( arguments.filter.keyExists( "id" ) ) {
+					if ( StructKeyExists( arguments.filter, "id" ) ) {
 						recordId = arguments.filter.id;
-					} else if ( arguments.filter.keyExists( idField ) ) {
+					} else if ( StructKeyExists( arguments.filter, idField ) ) {
 						recordId = arguments.filter[ idField ];
-					} else if ( arguments.filter.keyExists( fullIdField ) ) {
+					} else if ( StructKeyExists( arguments.filter, fullIdField ) ) {
 						recordId = arguments.filter[ fullIdField ];
-					} else if ( arguments.filter.keyExists( "#arguments.objectName#.id" ) ) {
+					} else if ( StructKeyExists( arguments.filter, "#arguments.objectName#.id" ) ) {
 						recordId = arguments.filter[ "#arguments.objectName#.id" ];
 					} else {
 						isComplex = true;
 					}
 				} else {
-					if ( arguments.filterParams.keyExists( "id" ) ) {
+					if ( StructKeyExists( arguments.filterParams, "id" ) ) {
 						recordId = arguments.filterParams.id;
-					} else if ( arguments.filterParams.keyExists( idField ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, idField ) ) {
 						recordId = arguments.filterParams[ idField ];
-					} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, fullIdField ) ) {
 						recordId = arguments.filterParams[ fullIdField ];
-					} else if ( arguments.filterParams.keyExists( "#arguments.objectName#.id" ) ) {
+					} else if ( StructKeyExists( arguments.filterParams, "#arguments.objectName#.id" ) ) {
 						recordId = arguments.filterParams[ "#arguments.objectName#.id" ];
 					} else {
 						isComplex = true;
@@ -2328,7 +2390,7 @@ component displayName="Preside Object Service" {
 					var matched       = true;
 
 					for( var entity in matchEntities ) {
-						if ( !entities.keyExists( entity ) ) {
+						if ( !StructKeyExists( entities, entity ) ) {
 							matched = false;
 							break;
 						}
@@ -2408,13 +2470,13 @@ component displayName="Preside Object Service" {
 			return arguments;
 		}
 
-		if ( arguments.keyExists( "selectFields" ) ) {
+		if ( StructKeyExists( arguments, "selectFields" ) ) {
 			for( var i=1; i<=arguments.selectFields.len(); i++ ) {
 				arguments.selectFields[ i ] = _simpleReplacer( arguments.selectFields[ i ], arguments.objectName, true );
 			}
 		}
 
-		if ( arguments.keyExists( "filter" ) ) {
+		if ( StructKeyExists( arguments, "filter" ) ) {
 			if ( IsSimpleValue( arguments.filter ) ) {
 				arguments.filter = _simpleReplacer( arguments.filter, arguments.objectName );
 			} else {
@@ -2422,23 +2484,23 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( arguments.keyExists( "filterParams" ) ) {
+		if ( StructKeyExists( arguments, "filterParams" ) ) {
 			_structKeyReplacer( arguments.filterParams, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "data" ) ) {
+		if ( StructKeyExists( arguments, "data" ) ) {
 			_structKeyReplacer( arguments.data, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "having" ) ) {
+		if ( StructKeyExists( arguments, "having" ) ) {
 			arguments.having = _simpleReplacer( arguments.having, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "orderBy" ) ) {
+		if ( StructKeyExists( arguments, "orderBy" ) ) {
 			arguments.orderBy = _simpleReplacer( arguments.orderBy, arguments.objectName );
 		}
 
-		if ( arguments.keyExists( "groupBy" ) ) {
+		if ( StructKeyExists( arguments, "groupBy" ) ) {
 			arguments.groupBy = _simpleReplacer( arguments.groupBy, arguments.objectName );
 		}
 
@@ -2466,7 +2528,7 @@ component displayName="Preside Object Service" {
 		var matches = _reSearch( aliasRegex, plainString );
 		var results = [];
 
-		if ( matches.keyExists( "$1" ) ) {
+		if ( StructKeyExists( matches, "$1" ) ) {
 			for( var i=1; i<=matches.$1.len(); i++ ) {
 				var fullMatch   = matches.$1[i] & matches.$2[i] & matches.$6[i] & "." & matches.$7[i] & matches.$8[i] & matches.$9[i];
 				var objPath     = matches.$2[i];
@@ -2695,10 +2757,10 @@ component displayName="Preside Object Service" {
 
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
-				if ( manyToManyObjects.keyExists( join.joinFromObject ) ) {
+				if ( StructKeyExists( manyToManyObjects, join.joinFromObject ) ) {
 					join.joinFromObject = getVersionObjectName( join.joinFromObject );
 				}
-				if ( manyToManyObjects.keyExists( join.joinToObject ) ) {
+				if ( StructKeyExists( manyToManyObjects, join.joinToObject ) ) {
 					join.tableAlias = join.joinToObject;
 					join.joinToObject = getVersionObjectName( join.joinToObject );
 					join.addVersionClause = true;
@@ -2861,7 +2923,7 @@ component displayName="Preside Object Service" {
 		variables._relationshipPathCalcCache = variables._relationshipPathCalcCache ?: {};
 		var cacheKey = arguments.startObject & arguments.joinSyntax;
 
-		if ( !_relationshipPathCalcCache.keyExists( cacheKey ) ) {
+		if ( !StructKeyExists( _relationshipPathCalcCache, cacheKey ) ) {
 			_relationshipPathCalcCache[ cacheKey ] = _getRelationshipGuidance().resolveRelationshipPathToTargetObject(
 				  sourceObject     = arguments.startObject
 				, relationshipPath = arguments.joinSyntax
@@ -2903,7 +2965,7 @@ component displayName="Preside Object Service" {
 
 		var idField = getIdField( arguments.objectName );
 		var result = {
-			  filter       = arguments.keyExists( "id" ) ? { "#idField#" = arguments.id } : arguments.filter
+			  filter       = StructKeyExists( arguments, "id" ) ? { "#idField#" = arguments.id } : arguments.filter
 			, filterParams = arguments.filterParams
 			, having       = arguments.having
 		};
@@ -3068,7 +3130,7 @@ component displayName="Preside Object Service" {
 				if ( Len( Trim( prop.generateFrom ?: "" ) ) ) {
 					var valueToHash = "";
 					for( var field in ListToArray( prop.generateFrom ) ) {
-						if ( arguments.data.keyExists( field ) ) {
+						if ( StructKeyExists( arguments.data, field ) ) {
 							valueToHash &= arguments.data[ field ];
 						} else {
 							return;
@@ -3082,7 +3144,7 @@ component displayName="Preside Object Service" {
 				var generateFrom = prop.generateFrom ?: getLabelField( arguments.objectName );
 				var idField      = getIdField( arguments.objectName );
 
-				if ( len( arguments.data[ prop.name ] ?: "" ) || !arguments.data.keyExists( generateFrom ) ) {
+				if ( len( arguments.data[ prop.name ] ?: "" ) || !StructKeyExists( arguments.data, generateFrom ) ) {
 					return;
 				}
 
@@ -3227,7 +3289,9 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		cachebox.createCache( argumentCollection=newConfig );
+		try {
+			cachebox.createCache( argumentCollection=newConfig );
+		} catch ( "CacheFactory.CacheExistsException" e ) {}
 
 		return cachebox.getCache( newConfig.name );
 	}

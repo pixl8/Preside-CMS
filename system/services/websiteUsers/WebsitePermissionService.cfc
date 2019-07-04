@@ -521,7 +521,7 @@ component displayName="Website permissions service" {
 
 			for( var benefit in allBenefits ){
 				for ( var role in ListToArray( benefit.roles ) ) {
-					if ( rolesWithPerm.keyExists( role ) ) {
+					if ( StructKeyExists( rolesWithPerm, role ) ) {
 						benefits.append( { id=benefit.id, name=benefit.label } );
 						break;
 					}

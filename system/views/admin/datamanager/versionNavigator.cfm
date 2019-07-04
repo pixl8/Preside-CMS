@@ -7,7 +7,6 @@
 	param name="args.version"                type="string";
 	param name="args.isDraft"                type="boolean" default=false;
 	param name="args.isLatest"               type="boolean";
-	param name="args.versions"               type="query";
 	param name="args.baseUrl"                type="string" default="#event.buildAdminLink( objectName=args.object, recordId=args.id, operation='editRecord', args={ version='{version}' } )#";
 	param name="args.allVersionsUrl"         type="string" default="#event.buildAdminLink( objectName=args.object, recordId=args.id, operation='recordHistory' )#";
 	param name="args.discardDraftsUrl"       type="string" default="";
@@ -29,7 +28,7 @@
 	}
 </cfscript>
 
-<cfif args.versions.recordCount gt 1>
+<cfif args.prevVersion or args.nextVersion>
 	<cfoutput>
 		<div class="version-navigator clearfix alert alert-block alert-#alertClass#">
 			<p class="pull-left">

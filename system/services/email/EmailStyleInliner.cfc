@@ -120,7 +120,7 @@ component {
 				var prop  = style.rule.listFirst( ":" ).trim();
 				var value = style.rule.listRest( ":" ).trim();
 
-				if ( !elemStyle.keyExists( prop ) || _compareScores( elemStyle[ prop ].score, style.score ) == 1 ) {
+				if ( !StructKeyExists( elemStyle, prop ) || _compareScores( elemStyle[ prop ].score, style.score ) == 1 ) {
 					elemStyle[ prop ] = {
 						  value = value
 						, score = style.score
@@ -174,9 +174,9 @@ component {
 		for( var selectorToken in selectorTokens ) {
 			selectorToken = Trim( selectorToken );
 
-			if ( selectorToken.startsWith( "##" ) ) {
+			if ( selectorToken.reFind( "^##" ) ) {
 				score[ 3 ]++;
-			} else if ( selectorToken.startsWith( "." ) ) {
+			} else if ( selectorToken.reFind( "^\." ) ) {
 				score[ 4 ]++;
 			} else {
 				score[ 5 ]++;

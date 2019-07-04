@@ -401,7 +401,7 @@ component {
 	 *
 	 */
 	public boolean function deleteExpiredContent( any logger ) {
-		var canLog   = arguments.keyExists( "logger" );
+		var canLog   = StructKeyExists( arguments, "logger" );
 		var canInfo  = canLog && logger.canInfo();
 		var canError = canLog && logger.canError();
 		var dao      = $getPresideObject( "email_template_send_log_content");
