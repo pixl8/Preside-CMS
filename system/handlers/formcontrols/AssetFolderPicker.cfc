@@ -9,11 +9,11 @@ component {
 
 		args.prefetchUrl = event.buildAdminLink(
 			  linkTo      = "assetManager.getFoldersForAjaxSelectControl"
-			, querystring = "maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#"
+			, querystring = "maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#&currentFolderLabel=#args.savedData.LABEL ?: ""#"
 		);
 		args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 			  linkTo      = "assetManager.getFoldersForAjaxSelectControl"
-			, querystring = "q=%QUERY"
+			, querystring = "currentFolderLabel=#args.savedData.LABEL ?: ""#&q=%QUERY"
 		);
 
 		return renderView( view="formcontrols/objectPicker/index", args=args );
