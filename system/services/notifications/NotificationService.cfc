@@ -116,14 +116,21 @@ component autodoc=true displayName="Notification Service" {
 	 *
 	 * @userId.hint id of the admin user whose unread notification count we wish to retrieve
 	 */
-	public numeric function getUnreadNotificationCount( required string userId ) autodoc=true {
+	public numeric function getUnreadNotificationCount(
+		  required string userId
+		, required numeric maxRows 
+	) autodoc=true {
 		var queryResult = _getConsumerDao().selectData(
-			  selectFields = [ "Count(*) as notification_count" ]
-			, filter       = { security_user = arguments.userId, read = false }
+			  selectFields = [ "read as notification" ]
+			, filter       = { 
+				  security_user = arguments.userId
+				, read          = false 
+			  }
 			, useCache     = false
+			, maxRows      = arguments.maxRows
 		);
 
-		return Val( queryResult.notification_count ?: "" );
+		return queryResult.recordCount()?: "";
 	}
 
 	/**
@@ -131,15 +138,40 @@ component autodoc=true displayName="Notification Service" {
 	 *
 	 * @userId.hint  id of the admin user whose unread notifications we wish to retrieve
 	 */
-	public query function getUnreadTopics( required string userId ) autodoc=true {
-		return _getConsumerDao().selectData(
-			  selectFields = [ "admin_notification.topic", "Count(*) as notification_count" ]
+	public query function getUnreadTopics(
+		  required string userId
+		, required numeric maxRows 
+	) autodoc=true {
+		
+		var unreadTopics = QueryNew( "topic, notification_count", "varchar, integer");
+
+		var notificationTopics =  _getConsumerDao().selectData(
+			  selectFields = [ "admin_notification.topic" ]
 			, filter       = {
 				  "admin_notification_consumer.security_user" = arguments.userId
 				, "admin_notification_consumer.read"          = false
 			  }
 			, groupBy      = "admin_notification.topic"
 		);
+		  
+		for( notificationTopic in notificationTopics ) {
+			queryAddRow( unreadTopics );
+
+			var queryResult =  _getConsumerDao().selectData(
+				  selectFields = [ "admin_notification.topic" ]
+				, filter       = {
+					"admin_notification_consumer.security_user" = arguments.userId
+					, "admin_notification_consumer.read"          = false
+					, "admin_notification.topic"                  = notificationTopic.topic
+				  }
+				, maxRows      = arguments.maxRows
+			);
+
+			querySetCell( unreadTopics, "topic", notificationTopic.topic );
+			querySetCell( unreadTopics, "notification_count", queryResult.recordCount() );
+		}
+		
+		return unreadTopics;
 	}
 
 	/**
