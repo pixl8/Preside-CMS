@@ -137,6 +137,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onClearSettingsCache"                  );
 		interceptorSettings.customInterceptionPoints.append( "onClearCaches"                         );
 		interceptorSettings.customInterceptionPoints.append( "onClearPageCaches"                     );
+		interceptorSettings.customInterceptionPoints.append( "onInvalidateRenderedAssetCache"        );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()

@@ -768,7 +768,7 @@ component displayName="AssetManager Service" {
 			);
 		}
 
-		_invalidateRenderedAssetCache( arguments.assetId );
+		invalidateRenderedAssetCache( arguments.assetId );
 		var auditDetail = assetVersion;
 		for( var a in originalAsset ) { auditDetail.append( a ); }
 		$audit(
@@ -828,7 +828,7 @@ component displayName="AssetManager Service" {
 		}
 
 		flushAssetUrlCache( arguments.id );
-		_invalidateRenderedAssetCache( arguments.id );
+		invalidateRenderedAssetCache( arguments.id );
 
 		auditDetail.id = arguments.id;
 		$audit(
@@ -1654,7 +1654,7 @@ component displayName="AssetManager Service" {
 				, asset_url 	   = generatedAssetUrl
 			} );
 
-			_invalidateRenderedAssetCache( arguments.assetId );
+			invalidateRenderedAssetCache( arguments.assetId );
 			for( var a in versionToMakeActive ) { var auditDetail = a; }
 			$audit(
 				  action   = "change_asset_version"
@@ -1839,6 +1839,14 @@ component displayName="AssetManager Service" {
 		}
 
 		return childFolders;
+	}
+
+	public void function invalidateRenderedAssetCache( required string assetId ) {
+		_getRenderedAssetCache().clearByKeySnippet(
+			  keySnippet = "^asset-#arguments.assetId#"
+			, regex      = true
+		);
+		$announceInterception( "onInvalidateRenderedAssetCache", arguments );
 	}
 
 // PRIVATE HELPERS
@@ -2188,13 +2196,6 @@ component displayName="AssetManager Service" {
 
 	private boolean function _isPendingAssetURL(  string asset_url="", asset_type="", storage_path=""  ) {
 		return refindNoCase( 'pending-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}', arguments.asset_url ) || asset_type == "PENDING" || refindNoCase( 'pending-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}', arguments.storage_path );
-	}
-
-	private void function _invalidateRenderedAssetCache( required string assetId ) {
-		_getRenderedAssetCache().clearByKeySnippet(
-			  keySnippet = "^asset-#arguments.assetId#"
-			, regex      = true
-		);
 	}
 
 // GETTERS AND SETTERS
