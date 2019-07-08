@@ -182,7 +182,7 @@ component displayName="Preside Object Service" {
 		,          boolean useCache                = _getUseCacheDefault( arguments.objectName )
 		,          boolean fromVersionTable        = false
 		,          numeric specificVersion         = 0
-		,          boolean allowDraftVersions      = $getRequestContext().showNonLiveContent()
+		,          boolean allowDraftVersions      = _getDefaultAllowDraftVersions()
 		,          string  forceJoins              = ""
 		,          array   extraJoins              = []
 		,          boolean recordCountOnly         = false
@@ -3240,7 +3240,23 @@ component displayName="Preside Object Service" {
 	}
 
 	private boolean function _getUseCacheDefault( required string objectName ) {
-		return _objectUsesCaching( arguments.objectName ) && $getRequestContext().getUseQueryCache();
+		try {
+			return request[ "_defaultUseCache#arguments.objectName#" ];
+		} catch( any e ) {
+			request[ "_defaultUseCache#arguments.objectName#" ] = _objectUsesCaching( arguments.objectName ) && $getRequestContext().getUseQueryCache();
+		}
+
+		return request[ "_defaultUseCache#arguments.objectName#" ];
+	}
+
+	private boolean function _getDefaultAllowDraftVersions() {
+		try {
+			return request._defaultAllowDraftVersions;
+		} catch( any e ) {
+			request._defaultAllowDraftVersions = $getRequestContext().showNonLiveContent();
+		}
+
+		return request._defaultAllowDraftVersions;
 	}
 
 	private boolean function _objectUsesCaching( required string objectName ) {

@@ -50,7 +50,6 @@ component {
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
 		];
