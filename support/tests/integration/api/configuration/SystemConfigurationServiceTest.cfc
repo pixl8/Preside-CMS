@@ -324,14 +324,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockCache.$( "set" );
 		mockCache.$( "clearByKeySnippet" );
 
-		return new preside.system.services.configuration.SystemConfigurationService(
+		var svc = CreateMock( object=new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
 			, injectedConfig          = arguments.injectedConfig
 			, formsService            = mockFormsService
 			, siteService             = mockSiteService
 			, settingsCache           = mockCache
-		);
+		) );
+
+		svc.$( "$announceInterception" );
+
+		return svc;
 	}
 
 }
