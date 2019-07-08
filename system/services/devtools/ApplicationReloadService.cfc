@@ -63,6 +63,7 @@ component {
 
 	public void function clearCaches() {
 		_getColdbox().getCachebox().clearAll();
+		$announceInterception( "onClearCaches", {} );
 	}
 
 	public void function dbSync() {

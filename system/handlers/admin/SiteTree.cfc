@@ -1194,6 +1194,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( pageId.isEmpty() ) {
 			getController().getCachebox().clearAll();
+			announceInterception( "onClearCaches", {} );
 
 			event.audit(
 				  action = "clear_page_cache"
@@ -1207,6 +1208,11 @@ component extends="preside.system.base.AdminHandler" {
 
 			pageCache.clearByKeySnippet( pageUrl );
 			pageCache.clearByKeySnippet( sectionUrl );
+
+			announceInterception( "onClearPageCaches", {
+				  pageUrl    = pageUrl
+				, sectionUrl = sectionUrl
+			} );
 
 			event.audit(
 				  action   = "clear_cache_for_page"
