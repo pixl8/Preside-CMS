@@ -911,8 +911,9 @@ component {
 		for( var i=1; i <= formItems.len(); i++ ) {
 			if ( formItems[i].type.isFormField ) {
 				var columns = renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration );
+				var export  = formItems[i].configuration.export ?: 0 ;
 
-				if ( columns.len() ) {
+				if ( columns.len() && export ) {
 					itemsToRender.append( formItems[i] );
 					itemColumnMap[ formItems[ i ].id ] = columns;
 					headers.append( columns, true );
