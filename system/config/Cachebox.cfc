@@ -189,7 +189,6 @@ component {
 						, objectStore                    = "ConcurrentStore"
 					}
 				}
-
 			}
 		};
 	}
