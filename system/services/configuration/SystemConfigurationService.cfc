@@ -3,6 +3,7 @@
  * for interacting with Preside' [[editablesystemsettings]].
  *
  * @singleton
+ * @presideService
  * @autodoc
  */
 component displayName="System configuration service" {
@@ -208,11 +209,8 @@ component displayName="System configuration service" {
 			}
 		}
 
-		_getSettingsCache().clearByKeySnippet(
-			  keySnippet = "^setting\.#arguments.category#\."
-			, regex      = true
-			, async      = false
-		);
+		clearSettingsCache( arguments.category );
+
 
 		return result;
 	}
@@ -238,11 +236,7 @@ component displayName="System configuration service" {
 			, filterParams = params
 		);
 
-		_getSettingsCache().clearByKeySnippet(
-			  keySnippet = "^setting\.#arguments.category#\."
-			, regex      = true
-			, async      = false
-		);
+		clearSettingsCache( arguments.category );
 
 		return result;
 	}
@@ -282,6 +276,15 @@ component displayName="System configuration service" {
 	public void function reload() {
 		_setConfigCategories({});
 		_autoDiscoverCategories();
+	}
+
+	public void function clearSettingsCache( required string category ) {
+		_getSettingsCache().clearByKeySnippet(
+			  keySnippet = "^setting\.#arguments.category#\."
+			, regex      = true
+			, async      = false
+		);
+		$announceInterception( "onClearSettingsCache", arguments );
 	}
 
 // PRIVATE HELPERS
