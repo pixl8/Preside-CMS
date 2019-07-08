@@ -133,6 +133,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
 		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
 		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
+		interceptorSettings.customInterceptionPoints.append( "preClearRelatedCaches"                 );
+		interceptorSettings.customInterceptionPoints.append( "postClearRelatedCaches"                );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
