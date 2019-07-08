@@ -736,7 +736,7 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( arguments.clearCaches ) {
+		if ( arguments.clearCaches && Val( result.recordCount ?: 0 ) ) {
 			clearRelatedCaches(
 				  objectName   = arguments.objectName
 				, filter       = preparedFilter.filter
@@ -835,7 +835,7 @@ component displayName="Preside Object Service" {
 
 		result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
-		if ( arguments.clearCaches ) {
+		if ( arguments.clearCaches && Val( result.recordCount ?: 0 ) ) {
 			clearRelatedCaches(
 				  objectName   = args.objectName
 				, filter       = preparedFilter.filter
