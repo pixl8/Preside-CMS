@@ -79,7 +79,9 @@ component {
 			}
 		} while( ++processedCount < rateLimit && !$isInterrupted() );
 
-		poService.clearRelatedCaches( "email_mass_send_queue" );
+		if ( processedCount ) {
+			poService.clearRelatedCaches( "email_mass_send_queue" );
+		}
 	}
 
 	/**
