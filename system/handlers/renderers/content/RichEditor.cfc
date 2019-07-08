@@ -9,6 +9,8 @@ component {
 		content = contentRendererService.renderEmbeddedAttachments( richContent=content, context="richeditor" );
 		content = contentRendererService.renderEmbeddedLinks( richContent=content );
 
+		contentRendererService.renderCodeHighlighterIncludes( richContent=content );
+
 		return content;
 	}
 
