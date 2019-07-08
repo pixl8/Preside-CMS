@@ -1814,6 +1814,8 @@ component displayName="Preside Object Service" {
 		,          struct  filterParams            = {}
 		,          boolean clearSingleRecordCaches = true
 	) {
+		_announceInterception( "preClearRelatedCaches", arguments );
+
 		var cacheMap              = _getCacheMap();
 		var relatedObjectsToClear = StructKeyArray( cachemap[ arguments.objectName ] ?: {} );
 
@@ -1865,6 +1867,7 @@ component displayName="Preside Object Service" {
 		var cacheKeys = cache.getKeys();
 
 		if ( !ArrayLen( cacheKeys ) ) {
+			_announceInterception( "postClearRelatedCaches", arguments );
 			return;
 		}
 
@@ -1903,6 +1906,8 @@ component displayName="Preside Object Service" {
 				break;
 			}
 		}
+
+		_announceInterception( "postClearRelatedCaches", arguments );
 
 		var derivedFrom = getObjectAttribute( arguments.objectName, "derivedFrom", "" );
 		if ( Len( Trim( derivedFrom ) ) ) {

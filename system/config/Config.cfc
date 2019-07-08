@@ -135,6 +135,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
 		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
 		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
+		interceptorSettings.customInterceptionPoints.append( "preClearRelatedCaches"                 );
+		interceptorSettings.customInterceptionPoints.append( "postClearRelatedCaches"                );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
