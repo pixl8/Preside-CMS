@@ -440,8 +440,8 @@ component autodoc=true displayName="Notification Service" {
 	}
 
 	public void function createNotificationConsumers( required string notificationId, required string topic, required struct data ) {
-		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true } );
-		var subscribedToTopic = _getSubscriptionDao().selectData( filter={ topic=arguments.topic } );
+		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true, active=true } );
+		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "admin_notification_subscription.security_user" ], filter={ topic=arguments.topic , "security_user.active"=true } );
 		var subscribers = {};
 		var interceptorArgs = Duplicate( arguments );
 
