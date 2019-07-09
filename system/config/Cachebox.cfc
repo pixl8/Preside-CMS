@@ -10,7 +10,7 @@ component {
 				, reapFrequency                  = 2
 				, freeMemoryPercentageThreshold  = 0
 				, evictionPolicy                 = "LFU"
-				, evictCount                     = 1
+				, evictCount                     = 100
 				, maxObjects                     = 300
 				, objectStore                    = "ConcurrentStore"
 				, coldboxEnabled                 = true
@@ -28,8 +28,8 @@ component {
 						, reapFrequency                  = 2
 						, freeMemoryPercentageThreshold  = 0
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 2
-						, maxObjects                     = 300
+						, evictCount                     = 200
+						, maxObjects                     = 1000
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -42,8 +42,8 @@ component {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 60
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 1
-						, maxObjects                     = 3000
+						, evictCount                     = 0
+						, maxObjects                     = 0
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -56,7 +56,7 @@ component {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 50
+						, evictCount                     = 200
 						, maxObjects                     = 1000
 						, objectStore                    = "ConcurrentStore"
 					}
@@ -70,8 +70,8 @@ component {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 20
-						, maxObjects                     = 100
+						, evictCount                     = 100
+						, maxObjects                     = 500
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -84,7 +84,7 @@ component {
 						, useLastAccessTimeouts          = true
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 50
+						, evictCount                     = 100
 						, maxObjects                     = 500
 						, objectStore                    = "ConcurrentStore"
 					}
@@ -98,8 +98,8 @@ component {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 10
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 10
-						, maxObjects                     = 200
+						, evictCount                     = 100
+						, maxObjects                     = 500
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -112,8 +112,8 @@ component {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 10
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 10
-						, maxObjects                     = 200
+						, evictCount                     = 100
+						, maxObjects                     = 500
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -127,7 +127,7 @@ component {
 						, reapFrequency                  = 20
 						, freeMemoryPercentageThreshold  = 0
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 200
+						, evictCount                     = 500
 						, maxObjects                     = 2000
 						, objectStore                    = "ConcurrentStore"
 					}
@@ -170,7 +170,7 @@ component {
 						, reapFrequency                  = 20
 						, freeMemoryPercentageThreshold  = 0
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 1000
+						, evictCount                     = 200
 						, maxObjects                     = 1000
 						, objectStore                    = "ConcurrentStore"
 					}
