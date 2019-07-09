@@ -1261,7 +1261,7 @@ component displayName="Forms service" {
 					var fieldMatched = false;
 					var fieldDeleted = false;
 					for( var mField in matchingFieldset.fields ){
-						if ( mField.name == field.name ) {
+						if ( ( mField.name ?: "" ) == field.name ) {
 							if ( IsBoolean( field.deleted ?: "" ) and field.deleted ) {
 								ArrayDelete( matchingFieldset.fields, mField );
 								fieldDeleted = true;
