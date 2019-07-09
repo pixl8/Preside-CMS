@@ -1019,14 +1019,24 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		announceInterception( "onNotFound" );
 		getController().runEvent( "general.notFound" );
 		content reset=true type="text/html";header statusCode="404";
-		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+
+		var contentOutput = getModel( "presideRenderer" ).renderLayout();
+
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		writeOutput( contentOutput );
 		abort;
 	}
 
 	public void function accessDenied( required string reason ) {
 		announceInterception( "onAccessDenied" , arguments );
 		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments }, private=true );
-		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+
+		var contentOutput = getModel( "presideRenderer" ).renderLayout();
+
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		writeOutput( contentOutput );
 		abort;
 	}
 
