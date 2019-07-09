@@ -342,6 +342,15 @@ component {
 		return renderedContent;
 	}
 
+	public void function renderCodeHighlighterIncludes( required string richContent, string context="richeditor" ) {
+		var renderedContent = arguments.richContent;
+
+		if ( _containsCodeSnippets( content=renderedContent ) ) {
+			$getRequestContext().include( "highlightjs-css" )
+				.include( "highlightjs" );
+		}
+	}
+
 	public string function renderEmbeddedWidgets( required string richContent, string context="" ) {
 		var embeddedWidget      = "";
 		var renderedWidget      = "";
@@ -601,6 +610,10 @@ component {
 		}
 
 		return link;
+	}
+
+	private boolean function _containsCodeSnippets( required string content ) {
+		return ReFind( '<code class="language-.*"', content );
 	}
 
 
