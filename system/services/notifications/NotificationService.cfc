@@ -145,30 +145,27 @@ component autodoc=true displayName="Notification Service" {
 		
 		var unreadTopics = QueryNew( "topic, notification_count", "varchar, integer");
 
-		var notificationTopics =  _getConsumerDao().selectData(
+		var notificationTopics =  _getNotificationDao().selectData(
 			  selectFields = [ "admin_notification.topic" ]
-			, filter       = {
-				  "admin_notification_consumer.security_user" = arguments.userId
-				, "admin_notification_consumer.read"          = false
-			  }
 			, groupBy      = "admin_notification.topic"
 		);
-		  
-		for( notificationTopic in notificationTopics ) {
-			queryAddRow( unreadTopics );
 
+		for( notificationTopic in notificationTopics ) {
 			var queryResult =  _getConsumerDao().selectData(
 				  selectFields = [ "admin_notification.topic" ]
 				, filter       = {
-					"admin_notification_consumer.security_user" = arguments.userId
+					  "admin_notification_consumer.security_user" = arguments.userId
 					, "admin_notification_consumer.read"          = false
 					, "admin_notification.topic"                  = notificationTopic.topic
 				  }
 				, maxRows      = arguments.maxRows
 			);
 
-			querySetCell( unreadTopics, "topic", notificationTopic.topic );
-			querySetCell( unreadTopics, "notification_count", queryResult.recordCount() );
+			if( queryResult.recordCount() ) {
+				queryAddRow( unreadTopics );
+				querySetCell( unreadTopics, "topic", notificationTopic.topic );
+				querySetCell( unreadTopics, "notification_count", queryResult.recordCount() );
+			}
 		}
 		
 		return unreadTopics;
