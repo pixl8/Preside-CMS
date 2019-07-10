@@ -120,17 +120,17 @@ component autodoc=true displayName="Notification Service" {
 		  required string userId
 		, required numeric maxRows 
 	) autodoc=true {
-		var queryResult = _getConsumerDao().selectData(
-			  selectFields = [ "read as notification" ]
-			, filter       = { 
+		var notificationCount = _getConsumerDao().selectData(
+			  selectFields    = [ "read as notification" ]
+			, filter          = { 
 				  security_user = arguments.userId
 				, read          = false 
 			  }
-			, useCache     = false
-			, maxRows      = arguments.maxRows
+			, useCache        = false
+			, recordCountOnly = true 
 		);
 
-		return queryResult.recordCount()?: "";
+		return notificationCount;
 	}
 
 	/**
