@@ -238,7 +238,6 @@ component extends="preside.system.base.AdminHandler" {
 	private string function notificationNavPromo( event, rc, prc, args={} ) {
 		args.notificationCount   = notificationService.getUnreadNotificationCount( 
 			  userId  = event.getAdminUserId()
-			, maxRows = getSetting( "notificationCountLimit" ) + 1
 		);
 
 		return renderView( view="/admin/notifications/notificationNavPromo", args=args );

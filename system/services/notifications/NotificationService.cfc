@@ -118,7 +118,6 @@ component autodoc=true displayName="Notification Service" {
 	 */
 	public numeric function getUnreadNotificationCount(
 		  required string userId
-		, required numeric maxRows 
 	) autodoc=true {
 		var notificationCount = _getConsumerDao().selectData(
 			  filter          = { 
