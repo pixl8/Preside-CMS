@@ -327,7 +327,7 @@ component displayName="AssetManager Service" {
 		  numeric maxRows            = 1000
 		, string  searchQuery        = ""
 		, array   ids                = []
-		, array   excludeDescendants = []
+		, string  excludeDescendants = ""
 		, string  parentFolder
 		, array   noPermissionFolders
 	) {
@@ -383,7 +383,7 @@ component displayName="AssetManager Service" {
 			var currentFolderId = folderQueue[1];
 			var currentFolder   = folderStruct[currentFolderId];
 
-			if( arguments.excludeDescendants.indexOf( currentFolderId ) >= 0 ) {
+			if( currentFolderId == arguments.excludeDescendants ) {
 				folderQueue.deleteAt(1);
 				continue;
 			};
