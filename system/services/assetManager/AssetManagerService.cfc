@@ -124,11 +124,14 @@ component displayName="AssetManager Service" {
 			ancestorArray.append( folder );
 		}
 
-		while( Len( Trim( folder.parent_folder ) ) && ancestorArray.indexOf( folder ) < 0 ) {
-			folder = getFolder( id=folder.parent_folder )
-
-			if( folder.recordCount ) {
-				ancestorArray.append( folder )
+		while( folder.recordCount ) {
+			if ( not Len( Trim( folder.parent_folder ) ) ) {
+				break;
+			}
+			folder = getFolder( id=folder.parent_folder );
+			if( ancestorArray.indexOf(folder) >= 0 ) break;
+			if ( folder.recordCount ) {
+				ancestorArray.append( folder );
 			}
 		}
 
