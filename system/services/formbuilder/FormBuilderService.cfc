@@ -910,8 +910,8 @@ component {
 		}
 		for( var i=1; i <= formItems.len(); i++ ) {
 			if ( formItems[i].type.isFormField ) {
-				var columns = renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration );
-				var export  = formItems[i].configuration.export ?: 0 ;
+				var export  = isBoolean( formItems[i].configuration.export ?: "" ) && formItems[i].configuration.export ?: "";
+				var columns = export ? renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration ) : [];
 
 				if ( columns.len() && export ) {
 					itemsToRender.append( formItems[i] );
