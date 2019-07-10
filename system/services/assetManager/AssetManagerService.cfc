@@ -321,10 +321,10 @@ component displayName="AssetManager Service" {
 	}
 
 	public any function getFoldersForSelectList(
-		  numeric maxRows              = 1000
-		, string  searchQuery          = ""
-		, array   ids                  = []
-		, string  excludeDescendants   = []
+		  numeric maxRows            = 1000
+		, string  searchQuery        = ""
+		, array   ids                = []
+		, array   excludeDescendants = []
 		, string  parentFolder
 		, array   noPermissionFolders
 	) {
