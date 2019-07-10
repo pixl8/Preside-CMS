@@ -121,8 +121,7 @@ component autodoc=true displayName="Notification Service" {
 		, required numeric maxRows 
 	) autodoc=true {
 		var notificationCount = _getConsumerDao().selectData(
-			  selectFields    = [ "read as notification" ]
-			, filter          = { 
+			  filter          = { 
 				  security_user = arguments.userId
 				, read          = false 
 			  }
