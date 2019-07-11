@@ -45,8 +45,9 @@ component singleton=true {
 				}
 
 				if ( !Len( Trim( param.value ) ) ) {
-					param.null = true;
-					param.list = false;
+					param.null    = true;
+					param.nulls   = true; // patch bug with various versions of Lucee
+					param.list    = false;
 					arguments.sql = _transformNullClauses( arguments.sql, param.name );
 				}
 
