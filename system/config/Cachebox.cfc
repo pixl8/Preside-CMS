@@ -34,20 +34,6 @@ component {
 					}
 				},
 
-				PresideSystemCache = {
-					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
-					, properties = {
-						  objectDefaultTimeout           = 0
-						, objectDefaultLastAccessTimeout = 0
-						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 60
-						, evictionPolicy                 = "LFU"
-						, evictCount                     = 0
-						, maxObjects                     = 0
-						, objectStore                    = "ConcurrentStore"
-					}
-				},
-
 				DefaultQueryCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
