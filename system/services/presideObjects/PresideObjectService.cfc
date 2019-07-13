@@ -21,7 +21,6 @@ component displayName="Preside Object Service" {
 	 * @versioningService.inject      VersioningService
 	 * @labelRendererService.inject   LabelRendererService
 	 * @filterService.inject          presideObjectSavedFilterService
-	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 * @reloadDb.inject               coldbox:setting:syncDb
@@ -37,7 +36,6 @@ component displayName="Preside Object Service" {
 		, required any     versioningService
 		, required any     labelRendererService
 		, required any     filterService
-		, required any     cache
 		, required any     defaultQueryCache
 		, required any     interceptorService
 		,          boolean reloadDb = true
@@ -50,7 +48,6 @@ component displayName="Preside Object Service" {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setPresideObjectDecorator( arguments.presideObjectDecorator );
 		_setFilterService( arguments.filterService );
-		_setCache( arguments.cache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( arguments.versioningService );
 		_setLabelRendererService( arguments.labelRendererService );
@@ -63,6 +60,7 @@ component displayName="Preside Object Service" {
 			dbSync();
 		}
 
+		_setSimpleLocalCache({});
 		_setCacheMap({});
 
 		return this;
@@ -1392,7 +1390,7 @@ component displayName="Preside Object Service" {
 	 * >>> You are unlikely to need to call this method directly.
 	 */
 	public void function reload() autodoc=true {
-		_getCache().clearAll();
+		StructClear( _getSimpleLocalCache() );
 		_clearAllQueryCaches();
 		_setObjects({});
 		_loadObjects();
@@ -2369,19 +2367,19 @@ component displayName="Preside Object Service" {
 	) {
 		var filter     = arguments.preparedFilter.filter ?: "";
 		var having     = arguments.preparedFilter.having ?: "";
-		var key        = "";
-		var cache      = _getCache();
+		var cache      = _getSimpleLocalCache();
 		var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
-		var objects    = cache.get( cacheKey );
 
-		if ( !IsNull( local.objects ) ) {
-			return objects;
+		if ( StructKeyExists( cache, cacheKey ) ) {
+			return cache[ cacheKey ];
 		}
 
+		var key        = "";
 		var all        = Duplicate( arguments.data );
 		var fieldRegex = _getAlaisedFieldRegex();
 		var entities   = _getEntityNames();
 		var field      = "";
+		var objects    = {}
 		var addMatches = function( required string input ){
 			var matches = _reSearch( fieldRegex, arguments.input );
 			if ( StructKeyExists( matches, "$2" ) ) {
@@ -2402,8 +2400,6 @@ component displayName="Preside Object Service" {
 				}
 			}
 		};
-
-		objects = {}
 
 		if ( IsStruct( filter ) ) {
 			StructAppend( all, filter );
@@ -2442,7 +2438,7 @@ component displayName="Preside Object Service" {
 		StructDelete( objects, arguments.objectName );
 		objects = StructKeyArray( objects );
 
-		cache.set( cacheKey, objects );
+		cache[ cacheKey ] = objects;
 		if ( ArrayLen( objects ) ) {
 			var cacheMap = _getCacheMap();
 			for( var relatedObject in objects ) {
@@ -2517,14 +2513,14 @@ component displayName="Preside Object Service" {
 				, realProperty  = aliasCache[ arguments.objectName ][ plainString ]
 			} ];
 		}
-		var systemCache = _getCache();
+		var cache    = _getSimpleLocalCache();
 		var cacheKey = "_cleanupProperyAliasesFAndR#arguments.objectName##arguments.plainString#";
-		var cached   = systemCache.get( cacheKey );
-		if ( !IsNull( local.cached ) ) {
-			return cached;
-		}
-		var aliasRegex  = _getAlaisedAliasRegex();
 
+		if ( StructKeyExists( cache, cachekey ) ) {
+			return cache[ cacheKey ];
+		}
+
+		var aliasRegex  = _getAlaisedAliasRegex();
 		var matches = _reSearch( aliasRegex, plainString );
 		var results = [];
 
@@ -2546,7 +2542,7 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		systemCache.set( cacheKey, results );
+		cache[ cacheKey ] = results;
 
 		return results;
 	};
@@ -2563,12 +2559,11 @@ component displayName="Preside Object Service" {
 	}
 
 	private any function _simpleReplacer( plainString, objectName, addAsAlias=false ) {
-		var systemCache = _getCache();
+		var cache = _getSimpleLocalCache();
 		var cacheKey = "_cleanupProperyAliasesReplacer#arguments.objectName##arguments.plainString##arguments.addAsAlias#";
-		var cached   = systemCache.get( cacheKey );
 
-		if( !IsNull( local.cached ) ) {
-			return cached;
+		if ( StructKeyExists( cache, cacheKey ) ) {
+			return cache[ cacheKey ];
 		}
 
 		var replaced    = plainString;
@@ -2581,7 +2576,7 @@ component displayName="Preside Object Service" {
 			replaced &= " as " & fAndRResult[1].aliasProperty;
 		}
 
-		systemCache.set( cacheKey, replaced );
+		cache[ cacheKey ] = replaced;
 
 		return replaced;
 	}
@@ -2592,22 +2587,19 @@ component displayName="Preside Object Service" {
 		, required string  forceJoins
 		, required boolean fromVersionTable
 	) {
-		var joins = [];
-
-		if ( ArrayLen( arguments.joinTargets ) ) {
-			var joinsCache    = _getCache();
-			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#. From version table: #arguments.fromVersionTable#. Forcing joins: [#arguments.forceJoins#]."
-
-			joins = joinsCache.get( joinsCacheKey );
-
-			if ( IsNull( local.joins ) ) {
-				joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
-
-				joinsCache.set( joinsCacheKey, joins );
-			}
+		if ( !ArrayLen( arguments.joinTargets ) ) {
+			return [];
 		}
 
-		return joins;
+		var joinsCache    = _getSimpleLocalCache();
+		var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#. From version table: #arguments.fromVersionTable#. Forcing joins: [#arguments.forceJoins#]."
+
+		if ( !StructKeyExists( joinsCache, joinsCacheKey ) ) {
+			joinsCache[ joinsCacheKey ] = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
+		}
+
+		return joinsCache[ joinsCacheKey ];
+
 	}
 
 	private array function _convertObjectJoinsToTableJoins( required array joins, array extraJoins=[], array extraFilters=[], array savedFilters=[] ) {
@@ -3405,10 +3397,11 @@ component displayName="Preside Object Service" {
 		_filterService = arguments.filterService;
 	}
 
-	private any function _getCache() {
+	private any function _getSimpleLocalCache() {
 		return _cache;
 	}
-	private void function _setCache( required any cache ) {
+
+	private void function _setSimpleLocalCache( required any cache ) {
 		_cache = arguments.cache;
 	}
 

@@ -271,7 +271,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	private any function _getRendererService() output=false {
 		var presideObjectService = _getPresideObjectService();
 		var logger               = _getTestLogger();
-		var cache                = _getCacheBox().getCache( "PresideSystemCache" );
 
 		mockColdBox = getMockBox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
@@ -279,7 +278,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  logger               = logger
 			, presideObjectService = presideObjectService
 			, coldbox              = mockColdBox
-			, cache                = cache
 			, assetRendererService = getMockBox().createEmptyMock( "preside.system.services.assetManager.assetRendererService" )
 			, widgetsService       = getMockBox().createEmptyMock( "preside.system.services.widgets.widgetsService" )
 			, labelRendererService = getMockBox().createEmptyMock( "preside.system.services.rendering.LabelRendererService" )
