@@ -76,20 +76,6 @@ component {
 					}
 				},
 
-				PresideObjectViewCache = {
-					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
-					, properties = {
-						  objectDefaultTimeout           = 0
-						, objectDefaultLastAccessTimeout = 0
-						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 10
-						, evictionPolicy                 = "LFU"
-						, evictCount                     = 100
-						, maxObjects                     = 500
-						, objectStore                    = "ConcurrentStore"
-					}
-				},
-
 				LabelRendererCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {

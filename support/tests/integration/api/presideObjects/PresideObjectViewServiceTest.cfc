@@ -131,7 +131,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			, presideObjectService   = mockPresideObjectService
 			, presideContentRenderer = mockRendererService
 			, coldboxRenderer        = mockRendererPlugin
-			, cacheProvider          = _getCachebox().getDefaultCache()
 			, cacheBox               = _getCachebox()
 		);
 
