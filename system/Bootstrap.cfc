@@ -43,12 +43,20 @@ component {
 	}
 
 	public void function onRequestEnd() {
+		if ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest ) {
+			_isReloading( false );
+		}
+
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
 		_ensureHeartbeatsAreStillRunning();
 	}
 
 	public void function onAbort() {
+		if ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest ) {
+			_isReloading( false );
+		}
+
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
 	}
@@ -156,7 +164,9 @@ component {
 				}
 				setting requesttimeout=requestTimeout;
 
+				request._isPresideReloadRequest = true;
 				_isReloading( true );
+
 				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
 
 				_announceInterception( "prePresideReload" );
