@@ -24,6 +24,14 @@
 							#translateResource( 'cms:apiManager.authProvider.none' )#
 						</cfif>
 					</p>
+					<cfif Len( Trim( api.configHandler ) )>
+						<p>
+							<a href="#event.buildAdminLink( linkto=api.configHandler, queryString='id=#api.id#' )#">
+								<i class=" fa fa-fw fa-cogs"></i>
+								#translateResource( 'cms:apiManager.configure.link' )#
+							</a>
+						</p>
+					</cfif>
 				</div>
 			</cfloop>
 		</cfsavecontent>

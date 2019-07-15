@@ -41,9 +41,10 @@ component {
 		for( var i=1; i<=apis.len(); i++ ) {
 			var apiId = apis[ i ];
 			var api = {
-				  id           = apiId
-				, description  = configWrapper.getSetting( "description", "", apiId )
-				, authProvider = configWrapper.getSetting( "authProvider", "", apiId )
+				  id            = apiId
+				, description   = configWrapper.getSetting( "description", "", apiId )
+				, authProvider  = configWrapper.getSetting( "authProvider", "", apiId )
+				, configHandler = configWrapper.getSetting( "configHandler", "", apiId )
 			};
 
 			apis[ i ] = api;
