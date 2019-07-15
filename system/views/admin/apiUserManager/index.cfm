@@ -21,18 +21,11 @@
 		</cfif>
 	</div>
 
-	<cfsavecontent variable="tabBody">
-		#renderView( view="/admin/datamanager/_objectDataTable", args={
-			  objectName          = objectName
-			, useMultiActions     = canDelete
-			, datasourceUrl       = event.buildAdminLink( linkTo="apiUserManager.getRecordsForAjaxDataTables" )
-			, multiActionUrl      = event.buildAdminLink( linkTo='apiUserManager.multiAction' )
-			, gridFields          = gridFields
-		} )#
-	</cfsavecontent>
-
-	#renderView(
-		  view = "/admin/apiManager/_apiManagerTabs"
-		, args = { body=tabBody, tab="users" }
-	)#
+	#renderView( view="/admin/datamanager/_objectDataTable", args={
+		  objectName          = objectName
+		, useMultiActions     = canDelete
+		, datasourceUrl       = event.buildAdminLink( linkTo="apiUserManager.getRecordsForAjaxDataTables" )
+		, multiActionUrl      = event.buildAdminLink( linkTo='apiUserManager.multiAction' )
+		, gridFields          = gridFields
+	} )#
 </cfoutput>

@@ -30,4 +30,8 @@ component {
 		return "";
 	}
 
+	private string function configure() {
+		setNextEvent( url=event.buildAdminLink( "apiusermanager" ) );
+	}
+
 }
