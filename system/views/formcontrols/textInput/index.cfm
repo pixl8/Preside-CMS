@@ -18,7 +18,6 @@
 	if ( inputId eq 'slug' ) {
 		event.include( "/js/admin/specific/slugField/" );
 		parentSlug  = reMatch( '.*\/.*(?=\/.*?)', event.buildLink( page=( rc.id ?: "" ) ) ) ?: "";
-		previewLink = rc.id ?: "";
 	}
 </cfscript>
 
