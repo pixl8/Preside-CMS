@@ -53,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:apiManager.configureauth.page.breadcrumbTitle", data=[ api ] )
-			, link  = event.buildAdminLink( linkTo = "apimanager" )
+			, link  = event.buildAdminLink( linkTo = "apimanager.configureAuth", queryString="id=#api#" )
 		);
 		prc.pageTitle    = translateResource( uri="cms:apiManager.configureauth.page.title", data=[ api ] );
 		prc.pageSubTitle = translateResource( uri="cms:apiManager.configureauth.page.subtitle", data=[ api ] );
