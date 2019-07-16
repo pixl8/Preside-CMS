@@ -330,7 +330,7 @@ component displayName="AssetManager Service" {
 		, string  parentFolder         = ""
 		, array   foldersForSelectList = []
 		, array   noPermissionFolders
-		, string  currentFolderLabel   = ""
+		, string  currentFolderId      = ""
 	) {
 		var folderPassesCriteria = function( id, label ){
 			return ( !ids.len() || ids.findNoCase( arguments.id ) ) && ( !Len( Trim( searchQuery ) ) || arguments.label.findNoCase( searchQuery ) );
@@ -371,7 +371,7 @@ component displayName="AssetManager Service" {
 		for ( var folder in folders ) {
 			var label = parentString & folder.label;
 
-			if ( folderPassesCriteria( folder.id, label ) && ! listContainsNoCase( label, currentFolderLabel ) ) {
+			if ( folderPassesCriteria( folder.id, label ) && ( folder.id neq arguments.currentFolderId ) && ( arguments.parentFolder neq arguments.currentFolderId ) ) {
 				foldersForSelectList.append( {
 					  text = label
 					, value = folder.id

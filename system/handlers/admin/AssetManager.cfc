@@ -870,10 +870,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	function getFoldersForAjaxSelectControl( event, rc, prc ) {
 		var records = assetManagerService.getFoldersForSelectList(
-			  maxRows            = rc.maxRows ?: 100
-			, searchQuery        = rc.q       ?: ""
-			, ids                = ListToArray( rc.values ?: "" )
-			, currentFolderLabel = rc.currentFolderLabel ?: ""
+			  maxRows         = rc.maxRows ?: 100
+			, searchQuery     = rc.q       ?: ""
+			, ids             = ListToArray( rc.values ?: "" )
+			, currentFolderId = rc.currentFolderId ?: ""
 		);
 
 		event.renderData( type="json", data=records );
