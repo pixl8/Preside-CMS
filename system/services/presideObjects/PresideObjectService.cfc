@@ -561,6 +561,7 @@ component displayName="Preside Object Service" {
 		,          boolean forceVersionCreation    = false
 		,          boolean setDateModified         = true
 		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
+		,          boolean calculateChangedData    = false
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -622,6 +623,34 @@ component displayName="Preside Object Service" {
 			joins = _convertObjectJoinsToTableJoins( joins = joins, argumentCollection = arguments );
 		}
 
+		if ( requiresVersioning || arguments.calculateChangedData ) {
+			arguments.oldData = selectData(
+				  objectName         = arguments.objectName
+				, id                 = ( arguments.id ?: NullValue() )
+				, filter             = arguments.filter
+				, filterParams       = arguments.filterParams
+				, allowDraftVersions = true
+				, fromVersionTable   = false
+			);
+
+			arguments.changedData = {};
+			for( var record in arguments.oldData ) {
+
+				var changedFields = _getVersioningService().getChangedFields(
+					  objectName   = arguments.objectName
+					, recordId     = record[ idField ]
+					, newData      = cleanedData
+					, existingData = record
+				);
+				if ( ArrayLen( changedFields ) ) {
+					arguments.changedData[ record[ idField ] ] = {};
+				}
+				for( var field in changedFields ) {
+					arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+				}
+			}
+		}
+
 		transaction {
 			if ( requiresVersioning ) {
 				versionNumber = _getVersioningService().saveVersionForUpdate(
@@ -634,6 +663,8 @@ component displayName="Preside Object Service" {
 					, isDraft              = arguments.isDraft
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 					, forceVersionCreation = arguments.forceVersionCreation
+					, existingRecords      = arguments.oldData
+					, changedData          = arguments.changedData
 				);
 			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
 				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
