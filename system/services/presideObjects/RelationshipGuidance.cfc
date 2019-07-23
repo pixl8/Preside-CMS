@@ -2,10 +2,12 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @objectReader.inject PresideObjectReader
+	 * @objectReader.inject          PresideObjectReader
+	 * @selectDataViewService.inject presideObjectSelectDataViewService
 	 */
-	public any function init( required any objectReader ) {
+	public any function init( required any objectReader, required any selectDataViewService ) {
 		_setObjectReader( arguments.objectReader );
+		_setSelectDataViewService( arguments.selectDataViewService );
 
 		return this;
 	}
@@ -313,6 +315,27 @@ component singleton=true {
 							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#] using foreign key property named, [#relationshipKey#]. The property could not be found."
 						);
 					}
+				} else if ( Len( Trim( property.viewRelationship ?: "" ) ) ) {
+					if ( property.viewRelationship == "one-to-many" ) {
+						var view     = property.relatedto ?: "";
+						var viewArgs = _getSelectDataViewService().getViewArgs( property.relatedto );
+
+						if ( Len( Trim( viewArgs.objectName ?: "" ) ) ) {
+							relationships[ objectName ][ viewArgs.objectName ] = relationships[ objectName ][ viewArgs.objectName ] ?: [];
+							relationships[ objectName ][ viewArgs.objectName ].append({
+								  type           = "one-to-many"
+								, required       = false
+								, pk             = property.relationshipKey ?: "" // todo raise error if bad
+								, fk             = propertyName
+								, onUpdate       = "error"
+								, onDelete       = "error"
+								, alias          = propertyName
+								, selectDataView = view
+							});
+						} else {
+							// TODO, raise error
+						}
+					}
 				}
 			}
 		}
@@ -552,5 +575,12 @@ component singleton=true {
 	}
 	private void function _setPkMappings( required struct pkMappings ) {
 		_pkMappings = arguments.pkMappings;
+	}
+
+	private any function _getSelectDataViewService() {
+	    return _selectDataViewService;
+	}
+	private void function _setSelectDataViewService( required any selectDataViewService ) {
+	    _selectDataViewService = arguments.selectDataViewService;
 	}
 }

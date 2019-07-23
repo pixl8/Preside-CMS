@@ -86,6 +86,7 @@
 				);
 				var relationshipGuidance = new preside.system.services.presideObjects.relationshipGuidance(
 					  objectReader = objReader
+					, selectDataViewService = createStub()
 				);
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
