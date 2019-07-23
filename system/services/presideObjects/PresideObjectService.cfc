@@ -283,6 +283,12 @@ component displayName="Preside Object Service" {
 		var formattedParams = {};
 		for( var param in arguments.rawParams ) {
 			formattedParams[ param.name ] = { value=param.value, type=param.type };
+			if ( param.keyExists( "list" ) ) {
+				formattedParams[ param.name ].list = param.list;
+			}
+			if ( param.keyExists( "separator" ) ) {
+				formattedParams[ param.name ].separator = param.separator;
+			}
 		}
 		return formattedParams;
 	}
