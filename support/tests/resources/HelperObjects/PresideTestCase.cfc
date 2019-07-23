@@ -42,12 +42,13 @@
 	</cffunction>
 
 	<cffunction name="_getPresideObjectService" access="private" returntype="any" output="false">
-		<cfargument name="objectDirectories"  type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
-		<cfargument name="defaultPrefix"      type="string"  required="false" default="pobj_" />
-		<cfargument name="forceNewInstance"   type="boolean" required="false" default="false" />
-		<cfargument name="interceptorService" type="any"    required="false" default="#_getMockInterceptorService()#" />
-		<cfargument name="cachebox"           type="any"     required="false" />
-		<cfargument name="coldbox"            type="any"     required="false" />
+		<cfargument name="objectDirectories"     type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
+		<cfargument name="defaultPrefix"         type="string"  required="false" default="pobj_" />
+		<cfargument name="forceNewInstance"      type="boolean" required="false" default="false" />
+		<cfargument name="interceptorService"    type="any"    required="false" default="#_getMockInterceptorService()#" />
+		<cfargument name="selectDataViewService" type="any"    required="false" default="#createStub()#" />
+		<cfargument name="cachebox"              type="any"     required="false" />
+		<cfargument name="coldbox"               type="any"     required="false" />
 
 		<cfscript>
 			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
@@ -121,6 +122,7 @@
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
 					, coldboxController      = coldbox
 					, interceptorService     = arguments.interceptorService
+					, selectDataViewService  = arguments.selectDataViewService
 					, reloadDb               = false
 				);
 

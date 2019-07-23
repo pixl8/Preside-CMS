@@ -21,6 +21,7 @@ component displayName="Preside Object Service" {
 	 * @versioningService.inject      VersioningService
 	 * @labelRendererService.inject   LabelRendererService
 	 * @filterService.inject          presideObjectSavedFilterService
+	 * @selectDataViewService.inject  selectDataViewService
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 * @reloadDb.inject               coldbox:setting:syncDb
@@ -36,6 +37,7 @@ component displayName="Preside Object Service" {
 		, required any     versioningService
 		, required any     labelRendererService
 		, required any     filterService
+		, required any     selectDataViewService
 		, required any     defaultQueryCache
 		, required any     interceptorService
 		,          boolean reloadDb = true
@@ -48,6 +50,7 @@ component displayName="Preside Object Service" {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setPresideObjectDecorator( arguments.presideObjectDecorator );
 		_setFilterService( arguments.filterService );
+		_setSelectDataViewService( arguments.selectDataViewService );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( arguments.versioningService );
 		_setLabelRendererService( arguments.labelRendererService );
@@ -277,6 +280,18 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postSelectObjectData", args );
 
 		return args.result;
+	}
+
+	/**
+	 * Selects data from a preside select data view (see [[select-data-views|Select Data Views]]).
+	 * Any additional arguments will be appended or merged with the views selectData
+	 * arguments and sent through to the selectData call
+	 *
+	 * @autodoc   true
+	 * @view.hint Name of the view to select data from
+	 */
+	public any function selectView( required string view ) {
+		return selectData( argumentCollection=_getSelectDataArgsFromView( argumentCollection=arguments ) );
 	}
 
 	private function _formatParams( required array rawParams ) {
@@ -2507,6 +2522,44 @@ component displayName="Preside Object Service" {
 		return staticCacheKey;
 	}
 
+	private struct function _getSelectDataArgsFromView( required string view ) {
+		var args               = _getSelectDataViewService().getViewArgs( arguments.view );
+		var arrayAppendFields  = [ "extraFilters", "extraSelectFields", "savedFilters", "extraJoins", "bypassTenants"  ];
+		var structAppendFields = [ "tenantIds" ];
+		var ignoreFields       = [ "objectName", "filter", "filterParams" ]
+
+		args.extraFilters = args.extraFilters ?: [];
+		args.filterParams = args.filterParams ?: {};
+
+		if ( ( IsSimpleValue( arguments.filter ?: "" ) && Len( Trim( arguments.filter ?: "" ) ) || ( IsStruct( arguments.filter ?: "" ) && StructCount( arguments.filter ) ) ) ) {
+			args.extraFilters.append( {
+				  filter       = arguments.filter
+				, filterParams = arguments.filterParams ?: {}
+			} );
+		} else if ( StructCount( arguments.filterParams ?: {} ) ) {
+			StructAppend( args.filterParams, arguments.filterParams );
+		}
+
+		for( var field in arguments ) {
+			if ( ArrayFindNoCase( ignoreFields, field ) ) {
+				continue;
+			}
+
+			if ( ArrayFindNoCase( arrayAppendFields, field ) ) {
+				args[ field ] = args[ field ] ?: [];
+				ArrayAppend( args[ field ], arguments[ field ], true );
+			} else if ( ArrayFindNoCase( structAppendFields, field ) ) {
+				args[ field ] = args[ field ] ?: {};
+
+				StructAppend( args[ field ], arguments[ field ] );
+			} else if ( !IsNull( arguments[ field ] ) ) {
+				args[ field ] = arguments[ field ];
+			}
+		}
+
+		return args;
+	}
+
 	private struct function _cleanupPropertyAliases() {
 		if ( _getAliasCache().isEmpty() ) {
 			return arguments;
@@ -3522,5 +3575,12 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setCacheMap( required struct cacheMap ) {
 		_cacheMap = arguments.cacheMap;
+	}
+
+	private any function _getSelectDataViewService() {
+	    return _selectDataViewService;
+	}
+	private void function _setSelectDataViewService( required any selectDataViewService ) {
+	    _selectDataViewService = arguments.selectDataViewService;
 	}
 }
