@@ -3212,28 +3212,76 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test095_selectView_shouldPrePopulateSelectDataArgsFromPassedSelectDataView_mixingInAnyOtherSuppliedArguments" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var view      = "testView";
+			var bees      = [];
+
+			poService.dbSync();
+
+			mockSelectDataViewService.$( "getViewArgs" ).$args( "testView" ).$results( {
+				  objectname   = "obj_a"
+				, having       = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy      = "obj_a.id"
+				, filter       = "1=1"
+				, filterParams = { bees_count = { type="cf_sql_int", value=2 } }
+			} );
+
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectView(
+				  view            = "testView"
+				, filter          = "2 = :two"
+				, filterParams    = { two={ type="cf_sql_int", value=2 } }
+				, recordCountOnly = true
+			);
+
+			expect( result ).toBe( 2 );
+
+			result = poService.selectView(
+				  view            = "testView"
+				, recordCountOnly = true
+				, filter          = { label="label 2" }
+			);
+
+			expect( result ).toBe( 1 );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories" type="array"  required="true" />
 		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
 
 		<cfscript>
-			cachebox               = _getCachebox( forceNewInstance = true );
-			mockColdbox            = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
-			mockColdboxEvent       = getMockbox().createStub();
-			mockInterceptorService = _getMockInterceptorService();
+			cachebox                  = _getCachebox( forceNewInstance = true );
+			mockColdbox               = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+			mockColdboxEvent          = getMockbox().createStub();
+			mockInterceptorService    = _getMockInterceptorService();
+			mockSelectDataViewService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectSelectDataViewService" );
 
 			mockColdboxEvent.$( "isAdminUser", true );
 			mockColdboxEvent.$( "getAdminUserId", "" );
 			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
 			return _getPresideObjectService(
-				  objectDirectories  = arguments.objectDirectories
-				, defaultPrefix      = arguments.defaultPrefix
-				, forceNewInstance   = true
-				, cacheBox           = cacheBox
-				, coldbox            = mockColdbox
-				, interceptorService = mockInterceptorService
+				  objectDirectories     = arguments.objectDirectories
+				, defaultPrefix         = arguments.defaultPrefix
+				, forceNewInstance      = true
+				, cacheBox              = cacheBox
+				, coldbox               = mockColdbox
+				, interceptorService    = mockInterceptorService
+				, selectDataViewService = mockSelectDataViewService
 			)
 		</cfscript>
 	</cffunction>
