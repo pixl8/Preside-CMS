@@ -6,6 +6,7 @@
 	local.title        = Trim( event.getPageProperty( "title"              ) );
 	local.mainImage    = Trim( event.getPageProperty( "main_image"         ) );
 	local.ogType       = local.site.og_type ?: "website";
+	local.ogUrl        = event.getSiteUrl() & HtmlEditFormat( event.getCurrentUrl() );
 
 	local.title  = Len( local.browserTitle ) ? local.browserTitle : local.title;
 	local.teaser = Len( local.teaser       ) ? local.teaser       : local.description;
@@ -14,7 +15,7 @@
 <cfoutput>
 	<meta property="og:title" content="#XmlFormat( local.title )#" />
 	<meta property="og:type"  content="#local.ogType#" />
-	<meta property="og:url"   content="#event.getSiteUrl()##HtmlEditFormat( event.getCurrentUrl() )#" />
+	<meta property="og:url"   content="#reReplace( local.ogUrl, "/([a-z][a-z]/)(\1)+", "/\1")#" />
 	<cfif Len( local.teaser )>
 		<meta property="og:description" content="#HtmlEditFormat( local.teaser )#" />
 	</cfif>
