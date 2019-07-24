@@ -1,8 +1,9 @@
 language: java
+dist: trusty
 rvm:
   - 1.9.3
 jdk:
-  - oraclejdk9
+  - oraclejdk8
 node_js:
   - "4.2.6"
 services:
