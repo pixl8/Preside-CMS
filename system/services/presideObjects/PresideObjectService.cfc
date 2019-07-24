@@ -21,11 +21,8 @@ component displayName="Preside Object Service" {
 	 * @versioningService.inject      VersioningService
 	 * @labelRendererService.inject   LabelRendererService
 	 * @filterService.inject          presideObjectSavedFilterService
-<<<<<<< Updated upstream
 	 * @cache.inject                  cachebox:PresideSystemCache
-=======
-	 * @selectDataViewService.inject  selectDataViewService
->>>>>>> Stashed changes
+	 * @selectDataViewService.inject  presideObjectSelectDataViewService
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 * @reloadDb.inject               coldbox:setting:syncDb
@@ -41,11 +38,8 @@ component displayName="Preside Object Service" {
 		, required any     versioningService
 		, required any     labelRendererService
 		, required any     filterService
-<<<<<<< Updated upstream
 		, required any     cache
-=======
 		, required any     selectDataViewService
->>>>>>> Stashed changes
 		, required any     defaultQueryCache
 		, required any     interceptorService
 		,          boolean reloadDb = true
@@ -58,11 +52,8 @@ component displayName="Preside Object Service" {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setPresideObjectDecorator( arguments.presideObjectDecorator );
 		_setFilterService( arguments.filterService );
-<<<<<<< Updated upstream
 		_setCache( arguments.cache );
-=======
 		_setSelectDataViewService( arguments.selectDataViewService );
->>>>>>> Stashed changes
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( arguments.versioningService );
 		_setLabelRendererService( arguments.labelRendererService );
@@ -291,8 +282,6 @@ component displayName="Preside Object Service" {
 		return args.result;
 	}
 
-<<<<<<< Updated upstream
-=======
 	/**
 	 * Selects data from a preside select data view (see [[select-data-views|Select Data Views]]).
 	 * Any additional arguments will be appended or merged with the views selectData
@@ -305,15 +294,6 @@ component displayName="Preside Object Service" {
 		return selectData( argumentCollection=_getSelectDataArgsFromView( argumentCollection=arguments ) );
 	}
 
-	private function _formatParams( required array rawParams ) {
-		var formattedParams = {};
-		for( var param in arguments.rawParams ) {
-			formattedParams[ param.name ] = { value=param.value, type=param.type };
-		}
-		return formattedParams;
-	}
-
->>>>>>> Stashed changes
 	/**
 	 * Inserts a record into the database, returning the ID of the newly created record
 	 * \n
