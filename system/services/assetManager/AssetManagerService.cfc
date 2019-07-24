@@ -2290,7 +2290,8 @@ component displayName="AssetManager Service" {
 	}
 
 	private string function _slugifyTitleForFileName( required string title ) {
-		return $slugify( arguments.title.reReplace( "\.[a-z0-9]+$", "" ) );
+		var titleWithoutExtension = arguments.title.reReplace( "\.[a-z0-9]+$", "" );
+		return $slugify( str=titleWithoutExtension, preserveCase=true );
 	}
 
 // GETTERS AND SETTERS
