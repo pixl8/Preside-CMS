@@ -685,6 +685,7 @@ component displayName="Preside Object Service" {
 					, filterParams         = preparedFilter.filterParams
 					, data                 = cleanedData
 					, manyToManyData       = manyToManyData
+					, existingRecords      = arguments.oldData
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 				);
 			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
