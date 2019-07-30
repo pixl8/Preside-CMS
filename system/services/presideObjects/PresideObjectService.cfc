@@ -610,7 +610,6 @@ component displayName="Preside Object Service" {
 		if ( arguments.setDateModified && StructKeyExists( obj.properties, dateModifiedField ) and not StructKeyExists( cleanedData, dateModifiedField ) ) {
 			cleanedData[ dateModifiedField ] = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
 		}
-
 		preparedFilter = _prepareFilter(
 			  adapter            = adapter
 			, columnDefinitions  = obj.properties
@@ -2996,9 +2995,9 @@ component displayName="Preside Object Service" {
 
 		var idField = getIdField( arguments.objectName );
 		var result = {
-			  filter       = StructKeyExists( arguments, "id" ) ? { "#idField#" = arguments.id } : arguments.filter
-			, filterParams = arguments.filterParams
-			, having       = arguments.having
+			  filter       = StructKeyExists( arguments, "id" ) ? { "#idField#" = arguments.id } : Duplicate( arguments.filter )
+			, filterParams = Duplicate( arguments.filterParams )
+			, having       = Duplicate( arguments.having )
 		};
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
 			result.filterParams.append( Duplicate( result.filter ) );
