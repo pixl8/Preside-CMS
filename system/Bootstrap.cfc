@@ -212,6 +212,8 @@ component {
 	}
 
 	private void function _initColdBox() {
+		application.applicationName = this.name;
+
 		var bootstrap = new preside.system.coldboxModifications.Bootstrap(
 			  COLDBOX_CONFIG_FILE   = _discoverConfigPath()
 			, COLDBOX_APP_ROOT_PATH = variables.COLDBOX_APP_ROOT_PATH
