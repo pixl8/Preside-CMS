@@ -176,10 +176,11 @@ component displayname="Native Image Manipulation Service" {
 		,          string format
 		,          string pages
 		,          string transparent
+		,          numeric width      = 300
 	) {
 		var imagePrefix = CreateUUId();
 		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & "_page_" & arguments.page & ".jpg";
-		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
+		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth", "width" ];
 		var pdfAttributes = {
 			  action      = "thumbnail"
 			, source      = asset
@@ -193,7 +194,24 @@ component displayname="Native Image Manipulation Service" {
 			}
 		}
 
-		pdf attributeCollection=pdfAttributes;
+		if ( SERVER.lucee.version.left(1) gt 4 ) {
+			tmpFilePDF  = GetTempDirectory() & imagePrefix & "_page_" & arguments.page & ".pdf";
+			tmpFileJPG  = GetTempDirectory() & imagePrefix & "1.jpg";
+			FileWrite( tmpFilePDF, pdfAttributes.source );
+
+			var returnfileprefix = GetTempDirectory() & imagePrefix;
+			var BufferedImage    = createObject("java","java.awt.image.BufferedImage");
+			var ImageWriter      = createObject("java","org.apache.pdfbox.util.PDFImageWriter");
+			var document         = createObject("java","org.apache.pdfbox.pdmodel.PDDocument").load("#tmpFilePDF#");
+
+			ImageWriter.writeImage(document, JavaCast("string","jpg"), JavaCast("string",""), "1", "1", JavaCast("string",returnfileprefix), BufferedImage.TYPE_INT_RGB, arguments.width);
+			document.close();
+			cfimage( action="resize", source="#tmpFileJPG#", destination="#tmpFileJPG#", overwrite="true", width="#arguments.width#" );
+
+			tmpFilePath = tmpFileJPG;
+		} else {
+			pdf attributeCollection=pdfAttributes;
+		}
 
 		return FileReadBinary( tmpFilePath );
 	}
