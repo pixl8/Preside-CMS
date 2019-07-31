@@ -392,11 +392,15 @@ component displayName="Admin permissions service" {
 		, required string context
 		, required array  contextKeys
 	) {
-		var args               = arguments;
-		var userGroups         = listUserGroups( arguments.userId );
-		var cacheKey           = "ContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKey & userGroups.toList() );
-		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
-			var permsToCache = {};
+		var args         = arguments;
+		var userGroups   = listUserGroups( arguments.userId );
+		var cacheKey     = "ContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKey & userGroups.toList() );
+		var cache        = _getCacheProvider();
+		var contextPerms = cache.get( cacheKey );
+
+		if ( IsNull( local.contextPerms ) ) {
+			contextPerms = {};
+
 			var permsFromDb  = _getContextPermDao().selectData(
 				  selectFields = [ "granted", "context_key" ]
 				, filter       = { context = args.context, permission_key = args.permissionKey, security_group = userGroups }
@@ -405,20 +409,20 @@ component displayName="Admin permissions service" {
 			);
 
 			for( var perm in permsFromDb ){
-				permsToCache[ perm.context_key ] = perm.granted;
+				contextPerms[ perm.context_key ] = perm.granted;
 			}
 
-			return permsToCache;
-		} );
+			cache.set( cacheKey, contextPerms );
+		}
 
 
-		if ( cachedContextPerms.isEmpty() ) {
+		if ( contextPerms.isEmpty() ) {
 			return;
 		}
 
 		for( var key in arguments.contextKeys ){
-			if ( StructKeyExists( cachedContextPerms, key ) ) {
-				return cachedContextPerms[ key ];
+			if ( StructKeyExists( contextPerms, key ) ) {
+				return contextPerms[ key ];
 			}
 		}
 
@@ -431,12 +435,15 @@ component displayName="Admin permissions service" {
 		, required string context
 		, required array  contextKeys
 	) {
-		var result             = {};
-		var args               = arguments;
-		var userGroups         = listUserGroups( arguments.userId );
-		var cacheKey           = "MultiContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKeys.toList() & userGroups.toList() );
-		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
-			var permsToCache = {};
+		var result       = {};
+		var args         = arguments;
+		var userGroups   = listUserGroups( arguments.userId );
+		var cacheKey     = "MultiContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKeys.toList() & userGroups.toList() );
+		var cache        = _getCacheProvider();
+		var contextPerms = cache.get( cacheKey );
+
+		if ( IsNull( local.contextPerms ) ) {
+			contextPerms = {};
 			var permsFromDb  = _getContextPermDao().selectData(
 				  selectFields = [ "granted", "context_key", "permission_key" ]
 				, filter       = { context = args.context, permission_key = args.permissionKeys, security_group = userGroups }
@@ -445,22 +452,22 @@ component displayName="Admin permissions service" {
 			);
 
 			for( var perm in permsFromDb ){
-				permsToCache[ perm.context_key ] = permsToCache[ perm.context_key ] ?: {};
-				permsToCache[ perm.context_key ][ perm.permission_key ] = perm.granted;
+				contextPerms[ perm.context_key ] = contextPerms[ perm.context_key ] ?: {};
+				contextPerms[ perm.context_key ][ perm.permission_key ] = perm.granted;
 			}
 
-			return permsToCache;
-		} );
+			cache.set( cacheKey, contextPerms );
+		}
 
-		if ( cachedContextPerms.isEmpty() ) {
+		if ( contextPerms.isEmpty() ) {
 			return result;
 		}
 
 		for( var contextKey in arguments.contextKeys ){
-			if ( StructKeyExists( cachedContextPerms, contextKey ) ) {
-				for( var permKey in cachedContextPerms[ contextKey ] ) {
+			if ( StructKeyExists( contextPerms, contextKey ) ) {
+				for( var permKey in contextPerms[ contextKey ] ) {
 					if ( !StructKeyExists( result, permKey ) ) {
-						result[ permKey ] = cachedContextPerms[ contextKey ][ permKey ];
+						result[ permKey ] = contextPerms[ contextKey ][ permKey ];
 					}
 				}
 			}
