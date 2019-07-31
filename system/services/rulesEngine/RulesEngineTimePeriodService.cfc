@@ -101,6 +101,144 @@ component displayName="RulesEngine Time Period Service" {
 					return {};
 				}
 			break;
+
+			case "yesterday":
+				var dateFrom = DateAdd( "d", -1, _getCurrentDateTime() );
+					dateFrom.setHour( "0" );
+					dateFrom.setMinute( "0" );
+					dateFrom.setSecond( "0" );
+				var dateTo = Duplicate( dateFrom );
+					dateTo.setHour( "23" );
+					dateTo.setMinute( "59" );
+					dateTo.setSecond( "59" );
+
+				return {
+					  to   = dateTo
+					, from = dateFrom
+				};
+			break;
+
+			case "today":
+				var dateFrom = _getCurrentDateTime();
+					dateFrom.setHour( "0" );
+					dateFrom.setMinute( "0" );
+					dateFrom.setSecond( "0" );
+				var dateTo = Duplicate( dateFrom );
+					dateTo.setHour( "23" );
+					dateTo.setMinute( "59" );
+					dateTo.setSecond( "59" );
+
+				return {
+					  to   = dateTo
+					, from = dateFrom
+				};
+			break;
+
+			case "tomorrow":
+				var dateFrom = DateAdd( "d", 1, _getCurrentDateTime() );
+					dateFrom.setHour( "0" );
+					dateFrom.setMinute( "0" );
+					dateFrom.setSecond( "0" );
+				var dateTo = Duplicate( dateFrom );
+					dateTo.setHour( "23" );
+					dateTo.setMinute( "59" );
+					dateTo.setSecond( "59" );
+
+				return {
+					  to   = dateTo
+					, from = dateFrom
+				};
+			break;
+
+			case "lastweek":
+				var offsetDay = DayOfWeek(_getCurrentDateTime());
+				var dateFrom  = DateAdd( "d", 1 - offsetDay - 7, _getCurrentDateTime() );
+					dateFrom.setHour( "0" );
+					dateFrom.setMinute( "0" );
+					dateFrom.setSecond( "0" );
+				var dateTo = DateAdd( "d", 6, dateFrom );
+					dateTo.setHour( "23" );
+					dateTo.setMinute( "59" );
+					dateTo.setSecond( "59" );
+
+				return {
+					  to   = dateTo
+					, from = dateFrom
+				};
+			break;
+
+			case "thisweek":
+				var offsetDay = DayOfWeek(_getCurrentDateTime());
+				var dateFrom  = DateAdd( "d", 1 - offsetDay, _getCurrentDateTime() );
+					dateFrom.setHour( "0" );
+					dateFrom.setMinute( "0" );
+					dateFrom.setSecond( "0" );
+				var dateTo = DateAdd( "d", 6, dateFrom );
+					dateTo.setHour( "23" );
+					dateTo.setMinute( "59" );
+					dateTo.setSecond( "59" );
+
+				return {
+					  to   = dateTo
+					, from = dateFrom
+				};
+			break;
+
+			case "nextweek":
+				var offsetDay = DayOfWeek(_getCurrentDateTime());
+				var dateFrom  = DateAdd( "d", 1 - offsetDay + 7, _getCurrentDateTime() );
+					dateFrom.setHour( "0" );
+					dateFrom.setMinute( "0" );
+					dateFrom.setSecond( "0" );
+				var dateTo = DateAdd( "d", 6, dateFrom );
+					dateTo.setHour( "23" );
+					dateTo.setMinute( "59" );
+					dateTo.setSecond( "59" );
+
+				return {
+					  to   = dateTo
+					, from = dateFrom
+				};
+			break;
+
+			case "lastmonth":
+				var firstOfThisMonth = CreateDateTime(year(_getCurrentDateTime()), month(_getCurrentDateTime()), 1, 0, 0, 0);
+				var firstOfLastMonth = DateAdd( "m", -1, firstOfThisMonth );
+				var endOfLastMonth   = DateAdd( "d", -1, firstOfThisMonth );
+					endOfLastMonth.setHour( "23" );
+					endOfLastMonth.setMinute( "59" );
+					endOfLastMonth.setSecond( "59" );
+				return {
+					  to   = endOfLastMonth
+					, from = firstOfLastMonth
+				};
+			break;
+
+			case "thismonth":
+				var firstOfThisMonth = CreateDateTime(year(_getCurrentDateTime()), month(_getCurrentDateTime()), 1, 0, 0, 0);
+				var firstOfNextMonth = DateAdd( "m", 1, firstOfThisMonth );
+				var endOfThisMonth   = DateAdd( "d", -1, firstOfNextMonth );
+					endOfThisMonth.setHour( "23" );
+					endOfThisMonth.setMinute( "59" );
+					endOfThisMonth.setSecond( "59" );
+				return {
+					  to   = endOfThisMonth
+					, from = firstOfThisMonth
+				};
+			break;
+
+			case "nextmonth":
+				var firstOfNextMonth   = CreateDateTime(year(_getCurrentDateTime()), month(_getCurrentDateTime())+1, 1, 0, 0, 0);
+				var firstOfNext2Months = DateAdd( "m", 1, firstOfNextMonth );
+				var endOfNextMonth     = DateAdd( "d", -1, firstOfNext2Months );
+					endOfNextMonth.setHour( "23" );
+					endOfNextMonth.setMinute( "59" );
+					endOfNextMonth.setSecond( "59" );
+				return {
+					  to   = endOfNextMonth
+					, from = firstOfNextMonth
+				};
+			break;
 		}
 
 		return {};

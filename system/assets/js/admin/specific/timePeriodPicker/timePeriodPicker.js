@@ -93,6 +93,15 @@
 
 					case "future":
 					case "past":
+					case "yesterday":
+					case "today":
+					case "tomorrow":
+					case "lastweek":
+					case "thisweek":
+					case "nextweek":
+					case "lastmonth":
+					case "thismonth":
+					case "nextmonth":
 						val.type = val.type;
 					break;
 
