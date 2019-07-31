@@ -1862,7 +1862,7 @@ component displayName="Preside Object Service" {
 		var relatedObjectsToClear = StructKeyArray( cachemap[ arguments.objectName ] ?: {} );
 
 		if ( $isFeatureEnabled( "queryCachePerObject" ) ) {
-			_clearRelatedCachesWithQueryCachePerObject( argumentCollection=arguments, relatedObjectsToClear=relatedObjectsToClear );
+			return _clearRelatedCachesWithQueryCachePerObject( argumentCollection=arguments, relatedObjectsToClear=relatedObjectsToClear );
 		}
 
 		var cache                 = _getDefaultQueryCache();
