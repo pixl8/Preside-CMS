@@ -203,8 +203,10 @@ component {
 	}
 
 	private void function _startHeartbeats() {
-		for( var i=1; i<=emailQueueConcurrency; i++ ) {
-			getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
+		if ( isFeatureEnabled( "emailQueueHeartBeat" ) ) {
+			for( var i=1; i<=emailQueueConcurrency; i++ ) {
+				getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
+			}
 		}
 
 		if ( isFeatureEnabled( "healthchecks" ) ) {
@@ -213,8 +215,13 @@ component {
 			}
 		}
 
-		presideAdhocTaskHeartBeat.startInNewRequest();
-		presideTaskmanagerHeartBeat.startInNewRequest();
+		if ( isFeatureEnabled( "adhocTaskHeartBeat" ) ) {
+			presideAdhocTaskHeartBeat.startInNewRequest();
+		}
+
+		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
+			presideTaskmanagerHeartBeat.startInNewRequest();
+		}
 	}
 
 	private void function _setupCatchAllAdminUserGroup() {
