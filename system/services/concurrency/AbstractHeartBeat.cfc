@@ -189,7 +189,7 @@ component {
 	private boolean function _isFeatureDisabled() {
 		var feature = _getFeature();
 
-		return Len( Trim( feature ) ) && !$featureIsEnabled( feature );
+		return Len( Trim( feature ) ) && !$isFeatureEnabled( feature );
 	}
 
 // GETTERS / SETTERS
