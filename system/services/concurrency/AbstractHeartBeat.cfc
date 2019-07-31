@@ -13,11 +13,13 @@ component {
 		  required string  threadName
 		, required numeric intervalInMs
 		,          any     threadUtil
+		,          string  feature = ""
 	) {
 		_setThreadName( arguments.threadName );
 		_setIntervalInMs( arguments.intervalInMs );
 		_setThreadUtil( arguments.threadUtil );
 		_setStopped( true );
+		_setFeature( arguments.feature );
 
 		return this;
 	}
@@ -27,6 +29,10 @@ component {
 	}
 
 	public void function start() {
+		if( _isFeatureDisabled() ) {
+			return;
+		}
+
 		if ( _isStopped() || _hasStoppedInError() ) {
 			thread name="#_getThreadName()#-#CreateUUId()#" {
 				lock type="exclusive" timeout=1 name=_getThreadName() {
@@ -180,6 +186,12 @@ component {
 		return crashed;
 	}
 
+	private boolean function _isFeatureDisabled() {
+		var feature = _getFeature();
+
+		return Len( Trim( feature ) ) && !$featureIsEnabled( feature );
+	}
+
 // GETTERS / SETTERS
 	private string function _getThreadName() {
 		return _threadName;
@@ -226,5 +238,12 @@ component {
 	}
 	private void function _setStopped( required boolean stopped ) {
 		_stopped = arguments.stopped;
+	}
+
+	private string function _getFeature() {
+	    return _feature;
+	}
+	private void function _setFeature( required string feature ) {
+	    _feature = arguments.feature;
 	}
 }

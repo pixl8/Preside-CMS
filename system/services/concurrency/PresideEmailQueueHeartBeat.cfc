@@ -20,6 +20,7 @@ component extends="AbstractHeartBeat" {
 			  threadName   = arguments.threadName
 			, threadUtil   = arguments.threadUtil
 			, intervalInMs = 5000
+			, feature      = "emailQueueHeartBeat"
 		);
 
 		_setInstanceNumber( arguments.instanceNumber );

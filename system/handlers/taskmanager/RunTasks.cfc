@@ -12,36 +12,50 @@ component {
 	}
 
 	public void function startTaskManagerHeartbeat( event, rc, prc ) {
-		presideTaskmanagerHeartBeat.start();
-		event.renderData( data={ ok=true }, type="json" );
+		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
+			presideTaskmanagerHeartBeat.start();
+			event.renderData( data={ ok=true }, type="json" );
+		} else {
+			event.renderData( data={ ok=false, message="Taskmanager heartbeat is not enabled on this application instance." }, type="json" );
+		}
 	}
 
 	public void function startAdhocTaskManagerHeartbeat( event, rc, prc ) {
-		presideAdhocTaskHeartBeat.start();
-		event.renderData( data={ ok=true }, type="json" );
+		if ( isFeatureEnabled( "adhocTaskHeartBeat" ) ) {
+			presideAdhocTaskHeartBeat.start();
+			event.renderData( data={ ok=true }, type="json" );
+		} else {
+			event.renderData( data={ ok=false, message="Adhoc taskmanager heartbeat is not enabled on this application instance." }, type="json" );
+		}
 	}
 
 	public void function startHealthCheckHeartbeat( event, rc, prc ) {
-		var serviceId = rc.serviceId ?: "";
+		if ( isFeatureEnabled( "healthchecks" ) ) {
+			var serviceId = rc.serviceId ?: "";
+			if( healthcheckService.serviceExists( serviceId=serviceId ) ) {
+				getModel( "healthCheckHeartbeat#serviceId#" ).start();
 
-		if( healthcheckService.serviceExists( serviceId=serviceId ) ) {
-			getModel( "healthCheckHeartbeat#serviceId#" ).start();
-
-			event.renderData( data={ ok=true }, type="json" );
+				event.renderData( data={ ok=true }, type="json" );
+			} else {
+				event.renderData( data={ ok=false, message="Healthcheck service ID [#serviceId#] not found!" }, type="json" );
+			}
 		} else {
-			event.renderData( data={ ok=false, message="Healthcheck service ID [#serviceId#] not found!" }, type="json" );
+			event.renderData( data={ ok=false, message="Healthchecks are not enabled on this application instance." }, type="json" );
 		}
-
 	}
 
 	public void function startEmailQueueHeartbeat( event, rc, prc ) {
-		var instanceNumber = Val( rc.instanceNumber ?: "" );
+		if ( isFeatureEnabled( "emailQueueHeartBeat" ) ) {
+			var instanceNumber = Val( rc.instanceNumber ?: "" );
 
-		if ( instanceNumber > 0 && instanceNumber <= emailQueueConcurrency ) {
-			getModel( "PresideEmailQueueHeartBeat#instanceNumber#" ).start();
-			event.renderData( data={ ok=true }, type="json" );
+			if ( instanceNumber > 0 && instanceNumber <= emailQueueConcurrency ) {
+				getModel( "PresideEmailQueueHeartBeat#instanceNumber#" ).start();
+				event.renderData( data={ ok=true }, type="json" );
+			} else {
+				event.renderData( data={ ok=false, message="Queue heartbeat instance [#instanceNumber#] not found!" }, type="json" );
+			}
 		} else {
-			event.renderData( data={ ok=false, message="Queue heartbeat instance [#instanceNumber#] not found!" }, type="json" );
+			event.renderData( data={ ok=false, message="Email queue heartbeat is not enabled on this application instance." }, type="json" );
 		}
 
 	}
