@@ -24,7 +24,8 @@
 						selected: option.selected,
 						disabled: option.disabled,
 						classes: option.className,
-						style: option.style.cssText
+						style: option.style.cssText,
+						active: option.active
 					});
 				} else {
 					this.parsed.push({
@@ -194,13 +195,15 @@
 				, style             : { cssText : "" }
 				, text              : ""
 				, value             : ""
+				, active            : false
+				, inactiveClass : ""
 			}, option );
 
 			if (!this.include_option_in_results(option)) {
 				return '';
 			}
 			classes = [];
-
+			
 			option.selected = this.is_option_selected( option );
 
 			if (!option.disabled && !(option.selected && this.is_multiple)) {
@@ -218,10 +221,13 @@
 			if (option.classes !== "") {
 				classes.push(option.classes);
 			}
-
+			if( !option.active ) {
+				option.inactiveClass  = "inactive";
+			}
+			
 			style = option.style.cssText !== "" ? " style=\"" + option.style + "\"" : "";
 			return "<li class=\"" + (classes.join(' ')) + "\"" + style + ">"
-					+ Mustache.render( this.result_template, option ) +
+					+ Mustache.render( this.result_template , option ) +
 					"</li>";
 		};
 

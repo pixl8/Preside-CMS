@@ -224,7 +224,14 @@ component {
 		}
 
 		return _getPobj().selectData(
-			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
+			  selectFields       = [ 
+				    "page.id as value"
+				  , "page.title as text"
+				  , "parent_page.title as parent"
+				  , "page._hierarchy_depth as depth"
+				  , "page.page_type"
+				  , "page.active as active" 
+			  ]
 			, filter             = filter
 			, extraFilters       = extra
 			, maxRows            = arguments.maxRows
