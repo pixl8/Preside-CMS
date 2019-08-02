@@ -11,7 +11,6 @@
 	resultTemplate     = selectedTemplate = '<span class="result-container"><span class="parent">{{{parent}}} /</span> <span class="title {{inactiveClass}}">{{text}}</span>';
 	resultTemplateId   = "result_template_" & CreateUUId();
 	selectedTemplateId = "selected_template_" & CreateUUId();
-
 	filterBy             = args.filterBy             ?: "";
 	filterByField        = args.filterByField        ?: filterBy;
 	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
