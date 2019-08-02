@@ -629,8 +629,15 @@ component displayName="Preside Object Service" {
 				, filter             = arguments.filter
 				, filterParams       = arguments.filterParams
 				, allowDraftVersions = true
-				, fromVersionTable   = false
+				, fromVersionTable   = arguments.isDraft
 			);
+			if ( !arguments.oldData.recordCount && arguments.isDraft ) {
+				arguments.oldData = selectData(
+					  argumentCollection = arguments
+					, allowDraftVersions = true
+					, fromVersionTable   = false
+				);
+			}
 
 			arguments.changedData = {};
 			for( var record in arguments.oldData ) {
