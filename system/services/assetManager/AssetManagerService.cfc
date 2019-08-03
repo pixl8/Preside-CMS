@@ -474,7 +474,7 @@ component displayName="AssetManager Service" {
 	public struct function getAssetsForGridListing(
 		  numeric startRow    = 1
 		, numeric maxRows     = 10
-		, string  orderBy     = ""
+		, string  orderBy     = "datecreated DESC"
 		, string  searchQuery = ""
 		, string  folder      = ""
 		, boolean trashed     = false
@@ -488,7 +488,7 @@ component displayName="AssetManager Service" {
 			  startRow     = arguments.startRow
 			, maxRows      = arguments.maxRows
 			, orderBy      = arguments.orderBy
-			, selectFields = [ "id", "asset_folder", "#titleField# as title", "asset_type", "datemodified" ]
+			, selectFields = [ "id", "asset_folder", "#titleField# as title", "asset_type", "datemodified", "datecreated" ]
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {

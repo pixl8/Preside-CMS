@@ -891,7 +891,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified" ];
+		var gridFields = [ "title", "datemodified", "datecreated" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
