@@ -152,11 +152,6 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=cgi.http_referer );
 		}
 
-		// check if logout is done from front end and not from back end
-		if ( !arrayLen( reMatch("^#event.getSiteUrl()&event.getAdminPath()#", rc.previousPath ) ) )  {
-			setNextEvent( url=rc.previousPath );
-		}
-		
 		setNextEvent( url=event.buildAdminLink( linkto="login" ) );
 	}
 
