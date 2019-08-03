@@ -2,7 +2,7 @@
 	if ( event.isAdminRequest() ) {
 		logoutUrl = event.buildAdminLink( linkTo="login.logout" );
 	} else {
-		logoutUrl = event.buildAdminLink( linkTo="login.logout", queryString="redirect=referer" )#
+		logoutUrl = event.buildAdminLink( linkTo="login.logout", queryString="redirect=referer" );
 	}
 </cfscript>
 
