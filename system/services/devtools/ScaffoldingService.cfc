@@ -407,7 +407,7 @@ component singleton=true {
 
 	public string function scaffoldPresideObjectCfc( required string objectName, string subDir="", string extension="", array properties=[], string name="", string description="", boolean createI18nFile=false, string datamanagerGroup="" ) {
 		var root        = _getScaffoldRoot( arguments.extension );
-		var filePath    = root & "preside-objects/" & arguments.subDir & "/" & arguments.objectName & ".cfc";
+		var filePath    = root & "preside-objects/" & arguments.subDir & ( len( trim( arguments.subDir ) ) ? "/" : "" ) & arguments.objectName & ".cfc";
 		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/object.cfc.txt" );
 		var props       = "";
 		var dmGroup     = Len( Trim( arguments.datamanagerGroup ) ) ? 'dataManagerGroup="#arguments.datamanagerGroup#"' : "";
