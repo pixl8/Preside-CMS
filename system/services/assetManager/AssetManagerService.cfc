@@ -471,7 +471,7 @@ component displayName="AssetManager Service" {
 	public struct function getAssetsForGridListing(
 		  numeric startRow    = 1
 		, numeric maxRows     = 10
-		, string  orderBy     = "datecreated ASC"
+		, string  orderBy     = "datecreated DESC"
 		, string  searchQuery = ""
 		, string  folder      = ""
 		, boolean trashed     = false
