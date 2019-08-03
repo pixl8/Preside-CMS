@@ -14,7 +14,7 @@
 			</a>
 		</li>
 		<li>
-			<a href="#event.buildAdminLink( linkTo="login.logout" )#">
+			<a href="#event.buildAdminLink( linkTo="login.logout", queryString="previousPath=#event.getSiteUrl()##event.getCurrentUrl()#" )#">
 				<i class="fa fa-sign-out"></i>
 				#translateResource( "cms:logout.link" )#
 			</a>
