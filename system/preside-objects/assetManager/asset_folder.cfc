@@ -21,6 +21,7 @@ component output="false" extends="preside.system.base.SystemPresideObject" displ
 	property name="original_label"       type="string"  dbtype="varchar" maxLength=200 required=false;
 
 	property name="parent_folder"    relationship="many-to-one" relatedTo="asset_folder"           required=false uniqueindexes="folderName|1" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="child_folders"    relationship="one-to-many" relatedTo="asset_folder"           required=false relationshipKey="parent_folder";
 	property name="storage_location" relationship="many-to-one" relatedTo="asset_storage_location" required=false;
 	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
 
