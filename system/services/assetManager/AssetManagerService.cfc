@@ -120,21 +120,22 @@ component displayName="AssetManager Service" {
 		var ancestors     = QueryNew( folder.columnList );
 		var ancestorArray = [];
 
-		if ( arguments.includeChildFolder ){
+		if ( arguments.includeChildFolder ) {
 			ancestorArray.append( folder );
 		}
 
-		while( folder.recordCount ){
+		while( folder.recordCount ) {
 			if ( not Len( Trim( folder.parent_folder ) ) ) {
 				break;
 			}
 			folder = getFolder( id=folder.parent_folder );
+			if( ancestorArray.indexOf(folder) >= 0 ) break;
 			if ( folder.recordCount ) {
 				ancestorArray.append( folder );
 			}
 		}
 
-		for( var i=1; i <= ancestorArray.len(); i++ ){
+		for( var i=1; i <= ancestorArray.len(); i++ ) {
 			for( folder in ancestorArray[i] ) {
 				QueryAddRow( ancestors, folder );
 			}
@@ -322,72 +323,87 @@ component displayName="AssetManager Service" {
 		return true;
 	}
 
-	public array function getFoldersForSelectList(
-		  numeric maxRows              = 1000
-		, string  searchQuery          = ""
-		, array   ids                  = []
-		, string  parentString         = "/ "
-		, string  parentFolder         = ""
-		, array   foldersForSelectList = []
+	public any function getFoldersForSelectList(
+		  numeric maxRows            = 1000
+		, string  searchQuery        = ""
+		, array   ids                = []
+		, string  excludeDescendants = ""
+		, string  parentFolder
 		, array   noPermissionFolders
 	) {
-		var folderPassesCriteria = function( id, label ){
-			return ( !ids.len() || ids.findNoCase( arguments.id ) ) && ( !Len( Trim( searchQuery ) ) || arguments.label.findNoCase( searchQuery ) );
-		};
-
-		if ( arguments.parentFolder == "" && !arguments.foldersForSelectList.len() ) {
-			var rootFolderName = $translateResource( "cms:assetmanager.root.folder", "" );
-			var rootFolderId   = getRootFolderId();
-
-			if ( folderPassesCriteria( rootFolderId, rootFolderName ) ) {
-				arguments.foldersForSelectList.append({
-					  text  = rootFolderName
-					, value = rootFolderId
-				});
-			}
-		}
-
-		var noPermissionFolders = arguments.noPermissionFolders ?: _userNoPermissionAssetFolders();
-		var filter              = "( asset_folder.is_trashed = :is_trashed and ( asset_folder.hidden = :asset_folder.hidden or asset_folder.hidden is null ) and asset_folder.parent_folder = :parent_folder )";
-		var params              = {
+		var rootFolderId         = getRootFolderId();
+		var foldersForSelectList = [];
+		var noPermissionFolders  = arguments.noPermissionFolders ?: _userNoPermissionAssetFolders();
+		var filter               = "( asset_folder.is_trashed = :is_trashed and ( asset_folder.hidden = :asset_folder.hidden or asset_folder.hidden is null ) )";
+		var params               = {
 			  is_trashed            = false
 			, "asset_folder.hidden" = false
-			, parent_folder         = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
 		}
 
-		if( arrayLen( noPermissionFolders ) ){
+		if( arrayLen( noPermissionFolders ) ) {
 			filter &= " and ( asset_folder.id not in (:asset_folder.id) )";
 			params[ "asset_folder.id" ] = noPermissionFolders;
 		}
 
-		var folders             = _getFolderDao().selectData(
-			  selectFields = [ "id", "label" ]
+		var folders = _getFolderDao().selectData(
+			  selectFields = [ "id", "label", "child_folders.id AS child_id" ]
 			, orderBy      = "label"
 			, filter       = filter
 			, filterParams = params
 		);
 
-		for ( var folder in folders ) {
-			var label = parentString & folder.label;
+		// DATA PRE-PROCESSING
+		// Converting it into a struct with the folder ID as key for easy access.
+		var folderStruct = structNew( "ordered" );
 
-			if ( folderPassesCriteria( folder.id, label ) ) {
-				foldersForSelectList.append( {
-					  text = label
-					, value = folder.id
-				} );
+		for( row in folders ) {
+			if( row.id == rootFolderId ) {
+				row.label = $translateResource( "cms:assetmanager.root.folder", "" );
+			}
+			if( !structKeyExists( folderStruct, row.id ) ) {
+				folderStruct[row.id] = { label=row.label, children=[] };
+			}
+			if( !Len( row.child_id) ) {
+				continue;
+			}
+			folderStruct[row.id].children.prepend(row.child_id);
+		}
+
+		// DFS traversal down the trie.
+		var parentFolderId = arguments.parentFolder ?: rootFolderId
+		var folderQueue    = [ parentFolderId ];
+		var visitedNodes   = [];
+		var folderPassesCriteria = function( id, label ) {
+			return ( !ids.len() || ids.findNoCase( arguments.id ) ) && ( !Len( Trim( searchQuery ) ) || arguments.label.findNoCase( searchQuery ) );
+		};
+
+		while( !folderQueue.isEmpty() ) {
+			if( len(foldersForSelectList) >= arguments.maxRows ) break;
+
+			var currentFolderId = folderQueue[1];
+			var currentFolder   = folderStruct[currentFolderId];
+
+			if( currentFolderId == arguments.excludeDescendants ) {
+				folderQueue.deleteAt(1);
+				continue;
+			};
+
+			if( !folderPassesCriteria( currentFolderId, currentFolder.label ) || visitedNodes.indexOf( currentFolderId ) >= 0 ) {
+				folderQueue.deleteAt(1);
+				continue;
 			}
 
-			if ( foldersForSelectList.len() >= maxRows ) {
-				break;
+			foldersForSelectList.append( { text=currentFolder.label, value=currentFolderId } );
+
+			for( child in currentFolder.children ) {
+				var parentLabel = ( currentFolderId == rootFolderId ) ? "" : currentFolder.label;
+
+				folderStruct[child].label = trim( parentLabel & " / " & folderStruct[child].label );
+				folderQueue.prepend( child );
 			}
 
-			foldersForSelectList = getFoldersForSelectList(
-				  argumentCollection   = arguments
-				, parentString         = parentString & folder.label & " / "
-				, parentFolder         = folder.id
-				, foldersForSelectList = foldersForSelectList
-				, noPermissionFolders  = noPermissionFolders
-			);
+			folderQueue.deleteAt( len( currentFolder.children ) + 1 );
+			visitedNodes.append(currentFolderId);
 		}
 
 		return foldersForSelectList;
