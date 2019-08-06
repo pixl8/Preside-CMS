@@ -356,7 +356,7 @@ component displayName="AssetManager Service" {
 		// Converting it into a struct with the folder ID as key for easy access.
 		var folderStruct = structNew( "ordered" );
 
-		for( row in folders ) {
+		for( var row in folders ) {
 			if( row.id == rootFolderId ) {
 				row.label = $translateResource( "cms:assetmanager.root.folder", "" );
 			}
@@ -395,7 +395,7 @@ component displayName="AssetManager Service" {
 
 			foldersForSelectList.append( { text=currentFolder.label, value=currentFolderId } );
 
-			for( child in currentFolder.children ) {
+			for( var child in currentFolder.children ) {
 				var parentLabel = ( currentFolderId == rootFolderId ) ? "" : currentFolder.label;
 
 				folderStruct[child].label = trim( parentLabel & " / " & folderStruct[child].label );
