@@ -70,6 +70,8 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		variables.cacheBox = arguments.controller.getCacheBox();
 		// Register WireBox
 		variables.wireBox = arguments.controller.getWireBox();
+		// Register thread utils
+		variables.threadUtil = wirebox.getInstance( "threadUtil" );
 
 		// Set Conventions, Settings and Properties
 		variables.layoutsConvention 		= variables.controller.getSetting( "layoutsConvention", true );
@@ -124,7 +126,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	*/
 	function renderView(
 		view="",
-		struct args="#getRequestContext().getCurrentViewArgs()#",
+		struct args=getRequestContext().getCurrentViewArgs(),
 		module="",
 		boolean cache=false,
 		cacheTimeout="",

@@ -2,7 +2,37 @@
  *	Helper methods and standard event method overrides that are specific to Preside
  *	live here.
  */
-component extends="coldbox.system.web.context.RequestContextDecorator" {
+component accessors=true extends="preside.system.coldboxModifications.RequestContext" {
+
+	// The original request context
+	property name="requestContext";
+
+	/**
+	* Constructor
+	*/
+	RequestContextDecorator function init( required oContext, required controller ){
+		// Set the memento state
+		setMemento( arguments.oContext.getMemento() );
+		// Set Controller
+		instance.controller = arguments.controller;
+		// Composite the original context
+		variables.requestContext = arguments.oContext;
+
+		return this;
+	}
+
+	/**
+	* Override to provide a pseudo-constructor for your decorator
+	*/
+	function configure(){}
+
+	/**
+	* Get original controller
+	*/
+	function getController(){
+		return instance.controller;
+	}
+
 
 // URL related
 	public void function setSite( required struct site ) {
@@ -29,7 +59,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var protocol  = ( site.protocol ?: getProtocol() );
-		var siteUrl   = protocol & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
+		var siteUrl   = protocol & "://";
+
+		if ( fetchSite && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
+			siteUrl &= site.domain;
+		} else {
+			siteUrl &= cgi.server_name;
+		}
 
 		prc.delete( "_forceDomainLookup" );
 
@@ -163,6 +199,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		, array   permissionContextKeys   = []
 		, string  fieldNamePrefix         = ""
 		, string  fieldNameSuffix         = ""
+		, array   suppressFields          = []
 	) {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
@@ -188,10 +225,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 
 // Admin specific
 	public string function buildAdminLink(
-		  string linkTo      = ""
-		, string queryString = ""
-		, string siteId      = this.getSiteId()
+		  string linkTo          = ""
+		, string queryString     = ""
+		, string siteId          = this.getSiteId()
+		, string operationSource = ""
 	) {
+		if ( Len( Trim( arguments.operationSource ) ) ) {
+			arguments.queryString = ListAppend( arguments.queryString, "_psource=" & arguments.operationSource, "&" );
+		}
+
 		if ( StructKeyExists( arguments, "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
@@ -253,11 +295,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public boolean function showNonLiveContent() {
-		if ( this.isAdminRequest() ) {
-			return true;
-		}
+		try {
+			return request._showNonLiveContent;
+		} catch( any e ) {
+			if ( this.isAdminRequest() ) {
+				request._showNonLiveContent = true;
+			} else {
+				request._showNonLiveContent = getModel( "loginService" ).isShowNonLiveEnabled();
+			}
 
-		return getModel( "loginService" ).isShowNonLiveEnabled();
+			return request._showNonLiveContent;
+		}
 	}
 
 	public struct function getAdminUserDetails() {
@@ -312,7 +360,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		args.append({
 			  eventArguments = {}
 			, action         = "__custom"
-		});
+		}, false );
 
 		getController().runEvent(
 			  event          = "admin.datamanager._loadCommonVariables"
@@ -387,6 +435,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		} else {
 			getController().runEvent( event="admin.login._redirectToDefaultAdminEvent", private=true, prePostExempt=true );
 		}
+	}
+
+	public string function getAdminOperationSource( string defaultValue="" ) {
+		return getModel( "sessionStorage" ).getVar( "_adminOperationSource", arguments.defaultValue );
+	}
+	public string function setAdminOperationSource( required string source ) {
+		getModel( "sessionStorage" ).setVar( "_adminOperationSource", arguments.source );
 	}
 
 // Sticker
@@ -557,7 +612,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			return;
 		}
 
-		for( p in page ){ page = p; break; } // quick query row to struct hack
+		for( var p in page ){ page = p; break; } // quick query row to struct hack
 
 		StructAppend( page, sitetreeSvc.getExtendedPageProperties( id=page.id, pageType=page.page_type, getLatest=getLatest, allowDrafts=allowDrafts ) );
 		var ancestors = sitetreeSvc.getAncestors( id = page.id );
@@ -586,8 +641,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			}
 		}
 
-		p[ "slug" ] = p._hierarchy_slug;
-		StructDelete( p, "_hierarchy_slug" );
+		page[ "slug" ] = page._hierarchy_slug;
+		StructDelete( page, "_hierarchy_slug" );
 
 		prc.presidePage = page;
 	}
@@ -903,20 +958,31 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public struct function getCacheableRequestData() {
-		var event           = getRequestContext();
-		var rc              = event.getCollection( private=false );
-		var prc             = event.getCollection( private=true  );
-		var unCacheableKeys = prc._fullPageCachingUncacheableKeys ?: [];
-		var cacheableVars   = { prc={}, rc={} };
+		var event            = getRequestContext();
+		var rc               = event.getCollection( private=false );
+		var prc              = event.getCollection( private=true  );
+		var unCacheableKeys  = prc._fullPageCachingUncacheableKeys ?: [];
+		var fpcSettings      = getController().getSetting( name="fullpagecaching", defaultValue={} );
+		var limitData        = IsBoolean( fpcSettings.limitCacheData ?: "" ) && fpcSettings.limitCacheData;
+		var cacheableVars    = { prc={}, rc={} };
 
-		for( var key in rc ) {
-			if ( !isNull( rc[ key ] ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
-				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+		if ( limitData ) {
+			var limitRc  = fpcSettings.limitCacheDataKeys.rc  ?: [];
+			var limitPrc = fpcSettings.limitCacheDataKeys.prc ?: [];
+		}
+
+		if ( !limitData || limitRc.len() ) {
+			for( var key in rc ) {
+				if ( !isNull( rc[ key ] ) && (!limitData || ArrayFind( limitRc, key ) ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
+					cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+				}
 			}
 		}
-		for( var key in prc ) {
-			if ( !isNull( prc[ key ] ) && isCacheable( prc[ key ] ) ) {
-				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+		if ( !limitData || limitPrc.len() ) {
+			for( var key in prc ) {
+				if ( !isNull( prc[ key ] ) && ( !limitData || ArrayFind( limitPrc, key ) ) && isCacheable( prc[ key ] ) ) {
+					cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+				}
 			}
 		}
 

@@ -398,6 +398,7 @@ component extends="testbox.system.BaseSpec"{
 		mockAssetFolderDao          = CreateStub();
 		mockAssetDerivativeDao      = CreateStub();
 		mockAssetMetaDao            = CreateStub();
+		assetCache                  = CreateStub();
 		configuredDerivatives       = {};
 		configuredTypesByGroup      = {};
 		configuredFolders           = {};
@@ -414,6 +415,8 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "_setupSystemFolders" );
 		service.$( "_migrateFromLegacyRecycleBinApproach" );
 
+		assetCache.$( "clearByKeySnippet" );
+
 		return service.init(
 			  defaultStorageProvider  = mockDefaultStorageProvider
 			, assetTransformer        = mockAssetTransformer
@@ -423,7 +426,9 @@ component extends="testbox.system.BaseSpec"{
 			, configuredDerivatives   = configuredDerivatives
 			, configuredTypesByGroup  = configuredTypesByGroup
 			, configuredFolders       = configuredFolders
+			, renderedAssetCache      = assetCache
 		);
+
 	}
 
 }

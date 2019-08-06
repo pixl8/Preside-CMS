@@ -67,7 +67,8 @@
 				}
 
 				$relativeField.on( "changeDate", function( e ){
-					var newDate = new Date( e.date );
+					var newDate   = new Date( e.date );
+					    fieldDate = datetimePicker.date();
 
 					switch( relativeOperator ) {
 						case "lt":

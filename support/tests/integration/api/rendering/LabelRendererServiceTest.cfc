@@ -134,8 +134,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var expectedDate    = Now();
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
-				mockLabelRendererCache.$( "get" ).$args( labelRenderer ).$results( nullValue() );
-				mockLabelRendererCache.$( "set" ).$args( labelRenderer, expectedDate ).$results( expectedDate );
 
 				expect( service.getRendererCacheDate( labelRenderer ) ).toBeGTE( expectedDate );
 			} );
@@ -144,12 +142,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var service         = _getService();
 				var labelRenderer   = "custom_label_renderer";
 				var selectHandler   = service.getSelectFieldsHandler( labelRenderer );
-				var expectedDate    = createDateTime( 2017, 1, 1, 10, 30, 0 );
+				var expectedDate    = Now();
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
-				mockLabelRendererCache.$( "get" ).$args( labelRenderer ).$results( expectedDate );
 
-				expect( service.getRendererCacheDate( labelRenderer ) ).toBe( expectedDate );
+				var cachedDate = service.getRendererCacheDate( labelRenderer );
+
+				expect( cachedDate ).toBeGTE( expectedDate );
+
+				sleep( 3000 );
+
+				expect( service.getRendererCacheDate( labelRenderer ) ).toBe( cachedDate );
 			} );
 
 			it( "should return default datetime if label renderer does not exist", function(){
@@ -169,14 +172,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 // PRIVATE HELPERS
 	private any function _getService() {
-		mockLabelRendererCache = createStub();
 		mockColdboxController  = createStub();
 
-		var service = createMock( object= new preside.system.services.rendering.LabelRendererService(
-			labelRendererCache = mockLabelRendererCache
-		) );
+		var service = createMock( object= new preside.system.services.rendering.LabelRendererService() );
 
-		service.$( "$getColdbox"           , mockColdboxController );
+		service.$( "$getColdbox", mockColdboxController );
 
 		makePublic( service, "_getSelectFieldsHandler", "getSelectFieldsHandler" );
 		makePublic( service, "_getOrderByHandler"     , "getOrderByHandler"      );

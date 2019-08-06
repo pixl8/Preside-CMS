@@ -295,11 +295,13 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
-				  ix_an_object_indexa     = { unique="false", fields="field1,field2,field5" }
-				, ix_an_object_indexb     = { unique="false", fields="field6,field3"        }
-				, ix_an_object_indexc     = { unique="false", fields="field4,field1"        }
-				, ux_an_object_uniqueness = { unique="true" , fields="field2,field1"        }
-				, ux_an_object_uniq       = { unique="true" , fields="field3"               }
+				  ix_an_object_datecreated  = { unique="false", fields="datecreated" }
+				, ix_an_object_datemodified = { unique="false", fields="datemodified" }
+				, ix_an_object_indexa       = { unique="false", fields="field1,field2,field5" }
+				, ix_an_object_indexb       = { unique="false", fields="field6,field3"        }
+				, ix_an_object_indexc       = { unique="false", fields="field4,field1"        }
+				, ux_an_object_uniqueness   = { unique="true" , fields="field2,field1"        }
+				, ux_an_object_uniq         = { unique="true" , fields="field3"               }
 			}
 			var realIndexes = "";
 
@@ -317,12 +319,14 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
-				  ix_an_object_indexa     = { unique="false", fields="field1,field2,field5" }
-				, ix_an_object_indexb     = { unique="false", fields="field3,field6"        }
-				, ix_an_object_indexc     = { unique="false", fields="field4,field1"        }
-				, ix_an_object_indexd     = { unique="false", fields="field2"               }
-				, ux_an_object_uniqueness = { unique="true" , fields="field4"               }
-				, ux_an_object_uniq       = { unique="true" , fields="field3"               }
+				  ix_an_object_indexa       = { unique="false", fields="field1,field2,field5" }
+				, ix_an_object_indexb       = { unique="false", fields="field3,field6"        }
+				, ix_an_object_indexc       = { unique="false", fields="field4,field1"        }
+				, ix_an_object_indexd       = { unique="false", fields="field2"               }
+				, ix_an_object_datecreated  = { unique="false", fields="datecreated"          }
+				, ix_an_object_datemodified = { unique="false", fields="datemodified"         }
+				, ux_an_object_uniqueness   = { unique="true" , fields="field4"               }
+				, ux_an_object_uniq         = { unique="true" , fields="field3"               }
 			}
 			var realIndexes = "";
 
@@ -1528,8 +1532,8 @@
 			var result    = "";
 			var key       = "";
 			var expected  = {
-				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datecreated" }
+				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datemodified" }
 				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
 				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 				, object_d     = { name="object_d"    , control="default"  , dbtype="int"     , generator="none", generate="never" , maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade-if-no-cycle-check" }
@@ -2070,8 +2074,8 @@
 			var obj                      = poService.getObject( "object_to_be_merged" );
 			var mergedProperties         = poService.getObjectProperties( "object_to_be_merged" );
 			var expectedMergedProperties = {
-				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datecreated" }
+				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datemodified" }
 				, id                          = { name="id"                         , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
 				, label                       = { name="label"                      , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 
@@ -2903,6 +2907,40 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test085a_selectData_shouldReturnRawSQLAndFormattedFilters_whenFormatSqlParamsIsSetToTrue" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, having              = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy             = "obj_a.id"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters        = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly     = true
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+			);
+
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( { bees_count={ type="cf_sql_int", value=2 }, bees_count_2={ type="cf_sql_int", value=4 } }, result.params ?: {} );
+
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test086_selectData_shouldMakeUseOfAdditionalJoinsPassed" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
@@ -3212,28 +3250,76 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test095_selectView_shouldPrePopulateSelectDataArgsFromPassedSelectDataView_mixingInAnyOtherSuppliedArguments" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var view      = "testView";
+			var bees      = [];
+
+			poService.dbSync();
+
+			mockSelectDataViewService.$( "getViewArgs" ).$args( "testView" ).$results( {
+				  objectname   = "obj_a"
+				, having       = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy      = "obj_a.id"
+				, filter       = "1=1"
+				, filterParams = { bees_count = { type="cf_sql_int", value=2 } }
+			} );
+
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectView(
+				  view            = "testView"
+				, filter          = "2 = :two"
+				, filterParams    = { two={ type="cf_sql_int", value=2 } }
+				, recordCountOnly = true
+			);
+
+			expect( result ).toBe( 2 );
+
+			result = poService.selectView(
+				  view            = "testView"
+				, recordCountOnly = true
+				, filter          = { label="label 2" }
+			);
+
+			expect( result ).toBe( 1 );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories" type="array"  required="true" />
 		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
 
 		<cfscript>
-			cachebox               = _getCachebox( forceNewInstance = true );
-			mockColdbox            = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
-			mockColdboxEvent       = getMockbox().createStub();
-			mockInterceptorService = _getMockInterceptorService();
+			cachebox                  = _getCachebox( forceNewInstance = true );
+			mockColdbox               = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+			mockColdboxEvent          = getMockbox().createStub();
+			mockInterceptorService    = _getMockInterceptorService();
+			mockSelectDataViewService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectSelectDataViewService" );
 
 			mockColdboxEvent.$( "isAdminUser", true );
 			mockColdboxEvent.$( "getAdminUserId", "" );
 			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
 			return _getPresideObjectService(
-				  objectDirectories  = arguments.objectDirectories
-				, defaultPrefix      = arguments.defaultPrefix
-				, forceNewInstance   = true
-				, cacheBox           = cacheBox
-				, coldbox            = mockColdbox
-				, interceptorService = mockInterceptorService
+				  objectDirectories     = arguments.objectDirectories
+				, defaultPrefix         = arguments.defaultPrefix
+				, forceNewInstance      = true
+				, cacheBox              = cacheBox
+				, coldbox               = mockColdbox
+				, interceptorService    = mockInterceptorService
+				, selectDataViewService = mockSelectDataViewService
 			)
 		</cfscript>
 	</cffunction>

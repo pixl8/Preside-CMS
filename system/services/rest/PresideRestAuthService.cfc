@@ -100,18 +100,19 @@ component {
 		, required any    restResponse
 		, required string defaultStatusText
 	) {
+		var statusText = restResponse.getStatusText().len() ? restResponse.getStatusText() : arguments.defaultStatusText;
+
 		restRequest.finish();
 		if ( restResponse.getStatusCode() == 200 ) {
 			restResponse.setStatusCode( 401 );
 		}
-		if ( !restResponse.getStatusText().len() ) {
-			restResponse.setStatusText( defaultStatusText );
-		}
+
+		restResponse.setStatusText( statusText );
 		restResponse.setError(
 			  errorCode = 401
 			, title     = "Authorization failed"
 			, type      = "rest.authorization.failed"
-			, message   = defaultStatusText
+			, message   = statusText
 		);
 	}
 

@@ -9,10 +9,16 @@ component extends="coldbox.system.web.Controller" {
 		services.requestService     = new preside.system.coldboxModifications.services.RequestService( this );
 		services.routingService     = new preside.system.coldboxModifications.services.RoutingService( this );
 		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
+		variables.cacheBox          = CreateObject( "preside.system.coldboxModifications.cachebox.CacheFactory" );
 	}
 
 	function getRenderer(){
-		return variables.wireBox.getInstance( "presideRenderer" );
+		try {
+			return variables._renderer;
+		} catch( any e ) {
+			variables._renderer = variables.wireBox.getInstance( "presideRenderer" );
+		}
+		return variables._renderer;
 	}
 
 	public array function listHandlers( string thatStartWith="" ) {
