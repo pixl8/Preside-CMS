@@ -910,7 +910,7 @@ component {
 		}
 		for( var i=1; i <= formItems.len(); i++ ) {
 			if ( formItems[i].type.isFormField ) {
-				var export  = isBoolean( formItems[i].configuration.export ?: "" ) && formItems[i].configuration.export ?: "";
+				var export  = isBoolean( formItems[i].configuration.export ?: "" ) && formItems[i].configuration.export;
 				var columns = export ? renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration ) : [];
 
 				if ( columns.len() && export ) {
