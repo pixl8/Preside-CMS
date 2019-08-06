@@ -40,7 +40,8 @@
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
-			  , enabledContextHotkeys, refreshFavourites;
+			  , enabledContextHotkeys, refreshFavourites
+			  , lastAjaxResult;
 
 			setupDatatable = function(){
 				var $tableHeaders        = $listingTable.find( 'thead > tr > th')
@@ -224,8 +225,21 @@
 					},
 					fnDrawCallback : function() {
 						$( ".datatable-container" ).presideLoadingSheen( false );
+					},
+					fnFooterCallback: function ( nRow, aaData, iStart, iEnd, aiDisplay ) {
+						if ( $( nRow ).length ) {
+							if ( lastAjaxResult && typeof lastAjaxResult.sFooter !== "undefined" && lastAjaxResult.sFooter.length ) {
+								$( nRow ).show().find( "th:first" ).html( lastAjaxResult.sFooter );
+							} else {
+								$( nRow ).hide().find( "th:first" ).html( "" );
+							}
+						}
 					}
 				} ).fnSetFilteringDelay( searchDelay );
+
+				$listingTable.on( "xhr", function( event, settings, json ){
+					lastAjaxResult = json;
+				} );
 			};
 
 			setupCheckboxBehaviour = function(){
