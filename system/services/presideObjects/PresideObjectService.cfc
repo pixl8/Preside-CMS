@@ -625,15 +625,12 @@ component displayName="Preside Object Service" {
 		transaction {
 			if ( requiresVersioning ) {
 				versionNumber = _getVersioningService().saveVersionForUpdate(
-					  objectName           = arguments.objectName
-					, id                   = arguments.id ?: NullValue()
-					, filter               = preparedFilter.filter
-					, filterParams         = preparedFilter.filterParams
-					, data                 = cleanedData
-					, manyToManyData       = manyToManyData
-					, isDraft              = arguments.isDraft
-					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
-					, forceVersionCreation = arguments.forceVersionCreation
+					  argumentCollection = arguments
+					, filter             = preparedFilter.filter
+					, filterParams       = preparedFilter.filterParams
+					, data               = cleanedData
+					, manyToManyData     = manyToManyData
+					, versionNumber      = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 				);
 			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
 				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
