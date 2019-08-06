@@ -395,14 +395,18 @@ component displayName="AssetManager Service" {
 
 			foldersForSelectList.append( { text=currentFolder.label, value=currentFolderId } );
 
+			var addedChildrenCount = 0;
 			for( var child in currentFolder.children ) {
-				var parentLabel = ( currentFolderId == rootFolderId ) ? "" : currentFolder.label;
+				if ( StructKeyExists( folderStruct, child ) && StructCount( folderStruct[ child ] ) )  {
+					var parentLabel = ( currentFolderId == rootFolderId ) ? "" : currentFolder.label;
 
-				folderStruct[child].label = trim( parentLabel & " / " & folderStruct[child].label );
-				folderQueue.prepend( child );
+					folderStruct[child].label = trim( parentLabel & " / " & folderStruct[child].label );
+					folderQueue.prepend( child );
+					addedChildrenCount++;
+				}
 			}
 
-			folderQueue.deleteAt( len( currentFolder.children ) + 1 );
+			folderQueue.deleteAt( addedChildrenCount + 1 );
 			visitedNodes.append(currentFolderId);
 		}
 
