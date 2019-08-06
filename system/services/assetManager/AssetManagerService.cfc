@@ -337,7 +337,7 @@ component displayName="AssetManager Service" {
 		var rootFolderId         = getRootFolderId();
 		var foldersForSelectList = [];
 		var noPermissionFolders  = arguments.noPermissionFolders ?: _userNoPermissionAssetFolders();
-		var filter               = "( asset_folder.is_trashed = :is_trashed and ( asset_folder.hidden = :asset_folder.hidden or asset_folder.hidden is null ) )";
+		var filter               = "( asset_folder.is_trashed = :is_trashed and ( asset_folder.hidden = :asset_folder.hidden or asset_folder.hidden is null ) and child_folders.id is null or ( child_folders.is_trashed = :is_trashed and ( child_folders.hidden = :asset_folder.hidden or child_folders.hidden is null ) ) )";
 		var params               = {
 			  is_trashed            = false
 			, "asset_folder.hidden" = false
