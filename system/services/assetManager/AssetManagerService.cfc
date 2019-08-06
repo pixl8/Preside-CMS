@@ -383,34 +383,31 @@ component displayName="AssetManager Service" {
 		while( !folderQueue.isEmpty() ) {
 			if( len(foldersForSelectList) >= arguments.maxRows ) break;
 
-			var currentFolderId = folderQueue[1];
-			var currentFolder   = folderStruct[currentFolderId];
+			var currentFolderId = folderQueue[ 1 ];
+			var currentFolder   = folderStruct[ currentFolderId ];
 
-			if( currentFolderId == arguments.excludeDescendants ) {
-				folderQueue.deleteAt(1);
+			if( currentFolderId == arguments.excludeDescendants || visitedNodes.find( currentFolderId ) ) {
+				folderQueue.deleteAt( 1 );
 				continue;
 			};
 
-			if( !folderPassesCriteria( currentFolderId, currentFolder.label ) || visitedNodes.indexOf( currentFolderId ) >= 0 ) {
-				folderQueue.deleteAt(1);
-				continue;
+			if( folderPassesCriteria( currentFolderId, currentFolder.label ) ) {
+				foldersForSelectList.append( { text=currentFolder.label, value=currentFolderId } );
 			}
-
-			foldersForSelectList.append( { text=currentFolder.label, value=currentFolderId } );
 
 			var addedChildrenCount = 0;
 			for( var child in currentFolder.children ) {
 				if ( StructKeyExists( folderStruct, child ) && StructCount( folderStruct[ child ] ) )  {
 					var parentLabel = ( currentFolderId == rootFolderId ) ? "" : currentFolder.label;
 
-					folderStruct[child].label = trim( parentLabel & " / " & folderStruct[child].label );
+					folderStruct[ child ].label = trim( parentLabel & " / " & folderStruct[ child ].label );
 					folderQueue.prepend( child );
 					addedChildrenCount++;
 				}
 			}
 
 			folderQueue.deleteAt( addedChildrenCount + 1 );
-			visitedNodes.append(currentFolderId);
+			visitedNodes.append( currentFolderId );
 		}
 
 		return foldersForSelectList;
