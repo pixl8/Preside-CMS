@@ -1,23 +1,26 @@
 ( function( $ ){
 	$( '.slug-editor' ).each( function(){
-		var slugEditorId = $(this).attr( 'id' );
-		$( "#slug-editor-"+slugEditorId ).html( $(this).val() );
-	});
+		var $editor        = $( this )
+		  , $slugPreview   = $editor.siblings( ".page-url-preview" ).find( ".page-slug" )
+		  , $parentPreview = $editor.siblings( ".page-url-preview" ).find( ".parent-slug" )
+		  , $parentInput   = $editor.parents( "form" ).find( "input[name='parent_page']" )
+		  , parentFetchUrl = $editor.siblings( "input[name='parent_slug_ajax']" ).val();
 
-	$( '.slug-editor' ).on( 'keyup', function() {
-		var slugEditorId = $(this).attr( 'id' );
-		$( "#slug-editor-"+slugEditorId ).html( $(this).val() );
-	});
+		$slugPreview.html( $editor.val() );
 
-	$( "input[name='parent_page']" ).on( 'change', function() {
-		$.ajax({
-			  url     : $( "input[name='parent_slug_ajax']" ).val()
-			, method  : "GET"
-			, data    : "parent_page=" + $(this).val()
-			, success : function( data ){
-				$( '.parent-slug' ).html( data );
-			}
-		});
-	});
+		$editor.on( "keyup", function(){
+			$slugPreview.html( $editor.val() );
+		} );
 
+		if ( $parentInput.length ) {
+			$parentInput.on( "change", function() {
+				$.ajax({
+					  url     : parentFetchUrl
+					, method  : "GET"
+					, data    : "parent_page=" + $parentInput.val()
+					, success : function( data ){ $parentPreview.html( data ); }
+				});
+			} );
+		}
+	});
 } )( presideJQuery );
