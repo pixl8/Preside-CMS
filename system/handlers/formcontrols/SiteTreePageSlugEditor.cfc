@@ -4,7 +4,7 @@ component {
 	}
 
 	public string function getParentPage( event, rc, prc, args={} ) {
-		parentSlug = event.buildLink( page=( rc.parent_page ?: "" ) );
+		var parentSlug = event.buildLink( page=( rc.parent_page ?: "" ) );
 		return left( parentSlug, len( parentSlug )-5 ) & '/';
 	}
 }
