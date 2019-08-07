@@ -189,21 +189,25 @@
 			var classes, style;
 
 			option = $.extend( {}, {
-				  disabled          : false
-				, superQuickAdd     : false
-				, classes           : ""
-				, style             : { cssText : "" }
-				, text              : ""
-				, value             : ""
-				, active            : false
+				  disabled      : false
+				, superQuickAdd : false
+				, classes       : ""
+				, style         : { cssText : "" }
+				, text          : ""
+				, value         : ""
+				, active        : true
 				, inactiveClass : ""
 			}, option );
+
+			if ( option.active === "" ) {
+				option.active = true;
+			}
 
 			if (!this.include_option_in_results(option)) {
 				return '';
 			}
 			classes = [];
-			
+
 			option.selected = this.is_option_selected( option );
 
 			if (!option.disabled && !(option.selected && this.is_multiple)) {
@@ -224,7 +228,7 @@
 			if( !option.active ) {
 				option.inactiveClass  = "inactive";
 			}
-			
+
 			style = option.style.cssText !== "" ? " style=\"" + option.style + "\"" : "";
 			return "<li class=\"" + (classes.join(' ')) + "\"" + style + ">"
 					+ Mustache.render( this.result_template , option ) +
