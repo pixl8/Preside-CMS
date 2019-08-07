@@ -5,6 +5,7 @@ component {
 
 	public string function getParentPage( event, rc, prc, args={} ) {
 		var parentSlug = event.buildLink( page=( rc.parent_page ?: "" ) );
-		return left( parentSlug, len( parentSlug )-5 ) & '/';
+
+		return parentSlug.reReplace( "\.html$", "/" );
 	}
 }
