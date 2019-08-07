@@ -192,14 +192,18 @@ component displayName="Preside Object Service" {
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
 	) autodoc=true {
-		var defaultFilters = listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) );
-		if( !defaultFilters.isEmpty() ){
-			if( !arguments.ignoreDefaultFilters.isEmpty() ){
-				arguments.ignoreDefaultFilters.each( function(element){
-					defaultFilters.delete(element);
-				});
+		var adminRequest = $getRequestContext().isAdminRequest();
+		
+		if ( !adminRequest ){
+			var defaultFilters = listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) );
+			if( !defaultFilters.isEmpty() ){
+				if( !arguments.ignoreDefaultFilters.isEmpty() ){
+					arguments.ignoreDefaultFilters.each( function(element){
+						defaultFilters.delete(element);
+					});
+				}
+				arguments.savedFilters.append( defaultFilters, true );
 			}
-			arguments.savedFilters.append( defaultFilters, true );
 		}
 
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
