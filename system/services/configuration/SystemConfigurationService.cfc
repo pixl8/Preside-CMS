@@ -276,6 +276,8 @@ component displayName="System configuration service" {
 	public void function reload() {
 		_setConfigCategories({});
 		_autoDiscoverCategories();
+
+		$announceInterception( "onReloadConfigCategories", { categories=_getConfigCategories() } );
 	}
 
 	public void function clearSettingsCache( required string category ) {
