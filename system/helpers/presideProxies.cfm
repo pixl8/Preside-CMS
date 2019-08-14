@@ -100,7 +100,7 @@
 	</cffunction>
 
 	<cffunction name="validateForms" access="public" returntype="any" output="false">
-		<cfargument name="formData" type="struct" required="true">
+		<cfargument name="formData" type="struct" default="#getController().getRequestContext().getCollection()#" />
 		<cfscript>
 			var formsService     = getSingleton( "formsService" );
 			var validationResult = getSingleton( "validationEngine" ).newValidationResult();
