@@ -192,19 +192,8 @@ component displayName="Preside Object Service" {
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
 	) autodoc=true {
-		var adminRequest = $getRequestContext().isAdminRequest();
-		
-		if ( !adminRequest ){
-			var defaultFilters = listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) );
-			if( !defaultFilters.isEmpty() ){
-				if( !arguments.ignoreDefaultFilters.isEmpty() ){
-					arguments.ignoreDefaultFilters.each( function(element){
-						defaultFilters.delete(element);
-					});
-				}
-				arguments.savedFilters.append( defaultFilters, true );
-			}
-		}
+
+		arguments.savedFilters.append( _getDefaultFilters( arguments.objectName, arguments.ignoreDefaultFilters ), true );
 
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
@@ -2960,6 +2949,25 @@ component displayName="Preside Object Service" {
 		}
 
 		return expanded;
+	}
+
+	private array function _getDefaultFilters( required string objectName, required array ignoreDefaultFilters ){
+		var adminRequest = $getRequestContext().isAdminRequest();
+		var defaultFilters = [];
+
+		if ( !adminRequest ){
+			defaultFilters.append( listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) ), true );
+
+			if( !defaultFilters.isEmpty() ){
+				if( !arguments.ignoreDefaultFilters.isEmpty() ){
+					arguments.ignoreDefaultFilters.each( function(element){
+						defaultFilters.delete(element);
+					});
+				}
+			}
+		}
+
+		return defaultFilters;
 	}
 
 	private struct function _prepareFilter(
