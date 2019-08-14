@@ -80,7 +80,11 @@ component {
 		,          boolean isDraft              = false
 	) {
 		var poService         = $getPresideObjectService();
-		var existingRecords   = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=true );
+		var existingRecords   = poService.selectData(
+			  argumentCollection = arguments
+			, allowDraftVersions = true
+			, fromVersionTable   = true
+		);
 		var prevVersionsExist = existingRecords.recordCount > 0;
 		var newData           = Duplicate( arguments.data );
 		var idField           = poService.getidField( arguments.objectName );
@@ -88,7 +92,11 @@ component {
 		var dateModifiedField = poService.getdateModifiedField( arguments.objectName );
 
 		if ( !prevVersionsExist ) {
-			existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=false );
+			existingRecords = poService.selectData(
+				  argumentCollection = arguments
+				, allowDraftVersions = true
+				, fromVersionTable   = false
+			);
 		}
 
 		newData.delete( dateCreatedField  );
