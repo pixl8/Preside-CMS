@@ -2367,12 +2367,17 @@ component displayName="Preside Object Service" {
 		var filter     = arguments.preparedFilter.filter ?: "";
 		var having     = arguments.preparedFilter.having ?: "";
 		var key        = "";
-		var cache      = _getCache();
-		var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
-		var objects    = cache.get( cacheKey );
+		var objects    = {};
+		var useCache   = !arguments.extraJoins.len() && !arguments.extraFilters.len();
 
-		if ( !IsNull( local.objects ) ) {
-			return objects;
+		if ( useCache ) {
+			var cache      = _getCache();
+			var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
+			objects        = cache.get( cacheKey );
+
+			if ( !IsNull( local.objects ) ) {
+				return objects;
+			}
 		}
 
 		var all        = Duplicate( arguments.data );
@@ -2400,7 +2405,7 @@ component displayName="Preside Object Service" {
 			}
 		};
 
-		objects = {}
+		objects = {};
 
 		if ( IsStruct( filter ) ) {
 			StructAppend( all, filter );
@@ -2439,13 +2444,15 @@ component displayName="Preside Object Service" {
 		StructDelete( objects, arguments.objectName );
 		objects = StructKeyArray( objects );
 
-		cache.set( cacheKey, objects );
-		if ( ArrayLen( objects ) ) {
-			var cacheMap = _getCacheMap();
-			for( var relatedObject in objects ) {
-				relatedObject = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, relatedObject );
-				cacheMap[ relatedObject ] = cacheMap[ relatedObject ] ?: {};
-				cacheMap[ relatedObject ][ arguments.objectName ] = 1;
+		if ( useCache ) {
+			cache.set( cacheKey, objects );
+			if ( ArrayLen( objects ) ) {
+				var cacheMap = _getCacheMap();
+				for( var relatedObject in objects ) {
+					relatedObject = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, relatedObject );
+					cacheMap[ relatedObject ] = cacheMap[ relatedObject ] ?: {};
+					cacheMap[ relatedObject ][ arguments.objectName ] = 1;
+				}
 			}
 		}
 
