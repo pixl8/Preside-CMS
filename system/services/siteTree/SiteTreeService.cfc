@@ -1663,7 +1663,7 @@ component {
 		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
 		if ( Len( Trim( arguments.parent_page ) ) ) {
-			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
+			var parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
 			if ( !parent.recordCount ) {
 				throw(
 					  type    = "SiteTreeService.MissingParent"
