@@ -143,6 +143,11 @@
 		, bSortable : true
 	} );
 	colConfig.push( {
+		  mData     : $( $tableHeaders.get(3) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(3) ).data( 'width' ) || 'auto'
+		, bSortable : true
+	} );
+	colConfig.push( {
 		sClass    : "center",
 		bSortable : false,
 		sWidth    : "8em",
