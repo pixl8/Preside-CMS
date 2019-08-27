@@ -14,6 +14,7 @@ component displayName="AssetManager Service" {
 	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
+	 * @assetQueueService.inject          assetQueueService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
@@ -25,6 +26,7 @@ component displayName="AssetManager Service" {
 		, required any    documentMetadataService
 		, required any    storageLocationService
 		, required any    storageProviderService
+		, required any    assetQueueService
 		, required any    renderedAssetCache
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
@@ -38,6 +40,7 @@ component displayName="AssetManager Service" {
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
+		_setAssetQueueService( arguments.assetQueueService );
 		_setRenderedAssetCache( arguments.renderedAssetCache );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
@@ -1191,6 +1194,15 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( !derivative.recordCount ) {
+			if ( $isFeatureEnabled( "assetQueue" ) ) {
+				_getAssetQueueService().queueAssetGeneration(
+					  assetId        = arguments.assetId
+					, derivativeName = arguments.derivativeName
+					, versionId      = arguments.versionId
+					, configHash     = arguments.configHash ?: ""
+				);
+			}
+
 			return getInternalAssetUrl(
 				  id         = arguments.assetId
 				, versionId  = version
@@ -2414,5 +2426,12 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
 	    _renderedAssetCache = arguments.renderedAssetCache;
+	}
+
+	private any function _getAssetQueueService() {
+	    return _assetQueueService;
+	}
+	private void function _setAssetQueueService( required any assetQueueService ) {
+	    _assetQueueService = arguments.assetQueueService;
 	}
 }

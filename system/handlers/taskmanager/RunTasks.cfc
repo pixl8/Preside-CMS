@@ -66,6 +66,22 @@ component {
 
 	}
 
+	public void function startAssetQueueHeartbeat( event, rc, prc ) {
+		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
+			var instanceNumber = Val( rc.instanceNumber ?: "" );
+
+			if ( instanceNumber > 0 && instanceNumber <= emailQueueConcurrency ) {
+				getModel( "AssetQueueHeartBeat#instanceNumber#" ).start();
+				event.renderData( data={ ok=true }, type="json" );
+			} else {
+				event.renderData( data={ ok=false, message="Queue heartbeat instance [#instanceNumber#] not found!" }, type="json" );
+			}
+		} else {
+			event.renderData( data={ ok=false, message="Asset queue heartbeat is not enabled on this application instance." }, type="json" );
+		}
+
+	}
+
 	public void function scheduledTask( event, rc, prc ) {
 		var taskKey = rc.taskKey ?: "";
 		var args    = rc.args    ?: "";

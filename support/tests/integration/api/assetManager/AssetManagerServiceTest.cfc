@@ -111,7 +111,7 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "getDerivativeUrl()", function(){
-			it( "should return an internal URL when no derivative DB record yet exists", function(){
+			it( "should return an internal URL when no derivative DB record yet exists and queue the creation of the derivative", function(){
 				var service    = _getService();
 				var assetId    = CreateUUId();
 				var derivative = "thumbnailyarh";
@@ -127,14 +127,26 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getActiveAssetVersion", "" );
 				service.$( "getDerivativeConfig", "" );
 				service.$( "getDerivativeConfigHash", "" );
+				service.$( "$isFeatureEnabled" ).$args( "assetQueue" ).$results( true );
 				service.$( "getInternalAssetUrl" ).$args(
 					  id         = assetId
 					, versionId  = ""
 					, derivative = derivative
 					, trashed    = false
 				).$results( internalUrl );
+				mockAssetQueueService.$( "queueAssetGeneration" );
 
 				expect( service.getDerivativeUrl( assetId=assetId, derivativeName=derivative ) ).toBe( internalUrl );
+
+				var callLog = mockAssetQueueService.$callLog().queueAssetGeneration;
+
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( {
+					   assetId        = assetId
+					 , derivativeName = derivative
+					 , versionId      = ""
+					 , configHash     = ""
+				} );
 			} );
 
 			it( "should return an internal URL when no derivative DB record yet exists for specific asset version", function(){
@@ -147,6 +159,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getActiveAssetVersion", "" );
 				service.$( "getDerivativeConfig", "" );
 				service.$( "getDerivativeConfigHash", "" );
+				service.$( "$isFeatureEnabled" ).$args( "assetQueue" ).$results( false );
 				service.$( "getAssetDerivative" ).$args(
 					  assetId           = assetId
 					, derivativeName    = derivative
@@ -397,6 +410,7 @@ component extends="testbox.system.BaseSpec"{
 		mockAssetVersionDao         = CreateStub();
 		mockAssetFolderDao          = CreateStub();
 		mockAssetDerivativeDao      = CreateStub();
+		mockAssetQueueService       = CreateStub();
 		mockAssetMetaDao            = CreateStub();
 		assetCache                  = CreateStub();
 		configuredDerivatives       = {};
@@ -423,6 +437,7 @@ component extends="testbox.system.BaseSpec"{
 			, documentMetadataService = mockDocumentMetadataService
 			, storageLocationService  = mockStorageLocationService
 			, storageProviderService  = mockStorageProviderService
+			, assetQueueService       = mockAssetQueueService
 			, configuredDerivatives   = configuredDerivatives
 			, configuredTypesByGroup  = configuredTypesByGroup
 			, configuredFolders       = configuredFolders
