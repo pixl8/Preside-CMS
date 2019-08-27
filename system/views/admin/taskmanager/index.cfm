@@ -67,6 +67,7 @@
 					<th>#translateResource( "cms:taskmanager.table.header.schedule" )#</th>
 					<th>#translateResource( "cms:taskmanager.table.header.lastrun" )#</th>
 					<th>#translateResource( "cms:taskmanager.table.header.nextrun" )#</th>
+					<th>#translateResource( "cms:taskmanager.history.table.header.timetaken" )#</th>
 					<cfif showActionsColumn>
 						<th>#translateResource( "cms:taskmanager.table.header.actions" )#</th>
 					</cfif>
@@ -112,6 +113,11 @@
 								</cfif>
 							<cfelse>
 								<em class="grey">#translateResource( "cms:taskmanager.table.task.disabled" )#</em>
+							</cfif>
+						</td>
+						<td>
+							<cfif IsTrue( task.was_last_run_success )>
+								#renderField( object='taskmanager_task_history', property="time_taken" , data=task.last_run_time_taken , context=[ "taskhistory", "admindatatable", "admin" ] )#
 							</cfif>
 						</td>
 						<cfif showActionsColumn>
