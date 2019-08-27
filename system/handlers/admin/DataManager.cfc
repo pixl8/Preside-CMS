@@ -3432,12 +3432,13 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var adminApplication = presideObjectService.getObjectAttribute( objectName=objectName, attributeName="dataManagerAdminApplication", defaultValue="" );
+		var adminLayout      = applicationsService.getLayout( adminApplication );
 
-		if ( !len( adminApplication ) ) {
+		if ( !len( adminApplication ) || !len( adminLayout ) ) {
 			return;
 		}
 
-		event.setLayout( applicationsService.getLayout( adminApplication ) );
+		event.setLayout( adminLayout );
 		event.getAdminBreadCrumbs()[ 1 ].link = event.buildLink( linkTo=applicationsService.getDefaultEvent( adminApplication ) );
 	}
 
