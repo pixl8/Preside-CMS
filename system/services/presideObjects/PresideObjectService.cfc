@@ -2434,7 +2434,7 @@ component displayName="Preside Object Service" {
 		var filter     = arguments.preparedFilter.filter ?: "";
 		var having     = arguments.preparedFilter.having ?: "";
 		var cache      = _getSimpleLocalCache();
-		var cacheKey   = _removeDynamicElementsFromForeignObjectsCacheKey( "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#" );
+		var cacheKey   = _generateForeignObjectsCacheKey( argumentCollection=arguments );
 
 		if ( StructKeyExists( cache, cacheKey ) ) {
 			return cache[ cacheKey ];
@@ -2515,6 +2515,33 @@ component displayName="Preside Object Service" {
 		}
 
 		return objects;
+	}
+
+	private string function _generateForeignObjectsCacheKey(
+		  required string objectName
+		,          struct preparedFilter = {}
+		,          struct data           = {}
+		,          array  selectFields   = []
+		,          string orderBy        = ""
+		,          array  extraJoins     = []
+		,          array  extraFilters   = []
+	) {
+		var filter   = arguments.preparedFilter.filter ?: "";
+		var having   = arguments.preparedFilter.having ?: "";
+		var cacheKey = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#";
+
+		for( var join in extraJoins ) {
+			cacheKey &= " ExtraJoins: #( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#";
+		}
+		for( var extraFilter in extraFilters ) {
+			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
+				for( var join in extraFilter.extraJoins ) {
+					cacheKey &= "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#";
+				}
+			}
+		}
+
+		return hash( _removeDynamicElementsFromForeignObjectsCacheKey( cacheKey ) );
 	}
 
 	private string function _removeDynamicElementsFromForeignObjectsCacheKey( required string cacheKey ) {
