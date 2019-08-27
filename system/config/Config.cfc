@@ -249,6 +249,7 @@ component {
 			  maxFileSize = "5"
 			, types       = _getConfiguredFileTypes()
 			, derivatives = _getConfiguredAssetDerivatives()
+			, queueConcurrency = 1
 			, folders     = {}
 			, storage     = {
 				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
@@ -380,6 +381,8 @@ component {
 			, emailQueueHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
 			, adhocTaskHeartBeat      = { enabled=true , siteTemplates=[ "*" ] }
 			, taskmanagerHeartBeat    = { enabled=true , siteTemplates=[ "*" ] }
+			, assetQueueHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
+			, assetQueue              = { enabled=false , siteTemplates=[ "*" ] }
 			, queryCachePerObject     = { enabled=false, siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
@@ -425,6 +428,7 @@ component {
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
+		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService" ];
 

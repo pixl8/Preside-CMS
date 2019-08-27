@@ -1,6 +1,7 @@
 component {
 
 	property name="assetManagerService"          inject="assetManagerService";
+	property name="assetQueueService"            inject="assetQueueService";
 	property name="websiteUserActionService"     inject="websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 
@@ -18,11 +19,30 @@ component {
 		var passwordProtected = false;
 		var config            = assetManagerService.getDerivativeConfig( assetId );
 		var configHash        = assetManagerService.getDerivativeConfigHash( config );
+		var queueEnabled      = isFeatureEnabled( "assetQueue" );
 
 		try {
 			if ( Len( Trim( derivativeName ) ) ) {
 				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
-				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, selectFields=assetSelectFields );
+
+				var waitAttempts = 0;
+
+				do {
+					asset = assetManagerService.getAssetDerivative(
+						  assetId           = assetId
+						, versionId         = versionId
+						, derivativeName    = derivativeName
+						, configHash        = configHash
+						, selectFields      = assetSelectFields
+						, createIfNotExists = !queueEnabled
+					);
+
+					if ( !asset.recordCount && queueEnabled && assetQueueService.isQueued( assetId, derivativeName, versionId, configHash ) ) {
+						sleep( 1000 );
+					} else {
+						break;
+					}
+				} while( ++waitAttempts <= 60 );
 			} else if( Len( Trim( versionId ) ) ) {
 				arrayAppend( assetSelectFields , "asset_version.asset_type" );
 				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );

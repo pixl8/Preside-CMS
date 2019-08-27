@@ -99,6 +99,8 @@ component {
 			_setRunningThread( tu.getCurrentThread() );
 			_setStopped( false );
 			_registerInApplication();
+
+			$systemOutput( "The #_getThreadName()# heartbeat thread has started." );
 		} catch( any e ) {
 			$systemOutput( e );
 		}

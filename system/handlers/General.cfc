@@ -12,6 +12,7 @@ component {
 	property name="healthcheckService"            inject="healthcheckService";
 	property name="permissionService"             inject="permissionService";
 	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
+	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queueConcurrency";
 	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
 	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
@@ -226,6 +227,12 @@ component {
 
 		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
 			presideTaskmanagerHeartBeat.startInNewRequest();
+		}
+
+		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
+			for( var i=1; i<=assetQueueConcurrency; i++ ) {
+				getModel( "AssetQueueHeartBeat#i#" ).startInNewRequest();
+			}
 		}
 
 		cacheboxReapHeartBeat.startInNewRequest();
