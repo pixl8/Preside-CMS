@@ -41,7 +41,6 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		var defaultPrefix  = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
 		var prefix         = filterPrefix.len() ? ( filterPrefix & "$#propertyName#" ) : defaultPrefix;
 		var paramName      = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterParams   = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 		var relatedIdField = presideObjectService.getIdField( arguments.relatedTo );
 
 		if ( _is ) {
@@ -58,7 +57,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			, selectFields        = [ "#arguments.relatedTo#.#arguments.relationshipKey# as id" ]
 			, forceJoins          = "inner"
 			, getSqlAndParamsOnly = true
-			, filter              = { "#arguments.relatedTo#.#relatedIdField#" = arguments.value }
+			, filter              = { "#arguments.relatedTo#.#relatedIdField#" = listToArray( arguments.value ) }
 		);
 		for( var param in subQuery.params ) {
 			params[ param.name ] = param;

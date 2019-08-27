@@ -1,7 +1,7 @@
 component validationProvider=true {
 
 	public boolean function required( required string fieldName, any value="", struct data={} ) validatorMessage="cms:validation.required.default" {
-		return arguments.data.keyExists( fieldName ) && !IsEmpty( value );
+		return StructKeyExists( arguments.data, fieldName ) && !IsEmpty( value );
 	}
 
 	public boolean function minlength( required string fieldName, string value="", required numeric length, boolean list=false ) validatorMessage="cms:validation.minLength.default" {
@@ -114,6 +114,13 @@ component validationProvider=true {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
 
+	public boolean function email( required string fieldName, string value="" ) validatorMessage="cms:validation.email.default" {
+		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$" );
+	}
+	public string function email_js() {
+		return "function( value ){ return !value.length || value.match( /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/ ) !== null }";
+	}
+
 	public boolean function uuid( required string value ) validatorMessage="cms:validation.uuid.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
@@ -130,7 +137,7 @@ component validationProvider=true {
 	}
 
 	public boolean function fileSize( required string fieldName, any value={}, required string maxSize ) validatorMessage="cms:validation.fileUpload.default" {
-		if ( !IsStruct( arguments.value ) || !arguments.value.keyExists( "size" ) || !IsNumeric( arguments.value.size ) ) {
+		if ( !IsStruct( arguments.value ) || !StructKeyExists( arguments.value, "size" ) || !IsNumeric( arguments.value.size ) ) {
 			return true;
 		}
 
@@ -141,6 +148,40 @@ component validationProvider=true {
 	}
 	public string function fileSize_js() {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
+	}
+
+	public boolean function fileType( required string fieldName, any value={}, required string allowedTypes, required string allowedExtensions ) validatorMessage="cms:validation.fileType.default" {
+		if ( !IsStruct( arguments.value ) ) {
+			return true;
+		}
+
+		var allowedExtensions = listToArray( arguments.allowedExtensions );
+		var filesToCheck      = [];
+		var validFiles        = 0;
+
+		if ( isStruct( arguments.value.tempFileInfo ?: "" ) ) {
+			filesToCheck.append( arguments.value.tempFileInfo );
+		} else {
+			for( var filename in arguments.value ) {
+				if ( isStruct( arguments.value[ filename ].tempFileInfo ?: "" ) ) {
+					filesToCheck.append( arguments.value[ filename ].tempFileInfo );
+				}
+			}
+		}
+
+		for ( var fileInfo in filesToCheck ) {
+			var serverfileext  = fileInfo.serverfileext  ?: "";
+			var contentsubtype = fileInfo.contentsubtype ?: "";
+
+			for( var ext in allowedExtensions ) {
+				if ( ext == serverfileext || ext == contentsubtype ) {
+					validFiles++;
+					break;
+				}
+			}
+		}
+
+		return validFiles == filesToCheck.len();
 	}
 
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {

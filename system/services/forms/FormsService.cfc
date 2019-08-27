@@ -197,11 +197,10 @@ component displayName="Forms service" {
 	 * @autodoc
 	 * @formName.hint Name of the form whose fields you wish to list.
 	 */
-	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[] ) {
+	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[], array suppressFields =[] ) {
 		var frm            = getForm( argumentCollection=arguments );
 		var ignoreControls = [ "readonly", "oneToManyManager" ];
 		var fields         = [];
-
 
 		for( var tab in frm.tabs ){
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
@@ -214,7 +213,7 @@ component displayName="Forms service" {
 				for( var field in fieldset.fields ) {
 					var control = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
 
-					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
+					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) && !arguments.suppressFields.findNoCase( field.name ) ) {
 						ArrayAppend( fields, field.name ?: "" );
 					}
 				}
@@ -429,36 +428,42 @@ component displayName="Forms service" {
 	 * use `renderForm` instead of rendering individual form controls.
 	 *
 	 * @autodoc
-	 * @name.hint         The name of the field to use
-	 * @type.hint         The control type, e.g. 'richeditor'
-	 * @context.hint      The context
-	 * @id.hint           The HTML ID to use for the rendered form control
-	 * @label.hint        The label for the control. Can be an i18n resource URI.
-	 * @defaultValue.hint The default value to prepopulate the control with (e.g. a saved value from the database)
-	 * @help.hint         Help text to accompany the control. Can be an i18n resource URI.
-	 * @savedData.hint    Structure of saved data for the entire form that is being rendered.
-	 * @error.hint        Error string to display with the control
-	 * @required.hint     Whether or not the form field is required
-	 * @layout.hint       Viewlet to use to render the field's layout
+	 * @name.hint           The name of the field to use
+	 * @type.hint           The control type, e.g. 'richeditor'
+	 * @context.hint        The context
+	 * @id.hint             The HTML ID to use for the rendered form control
+	 * @label.hint          The label for the control. Can be an i18n resource URI.
+	 * @defaultValue.hint   The default value to prepopulate the control with (e.g. a saved value from the database)
+	 * @help.hint           Help text to accompany the control. Can be an i18n resource URI.
+	 * @savedData.hint      Structure of saved data for the entire form that is being rendered.
+	 * @savedDataField.hint If specified, the form control's defaultValue will be sourced from this alternate field in savedData
+	 * @error.hint          Error string to display with the control
+	 * @required.hint       Whether or not the form field is required
+	 * @layout.hint         Viewlet to use to render the field's layout
 	 */
 	public string function renderFormControl(
 		  required string  name
 		, required string  type
-		,          string  context      = _getDefaultContextName()
-		,          string  id           = arguments.name
-		,          string  label        = ""
-		,          string  savedValue   = ""
-		,          string  defaultValue = ""
-		,          string  help         = ""
-		,          struct  savedData    = {}
-		,          string  error        = ""
-		,          boolean required     = false
-		,          string  layout       = "formcontrols.layouts.field"
+		,          string  context        = _getDefaultContextName()
+		,          string  id             = arguments.name
+		,          string  label          = ""
+		,          string  savedValue     = ""
+		,          string  defaultValue   = ""
+		,          string  help           = ""
+		,          struct  savedData      = {}
+		,          string  savedDataField = ""
+		,          string  error          = ""
+		,          boolean required       = false
+		,          string  layout         = "formcontrols.layouts.field"
 
 	) {
 		var coldbox         = _getColdbox();
 		var handler         = _getFormControlHandler( type=arguments.type, context=arguments.context );
 		var renderedControl = "";
+
+		if ( len( arguments.savedDataField ) && StructKeyExists( arguments.savedData, arguments.savedDataField ) ) {
+			arguments.defaultValue = arguments.savedData[ arguments.savedDataField ];
+		}
 
 		try {
 			renderedControl = coldbox.renderViewlet(
@@ -544,6 +549,7 @@ component displayName="Forms service" {
 		,          array   permissionContextKeys   = []
 		,          string  fieldNamePrefix         = ""
 		,          string  fieldNameSuffix         = ""
+		,          array   suppressFields          = []
 	) {
 		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
 		var result  = arguments.preProcessData ? preProcessForm( argumentCollection = arguments ) : "";
@@ -610,8 +616,8 @@ component displayName="Forms service" {
 	 * @formData         Submitted form data
 	 * @validationResult A pre-existing validation result to which to append any errors found during preprocessing
 	 */
-	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult() ) {
-		var formFields       = listFields( arguments.formName );
+	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult(), array suppressFields= [] ) {
+		var formFields       = listFields( formName=arguments.formName, suppressFields=arguments.suppressFields );
 		var fieldValue       = "";
 
 		for( var field in formFields ){
@@ -708,7 +714,7 @@ component displayName="Forms service" {
 		var basedOnDef     = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
 		var formDefinition = new FormDefinition( basedOnDef );
 
-		if ( arguments.keyExists( "generator" ) ) {
+		if ( StructKeyExists( arguments, "generator" ) ) {
 			arguments.generator( formDefinition );
 		}
 
@@ -814,11 +820,11 @@ component displayName="Forms service" {
 		var resolveExtensions = function( formName, frmDefinition, allForms ){
 			var parentFormName = arguments.frmDefinition.extends ?: "";
 
-			if ( !Len( Trim( parentFormName ) ) || resolvedExtensions.keyExists( arguments.formName ) ) {
+			if ( !Len( Trim( parentFormName ) ) || StructKeyExists( resolvedExtensions, arguments.formName ) ) {
 				return arguments.frmDefinition;
 			}
 
-			if ( !arguments.allForms.keyExists( parentFormName ) ) {
+			if ( !StructKeyExists( arguments.allForms, parentFormName ) ) {
 				throw(
 					  type    = "FormService.MissingForm"
 					, message = "The form [#parentFormName#], defined as an extension of [#arguments.formName#], could not be found."
@@ -944,7 +950,7 @@ component displayName="Forms service" {
 									field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
 								}
 
-								_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
+								_bindAttributesFromPresideObjectField( field );
 								field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
 
 								ArrayAppend( fieldset.fields, field );
@@ -962,7 +968,7 @@ component displayName="Forms service" {
 		return theForm;
 	}
 
-	private void function _bindAttributesFromPresideObjectField( required struct field, boolean throwOnMissingObject=true ) {
+	private void function _bindAttributesFromPresideObjectField( required struct field ) {
 		var property    = "";
 		var boundObject = "";
 		var boundField  = "";
@@ -981,23 +987,11 @@ component displayName="Forms service" {
 			boundObject = ListFirst( field.binding, "." );
 
 			if ( !pobjService.objectExists( boundObject ) ) {
-				if ( arguments.throwOnMissingObject ) {
-					throw(
-						  type = "FormsService.BadBinding"
-						, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found. Valid objects are #SerializeJson( pobjService.listObjects() )#"
-					);
-				}
-
+				field.name = boundField;
 				return;
 			}
 			if ( !pobjService.fieldExists( boundObject, boundField ) ){
-				if ( arguments.throwOnMissingObject ) {
-					throw(
-						  type = "FormsService.BadBinding"
-						, message = "The field, [#boundField#], referred to in the form field binding, [#field.binding#], could not be found in Preside Object, [#boundObject#]"
-					);
-				}
-
+				field.name = boundField;
 				return;
 			}
 
@@ -1273,7 +1267,7 @@ component displayName="Forms service" {
 					var fieldMatched = false;
 					var fieldDeleted = false;
 					for( var mField in matchingFieldset.fields ){
-						if ( mField.name == field.name ) {
+						if ( ( mField.name ?: "" ) == field.name ) {
 							if ( IsBoolean( field.deleted ?: "" ) and field.deleted ) {
 								ArrayDelete( matchingFieldset.fields, mField );
 								fieldDeleted = true;
@@ -1291,7 +1285,7 @@ component displayName="Forms service" {
 				StructDelete( fieldset, "fields" );
 				var autoFieldsetAttribs = fieldset.autoGeneratedAttributes ?: [];
 				for( var attrib in fieldset ) {
-					if ( IsSimpleValue( fieldset[ attrib ] ) && Len( Trim( fieldset[ attrib ] ) ) && ( !matchingFieldset.keyExists( attrib ) || !autoFieldsetAttribs.findNoCase( attrib ) ) ) {
+					if ( IsSimpleValue( fieldset[ attrib ] ) && Len( Trim( fieldset[ attrib ] ) ) && ( !StructKeyExists( matchingFieldset, attrib ) || !autoFieldsetAttribs.findNoCase( attrib ) ) ) {
 						matchingFieldset[ attrib ] = fieldset[ attrib ];
 					}
 				}
@@ -1307,7 +1301,7 @@ component displayName="Forms service" {
 			StructDelete( tab, "fieldsets" );
 			var autoTabAttribs = tab.autoGeneratedAttributes ?: [];
 			for( var attrib in tab ) {
-				if ( IsSimpleValue( tab[ attrib ] ) && Len( Trim( tab[ attrib ] ) ) && ( !matchingTab.keyExists( attrib ) || !autoTabAttribs.findNoCase( attrib ) )  ) {
+				if ( IsSimpleValue( tab[ attrib ] ) && Len( Trim( tab[ attrib ] ) ) && ( !StructKeyExists( matchingTab, attrib ) || !autoTabAttribs.findNoCase( attrib ) )  ) {
 					matchingTab[ attrib ] = tab[ attrib ];
 				}
 			}
@@ -1447,7 +1441,7 @@ component displayName="Forms service" {
 					var fieldBaseI18n = "";
 					if ( ListLen( field.binding ?: "", "." ) == 2 ) {
 						var objName = ListFirst( field.binding, "." );
-						if ( _getPresideObjectService().isPageType( objName ) ) {
+						if ( _getPresideObjectService().objectExists( objName ) && _getPresideObjectService().isPageType( objName ) ) {
 							fieldBaseI18n = "page-types.#objName#:";
 						} else {
 							fieldBaseI18n = "preside-objects.#objName#:";

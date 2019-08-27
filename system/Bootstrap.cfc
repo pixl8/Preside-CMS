@@ -3,8 +3,8 @@ component {
 	public void function setupApplication(
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
-		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
-		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
+		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*", "^https?://(.*?)/e/t/.*", "^https?://(.*?)/taskmanager/runtasks/.*" ]
+		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird" ]
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
@@ -43,11 +43,20 @@ component {
 	}
 
 	public void function onRequestEnd() {
+		if ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest ) {
+			_isReloading( false );
+		}
+
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
+		_ensureHeartbeatsAreStillRunning();
 	}
 
 	public void function onAbort() {
+		if ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest ) {
+			_isReloading( false );
+		}
+
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
 	}
@@ -70,12 +79,6 @@ component {
 		}
 
 		_preventSessionFixation();
-	}
-
-	public void function onSessionEnd( required struct sessionScope, required struct appScope ) {
-		if ( StructKeyExists( arguments.appScope, "cbBootstrap" ) ) {
-			arguments.appScope.cbBootstrap.onSessionEnd( argumentCollection=arguments );
-		}
 	}
 
 	public boolean function onMissingTemplate( required string template ) {
@@ -146,33 +149,54 @@ component {
 		var requestTimeout = this.PRESIDE_APPLICATION_RELOAD_TIMEOUT;
 		var lockTimeout    = this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT;
 
-		setting requesttimeout=requestTimeout;
+		if ( _isReloading() ) {
+			_stillReloadingError();
+		}
 
 		try {
 			lock name=lockname type="exclusive" timeout=locktimeout {
-				if ( _reloadRequired() ) {
-					_announceInterception( "prePresideReload" );
-
-					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." );
-
-					_clearExistingApplication();
-					_ensureCaseSensitiveStructSettingsAreActive();
-					_fetchInjectedSettings();
-					_setupInjectedDatasource();
-					_preserveLocaleCookieIfPresent();
-					_initColdBox();
-
-					_announceInterception( "postPresideReload" );
-					SystemOutput( "Preside System Output [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" );
+				if ( _isReloading() ) {
+					_stillReloadingError();
 				}
+				if ( !_reloadRequired() ) {
+					_isReloading( false );
+					return;
+				}
+				setting requesttimeout=requestTimeout;
+
+				request._isPresideReloadRequest = true;
+				_isReloading( true );
+
+				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
+
+				_announceInterception( "prePresideReload" );
+				_clearExistingApplication();
+				_isReloading( true );
+				_ensureCaseSensitiveStructSettingsAreActive();
+				_applyJavaPropToImproveXalanXmlPerformance();
+				_fetchInjectedSettings();
+				_setupInjectedDatasource();
+				_preserveLocaleCookieIfPresent();
+				_initColdBox();
+				_announceInterception( "postPresideReload" );
+
+				_isReloading( false );
+				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" & Chr( 13 ) & Chr( 10 ) );
 			}
-		} catch( lock e ) {
+		} catch( any e ) {
 			if ( ( e.lockOperation ?: "" ) == "Timeout" ) {
-				_friendlyError( e, 503 );
-				abort;
-			} else {
-				rethrow;
+				_stillReloadingError();
 			}
+			_isReloading( false );
+			rethrow;
+		}
+	}
+
+	private any function _isReloading( boolean set ) {
+		if ( StructKeyExists( arguments, "set" ) ) {
+			application._preside_reloading = arguments.set;
+		} else {
+			return application._preside_reloading ?: false;
 		}
 	}
 
@@ -188,6 +212,8 @@ component {
 	}
 
 	private void function _initColdBox() {
+		application.applicationName = this.name;
+
 		var bootstrap = new preside.system.coldboxModifications.Bootstrap(
 			  COLDBOX_CONFIG_FILE   = _discoverConfigPath()
 			, COLDBOX_APP_ROOT_PATH = variables.COLDBOX_APP_ROOT_PATH
@@ -201,7 +227,7 @@ component {
 	}
 
 	private boolean function _reloadRequired() {
-		if ( !application.keyExists( "cbBootstrap" ) ) {
+		if ( !StructKeyExists( application, "cbBootstrap" ) ) {
 			return _preventReloadsWhenExistingUpgradeScriptGenerated();
 		}
 
@@ -228,6 +254,18 @@ component {
 		}
 	}
 
+	private void function _applyJavaPropToImproveXalanXmlPerformance() {
+		// see https://issues.apache.org/jira/browse/XALANJ-2540
+		var propName     = "org.apache.xml.dtm.DTMManager";
+		var desiredValue = "org.apache.xml.dtm.ref.DTMManagerDefault";
+		var javaSystem   = CreateObject( "java", "java.lang.System" );
+		var actualValue  = javaSystem.getProperty( propName );
+
+		if  ( !Len( Trim( local.actualValue ?: "" ) ) ) {
+			javaSystem.setProperty( propName, desiredValue );
+		}
+	}
+
 	private void function _fetchInjectedSettings() {
 		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, configurationDirectory="#COLDBOX_APP_MAPPING#/config" );
 		var config          = settingsManager.getConfig();
@@ -250,7 +288,7 @@ component {
 				, password                          = config[ "datasource.password"                    ] ?: ""
 				, timezone                          = config[ "datasource.timezone"                    ] ?: ""
 				, ConnectionLimit                   = config[ "datasource.ConnectionLimit"             ] ?: -1
-				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 0
+				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 1
 				, metaCacheTimeout                  = config[ "datasource.metaCacheTimeout"            ] ?: 60000
 				, blob                              = config[ "datasource.blob"                        ] ?: false
 				, clob                              = config[ "datasource.clob"                        ] ?: false
@@ -567,7 +605,7 @@ component {
 		for( var i=arguments.cookieSet.len(); i>0; i-- ) {
 			var cookieName = ListFirst( arguments.cookieSet[ i ], "=" );
 
-			if ( existingCookies.keyExists( cookieName ) ) {
+			if ( StructKeyExists( existingCookies, cookieName ) ) {
 				arguments.cookieSet.deleteAt( i );
 				anyCleared = true;
 				continue;
@@ -583,31 +621,42 @@ component {
 		return ExpandPath( "/" );
 	}
 
-	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
+	private void function _stillReloadingError() {
+		_friendlyError( errorCode=503 );
+		abort;
+	}
+
+	private void function _friendlyError( any exception, numeric statusCode=500 ) {
 		var appMapping     = request._presideMappings.appMapping ?: "/app";
 		var appMappingPath = Replace( ReReplace( appMapping, "^/", "" ), "/", ".", "all" );
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
-		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			if ( !application.keyExists( "errorLogService" ) ) {
-				application.errorLogService = new preside.system.services.errors.ErrorLogService(
-					  appMapping     = attributes.appMapping
-					, appMappingPath = attributes.appMappingPath
-					, logsMapping    = attributes.logsMapping
-					, logDirectory   = attributes.logsMapping & "/rte-logs"
-				);
+		if ( StructKeyExists( arguments, "exception" ) ) {
+			thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
+				if ( !StructKeyExists( application, "errorLogService" ) ) {
+					application.errorLogService = new preside.system.services.errors.ErrorLogService(
+						  appMapping     = attributes.appMapping
+						, appMappingPath = attributes.appMappingPath
+						, logsMapping    = attributes.logsMapping
+						, logDirectory   = attributes.logsMapping & "/rte-logs"
+					);
+				}
+				application.errorLogService.raiseError( attributes.e );
 			}
-			application.errorLogService.raiseError( attributes.e );
 		}
 
 		content reset=true;
 		header statuscode=arguments.statusCode;
 
-		if ( FileExists( ExpandPath( "/#arguments.statusCode#.htm" ) ) ) {
-			Writeoutput( FileRead( ExpandPath( "/#arguments.statusCode#.htm" ) ) );
-		} else {
-			Writeoutput( FileRead( "/preside/system/html/#arguments.statusCode#.htm" ) );
+		if ( !StructKeyExists( application, "error_template_#arguments.statusCode#" ) ) {
+			if ( FileExists( ExpandPath( "/#arguments.statusCode#.htm" ) ) ) {
+				application[ "error_template_#arguments.statusCode#" ] = FileRead( ExpandPath( "/#arguments.statusCode#.htm" ) );
+			} else {
+				application[ "error_template_#arguments.statusCode#" ] = FileRead( "/preside/system/html/#arguments.statusCode#.htm" );
+			}
 		}
+
+		WriteOutput( application[ "error_template_#arguments.statusCode#" ] );
 	}
 
 	private void function _setupDefaultTagAttributes() {
@@ -687,5 +736,24 @@ component {
 
 	private void function _preserveLocaleCookieIfPresent() {
 		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
+	}
+
+	private void function _ensureHeartbeatsAreStillRunning(){
+		var lastChecked = application._ensureHeartbeatsAreStillRunningLastCheck ?: '1900-01-01';
+
+		if ( DateDiff( 'n', lastChecked, Now() ) >= 1 ) {
+			try {
+				lock type="exclusive" timeout=0 name="_ensureHeartbeatsAreStillRunning-#GetCurrentTemplatePath()#" {
+					application._ensureHeartbeatsAreStillRunningLastCheck = Now();
+
+					var beats = StructKeyArray( application._presideHeartbeatThreads ?: {} );
+					for( var beatName in beats ) {
+						try {
+							application._presideHeartbeatThreads[ beatName ].ensureAlive();
+						} catch( any e ) {}
+					}
+				}
+			} catch( any e ) {}
+		}
 	}
 }

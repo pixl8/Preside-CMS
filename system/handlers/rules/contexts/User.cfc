@@ -9,7 +9,8 @@ component {
 	private struct function getPayload() {
 		var emailPayload = emailSendingContextService.getContextPayload();
 
-		if ( emailPayload.keyExists( "website_user" ) ) {
+		if ( StructKeyExists( emailPayload, "website_user" ) ) {
+			emailPayload.user = emailPayload.website_user; // backward compat
 			return emailPayload;
 		}
 

@@ -1,7 +1,8 @@
 component hint="Interact with and report on system caches" {
 
-	property name="jsonRpc2Plugin" inject="JsonRpc2";
-	property name="cachebox"       inject="cachebox";
+	property name="jsonRpc2Plugin"       inject="JsonRpc2";
+	property name="cachebox"             inject="cachebox";
+	property name="presideObjectService" inject="presideObjectService";
 
 	private function index( event, rc, prc ) {
 		var params       = jsonRpc2Plugin.getRequestParams();
@@ -21,6 +22,7 @@ component hint="Interact with and report on system caches" {
 
 	private function stats( event, rc, prc ) {
 		var params           = jsonRpc2Plugin.getRequestParams();
+		var full             = ( params.commandLineArgs[ 2 ] ?: "" ) == "full"
 		var cacheName        = params[ 2 ] ?: "";
 		var cachesToShow     = cacheName.listToArray( Trim( cacheName ) );
 		var cacheStats       = [];
@@ -33,25 +35,49 @@ component hint="Interact with and report on system caches" {
 		var performanceWidth = 17;
 		var gcsWidth         = 19;
 		var lastReapWidth    = 9;
+		var doSpecialQueryCache = !full && isFeatureEnabled( "queryCachePerObject" ) && !cacheName.listToArray( Trim( cacheName ) ).len();
 
 		if ( !cachesToShow.len() ) {
 			cachesToShow = cachebox.getCacheNames();
+			if ( doSpecialQueryCache ) {
+				for( var i=cachesToShow.len(); i>0; i-- ) {
+					if ( cachesToShow[ i ] == "DefaultQueryCache" || cachesToShow[ i ].reFindNoCase( "^presideQueryCache_.+" ) ) {
+						cachesToShow.deleteAt( i );
+					}
+				}
+
+				cachesToShow.append( "_special_query_cache_" );
+			}
 		}
 
 		for( var cacheName in cachesToShow ){
-			if ( cachebox.cacheExists( cacheName ) ) {
-				var cacheStat = { name=cacheName };
-				var cache     = cachebox.getCache( cacheName );
-				var config    = cache.getMemento().configuration;
-				var stats     = cache.getStats();
+			if ( cacheName == "_special_query_cache_" || cachebox.cacheExists( cacheName ) ) {
+				if ( cacheName == "_special_query_cache_" ) {
+					var cacheStat = { name="Query cache" };
 
-				cacheStat.objects     = NumberFormat( stats.getObjectCount() ) & "/" & NumberFormat( config.maxObjects ?: 200 );
-				cacheStat.hits        = NumberFormat( stats.getHits() );
-				cacheStat.misses      = NumberFormat( stats.getMisses() );
-				cacheStat.evictions   = NumberFormat( stats.getEvictionCount() );
-				cacheStat.performance = NumberFormat( stats.getCachePerformanceRatio(), "0.00" );
-				cacheStat.gcs         = NumberFormat( stats.getGarbageCollections() );
-				cacheStat.lastReap    = DateTimeFormat( stats.getLastReapDateTime(), "yyyy-mm-dd HH:mm:ss" );
+					cacheStat.append( presideObjectService.getCacheStats() );
+
+					cacheStat.objects     = NumberFormat( cacheStat.objects ) & " / " & NumberFormat( cacheStat.maxObjects );
+					cacheStat.hits        = NumberFormat( cacheStat.hits );
+					cacheStat.misses      = NumberFormat( cacheStat.misses );
+					cacheStat.evictions   = NumberFormat( cacheStat.evictions );
+					cacheStat.performance = NumberFormat( cacheStat.performance, "0.00" );
+					cacheStat.gcs         = NumberFormat( cacheStat.gcs );
+					cacheStat.lastReap    = DateTimeFormat( cacheStat.lastReap, "yyyy-mm-dd HH:mm:ss" );
+				} else {
+					var cacheStat = { name=cacheName };
+					var cache     = cachebox.getCache( cacheName );
+					var config    = cache.getMemento().configuration;
+					var stats     = cache.getStats();
+
+					cacheStat.objects     = NumberFormat( stats.getObjectCount() ) & "/" & NumberFormat( config.maxObjects ?: 200 );
+					cacheStat.hits        = NumberFormat( stats.getHits() );
+					cacheStat.misses      = NumberFormat( stats.getMisses() );
+					cacheStat.evictions   = NumberFormat( stats.getEvictionCount() );
+					cacheStat.performance = NumberFormat( stats.getCachePerformanceRatio(), "0.00" );
+					cacheStat.gcs         = NumberFormat( stats.getGarbageCollections() );
+					cacheStat.lastReap    = DateTimeFormat( stats.getLastReapDateTime(), "yyyy-mm-dd HH:mm:ss" );
+				}
 
 				cacheStats.append( cacheStat );
 

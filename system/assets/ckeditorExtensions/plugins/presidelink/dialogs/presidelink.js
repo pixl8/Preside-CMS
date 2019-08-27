@@ -7,9 +7,10 @@
 
 ( function( $ ) {
 	CKEDITOR.dialog.add( 'presidelink', function( editor ) {
-		var plugin     = CKEDITOR.plugins.presidelink
-		  , commonLang = editor.lang.common
-		  , linkLang   = editor.lang.presidelink
+		var plugin             = CKEDITOR.plugins.presidelink
+		  , commonLang         = editor.lang.common
+		  , linkLang           = editor.lang.presidelink
+		  , linkPickerCategory = editor.config.linkPickerCategory || ""
 		  , dialog, initializeIframe, setupIFrameListeners;
 
 		initializeIframe = function() {
@@ -57,7 +58,7 @@
 				, method : "POST"
 				, data   : data
 				, success: function(){
-					dialog.getContentElement('iframe').getElement().$.src = buildAdminLink( "linkpicker", "index" );
+					dialog.getContentElement('iframe').getElement().$.src = buildAdminLink( "linkpicker", "index", { linkPickerCategory:linkPickerCategory } );
 				 }
 			});
 		};

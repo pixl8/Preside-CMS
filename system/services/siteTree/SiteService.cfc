@@ -89,15 +89,17 @@ component displayname="Site service" {
 		);
 
 		for( var match in possibleMatches ){
-			if ( arguments.path.startsWith( match.path ) ) {
+			if ( arguments.path.reFindNoCase( "^" & match.path ) ) {
 				return match;
 			}
 		}
 
 		var aliasMatch = _getSiteAliasDomainDao().selectData(
 			  selectFields = [ "site" ]
-			, filter       = { domain = arguments.domain }
+			, filter       = "( site_alias_domain.domain = '*' or site_alias_domain.domain = :domain )"
+			, filterParams = { domain = arguments.domain }
 			, savedFilters = [ "nonDeletedSites" ]
+			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'site_alias_domain.domain' )# desc"
 		);
 
 		if ( aliasMatch.recordCount ) {

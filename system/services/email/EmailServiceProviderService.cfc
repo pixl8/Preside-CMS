@@ -170,7 +170,7 @@ component {
 
 		var configuredProviders = _getConfiguredProviders();
 
-		return configuredProviders.keyExists( arguments.provider );
+		return StructKeyExists( configuredProviders, arguments.provider );
 	}
 
 	/**
@@ -220,28 +220,32 @@ component {
 			);
 		}
 
-		if ( arguments.logSend ) {
-			sendArgs.messageId = _logMessage( arguments.sendArgs );
+		var args = { sendArgs=arguments.sendArgs, settings=settings };
+		$announceInterception( "preSendEmail", args );
 
-			sendArgs.htmlBody  = logService.insertTrackingPixel(
-				  messageId   = sendArgs.messageId
-				, messageHtml = sendArgs.htmlBody ?: ""
+
+		if ( arguments.logSend ) {
+			args.sendArgs.messageId = _logMessage( args.sendArgs );
+
+			args.sendArgs.htmlBody  = logService.insertTrackingPixel(
+				  messageId   = args.sendArgs.messageId
+				, messageHtml = args.sendArgs.htmlBody ?: ""
 			);
 
-			if ( _getEmailTemplateService().isTrackingEnabled( arguments.sendArgs.template ?: "" ) ) {
-				sendArgs.htmlBody  = logService.insertClickTrackingLinks(
-					  messageId   = sendArgs.messageId
-					, messageHtml = sendArgs.htmlBody ?: ""
+			if ( _getEmailTemplateService().isTrackingEnabled( args.sendArgs.template ?: "" ) ) {
+				args.sendArgs.htmlBody  = logService.insertClickTrackingLinks(
+					  messageId   = args.sendArgs.messageId
+					, messageHtml = args.sendArgs.htmlBody ?: ""
 				);
 			}
 		} else {
-			sendArgs.messageId = CreateUUId();
+			args.sendArgs.messageId = CreateUUId();
 		}
 
 		try {
 			sent = $getColdbox().runEvent(
 				  event          = sendAction
-				, eventArguments = { sendArgs=arguments.sendArgs, settings=settings }
+				, eventArguments = { sendArgs=args.sendArgs, settings=args.settings }
 				, private        = true
 				, prePostExempt  = true
 			);
@@ -258,21 +262,23 @@ component {
 			$raiseError( e );
 			sent = false;
 			if ( arguments.logSend ) {
-				logService.markAsFailed( id=sendArgs.messageId, reason="An error occurred while sending the email. Error message: [#e.message#]. See error logs for details" );
+				logService.markAsFailed( id=args.sendArgs.messageId, reason="An error occurred while sending the email. Error message: [#e.message#]. See error logs for details" );
 			}
 		}
 
 		if ( arguments.logSend && sent ) {
-			logService.markAsSent( sendArgs.messageId );
+			logService.markAsSent( args.sendArgs.messageId );
 			logService.logEmailContent(
-				  template = sendArgs.args.template ?: ""
-				, id       = sendArgs.messageId
+				  template = args.sendArgs.args.template ?: ""
+				, id       = args.sendArgs.messageId
 				, htmlBody = htmlBody
-				, textBody = sendArgs.textBody ?: ""
+				, textBody = args.sendArgs.textBody ?: ""
 			);
 		}
 
-		return returnLogId ? sendArgs.messageId : sent;
+		$announceInterception( "postSendEmail", args );
+
+		return returnLogId ? args.sendArgs.messageId : sent;
 	}
 
 	/**

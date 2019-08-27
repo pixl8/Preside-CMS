@@ -164,7 +164,7 @@ component {
 		}
 
 		for( var fileKey in jsonAndZipMatches ) {
-			if ( jsonAndZipMatches[ fileKey ].keyExists( "json" ) && jsonAndZipMatches[ fileKey ].keyExists( "zip" ) ) {
+			if ( StructKeyExists( jsonAndZipMatches[ fileKey ], "json" ) && StructKeyExists( jsonAndZipMatches[ fileKey ], "zip" ) ) {
 				var versionInfo = _fetchVersionInfo( fileKey & ".json" );
 				versionInfo.path = fileKey & ".zip";
 				versionInfo.downloaded = versionIsDownloaded( versionInfo.version );
@@ -219,7 +219,7 @@ component {
 	}
 
 	public void function downloadVersion( required string version ) {
-		if ( _getActiveDownloads().keyExists( arguments.version ) ) {
+		if ( StructKeyExists( _getActiveDownloads(), arguments.version ) ) {
 			throw( type="UpdateManagerService.download.already.in.progress", message="Version [#arguments.version#] is already being downloaded" );
 		}
 

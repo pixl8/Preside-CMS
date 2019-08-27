@@ -1,10 +1,11 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="websitePermissionService" inject="websitePermissionService";
-	property name="websiteLoginService"      inject="websiteLoginService";
-	property name="presideObjectService"     inject="presideObjectService";
-	property name="messageBox"               inject="messagebox@cbmessagebox";
-	property name="passwordPolicyService"    inject="passwordPolicyService";
+	property name="websitePermissionService"        inject="websitePermissionService";
+	property name="websiteLoginService"             inject="websiteLoginService";
+	property name="websiteUserImpersonationService" inject="websiteUserImpersonationService";
+	property name="presideObjectService"            inject="presideObjectService";
+	property name="messageBox"                      inject="messagebox@cbmessagebox";
+	property name="passwordPolicyService"           inject="passwordPolicyService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -214,12 +215,11 @@ component extends="preside.system.base.AdminHandler" {
 	function impersonateUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.impersonate" );
 
-		var userId = rc.id ?: "";
-		if ( websiteLoginService.impersonate( userId=userId ) ) {
-			setNextEvent( url=event.buildLink( page="homepage" ) );
-		}
+		var userId         = rc.id        ?: "";
+		var targetUrl      = rc.targetUrl ?: event.buildLink( page="homepage", site=event.getSiteId(), forceDomain=true );
+		var impersonateUrl = websiteUserImpersonationService.create( userId, targetUrl );
 
-		setNextEvent( url=event.buildAdminLink( "websiteUserManager.index" ) );
+		setNextEvent( url=impersonateUrl );
 	}
 
 	function exportAction( event, rc, prc ) {

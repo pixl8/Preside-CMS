@@ -2,7 +2,37 @@
  *	Helper methods and standard event method overrides that are specific to Preside
  *	live here.
  */
-component extends="coldbox.system.web.context.RequestContextDecorator" {
+component accessors=true extends="preside.system.coldboxModifications.RequestContext" {
+
+	// The original request context
+	property name="requestContext";
+
+	/**
+	* Constructor
+	*/
+	RequestContextDecorator function init( required oContext, required controller ){
+		// Set the memento state
+		setMemento( arguments.oContext.getMemento() );
+		// Set Controller
+		instance.controller = arguments.controller;
+		// Composite the original context
+		variables.requestContext = arguments.oContext;
+
+		return this;
+	}
+
+	/**
+	* Override to provide a pseudo-constructor for your decorator
+	*/
+	function configure(){}
+
+	/**
+	* Get original controller
+	*/
+	function getController(){
+		return instance.controller;
+	}
+
 
 // URL related
 	public void function setSite( required struct site ) {
@@ -29,7 +59,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var protocol  = ( site.protocol ?: getProtocol() );
-		var siteUrl   = protocol & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
+		var siteUrl   = protocol & "://";
+
+		if ( fetchSite && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
+			siteUrl &= site.domain;
+		} else {
+			siteUrl &= cgi.server_name;
+		}
 
 		prc.delete( "_forceDomainLookup" );
 
@@ -72,11 +108,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return site.id ?: "";
 	}
 
-	public string function buildLink( string siteId="", string queryString="" ) {
+	public string function buildLink( string siteId="", string queryString="", boolean forceDomain=false ) {
 		var prc = getRequestContext().getCollection( private=true );
 
 		if ( arguments.siteId.len() ) {
 			arguments.queryString = ListPrepend( arguments.queryString, "_sid=" & arguments.siteId, "&" );
+		}
+		if ( arguments.forceDomain ) {
+			prc._forceDomainLookup = true;
 		}
 
 		announceInterception(
@@ -106,7 +145,21 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public string function getBaseUrl() {
-		return getProtocol() & "://" & getServerName() & ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ":" & cgi.SERVER_PORT : "" );
+		var sitesEnabled = this.getModel( "featureService" ).isFeatureEnabled( "sites" );
+
+		if ( sitesEnabled ) {
+			return this.getSiteUrl( site="", includePath=false, includeLanguageSlug=false );
+		}
+
+		var allowedDomains = getController().getSetting( "allowedDomains" );
+		var protocol       = getProtocol() & "://";
+		var port           = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
+
+		if ( IsArray( allowedDomains ) && allowedDomains.len() ) {
+			return protocol & allowedDomains[1] & port;
+		}
+
+		return protocol & getServerName() & port;
 	}
 
 	public string function getCurrentUrl( boolean includeQueryString=true ) {
@@ -146,6 +199,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		, array   permissionContextKeys   = []
 		, string  fieldNamePrefix         = ""
 		, string  fieldNameSuffix         = ""
+		, array   suppressFields          = []
 	) {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
@@ -171,11 +225,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 
 // Admin specific
 	public string function buildAdminLink(
-		  string linkTo      = ""
-		, string queryString = ""
-		, string siteId      = this.getSiteId()
+		  string linkTo          = ""
+		, string queryString     = ""
+		, string siteId          = this.getSiteId()
+		, string operationSource = ""
 	) {
-		if ( arguments.keyExists( "objectName" ) ) {
+		if ( Len( Trim( arguments.operationSource ) ) ) {
+			arguments.queryString = ListAppend( arguments.queryString, "_psource=" & arguments.operationSource, "&" );
+		}
+
+		if ( StructKeyExists( arguments, "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
 				, recordId   = arguments.recordId  ?: ""
@@ -207,7 +266,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var currentUrl = getCurrentUrl();
 		var adminPath  = getAdminPath();
 
-		return currentUrl.startsWith( adminPath );
+		return currentUrl.left( adminPath.len() ) == adminPath;
 	}
 
 	public void function setIsDataManagerRequest() {
@@ -219,7 +278,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public boolean function isDataManagerRequest() {
-		var isDmHandler = getRequestContext().getCurrentEvent().startsWith( "admin.datamanager." );
+		var isDmHandler = getRequestContext().getCurrentEvent().reFindNoCase( "^admin\.datamanager\." );
 		var isDmRequest = getRequestContext().getValue(
 			  name         = "_isDataManagerRequest"
 			, defaultValue = false
@@ -236,11 +295,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public boolean function showNonLiveContent() {
-		if ( this.isAdminRequest() ) {
-			return true;
-		}
+		try {
+			return request._showNonLiveContent;
+		} catch( any e ) {
+			if ( this.isAdminRequest() ) {
+				request._showNonLiveContent = true;
+			} else {
+				request._showNonLiveContent = getModel( "loginService" ).isShowNonLiveEnabled();
+			}
 
-		return getModel( "loginService" ).isShowNonLiveEnabled();
+			return request._showNonLiveContent;
+		}
 	}
 
 	public struct function getAdminUserDetails() {
@@ -295,7 +360,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		args.append({
 			  eventArguments = {}
 			, action         = "__custom"
-		});
+		}, false );
 
 		getController().runEvent(
 			  event          = "admin.datamanager._loadCommonVariables"
@@ -372,6 +437,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		}
 	}
 
+	public string function getAdminOperationSource( string defaultValue="" ) {
+		return getModel( "sessionStorage" ).getVar( "_adminOperationSource", arguments.defaultValue );
+	}
+	public string function setAdminOperationSource( required string source ) {
+		getModel( "sessionStorage" ).setVar( "_adminOperationSource", arguments.source );
+	}
+
 // Sticker
 	public any function include() {
 		return _getSticker().include( argumentCollection = arguments );
@@ -388,7 +460,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public string function renderIncludes( string type, string group="default" ) {
 		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
 
-		if ( !arguments.keyExists( "type" ) || arguments.type == "js" ) {
+		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
 			var stack    = inlineJs[ arguments.group ] ?: [];
 
@@ -433,7 +505,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	private any function _simpleRequestCache( required string key, required any generator ) {
 		request._simpleRequestCache = request._simpleRequestCache ?: {};
 
-		if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+		if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
 			request._simpleRequestCache[ arguments.key ] = arguments.generator();
 		}
 
@@ -540,7 +612,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			return;
 		}
 
-		for( p in page ){ page = p; break; } // quick query row to struct hack
+		for( var p in page ){ page = p; break; } // quick query row to struct hack
 
 		StructAppend( page, sitetreeSvc.getExtendedPageProperties( id=page.id, pageType=page.page_type, getLatest=getLatest, allowDrafts=allowDrafts ) );
 		var ancestors = sitetreeSvc.getAncestors( id = page.id );
@@ -569,8 +641,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			}
 		}
 
-		p[ "slug" ] = p._hierarchy_slug;
-		StructDelete( p, "_hierarchy_slug" );
+		page[ "slug" ] = page._hierarchy_slug;
+		StructDelete( page, "_hierarchy_slug" );
 
 		prc.presidePage = page;
 	}
@@ -659,7 +731,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public struct function getPageAccessRules() {
 		var prc = getRequestContext().getCollection( private = true );
 
-		if ( !prc.keyExists( "pageAccessRules" ) ) {
+		if ( !StructKeyExists( prc, "pageAccessRules" ) ) {
 			prc.pageAccessRules = getModel( "sitetreeService" ).getAccessRestrictionRulesForPage( getCurrentPageId() );
 		}
 
@@ -787,7 +859,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	public string function getEditPageLink() {
 		var prc = getRequestContext().getCollection( private=true );
 
-		if ( !prc.keyExists( "_presideCmsEditPageLink" ) ) {
+		if ( !StructKeyExists( prc, "_presideCmsEditPageLink" ) ) {
 			setEditPageLink( buildAdminLink( linkTo='sitetree.editPage', queryString='id=#getCurrentPageId()#' ) );
 		}
 
@@ -855,36 +927,62 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var event = getRequestContext();
 		var prc   = event.getCollection( private=true );
 
-		if ( arguments.keyExists( "cache" ) ) {
+		if ( StructKeyExists( arguments, "cache" ) ) {
 			prc._cachePage = arguments.cache;
 			return arguments.cache;
 		}
 
 		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
 		    && !event.valueExists( "fwreinit" )
+		    && !this.isAdminRequest()
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
-		    && !this.getCurrentUrl().startsWith( "/asset/" )
+		    && !this.getCurrentUrl().reFindNoCase( "^/asset/" )
 		    && !( IsBoolean( prc._cachePage ?: "" ) && !prc._cachePage );
 	}
 
-	public struct function getCacheableRequestData() {
-		var event         = getRequestContext();
-		var rc            = event.getCollection( private=false );
-		var prc           = event.getCollection( private=true  );
-		var cacheableVars = { prc={}, rc={} };
-		var isCacheable   = function( value ) {
-			return IsSimpleValue( value ) || IsArray( value ) || IsStruct( value ) || IsQuery( value );
-		};
+	public void function setNonCacheableRequestData() {
+		var event           = getRequestContext();
+		var rc              = event.getCollection( private=false );
+		var prc             = event.getCollection( private=true  );
+		var flashCache      = getController().getRequestService().getFlashScope().getFlash();
+		var uncacheableKeys = StructKeyArray( flashCache );
 
-		for( var key in rc ) {
-			if ( !isNull( rc[ key ] ) && isCacheable( rc[ key ] ) ) {
-				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+		ArrayAppend( uncacheableKeys, StructKeyArray( rc ), true );
+
+		prc._fullPageCachingUncacheableKeys = ListToArray( LCase( ArrayToList( uncacheableKeys ) ) );
+	}
+
+	private boolean function isCacheable( required any value ) {
+		return IsSimpleValue( arguments.value ) || IsArray( arguments.value ) || IsStruct( arguments.value ) || IsQuery( arguments.value );
+	}
+
+	public struct function getCacheableRequestData() {
+		var event            = getRequestContext();
+		var rc               = event.getCollection( private=false );
+		var prc              = event.getCollection( private=true  );
+		var unCacheableKeys  = prc._fullPageCachingUncacheableKeys ?: [];
+		var fpcSettings      = getController().getSetting( name="fullpagecaching", defaultValue={} );
+		var limitData        = IsBoolean( fpcSettings.limitCacheData ?: "" ) && fpcSettings.limitCacheData;
+		var cacheableVars    = { prc={}, rc={} };
+
+		if ( limitData ) {
+			var limitRc  = fpcSettings.limitCacheDataKeys.rc  ?: [];
+			var limitPrc = fpcSettings.limitCacheDataKeys.prc ?: [];
+		}
+
+		if ( !limitData || limitRc.len() ) {
+			for( var key in rc ) {
+				if ( !isNull( rc[ key ] ) && (!limitData || ArrayFind( limitRc, key ) ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
+					cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+				}
 			}
 		}
-		for( var key in prc ) {
-			if ( !isNull( prc[ key ] ) && isCacheable( prc[ key ] ) ) {
-				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+		if ( !limitData || limitPrc.len() ) {
+			for( var key in prc ) {
+				if ( !isNull( prc[ key ] ) && ( !limitData || ArrayFind( limitPrc, key ) ) && isCacheable( prc[ key ] ) ) {
+					cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+				}
 			}
 		}
 
@@ -921,14 +1019,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		announceInterception( "onNotFound" );
 		getController().runEvent( "general.notFound" );
 		content reset=true type="text/html";header statusCode="404";
-		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+
+		var contentOutput = getModel( "presideRenderer" ).renderLayout();
+
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		writeOutput( contentOutput );
 		abort;
 	}
 
 	public void function accessDenied( required string reason ) {
 		announceInterception( "onAccessDenied" , arguments );
 		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments }, private=true );
-		WriteOutput( getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( getModel( "presideRenderer" ).renderLayout() ) );
+
+		var contentOutput = getModel( "presideRenderer" ).renderLayout();
+
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		writeOutput( contentOutput );
 		abort;
 	}
 

@@ -33,11 +33,11 @@ component extends="coldbox.system.web.routing.Router" {
 
 	function pathInfoProvider( event ) {
 		var requestData = GetHttpRequestData();
-		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: cgi.path_info ), '?' );
+		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: (request[ "javax.servlet.forward.request_uri" ] ?: "") ), '?' );
 		var qs          = "";
 
 		if ( !Len( Trim( uri ) ) ) {
-			uri = request[ "javax.servlet.forward.request_uri" ] ?: "";
+			uri = cgi.path_info ?: "";
 
 			if ( !Len( Trim( uri ) ) ) {
 				uri = ReReplace( ( cgi.request_url ?: "" ), "^https?://(.*?)/(.*?)(\?.*)?$", "/\2" );
@@ -63,9 +63,9 @@ component extends="coldbox.system.web.routing.Router" {
 
 // overriding getModel() to ensure we always use delayed injector in our Routes.cfm which loads while the interceptors are loading
 	public any function getModel( string name, string dsl, struct initArguments={} ) {
-		if ( arguments.keyExists( "name" ) ) {
+		if ( StructKeyExists( arguments, "name" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.name;
-		} else if ( arguments.keyExists( "dsl" ) && !arguments.dsl.startsWith( "delayedInjector:" ) && !arguments.dsl.startsWith( "provider:" ) ) {
+		} else if ( StructKeyExists( arguments, "dsl" ) && !arguments.dsl.reFindNoCase( "^delayedInjector:" ) && !arguments.dsl.reFindNoCase( "^provider:" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.dsl;
 		}
 

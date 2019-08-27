@@ -15,7 +15,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					  event          = selectHandler
 					, prePostExempt  = true
 					, private        = true ).$results( expectedFields );
-				
+
 				expect( service.getSelectFieldsForLabel( labelRenderer ) ).toBe( expectedFields );
 			} );
 
@@ -26,8 +26,24 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var expectedFields  = [ "${labelfield} as label" ];
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( false );
-				
+
 				expect( service.getSelectFieldsForLabel( labelRenderer ) ).toBe( expectedFields );
+			} );
+
+			it( "should return custom selectFields with aliases stripped if includeAlias is false", function(){
+				var service         = _getService();
+				var labelRenderer   = "custom_label_renderer";
+				var selectHandler   = service.getSelectFieldsHandler( labelRenderer );
+				var selectFields    = [ "column_one", "column_two as col2", "case when a then 1 else 0 end as col3", "column_four as `alias with space`", "column_five as `alias with as and space`" ];
+				var expectedResult  = [ "column_one", "column_two", "case when a then 1 else 0 end", "column_four", "column_five" ];
+
+				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
+				mockColdboxController.$( "runEvent"      ).$args(
+					  event          = selectHandler
+					, prePostExempt  = true
+					, private        = true ).$results( selectFields );
+
+				expect( service.getSelectFieldsForLabel( labelRenderer, false ) ).toBe( expectedResult );
 			} );
 
 		} );
@@ -47,7 +63,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					  event          = orderByHandler
 					, prePostExempt  = true
 					, private        = true ).$results( expectedOrderBy );
-				
+
 				expect( service.getOrderByForLabels( labelRenderer, { orderBy=defaultOrderBy } ) ).toBe( expectedOrderBy );
 			} );
 
@@ -59,7 +75,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var expectedOrderBy = "label";
 
 				mockColdboxController.$( "handlerExists" ).$args( orderByHandler ).$results( false );
-				
+
 				expect( service.getOrderByForLabels( labelRenderer, { orderBy=defaultOrderBy } ) ).toBe( expectedOrderBy );
 			} );
 
@@ -88,7 +104,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					, eventArguments = args
 					, prePostExempt  = true
 					, private        = true ).$results( expectedLabel );
-				
+
 				expect( service.renderLabel( labelRenderer, args ) ).toBe( expectedLabel );
 			} );
 
@@ -102,7 +118,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( false );
 				mockColdboxController.$( "handlerExists" ).$args( renderHandler ).$results( false );
-				
+
 				expect( service.renderLabel( labelRenderer, { label=expectedLabel } ) ).toBe( expectedLabel );
 			} );
 
@@ -118,9 +134,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var expectedDate    = Now();
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
-				mockLabelRendererCache.$( "get" ).$args( labelRenderer ).$results( nullValue() );
-				mockLabelRendererCache.$( "set" ).$args( labelRenderer, expectedDate ).$results( expectedDate );
-				
+
 				expect( service.getRendererCacheDate( labelRenderer ) ).toBeGTE( expectedDate );
 			} );
 
@@ -128,12 +142,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var service         = _getService();
 				var labelRenderer   = "custom_label_renderer";
 				var selectHandler   = service.getSelectFieldsHandler( labelRenderer );
-				var expectedDate    = createDateTime( 2017, 1, 1, 10, 30, 0 );
+				var expectedDate    = Now();
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( true );
-				mockLabelRendererCache.$( "get" ).$args( labelRenderer ).$results( expectedDate );
-				
-				expect( service.getRendererCacheDate( labelRenderer ) ).toBe( expectedDate );
+
+				var cachedDate = service.getRendererCacheDate( labelRenderer );
+
+				expect( cachedDate ).toBeGTE( expectedDate );
+
+				sleep( 3000 );
+
+				expect( service.getRendererCacheDate( labelRenderer ) ).toBe( cachedDate );
 			} );
 
 			it( "should return default datetime if label renderer does not exist", function(){
@@ -143,7 +162,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var expectedDate    = createDateTime( 1970, 1, 1, 0, 0, 0 );
 
 				mockColdboxController.$( "handlerExists" ).$args( selectHandler ).$results( false );
-				
+
 				expect( service.getRendererCacheDate( labelRenderer ) ).toBe( expectedDate );
 			} );
 
@@ -153,14 +172,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 // PRIVATE HELPERS
 	private any function _getService() {
-		mockLabelRendererCache = createStub();
 		mockColdboxController  = createStub();
 
-		var service = createMock( object= new preside.system.services.rendering.LabelRendererService(
-			labelRendererCache = mockLabelRendererCache
-		) );
+		var service = createMock( object= new preside.system.services.rendering.LabelRendererService() );
 
-		service.$( "$getColdbox"           , mockColdboxController );
+		service.$( "$getColdbox", mockColdboxController );
 
 		makePublic( service, "_getSelectFieldsHandler", "getSelectFieldsHandler" );
 		makePublic( service, "_getOrderByHandler"     , "getOrderByHandler"      );

@@ -50,8 +50,8 @@ component {
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
+			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -107,6 +107,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                       );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"                      );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                       );
+		interceptorSettings.customInterceptionPoints.append( "postReadRestResourceDirectories"       );
 		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                         );
 		interceptorSettings.customInterceptionPoints.append( "onRestError"                           );
 		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"                 );
@@ -116,6 +117,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError" );
 		interceptorSettings.customInterceptionPoints.append( "preFormBuilderFormSubmission"          );
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
+		interceptorSettings.customInterceptionPoints.append( "onReloadConfigCategories"              );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
 		interceptorSettings.customInterceptionPoints.append( "preSetUserSession"                     );
@@ -127,6 +129,19 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onPresideRedirectDomains"              );
 		interceptorSettings.customInterceptionPoints.append( "preRoutePresideSESRequest"             );
 		interceptorSettings.customInterceptionPoints.append( "postRoutePresideSESRequest"            );
+		interceptorSettings.customInterceptionPoints.append( "onGetEmailContextPayload"              );
+		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
+		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
+		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
+		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
+		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
+		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
+		interceptorSettings.customInterceptionPoints.append( "preClearRelatedCaches"                 );
+		interceptorSettings.customInterceptionPoints.append( "postClearRelatedCaches"                );
+		interceptorSettings.customInterceptionPoints.append( "onClearSettingsCache"                  );
+		interceptorSettings.customInterceptionPoints.append( "onClearCaches"                         );
+		interceptorSettings.customInterceptionPoints.append( "onClearPageCaches"                     );
+		interceptorSettings.customInterceptionPoints.append( "onInvalidateRenderedAssetCache"        );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -159,6 +174,8 @@ component {
 		settings.widgets                     = {};
 		settings.templates                   = [];
 		settings.adminDefaultEvent           = "sitetree";
+		settings.adminNotificationsSticky    = true;
+		settings.adminNotificationsPosition  = "bottom-right";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
 		settings.dsn                         = "preside";
@@ -174,6 +191,7 @@ component {
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
 		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics          = [];
+		settings.notificationCountLimit      = 100;
 		settings.syncDb                      = IsBoolean( settings.injectedConfig.syncDb ?: ""  ) ? settings.injectedConfig.syncDb : true;
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
@@ -211,6 +229,7 @@ component {
 			, "systemConfiguration"
 			, "updateManager"
 			, "rulesEngine"
+			, "links"
 			, "urlRedirects"
 			, "errorLogs"
 			, "auditTrail"
@@ -305,14 +324,20 @@ component {
 
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets   = [ "/css/admin/specific/richeditor/" ]
-				, width         = "auto"
-				, minHeight     = 0
-				, maxHeight     = 300
-				, autoParagraph = false
-				, configFile    = "/ckeditorExtensions/config.js?v10.9.0a"
+				  stylesheets           = [ "/css/admin/specific/richeditor/" ]
+				, width                 = "auto"
+				, minHeight             = 0
+				, maxHeight             = 300
+				, autoParagraph         = false
+				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
+				, pasteFromWordDisallow = [
+					  "span"  // Strip all span elements
+					, "*(*)"  // Strip all classes
+					, "*{*}"  // Strip all inline-styles
+				  ]
 			  }
-			, toolbars    = _getCkEditorToolbarConfig()
+			, linkPicker = _getRicheditorLinkPickerConfig()
+			, toolbars   = _getCkEditorToolbarConfig()
 		};
 
 		settings.static = {
@@ -352,6 +377,11 @@ component {
 			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
 			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
 			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
+			, emailQueueHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
+			, adhocTaskHeartBeat      = { enabled=true , siteTemplates=[ "*" ] }
+			, taskmanagerHeartBeat    = { enabled=true , siteTemplates=[ "*" ] }
+			, queryCachePerObject     = { enabled=false, siteTemplates=[ "*" ] }
+			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -396,7 +426,7 @@ component {
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
@@ -434,10 +464,11 @@ component {
 		};
 
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page" ] };
-		settings.rulesEngine.contexts.page                  = { object="page" };
-		settings.rulesEngine.contexts.user                  = { object="website_user" };
-		settings.rulesEngine.contexts.formBuilderSubmission = { subcontexts=[ "webrequest" ] };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
+		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
+		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
+		settings.rulesEngine.contexts.adminuser             = { object="security_user" };
+		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
 
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
@@ -450,6 +481,14 @@ component {
 		settings.concurrency = _getConcurrencySettings();
 
 		settings.healthCheckServices = {};
+
+		settings.fullPageCaching = {
+			  limitCacheData = false
+			, limitCacheDataKeys = {
+				  rc  = []
+				, prc = [ "_site", "presidePage", "__presideInlineJs", "_presideUrlPath", "currentLayout", "currentView", "slug", "viewModule" ]
+			  }
+		};
 
 		_loadConfigurationFromExtensions();
 
@@ -634,7 +673,7 @@ component {
 			full     =  'Maximize,-,Source,-,Preview'
 					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
-					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
+					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe,CodeSnippet'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
@@ -807,5 +846,16 @@ component {
 		var major = Val( ListFirst( luceeVersion, "." ) );
 
 		return major > 4;
+	}
+
+	private struct function _getRicheditorLinkPickerConfig() {
+		return {
+			default = {
+				types=[ "sitetreelink", "url", "email", "asset", "anchor" ]
+			}
+			, email = {
+				types=[ "sitetreelink", "url", "email", "asset", "emailvariable" ]
+			}
+		};
 	}
 }

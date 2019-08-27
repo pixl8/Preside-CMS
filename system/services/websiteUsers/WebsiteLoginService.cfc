@@ -494,9 +494,12 @@ component displayName="Website login service" {
 	 *
 	 */
 	public boolean function recordLogout() autodoc=true {
-		var userId = getLoggedInUserId();
+		var userDetails  = getLoggedInUserDetails();
+		var userId       = trim( userDetails.id ?: "" );
+		var impersonated = isBoolean( userDetails.impersonated ?: "" ) && userDetails.impersonated;
+		var recordLogout = !impersonated && len( userId );
 
-		if ( Len( Trim( userId ) ) ) {
+		if ( recordLogout ) {
 			$recordWebsiteUserAction(
 				  action = "logout"
 				, type   = "login"
@@ -518,11 +521,19 @@ component displayName="Website login service" {
 	 *
 	 */
 	public boolean function recordVisit() autodoc=true {
-		var userId = getLoggedInUserId();
+		var userDetails  = getLoggedInUserDetails();
+		var userId       = trim( userDetails.id ?: "" );
+		var impersonated = isBoolean( userDetails.impersonated ?: "" ) && userDetails.impersonated;
+		var adminRequest = $getRequestContext().isAdminRequest();
+		var recordVisit  = !adminRequest && !impersonated && len( userId );
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_request_made = Now()
-		} );
+		if ( recordVisit ) {
+			return _getUserDao().updateData( id=userId, data={
+				last_request_made = Now()
+			} );
+		}
+
+		return false;
 	}
 
 // private helpers

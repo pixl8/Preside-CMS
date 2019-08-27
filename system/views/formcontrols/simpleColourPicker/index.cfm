@@ -23,13 +23,17 @@
 		, required string  colourFormat
 		,          boolean raw = false
 	) {
-		if ( raw ) {
-			return colour;
-		} else if ( colourFormat == "hex" ) {
-			return "###colour#";
-		} else {
-			return "rgb(#colour#)";
+		var rawColour = "";
+
+		if ( colourFormat == "hex" ) {
+			rawColour = replace( colour, "##", "", "all" );
+			return raw ? rawColour : "###rawColour#";
+		} else if ( colourFormat == "rgb" ) {
+			rawColour = reReplace( colour, "^rgb\(([,0-9]+)\)$", "\1" );
+			return raw ? rawColour : "rgb(#rawColour#)";
 		}
+
+		return "";
 	}
 
 	event.include( "/css/admin/specific/simpleColourPicker/" );

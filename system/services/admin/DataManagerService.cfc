@@ -189,7 +189,7 @@ component {
 			if ( Len( Trim( attributes.formula ?: "" ) ) ) {
 				return false;
 			}
-			if ( propertyName.startsWith( "_" ) ) {
+			if ( propertyName.reFind( "^_" ) ) {
 				return false;
 			}
 			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
@@ -223,7 +223,7 @@ component {
 	}
 
 	public array function getAllowedOperationsForObject( required string objectName ) {
-		if ( !_operationsCache.keyexists( arguments.objectName ) ) {
+		if ( !StructKeyExists( _operationsCache, arguments.objectName ) ) {
 			var operations           = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerAllowedOperations"   , objectName=arguments.objectName, defaultValue=getDefaultOperationsForObject( arguments.objectName ) );
 			var disallowedOperations = _getPresideObjectService().getObjectAttribute( attributeName="datamanagerDisallowedOperations", objectName=arguments.objectName, defaultValue=""                                                    );
 
@@ -291,6 +291,14 @@ component {
 		);
 	}
 
+	public string function getTreeFirstLevelParentProperty( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTreeFirstLevelParentProperty"
+			, defaultValue  = ""
+		);
+	}
+
 	public string function getTreeSortOrder( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
@@ -308,14 +316,13 @@ component {
 	}
 
 	public query function getRecordsForSorting( required string objectName ) {
-		var sortField = getSortField( arguments.objectName );
-		var idField   = _getPresideObjectService().getIdField( arguments.objectName );
+		var idField        = _getPresideObjectService().getIdField( arguments.objectName );
+		var selectDataArgs = StructCopy( arguments );
 
-		return _getPresideObjectService().selectData(
-			  objectName   = arguments.objectName
-			, selectFields = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", sortField ]
-			, orderby      = sortField
-		);
+		selectDataArgs.orderBy      = getSortField( arguments.objectName );
+		selectDataArgs.selectFields = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", selectDataArgs.orderBy ];
+
+		return _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
 	}
 
 	public void function saveSortedRecords( required string objectName, required array sortedIds ) {
@@ -381,7 +388,7 @@ component {
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.extraFilters.append({
-				  filter       = _buildSearchFilter(
+				  filter       = buildSearchFilter(
 					  q            = arguments.searchQuery
 					, objectName   = arguments.objectName
 					, gridFields   = arguments.gridFields
@@ -610,7 +617,7 @@ component {
 			if ( len( arguments.labelRenderer ) ) {
 				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
-			args.filter       = _buildSearchFilter(
+			args.filter       = buildSearchFilter(
 				  q            = arguments.searchQuery
 				, objectName   = arguments.objectName
 				, gridFields   = args.selectFields
@@ -626,7 +633,7 @@ component {
 			var tmp = {};
 			for( var r in records ) { tmp[ r.id ] = transformResult( r, arguments.labelRenderer ) };
 			for( var id in arguments.ids ){
-				if ( tmp.keyExists( id ) ) {
+				if ( StructKeyExists( tmp, id ) ) {
 					result.append( tmp[id] );
 				}
 			}
@@ -643,7 +650,7 @@ component {
 		var lastModified      = Now();
 		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
 
-		if ( _getPresideObjectService().getObjectProperties( arguments.objectName ).keyExists( dmField ) ) {
+		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
 			var records = obj.selectData(
 				selectFields = [ "Max( #dmField# ) as lastmodified" ]
 			);
@@ -670,6 +677,85 @@ component {
 		);
 
 		return IsBoolean( draftsEnabled ) && draftsEnabled;
+	}
+
+	public struct function superQuickAdd( required string objectName, required string value ) {
+		var dao        = _getPresideObjectService().getObject( arguments.objectName );
+		var labelField = _getPresideObjectService().getLabelField( arguments.objectName );
+		var labelValue = Trim( arguments.value );
+		var existing   = dao.selectData(
+			  selectFields = [ "id", labelField ]
+			, filter       = { "#labelField#"=labelValue }
+		);
+
+		if ( existing.recordCount ) {
+			return {
+				  value = existing.id
+				, text  = labelValue
+			};
+		}
+
+		return {
+			  value = dao.insertData( { "#labelField#"=labelValue } )
+			, text  = labelValue
+		};
+	}
+
+	public string function buildSearchFilter(
+		  required string q
+		, required string objectName
+		, required array  gridFields
+		,          string labelfield   = _getPresideObjectService().getLabelField( arguments.objectName )
+		,          array  searchFields = []
+	) {
+		var field                = "";
+		var fullFieldName        = "";
+		var objName              = "";
+		var filter               = "";
+		var delim                = "";
+		var poService            = _getPresideObjectService();
+		var relationshipGuidance = _getRelationshipGuidance();
+
+		if ( arguments.searchFields.len() ) {
+			var parsedFields = poService.parseSelectFields(
+				  objectName   = arguments.objectName
+				, selectFields = arguments.searchFields
+				, includeAlias = false
+			);
+			for( field in parsedFields ){
+				if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
+					field = _getFullFieldName( field,  arguments.objectName );
+				}
+				filter &= delim & field & " like :q";
+				delim = " or ";
+			}
+		} else {
+			for( field in arguments.gridFields ){
+				field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
+				objName = arguments.objectName;
+
+				if ( ListLen( field, "." ) == 2 ) {
+					objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
+						  sourceObject     = arguments.objectName
+						, relationshipPath = ListFirst( field, "." )
+					);
+					field = ListLast( field, "." );
+				}
+
+				if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
+					if ( ListLen( fullFieldName, "." ) < 2 ) {
+						fullFieldName = _getFullFieldName( field, objName );
+					}
+
+					if ( _propertyIsSearchable( field, objName ) ) {
+						filter &= delim & fullFieldName & " like :q";
+						delim = " or ";
+					}
+				}
+			}
+		}
+
+		return filter;
 	}
 
 // PRIVATE HELPERS
@@ -723,7 +809,7 @@ component {
 				continue;
 			}
 			if ( !StructKeyExists( props, field ) ) {
-				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+				if ( arguments.versiontable && field.reFind( "^_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
 				} else if ( field != labelField ) {
 					sqlFields[i] = "'' as " & field;
@@ -766,10 +852,15 @@ component {
 			var fieldRelationship = objectProps[ orderByField ].relationship ?: "";
 
 			if ( fieldRelationship == "many-to-one" ) {
-				var relatedLabelField = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
-				var delim             = relatedLabelField.find( "$" ) ? "$" : ".";
+				var relatedLabelField       = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
+				var foreignObject           = _getPresideObjectService().getObjectProperties( objectProps[ orderByField ].relatedTo );
+				var foreignObjectLabelField = _getPresideObjectService().getLabelField(       objectProps[ orderByField ].relatedTo );
 
-				relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
+				if ( !structKeyExists( foreignObject[ foreignObjectLabelField ], "formula" ) ) {
+					var delim = relatedLabelField.find( "$" ) ? "$" : ".";
+
+					relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
+				}
 
 				newOrderBy.append( relatedLabelField & " " & orderDirection );
 			} else {
@@ -778,63 +869,6 @@ component {
 		}
 
 		return newOrderBy.toList();
-	}
-
-	private string function _buildSearchFilter(
-		  required string q
-		, required string objectName
-		, required array  gridFields
-		,          string labelfield   = _getPresideObjectService().getLabelField( arguments.objectName )
-		,          array  searchFields = []
-	) {
-		var field                = "";
-		var fullFieldName        = "";
-		var objName              = "";
-		var filter               = "";
-		var delim                = "";
-		var poService            = _getPresideObjectService();
-		var relationshipGuidance = _getRelationshipGuidance();
-
-		if ( arguments.searchFields.len() ) {
-			var parsedFields = poService.parseSelectFields(
-				  objectName   = arguments.objectName
-				, selectFields = arguments.searchFields
-				, includeAlias = false
-			);
-			for( field in parsedFields ){
-				if ( poService.getObjectProperties( arguments.objectName ).keyExists( field ) ) {
-					field = _getFullFieldName( field,  arguments.objectName );
-				}
-				filter &= delim & field & " like :q";
-				delim = " or ";
-			}
-		} else {
-			for( field in arguments.gridFields ){
-				field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
-				objName = arguments.objectName;
-
-				if ( ListLen( field, "." ) == 2 ) {
-					objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
-						  sourceObject     = arguments.objectName
-						, relationshipPath = ListFirst( field, "." )
-					);
-					field = ListLast( field, "." );
-				}
-
-				if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
-					if ( ListLen( fullFieldName, "." ) < 2 ) {
-						fullFieldName = _getFullFieldName( field, objName );
-					}
-
-					if ( _propertyIsSearchable( field, objName ) ) {
-						filter &= delim & fullFieldName & " like :q";
-						delim = " or ";
-					}
-				}
-			}
-		}
-
-		return filter;
 	}
 
 	private string function _getFullFieldName( required string field, required string objectName ) {

@@ -13,10 +13,14 @@ This form is used for configuring general email settings
 			<field sortorder="10" name="defaultProvider"   control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" />
 			<field sortorder="20" name="disabledProviders" control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" multiple="true" />
 		</fieldset>
-		<fieldset id="masssendout" sortorder="20">
+		<fieldset id="content" sortorder="30">
+			<field sortorder="10" name="default_content_expiry" control="spinner" required="false" defaultValue="90" />
+			<field sortorder="20" name="max_content_expiry"     control="spinner" required="false" defaultValue="90" />
+		</fieldset>
+		<fieldset id="masssendout" sortorder="40">
 			<field sortorder="10" name="ratelimit" control="spinner" required="false" default="100" />
 		</fieldset>
-		<fieldset id="features" sortorder="30">
+		<fieldset id="features" sortorder="50">
 			<field sortorder="10" name="resendtoken" control="yesnoswitch" required="false" default="false" />
 		</fieldset>
 	</tab>

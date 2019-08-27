@@ -67,7 +67,7 @@ component displayName="Email Recipient Type Service" {
 	 *
 	 */
 	public boolean function recipientTypeExists( required string recipientType ) {
-		return _getConfiguredRecipientTypes().keyExists( arguments.recipientType );
+		return StructKeyExists( _getConfiguredRecipientTypes(), arguments.recipientType );
 	}
 
 	/**

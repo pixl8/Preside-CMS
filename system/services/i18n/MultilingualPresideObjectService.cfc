@@ -35,7 +35,7 @@ component displayName="Multilingual Preside Object Service" {
 	public boolean function isMultilingual( required string objectName, string propertyName="" ) {
 		var multiLingualObjectReference = _getMultiLingualObjectReference();
 
-		if ( !multiLingualObjectReference.keyExists( arguments.objectName ) ) {
+		if ( !StructKeyExists( multiLingualObjectReference, arguments.objectName ) ) {
 			return false;
 		}
 
@@ -178,7 +178,7 @@ component displayName="Multilingual Preside Object Service" {
 				}
 			}
 
-			if ( translationObject.indexes.keyExists( indexName ) && translationObject.indexes[ indexName ].unique ) {
+			if ( StructKeyExists( translationObject.indexes, indexName ) && translationObject.indexes[ indexName ].unique ) {
 				translationObject.indexes[ indexName ].fields = "_translation_language," & translationObject.indexes[ indexName ].fields;
 			}
 		}
@@ -250,7 +250,7 @@ component displayName="Multilingual Preside Object Service" {
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
 			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
 
-				if ( arguments.tableJoins[ i ].keyExists( "additionalClauses" ) ) {
+				if ( StructKeyExists( arguments.tableJoins[ i ], "additionalClauses" ) ) {
 					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				} else {
 					arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
@@ -303,7 +303,7 @@ component displayName="Multilingual Preside Object Service" {
 				var join             = selectDataArgs.joins[i];
 				var latestCheckField = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
 
-				if ( join.tableAlias contains "_translations" && join.tableName.startsWith( "_version" ) ) {
+				if ( join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
 					join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = '1'";
 				}
 			}
@@ -372,7 +372,7 @@ component displayName="Multilingual Preside Object Service" {
 		}
 
 		for( var language in languages ) {
-			if ( mappedRecords.keyExists( language.id ) ) {
+			if ( StructKeyExists( mappedRecords, language.id ) ) {
 				language.status = mappedRecords[ language.id ] ? "active" : "inprogress";
 			} else {
 				language.status = "notstarted";
@@ -761,7 +761,7 @@ component displayName="Multilingual Preside Object Service" {
 
 		_resolveSelectFieldCache = variables._resolveSelectFieldCache ?: {};
 
-		if ( !_resolveSelectFieldCache.keyExists( cacheKey ) ) {
+		if ( !StructKeyExists( _resolveSelectFieldCache, cacheKey ) ) {
 			var fieldMinusSqlEscapes = ReReplace( arguments.selectField, "[`\[\]]", "", "all" );
 			var bareFieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*$";
 

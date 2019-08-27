@@ -53,7 +53,7 @@ component displayName="Rules Engine Filter Service" {
 			} else if ( IsArray( expressionArray[i] ) ) {
 				var subFilter = prepareFilter( objectName=objectName, expressionArray=expressionArray[i], filterPrefix=arguments.filterPrefix );
 
-				if ( subFilter.keyExists( "having" ) ) {
+				if ( StructKeyExists( subFilter, "having" ) ) {
 					isHaving = true;
 					sql &= " #join# #subfilter.having#";
 				} else {

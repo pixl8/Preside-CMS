@@ -8,8 +8,9 @@ This form is used for the add/edit link screen in the richeditor.
 	<tab id="basic" sortorder="10" title="cms:ckeditor.linkpicker.basic.tab">
 		<!-- we will show/hide these fieldsets depending on the selected link type -->
 		<fieldset id="sitetree" sortorder="10">
-			<field sortorder="10" name="page"  control="sitetreePagePicker" required="true"  label="cms:ckeditor.linkpicker.page.label" />
-			<field sortorder="20" name="title" control="textinput"          required="false" label="cms:ckeditor.linkpicker.title.label" placeholder="cms:ckeditor.linkpicker.title.placeholder" maxlength="200" />
+			<field sortorder="10" name="page"       control="sitetreePagePicker" required="true"  label="cms:ckeditor.linkpicker.page.label" />
+			<field sortorder="20" name="title"      control="textinput"          required="false" label="cms:ckeditor.linkpicker.title.label" placeholder="cms:ckeditor.linkpicker.title.placeholder" maxlength="200" />
+			<field sortorder="30" name="pageanchor" control="textinput"          required="false" label="cms:ckeditor.linkpicker.pageanchor.label" placeholder="cms:ckeditor.linkpicker.pageanchor.placeholder" help="cms:ckeditor.linkpicker.pageanchor.help" maxlength="30" />
 		</fieldset>
 
 		<fieldset id="url" sortorder="20">
@@ -33,6 +34,10 @@ This form is used for the add/edit link screen in the richeditor.
 		<fieldset id="anchor" sortorder="40">
 			<field sortorder="10" name="anchor" control="select"    required="true"  label="cms:ckeditor.linkpicker.anchor.label" placeholder="cms:ckeditor.linkpicker.anchor.placeholder" values="" />
 			<field sortorder="20" name="title"  control="textinput" required="false" label="cms:ckeditor.linkpicker.title.label"  placeholder="cms:ckeditor.linkpicker.title.placeholder" maxlength="200" />
+		</fieldset>
+
+		<fieldset id="emailvariable" sortorder="50">
+			<field sortorder="10" name="emailvariable" control="textinput" required="true" label="cms:ckeditor.linkpicker.emailvariable.label"  placeholder="cms:ckeditor.linkpicker.emailvariable.placeholder" maxlength="100" />
 		</fieldset>
 	</tab>
 

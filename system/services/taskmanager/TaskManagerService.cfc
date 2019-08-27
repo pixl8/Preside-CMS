@@ -116,7 +116,7 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskExists( required string taskKey ) {
-		return 	_getConfiguredTasks().keyExists( arguments.taskKey );
+		return StructKeyExists( _getConfiguredTasks(), arguments.taskKey );
 	}
 
 	public boolean function tasksAreRunning( string exclusivityGroup="" ) {
@@ -183,7 +183,7 @@ component displayName="Task Manager Service" {
 		for( var task in nonRunningTasks ) {
 			var exclusivityGroup = taskConfiguration[ task.task_key ].exclusivityGroup ?: "";
 
-			if ( exclusivityGroup == "none" || ( !groupsToRun.keyExists( exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
+			if ( exclusivityGroup == "none" || ( !StructKeyExists( groupsToRun, exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
 				runnableTasks.append( task.task_key );
 				groupsToRun[ exclusivityGroup ] = 1;
 			}
@@ -536,7 +536,8 @@ component displayName="Task Manager Service" {
 		var tasks       = _getConfiguredTasks();
 		var taskDetails = [];
 		var dbTaskInfo  = _getTaskDao().selectData(
-			selectFields = [ "task_key", "enabled", "is_running", "last_ran", "next_run", "last_run_time_taken", "was_last_run_success", "crontab_definition" ]
+			  selectFields = [ "task_key", "enabled", "is_running", "last_ran", "next_run", "last_run_time_taken", "was_last_run_success", "crontab_definition" ]
+			, useCache     = false
 		);
 		var grouped = [];
 
@@ -565,6 +566,7 @@ component displayName="Task Manager Service" {
 
 				grouped.append({
 					  id          = groupId
+					, slug        = $slugify( groupId )
 					, title       = $translateResource( "taskmanager.taskgroups:#groupId#.title", groupId )
 					, description = $translateResource( "taskmanager.taskgroups:#groupId#.description", "" )
 					, stats       = { total=0, success=0, fail=0, running=0, neverRun=0 }

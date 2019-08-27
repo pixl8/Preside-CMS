@@ -54,6 +54,7 @@ component {
 		var processedCount = 0;
 		var queuedEmail    = "";
 		var emailService   = _getEmailService();
+		var poService       = $getPresideObjectService();
 
 		do {
 			queuedEmail = getNextQueuedEmail();
@@ -73,8 +74,14 @@ component {
 			}
 
 			removeFromQueue( queuedEmail.id );
+			if ( !processedCount mod 10 ) {
+				poService.clearRelatedCaches( "email_mass_send_queue" );
+			}
 		} while( ++processedCount < rateLimit && !$isInterrupted() );
 
+		if ( processedCount ) {
+			poService.clearRelatedCaches( "email_mass_send_queue" );
+		}
 	}
 
 	/**
@@ -333,7 +340,7 @@ component {
 
 // PRIVATE HELPERS
 	private date function _getLimitDate( required string unit, required numeric measure ) {
-		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
+		if ( !StructKeyExists( _timeUnitToCfMapping, arguments.unit ) ) {
 			return '1900-01-01';
 		}
 

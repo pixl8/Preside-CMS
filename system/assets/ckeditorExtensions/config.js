@@ -7,13 +7,14 @@
 	CKEDITOR.plugins.addExternal( 'imagepicker'     , basePath+'plugins/imagepicker/'     , 'plugin.js' );
 	CKEDITOR.plugins.addExternal( 'attachmentpicker', basePath+'plugins/attachmentpicker/', 'plugin.js' );
 	CKEDITOR.plugins.addExternal( 'presidelink'     , basePath+'plugins/presidelink/'     , 'plugin.js' );
+	CKEDITOR.plugins.addExternal( 'codesnippet'     , basePath+'plugins/codesnippet/'     , 'plugin.js' );
 })();
 
 
 CKEDITOR.editorConfig = function( config ) {
 	// activate our plugins
-	config.extraPlugins = "autogrow,widgets,imagepicker,attachmentpicker,presidelink";
-
+	config.extraPlugins = "autogrow,widgets,imagepicker,attachmentpicker,presidelink,codesnippet";
+	config.codeSnippet_theme = "atelier-dune.dark";
 	// the skin we are using
 	config.skin = "bootstrapck";
 
@@ -37,5 +38,5 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// Paste from word
 	config.pasteFromWordPromptCleanup = true;
-	config.disallowedContent = 'font;*[align];*{line-height};*{margin-bottom};';
+	config.disallowedContent = 'font;*[align];*{line-height};*{margin*};';
 };

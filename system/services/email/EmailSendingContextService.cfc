@@ -37,7 +37,7 @@ component {
 		var payload = {};
 
 		if ( !context.isEmpty() ) {
-			if ( !context.keyExists( "payload" ) ) {
+			if ( !StructKeyExists( context, "payload" ) ) {
 				var recipientObject = _getRecipientTypeService().getFilterObjectForRecipientType( context.recipientType ?: "" );
 
 				if ( recipientObject.len() ) {
@@ -55,6 +55,7 @@ component {
 				context.payload = payload;
 			}
 
+			$announceInterception( "onGetEmailContextPayload", context );
 			payload = context.payload;
 		}
 

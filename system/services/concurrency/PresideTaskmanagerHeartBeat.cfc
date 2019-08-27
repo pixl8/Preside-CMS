@@ -16,6 +16,7 @@ component extends="AbstractHeartBeat" {
 			  threadName   = "Preside Heartbeat: Scheduled Tasks"
 			, intervalInMs = 1000
 			, threadUtil   = arguments.threadUtil
+			, feature      = "taskmanagerHeartBeat"
 		);
 
 		_setTaskmanagerService( arguments.taskmanagerService );

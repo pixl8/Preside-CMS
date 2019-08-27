@@ -1,12 +1,13 @@
 <cfscript>
-	inputName     = args.name          ?: "";
-	inputId       = args.id            ?: "";
-	inputClass    = args.class         ?: "";
-	placeholder   = args.placeholder   ?: "";
-	defaultValue  = args.defaultValue  ?: "";
-	extraClasses  = args.extraClasses  ?: "";
-	stylesheets   = args.stylesheets   ?: "";
-	widgetCategories = args.widgetCategories ?: "";
+	inputName          = args.name               ?: "";
+	inputId            = args.id                 ?: "";
+	inputClass         = args.class              ?: "";
+	placeholder        = args.placeholder        ?: "";
+	defaultValue       = args.defaultValue       ?: "";
+	extraClasses       = args.extraClasses       ?: "";
+	stylesheets        = args.stylesheets        ?: "";
+	widgetCategories   = args.widgetCategories   ?: ( rc.widgetCategories ?: "" );
+	linkPickerCategory = args.linkPickerCategory ?: ( rc.linkPickerCategory ?: "" );
 	maxLength     = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
@@ -49,6 +50,9 @@
 	          </cfif>
 	          <cfif Len( Trim( widgetCategories ) )>
 	              data-widget-categories="#Trim( widgetCategories )#"
+	          </cfif>
+	          <cfif Len( Trim( linkPickerCategory ) )>
+	              data-link-picker-category="#Trim( linkPickerCategory )#"
 	          </cfif>
 
 	>#value#</textarea>

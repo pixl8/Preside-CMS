@@ -7,6 +7,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="asset_folder" relationship="many-to-one"                          required=true   uniqueindexes="assetfolder|1" onupdate="cascade-if-no-cycle-check";
 
 	property name="title"             type="string"  dbtype="varchar" maxLength=150     required=true   uniqueindexes="assetfolder|2";
+	property name="file_name"         type="string"  dbtype="varchar" maxLength=150     required=false  indexes="filename";
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true   uniqueindexes="assetpath";
 	property name="asset_url"         type="string"  dbtype="varchar" maxLength=255     required=false  uniqueindexes="asseturl";
 	property name="description"       type="string"  dbtype="text"    maxLength=0       required=false;

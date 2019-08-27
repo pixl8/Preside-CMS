@@ -6,12 +6,8 @@
 component {
 
 // CONSTRUCTOR
-	/**
-	 * @labelRendererCache.inject  cachebox:LabelRendererCache
-	 *
-	 */
-	public any function init( required any labelRendererCache ) {
-		_setLabelRendererCache( arguments.labelRendererCache );
+	public any function init() {
+		_setLabelRendererCache( {} );
 
 		return this;
 	}
@@ -33,7 +29,7 @@ component {
 
 		if ( !arguments.includeAlias ) {
 			selectFields = selectFields.map( function( item, index, arr ){
-				return listFirst( item, " " );
+				return trim( reReplaceNoCase( item, "\s+as\s+?.*$", "" ) );
 			} );
 		}
 
@@ -70,22 +66,18 @@ component {
 	}
 
 	public string function getRendererCacheDate( required string labelRenderer ) {
-		var cacheDate      = createDateTime( 1970, 1, 1, 0, 0, 0 );
-		var cache          = _getLabelRendererCache();
 		var rendererExists = len( labelRenderer ) && $getColdbox().handlerExists( _getSelectFieldsHandler( labelRenderer ) );
 
 		if ( rendererExists ) {
-			var cached = cache.get( labelRenderer );
-
-			if ( !IsNull( local.cached ) ) {
-				cacheDate = cached;
-			} else {
-				cacheDate = now();
-				cache.set( labelRenderer, cacheDate );
+			var cache  = _getLabelRendererCache();
+			if ( !StructKeyExists( cache, labelRenderer ) ) {
+				cache[ labelRenderer ] = now();
 			}
+
+			return cache[ labelRenderer ];
 		}
 
-		return cacheDate;
+		return createDateTime( 1970, 1, 1, 0, 0, 0 );
 	}
 
 // PRIVATE HELPERS
@@ -102,10 +94,10 @@ component {
 	}
 
 
-	private any function _getLabelRendererCache() {
+	private struct function _getLabelRendererCache() {
 		return _labelRendererCache;
 	}
-	private void function _setLabelRendererCache( required any labelRendererCache ) {
+	private void function _setLabelRendererCache( required struct labelRendererCache ) {
 		_labelRendererCache = arguments.labelRendererCache;
 	}
 

@@ -1184,8 +1184,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function previewPage( event, rc, prc ) {
-		prc._forceDomainLookup = true;
-		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ), lookupDomain=true ) );
+		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ), forceDomain=true ) );
 	}
 
 	public void function clearPageCacheAction( event, rc, prc ) {
@@ -1195,6 +1194,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( pageId.isEmpty() ) {
 			getController().getCachebox().clearAll();
+			announceInterception( "onClearCaches", {} );
 
 			event.audit(
 				  action = "clear_page_cache"
@@ -1208,6 +1208,11 @@ component extends="preside.system.base.AdminHandler" {
 
 			pageCache.clearByKeySnippet( pageUrl );
 			pageCache.clearByKeySnippet( sectionUrl );
+
+			announceInterception( "onClearPageCaches", {
+				  pageUrl    = pageUrl
+				, sectionUrl = sectionUrl
+			} );
 
 			event.audit(
 				  action   = "clear_cache_for_page"
@@ -1297,7 +1302,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId   = arguments.pageId ?: ( rc.id ?: "" );
 		var cacheKey = "pagePermissionContext";
 
-		if ( prc.keyExists( cacheKey ) ) {
+		if ( StructKeyExists( prc, cacheKey ) ) {
 			return prc[ cacheKey ];
 		}
 

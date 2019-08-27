@@ -17,19 +17,22 @@ component singleton=true {
 		,          array  params
 		,          string returntype="recordset"
 	) output=false {
-		var q      = new query();
 		var result = "";
-		var param  = "";
+		var params = {};
+		var options = { datasource=arguments.dsn, name="result" };
 
 		_getLogger().debug( arguments.sql );
 
-		q.setDatasource( arguments.dsn );
+		if ( arguments.returntype == "info" ) {
+			var info = "";
+			options.result = "info";
+		}
 
 		if ( StructKeyExists( arguments, "params" ) ) {
-			for( param in arguments.params ){
+			for( var param in arguments.params ){
 				param.value = param.value ?: "";
 
-				if ( not IsSimpleValue( param.value ) ) {
+				if ( !IsSimpleValue( param.value ) ) {
 					throw(
 						  type = "SqlRunner.BadParam"
 						, message = "SQL Param values must be simple values"
@@ -37,27 +40,37 @@ component singleton=true {
 					);
 				}
 
-				if ( param.type eq 'cf_sql_bit' and not IsNumeric( param.value ) ) {
-					param.value = IsBoolean( param.value ) and param.value ? 'true' : 'false';
+				if ( param.type == 'cf_sql_bit' && !IsNumeric( param.value ) ) {
+					param.value = IsBoolean( param.value ) && param.value ? 'true' : 'false';
 				}
 
-				if ( not Len( Trim( param.value ) ) ) {
-					param.null = true;
+				if ( !Len( Trim( param.value ) ) ) {
+					param.null    = true;
+					param.nulls   = true; // patch bug with various versions of Lucee
+					param.list    = false;
 					arguments.sql = _transformNullClauses( arguments.sql, param.name );
 				}
 
 				param.cfsqltype = param.type; // mistakenly had thought we could do param.type - alas no, so need to fix it to the correct argument name here
 
-				q.addParam( argumentCollection = param );
+				if ( StructKeyExists( param, "name" ) ) {
+					params[ param.name ] = param;
+					params[ param.name ].delete( "name" );
+				} else {
+					if ( !IsArray( params ) ) {
+						params = [];
+					}
+					params.append( param );
+				}
 			}
 		}
-		q.setSQL( arguments.sql );
-		result = q.execute();
+
+		result = QueryExecute( sql=arguments.sql, params=params, options=options );
 
 		if ( arguments.returntype eq "info" ) {
-			return result.getPrefix();
+			return info;
 		} else {
-			return result.getResult();
+			return result;
 		}
 	}
 

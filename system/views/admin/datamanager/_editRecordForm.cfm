@@ -15,6 +15,7 @@
 	param name="args.stripPermissionedFields" type="boolean" default=true;
 	param name="args.permissionContext"       type="string"  default=args.object;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
+	param name="args.additionalArgs"          type="struct"  default=StructNew();
 	param name="args.resultAction"            type="string"  default="";
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
@@ -69,6 +70,7 @@
 			, stripPermissionedFields = args.stripPermissionedFields
 			, permissionContext       = args.permissionContext
 			, permissionContextKeys   = args.permissionContextKeys
+			, additionalArgs          = args.additionalArgs
 		)#
 		#args.postForm#
 

@@ -4,10 +4,16 @@ component output="false" singleton=true {
 	/**
 	 * @resourceBundleService.inject ResourceBundleService
 	 * @presideObjectService.inject  PresideObjectService
+	 * @assetManagerService.inject   AssetManagerService
 	 */
-	public any function init( required any resourceBundleService, required any presideObjectService ) output=false {
+	public any function init(
+		  required any resourceBundleService
+		, required any presideObjectService
+		, required any assetManagerService
+	) output=false {
 		_setResourceBundleService( arguments.resourceBundleService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setAssetManagerService( arguments.assetManagerService );
 
 		return this;
 	}
@@ -73,7 +79,7 @@ component output="false" singleton=true {
 						ArrayAppend( rules, rule );
 					}
 
-					if ( field.keyExists( "rules" ) ) {
+					if ( StructKeyExists( field, "rules" ) ) {
 						for( rule in field.rules ){
 							rule.fieldName = field.name;
 							ArrayAppend( rules, rule );
@@ -136,6 +142,25 @@ component output="false" singleton=true {
 						ArrayAppend( rules, { fieldName=arguments.fieldName, validator=Trim( field.format ) } );
 					}
 				}
+			break;
+		}
+
+		// controls
+		switch( field.control ?: "" ){
+			case "emailInput":
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email" } );
+			break;
+
+			case "fileupload":
+				if ( Len( Trim( field.allowedTypes ?: "" ) ) ) {
+					var allowedExtensions = _getAssetManagerService().expandTypeList( ListToArray( field.allowedTypes ) ).toList();
+					var allowedTypes      = listChangeDelims( field.allowedTypes, ", " );
+				 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="fileType", params={ allowedTypes=allowedTypes, allowedExtensions=allowedExtensions } } );
+				}
+			break;
+
+			case "captcha":
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="recaptcha" } );
 			break;
 		}
 
@@ -252,5 +277,12 @@ component output="false" singleton=true {
 	}
 	private void function _setPresideObjectService( required any presideObjectService ) output=false {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getAssetManagerService() output=false {
+		return _assetManagerService;
+	}
+	private void function _setAssetManagerService( required any assetManagerService ) output=false {
+		_assetManagerService = arguments.assetManagerService;
 	}
 }

@@ -126,7 +126,7 @@ component {
 
 // PRIVATE HELPERS
 	private any function _simpleLocalCache( required string cacheKey, required any provider ) {
-		if ( !variables.keyExists( arguments.cacheKey ) ) {
+		if ( !StructKeyExists( variables, arguments.cacheKey ) ) {
 			variables[ arguments.cacheKey ] = arguments.provider();
 		}
 

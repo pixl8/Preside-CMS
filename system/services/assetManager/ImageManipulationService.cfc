@@ -73,6 +73,17 @@ component displayname="Image Manipulation Service" {
 		return _getImplementation().getImageInformation( argumentCollection = arguments );
 	}
 
+	public boolean function isValidImageFile( required string path ) {
+		var asset = fileReadBinary( arguments.path );
+		try {
+			var imageInfo = getImageInformation( asset );
+		}
+		catch( any e ) {
+			return false;
+		}
+		return isStruct( imageInfo ) && StructKeyExists( imageInfo, "height" );
+	}
+
 	private struct function _getCropHintArea(
 		  required binary  image
 		, required numeric width

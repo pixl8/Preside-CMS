@@ -2,10 +2,12 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @objectReader.inject PresideObjectReader
+	 * @objectReader.inject          PresideObjectReader
+	 * @selectDataViewService.inject presideObjectSelectDataViewService
 	 */
-	public any function init( required any objectReader ) {
+	public any function init( required any objectReader, required any selectDataViewService ) {
 		_setObjectReader( arguments.objectReader );
+		_setSelectDataViewService( arguments.selectDataViewService );
 
 		return this;
 	}
@@ -166,7 +168,7 @@ component singleton=true {
 				property = object.meta.properties[ propertyName ];
 
 				if ( property.relationship eq "many-to-many" ) {
-					if ( !objects.keyExists( property.relatedTo ) ) {
+					if ( !StructKeyExists( objects, property.relatedTo ) ) {
 						throw(
 							  type    = "RelationshipGuidance.BadRelationship"
 							, message = "Object, [#property.relatedTo#], could not be found"
@@ -188,7 +190,7 @@ component singleton=true {
 						property.relatedViaTargetFk = "target_" & property.relatedViaTargetFk;
 					}
 
-					if ( !objects.keyExists( property.relatedVia ) ) {
+					if ( !StructKeyExists( objects, property.relatedVia ) ) {
 						var pivotObjArgs = {
 							  sourceObject       = object.meta
 							, targetObject       = objects[ property.relatedTo ].meta
@@ -212,10 +214,10 @@ component singleton=true {
 						objectNames.append( autoObject.name );
 					}
 
-					if ( !m2mRelationships.keyExists( objectName ) ) {
+					if ( !StructKeyExists( m2mRelationships, objectName ) ) {
 						m2mRelationships[ objectName ] = {};
 					}
-					if ( !m2mRelationships[objectName].keyExists( property.relatedTo ) ) {
+					if ( !StructKeyExists( m2mRelationships[objectName], property.relatedTo ) ) {
 						m2mRelationships[ objectName ][ property.relatedTo ] = [];
 					}
 					m2mRelationships[ objectName ][ property.relatedTo ].append( {
@@ -240,10 +242,10 @@ component singleton=true {
 
 					var idField = objects[ property.relatedto ].meta.idField ?: "id";
 
-					if ( !property.keyExists( "onDelete" ) ){
+					if ( !StructKeyExists( property, "onDelete" ) ){
 						property.onDelete = ( property.required ? "error" : "set null" );
 					}
-					if ( !property.keyExists( "onUpdate" ) ){
+					if ( !StructKeyExists( property, "onUpdate" ) ){
 						property.onUpdate = "cascade";
 					}
 
@@ -306,12 +308,33 @@ component singleton=true {
 					}
 					var relationshipKey = property.relationshipKey ?: objectName;
 
-					if ( ! objects[ property.relatedTo ].meta.properties.keyExists( relationshipKey ) ) {
+					if ( !StructKeyExists( objects[ property.relatedTo ].meta.properties, relationshipKey ) ) {
 						throw(
 							  type    = "RelationshipGuidance.BadRelationship"
 							, message = "Object property, [#property.relatedTo#.#relationshipKey#], could not be found"
 							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#] using foreign key property named, [#relationshipKey#]. The property could not be found."
 						);
+					}
+				} else if ( Len( Trim( property.viewRelationship ?: "" ) ) ) {
+					if ( property.viewRelationship == "one-to-many" ) {
+						var view     = property.relatedto ?: "";
+						var viewArgs = _getSelectDataViewService().getViewArgs( property.relatedto );
+
+						if ( Len( Trim( viewArgs.objectName ?: "" ) ) ) {
+							relationships[ objectName ][ viewArgs.objectName ] = relationships[ objectName ][ viewArgs.objectName ] ?: [];
+							relationships[ objectName ][ viewArgs.objectName ].append({
+								  type           = "one-to-many"
+								, required       = false
+								, pk             = property.relationshipKey ?: "" // todo raise error if bad
+								, fk             = propertyName
+								, onUpdate       = "error"
+								, onDelete       = "error"
+								, alias          = propertyName
+								, selectDataView = view
+							});
+						} else {
+							// TODO, raise error
+						}
 					}
 				}
 			}
@@ -495,7 +518,7 @@ component singleton=true {
 			var isSame = cleanedExistingJoin.count() == cleanedJoin.count();
 			if ( isSame ) {
 				for( var key in cleanedJoin ) {
-					if ( !cleanedExistingJoin.keyExists( key ) || cleanedExistingJoin[ key ] != cleanedJoin[ key ] ) {
+					if ( !StructKeyExists( cleanedExistingJoin, key ) || cleanedExistingJoin[ key ] != cleanedJoin[ key ] ) {
 						isSame = false;
 						break;
 					}
@@ -552,5 +575,12 @@ component singleton=true {
 	}
 	private void function _setPkMappings( required struct pkMappings ) {
 		_pkMappings = arguments.pkMappings;
+	}
+
+	private any function _getSelectDataViewService() {
+	    return _selectDataViewService;
+	}
+	private void function _setSelectDataViewService( required any selectDataViewService ) {
+	    _selectDataViewService = arguments.selectDataViewService;
 	}
 }

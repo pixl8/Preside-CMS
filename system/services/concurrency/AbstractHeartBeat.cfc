@@ -13,11 +13,13 @@ component {
 		  required string  threadName
 		, required numeric intervalInMs
 		,          any     threadUtil
+		,          string  feature = ""
 	) {
 		_setThreadName( arguments.threadName );
 		_setIntervalInMs( arguments.intervalInMs );
 		_setThreadUtil( arguments.threadUtil );
 		_setStopped( true );
+		_setFeature( arguments.feature );
 
 		return this;
 	}
@@ -27,10 +29,14 @@ component {
 	}
 
 	public void function start() {
-		if ( _isStopped() ) {
+		if( _isFeatureDisabled() ) {
+			return;
+		}
+
+		if ( _isStopped() || _hasStoppedInError() ) {
 			thread name="#_getThreadName()#-#CreateUUId()#" {
 				lock type="exclusive" timeout=1 name=_getThreadName() {
-					if ( _isStopped() ) {
+					if ( _isStopped() || _hasStoppedInError() ) {
 						register();
 					}
 				}
@@ -54,6 +60,12 @@ component {
 			}
 		}
 	}
+
+	public void function startInNewRequest() {
+		// must be implemented by concrete classes
+	}
+
+
 
 	public void function shutdown(){
 		if ( !_isStopped() ) {
@@ -86,6 +98,7 @@ component {
 
 			_setRunningThread( tu.getCurrentThread() );
 			_setStopped( false );
+			_registerInApplication();
 		} catch( any e ) {
 			$systemOutput( e );
 		}
@@ -94,18 +107,24 @@ component {
 	public void function deregister() {
 		_setRunningThread( NullValue() );
 		_setStopped( true );
+		_deRegisterFromApplication();
+	}
+
+	public void function ensureAlive() {
+		if ( _hasStoppedInError() ) {
+			$systemOutput( "The #_getThreadName()# heartbeat thread has stopped in error. Attempting restart now." );
+			startInNewRequest();
+		}
 	}
 
 // PRIVATE HELPERS
-	private void function _setThreadName() {
-		var theThread = CreateObject( "java", "java.lang.Thread" ).currentThread();
-
-		theThread.setName( "PresideAdhocTaskManagerHeartBeat" );
-	}
-
 	private string function _buildInternalLink() {
 		var buildLinkArgs         = arguments;
 		var maintenanceModeActive = _getMaintenanceModeService().isMaintenanceModeActive();
+
+		if ( $isFeatureEnabled( "sites" ) ) {
+			buildLinkArgs.site = _getTaskRunnerSite();
+		}
 
 		if ( maintenanceModeActive ) {
 			var settings   = _getMaintenanceModeService().getMaintenanceModeSettings();
@@ -121,12 +140,66 @@ component {
 		return link;
 	}
 
+	private string function _getTaskRunnerSite() {
+		var configuredSite = $getPresideSetting( "taskmanager", "site_context" );
+
+		if ( Len( Trim( configuredSite ) ) ) {
+			return configuredSite;
+		}
+
+		var firstSite = $getPresideObject( "site" ).selectData(
+			  selectFields = [ "id" ]
+			, orderBy = "datecreated"
+			, maxRows = 1
+		);
+
+		return firstSite.id ?: "";
+	}
+
+	private void function _registerInApplication() {
+		application._presideHeartbeatThreads = application._presideHeartbeatThreads ?: {};
+		application._presideHeartbeatThreads[ _getThreadName() ] = this;
+	}
+
+	private void function _deregisterFromApplication() {
+		application._presideHeartbeatThreads = application._presideHeartbeatThreads ?: {};
+		application._presideHeartbeatThreads.delete( _getThreadName() );
+	}
+
+	private boolean function _hasStoppedInError() {
+		if ( _isStopped() ) {
+			return false;
+		}
+
+		var crashed = false;
+		try {
+			var theThread = _getRunningThread();
+			if ( IsNull( local.theThread ) ) {
+				crashed = true;
+			} else {
+				crashed = !theThread.isAlive();
+			}
+		} catch( any e ) {
+			crashed = true;
+		}
+
+		return crashed;
+	}
+
+	private boolean function _isFeatureDisabled() {
+		var feature = _getFeature();
+
+		return Len( Trim( feature ) ) && !$isFeatureEnabled( feature );
+	}
+
 // GETTERS / SETTERS
 	private string function _getThreadName() {
 		return _threadName;
 	}
 	private void function _setThreadName( required string threadName ) {
-		_threadName = arguments.threadName;
+		var appSettings = getApplicationMetadata();
+		var appName = appSettings.PRESIDE_APPLICATION_ID ?: ( appSettings.name ?: "" );
+		_threadName = appName.len() ? "#arguments.threadName# (#appName#)" : arguments.threadName;
 	}
 
 	private any function _getIntervalInMs() {
@@ -165,5 +238,12 @@ component {
 	}
 	private void function _setStopped( required boolean stopped ) {
 		_stopped = arguments.stopped;
+	}
+
+	private string function _getFeature() {
+	    return _feature;
+	}
+	private void function _setFeature( required string feature ) {
+	    _feature = arguments.feature;
 	}
 }

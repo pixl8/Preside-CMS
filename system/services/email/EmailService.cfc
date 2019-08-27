@@ -78,9 +78,12 @@ component displayName="Email service" {
 		sendArgs.args = arguments.args;
 		sendArgs.args.template = sendArgs.template = arguments.template;
 
+		var interceptArgs = { sendArgs=sendArgs };
+		$announceInterception( "onPrepareEmailSendArguments", { sendArgs=sendArgs } );
+
 		return _getEmailServiceProviderService().sendWithProvider(
 			  provider = _getEmailServiceProviderService().getProviderForTemplate( arguments.template )
-			, sendArgs = sendArgs
+			, sendArgs = interceptArgs.sendArgs
 			, logSend  = !arguments.isTest
 		);
 	}

@@ -21,6 +21,7 @@ component extends="AbstractHeartBeat" {
 			  threadName   = arguments.threadName
 			, threadUtil   = arguments.threadUtil
 			, intervalInMs = arguments.intervalInMs
+			, feature      = "healthchecks"
 		);
 
 		_setHealthcheckService( arguments.healthCheckService );

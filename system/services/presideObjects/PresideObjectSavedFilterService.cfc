@@ -1,29 +1,38 @@
-component singleton=true {
+/**
+ * @singleton      true
+ * @presideService true
+ */
+component {
 
 // CONSTRUCTOR
 	/**
 	 * @configuredFilters.inject coldbox:setting:filters
-	 * @coldboxController.inject coldbox
 	 *
 	 */
-	public any function init( required struct configuredFilters, required any coldboxController ) output=false {
+	public any function init( required struct configuredFilters ) {
 		_setConfiguredFilters( arguments.configuredFilters );
-		_setColdboxController( arguments.coldboxController );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public struct function getFilter( required string filterName, struct args={} ) output=false {
+	public struct function getFilter( required string filterName, struct args={} ) {
 		var configuredFilters = _getConfiguredFilters();
-		var filter            = configuredFilters[ arguments.filterName ] ?: {};
+		var filter            = "";
 
-		if ( IsValid( "function", filter ) ) {
-			filter = filter( arguments.args, _getColdboxController() );
+
+		if ( StructKeyExists( configuredFilters, arguments.filterName ) ) {
+			filter = configuredFilters[ arguments.filterName ];
+
+			if ( IsValid( "function", filter ) ) {
+				filter = filter( arguments.args, $getColdbox() );
+			}
+		} else {
+			filter = _runHandlerFilter( arguments.filterName, arguments.args );
 		}
 
 		if ( IsStruct( filter ) ) {
-			if ( !filter.keyExists( "filter" ) && !filter.keyExists( "filterParams" ) ) {
+			if ( !StructKeyExists( filter, "filter" ) && !StructKeyExists( filter, "filterParams" ) ) {
 				return { filter=filter, filterParams={} };
 			}
 
@@ -36,20 +45,31 @@ component singleton=true {
 		return {};
 	}
 
+// PRIVATE HELPERS
+	private any function _runHandlerFilter( required string filterName, required struct args ) {
+		var handler = "dataFilters.#arguments.filterName#";
+		var cb      = $getColdbox();
+
+		if ( cb.handlerExists( handler ) ) {
+			var result = cb.runEvent(
+				  event          = handler
+				, eventArguments = { args=args }
+				, private        = true
+				, prePostExempt  = true
+			);
+
+			return local.result ?: {};
+		}
+
+		return {};
+	}
+
 
 // GETTERS AND SETTERS
-	private struct function _getConfiguredFilters() output=false {
+	private struct function _getConfiguredFilters() {
 		return _configuredFilters;
 	}
-	private void function _setConfiguredFilters( required struct configuredFilters ) output=false {
+	private void function _setConfiguredFilters( required struct configuredFilters ) {
 		_configuredFilters = arguments.configuredFilters;
 	}
-
-	private any function _getColdboxController() output=false {
-		return _coldboxController;
-	}
-	private void function _setColdboxController( required any coldboxController ) output=false {
-		_coldboxController = arguments.coldboxController;
-	}
-
 }

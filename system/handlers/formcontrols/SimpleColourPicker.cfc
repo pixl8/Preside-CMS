@@ -7,7 +7,7 @@ component {
 		} else {
 			args.append( simpleColourPickerService.getPalette( args.palette ?: "web64" ), false );
 		}
-		args.currentValue = args.savedData[ args.name ] ?: "";
+		args.currentValue = args.savedData[ args.name ] ?: ( args.defaultValue ?: "" );
 		args.colourFormat = args.colourFormat           ?: "hex";
 		args.colours      = simpleColourPickerService.convertColours( args.colours, args.colourFormat );
 

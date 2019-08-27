@@ -13,6 +13,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dtHelper"                         inject="jqueryDatatablesHelpers";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";
+	property name="applicationsService"              inject="applicationsService";
 
 
 	public void function preHandler( event, action, eventArguments ) {
@@ -26,6 +27,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !ReFindNoCase( "action$", arguments.action ) ) {
 			_loadCommonBreadCrumbs( argumentCollection=arguments );
 			_loadTopRightButtons( argumentCollection=arguments );
+			_overrideAdminLayout( argumentCollection=arguments );
 		}
 	}
 
@@ -89,6 +91,7 @@ component extends="preside.system.base.AdminHandler" {
 			, isMultilingual      = IsTrue( args.isMultilingual ?: multilingualPresideObjectService.isMultilingual( objectName ) )
 			, draftsEnabled       = IsTrue( args.draftsEnabled  ?: datamanagerService.areDraftsEnabledForObject( objectName ) )
 			, canDelete           = IsTrue( args.canDelete      ?: _checkPermission( argumentCollection=arguments, object=objectName, key="delete", throwOnError=false ) )
+			, footerEnabled       = customizationService.objectHasCustomization( objectName, "renderFooterForGridListing" )
 		} );
 
 		if ( args.treeView ) {
@@ -936,6 +939,16 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function superQuickAddAction( event, rc, prc ) {
+		_checkPermission( argumentCollection=arguments, key="add" );
+
+		runEvent(
+			  event          = "admin.DataManager._superQuickAddRecordAction"
+			, prePostExempt  = true
+			, private        = true
+		);
+	}
+
 	public void function quickEditForm( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
@@ -1081,6 +1094,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName        = prc.objectName        ?: "";
 		var objectTitle       = prc.objectTitle       ?: "";
 		var objectTitlePlural = prc.objectTitlePlural ?: "";
+		var getRecordsArgs    = { objectName = objectName };
 
 		if ( !datamanagerService.isSortable( objectName ) ) {
 			messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ objectTitle  ] ) );
@@ -1089,7 +1103,28 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
-		prc.records = datamanagerService.getRecordsForSorting( objectName=objectName );
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "preFetchRecordsForSorting"
+			, args           = getRecordsArgs
+		);
+
+		if ( datamanagerService.usesTreeView( objectName ) ) {
+			var treeParentProperty       = datamanagerService.getTreeParentProperty( objectName );
+			var firstLevelParentProperty = datamanagerService.getTreeFirstLevelParentProperty( objectName );
+			var treeFilter               = {};
+			getRecordsArgs.extraFilters  = getRecordsArgs.extraFilters ?: [];
+
+			if ( Len( firstLevelParentProperty ) && Len( rc[ firstLevelParentProperty ] ?: "" ) ) {
+				treeFilter[ firstLevelParentProperty ] = rc[ firstLevelParentProperty ];
+			}
+
+			treeFilter[ treeParentProperty ] = rc[ treeParentProperty ] ?: "";
+
+			getRecordsArgs.extraFilters.append( { filter=treeFilter } );
+		}
+
+		prc.records = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )
@@ -1159,24 +1194,24 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.latestVersion          = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id );
 		args.latestPublishedVersion = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id, publishedOnly=true );
-		args.versions               = presideObjectService.getRecordVersions(
-			  objectName = objectName
-			, id         = id
-		);
 
-		if ( !selectedVersion ) {
+		args.prevVersion = presideObjectService.getPreviousVersion(
+			  objectName     = objectName
+			, id             = id
+			, currentVersion = ( selectedVersion ? selectedVersion : args.latestVersion )
+		);
+		if ( !selectedVersion && args.prevVersion ) {
 			selectedVersion = args.latestVersion;
 		}
 
 		args.isLatest    = args.latestVersion == selectedVersion;
 		args.nextVersion = 0;
-		args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
-
-		for( var i=1; i <= args.versions.recordCount; i++ ){
-			if ( args.versions._version_number[i] == selectedVersion ) {
-				args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
-				args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
-			}
+		if ( !args.isLatest ) {
+			args.nextVersion = presideObjectService.getNextVersion(
+				  objectName     = objectName
+				, id             = id
+				, currentVersion = selectedVersion
+			);
 		}
 
 		return renderView( view="admin/datamanager/versionNavigator", args=args );
@@ -1209,24 +1244,23 @@ component extends="preside.system.base.AdminHandler" {
 			, filter        = { _translation_source_record=recordId, _translation_language=language }
 			, publishedOnly = true
 		);
-		args.versions = presideObjectService.getRecordVersions(
-			  objectName = translationObjectName
-			, id         = existingTranslation.id
+		args.prevVersion = presideObjectService.getPreviousVersion(
+			  objectName     = translationObjectName
+			, id             = existingTranslation.id
+			, currentVersion = ( selectedVersion ? selectedVersion : args.latestVersion )
 		);
-
-		if ( !selectedVersion && args.versions.recordCount ) {
+		if ( !selectedVersion && args.prevVersion ) {
 			selectedVersion = args.latestVersion;
 		}
 
 		args.isLatest    = args.latestVersion == selectedVersion;
 		args.nextVersion = 0;
-		args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
-
-		for( var i=1; i <= args.versions.recordCount; i++ ){
-			if ( args.versions._version_number[i] == selectedVersion ) {
-				args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
-				args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
-			}
+		if ( !args.isLatest ) {
+			args.nextVersion = presideObjectService.getNextVersion(
+				  objectName     = translationObjectName
+				, id             = existingTranslation.id
+				, currentVersion = selectedVersion
+			);
 		}
 
 		args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( objectName=args.object, operation='translateRecord', recordId=args.id, args={ language=language, version='{version}' } );
@@ -1586,30 +1620,64 @@ component extends="preside.system.base.AdminHandler" {
 			ArrayAppend( getRecordsArgs.gridFields, "_options" );
 		}
 
-		event.renderData( type="json", data=dtHelper.queryToResult( records, getRecordsArgs.gridFields, results.totalRecords ) );
+		var result = dtHelper.queryToResult( records, getRecordsArgs.gridFields, results.totalRecords );
+		var footer = customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "renderFooterForGridListing"
+			, args           = {
+				  records         = records
+				, objectName      = arguments.object
+				, getRecordsArgs  = getRecordsArgs
+			}
+		);
+
+		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
+			result.sFooter = footer;
+		}
+
+		event.renderData( type="json", data=result );
 	}
 
 	private array function _getActionsForAjaxDataTables( event, rc, prc, args={} ) {
 		var records                       = args.records     ?: QueryNew( '' );
 		var objectName                    = args.objectName  ?: "";
 		var actionsView                   = args.actionsView ?: "";
+		var isTreeView                    = IsTrue( args.treeView ?: "" );
 		var optionsCol                    = [];
 		var objectTitleSingular           = prc.objectTitle ?: "";
 		var hasRecordActionsCustomization = !actionsView.len() && customizationService.objectHasCustomization( objectName, "getRecordActionsForGridListing" );
 
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
-			var canView           = IsTrue( prc.canView         ?: "" );
-			var canEdit           = IsTrue( prc.canEdit         ?: "" );
-			var canClone          = IsTrue( prc.canClone        ?: "" );
-			var canDelete         = IsTrue( prc.canDelete       ?: "" );
-			var canViewVersions   = IsTrue( prc.canViewVersions ?: "" );
-			var canViewHistory    = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
-			var viewRecordLink    = canView        ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
-			var cloneRecordLink   = canClone       ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
-			var editRecordLink    = canEdit        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
-			var deleteRecordLink  = canDelete      ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
-			var viewHistoryLink   = canViewHistory ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
-			var deleteRecordTitle = canDelete      ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
+			var parentProperty = isTreeView ? dataManagerService.getTreeParentProperty( objectName ) : "";
+
+			if ( objectName == ( prc.objectName ?: "" ) ) {
+				var canView         = IsTrue( prc.canView         ?: "" );
+				var canAdd          = IsTrue( prc.canAdd          ?: "" );
+				var canEdit         = IsTrue( prc.canEdit         ?: "" );
+				var canClone        = IsTrue( prc.canClone        ?: "" );
+				var canDelete       = IsTrue( prc.canDelete       ?: "" );
+				var canSort         = IsTrue( prc.canSort         ?: "" );
+				var canViewVersions = IsTrue( prc.canViewVersions ?: "" );
+				var useVersioning   = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
+			} else {
+				var canView         = _checkPermission( argumentCollection=arguments, object=objectName, key="read"        , throwOnError=false );
+				var canAdd          = _checkPermission( argumentCollection=arguments, object=objectName, key="add"         , throwOnError=false );
+				var canEdit         = _checkPermission( argumentCollection=arguments, object=objectName, key="edit"        , throwOnError=false );
+				var canClone        = _checkPermission( argumentCollection=arguments, object=objectName, key="clone"       , throwOnError=false );
+				var canDelete       = _checkPermission( argumentCollection=arguments, object=objectName, key="delete"      , throwOnError=false );
+				var canViewVersions = _checkPermission( argumentCollection=arguments, object=objectName, key="viewversions", throwOnError=false );
+				var canSort         = datamanagerService.isSortable( objectName ) && canEdit;
+				var useVersioning   = datamanagerService.isOperationAllowed( objectName, "viewversions" ) && presideObjectService.objectIsVersioned( objectName );
+			}
+
+			var addChildRecordLink     = canAdd && isTreeView ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
+			var sortChildrenRecordLink = canEdit && isTreeView ? event.buildAdminLink( objectName=objectName, operation="sortRecords", queryString="#parentProperty#={id}" ) : "";
+			var viewRecordLink         = canView              ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
+			var cloneRecordLink        = canClone             ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
+			var editRecordLink         = canEdit              ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
+			var deleteRecordLink       = canDelete            ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
+			var viewHistoryLink        = canViewVersions      ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
+			var deleteRecordTitle      = canDelete            ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
 		}
 
 		for( var record in records ){
@@ -1629,6 +1697,7 @@ component extends="preside.system.base.AdminHandler" {
 						, args           = {
 							  record      = record
 							, objectName  = objectName
+							, treeView    = isTreeView
 						}
 					);
 				} else {
@@ -1639,11 +1708,26 @@ component extends="preside.system.base.AdminHandler" {
 							, contextKey = "v"
 						} );
 					}
+					if ( canAdd && isTreeView ) {
+						actions.append( {
+							  link       = addChildRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-plus"
+							, contextKey = "a"
+						} );
+					}
 					if ( canEdit ) {
 						actions.append( {
 							  link       = editRecordLink.replace( "{id}", record.id )
 							, icon       = "fa-pencil"
 							, contextKey = "e"
+						} );
+
+					}
+					if ( canSort && isTreeView ) {
+						actions.append( {
+							  link       = sortChildrenRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-sort-amount-asc"
+							, contextKey = "s"
 						} );
 					}
 					if ( canClone ) {
@@ -1662,7 +1746,7 @@ component extends="preside.system.base.AdminHandler" {
 							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
 						} );
 					}
-					if ( canViewHistory ) {
+					if ( canViewVersions ) {
 						actions.append( {
 							  link       = viewHistoryLink.replace( "{id}", record.id )
 							, icon       = "fa-history"
@@ -2103,6 +2187,19 @@ component extends="preside.system.base.AdminHandler" {
 				, validationResult = translateValidationMessages( validationResult )
 			});
 		}
+	}
+
+	private void function _superQuickAddRecordAction(
+		  required any     event
+		, required struct  rc
+		, required struct  prc
+		,          string  object = ( rc.object ?: '' )
+
+	) {
+		event.renderData( type="json", data=dataManagerService.superQuickAdd(
+			  objectName = arguments.object
+			, value      = ( rc.value ?: "" )
+		) );
 	}
 
 	private void function _deleteRecordAction(
@@ -3068,6 +3165,7 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = {
 				  records     = records
 				, objectName  = objectName
+				, treeView    = true
 			}
 		);
 		QueryAddColumn( records, "_options" , optionsCol );
@@ -3196,11 +3294,10 @@ component extends="preside.system.base.AdminHandler" {
 		return rootForm;
 	}
 
-	private void function _loadCommonVariables( event, action, eventArguments ) {
+	private void function _loadCommonVariables( event, action, eventArguments, includeAllFormulaFields=( arguments.action == "viewRecord" ) ) {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
 		var e   = "";
-		var includeAllFormulaFields  = ( arguments.action == "viewRecord" );
 		var onlyCheckForLoginActions = [ "getObjectRecordsForAjaxSelectControl" ];
 		var useAnyWhereActions       = [
 			  "getChildObjectRecordsForAjaxDataTables"
@@ -3258,7 +3355,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( Len( Trim( prc.objectName ) ) ) {
 			_checkObjectExists( argumentCollection=arguments, object=prc.objectName );
-			_checkPermission( argumentCollection=arguments, key="navigate" )
+			_checkPermission( argumentCollection=arguments, key="navigate" );
 
 			if ( !useAnyWhereActions.findNoCase( arguments.action ) ) {
 				_objectCanBeViewedInDataManager( event=event, objectName=prc.objectName, relocateIfNoAccess=true );
@@ -3309,9 +3406,14 @@ component extends="preside.system.base.AdminHandler" {
 
 				if ( !prc.isTranslationAction ) {
 					if ( prc.useVersioning && prc.version ) {
-						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
+						if ( !presideObjectService.dataExists( objectName=prc.objectName, id=prc.recordId, useCache=false ) ) {
+							messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle  ] ) );
+							setNextEvent( url=event.buildAdminLink( objectName=prc.objectName, operation="listing" ) );
+						}
+
+						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=arguments.includeAllFormulaFields, fromVersionTable=true, specificVersion=prc.version, allowDraftVersions=true, autoGroupBy=arguments.includeAllFormulaFields );
 					} else {
-						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=includeAllFormulaFields, allowDraftVersions=true, autoGroupBy=includeAllFormulaFields );
+						prc.record = presideObjectService.selectData( objectName=prc.objectName, id=prc.recordId, useCache=false, includeAllFormulaFields=arguments.includeAllFormulaFields, allowDraftVersions=true, autoGroupBy=arguments.includeAllFormulaFields );
 					}
 
 					if ( !prc.record.recordCount ) {
@@ -3395,6 +3497,23 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	private void function _overrideAdminLayout( event, action, eventArguments ) {
+		var objectName       = prc.objectName ?: "";
+
+		if ( !len( objectName ) ) {
+			return;
+		}
+
+		var adminApplication = presideObjectService.getObjectAttribute( objectName=objectName, attributeName="dataManagerAdminApplication", defaultValue="" );
+
+		if ( !len( adminApplication ) ) {
+			return;
+		}
+
+		event.setLayout( applicationsService.getLayout( adminApplication ) );
+		event.getAdminBreadCrumbs()[ 1 ].link = event.buildLink( linkTo=applicationsService.getDefaultEvent( adminApplication ) );
+	}
+
 	private string function _getDefaultEditFormName( required string objectName ) {
 		return customizationService.runCustomization(
 			  objectName     = objectName
@@ -3429,7 +3548,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var key in arguments.formData ) {
 			item = formData[ key ];
-			if ( isStruct( item ) && item.keyExists( "tempFileInfo" ) ) {
+			if ( isStruct( item ) && StructkeyExists( item, "tempFileInfo" ) ) {
 				auditDetail[ key ] = {
 					  fileName = item.fileName ?: ""
 					, size     = item.size     ?: ""

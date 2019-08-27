@@ -1,7 +1,7 @@
 <cfscript>
 	linkType = rc.type ?: "sitetreelink";
 
-	validLinkTypes = "email,url,sitetreelink";
+	validLinkTypes = "email,url,sitetreelink,asset";
 	if ( !ListFindNoCase( validLinkTypes, linkType ) ) {
 		linkType = "sitetreelink";
 	}

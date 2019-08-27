@@ -5,6 +5,7 @@
 			<field name="subject"    control="textinput" required="true"  />
 			<field name="recipients" control="textinput" required="true"  />
 			<field name="send_from"  control="textinput" required="false" />
+			<field name="reply_to"   control="formBuilderFieldPicker" itemTypes="email" required="false" />
 		</fieldset>
 	</tab>
 </form>

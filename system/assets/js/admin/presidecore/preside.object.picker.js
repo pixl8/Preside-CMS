@@ -26,7 +26,7 @@
 			$.when.apply( $, filteredOn ).done( function() {
 				var formFieldDeferred       = "objectPicker_" + _this.$originalInput.attr( "id" )
 				  , formFieldAjaxDeferred   = formFieldDeferred + "_ajax";
-				  
+
  				window[ formFieldDeferred ]  = window[ formFieldDeferred ] || $.Deferred();
  				_this.fieldPopulatedDeferred = $.Deferred();
 
@@ -43,7 +43,7 @@
  					window[ formFieldDeferred ].resolve();
  				} );
 			} );
-			
+
 		}
 
 		PresideObjectPicker.prototype.setupUberSelect = function(){
@@ -51,6 +51,8 @@
 				  allow_single_deselect  : !this.$originalInput.hasClass( 'non-deselectable' )
 				, inherit_select_classes : true
 				, searchable             : !this.$originalInput.hasClass( 'non-searchable' )
+				, superQuickAdd          : this.$originalInput.hasClass( 'super-quick-add' )
+				, superQuickAddUrl       : this.$originalInput.data( 'superQuickAddUrl' )
 			});
 			this.$uberSelect = this.$originalInput.next();
 			this.uberSelect = this.$originalInput.data( "uberSelect" );

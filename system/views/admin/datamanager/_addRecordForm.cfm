@@ -14,6 +14,7 @@
 	param name="args.stripPermissionedFields" type="boolean" default=true;
 	param name="args.permissionContext"       type="string"  default=args.objectName;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
+	param name="args.additionalArgs"          type="struct"  default=StructNew();
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
 	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._addRecordActionButtons", args=args );
@@ -53,6 +54,7 @@
 			, formLayout            = args.formLayout
 			, permissionContext     = args.permissionContext
 			, permissionContextKeys = args.permissionContextKeys
+			, additionalArgs        = args.additionalArgs
 		)#
 
 		#args.postForm#

@@ -495,10 +495,9 @@ component extends="preside.system.base.AdminHandler" {
 		} else if ( !Len( Trim( rc.asset_folder ?: "" ) ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.folder" );
-		} else if( imageExtensions.findNoCase( fileExtension ) && !isImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) {
+		} else if( imageExtensions.findNoCase( fileExtension ) && ( !imageManipulationService.isValidImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.uploader.image.format.failure" );
-
 		} else {
 			var assetData = event.getCollectionWithoutSystemVars();
 
@@ -577,7 +576,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var assetId          = rc.asset  ?: "";
 		var folderId         = rc.folder ?: "";
-		var formName         = rc.keyExists( "focal_point" ) ? formsService.getMergedFormName( "preside-objects.asset.admin.edit", "preside-objects.asset.cropping" ) : "preside-objects.asset.admin.edit";
+		var formName         = StructKeyExists( rc, "focal_point" ) ? formsService.getMergedFormName( "preside-objects.asset.admin.edit", "preside-objects.asset.cropping" ) : "preside-objects.asset.admin.edit";
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = "";
 		var success          = true;
@@ -871,9 +870,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	function getFoldersForAjaxSelectControl( event, rc, prc ) {
 		var records = assetManagerService.getFoldersForSelectList(
-			  maxRows      = rc.maxRows ?: 100
-			, searchQuery  = rc.q       ?: ""
-			, ids          = ListToArray( rc.values ?: "" )
+			  maxRows             = rc.maxRows ?: 100
+			, searchQuery         = rc.q       ?: ""
+			, ids                 = ListToArray( rc.values ?: "" )
+			, excludeDescendants  = rc.excludeDescendants  ?: ""
 		);
 
 		event.renderData( type="json", data=records );
@@ -892,7 +892,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified" ];
+		var gridFields = [ "title", "datemodified", "datecreated" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -902,7 +902,7 @@ component extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
-					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> " & records[ field ][ records.currentRow ];
+					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> <span class='asset-title'>" & records[ field ][ records.currentRow ] & "</span>";
 				}
 			}
 
@@ -942,9 +942,9 @@ component extends="preside.system.base.AdminHandler" {
 				if ( field == "title" ) {
 					var type = assetManagerService.getAssetType( name=record.asset_type );
 					if ( ( type.groupName ?: "" ) == "image" ) {
-						records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> ' & records[ field ][ records.currentRow ];
+						records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span>";
 					} else {
-						records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickerIcon" ) & '</span> ' & records[ field ][ records.currentRow ];
+						records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickerIcon" ) & '</span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span>";
 					}
 				}
 			}

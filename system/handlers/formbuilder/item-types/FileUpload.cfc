@@ -63,6 +63,15 @@ component {
 			} );
 		}
 
+		if( Len( Trim( args.accept ?: "" ) ) ){
+			var allowedTypes = ArrayToList( assetManagerService.expandTypeList( listToArray(args.accept) ) );
+			rules.append( {
+				  fieldname = args.name ?: ""
+				, validator = "fileType"
+				, params    = { allowedTypes=allowedTypes, allowedExtensions=allowedTypes }
+			} );
+		}
+
 		return rules;
 	}
 
@@ -81,7 +90,7 @@ component {
 		var response = args.response ?: "";
 
 		if ( IsBinary( response.binary ?: "" ) ) {
-			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( response.tempFileInfo.clientFile ?: 'uploaded.file' )#";
+			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( Len( response.tempFileInfo.clientFile ?: '' ) ? urlEncode( response.tempFileInfo.clientFile ) : 'uploaded.file' )#";
 
 			formBuilderStorageProvider.putObject(
 				  object = response.binary

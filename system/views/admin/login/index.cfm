@@ -15,7 +15,7 @@
 
 					<cfif renderedProviders.count()>
 						<cfloop array="#loginProviders#" index="i" item="provider">
-							<cfif renderedProviders.keyExists( provider )>
+							<cfif StructKeyExists( renderedProviders, provider )>
 								<cfif renderedProviderCount gt 0>
 									<hr>
 								</cfif>

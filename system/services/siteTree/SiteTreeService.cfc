@@ -224,7 +224,14 @@ component {
 		}
 
 		return _getPobj().selectData(
-			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
+			  selectFields       = [ 
+				    "page.id as value"
+				  , "page.title as text"
+				  , "parent_page.title as parent"
+				  , "page._hierarchy_depth as depth"
+				  , "page.page_type"
+				  , "page.active as active" 
+			  ]
 			, filter             = filter
 			, extraFilters       = extra
 			, maxRows            = arguments.maxRows
@@ -411,7 +418,7 @@ component {
 
 		if ( ListLen( args.orderBy, "." ) == 1 ) {
 			var col = ListFirst( args.orderBy, " " );
-			if ( _getPresideObjectService().getObjectProperties( arguments.pageType ).keyExists( col ) ) {
+			if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.pageType ), col ) ) {
 				args.orderBy = "#arguments.pageType#.#args.orderBy#";
 			} else {
 				args.orderBy = "page.#args.orderBy#";
@@ -487,7 +494,6 @@ component {
 		, numeric version           = 0
 		, string  site              = ""
 	) {
-		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
 			  maxRows            = 1
 			, orderBy            = "_hierarchy_sort_order"
@@ -518,6 +524,7 @@ component {
 			return homepage;
 		}
 
+		var loginSvc = _getLoginService();
 		homepage = addPage(
 			  title         = "Home"
 			, slug          = ""
@@ -596,7 +603,7 @@ component {
 				};
 
 				for( var field in child ) {
-					if ( !page.keyExists( field ) ) {
+					if ( !StructKeyExists( page, field ) ) {
 						page[ field ] = child[ field ];
 					}
 				}
@@ -1096,15 +1103,16 @@ component {
 		var siteService        = _getSiteService();
 		var pageTypesService   = _getPageTypesService();
 		var site               = siteService.getSite( arguments.siteId );
-		var pageTypes          = pageTypesService.listPageTypes();
 		var event              = _getColdboxController().getRequestService().getContext();
 		var originalActiveSite = event.getSite();
 
 		event.setSite( site );
 
+		var pageTypes          = pageTypesService.listPageTypes();
+
 		for( var pageType in pageTypes ) {
 			var pageTypeId = pageType.getId();
-			if ( pageTypesService.isSystemPageType( pageTypeId ) && pageTypesService.isPageTypeAvailableToSiteTemplate( pageTypeId, site.template ?: "" ) ) {
+			if ( pageTypesService.isSystemPageType( pageTypeId ) ) {
 				var page = getPage( systemPage=pageTypeId, useCache=false );
 
 				if ( !page.recordCount ) {
@@ -1195,7 +1203,7 @@ component {
 	}
 
 	public array function getDraftChangedFields( required string pageId, string pageType ) {
-		if ( !arguments.keyExists( "pageType" ) ) {
+		if ( !StructKeyExists( arguments, "pageType" ) ) {
 			var page = getPage(
 				  id          = arguments.pageId
 				, getLatest   = true
@@ -1236,7 +1244,7 @@ component {
 			var changedFields = getDraftChangedFields( page.id, page.page_type );
 			var dataToSubmit = {};
 			for( var field in changedFields ) {
-				if ( page.keyExists( field ) ) {
+				if ( StructKeyExists( page, field ) ) {
 					dataToSubmit[ field ] = page[ field ];
 				}
 			}
@@ -1563,7 +1571,7 @@ component {
 			props[ fieldObject ] = props[ fieldObject ] ?: _getPresideObjectService().getObjectProperties( fieldObject );
 
 			if ( not StructKeyExists( props[ fieldObject ], field ) ) {
-				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+				if ( arguments.versiontable && field.reFindNoCase( "^_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
 				} else {
 					sqlFields[i] = "'' as " & field;
@@ -1662,7 +1670,7 @@ component {
 		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
 		if ( Len( Trim( arguments.parent_page ) ) ) {
-			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
+			var parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
 			if ( !parent.recordCount ) {
 				throw(
 					  type    = "SiteTreeService.MissingParent"

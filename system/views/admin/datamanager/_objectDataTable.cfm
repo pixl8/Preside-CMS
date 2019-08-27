@@ -7,6 +7,7 @@
 	param name="args.isMultilingual"      type="boolean" default=false;
 	param name="args.draftsEnabled"       type="boolean" default=false;
 	param name="args.noActions"           type="boolean" default=false;
+	param name="args.footerEnabled"       type="boolean" default=false;
 	param name="args.gridFields"          type="array";
 	param name="args.hiddenGridFields"    type="array"   default=[];
 	param name="args.filterContextData"   type="struct"  default={};
@@ -29,7 +30,8 @@
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 
-	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#";
+	instanceId = LCase( Hash( CallStackGet( "string" ) ) );
+	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	args.allowFilter = args.allowFilter && isFeatureEnabled( "rulesengine" );
 
@@ -43,6 +45,22 @@
 	}
 
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
+
+	if ( args.footerEnabled ) {
+		colCount = ArrayLen( args.gridFields );
+		if ( args.useMultiActions ) {
+			colCount++;
+		}
+		if ( args.draftsEnabled ) {
+			colCount++;
+		}
+		if ( args.isMultilingual ) {
+			colCount++;
+		}
+		if ( !args.noActions ) {
+			colCount++;
+		}
+	}
 </cfscript>
 <cfoutput>
 	<div class="table-responsive<cfif args.compact> table-compact</cfif>">
@@ -52,7 +70,7 @@
 			</form>
 		</cfif>
 		<cfif args.useMultiActions>
-			<form id="multi-action-form" class="form-horizontal" method="post" action="#args.multiActionUrl#">
+			<form id="multi-action-form-#instanceId#" class="form-horizontal multi-action-form" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
 
@@ -68,7 +86,7 @@
 						<p class="grey"><i class="fa fa-fw fa-info-circle"></i> <em>#translateResource( "cms:rulesEngine.saved.filters.help" )#</em></p>
 						#renderFormControl(
 							  name         = "filters"
-							, id           = "filters"
+							, id           = "filters-#instanceId#"
 							, type         = "filterPicker"
 							, context      = "admin"
 							, filterObject = args.objectName
@@ -86,10 +104,10 @@
 					</div>
 				</div>
 
-				<div id="quick-filter-form" class="in clearfix">
+				<div id="quick-filter-form-#instanceId#" class="in clearfix">
 					#renderFormControl(
 						  name        = "filter"
-						, id          = "filter"
+						, id          = "filter-#instanceId#"
 						, type        = "rulesEngineFilterBuilder"
 						, context     = "admin"
 						, contextData = args.filterContextData
@@ -166,11 +184,18 @@
 					</cfif>
 				</tr>
 			</thead>
+			<cfif args.footerEnabled>
+				<tfoot>
+					<tr>
+						<th colspan="#colCount#"></th>
+					</tr>
+				</tfoot>
+			</cfif>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
 			</tbody>
 		</table>
 		<cfif args.useMultiActions>
-				<div class="form-actions" id="multi-action-buttons">
+				<div class="form-actions multi-action-buttons" id="multi-action-buttons-#instanceId#">
 					<cfif Len( Trim( args.multiActions ) )>
 						#args.multiActions#
 					<cfelse>

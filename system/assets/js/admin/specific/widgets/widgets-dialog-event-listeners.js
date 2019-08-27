@@ -55,7 +55,7 @@ var onDialogEvent = ( function( $ ){
 	};
 
 	getConfigForm = function(){
-		return $( ".widget-config-form:first" );
+		return $( "form[ data-widget-config-form=true ]:first" );
 	};
 
 	// Triggering dialog events
