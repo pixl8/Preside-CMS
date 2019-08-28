@@ -123,6 +123,7 @@ component extends="testbox.system.BaseSpec"{
 						  assetId        = assets[i].asset
 						, versionId      = assets[i].asset_version
 						, derivativeName = assets[i].derivative_name
+						, forceIfExists  = true
 					} );
 					expect( service.$callLog().removeFromQueue[i] ).toBe( [ assets[i].id ] );
 				}

@@ -1517,11 +1517,12 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function createAssetDerivative(
-		  required string assetId
-		, required string derivativeName
-		,          string versionId       = ""
-		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
-		,          string derivativeId    = ""
+		  required string  assetId
+		, required string  derivativeName
+		,          string  versionId       = ""
+		,          array   transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
+		,          string  derivativeId    = ""
+		,          boolean forceIfExists  = false
 	) {
 		var signature  = getDerivativeConfigSignature( arguments.derivativeName )
 		var config     = getDerivativeConfig( arguments.assetId )
@@ -1548,6 +1549,23 @@ component displayName="AssetManager Service" {
 			storagePath &= "_#LCase( configHash )#";
 		}
 		storagePath &= "/#filename#.#fileext#";
+
+		if ( !Len( Trim( arguments.derivativeId ) ) && arguments.forceIfExists ) {
+			var derivativeDao = _getDerivativeDao();
+			var signature     = getDerivativeConfigSignature( arguments.derivativeName );
+			var selectFilter  = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
+			var filterParams  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
+
+			if ( Len( Trim( arguments.versionId ) ) ) {
+				selectFilter &= " and asset_derivative.asset_version = :asset_derivative.asset_version";
+				filterParams[ "asset_derivative.asset_version" ] = arguments.versionId;
+			} else {
+				selectFilter &= " and asset_derivative.asset_version is null";
+			}
+
+			var derivative = derivativeDao.selectData( filter=selectFilter, filterParams=filterParams, selectFields=[ "id" ] );
+			arguments.derivativeId = derivative.id ?: "";
+		}
 
 		return _getDerivativeGeneratorService().generate(
 			  assetId                       = arguments.assetId

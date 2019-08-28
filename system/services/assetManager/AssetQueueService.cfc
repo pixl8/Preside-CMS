@@ -54,6 +54,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 					  assetId        = queuedAsset.asset
 					, versionId      = queuedAsset.asset_version
 					, derivativeName = queuedAsset.derivative_name
+					, forceIfExists  = true
 				);
 
 				removeFromQueue( queuedAsset.id );
@@ -152,6 +153,31 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 			, config_hash     = arguments.configHash
 			, queue_status    = [ "pending", "running" ]
 		} );
+	}
+
+	public query function getFailedItems( string assetId="", numeric maxrows=0 ) {
+		var filter = { queue_status = "failed" };
+
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			filter.asset = arguments.assetId;
+		}
+
+		return $getPresideObject( "asset_generation_queue" ).selectData(
+			  selectFields = [ "id", "asset", "asset_version", "derivative_name", "last_error" ]
+			, filter       = filter
+			, maxRows      = arguments.maxRows
+			, orderBy      = "datemodified desc"
+		);
+	}
+
+	public numeric function dismissFailedItems( string assetId="" ) {
+		var filter = { queue_status = "failed" };
+
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			filter.asset = arguments.assetId;
+		}
+
+		return $getPresideObject( "asset_generation_queue" ).deleteData( filter=filter );
 	}
 
 // GETTERS AND SETTERS

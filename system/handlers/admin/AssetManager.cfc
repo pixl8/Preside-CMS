@@ -12,6 +12,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="datatableHelper"                  inject="jQueryDatatablesHelpers";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
+	property name="assetQueueService"                inject="presidecms:dynamicservice:assetQueue";
 
 	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -566,8 +567,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( "asset" );
 		prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="assetmanager.assets.translate" , context="assetmanagerfolder", contextKeys= prc.permissionContext );
+
 		if ( prc.canTranslate ) {
 			prc.assetTranslations = multilingualPresideObjectService.getTranslationStatus( "asset", rc.asset );
+		}
+
+		if ( isFeatureEnabled( "assetQueue" ) && hasCmsPermission( "assetmanager.failedDerivatives" ) ) {
+			prc.latestFailedQueueItem = assetQueueService.getFailedItems( assetId=rc.asset, maxRows=1 );
 		}
 	}
 
@@ -621,6 +627,21 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", queryString="asset=#assetId#" ), persistStruct=persist );
 		}
 	}
+
+	function dismissQueueErrorsAction( event, rc, prc ) {
+		if ( !isFeatureEnabled( "assetQueue" ) || !hasCmsPermission( "assetmanager.failedDerivatives" ) ) {
+			event.adminAccessDenied();
+		}
+
+		var assetId = rc.id ?: "";
+
+		assetQueueService.dismissFailedItems( assetId=assetId );
+
+		messagebox.info( translateResource( uri="cms:assetmanager.generated.asset.dismissed.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#assetId#" ) );
+
+	}
+
 	function translateAssetRecord( event, rc, prc ) {
 		var object                = rc.object ?: "";
 		var id                    = rc.id     ?: "";
@@ -845,6 +866,7 @@ component extends="preside.system.base.AdminHandler" {
 			, ids          = ListToArray( rc.values       ?: "" )
 			, allowedTypes = ListToArray( rc.allowedTypes ?: "" )
 		);
+
 		var rootFolderName   = translateResource( "cms:assetmanager.root.folder" );
 		var processedRecords = [];
 

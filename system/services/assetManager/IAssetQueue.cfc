@@ -19,4 +19,8 @@ interface {
 		, required string configHash
 	);
 
+	public query function getFailedItems( string assetId="", numeric maxRows=0 );
+
+	public numeric function dismissFailedItems( string assetId="" );
+
  }
