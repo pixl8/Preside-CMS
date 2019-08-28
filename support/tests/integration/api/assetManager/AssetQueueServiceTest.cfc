@@ -116,10 +116,10 @@ component extends="testbox.system.BaseSpec"{
 
 				service.processQueue();
 
-				expect( mockAssetManagerService.$callLog().createAssetDerivativeWhenNotExists.len() ).toBe( rateLimit );
+				expect( mockAssetManagerService.$callLog().createAssetDerivative.len() ).toBe( rateLimit );
 				expect( service.$callLog().removeFromQueue.len() ).toBe( rateLimit );
 				for( var i=1; i<=rateLimit; i++ ){
-					expect( mockAssetManagerService.$callLog().createAssetDerivativeWhenNotExists[i] ).toBe( {
+					expect( mockAssetManagerService.$callLog().createAssetDerivative[i] ).toBe( {
 						  assetId        = assets[i].asset
 						, versionId      = assets[i].asset_version
 						, derivativeName = assets[i].derivative_name
