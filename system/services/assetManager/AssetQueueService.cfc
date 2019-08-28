@@ -50,7 +50,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 			}
 
 			try {
-				assetManagerService.createAssetDerivativeWhenNotExists(
+				assetManagerService.createAssetDerivative(
 					  assetId        = queuedAsset.asset
 					, versionId      = queuedAsset.asset_version
 					, derivativeName = queuedAsset.derivative_name

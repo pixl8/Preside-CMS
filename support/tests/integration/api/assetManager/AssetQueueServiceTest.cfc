@@ -111,7 +111,7 @@ component extends="testbox.system.BaseSpec"{
 				}
 				Evaluate( "service.$( ""getNextQueuedAsset"" ).$results( #resultsList# )" );
 
-				mockAssetManagerService.$( "createAssetDerivativeWhenNotExists", 1 );
+				mockAssetManagerService.$( "createAssetDerivative", 1 );
 				service.$( "removeFromQueue", 1 );
 
 				service.processQueue();
