@@ -494,6 +494,10 @@ component {
 			  }
 		};
 
+		settings.presideservices = {
+			assetQueue = "assetQueueService"
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

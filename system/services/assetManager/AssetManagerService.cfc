@@ -14,7 +14,7 @@ component displayName="AssetManager Service" {
 	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
-	 * @assetQueueService.inject          assetQueueService
+	 * @assetQueueService.inject          presidecms:dynamicservice:assetQueue
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders

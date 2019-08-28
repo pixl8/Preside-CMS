@@ -2,7 +2,7 @@
  * @presideService true
  * @singleton      true
  */
-component {
+component implements="preside.system.services.assetManager.IAssetQueue" {
 
 // CONSTRUCTOR
 	/**
