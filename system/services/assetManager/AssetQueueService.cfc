@@ -40,6 +40,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 		var processedCount      = 0;
 		var assetManagerService = _getAssetManagerService();
 		var poService           = $getPresideObjectService();
+		var queuedAsset         = "";
 
 		do {
 			queuedAsset = getNextQueuedAsset();
@@ -54,6 +55,8 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 					, versionId      = queuedAsset.asset_version
 					, derivativeName = queuedAsset.derivative_name
 				);
+
+				removeFromQueue( queuedAsset.id );
 			} catch ( any e ) {
 				var err = SerializeJson( e );
 
@@ -64,7 +67,6 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 				}
 			}
 
-			removeFromQueue( queuedAsset.id );
 		} while( ++processedCount < batchSize && !$isInterrupted() );
 
 		if ( processedCount ) {
@@ -85,7 +87,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 				  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
 				, filter       = "queue_status = :queue_status"
 				, filterParams = { queue_status="pending" }
-				, orderby      = "datecreated"
+				, orderby      = "retry_count,datecreated"
 				, maxRows      = 1
 			);
 
@@ -124,16 +126,15 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 
 	public numeric function failQueue( required struct asset, required string error ) {
 		return $getPresideObject( "asset_generation_queue" ).updateData( id=arguments.asset.id, data={
-			  last_error = arguments.error
-			, status     = "failed"
-			, retry_count = arguments.asset.retry_count+1
+			  last_error   = arguments.error
+			, queue_status = "failed"
 		} );
 	}
 
-	public numeric function reQueue( required string id ) {
+	public numeric function reQueue( required struct asset, required string error ) {
 		return $getPresideObject( "asset_generation_queue" ).updateData( id=arguments.asset.id, data={
 			  last_error = arguments.error
-			, status     = "pending"
+			, queue_status = "pending"
 			, retry_count = arguments.asset.retry_count+1
 		} );
 	}

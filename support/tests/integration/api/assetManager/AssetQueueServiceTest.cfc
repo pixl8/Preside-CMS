@@ -37,7 +37,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "datecreated"
+					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
 					, maxRows      = 1
@@ -53,7 +53,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "datecreated"
+					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
 					, maxRows      = 1
@@ -69,7 +69,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "datecreated"
+					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
 					, maxRows      = 1
