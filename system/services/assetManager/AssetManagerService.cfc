@@ -10,11 +10,11 @@ component displayName="AssetManager Service" {
 // CONSTRUCTOR
 	/**
 	 * @defaultStorageProvider.inject     assetStorageProvider
-	 * @assetTransformer.inject           AssetTransformer
 	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
 	 * @assetQueueService.inject          presidecms:dynamicservice:assetQueue
+	 * @derivativeGeneratorService.inject presidecms:dynamicservice:derivativeGenerator
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
@@ -22,11 +22,11 @@ component displayName="AssetManager Service" {
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
-		, required any    assetTransformer
 		, required any    documentMetadataService
 		, required any    storageLocationService
 		, required any    storageProviderService
 		, required any    assetQueueService
+		, required any    derivativeGeneratorService
 		, required any    renderedAssetCache
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
@@ -36,11 +36,11 @@ component displayName="AssetManager Service" {
 		_setupSystemFolders( arguments.configuredFolders );
 
 		_setDefaultStorageProvider( arguments.defaultStorageProvider );
-		_setAssetTransformer( arguments.assetTransformer );
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
 		_setAssetQueueService( arguments.assetQueueService );
+		_setDerivativeGeneratorService( arguments.derivativeGeneratorService );
 		_setRenderedAssetCache( arguments.renderedAssetCache );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
@@ -700,7 +700,7 @@ component displayName="AssetManager Service" {
 			asset.title = _ensureUniqueTitle( asset.title, asset.asset_folder );
 		}
 
-		_getStorageProviderForFolder( asset.asset_folder ).putObject(
+		getStorageProviderForFolder( asset.asset_folder ).putObject(
 			  object  = arguments.fileBinary
 			, path    = asset.storage_path
 			, private = isFolderAccessRestricted( asset.asset_folder )
@@ -770,7 +770,7 @@ component displayName="AssetManager Service" {
 			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
-		_getStorageProviderForFolder( originalAsset.asset_folder ).putObject(
+		getStorageProviderForFolder( originalAsset.asset_folder ).putObject(
 			  object  = arguments.fileBinary
 			, path    = newFileName
 			, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
@@ -883,7 +883,7 @@ component displayName="AssetManager Service" {
 		var versions      = versionDao.selectData( filter={ asset=arguments.id } );
 		var filename      = arguments.newName;
 		var isPrivate     = isAssetAccessRestricted( arguments.id );
-		var provider      = _getStorageProviderForFolder( asset.asset_folder );
+		var provider      = getStorageProviderForFolder( asset.asset_folder );
 
 		filename = filename.reReplaceNoCase( "\.#asset.asset_type#$", "" );
 
@@ -1006,7 +1006,7 @@ component displayName="AssetManager Service" {
 				if ( asset.recordCount ) {
 					var fileName        = Len( Trim( asset.file_name ) ) ? asset.file_name : _slugifyTitleForFileName( asset.original_title );
 					var newPath         = "/#LCase( assetId )#/#fileName#.#asset.asset_type#";
-					var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
+					var storageProvider = getStorageProviderForFolder( asset.asset_folder );
 					var private         = isAssetAccessRestricted( assetId, arguments.folderId );
 
 					storageProvider.restoreObject( trashedPath=asset.trashed_path, newPath=newPath, private=private );
@@ -1094,7 +1094,7 @@ component displayName="AssetManager Service" {
 			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder" ] );
 
 		if ( asset.recordCount ) {
-			return _getStorageProviderForFolder( asset.asset_folder ).getObject(
+			return getStorageProviderForFolder( asset.asset_folder ).getObject(
 				  path    = asset.storage_path
 				, trashed = arguments.isTrashed
 				, private = isPrivate
@@ -1123,7 +1123,7 @@ component displayName="AssetManager Service" {
 
 		if ( asset.recordCount ) {
 			var private   = Len( Trim( arguments.derivativeName ) ) ? ( !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.id ) ) : isAssetAccessRestricted( arguments.id )
-			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo(
+			var assetInfo = getStorageProviderForFolder( asset.asset_folder ).getObjectInfo(
 				  path    = asset.storage_path
 				, trashed = arguments.isTrashed
 				, private = private
@@ -1250,7 +1250,7 @@ component displayName="AssetManager Service" {
 			}
 
 			if ( !permissions.restricted ) {
-				var storageProvider = _getStorageProviderForFolder( arguments.folder );
+				var storageProvider = getStorageProviderForFolder( arguments.folder );
 				var assetUrl        = storageProvider.getObjectUrl( arguments.storagePath );
 
 				if ( Len( Trim( assetUrl ) ) ) {
@@ -1304,7 +1304,7 @@ component displayName="AssetManager Service" {
 		}
 
 		try {
-			trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( path=asset.storage_path, private=private );
+			trashedPath = getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( path=asset.storage_path, private=private );
 		} catch( any e ) {
 			$raiseError( e );
 			trashedPath = asset.storage_path;
@@ -1358,7 +1358,7 @@ component displayName="AssetManager Service" {
 		}
 
 		try {
-			_getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
+			getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
 		} catch( any e ) {
 			$raiseError( e );
 		}
@@ -1465,7 +1465,7 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( derivative.recordCount ) {
-			return _getStorageProviderForFolder( derivative.asset_folder ).getObject(
+			return getStorageProviderForFolder( derivative.asset_folder ).getObject(
 				  path    = derivative.storage_path
 				, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
 			);
@@ -1521,14 +1521,17 @@ component displayName="AssetManager Service" {
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 		,          string derivativeId    = ""
 	) {
-		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
-		var asset           = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset.title", "asset_version.focal_point", "asset_version.crop_hint" ] )
-			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint" ] );
+		var signature  = getDerivativeConfigSignature( arguments.derivativeName )
+		var config     = getDerivativeConfig( arguments.assetId )
+		var configHash = getDerivativeConfigHash( config )
+		var asset      = "";
 
-		var config          = getDerivativeConfig( arguments.assetId );
-		var configHash      = getDerivativeConfigHash( config );
-		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			asset = getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset.title", "asset_version.focal_point", "asset_version.crop_hint" ] );
+		} else {
+			asset = getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint" ] );
+		}
+
 		var fileext         = ListLast( asset.storage_path, "." );
 		var filename        = Len( Trim( asset.file_name ) ) ? asset.file_name : _slugifyTitleForFileName( asset.title );
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
@@ -1544,68 +1547,18 @@ component displayName="AssetManager Service" {
 		}
 		storagePath &= "/#filename#.#fileext#";
 
-		if( fileext == 'pdf' ){
-			var pdfAttributes = {
-				  action      = "getinfo"
-				, source      = assetBinary
-				, name        = 'result'
-			};
-			try{
-				pdf attributeCollection=pdfAttributes;
-			} catch( e ) {
-				if( e.detail == 'Bad user Password' ){
-					throw( type = "AssetManager.Password error" );
-				}
-			}
-		}
-
-		for( var transformation in transformations ) {
-			var transformationArgs = transformation.args ?: {};
-			transformationArgs.focalPoint = asset.focal_point;
-			transformationArgs.cropHint   = asset.crop_hint;
-
-			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
-				assetBinary = _applyAssetTransformation(
-					  assetBinary          = assetBinary
-					, transformationMethod = transformation.method ?: ""
-					, transformationArgs   = transformationArgs
-					, filename             = filename              ?: ""
-				);
-
-				if ( Len( Trim( transformation.outputFileType ?: "" ) ) ) {
-					storagePath = ReReplace( storagePath, "\.#fileext#$", "." & transformation.outputFileType );
-					fileext = transformation.outputFileType;
-				}
-			}
-		}
-		var assetType = getAssetType( filename=storagePath, throwOnMissing=true );
-
-		_getStorageProviderForFolder( asset.asset_folder ).putObject(
-			  object  = assetBinary
-			, path    = storagePath
-			, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
+		return _getDerivativeGeneratorService().generate(
+			  assetId                       = arguments.assetId
+			, versionId                     = arguments.versionId
+			, derivativeName                = arguments.derivativeName
+			, transformations               = arguments.transformations
+			, derivativeId                  = arguments.derivativeId
+			, derivativeSignature           = signature
+			, assetTransformationConfig     = config
+			, assetTransformationConfigHash = configHash
+			, asset                         = asset
+			, storagePath                   = storagePath
 		);
-
-		if ( Len( Trim( arguments.derivativeId ) ) ) {
-			_getDerivativeDao().updateData( id=arguments.derivativeId, data={
-				  asset_type    = assetType.typeName
-				, storage_path  = storagePath
-				, config        = config
-				, config_hash   = configHash
-			} );
-
-			return arguments.derivativeId;
-		} else {
-			return _getDerivativeDao().insertData( {
-				  asset_type    = assetType.typeName
-				, asset         = arguments.assetId
-				, asset_version = arguments.versionId
-				, label         = arguments.derivativeName & signature
-				, storage_path  = storagePath
-				, config        = config
-				, config_hash   = configHash
-			} );
-		}
 	}
 
 	public struct function getAssetPermissioningSettings( required string assetId ) {
@@ -1915,7 +1868,7 @@ component displayName="AssetManager Service" {
 		, required string folderId
 		, required string storagePath
 	) {
-		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
+		var storageProvider = getStorageProviderForFolder( arguments.folderId );
 		var isPrivate       = isAssetAccessRestricted( arguments.assetId );
 		var derivatives     = _getDerivativeDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
 		var versions        = _getAssetVersionDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
@@ -1981,6 +1934,19 @@ component displayName="AssetManager Service" {
 			, regex      = true
 		);
 		$announceInterception( "onInvalidateRenderedAssetCache", arguments );
+	}
+
+	public any function getStorageProviderForFolder( required string folderId ) {
+		var location = _getStorageLocationForFolder( arguments.folderId );
+
+		if ( location.isEmpty() ) {
+			return _getDefaultStorageProvider();
+		}
+
+		return _getStorageProviderService().getProvider(
+			  id            = location.storageProvider
+			, configuration = location.configuration
+		);
 	}
 
 // PRIVATE HELPERS
@@ -2054,15 +2020,6 @@ component displayName="AssetManager Service" {
 		for( var childId in children ){
 			_setupConfiguredSystemFolder( ListAppend( arguments.id, childId, "." ), arguments.settings.children[ childId ], folderId );
 		}
-	}
-
-	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs, required string filename) {
-		var args        = Duplicate( arguments.transformationArgs );
-
-		// todo, sanity check the input
-		args.asset    = arguments.assetBinary;
-
-		return _getAssetTransformer()[ arguments.transformationMethod ]( argumentCollection = args );
 	}
 
 	private array function _getPreconfiguredDerivativeTransformations( required string derivativeName ) {
@@ -2200,19 +2157,6 @@ component displayName="AssetManager Service" {
 		}
 	}
 
-	private any function _getStorageProviderForFolder( required string folderId ) {
-		var location = _getStorageLocationForFolder( arguments.folderId );
-
-		if ( location.isEmpty() ) {
-			return _getDefaultStorageProvider();
-		}
-
-		return _getStorageProviderService().getProvider(
-			  id            = location.storageProvider
-			, configuration = location.configuration
-		);
-	}
-
 	private struct function _getStorageLocationForFolder( required string folderId ){
 		var folder = _getFolderDao().selectData(
 			  id           = arguments.folderId
@@ -2250,7 +2194,7 @@ component displayName="AssetManager Service" {
 
 		var versions        = assetVersionDao.selectData( filter=versionFilter   , selectfields=[ "id", "storage_path" ] );
 		var derivatives     = derivativeDao.selectData( filter=derivativeFilter, selectfields=[ "id", "storage_path" ] );
-		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
+		var storageProvider = getStorageProviderForFolder( arguments.folderId );
 
 		for( var version in versions ) {
 			if ( arguments.softDelete ) {
@@ -2345,13 +2289,6 @@ component displayName="AssetManager Service" {
 		_defaultStorageProvider = arguments.defaultStorageProvider;
 	}
 
-	private any function _getAssetTransformer() {
-		return _assetTransformer;
-	}
-	private void function _setAssetTransformer( required any assetTransformer ) {
-		_assetTransformer = arguments.assetTransformer;
-	}
-
 	private struct function _getConfiguredDerivatives() {
 		return _configuredDerivatives;
 	}
@@ -2433,5 +2370,12 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setAssetQueueService( required any assetQueueService ) {
 	    _assetQueueService = arguments.assetQueueService;
+	}
+
+	private any function _getDerivativeGeneratorService() {
+	    return _derivativeGeneratorService;
+	}
+	private void function _setDerivativeGeneratorService( required any derivativeGeneratorService ) {
+	    _derivativeGeneratorService = arguments.derivativeGeneratorService;
 	}
 }

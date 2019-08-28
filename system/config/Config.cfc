@@ -495,7 +495,8 @@ component {
 		};
 
 		settings.presideservices = {
-			assetQueue = "assetQueueService"
+			  assetQueue          = "assetQueueService"
+			, derivativeGenerator = "derivativeGeneratorService"
 		};
 
 		_loadConfigurationFromExtensions();
