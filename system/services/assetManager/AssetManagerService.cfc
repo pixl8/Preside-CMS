@@ -728,6 +728,8 @@ component displayName="AssetManager Service" {
 			_saveAssetMetaData( assetId=asset.id, metaData=fileMetaInfo );
 		}
 
+		_autoQueueDerivatives( asset.id, fileTypeInfo.typeName, fileTypeInfo.groupName );
+
 		$audit(
 			  action   = "add_asset"
 			, type     = "assetmanager"
@@ -2279,6 +2281,31 @@ component displayName="AssetManager Service" {
 	private string function _slugifyTitleForFileName( required string title ) {
 		var titleWithoutExtension = arguments.title.reReplace( "\.[a-z0-9]+$", "" );
 		return $slugify( str=titleWithoutExtension, preserveCase=true );
+	}
+
+	private void function _autoQueueDerivatives(
+		  required string assetId
+		, required string type
+		, required string typeGroup
+		,          string versionId  = ""
+		,          string configHash = ""
+	) {
+		if ( $isFeatureEnabled( "assetQueue" ) ) {
+			var derivatives = _getConfiguredDerivatives();
+			for( var derivativeName in derivatives ) {
+				var autoQueueTypes = derivatives[ derivativeName ].autoQueue ?: [];
+
+				if ( ArrayFindNoCase( autoQueueTypes, arguments.type ) || ArrayFindNoCase( autoQueueTypes, arguments.typeGroup ) ) {
+					_getAssetQueueService().queueAssetGeneration(
+						  assetId        = arguments.assetId
+						, derivativeName = derivativeName
+						, versionId      = arguments.versionId
+						, configHash     = arguments.configHash
+					);
+
+				}
+			}
+		}
 	}
 
 // GETTERS AND SETTERS
