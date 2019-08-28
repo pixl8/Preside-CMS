@@ -7,7 +7,7 @@ component extends="AbstractHeartBeat" {
 
 	/**
 	 * @threadUtil.inject        threadUtil
-	 * @assetQueueService.inject assetQueueService
+	 * @assetQueueService.inject presidecms:dynamicservice:assetQueue
 	 *
 	 */
 	public function init(
