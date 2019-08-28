@@ -7,10 +7,11 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @assetManagerService.inject delayedInjector:assetManagerService
-	 *
+	 * @queueBatchSize.inject      coldbox:setting:assetManager.queue.batchSize
 	 */
-	public any function init( required any assetManagerService ) {
+	public any function init( required any assetManagerService, required numeric queueBatchSize ) {
 		_setAssetManagerService( arguments.assetManagerService );
+		_setQueueBatchSize( arguments.queueBatchSize );
 
 		return this;
 	}
@@ -35,7 +36,7 @@ component {
 	}
 
 	public void function processQueue() {
-		var rateLimit           = 10;
+		var batchSize           = _getQueueBatchSize();
 		var processedCount      = 0;
 		var assetManagerService = _getAssetManagerService();
 		var poService           = $getPresideObjectService();
@@ -64,7 +65,7 @@ component {
 			}
 
 			removeFromQueue( queuedAsset.id );
-		} while( ++processedCount < rateLimit && !$isInterrupted() );
+		} while( ++processedCount < batchSize && !$isInterrupted() );
 
 		if ( processedCount ) {
 			poService.clearRelatedCaches( "asset_generation_queue" );
@@ -158,6 +159,13 @@ component {
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) {
 	    _assetManagerService = arguments.assetManagerService;
+	}
+
+	private numeric function _getQueueBatchSize() {
+	    return _queueBatchSize;
+	}
+	private void function _setQueueBatchSize( required numeric queueBatchSize ) {
+	    _queueBatchSize = arguments.queueBatchSize;
 	}
 
 }

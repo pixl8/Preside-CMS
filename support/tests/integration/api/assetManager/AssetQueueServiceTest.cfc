@@ -141,7 +141,8 @@ component extends="testbox.system.BaseSpec"{
 		mockPoService.$( "clearRelatedCaches" );
 
 		var service = new preside.system.services.assetManager.AssetQueueService(
-			assetManagerService = mockAssetManagerServiceProxy
+			  assetManagerService = mockAssetManagerServiceProxy
+			, queueBatchSize      = 10
 		);
 
 		service = CreateMock( object=service );

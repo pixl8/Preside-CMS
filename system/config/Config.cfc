@@ -249,7 +249,7 @@ component {
 			  maxFileSize = "5"
 			, types       = _getConfiguredFileTypes()
 			, derivatives = _getConfiguredAssetDerivatives()
-			, queueConcurrency = 1
+			, queue       = { concurrency=1, batchSize=10 }
 			, folders     = {}
 			, storage     = {
 				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )

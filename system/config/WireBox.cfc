@@ -78,7 +78,7 @@
 			    .virtualInheritance( "presideSuperClass" );
 		}
 
-		var assetQueueConcurrency = Val( settings.assetmanager.queueConcurrency ?: 1 );
+		var assetQueueConcurrency = Val( settings.assetmanager.queue.concurrency ?: 1 );
 		for( var i=1; i <= assetQueueConcurrency; i++ ) {
 			map( "AssetQueueHeartbeat#i#" )
 			    .asSingleton()
