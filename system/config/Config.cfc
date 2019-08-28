@@ -249,7 +249,7 @@ component {
 			  maxFileSize = "5"
 			, types       = _getConfiguredFileTypes()
 			, derivatives = _getConfiguredAssetDerivatives()
-			, queueConcurrency = 1
+			, queue       = { concurrency=1, batchSize=100 }
 			, folders     = {}
 			, storage     = {
 				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
@@ -494,6 +494,11 @@ component {
 			  }
 		};
 
+		settings.presideservices = {
+			  assetQueue          = "assetQueueService"
+			, derivativeGenerator = "derivativeGeneratorService"
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {
@@ -643,6 +648,7 @@ component {
 
 		derivatives.adminthumbnail = {
 			  permissions = "inherit"
+			, autoQueue = [ "image", "pdf" ]
 			, transformations = [
 				  { method="pdfPreview" , args={ page=1                }, inputfiletype="pdf", outputfiletype="jpg" }
 				, { method="shrinkToFit", args={ width=200, height=200 } }
@@ -651,21 +657,25 @@ component {
 
 		derivatives.icon = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=32, height=32 } } ]
 		};
 
 		derivatives.pickericon = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=48, height=32 } } ]
 		};
 
 		derivatives.pageThumbnail = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=100, height=100 } } ]
 		};
 
 		derivatives.adminCropping = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=300, height=300 } } ]
 		};
 

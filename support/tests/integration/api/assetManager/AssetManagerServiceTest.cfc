@@ -251,7 +251,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
-				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
+				service.$( "getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( dummyUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( dummyUrl );
@@ -273,7 +273,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
-				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
+				service.$( "getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
 				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false, derivative="" ).$results( internalUrl );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( storageUrl );
 
@@ -323,7 +323,7 @@ component extends="testbox.system.BaseSpec"{
 				var storageProvider = CreateStub();
 				var dummyUrl        = "https://www.static-site.com/" & CreateUUId();
 
-				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
+				service.$( "getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
 				service.$( "isDerivativePubliclyAccessible" ).$args( derivative ).$results( true );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( dummyUrl );
 
@@ -401,21 +401,21 @@ component extends="testbox.system.BaseSpec"{
 
 
 	private any function _getService() {
-		mockDefaultStorageProvider  = CreateStub();
-		mockAssetTransformer        = CreateStub();
-		mockDocumentMetadataService = CreateStub();
-		mockStorageLocationService  = CreateStub();
-		mockStorageProviderService  = CreateStub();
-		mockAssetDao                = CreateStub();
-		mockAssetVersionDao         = CreateStub();
-		mockAssetFolderDao          = CreateStub();
-		mockAssetDerivativeDao      = CreateStub();
-		mockAssetQueueService       = CreateStub();
-		mockAssetMetaDao            = CreateStub();
-		assetCache                  = CreateStub();
-		configuredDerivatives       = {};
-		configuredTypesByGroup      = {};
-		configuredFolders           = {};
+		mockDefaultStorageProvider     = CreateStub();
+		mockDocumentMetadataService    = CreateStub();
+		mockStorageLocationService     = CreateStub();
+		mockStorageProviderService     = CreateStub();
+		mockAssetDao                   = CreateStub();
+		mockAssetVersionDao            = CreateStub();
+		mockAssetFolderDao             = CreateStub();
+		mockAssetDerivativeDao         = CreateStub();
+		mockAssetQueueService          = CreateStub();
+		mockAssetMetaDao               = CreateStub();
+		assetCache                     = CreateStub();
+		mockDerivativeGeneratorService = CreateStub();
+		configuredDerivatives          = {};
+		configuredTypesByGroup         = {};
+		configuredFolders              = {};
 
 		var service = CreateObject( "preside.system.services.assetManager.AssetManagerService" );
 
@@ -432,16 +432,16 @@ component extends="testbox.system.BaseSpec"{
 		assetCache.$( "clearByKeySnippet" );
 
 		return service.init(
-			  defaultStorageProvider  = mockDefaultStorageProvider
-			, assetTransformer        = mockAssetTransformer
-			, documentMetadataService = mockDocumentMetadataService
-			, storageLocationService  = mockStorageLocationService
-			, storageProviderService  = mockStorageProviderService
-			, assetQueueService       = mockAssetQueueService
-			, configuredDerivatives   = configuredDerivatives
-			, configuredTypesByGroup  = configuredTypesByGroup
-			, configuredFolders       = configuredFolders
-			, renderedAssetCache      = assetCache
+			  defaultStorageProvider     = mockDefaultStorageProvider
+			, documentMetadataService    = mockDocumentMetadataService
+			, storageLocationService     = mockStorageLocationService
+			, storageProviderService     = mockStorageProviderService
+			, assetQueueService          = mockAssetQueueService
+			, derivativeGeneratorService = mockDerivativeGeneratorService
+			, configuredDerivatives      = configuredDerivatives
+			, configuredTypesByGroup     = configuredTypesByGroup
+			, configuredFolders          = configuredFolders
+			, renderedAssetCache         = assetCache
 		);
 
 	}

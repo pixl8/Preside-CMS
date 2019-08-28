@@ -770,6 +770,23 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
+	 * Proxy to the core coldbox 'runEvent' method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var result = $runEvent( event="my.viewlet", eventArguments={ args=someData }, private=true, prePostExempt=true );
+	 *
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $runEvent() {
+		return $getColdbox().runEvent( argumentCollection=arguments );
+	}
+
+	/**
 	 * Proxy to Coldbox's InterceptorService.processState() method.
 	 * \n
 	 * ## Example

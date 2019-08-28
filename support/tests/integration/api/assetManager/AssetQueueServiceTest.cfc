@@ -37,7 +37,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "datecreated"
+					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
 					, maxRows      = 1
@@ -53,7 +53,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "datecreated"
+					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
 					, maxRows      = 1
@@ -69,7 +69,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockQueueDao.$( "selectData" ).$args(
 					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "datecreated"
+					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
 					, maxRows      = 1
@@ -111,7 +111,7 @@ component extends="testbox.system.BaseSpec"{
 				}
 				Evaluate( "service.$( ""getNextQueuedAsset"" ).$results( #resultsList# )" );
 
-				mockAssetManagerService.$( "createAssetDerivativeWhenNotExists", 1 );
+				mockAssetManagerService.$( "createAssetDerivative", 1 );
 				service.$( "removeFromQueue", 1 );
 
 				service.processQueue();
@@ -123,6 +123,7 @@ component extends="testbox.system.BaseSpec"{
 						  assetId        = assets[i].asset
 						, versionId      = assets[i].asset_version
 						, derivativeName = assets[i].derivative_name
+						, forceIfExists  = true
 					} );
 					expect( service.$callLog().removeFromQueue[i] ).toBe( [ assets[i].id ] );
 				}
@@ -141,7 +142,8 @@ component extends="testbox.system.BaseSpec"{
 		mockPoService.$( "clearRelatedCaches" );
 
 		var service = new preside.system.services.assetManager.AssetQueueService(
-			assetManagerService = mockAssetManagerServiceProxy
+			  assetManagerService = mockAssetManagerServiceProxy
+			, queueBatchSize      = 10
 		);
 
 		service = CreateMock( object=service );

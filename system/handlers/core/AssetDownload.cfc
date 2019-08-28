@@ -1,7 +1,7 @@
 component {
 
 	property name="assetManagerService"          inject="assetManagerService";
-	property name="assetQueueService"            inject="assetQueueService";
+	property name="assetQueueService"            inject="presidecms:dynamicservice:assetQueue";
 	property name="websiteUserActionService"     inject="websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 

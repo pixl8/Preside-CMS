@@ -7,6 +7,7 @@ component {
 	property name="healthcheckService"          inject="healthcheckService";
 	property name="adhocTaskManagerService"     inject="adhocTaskManagerService";
 	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
+	property name="assetQueueConcurrency"       inject="coldbox:setting:assetManager.queue.concurrency";
 
 	public void function preHandler( event, action, eventArguments ) {
 		event.setUseQueryCache( false );
@@ -70,7 +71,7 @@ component {
 		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
 			var instanceNumber = Val( rc.instanceNumber ?: "" );
 
-			if ( instanceNumber > 0 && instanceNumber <= emailQueueConcurrency ) {
+			if ( instanceNumber > 0 && instanceNumber <= assetQueueConcurrency ) {
 				getModel( "AssetQueueHeartBeat#instanceNumber#" ).start();
 				event.renderData( data={ ok=true }, type="json" );
 			} else {

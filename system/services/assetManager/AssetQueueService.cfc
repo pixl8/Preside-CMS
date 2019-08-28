@@ -2,15 +2,16 @@
  * @presideService true
  * @singleton      true
  */
-component {
+component implements="preside.system.services.assetManager.IAssetQueue" {
 
 // CONSTRUCTOR
 	/**
 	 * @assetManagerService.inject delayedInjector:assetManagerService
-	 *
+	 * @queueBatchSize.inject      coldbox:setting:assetManager.queue.batchSize
 	 */
-	public any function init( required any assetManagerService ) {
+	public any function init( required any assetManagerService, required numeric queueBatchSize ) {
 		_setAssetManagerService( arguments.assetManagerService );
+		_setQueueBatchSize( arguments.queueBatchSize );
 
 		return this;
 	}
@@ -35,10 +36,11 @@ component {
 	}
 
 	public void function processQueue() {
-		var rateLimit           = 10;
+		var batchSize           = _getQueueBatchSize();
 		var processedCount      = 0;
 		var assetManagerService = _getAssetManagerService();
 		var poService           = $getPresideObjectService();
+		var queuedAsset         = "";
 
 		do {
 			queuedAsset = getNextQueuedAsset();
@@ -48,11 +50,14 @@ component {
 			}
 
 			try {
-				assetManagerService.createAssetDerivativeWhenNotExists(
+				assetManagerService.createAssetDerivative(
 					  assetId        = queuedAsset.asset
 					, versionId      = queuedAsset.asset_version
 					, derivativeName = queuedAsset.derivative_name
+					, forceIfExists  = true
 				);
+
+				removeFromQueue( queuedAsset.id );
 			} catch ( any e ) {
 				var err = SerializeJson( e );
 
@@ -63,8 +68,7 @@ component {
 				}
 			}
 
-			removeFromQueue( queuedAsset.id );
-		} while( ++processedCount < rateLimit && !$isInterrupted() );
+		} while( ++processedCount < batchSize && !$isInterrupted() );
 
 		if ( processedCount ) {
 			poService.clearRelatedCaches( "asset_generation_queue" );
@@ -84,7 +88,7 @@ component {
 				  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
 				, filter       = "queue_status = :queue_status"
 				, filterParams = { queue_status="pending" }
-				, orderby      = "datecreated"
+				, orderby      = "retry_count,datecreated"
 				, maxRows      = 1
 			);
 
@@ -123,16 +127,15 @@ component {
 
 	public numeric function failQueue( required struct asset, required string error ) {
 		return $getPresideObject( "asset_generation_queue" ).updateData( id=arguments.asset.id, data={
-			  last_error = arguments.error
-			, status     = "failed"
-			, retry_count = arguments.asset.retry_count+1
+			  last_error   = arguments.error
+			, queue_status = "failed"
 		} );
 	}
 
-	public numeric function reQueue( required string id ) {
+	public numeric function reQueue( required struct asset, required string error ) {
 		return $getPresideObject( "asset_generation_queue" ).updateData( id=arguments.asset.id, data={
 			  last_error = arguments.error
-			, status     = "pending"
+			, queue_status = "pending"
 			, retry_count = arguments.asset.retry_count+1
 		} );
 	}
@@ -152,12 +155,44 @@ component {
 		} );
 	}
 
+	public query function getFailedItems( string assetId="", numeric maxrows=0 ) {
+		var filter = { queue_status = "failed" };
+
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			filter.asset = arguments.assetId;
+		}
+
+		return $getPresideObject( "asset_generation_queue" ).selectData(
+			  selectFields = [ "id", "asset", "asset_version", "derivative_name", "last_error" ]
+			, filter       = filter
+			, maxRows      = arguments.maxRows
+			, orderBy      = "datemodified desc"
+		);
+	}
+
+	public numeric function dismissFailedItems( string assetId="" ) {
+		var filter = { queue_status = "failed" };
+
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			filter.asset = arguments.assetId;
+		}
+
+		return $getPresideObject( "asset_generation_queue" ).deleteData( filter=filter );
+	}
+
 // GETTERS AND SETTERS
 	private any function _getAssetManagerService() {
 	    return _assetManagerService.get();
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) {
 	    _assetManagerService = arguments.assetManagerService;
+	}
+
+	private numeric function _getQueueBatchSize() {
+	    return _queueBatchSize;
+	}
+	private void function _setQueueBatchSize( required numeric queueBatchSize ) {
+	    _queueBatchSize = arguments.queueBatchSize;
 	}
 
 }

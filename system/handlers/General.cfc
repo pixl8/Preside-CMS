@@ -12,7 +12,7 @@ component {
 	property name="healthcheckService"            inject="healthcheckService";
 	property name="permissionService"             inject="permissionService";
 	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
-	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queueConcurrency";
+	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
 	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
 	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";

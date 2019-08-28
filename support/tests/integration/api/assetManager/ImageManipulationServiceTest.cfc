@@ -6,22 +6,20 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockNativeImageImplementation = getMockBox().createMock( "preside.system.services.assetManager.NativeImageService" );
 		mockImageMagickImplementation = getMockBox().createMock("preside.system.services.assetManager.imageMagickService");
-		mockImageManipulationService  = getMockBox().createMock("preside.system.services.assetManager.imageManipulationService");
+		imageManipulationService  = getMockBox().createMock("preside.system.services.assetManager.imageManipulationService");
 
 		mockImageMagickImplementation.init("",30);
 
-		mockImageManipulationService.$( "$getPresideCategorySettings", {
+		imageManipulationService.$( "$getPresideCategorySettings", {
 			  retrieve_metadata     = false
 			, use_imagemagick       = false
 			, imagemagick_path      = ""
 			, imagemagick_timeout   = 30
 			, imagemagick_interlace = false
 		} );
-		mockImageManipulationService.$( "$getPresideSetting" ).$args( "asset-manager", "use_imagemagick" ).$results( false );
+		imageManipulationService.$( "$getPresideSetting" ).$args( "asset-manager", "use_imagemagick" ).$results( false );
 
-		transformer = new preside.system.services.assetManager.AssetTransformer(
-			imageManipulationService = mockImageManipulationService.init( mockNativeImageImplementation,mockImageMagickImplementation )
-		);
+		imageManipulationService = imageManipulationService.init( mockNativeImageImplementation,mockImageMagickImplementation );
 	}
 
 // TESTS
@@ -30,7 +28,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testfile.txt" );
 
 		try {
-			transformer.resize(
+			imageManipulationService.resize(
 				  asset     = assetBinary
 				, width     = 100
 				, height    = 100
@@ -47,7 +45,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test02_resize_shouldReturnResizedBinaryImage_withSpecifiedWidth_whenNoHeightSpecified() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
-		var resized     = transformer.resize(
+		var resized     = imageManipulationService.resize(
 			  asset     = assetBinary
 			, width     = 100
 			, filename  = "testlandscape.jpg"
@@ -60,7 +58,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test03_resize_shouldReturnResizedBinaryImage_withSpecifiedHeight_whenNoWidthSpecified() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
-		var resized     = transformer.resize(
+		var resized     = imageManipulationService.resize(
 			  asset     = assetBinary
 			, height    = 200
 			, filename  = "testlandscape.jpg"
@@ -73,7 +71,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test04_resize_shouldReturnResizedBinaryImage_withSpecifiedHeightAndWidth() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
-		var resized     = transformer.resize(
+		var resized     = imageManipulationService.resize(
 			  asset     = assetBinary
 			, height    = 200
 			, width     = 300
@@ -87,7 +85,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test05_resize_shouldReturnCroppedAndResizedBinaryImage_whenPassedHeightAndWidthThatDoNotMatchAspectRatio_andWhenMaintainAspectRatioIsSetToTrue() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
-		var resized     = transformer.resize(
+		var resized     = imageManipulationService.resize(
 			  asset               = assetBinary
 			, height              = 400
 			, width               = 400
@@ -103,7 +101,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test06_shrinkToFit_shouldLeaveImageUntouched_whenImageAlreadySmallerThanDimensionsPassed() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
-		var resized     = transformer.shrinkToFit(
+		var resized     = imageManipulationService.shrinkToFit(
 			  asset     = assetBinary
 			, height    = imgInfo.height + 1
 			, width     = imgInfo.width + 1
@@ -117,7 +115,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test07_shrinkToFit_shouldScaleImageDownByXAxis_whenOnlyWidthIsLargerThanPassedDimensions() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
-		var resized     = transformer.shrinkToFit(
+		var resized     = imageManipulationService.shrinkToFit(
 			  asset     = assetBinary
 			, height    = imgInfo.height + 10
 			, width     = imgInfo.width - 10
@@ -132,7 +130,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test08_shrinkToFit_shouldScaleImageDownByYAxis_whenOnlyHeightIsLargerThanPassedDimensions() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
-		var resized     = transformer.shrinkToFit(
+		var resized     = imageManipulationService.shrinkToFit(
 			  asset     = assetBinary
 			, height    = imgInfo.height - 10
 			, width     = imgInfo.width + 10
@@ -147,7 +145,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test09_shrinkToFit_shouldScaleImageDownByYAxis_whenBothHeightAndWidthAreLargerThanPassedDimensions_andHeightTransformationWouldReduceWidthToWithinMaxWidth() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
-		var resized     = transformer.shrinkToFit(
+		var resized     = imageManipulationService.shrinkToFit(
 			  asset     = assetBinary
 			, height    = 100
 			, width     = 100
@@ -162,7 +160,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test10_shrinkToFit_shouldScaleImageDownByXAxis_whenBothHeightAndWidthAreLargerThanPassedDimensions_andWidthTransformationWouldReduceHeightToWithinMaxHeight() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
-		var resized     = transformer.shrinkToFit(
+		var resized     = imageManipulationService.shrinkToFit(
 			  asset     = assetBinary
 			, height    = 400
 			, width     = 400

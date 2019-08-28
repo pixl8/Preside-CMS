@@ -1,9 +1,10 @@
 <cfscript>
-	assetId      = rc.asset         ?: "";
-	asset        = prc.asset        ?: StructNew();
-	assetType    = prc.assetType    ?: QueryNew( "" );
-	versions     = prc.versions     ?: QueryNew( "" );
-	isImageAsset = prc.isImageAsset ?: false;
+	assetId      = rc.asset                  ?: "";
+	asset        = prc.asset                 ?: StructNew();
+	assetType    = prc.assetType             ?: QueryNew( "" );
+	versions     = prc.versions              ?: QueryNew( "" );
+	isImageAsset = prc.isImageAsset          ?: false;
+	failedQueue  = prc.latestFailedQueueItem ?: QueryNew( '' );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -70,6 +71,30 @@
 			)#
 		</form>
 	</div>
+
+	<cfif failedQueue.recordCount>
+		<div class="alert alert-danger">
+			<p><i class="fa fa-fw fa-exclamation-triangle"></i>
+				#translateResource( "cms:assetmanager.generated.asset.errors" )#
+			</p>
+			<p>
+				<a href="#event.buildAdminLink( linkto="assetmanager.dismissQueueErrorsAction", queryString="id=#assetId#" )#" class="btn btn-warning">
+					<i class="fa fa-fw fa-refresh"></i>
+					#translateResource( "cms:assetmanager.generated.asset.dismiss.errors" )#
+				</a>
+				<a href="##full-error-detail" data-toggle="collapse">
+					<i class="fa fa-fw fa-caret-right"></i>
+					#translateResource( "cms:assetmanager.generated.asset.show.errors" )#
+				</a>
+			</p>
+			<br>
+			<div class="collapse" id="full-error-detail">
+				<div class="well">
+					#renderView( view="/general/_errorDetail", args={ error=DeserializeJson( failedQueue.last_error ) } )#
+				</div>
+			</div>
+		</div>
+	</cfif>
 
 	<div class="row">
 		<div class="col-sm-12 col-m-6 col-lg-7">
