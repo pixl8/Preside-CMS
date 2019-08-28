@@ -35,6 +35,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
 
+		event.setXFrameOptionsHeader();
+
 		_announceInterception( "postPresideRequestCapture", interceptData );
 	}
 
