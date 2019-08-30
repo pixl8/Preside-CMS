@@ -566,6 +566,7 @@ component displayName="Forms service" {
 				, ignoreMissing   = arguments.ignoreMissing
 				, fieldNamePrefix = arguments.fieldNamePrefix
 				, fieldNameSuffix = arguments.fieldNameSuffix
+				, suppressFields  = arguments.suppressFields
 			);
 		}
 
@@ -575,6 +576,7 @@ component displayName="Forms service" {
 			, result          = arguments.validationResult
 			, fieldNamePrefix = arguments.fieldNamePrefix
 			, fieldNameSuffix = arguments.fieldNameSuffix
+			, suppressFields  = arguments.suppressFields
 		);
 	}
 
