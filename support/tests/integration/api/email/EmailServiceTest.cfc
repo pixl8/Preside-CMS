@@ -310,6 +310,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockColdBox                = createMock( "preside.system.coldboxModifications.Controller" );
 		mockEmailTemplateService   = createMock( "preside.system.services.email.EmailTemplateService" );
 		mockServiceProviderService = createMock( "preside.system.services.email.EmailServiceProviderService" );
+		
+		mockTemplate = createStub();
+		
+		mockEmailTemplateService.$( "getTemplate" ).$results( mockTemplate );
+		mockEmailTemplateService.$( "$isFeatureEnabled" ).$args( "emailOverwriteDomain" ).$results( false );
+		mockEmailTemplateService.$( "enableDomainOverwriteForBuildLink" );
 
 		var service = createMock( object=new preside.system.services.email.EmailService(
 			  emailTemplateDirectories    = templateDirs
