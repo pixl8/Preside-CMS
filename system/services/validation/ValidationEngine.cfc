@@ -39,6 +39,7 @@ component displayName="Validation Engine" {
 		,          boolean ignoreMissing   = false
 		,          string  fieldNamePrefix = ""
 		,          string  fieldNameSuffix = ""
+		,          array   suppressFields  = []
 	) {
 		var rules       = _getRuleset( arguments.ruleset );
 		var validators  = _getValidators();
@@ -52,7 +53,7 @@ component displayName="Validation Engine" {
 			var expandedFieldName = arguments.fieldNamePrefix & rule.fieldName & arguments.fieldNameSuffix;
 
 
-			if ( arguments.ignoreMissing && !arguments.data.keyExists( rule.fieldName ) ) {
+			if ( ( arguments.ignoreMissing && !StructKeyExists( arguments.data, rule.fieldName ) ) || ( arrayLen( arguments.suppressFields ) && arrayFind( arguments.suppressFields, rule.fieldName ) ) ) {
 				continue;
 			}
 			if ( !result.fieldHasError( rule.fieldName ) && _evaluateConditionalRule( rule, data ) ) {
