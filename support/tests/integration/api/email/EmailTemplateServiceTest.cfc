@@ -1597,6 +1597,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObject" ).$args( "email_blueprint" ).$results( mockBlueprintDao );
 		service.$( "$getPresideObject" ).$args( "email_template_view_online_content" ).$results( mockViewOnlineContentDao );
 		service.$( "$isFeatureEnabled" ).$args( "emailStyleInliner" ).$results( true );
+		service.$( "$isFeatureEnabled" ).$args( "emailOverwriteDomain" ).$results( false );
 		service.$( "$audit" );
 		service.$( "$getRequestContext", mockRequestContext );
 

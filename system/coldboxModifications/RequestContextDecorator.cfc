@@ -29,7 +29,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var protocol  = ( site.protocol ?: getProtocol() );
-		var siteUrl   = protocol & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
+		var domain    = ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
+		
+		if ( overwriteDomainForBuildLink() ) {
+			domain = getOverwriteDomainForBuildLink();
+		}
+		
+		var siteUrl   = protocol & "://" & domain;
 
 		prc.delete( "_forceDomainLookup" );
 
@@ -115,9 +121,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			return this.getSiteUrl( site="", includePath=false, includeLanguageSlug=false );
 		}
 
+		var protocol = getProtocol() & "://";
+		var port     = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
+		
+		if ( overwriteDomainForBuildLink() ) {
+			return protocol & getOverwriteDomainForBuildLink() & port;
+		}
+		
 		var allowedDomains = getController().getSetting( "allowedDomains" );
-		var protocol       = getProtocol() & "://";
-		var port           = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
 
 		if ( IsArray( allowedDomains ) && allowedDomains.len() ) {
 			return protocol & allowedDomains[1] & port;
@@ -140,6 +151,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 
 	public string function getCurrentPresideUrlPath() {
 		return getRequestContext().getValue( name="_presideUrlPath", private=true, defaultValue="/" );
+	}
+	
+	public boolean function overwriteDomainForBuildLink() {
+		return getRequestContext().valueExists( name="_overwriteDomainForBuildLink", private=true );
+	}
+	
+	public string function getOverwriteDomainForBuildLink() {
+		return getRequestContext().getValue( name="_overwriteDomainForBuildLink", defaultValue="", private=true );
+	}
+	
+	public void function setOverwriteDomainForBuildLink( required string domain ) {
+		if ( len( arguments.domain ) ) {
+			getRequestContext().setValue( name="_overwriteDomainForBuildLink", value=arguments.domain, private=true );
+		}
+	}
+	
+	public void function removeOverwriteDomainForBuildLink() {
+		getRequestContext().removeValue( name="_overwriteDomainForBuildLink", private=true );
 	}
 
 // REQUEST DATA
