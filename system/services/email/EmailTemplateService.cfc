@@ -215,6 +215,8 @@ component {
 				, recipientType = messageTemplate.recipient_type
 			);
 		}
+		
+		enableDomainOverwriteForBuildLink( template=messageTemplate );
 
 		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
 		var body          = $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" );
@@ -257,6 +259,8 @@ component {
 		if ( Len( Trim( previewRecipient ) ) ) {
 			_getEmailSendingContextService().clearContext();
 		}
+		
+		disableDomainOverwriteForBuildLink();
 
 		return message;
 	}
@@ -1214,7 +1218,33 @@ component {
 			, forceDeleteAll = !arguments.templateId.len()
 		);
 	}
-
+	
+	public void function enableDomainOverwriteForBuildLink( required struct template ) {
+		if ( !$isFeatureEnabled( "emailOverwriteDomain" ) ) {
+			return;
+		}
+		
+		if ( len( arguments.template.id ?: "" ) && len( arguments.template.layout ?: "" ) && len( arguments.template.email_blueprint ?: "" ) ) {
+			var layoutConfig = _getEmailLayoutService().getLayoutConfig(
+				  layout        = arguments.template.layout
+	            , emailTemplate = arguments.template.id
+	            , blueprint     = arguments.template.email_blueprint
+	            , merged        = true
+			);
+			
+			if ( len( layoutConfig.overwrite_domain ?: "" ) ) {
+				$getRequestContext().setOverwriteDomainForBuildLink( domain=layoutConfig.overwrite_domain );
+			}
+		}
+	}
+	
+	public void function disableDomainOverwriteForBuildLink() {
+		if ( !$isFeatureEnabled( "emailOverwriteDomain" ) ) {
+			return;
+		}
+		
+		$getRequestContext().removeOverwriteDomainForBuildLink();
+	}
 
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
