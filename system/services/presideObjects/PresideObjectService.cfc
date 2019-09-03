@@ -205,7 +205,7 @@ component displayName="Preside Object Service" {
 			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
 		}
 
-		args.extraFilters.append( _expandSavedFilters( argumentCollection=arguments ), true );
+		args.extraFilters.append( _expandSavedFilters( argumentCollection=args ), true );
 
 		if ( args.useCache ) {
 			args.cachekey = _getCacheKey( argumentCollection=args );
@@ -3074,7 +3074,7 @@ component displayName="Preside Object Service" {
 		return expanded;
 	}
 
-	private void function _addDefaultFilters( required struct args ){
+	private struct function _addDefaultFilters( required struct args ){
 		var defaultFilters = ListToArray( getObjectAttribute( args.objectName, "defaultFilters", "" ) );
 
 		if( ArrayLen( defaultFilters ) ){
@@ -3085,9 +3085,11 @@ component displayName="Preside Object Service" {
 		}
 
 		if ( ArrayLen( defaultFilters ) ) {
-			args.extraFilters = args.extraFilters ?: [];
-			ArrayAppend( args.extraFilters, defaultFilters, true );
+			args.savedFilters = args.savedFilters ?: [];
+			ArrayAppend( args.savedFilters, defaultFilters, true );
 		}
+
+		return args;
 	}
 
 	private struct function _prepareFilter(
