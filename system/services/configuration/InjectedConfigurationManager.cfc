@@ -90,8 +90,8 @@ component {
 
 		for( var line in lines ) {
 			if ( ListLen( line, "=" ) > 1 ) {
-				key = Trim( ListFirst( line ) );
-				value = Trim( ListRest( line ) );
+				key = Trim( ListFirst( line, "=" ) );
+				value = Trim( ListRest( line, "=" ) );
 
 				if ( key.len() ) {
 					config[ key ] = value;
@@ -117,7 +117,7 @@ component {
 	}
 
 	private string function _getEnvFilePath() {
-		return _getAppDirectory() & "/.env";
+		return _getAppDirectory() & "/../.env";
 	}
 
 	private string function _getOldSchoolInjectedConfigFilePath() {
