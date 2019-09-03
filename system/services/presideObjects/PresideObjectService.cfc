@@ -2952,20 +2952,19 @@ component displayName="Preside Object Service" {
 	}
 
 	private array function _getDefaultFilters( required string objectName, required array ignoreDefaultFilters ){
-		var adminRequest = $getRequestContext().isAdminRequest();
+
 		var defaultFilters = [];
 
-		if ( !adminRequest ){
-			defaultFilters.append( listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) ), true );
+		defaultFilters.append( listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) ), true );
 
-			if( !defaultFilters.isEmpty() ){
-				if( !arguments.ignoreDefaultFilters.isEmpty() ){
-					arguments.ignoreDefaultFilters.each( function(element){
-						defaultFilters.delete(element);
-					});
-				}
+		if( !defaultFilters.isEmpty() ){
+			if( !arguments.ignoreDefaultFilters.isEmpty() ){
+				arguments.ignoreDefaultFilters.each( function(element){
+					defaultFilters.delete(element);
+				});
 			}
 		}
+
 
 		return defaultFilters;
 	}
