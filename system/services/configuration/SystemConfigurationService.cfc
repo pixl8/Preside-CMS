@@ -12,7 +12,7 @@ component displayName="System configuration service" {
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @dao.inject                     presidecms:object:system_config
-	 * @injectedConfig.inject          coldbox:setting:injectedConfig
+	 * @env.inject                     coldbox:setting:env
 	 * @formsService.inject            delayedInjector:formsService
 	 * @siteService.inject             delayedInjector:siteService
 	 * @settingsCache.inject           cachebox:PresideSystemSettingsCache
@@ -20,14 +20,14 @@ component displayName="System configuration service" {
 	public any function init(
 		  required array  autoDiscoverDirectories
 		, required any    dao
-		, required struct injectedConfig
+		, required struct env
 		, required any    formsService
 		, required any    siteService
 		, required any    settingsCache
 	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao );
-		_setInjectedConfig( arguments.injectedConfig );
+		_setEnv( arguments.env );
 		_setFormsService( arguments.formsService );
 		_setSiteService( arguments.siteService );
 		_setSettingsCache( arguments.settingsCache );
@@ -58,7 +58,7 @@ component displayName="System configuration service" {
 			return fromCache;
 		}
 
-		var injected   = _getInjectedConfig();
+		var injected   = _getEnv();
 		var result     = _getDao().selectData(
 			  selectFields = [ "value" ]
 			, filter       = { category = arguments.category, setting = arguments.setting, site=activeSite }
@@ -138,7 +138,7 @@ component displayName="System configuration service" {
 				}
 			}
 
-			var injected = _getInjectedConfig().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
+			var injected = _getEnv().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
 			for( var key in injected ) {
 				var setting = ListRest( key, "." );
 
@@ -388,11 +388,11 @@ component displayName="System configuration service" {
 		_configCategories = arguments.configCategories;
 	}
 
-	private struct function _getInjectedConfig() {
+	private struct function _getEnv() {
 		return _injectedConfig;
 	}
-	private void function _setInjectedConfig( required struct injectedConfig ) {
-		_injectedConfig = arguments.injectedConfig;
+	private void function _setEnv( required struct env ) {
+		_injectedConfig = arguments.env;
 	}
 
 	private struct function _getFormsService() {
