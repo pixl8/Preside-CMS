@@ -193,8 +193,9 @@ component displayName="Preside Object Service" {
 		,          boolean distinct                = false
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
+		,          array   ignoreDefaultFilters    = []
 	) autodoc=true {
-		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
+		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
@@ -3071,6 +3072,22 @@ component displayName="Preside Object Service" {
 		}
 
 		return expanded;
+	}
+
+	private void function _addDefaultFilters( required struct args ){
+		var defaultFilters = ListToArray( getObjectAttribute( args.objectName, "defaultFilters", "" ) );
+
+		if( ArrayLen( defaultFilters ) ){
+			var ignoreFilters = args.ignoreDefaultFilters ?: [];
+			for( var filter in ignoreFilters ) {
+				ArrayDelete( defaultFilters, filter );
+			}
+		}
+
+		if ( ArrayLen( defaultFilters ) ) {
+			args.extraFilters = args.extraFilters ?: [];
+			ArrayAppend( args.extraFilters, defaultFilters, true );
+		}
 	}
 
 	private struct function _prepareFilter(
