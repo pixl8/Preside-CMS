@@ -190,7 +190,11 @@ component displayName="Preside Object Service" {
 		,          boolean distinct                = false
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
+		,          array   ignoreDefaultFilters    = []
 	) autodoc=true {
+
+		arguments.savedFilters.append( _getDefaultFilters( arguments.objectName, arguments.ignoreDefaultFilters ), true );
+
 		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
@@ -2972,6 +2976,24 @@ component displayName="Preside Object Service" {
 		}
 
 		return expanded;
+	}
+
+	private array function _getDefaultFilters( required string objectName, required array ignoreDefaultFilters ){
+
+		var defaultFilters = [];
+
+		defaultFilters.append( listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) ), true );
+
+		if( !defaultFilters.isEmpty() ){
+			if( !arguments.ignoreDefaultFilters.isEmpty() ){
+				arguments.ignoreDefaultFilters.each( function(element){
+					defaultFilters.delete(element);
+				});
+			}
+		}
+
+
+		return defaultFilters;
 	}
 
 	private struct function _prepareFilter(
