@@ -192,10 +192,7 @@ component displayName="Preside Object Service" {
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
 	) autodoc=true {
-
-		arguments.savedFilters.append( _getDefaultFilters( arguments.objectName, arguments.ignoreDefaultFilters ), true );
-
-		var args = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
+		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
@@ -2978,22 +2975,20 @@ component displayName="Preside Object Service" {
 		return expanded;
 	}
 
-	private array function _getDefaultFilters( required string objectName, required array ignoreDefaultFilters ){
+	private void function _addDefaultFilters( required struct args ){
+		var defaultFilters = ListToArray( getObjectAttribute( args.objectName, "defaultFilters", "" ) );
 
-		var defaultFilters = [];
-
-		defaultFilters.append( listToArray( getObjectAttribute( arguments.objectName, "defaultFilters", "" ) ), true );
-
-		if( !defaultFilters.isEmpty() ){
-			if( !arguments.ignoreDefaultFilters.isEmpty() ){
-				arguments.ignoreDefaultFilters.each( function(element){
-					defaultFilters.delete(element);
-				});
+		if( ArrayLen( defaultFilters ) ){
+			var ignoreFilters = args.ignoreDefaultFilters ?: [];
+			for( var filter in ignoreFilters ) {
+				ArrayDelete( defaultFilters, filter );
 			}
 		}
 
-
-		return defaultFilters;
+		if ( ArrayLen( defaultFilters ) ) {
+			args.extraFilters = args.extraFilters ?: [];
+			ArrayAppend( args.extraFilters, defaultFilters, true );
+		}
 	}
 
 	private struct function _prepareFilter(
