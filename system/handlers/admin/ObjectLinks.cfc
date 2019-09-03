@@ -214,7 +214,7 @@ component {
 
 
 		for( var arg in additionalArgs ) {
-			if ( args.keyExists( arg ) ) {
+			if ( StructKeyExists( args, arg ) ) {
 				qs &= "&#arg#=#args[ arg ]#";
 			}
 		}

@@ -67,7 +67,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editFolder( required string id, required struct data ) {
-		if ( arguments.data.keyExists( "parent_folder" ) && not Len( Trim( arguments.data.parent_folder ) ) ) {
+		if ( StructKeyExists( arguments.data, "parent_folder" ) && not Len( Trim( arguments.data.parent_folder ) ) ) {
 			arguments.data.parent_folder = getRootFolderId();
 		}
 
@@ -78,7 +78,7 @@ component displayName="AssetManager Service" {
 			, updateManyToManyRecords = true
 		);
 
-		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
+		if ( StructKeyExists( data, "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
 			$createTask(
 				  event             = "admin.AssetManager._editAssetLocationInBackgroundThread"
 				, args              = { id = arguments.id }
@@ -159,7 +159,7 @@ component displayName="AssetManager Service" {
 
 		for( var folder in getFolderAncestors( arguments.id ) ) {
 			for( var setting in arguments.settings ) {
-				if ( !collectedSettings.keyExists( setting ) && Len( Trim( folder[ setting ] ?: "" ) ) ) {
+				if ( !StructKeyExists( collectedSettings, setting ) && Len( Trim( folder[ setting ] ?: "" ) ) ) {
 					collectedSettings[ setting ] = folder[ setting ];
 					if ( StructCount( collectedSettings ) == arguments.settings.len() ) {
 						return collectedSettings;
@@ -450,7 +450,7 @@ component displayName="AssetManager Service" {
 		var types    = _getTypes();
 
 		for( var typeName in arguments.types ){
-			if ( types.keyExists( typeName ) ) {
+			if ( StructKeyExists( types, typeName ) ) {
 				expanded.append( typeName );
 			} else {
 				for( var typeName in listTypesForGroup( typeName ) ){
@@ -808,10 +808,10 @@ component displayName="AssetManager Service" {
 		var updateData  = {};
 
 		if ( len( asset.active_version ) ) {
-			if ( data.keyExists( "focal_point") ) {
+			if ( StructKeyExists( data, "focal_point") ) {
 				updateData.focal_point=data.focal_point;
 			}
-			if ( data.keyExists( "crop_hint") ) {
+			if ( StructKeyExists( data, "crop_hint") ) {
 				updateData.crop_hint=data.crop_hint;
 			}
 			if ( !updateData.isEmpty() ) {
@@ -819,7 +819,7 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
+		if ( StructKeyExists( data, "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
 			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
 		}
 
@@ -1540,7 +1540,7 @@ component displayName="AssetManager Service" {
 		var publicDerivatives = [];
 
 		for( var derivative in derivatives ) {
-			if ( derivatives[ derivative ].keyExists( "inEditor" ) ) {
+			if ( StructKeyExists( derivatives[ derivative ], "inEditor" ) ) {
 				if( IsBoolean( derivatives[ derivative ].inEditor ?: "" ) && derivatives[ derivative ].inEditor ){
 				    publicDerivatives.append( derivative );
 			   	}
@@ -1559,8 +1559,8 @@ component displayName="AssetManager Service" {
 	public string function getDerivativeConfigSignature( required string derivative ) {
 		var derivatives = _getConfiguredDerivatives();
 
-		if ( derivatives.keyExists( arguments.derivative ) ) {
-			if ( !derivatives[ arguments.derivative ].keyExists( "signature" ) ) {
+		if ( StructKeyExists( derivatives, arguments.derivative ) ) {
+			if ( !StructKeyExists( derivatives[ arguments.derivative ], "signature" ) ) {
 				derivatives[ arguments.derivative ].signature = LCase( Hash( SerializeJson( derivatives[ arguments.derivative ] ) ) );
 			}
 
@@ -1983,7 +1983,7 @@ component displayName="AssetManager Service" {
 				  asset         = arguments.assetId
 				, asset_version = arguments.versionId
 				, key           = key
-				, value         = arguments.metaData[ key ]
+				, value         = isSimpleValue( arguments.metaData[ key ] ) ? arguments.metaData[ key ] : serializeJson( arguments.metaData[ key ] )
 			} );
 		}
 	}

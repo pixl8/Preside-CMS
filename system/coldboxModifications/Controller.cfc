@@ -21,7 +21,7 @@ component extends="coldbox.system.web.Controller" {
 
 	public boolean function handlerExists( required string event ) {
 		variables._handlerExistsCache = variables._handlerExistsCache ?: {};
-		if ( variables._handlerExistsCache.keyExists( arguments.event ) ) {
+		if ( StructKeyExists( variables._handlerExistsCache, arguments.event ) ) {
 			return variables._handlerExistsCache[ arguments.event ];
 		}
 
@@ -63,7 +63,7 @@ component extends="coldbox.system.web.Controller" {
 
 	public boolean function viewExists( required string view ) {
 		variables._viewExistsCache = variables._viewExistsCache ?: {};
-		if ( variables._viewExistsCache.keyExists( arguments.view ) ) {
+		if ( StructKeyExists( variables._viewExistsCache, arguments.view ) ) {
 			return variables._viewExistsCache[ arguments.view ];
 		}
 
@@ -157,7 +157,7 @@ component extends="coldbox.system.web.Controller" {
 	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) {
 		var target = arguments.fwSetting ? variables.coldboxSettings : variables.configSettings;
 
-		if ( target.keyExists( arguments.name ) ) {
+		if ( StructKeyExists( target, arguments.name ) ) {
 			return target[ arguments.name ];
 		}
 
@@ -192,7 +192,7 @@ component extends="coldbox.system.web.Controller" {
 	}
 
 	private any function _getDelayedViewletRendererService() {
-		if ( !variables.keyExists( "_delayedViewletRendererService" ) ) {
+		if ( !StructKeyExists( variables, "_delayedViewletRendererService" ) ) {
 			variables._delayedViewletRendererService = wireBox.getInstance( "delayedViewletRendererService" );
 		}
 
@@ -201,5 +201,18 @@ component extends="coldbox.system.web.Controller" {
 
 	private boolean function _isAdminLoggedIn() {
 		return wireBox.getInstance( "loginService" ).isLoggedIn();
+	}
+
+	private function invoker(
+		  required any     target
+		, required string  method
+		,          struct  argCollection = {}
+		,          boolean private       = false
+	){
+		if ( arguments.private ) {
+			return arguments.target._privateInvoker( method=arguments.method, argCollection=arguments.argCollection );
+		} else {
+			return arguments.target[ arguments.method ]( argumentCollection=arguments.argCollection );
+		}
 	}
 }

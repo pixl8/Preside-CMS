@@ -16,6 +16,7 @@ component extends="coldbox.system.Interceptor" {
 			if ( !IsNull( local.cached ) ) {
 				event.restoreCachedData( cached.data ?: {} );
 				event.checkPageAccess();
+				event.setXFrameOptionsHeader();
 				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
 				var contentType      = cached.contentType ?: "";
 				content reset=true;

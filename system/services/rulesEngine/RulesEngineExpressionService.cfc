@@ -277,6 +277,10 @@ component displayName="RulesEngine Expression Service" {
 		eventArgs.append( expression.expressionHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
+		if ( Len( Trim( eventArgs.parentPropertyName ?: "" ) ) ) {
+			eventArgs.filterPrefix = ListAppend( eventArgs.filterPrefix ?: "", eventArgs.parentPropertyName, "$" );
+		}
+
 		var result = $getColdbox().runEvent(
 			  event          = handlerAction
 			, private        = true
@@ -403,7 +407,7 @@ component displayName="RulesEngine Expression Service" {
 		var processed        = {};
 
 		for( var fieldName in configuredFields ) {
-			if ( expressionFields.keyExists( fieldName ) ) {
+			if ( StructKeyExists( expressionFields, fieldName ) ) {
 				configuredFields[ fieldName ] = fieldTypeService.prepareConfiguredFieldData(
 					  fieldType          = expressionFields[ fieldName ].fieldType
 					, fieldConfiguration = expressionFields[ fieldName ]
@@ -436,7 +440,7 @@ component displayName="RulesEngine Expression Service" {
 		var expressions = _getExpressions();
 
 
-		if ( expressions.keyExists( arguments.id ) ) {
+		if ( StructKeyExists( expressions, arguments.id ) ) {
 			expressions[ arguments.id ].contexts.append( arguments.contexts, true );
 			expressions[ arguments.id ].filterObjects.append( arguments.filterObjects, true );
 		} else {
@@ -484,7 +488,7 @@ component displayName="RulesEngine Expression Service" {
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();
 
-		if ( expressions.keyExists( arguments.expressionId ) ) {
+		if ( StructKeyExists( expressions, arguments.expressionId ) ) {
 			return expressions[ arguments.expressionId ];
 		}
 
@@ -512,7 +516,7 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		for( var objectName in objects ) {
-			if ( !variables._lazyLoadDone.keyExists( objectName ) ) {
+			if ( !StructKeyExists( variables._lazyLoadDone, objectName ) ) {
 				var expressions = _getAutoExpressionGenerator().getAutoExpressionsForObject( objectName );
 				if ( expressions.len() ) {
 					contextService.addContext( id="presideobject_" & objectName, object=objectName, visible=false );

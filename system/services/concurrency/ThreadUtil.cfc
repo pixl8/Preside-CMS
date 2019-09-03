@@ -40,15 +40,14 @@ component {
 	}
 
 	/**
-	 * Sets some sensible defaults for background threads. Sets
-	 * cfoutputonly to true, turns off debug output and sets
-	 * the request timeout to 100 years.
+	 * Sets some sensible defaults for background threads. Turns
+	 * off debug output and sets the request timeout to 100 years.
 	 *
 	 * @autodoc true
 	 *
 	 */
 	public void function setThreadRequestDefaults() {
-		setting enablecfoutputonly=true showdebugoutput=false requesttimeout=oneHundredYears;
+		setting showdebugoutput=false requesttimeout=oneHundredYears;
 	}
 
 	/**
@@ -112,7 +111,7 @@ component {
 	public void function shutdownThread( any thethread=getCurrentThread(), numeric interruptWait=10000, any logger ) {
 		var maxAttempts = arguments.interruptWait / 200;
 		var attempt     = 0;
-		var canLog      = arguments.keyExists( "logger" );
+		var canLog      = StructKeyExists( arguments, "logger" );
 		var canWarn     = canLog && logger.canWarn();
 		var canError    = canLog && logger.canError();
 		var threadName  = arguments.theThread.getName();

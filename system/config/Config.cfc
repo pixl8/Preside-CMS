@@ -108,6 +108,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                       );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"                      );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                       );
+		interceptorSettings.customInterceptionPoints.append( "postReadRestResourceDirectories"       );
 		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                         );
 		interceptorSettings.customInterceptionPoints.append( "onRestError"                           );
 		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"                 );
@@ -129,6 +130,9 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preRoutePresideSESRequest"             );
 		interceptorSettings.customInterceptionPoints.append( "postRoutePresideSESRequest"            );
 		interceptorSettings.customInterceptionPoints.append( "onGetEmailContextPayload"              );
+		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
+		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
+		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -308,12 +312,17 @@ component {
 
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets   = [ "/css/admin/specific/richeditor/" ]
-				, width         = "auto"
-				, minHeight     = 0
-				, maxHeight     = 300
-				, autoParagraph = false
-				, configFile    = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
+				  stylesheets           = [ "/css/admin/specific/richeditor/" ]
+				, width                 = "auto"
+				, minHeight             = 0
+				, maxHeight             = 300
+				, autoParagraph         = false
+				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
+				, pasteFromWordDisallow = [
+					  "span"  // Strip all span elements
+					, "*(*)"  // Strip all classes
+					, "*{*}"  // Strip all inline-styles
+				  ]
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		};

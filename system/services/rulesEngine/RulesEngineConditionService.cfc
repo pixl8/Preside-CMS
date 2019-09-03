@@ -210,7 +210,7 @@ component displayName="RulesEngine Condition Service" {
 						return false;
 					}
 				} else if ( IsStruct( item ) ) {
-					if ( !item.keyExists( "expression" ) || !item.keyExists( "fields" ) ) {
+					if ( !StructKeyExists( item, "expression" ) || !StructKeyExists( item, "fields" ) ) {
 						return _malformedError( arguments.validationResult );
 					}
 					isValid = _getExpressionService().isExpressionValid(

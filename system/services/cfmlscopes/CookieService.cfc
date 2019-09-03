@@ -57,7 +57,7 @@ component {
 			return cookieValue;
 		}
 
-		if ( arguments.keyExists( "default" ) ) {
+		if ( StructKeyExists( arguments, "default" ) ) {
 			return arguments.default;
 		}
 
@@ -83,7 +83,7 @@ component {
 	}
 
 	public boolean function exists( required string name ) {
-		return cookie.keyExists( UCase( arguments.name ) );
+		return StructKeyExists( cookie, UCase( arguments.name ) );
 	}
 
 // PRIVATE HELPERS

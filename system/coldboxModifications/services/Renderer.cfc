@@ -549,7 +549,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var layoutPath       = "";
 		var moduleLayoutPath = "";
 
-		if ( len( moduleName ) && variables.modulesConfig.keyExists( moduleName ) ){
+		if ( len( moduleName ) && StructKeyExists( variables.modulesConfig, moduleName ) ){
 			moduleLayoutPath = "#variables.modulesConfig[moduleName].mapping#/#layoutsConvention#/#arguments.layout#";
 			if ( FileExists( ExpandPath( moduleLayoutPath ) ) ) {
 				return moduleLayoutPath;
@@ -592,7 +592,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		parentModuleLayoutPath 	= "/#variables.appMapping#/#variables.layoutsConvention#/modules/#moduleName#/#arguments.layout#";
 		parentCommonLayoutPath 	= "/#variables.appMapping#/#variables.layoutsConvention#/modules/#arguments.layout#";
 
-		if ( variables.modulesConfig.keyExists( moduleName ) ) {
+		if ( StructKeyExists( variables.modulesConfig, moduleName ) ) {
 			moduleLayoutPath = "#variables.modulesConfig[ moduleName ].mapping#/#variables.modulesConfig[ moduleName ].conventions.layoutsLocation#/#arguments.layout#";
 
 			// Check parent view order setup
@@ -668,7 +668,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		parentModuleViewPath = "/#variables.appMapping#/#variables.viewsConvention#/modules/#moduleName#/#arguments.view#";
 		parentCommonViewPath = "/#variables.appMapping#/#variables.viewsConvention#/modules/#arguments.view#";
 
-		if ( variables.modulesConfig.keyExists( moduleName ) ) {
+		if ( StructKeyExists( variables.modulesConfig, moduleName ) ) {
 			moduleViewPath = "#variables.modulesConfig[ moduleName ].mapping#/#variables.modulesConfig[ moduleName ].conventions.viewsLocation#/#arguments.view#";
 
 			// Check parent view order setup

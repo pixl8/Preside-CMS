@@ -35,6 +35,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
 
+		event.setXFrameOptionsHeader();
+
 		_announceInterception( "postPresideRequestCapture", interceptData );
 	}
 
@@ -288,7 +290,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	private array function _getPresideRoutes() {
-		if ( !variables.keyExists( "_presideRoutes" ) ) {
+		if ( !StructKeyExists( variables, "_presideRoutes" ) ) {
 			var presideRoutes = controller.getSetting( "presideRoutes" );
 			if ( IsArray( presideRoutes ) && presideRoutes.len() ) {
 				variables._presideRoutes = presideRoutes;

@@ -20,7 +20,7 @@ component {
 	public any function getAdapter( required string dsn ) {
 		var adapters = _getAdapters();
 
-		if ( !adapters.keyExists( arguments.dsn ) ) {
+		if ( !StructKeyExists( adapters, arguments.dsn ) ) {
 			var dbInfo = _getDbInfo( dsn = arguments.dsn );
 
 			switch( dbInfo.database_productname ) {
@@ -30,7 +30,7 @@ component {
 				case "Microsoft SQL Server": {
 
 					var majorVersion = listFirst( dbInfo.database_version, "." );
-					
+
 					// SQL Server Versions
 					// 2008 = 10
 					// 2012 = 11
@@ -48,7 +48,7 @@ component {
 				case "PostgreSQL":
 					adapters[ arguments.dsn ] = new PostgreSqlAdapter();
 				break;
-				
+
 
 				default:
 					throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbInfo.database_productname#], is not supported by the PresideObjects engine at this time" );

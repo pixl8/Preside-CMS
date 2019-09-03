@@ -21,7 +21,7 @@ component extends="coldbox.system.web.services.InterceptorService" {
 	}
 
 	public any function registerInterceptor( string interceptorClass ) {
-		if ( arguments.keyExists( "interceptorClass" ) ) {
+		if ( StructKeyExists( arguments, "interceptorClass" ) ) {
 			_currentRegisteringInterceptor = arguments.interceptorClass;
 		}
 
