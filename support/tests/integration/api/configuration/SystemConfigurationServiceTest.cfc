@@ -295,7 +295,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		return new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
-			, injectedConfig          = arguments.injectedConfig
+			, env                     = arguments.injectedConfig
 			, formsService            = mockFormsService
 			, siteService             = mockSiteService
 		);
