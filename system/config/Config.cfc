@@ -178,10 +178,10 @@ component {
 		settings.serverErrorLayout           = "Main";
 		settings.serverErrorViewlet          = "errors.serverError";
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
-		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
+		settings.env                         = settings.injectedConfig = Duplicate( application.env ?: {} );
 		settings.notificationTopics          = [];
-		settings.syncDb                      = IsBoolean( settings.injectedConfig.syncDb ?: ""  ) ? settings.injectedConfig.syncDb : true;
-		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
+		settings.syncDb                      = IsBoolean( settings.env.syncDb ?: ""  ) ? settings.env.syncDb : true;
+		settings.autoSyncDb                  = IsBoolean( settings.env.autoSyncDb ?: ""  ) && settings.env.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.devConsoleToggleKeyCode     = 96;
@@ -189,8 +189,8 @@ component {
 		settings.showNonLiveContentByDefault = true;
 		settings.coldboxVersion              = _calculateColdboxVersion();
 
-		settings.forceSsl       = IsBoolean( settings.injectedConfig.forceSsl ?: "" ) && settings.injectedConfig.forceSsl;
-		settings.allowedDomains = ListToArray( LCase( settings.injectedConfig.allowedDomains  ?: "" ) );
+		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
+		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -239,10 +239,10 @@ component {
 			, derivatives = _getConfiguredAssetDerivatives()
 			, folders     = {}
 			, storage     = {
-				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
-				, private   = ( settings.injectedConfig[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
-				, trash     = ( settings.injectedConfig[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
-				, publicUrl = ( settings.injectedConfig[ "assetmanager.storage.publicUrl" ] ?: "" )
+				  public    = ( settings.env[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
+				, private   = ( settings.env[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
+				, trash     = ( settings.env[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
+				, publicUrl = ( settings.env[ "assetmanager.storage.publicUrl" ] ?: "" )
 			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );

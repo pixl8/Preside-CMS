@@ -237,10 +237,10 @@ component {
 	}
 
 	private void function _fetchInjectedSettings() {
-		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, configurationDirectory="#COLDBOX_APP_MAPPING#/config" );
+		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, appDirectory=COLDBOX_APP_MAPPING );
 		var config          = settingsManager.getConfig();
 
-		application.injectedConfig = config;
+		application.env = application.injectedConfig = config;
 	}
 
 	private void function _setupInjectedDatasource() {
@@ -312,8 +312,8 @@ component {
 
 	private boolean function _showErrors() {
 		var coldboxController = _getColdboxController();
-		var injectedExists    = IsBoolean( application.injectedConfig.showErrors ?: "" );
-		var nonColdboxDefault = injectedExists && application.injectedConfig.showErrors;
+		var injectedExists    = IsBoolean( application.env.showErrors ?: "" );
+		var nonColdboxDefault = injectedExists && application.env.showErrors;
 
 		if ( !injectedExists ) {
 			var localEnvRegexes = this.LOCAL_ENVIRONMENT_REGEX ?: "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$";

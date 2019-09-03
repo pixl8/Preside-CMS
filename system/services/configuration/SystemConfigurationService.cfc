@@ -11,20 +11,20 @@ component displayName="System configuration service" {
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @dao.inject                     presidecms:object:system_config
-	 * @injectedConfig.inject          coldbox:setting:injectedConfig
+	 * @env.inject                     coldbox:setting:env
 	 * @formsService.inject            delayedInjector:formsService
 	 * @siteService.inject             delayedInjector:siteService
 	 */
 	public any function init(
 		  required array  autoDiscoverDirectories
 		, required any    dao
-		, required struct injectedConfig
+		, required struct env
 		, required any    formsService
 		, required any    siteService
 	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao );
-		_setInjectedConfig( arguments.injectedConfig );
+		_setEnv( arguments.env );
 		_setFormsService( arguments.formsService );
 		_setSiteService( arguments.siteService );
 		_setLoaded( false );
@@ -46,7 +46,7 @@ component displayName="System configuration service" {
 	public string function getSetting( required string category, required string setting, string default="" ) {
 		_reloadCheck();
 
-		var injected   = _getInjectedConfig();
+		var injected   = _getEnv();
 		var activeSite = _getSiteService().getActiveSiteId();
 		var result     = _getDao().selectData(
 			  selectFields = [ "value" ]
@@ -115,7 +115,7 @@ component displayName="System configuration service" {
 				}
 			}
 
-			var injected = _getInjectedConfig().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
+			var injected = _getEnv().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
 			for( var key in injected ) {
 				var setting = ListRest( key, "." );
 
@@ -342,11 +342,11 @@ component displayName="System configuration service" {
 		_configCategories = arguments.configCategories;
 	}
 
-	private struct function _getInjectedConfig() {
+	private struct function _getEnv() {
 		return _injectedConfig;
 	}
-	private void function _setInjectedConfig( required struct injectedConfig ) {
-		_injectedConfig = arguments.injectedConfig;
+	private void function _setEnv( required struct env ) {
+		_injectedConfig = arguments.env;
 	}
 
 	private struct function _getFormsService() {
