@@ -64,11 +64,13 @@ component {
 		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse } );
 
 		if ( !restRequest.getFinished() ) {
-			authenticateRequest(
-				  restRequest    = restRequest
-				, restResponse   = restResponse
-				, requestContext = arguments.requestContext
-			);
+			if ( restRequest.getVerb() != "OPTIONS" ) {
+				authenticateRequest(
+					  restRequest    = restRequest
+					, restResponse   = restResponse
+					, requestContext = arguments.requestContext
+				);
+			}
 
 			if ( !restRequest.getFinished() ) {
 				processRequest(
