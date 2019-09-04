@@ -313,6 +313,9 @@ component displayName="Forms service" {
 		,          string  permissionContext       = ""
 		,          array   permissionContextKeys   = []
 	) {
+		var interceptorArgs = arguments;
+		$announceInterception( "preRenderForm", interceptorArgs );
+
 		var mergedFormName    = Len( Trim( arguments.mergeWithFormName ) ) ? getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
 		var frm               = getForm( argumentCollection=arguments, formName=mergedFormName );
 		var coldbox           = _getColdbox();
@@ -421,7 +424,11 @@ component displayName="Forms service" {
 
 		formArgs.append( frm, false );
 
-		return coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
+		interceptorArgs.rendered = coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
+
+		$announceInterception( "postRenderForm", arguments );
+
+		return interceptorArgs.rendered;
 	}
 
 	/**
