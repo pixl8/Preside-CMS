@@ -125,6 +125,45 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog[1].requestContext.getInstanceIdForComparison() ).toBe( mockRequestContext.getInstanceIdForComparison() );
 			} );
 
+			it( "should authenticate requests", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest();
+				var mockRequestContext = getMockRequestContext();
+
+				restService.$( "createRestResponse", restResponse );
+				restService.$( "createRestRequest" , restRequest  );
+				restService.$( "processRequest"  );
+				restService.$( "processResponse" );
+
+				restService.onRestRequest( "/blah", mockRequestContext );
+
+				var callLog = restService.$callLog().authenticateRequest;
+
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1].restRequest ).toBe( restRequest );
+				expect( callLog[1].restResponse ).toBe( restResponse );
+				expect( callLog[1].requestContext.getInstanceIdForComparison() ).toBe( mockRequestContext.getInstanceIdForComparison() );
+			} );
+
+			it( "should NOT authenticate OPTIONS requests", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( verb="OPTIONS" );
+				var mockRequestContext = getMockRequestContext();
+
+				restService.$( "createRestResponse", restResponse );
+				restService.$( "createRestRequest" , restRequest  );
+				restService.$( "processRequest"  );
+				restService.$( "processResponse" );
+
+				restService.onRestRequest( "/blah", mockRequestContext );
+
+				var callLog = restService.$callLog().authenticateRequest;
+
+				expect( callLog.len() ).toBe( 0 );
+			} );
+
 
 		} );
 
