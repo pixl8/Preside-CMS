@@ -136,6 +136,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
 		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
 		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
+		interceptorSettings.customInterceptionPoints.append( "preDataExportPrepareData"              );
+		interceptorSettings.customInterceptionPoints.append( "postDataExportPrepareData"             );
 		interceptorSettings.customInterceptionPoints.append( "preClearRelatedCaches"                 );
 		interceptorSettings.customInterceptionPoints.append( "postClearRelatedCaches"                );
 		interceptorSettings.customInterceptionPoints.append( "onClearSettingsCache"                  );
