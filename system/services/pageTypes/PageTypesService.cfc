@@ -77,7 +77,8 @@ component singleton=true {
 
 	public boolean function typeIsAllowedBeneathParentType( required string child, required string parent ) {
 		var allowedParentTypes = getPageType( arguments.child ).getAllowedParentTypes();
-		var allowedChildTypes  = getPageType( arguments.parent ).getAllowedChildTypes();
+		var allowedChildTypes  = ListAppend( getPageType( arguments.parent ).getAllowedChildTypes(), getPageType( arguments.parent ).getManagedChildTypes() );
+
 
 		if ( allowedChildTypes == "none" || allowedParentTypes == "none" ) {
 			return false;
