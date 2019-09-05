@@ -77,6 +77,8 @@ component {
 		,          struct  messageHeaders = {}
 		,          boolean isTest         = false
 	) {
+		$announceInterception( "prePrepareEmailMessage", arguments );
+
 		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.isTest );
 		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
@@ -161,13 +163,12 @@ component {
 				message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
 			}
 
-
+			$announceInterception( "postPrepareEmailMessage", { message=message, args=arguments } );
 		} catch( any e ) {
 			rethrow;
 		} finally {
 			_getEmailSendingContextService().clearContext();
 		}
-
 
 		return message;
 	}
@@ -215,7 +216,7 @@ component {
 				, recipientType = messageTemplate.recipient_type
 			);
 		}
-		
+
 		enableDomainOverwriteForBuildLink( template=messageTemplate );
 
 		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
@@ -259,7 +260,7 @@ component {
 		if ( Len( Trim( previewRecipient ) ) ) {
 			_getEmailSendingContextService().clearContext();
 		}
-		
+
 		disableDomainOverwriteForBuildLink();
 
 		return message;
@@ -1218,12 +1219,12 @@ component {
 			, forceDeleteAll = !arguments.templateId.len()
 		);
 	}
-	
+
 	public void function enableDomainOverwriteForBuildLink( required struct template ) {
 		if ( !$isFeatureEnabled( "emailOverwriteDomain" ) ) {
 			return;
 		}
-		
+
 		if ( len( arguments.template.id ?: "" ) && len( arguments.template.layout ?: "" ) && len( arguments.template.email_blueprint ?: "" ) ) {
 			var layoutConfig = _getEmailLayoutService().getLayoutConfig(
 				  layout        = arguments.template.layout
@@ -1231,18 +1232,18 @@ component {
 	            , blueprint     = arguments.template.email_blueprint
 	            , merged        = true
 			);
-			
+
 			if ( len( layoutConfig.overwrite_domain ?: "" ) ) {
 				$getRequestContext().setOverwriteDomainForBuildLink( domain=layoutConfig.overwrite_domain );
 			}
 		}
 	}
-	
+
 	public void function disableDomainOverwriteForBuildLink() {
 		if ( !$isFeatureEnabled( "emailOverwriteDomain" ) ) {
 			return;
 		}
-		
+
 		$getRequestContext().removeOverwriteDomainForBuildLink();
 	}
 

@@ -146,6 +146,10 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onInvalidateRenderedAssetCache"        );
 		interceptorSettings.customInterceptionPoints.append( "preRenderForm"                         );
 		interceptorSettings.customInterceptionPoints.append( "postRenderForm"                        );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailMessage"                );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailMessage"               );
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
+		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()

@@ -103,6 +103,8 @@ component {
 		,          string viewOnlineLink  = ""
 		,          struct templateDetail  = {}
 	) {
+		$announceInterception( "preRenderEmailLayout", arguments );
+
 		var renderType   = arguments.type == "text" ? "text" : "html";
 		var viewletEvent = "email.layout.#arguments.layout#.#renderType#";
 		var viewletArgs  = {};
@@ -122,7 +124,14 @@ component {
 		viewletArgs.append( config, false );
 		viewletArgs.append( arguments.templateDetail, false );
 
-		return $renderViewlet( event=viewletEvent, args=viewletArgs );
+		var interceptorArgs = {
+			  rendered = $renderViewlet( event=viewletEvent, args=viewletArgs )
+			, args     = arguments
+		};
+
+		$announceInterception( "postRenderEmailLayout", interceptorArgs );
+
+		return interceptorArgs.rendered;
 	}
 
 	/**
