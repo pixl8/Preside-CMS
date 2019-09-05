@@ -114,6 +114,8 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		}
 
 		request._cbfwlocale = arguments.locale;
+		StructDelete( request, "_cbFwLanguageCode" );
+		StructDelete( request, "_cbFwCountryCode"  );
 
 		return super.setFwLocale( argumentCollection=arguments );
 	}
@@ -134,6 +136,19 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		}
 
 		return request._cbfwlocale;
+	}
+
+	public string function getFWLanguageCode() {
+		if ( !StructKeyExists( request, "_cbFwLanguageCode" ) ) {
+			request._cbFwLanguageCode = getFWLanguageCode();
+		}
+		return request._cbFwLanguageCode
+	}
+	public string function getFWCountryCode() {
+		if ( !StructKeyExists( request, "_cbFwCountryCode" ) ) {
+			request._cbFwCountryCode = getFWCountryCode();
+		}
+		return request._cbFwCountryCode
 	}
 
 // PRIVATE HEPERS
