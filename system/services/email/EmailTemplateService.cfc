@@ -77,6 +77,8 @@ component {
 		,          struct  messageHeaders = {}
 		,          boolean isTest         = false
 	) {
+		$announceInterception( "prePrepareEmailMessage", arguments );
+
 		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.isTest );
 		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
@@ -165,13 +167,12 @@ component {
 				message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
 			}
 
-
+			$announceInterception( "postPrepareEmailMessage", { message=message, args=arguments } );
 		} catch( any e ) {
 			rethrow;
 		} finally {
 			_getEmailSendingContextService().clearContext();
 		}
-
 
 		return message;
 	}
@@ -1222,7 +1223,6 @@ component {
 			, forceDeleteAll = !arguments.templateId.len()
 		);
 	}
-
 
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
