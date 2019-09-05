@@ -140,13 +140,13 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 	public string function getFWLanguageCode() {
 		if ( !StructKeyExists( request, "_cbFwLanguageCode" ) ) {
-			request._cbFwLanguageCode = getFWLanguageCode();
+			request._cbFwLanguageCode = super.getFWLanguageCode();
 		}
 		return request._cbFwLanguageCode
 	}
 	public string function getFWCountryCode() {
 		if ( !StructKeyExists( request, "_cbFwCountryCode" ) ) {
-			request._cbFwCountryCode = getFWCountryCode();
+			request._cbFwCountryCode = super.getFWCountryCode();
 		}
 		return request._cbFwCountryCode
 	}
