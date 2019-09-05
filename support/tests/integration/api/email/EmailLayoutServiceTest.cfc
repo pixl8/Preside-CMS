@@ -365,6 +365,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		service.$( "$getPresideObject" ).$args( "email_layout_config_item" ).$results( mockConfigDao );
+		service.$( "$announceInterception" );
 
 		return service;
 	}
