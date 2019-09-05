@@ -1634,6 +1634,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$isFeatureEnabled" ).$args( "emailOverwriteDomain" ).$results( false );
 		service.$( "$audit" );
 		service.$( "$getRequestContext", mockRequestContext );
+		service.$( "$announceInterception", mockRequestContext );
 
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
 		mockEmailRecipientTypeService  = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
