@@ -56,6 +56,7 @@ component {
 		var isRequired   = IsBoolean( propertyDefinition.required ?: "" ) && propertyDefinition.required;
 		var propType     = propertyDefinition.type ?: "string";
 		var relationship = propertyDefinition.relationship ?: "";
+		var relatedTo    = propertyDefinition.relatedTo ?: "";
 		var expressions  = [];
 
 		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) ) {
@@ -93,6 +94,12 @@ component {
 				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 
+				if ( relatedTo == "security_user" ) {
+					expressions.append( _createManyToOneMatchesLoggedInAdminUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( relatedTo == "website_user" ) {
+					expressions.append( _createManyToOneMatchesLoggedInWebUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
 				if ( !arguments.parentObjectName.len() ) {
 					if ( IsBoolean( propertyDefinition.autoGenerateFilterExpressions ?: "" ) && propertyDefinition.autoGenerateFilterExpressions ) {
 						expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition.name ), true );
@@ -261,6 +268,36 @@ component {
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
 		expression.textHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+
+		return expression;
+	}
+
+	private struct function _createManyToOneMatchesLoggedInAdminUserExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
+
+		expression.append( {
+			  id                = "presideobject_manytoonematch_loggedinadminuser_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInAdminUser.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInAdminUser.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInAdminUser.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInAdminUser.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createManyToOneMatchesLoggedInWebUserExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
+
+		expression.append( {
+			  id                = "presideobject_manytoonematch_loggedinadminuser_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInWebUser.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInWebUser.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInWebUser.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToOneMatchLoggedInWebUser.getText"
+		} );
 
 		return expression;
 	}

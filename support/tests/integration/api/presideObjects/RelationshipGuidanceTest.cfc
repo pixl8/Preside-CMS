@@ -481,8 +481,35 @@
 
 			guidanceService.setupRelationships( objects );
 			var relationships = guidanceService.getObjectRelationships( "obj_a" );
+
 			super.assertEquals( 1, relationships.len() );
 			super.assertEquals( "obj_bs", relationships.obj_b[1].alias ?: "" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test15_setupRelationships_shouldCatalogOneToManyViewRelationships" returntype="void">
+		<cfscript>
+			var guidanceService = _getGuidanceService();
+			var objects = { obj_a = { meta = {
+				  dsn        = "test"
+				, name       = "some.path.to.obj_a"
+				, tableName  = "pobj_obj_a"
+				, properties = {
+					  id     = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" }
+					, obj_bs = { relationship="none", viewRelationship="one-to-many", relatedTo="testView", relationshipKey="obj_a", required=false }
+				  }
+			} }, obj_b.meta     = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } } };
+
+			mockSelectDataViewService.$( "getViewArgs" ).$args( "testView" ).$results({objectName = "obj_b"});
+
+			guidanceService.setupRelationships( objects );
+
+			var relationships = guidanceService.getObjectRelationships( "obj_a" );
+
+			super.assert( relationships.keyExists( "obj_b" ) );
+			super.assertEquals( 2, relationships.obj_b.len() );
+			super.assertEquals( "obj_bs", relationships.obj_b[2].alias ?: "" );
+			super.assertEquals( "testView", relationships.obj_b[2].selectDataView ?: "" );
 		</cfscript>
 	</cffunction>
 
@@ -491,6 +518,7 @@
 		<cfscript>
 			mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
 			mockFeatureService.$( "isFeatureEnabled", true );
+			mockSelectDataViewService = getMockBox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectSelectDataViewService" );
 			mockAdapterFactory = createEmptyMock( "preside.system.services.database.adapters.AdapterFactory" );
 			mockAdapter        = createEmptyMock( "preside.system.services.database.adapters.MySqlAdapter" );
 
@@ -506,7 +534,8 @@
 			);
 
 			return new preside.system.services.presideObjects.RelationshipGuidance(
-				objectReader  = reader
+				  objectReader          = reader
+				, selectDataViewService = mockSelectDataViewService
 			);
 		</cfscript>
 	</cffunction>

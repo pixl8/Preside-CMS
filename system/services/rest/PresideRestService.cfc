@@ -41,9 +41,10 @@ component {
 		for( var i=1; i<=apis.len(); i++ ) {
 			var apiId = apis[ i ];
 			var api = {
-				  id           = apiId
-				, description  = configWrapper.getSetting( "description", "", apiId )
-				, authProvider = configWrapper.getSetting( "authProvider", "", apiId )
+				  id              = apiId
+				, description     = configWrapper.getSetting( "description", "", apiId )
+				, authProvider    = configWrapper.getSetting( "authProvider", "", apiId )
+				, hideFromManager = configWrapper.getSetting( "hideFromManager", "", apiId )
 			};
 
 			apis[ i ] = api;
@@ -90,7 +91,7 @@ component {
 
 	public void function authenticateRequest( required any restRequest, required any restResponse ) {
 		var api          = restRequest.getApi();
-		var authProvider = _getConfigurationWrapper().getSetting( "authProvider", "", api );
+		var authProvider = getAuthenticationProvider( api );
 
 		if ( authProvider.len() ) {
 			_getAuthService().authenticate(
@@ -99,6 +100,10 @@ component {
 				, restResponse = restResponse
 			);
 		}
+	}
+
+	public string function getAuthenticationProvider( required string api ) {
+		return _getConfigurationWrapper().getSetting( "authProvider", "", api );
 	}
 
 	public void function processRequest( required any restRequest, required any restResponse, required any requestContext ) {

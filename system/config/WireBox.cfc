@@ -78,6 +78,15 @@
 			    .virtualInheritance( "presideSuperClass" );
 		}
 
+		var assetQueueConcurrency = Val( settings.assetmanager.queue.concurrency ?: 1 );
+		for( var i=1; i <= assetQueueConcurrency; i++ ) {
+			map( "AssetQueueHeartbeat#i#" )
+			    .asSingleton()
+			    .to( "preside.system.services.concurrency.AssetQueueHeartbeat" )
+			    .initArg( name="instanceNumber", value=i )
+			    .virtualInheritance( "presideSuperClass" );
+		}
+
 		var healthcheckServices = settings.healthCheckServices ?: {};
 		var msInADay            = 86400000;
 		for( var serviceId in healthcheckServices ) {

@@ -15,6 +15,7 @@ component extends="AbstractHeartBeat" {
 			  threadName   = "Preside Heartbeat: Adhoc Tasks"
 			, intervalInMs = 1000
 			, threadUtil   = arguments.threadUtil
+			, feature      = "adhocTaskHeartBeat"
 		);
 
 		_setAdhocTaskmanagerService( arguments.adhocTaskmanagerService );

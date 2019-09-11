@@ -21,7 +21,6 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 	public void function onRequestCapture( event, interceptData ) {
 		_announceInterception( "prePresideRequestCapture", interceptData );
-
 		_checkRedirectDomains( argumentCollection=arguments );
 		if ( featureService.isFeatureEnabled( "sites" ) ) {
 			_detectIncomingSite( argumentCollection=arguments );
@@ -42,8 +41,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 	public void function onBuildLink( event, interceptData ) {
 		for( var route in _getPresideRoutes() ){
-			if ( route.reverseMatch( buildArgs=interceptData, event=event ) ) {
-				event.setValue( name="_builtLink", value=route.build( buildArgs=interceptData, event=event ), private=true );
+			if ( route.get().reverseMatch( buildArgs=interceptData, event=event ) ) {
+				event.setValue( name="_builtLink", value=route.get().build( buildArgs=interceptData, event=event ), private=true );
 				return;
 			}
 		}

@@ -42,6 +42,15 @@ component {
 			break;
 			case "future":
 			case "past":
+			case "yesterday":
+			case "today":
+			case "tomorrow":
+			case "lastweek":
+			case "thisweek":
+			case "nextweek":
+			case "lastmonth":
+			case "thismonth":
+			case "nextmonth":
 				type = timePeriod.type;
 			break;
 			default:

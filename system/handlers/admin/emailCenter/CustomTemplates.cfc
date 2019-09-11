@@ -572,15 +572,18 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
+		var useDistinct = len( rc.sFilterExpression ?: "" ) || len( rc.sSavedFilterExpression ?: "" );
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object        = "email_template_send_log"
-				, gridFields    = "recipient,subject,datecreated,sent,delivered,failed,opened,click_count"
-				, actionsView   = "admin.emailCenter.logs._logGridActions"
-				, filter        = { "email_template_send_log.email_template" = ( rc.id ?: "" ) }
+				  object      = "email_template_send_log"
+				, gridFields  = "recipient,subject,datecreated,sent,delivered,failed,opened,click_count"
+				, actionsView = "admin.emailCenter.logs._logGridActions"
+				, filter      = { "email_template_send_log.email_template" = ( rc.id ?: "" ) }
+				, distinct    = useDistinct
 			}
 		);
 	}

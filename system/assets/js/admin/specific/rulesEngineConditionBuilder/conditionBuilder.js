@@ -330,7 +330,8 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, this.contextData, fields, { fieldValue:fieldValue, context:this.context }, fieldDefinition ) );
+
+			iframeUrl += qsDelim + $.param( $.extend( {}, fields, { fieldValue:fieldValue, context:this.context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};
@@ -463,7 +464,14 @@
 					this.persistToHiddenField();
 					this.render();
 				} else {
-					$field.data( "editModal" ).open();
+					$.ajax({
+						  url      : buildAdminLink( "ajaxhelper.temporarilyStoreData" )
+						, method   : "POST"
+						, data     : this.contextData
+						, complete : function(){
+							$field.data( "editModal" ).open();
+						 }
+					});
 				}
 
 			}

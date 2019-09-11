@@ -7,6 +7,7 @@
 	param name="args.isMultilingual"      type="boolean" default=false;
 	param name="args.draftsEnabled"       type="boolean" default=false;
 	param name="args.noActions"           type="boolean" default=false;
+	param name="args.footerEnabled"       type="boolean" default=false;
 	param name="args.gridFields"          type="array";
 	param name="args.hiddenGridFields"    type="array"   default=[];
 	param name="args.filterContextData"   type="struct"  default={};
@@ -45,6 +46,21 @@
 
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
 
+	if ( args.footerEnabled ) {
+		colCount = ArrayLen( args.gridFields );
+		if ( args.useMultiActions ) {
+			colCount++;
+		}
+		if ( args.draftsEnabled ) {
+			colCount++;
+		}
+		if ( args.isMultilingual ) {
+			colCount++;
+		}
+		if ( !args.noActions ) {
+			colCount++;
+		}
+	}
 </cfscript>
 <cfoutput>
 	<div class="table-responsive<cfif args.compact> table-compact</cfif>">
@@ -168,6 +184,13 @@
 					</cfif>
 				</tr>
 			</thead>
+			<cfif args.footerEnabled>
+				<tfoot>
+					<tr>
+						<th colspan="#colCount#"></th>
+					</tr>
+				</tfoot>
+			</cfif>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
 			</tbody>
 		</table>

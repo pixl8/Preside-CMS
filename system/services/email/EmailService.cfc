@@ -69,7 +69,13 @@ component displayName="Email service" {
 		, boolean overwriteTemplateArgs = false
 		, boolean isTest                = false
 	) autodoc=true {
+
 		var hasTemplate = Len( Trim( arguments.template ) );
+
+		if ( hasTemplate ) {
+			_getEmailTemplateService().enableDomainOverwriteForBuildLink( template=_getEmailTemplateService().getTemplate( id=arguments.template ) );
+		}
+
 		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
 		    sendArgs    = _addDefaultsForMissingArguments( sendArgs );
 
@@ -78,11 +84,20 @@ component displayName="Email service" {
 		sendArgs.args = arguments.args;
 		sendArgs.args.template = sendArgs.template = arguments.template;
 
-		return _getEmailServiceProviderService().sendWithProvider(
+		var interceptArgs = { sendArgs=sendArgs };
+		$announceInterception( "onPrepareEmailSendArguments", { sendArgs=sendArgs } );
+
+		var result = _getEmailServiceProviderService().sendWithProvider(
 			  provider = _getEmailServiceProviderService().getProviderForTemplate( arguments.template )
-			, sendArgs = sendArgs
+			, sendArgs = interceptArgs.sendArgs
 			, logSend  = !arguments.isTest
 		);
+
+		if ( hasTemplate ) {
+			_getEmailTemplateService().disableDomainOverwriteForBuildLink();
+		}
+
+		return result;
 	}
 
 	/**
