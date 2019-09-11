@@ -227,7 +227,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		, string  fieldNamePrefix         = ""
 		, string  fieldNameSuffix         = ""
 		, array   suppressFields          = []
-		, boolean autoTrim                = _getTrimWhiteSpaceDefault()
+		, boolean autoTrim                = _getAutoTrimDefault()
 	) {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
@@ -546,7 +546,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return request._simpleRequestCache[ arguments.key ];
 	}
 
-	private boolean function _getTrimWhiteSpaceDefault() {
+	private boolean function _getAutoTrimDefault() {
 		var context = isAdminRequest() ? "admin" : "frontend";
 
 		return getController().getSetting( "autoTrimFormSubmissions.#context#" );
