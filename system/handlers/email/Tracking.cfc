@@ -56,7 +56,7 @@ component {
 			event.notFound();
 		}
 
-		if ( !ReFindNoCase( "https?://", link ) && !ReFindNoCase( "^/", link ) ) {
+		if ( !ReFindNoCase( "^https?://", link ) && !ReFindNoCase( "^/", link ) ) {
 			event.notFound();
 		}
 
