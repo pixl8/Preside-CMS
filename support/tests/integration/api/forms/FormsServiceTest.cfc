@@ -522,6 +522,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "listAutoTrimFields()", function(){
+
+			it( "should return a struct of autoTrim-enabled/disabled field names in the given form", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+				var result   = formsSvc.listAutoTrimFields( "test.form.autotrim" );
+				var expected = { enabled=[ "somefield4" ], disabled=[ "somefield1", "somefield3" ] };
+
+				expect( result ).toBe( expected );
+			} );
+
+		} );
+
 		describe( "getFormField()", function(){
 
 			it( "should return specified field from form", function(){
