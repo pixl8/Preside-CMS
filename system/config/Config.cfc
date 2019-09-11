@@ -451,6 +451,8 @@ component {
 			tokenExpiryInSeconds = 1200
 		};
 
+		settings.autoTrimFormSubmissions = { admin=false, frontend=false };
+
 		settings.rest = {
 			  path          = "/api"
 			, corsEnabled   = false

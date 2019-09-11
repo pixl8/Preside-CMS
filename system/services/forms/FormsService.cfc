@@ -224,6 +224,44 @@ component displayName="Forms service" {
 	}
 
 	/**
+	 * Returns a struct containing arrays of the field names explicitly enabled/disabled for automatic whitespace trimming
+	 *
+	 * @autodoc
+	 * @formName.hint Name of the form whose autoTrim fields you wish to list.
+	 */
+	public struct function listAutoTrimFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[], array suppressFields =[] ) {
+		var frm            = getForm( argumentCollection=arguments );
+		var ignoreControls = [ "readonly", "oneToManyManager" ];
+		var fields         = { enabled=[], disabled=[] };
+
+		for( var tab in frm.tabs ){
+			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
+				continue;
+			}
+			for( var fieldset in tab.fieldsets ) {
+				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
+					continue;
+				}
+				for( var field in fieldset.fields ) {
+					var control         = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
+					var deleted         = IsBoolean( field.deleted         ?: "" ) && field.deleted;
+
+					if ( !IsBoolean( field.autoTrim ?: "" ) || ignoreControls.findNoCase( control ) || deleted || arguments.suppressFields.findNoCase( field.name ) ) {
+						continue;
+					}
+					if ( field.autoTrim ) {
+						fields.enabled.append( field.name ?: "" );
+					} else {
+						fields.disabled.append( field.name ?: "" );
+					}
+				}
+			}
+		}
+
+		return fields;
+	}
+
+	/**
 	 * Returns a default form definition for the given
 	 * Preside object name
 	 *
