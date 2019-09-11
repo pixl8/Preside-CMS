@@ -548,8 +548,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 	private boolean function _getAutoTrimDefault() {
 		var context = isAdminRequest() ? "admin" : "frontend";
+		var autoTrimDefault = getController().getSetting( "autoTrimFormSubmissions.#context#" );
 
-		return getController().getSetting( "autoTrimFormSubmissions.#context#" );
+		return IsBoolean( autoTrimDefault ) && autoTrimDefault;
 	}
 
 	public any function _getSticker() {
