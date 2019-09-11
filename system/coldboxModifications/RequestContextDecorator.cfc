@@ -227,6 +227,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		, string  fieldNamePrefix         = ""
 		, string  fieldNameSuffix         = ""
 		, array   suppressFields          = []
+		, boolean autoTrim                = _getAutoTrimDefault()
 	) {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
@@ -234,10 +235,16 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		var collection   = {};
 
 		for( var name in formNames ) {
-			var formFields = formsService.listFields( argumentCollection=arguments, formName=name );
+			var formFields     = formsService.listFields( argumentCollection=arguments, formName=name );
+			var autoTrimFields = formsService.listAutoTrimFields( argumentCollection=arguments, formName=name );
+
 			for( var field in formFields ){
 				var fieldName = arguments.fieldNamePrefix & field & arguments.fieldNameSuffix;
-				collection[ field ] = ( rc[ fieldName ] ?: "" );
+				if ( ( arguments.autoTrim && !autoTrimFields.disabled.find( field ) ) || autoTrimFields.enabled.find( field ) ) {
+					collection[ field ] = trim( rc[ fieldName ] ?: "" );
+				} else {
+					collection[ field ] = ( rc[ fieldName ] ?: "" );
+				}
 			}
 		}
 
@@ -537,6 +544,12 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		}
 
 		return request._simpleRequestCache[ arguments.key ];
+	}
+
+	private boolean function _getAutoTrimDefault() {
+		var context = isAdminRequest() ? "admin" : "frontend";
+
+		return getController().getSetting( "autoTrimFormSubmissions.#context#" );
 	}
 
 	public any function _getSticker() {
