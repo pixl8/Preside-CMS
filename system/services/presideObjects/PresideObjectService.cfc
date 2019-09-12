@@ -624,10 +624,7 @@ component displayName="Preside Object Service" {
 
 		if ( requiresVersioning || arguments.calculateChangedData ) {
 			arguments.oldData = selectData(
-				  objectName         = arguments.objectName
-				, id                 = ( arguments.id ?: NullValue() )
-				, filter             = arguments.filter
-				, filterParams       = arguments.filterParams
+				  argumentCollection = arguments
 				, allowDraftVersions = true
 				, fromVersionTable   = arguments.isDraft
 			);
@@ -642,11 +639,21 @@ component displayName="Preside Object Service" {
 			arguments.changedData = {};
 			for( var record in arguments.oldData ) {
 
-				var changedFields = _getVersioningService().getChangedFields(
-					  objectName   = arguments.objectName
-					, recordId     = record[ idField ]
-					, newData      = cleanedData
-					, existingData = record
+				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
+				var oldManyToManyData = versionedManyToManyFields.len() ? getDeNormalizedManyToManyData(
+					objectName   = arguments.objectName
+					, id           = record[ idField ]
+					, selectFields = versionedManyToManyFields
+				) : {};
+
+				var newDataForChangedFieldsCheck = Duplicate( cleanedData );
+				newDataForChangedFieldsCheck.append( manyToManyData );
+				var changedFields =  _getVersioningService().getChangedFields(
+					  objectName             = arguments.objectName
+					, recordId               = record[ idField ]
+					, newData                = newDataForChangedFieldsCheck
+					, existingData           = record
+					, existingManyToManyData = oldManyToManyData
 				);
 				if ( ArrayLen( changedFields ) ) {
 					arguments.changedData[ record[ idField ] ] = {};

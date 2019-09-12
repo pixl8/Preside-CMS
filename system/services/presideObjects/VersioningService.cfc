@@ -91,7 +91,7 @@ component {
 		newData.delete( dateModifiedField );
 
 		for( var oldData in existingRecords ) {
-			var versionedManyToManyFields = _getVersionedManyToManyFieldsForObject( arguments.objectName );
+			var versionedManyToManyFields = getVersionedManyToManyFieldsForObject( arguments.objectName );
 			var oldManyToManyData = versionedManyToManyFields.len() ? poService.getDeNormalizedManyToManyData(
 				  objectName   = arguments.objectName
 				, id           = oldData[ idField ]
@@ -799,7 +799,7 @@ component {
 		return ignoredFields;
 	}
 
-	private array function _getVersionedManyToManyFieldsForObject( required string objectName ) {
+	public array function getVersionedManyToManyFieldsForObject( required string objectName ) {
 		var poService       = $getPresideObjectService();
 		var properties      = poService.getObjectProperties( arguments.objectName );
 		var versionedFields = [];
