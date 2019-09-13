@@ -120,12 +120,12 @@ component autodoc=true displayName="Notification Service" {
 		  required string userId
 	) autodoc=true {
 		var notificationCount = _getConsumerDao().selectData(
-			  filter          = { 
+			  filter          = {
 				  security_user = arguments.userId
-				, read          = false 
+				, read          = false
 			  }
 			, useCache        = false
-			, recordCountOnly = true 
+			, recordCountOnly = true
 		);
 
 		return notificationCount;
@@ -138,9 +138,9 @@ component autodoc=true displayName="Notification Service" {
 	 */
 	public query function getUnreadTopics(
 		  required string userId
-		, required numeric maxRows 
+		, required numeric maxRows
 	) autodoc=true {
-		
+
 		var unreadTopics = QueryNew( "topic, notification_count", "varchar, integer");
 
 		var notificationTopics =  _getNotificationDao().selectData(
@@ -165,7 +165,7 @@ component autodoc=true displayName="Notification Service" {
 				querySetCell( unreadTopics, "notification_count", queryResult.recordCount() );
 			}
 		}
-		
+
 		return unreadTopics;
 	}
 
@@ -468,7 +468,7 @@ component autodoc=true displayName="Notification Service" {
 
 	public void function createNotificationConsumers( required string notificationId, required string topic, required struct data ) {
 		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true, active=true } );
-		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user", "get_email_notifications" ], filter={ topic=arguments.topic , active=true } );
+		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user", "get_email_notifications" ], filter={ topic=arguments.topic , "security_user.active"=true } );
 		var subscribers = {};
 		var interceptorArgs = Duplicate( arguments );
 
