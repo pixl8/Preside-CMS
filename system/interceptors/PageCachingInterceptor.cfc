@@ -17,6 +17,7 @@ component extends="coldbox.system.Interceptor" {
 				event.restoreCachedData( cached.data ?: {} );
 				event.checkPageAccess();
 				event.setXFrameOptionsHeader();
+				event.setHTTPHeader( name="X-Cache", value="HIT" );
 				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
 				var contentType      = cached.contentType ?: "";
 				content reset=true;
@@ -45,6 +46,7 @@ component extends="coldbox.system.Interceptor" {
 				  }
 				, timeout   = event.getPageCacheTimeout()
 			);
+			event.setHTTPHeader( name="X-Cache", value="MISS" );
 		}
 
 		var viewletsRendered          = delayedViewletRendererService.renderDelayedViewlets( content );
