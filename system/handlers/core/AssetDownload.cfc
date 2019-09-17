@@ -38,6 +38,7 @@ component {
 					);
 
 					if ( !asset.recordCount && queueEnabled && assetQueueService.isQueued( assetId, derivativeName, versionId, configHash ) ) {
+						setting requestTimeout=120;
 						sleep( 1000 );
 					} else {
 						break;
