@@ -339,6 +339,7 @@ component {
 				, maxHeight             = 300
 				, autoParagraph         = false
 				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
+				, extraAllowedContent   = "img dl dt dd"
 				, pasteFromWordDisallow = [
 					  "span"  // Strip all span elements
 					, "*(*)"  // Strip all classes

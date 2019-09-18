@@ -17,6 +17,7 @@ PresideRichEditor = ( function( $ ){
 		  , stylesheets           = $elementToReplace.data( "stylesheets" )
 		  , enterMode             = $elementToReplace.data( "enterMode" )
 		  , autoParagraph         = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
+		  , extraAllowedContent   = cfrequest.ckeditorExtraAllowedContent   || ""
 		  , pasteFromWordDisallow = cfrequest.ckeditorPasteFromWordDisallow || []
 		  , editor;
 
@@ -51,9 +52,10 @@ PresideRichEditor = ( function( $ ){
 			}
 		}
 
-		config.autoParagraph      = autoParagraph;
-		config.widgetCategories   = widgetCategories;
-		config.linkPickerCategory = linkPickerCategory;
+		config.autoParagraph       = autoParagraph;
+		config.widgetCategories    = widgetCategories;
+		config.linkPickerCategory  = linkPickerCategory;
+		config.extraAllowedContent = extraAllowedContent;
 
 		CKEDITOR.on( "instanceReady", function( event ) {
 			event.editor.initialdata = event.editor.getData();
