@@ -4,6 +4,7 @@ component {
 	property name="assetQueueService"            inject="presidecms:dynamicservice:assetQueue";
 	property name="websiteUserActionService"     inject="websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
+	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
 
 	public function asset( event, rc, prc ) output=false {
 		announceInterception( "preDownloadAsset" );
@@ -43,7 +44,7 @@ component {
 					} else {
 						break;
 					}
-				} while( ++waitAttempts <= 60 );
+				} while( ++waitAttempts <= queueMaxWaitAttempts );
 			} else if( Len( Trim( versionId ) ) ) {
 				arrayAppend( assetSelectFields , "asset_version.asset_type" );
 				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
