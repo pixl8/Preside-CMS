@@ -13,10 +13,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	RequestContextDecorator function init( required oContext, required controller ){
 		// Set the memento state
 		setMemento( arguments.oContext.getMemento() );
-		// Set Controller
+		// Set Controller+wirebox
 		instance.controller = arguments.controller;
+		instance.wirebox    = instance.controller.getWireBox();
+
 		// Composite the original context
 		variables.requestContext = arguments.oContext;
+
 
 		return this;
 	}
@@ -24,7 +27,28 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	/**
 	* Override to provide a pseudo-constructor for your decorator
 	*/
-	function configure(){}
+	function configure(){
+
+		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( "adminObjectLinkBuilderService" );
+		instance.auditService                     = instance.wirebox.getInstance( "auditService" );
+		instance.csrfProtectionService            = instance.wirebox.getInstance( "csrfProtectionService" );
+		instance.delayedStickerRendererService    = instance.wirebox.getInstance( "delayedStickerRendererService" );
+		instance.delayedViewletRendererService    = instance.wirebox.getInstance( "delayedViewletRendererService" );
+		instance.featureService                   = instance.wirebox.getInstance( "featureService" );
+		instance.formsService                     = instance.wirebox.getInstance( "formsService" );
+		instance.i18n                             = instance.wirebox.getInstance( "i18n" );
+		instance.loginService                     = instance.wirebox.getInstance( "loginService" );
+		instance.multilingualPresideObjectService = instance.wirebox.getInstance( "multilingualPresideObjectService" );
+		instance.presideRenderer                  = instance.wirebox.getInstance( "presideRenderer" );
+		instance.rulesEngineWebRequestService     = instance.wirebox.getInstance( "rulesEngineWebRequestService" );
+		instance.sessionStorage                   = instance.wirebox.getInstance( "sessionStorage" );
+		instance.siteService                      = instance.wirebox.getInstance( "siteService" );
+		instance.sitetreeService                  = instance.wirebox.getInstance( "sitetreeService" );
+		instance.stickerForPreside                = instance.wirebox.getInstance( "stickerForPreside" );
+		instance.tenancyService                   = instance.wirebox.getInstance( "tenancyService" );
+		instance.websiteLoginService              = instance.wirebox.getInstance( "websiteLoginService" );
+		instance.websitePermissionService         = instance.wirebox.getInstance( "websitePermissionService" );
+	}
 
 	/**
 	* Get original controller
@@ -421,19 +445,19 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // Sticker
 	public any function include() {
-		return _getSticker().include( argumentCollection = arguments );
+		return getModel( "StickerForPreside" ).include( argumentCollection = arguments );
 	}
 
 	public any function includeData() {
-		return _getSticker().includeData( argumentCollection = arguments );
+		return getModel( "StickerForPreside" ).includeData( argumentCollection = arguments );
 	}
 
 	public any function includeUrl() {
-		return _getSticker().includeUrl( argumentCollection = arguments );
+		return getModel( "StickerForPreside" ).includeUrl( argumentCollection = arguments );
 	}
 
 	public string function renderIncludes( string type, string group="default" ) {
-		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
+		var rendered      = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments );
 
 		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
@@ -477,31 +501,16 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 // private helpers
-	private any function _simpleRequestCache( required string key, required any generator ) {
-		request._simpleRequestCache = request._simpleRequestCache ?: {};
-
-		if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
-			request._simpleRequestCache[ arguments.key ] = arguments.generator();
-		}
-
-		return request._simpleRequestCache[ arguments.key ];
-	}
-
 	public any function _getSticker() {
 		return getModel( "StickerForPreside" );
 	}
 
 	public any function getModel( required string beanName ) {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService", "featureService", "i18n", "sessionStorage" ];
-
-		if ( singletons.findNoCase( arguments.beanName ) ) {
-			var args = arguments;
-			return _simpleRequestCache( "getModel" & arguments.beanName, function(){
-				return getController().getWireBox().getInstance( args.beanName );
-			} );
+		if ( StructKeyExists( instance, arguments.beanName ) ) {
+			return instance[ arguments.beanName ];
 		}
 
-		return getController().getWireBox().getInstance( arguments.beanName );
+		return instance.wireBox.getInstance( arguments.beanName );
 	}
 
 	public any function announceInterception( required string state, struct interceptData={} ) {
