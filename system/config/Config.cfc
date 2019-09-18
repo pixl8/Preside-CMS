@@ -680,10 +680,11 @@ component {
 			email = 'Maximize,-,Source,'
 					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
-					 & '|PresideLink,PresideUnlink,-,ImagePicker,AttachmentPicker,,SpecialChar'
+					 & '|PresideLink,PresideUnlink,-,Widgets,ImagePicker,AttachmentPicker,,SpecialChar'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,Table,HorizontalRule-,Outdent,Indent,-,Blockquote,CreateDiv'
 					 & '|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
+					 & '|Format',
 		};
 
 	}
