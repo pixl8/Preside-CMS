@@ -628,7 +628,7 @@ component {
 		);
 
 		var isManagedType   = Len( Trim( page.parent_type ) ) && getManagedChildTypesForParentType( page.parent_type ).findNoCase( page.page_type );
-		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_from_sub_navigation ) : ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) );
+		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_children_from_navigation ) : Val( page.exclude_from_navigation );
 		if ( isManagedType || excludedFromNav ) {
 			return [];
 		}
