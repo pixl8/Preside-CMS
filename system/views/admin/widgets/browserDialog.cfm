@@ -33,7 +33,7 @@
 						<li>
 							<div class="pull-left widget-icon-container">
 								<a href="#widgetLink#" class="widget-image-link">
-									<i class="fa #widgets.icon# fa-4x"></i>
+									<i class="fa#widgets.iconCategory# #widgets.icon# fa-4x"></i>
 								</a>
 							</div>
 							<div class="pull-left widget-text-container">

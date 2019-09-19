@@ -163,12 +163,13 @@ component {
 		for( var widgetId in configuration ){
 			widgets[ widgetId ] = Duplicate( configuration[ widgetId ] );
 
-			widgets[ widgetId ].id          = widgetId;
-			widgets[ widgetId ].configForm  = widgets[ widgetId ].configForm  ?: _getFormNameByConvention( widgetId );
-			widgets[ widgetId ].viewlet     = widgets[ widgetId ].viewlet     ?: _getViewletEventByConvention( widgetId );
-			widgets[ widgetId ].icon        = widgets[ widgetId ].icon        ?: _getIconByConvention( widgetId );
-			widgets[ widgetId ].title       = widgets[ widgetId ].title       ?: _getTitleByConvention( widgetId );
-			widgets[ widgetId ].description = widgets[ widgetId ].description ?: _getDescriptionByConvention( widgetId );
+			widgets[ widgetId ].id           = widgetId;
+			widgets[ widgetId ].configForm   = widgets[ widgetId ].configForm   ?: _getFormNameByConvention( widgetId );
+			widgets[ widgetId ].viewlet      = widgets[ widgetId ].viewlet      ?: _getViewletEventByConvention( widgetId );
+			widgets[ widgetId ].icon         = widgets[ widgetId ].icon         ?: _getIconByConvention( widgetId );
+			widgets[ widgetId ].iconCategory = widgets[ widgetId ].iconCategory ?: _getIconCategoryByConvention( widgetId );
+			widgets[ widgetId ].title        = widgets[ widgetId ].title        ?: _getTitleByConvention( widgetId );
+			widgets[ widgetId ].description  = widgets[ widgetId ].description  ?: _getDescriptionByConvention( widgetId );
 		}
 
 		_setWidgets( widgets );
@@ -222,6 +223,7 @@ component {
 					, viewlet            = _getViewletEventByConvention( id )
 					, placeholderViewlet = _getPlaceholderViewletEventByConvention( id )
 					, icon               = _getIconByConvention( id )
+					, iconCategory       = _getIconCategoryByConvention( id )
 					, title              = _getTitleByConvention( id )
 					, description        = _getDescriptionByConvention( id )
 					, siteTemplates      = _mergeSiteTemplates( siteTemplateMap[id] )
@@ -287,6 +289,10 @@ component {
 
 	private string function _getIconByConvention( required string widgetId ) {
 		return "widgets.#widgetId#:iconclass";
+	}
+
+	private string function _getIconCategoryByConvention( required string widgetId ) {
+		return "widgets.#widgetId#:iconclasscategory";
 	}
 
 	private string function _getTitleByConvention( required string widgetId ) {

@@ -1,7 +1,8 @@
 <cfscript>
-	param name="args.icon"     type="string" default="";
-	param name="args.title"    type="string" default="";
-	param name="args.subTitle" type="string" default="";
+	param name="args.icon"         type="string" default="";
+	param name="args.iconCategory" type="string" default="";
+	param name="args.title"        type="string" default="";
+	param name="args.subTitle"     type="string" default="";
 
 	icon = ReFind( "^fa\-", args.icon ) ? args.icon : "fa-#args.icon#";
 </cfscript>
@@ -10,7 +11,7 @@
 	<div class="page-header">
 		<h1>
 			<cfif Len( Trim( args.icon ) )>
-				<i class="fa #icon#"></i>
+				<i class="fa#args.iconCategory# #icon#"></i>
 			</cfif>
 
 			#args.title#

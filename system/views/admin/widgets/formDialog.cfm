@@ -1,10 +1,11 @@
 <cfscript>
 	widget = prc.widget ?: {};
 
-	prc.pageTitle    = translateResource( widget.title       ?: "cms:widget.not.found" );
-	prc.pageSubTitle = translateResource( widget.description ?: "cms:widget.not.found" );
-	prc.pageIcon     = translateResource( widget.icon        ?: "fa-magic", "fa-magic" );
-	prc.pageIcon     = ReReplace( prc.pageIcon, "^fa\-", "" );
+	prc.pageTitle        = translateResource( widget.title       ?: "cms:widget.not.found" );
+	prc.pageSubTitle     = translateResource( widget.description ?: "cms:widget.not.found" );
+	prc.pageIcon         = translateResource( widget.icon        ?: "fa-magic", "fa-magic" );
+	prc.pageIcon         = ReReplace( prc.pageIcon, "^fa\-", "" );
+	prc.pageIconCategory = translateResource( widget.iconCategory ?: "" );
 
 	formAction = event.buildAdminLink( linkTo="widgets.saveConfigFormAction" );
 </cfscript>

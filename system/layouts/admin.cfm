@@ -8,9 +8,10 @@
 	footer           = renderViewlet( 'admin.general.footer' );
 	secondaryNav     = prc.secondaryNav ?: "";
 	pageHeader       = renderView( view="admin/general/pageTitle", args={
-		  title    = ( prc.pageTitle    ?: "" )
-		, subTitle = ( prc.pageSubTitle ?: "" )
-		, icon     = ( prc.pageIcon     ?: "" )
+		  title        = ( prc.pageTitle        ?: "" )
+		, subTitle     = ( prc.pageSubTitle     ?: "" )
+		, icon         = ( prc.pageIcon         ?: "" )
+		, iconCategory = ( prc.pageIconCategory ?: "" )
 	} );
 
 	currentHandler = event.getCurrentHandler();

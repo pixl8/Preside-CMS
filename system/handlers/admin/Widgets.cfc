@@ -79,9 +79,10 @@ component extends="preside.system.base.AdminHandler" {
 			var widget = Duplicate( unsortedOrTranslated[ id ] );
 
 			if ( widget.siteTemplates == "*" || ListFindNoCase( widget.siteTemplates, activeSiteTemplate ) ) {
-				widget.title       = translateResource( uri=widget.title      , defaultValue=widget.title );
-				widget.description = translateResource( uri=widget.description, defaultValue=widget.description );
-				widget.icon        = translateResource( uri=widget.icon       , defaultValue="fa-magic" );
+				widget.title        = translateResource( uri=widget.title       , defaultValue=widget.title );
+				widget.description  = translateResource( uri=widget.description , defaultValue=widget.description );
+				widget.icon         = translateResource( uri=widget.icon        , defaultValue="fa-magic" );
+				widget.iconCategory = translateResource( uri=widget.iconCategory, defaultValue="" );
 
 				tempArray.append( widget );
 			}
@@ -91,6 +92,6 @@ component extends="preside.system.base.AdminHandler" {
 			return widget1.title == widget2.title ? 0 : ( widget1.title > widget2.title ? 1 : -1 );
 		} );
 
-		return arrayOfStructsToQuery( "id,title,description,icon", tempArray );
+		return arrayOfStructsToQuery( "id,title,description,icon,iconCategory", tempArray );
 	}
 }
