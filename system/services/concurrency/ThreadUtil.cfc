@@ -156,22 +156,12 @@ component {
 			return;
 		}
 
-		$systemOutput( "The thread [#threadName#], did not gracefully terminate. Forcefully stopping it." );
-		if ( canWarn ) { logger.warn( "Task did not gracefully terminate after #( arguments.interruptWait / 1000 )# seconds. Forcefully stopping it." ); }
-
 		try {
 			theThread.getPageContext().release();
 		} catch( any e ) {}
-		theThread.stop();
-		sleep( 100 );
 
-		if ( isTerminated( arguments.theThread ) ) {
-			$systemOutput( "The thread [#threadName#], has been terminated." );
-			if ( canWarn ) { logger.warn( "Task terminated." ); }
-		} else {
-			$systemOutput( "The thread [#threadName#], failed to terminate!" );
-			if ( canError ) { logger.error( "Task failed to terminate." ); }
-		}
+		$systemOutput( "The thread [#threadName#], failed to gracefully shutdown!" );
+		if ( canError ) { logger.error( "Task failed to gracefully shutdown!" ); }
 	}
 
 	/**
