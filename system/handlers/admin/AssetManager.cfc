@@ -929,7 +929,7 @@ component extends="preside.system.base.AdminHandler" {
 			, trashed     = true
 		);
 
-		var gridFields = [ "title", "datemodified" ];
+		var gridFields = [ "title", "datemodified", "datecreated" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
