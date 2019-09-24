@@ -12,7 +12,7 @@ component {
 		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
 			var sourceObject = args.sourceObject ?: "";
 
-			if ( presideObjectService.isManyToManyProperty( sourceObject, args.name ) ) {
+			if ( Len( Trim( sourceObject ) ) && presideObjectService.isManyToManyProperty( sourceObject, args.name ) ) {
 				args.savedValue = presideObjectService.selectManyToManyData(
 					  objectName   = sourceObject
 					, propertyName = args.name
