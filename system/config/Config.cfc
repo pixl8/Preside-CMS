@@ -50,7 +50,6 @@ component {
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
 		];
@@ -118,6 +117,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError" );
 		interceptorSettings.customInterceptionPoints.append( "preFormBuilderFormSubmission"          );
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
+		interceptorSettings.customInterceptionPoints.append( "onReloadConfigCategories"              );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
 		interceptorSettings.customInterceptionPoints.append( "preSetUserSession"                     );
@@ -133,6 +133,23 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
 		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
 		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
+		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
+		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
+		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
+		interceptorSettings.customInterceptionPoints.append( "preDataExportPrepareData"              );
+		interceptorSettings.customInterceptionPoints.append( "postDataExportPrepareData"             );
+		interceptorSettings.customInterceptionPoints.append( "preClearRelatedCaches"                 );
+		interceptorSettings.customInterceptionPoints.append( "postClearRelatedCaches"                );
+		interceptorSettings.customInterceptionPoints.append( "onClearSettingsCache"                  );
+		interceptorSettings.customInterceptionPoints.append( "onClearCaches"                         );
+		interceptorSettings.customInterceptionPoints.append( "onClearPageCaches"                     );
+		interceptorSettings.customInterceptionPoints.append( "onInvalidateRenderedAssetCache"        );
+		interceptorSettings.customInterceptionPoints.append( "preRenderForm"                         );
+		interceptorSettings.customInterceptionPoints.append( "postRenderForm"                        );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailMessage"                );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailMessage"               );
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
+		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -165,6 +182,8 @@ component {
 		settings.widgets                     = {};
 		settings.templates                   = [];
 		settings.adminDefaultEvent           = "sitetree";
+		settings.adminNotificationsSticky    = true;
+		settings.adminNotificationsPosition  = "bottom-right";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
 		settings.dsn                         = "preside";
@@ -178,10 +197,11 @@ component {
 		settings.serverErrorLayout           = "Main";
 		settings.serverErrorViewlet          = "errors.serverError";
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
-		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
+		settings.env                         = settings.injectedConfig = Duplicate( application.env ?: {} );
 		settings.notificationTopics          = [];
-		settings.syncDb                      = IsBoolean( settings.injectedConfig.syncDb ?: ""  ) ? settings.injectedConfig.syncDb : true;
-		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
+		settings.notificationCountLimit      = 100;
+		settings.syncDb                      = IsBoolean( settings.env.syncDb ?: ""  ) ? settings.env.syncDb : true;
+		settings.autoSyncDb                  = IsBoolean( settings.env.autoSyncDb ?: ""  ) && settings.env.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.devConsoleToggleKeyCode     = 96;
@@ -189,8 +209,8 @@ component {
 		settings.showNonLiveContentByDefault = true;
 		settings.coldboxVersion              = _calculateColdboxVersion();
 
-		settings.forceSsl       = IsBoolean( settings.injectedConfig.forceSsl ?: "" ) && settings.injectedConfig.forceSsl;
-		settings.allowedDomains = ListToArray( LCase( settings.injectedConfig.allowedDomains  ?: "" ) );
+		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
+		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -237,12 +257,13 @@ component {
 			  maxFileSize = "5"
 			, types       = _getConfiguredFileTypes()
 			, derivatives = _getConfiguredAssetDerivatives()
+			, queue       = { concurrency=1, batchSize=100, downloadWaitSeconds=5 }
 			, folders     = {}
 			, storage     = {
-				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
-				, private   = ( settings.injectedConfig[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
-				, trash     = ( settings.injectedConfig[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
-				, publicUrl = ( settings.injectedConfig[ "assetmanager.storage.publicUrl" ] ?: "" )
+				  public    = ( settings.env[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
+				, private   = ( settings.env[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
+				, trash     = ( settings.env[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
+				, publicUrl = ( settings.env[ "assetmanager.storage.publicUrl" ] ?: "" )
 			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
@@ -318,13 +339,15 @@ component {
 				, maxHeight             = 300
 				, autoParagraph         = false
 				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
+				, extraAllowedContent   = "img dl dt dd"
 				, pasteFromWordDisallow = [
 					  "span"  // Strip all span elements
 					, "*(*)"  // Strip all classes
 					, "*{*}"  // Strip all inline-styles
 				  ]
 			  }
-			, toolbars    = _getCkEditorToolbarConfig()
+			, linkPicker = _getRicheditorLinkPickerConfig()
+			, toolbars   = _getCkEditorToolbarConfig()
 		};
 
 		settings.static = {
@@ -358,13 +381,20 @@ component {
 			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
 			, emailStyleInliner       = { enabled=true , siteTemplates=[ "*" ] }
 			, emailLinkShortener      = { enabled=false, siteTemplates=[ "*" ] }
+			, emailOverwriteDomain    = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
 			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
 			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
 			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
+			, emailQueueHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
+			, adhocTaskHeartBeat      = { enabled=true , siteTemplates=[ "*" ] }
+			, taskmanagerHeartBeat    = { enabled=true , siteTemplates=[ "*" ] }
+			, assetQueueHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
+			, assetQueue              = { enabled=false , siteTemplates=[ "*" ] }
 			, queryCachePerObject     = { enabled=false, siteTemplates=[ "*" ] }
+			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -408,6 +438,7 @@ component {
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
+		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService" ];
 
@@ -420,6 +451,8 @@ component {
 		settings.csrf = {
 			tokenExpiryInSeconds = 1200
 		};
+
+		settings.autoTrimFormSubmissions = { admin=false, frontend=false };
 
 		settings.rest = {
 			  path          = "/api"
@@ -447,10 +480,11 @@ component {
 		};
 
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page" ] };
-		settings.rulesEngine.contexts.page                  = { object="page" };
-		settings.rulesEngine.contexts.user                  = { object="website_user" };
-		settings.rulesEngine.contexts.formBuilderSubmission = { subcontexts=[ "webrequest" ] };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
+		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
+		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
+		settings.rulesEngine.contexts.adminuser             = { object="security_user" };
+		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
 
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
@@ -463,6 +497,19 @@ component {
 		settings.concurrency = _getConcurrencySettings();
 
 		settings.healthCheckServices = {};
+
+		settings.fullPageCaching = {
+			  limitCacheData = false
+			, limitCacheDataKeys = {
+				  rc  = []
+				, prc = [ "_site", "presidePage", "__presideInlineJs", "_presideUrlPath", "currentLayout", "currentView", "slug", "viewModule" ]
+			  }
+		};
+
+		settings.presideservices = {
+			  assetQueue          = "assetQueueService"
+			, derivativeGenerator = "derivativeGeneratorService"
+		};
 
 		_loadConfigurationFromExtensions();
 
@@ -613,6 +660,7 @@ component {
 
 		derivatives.adminthumbnail = {
 			  permissions = "inherit"
+			, autoQueue = [ "image", "pdf" ]
 			, transformations = [
 				  { method="pdfPreview" , args={ page=1                }, inputfiletype="pdf", outputfiletype="jpg" }
 				, { method="shrinkToFit", args={ width=200, height=200 } }
@@ -621,21 +669,25 @@ component {
 
 		derivatives.icon = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=32, height=32 } } ]
 		};
 
 		derivatives.pickericon = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=48, height=32 } } ]
 		};
 
 		derivatives.pageThumbnail = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=100, height=100 } } ]
 		};
 
 		derivatives.adminCropping = {
 			  permissions = "inherit"
+			, autoQueue = [ "image" ]
 			, transformations = [ { method="shrinkToFit", args={ width=300, height=300 } } ]
 		};
 
@@ -647,7 +699,7 @@ component {
 			full     =  'Maximize,-,Source,-,Preview'
 					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
-					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
+					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe,CodeSnippet'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
@@ -666,10 +718,11 @@ component {
 			email = 'Maximize,-,Source,'
 					 & '|Cut,Copy,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
-					 & '|PresideLink,PresideUnlink,-,ImagePicker,AttachmentPicker,,SpecialChar'
+					 & '|PresideLink,PresideUnlink,-,Widgets,ImagePicker,AttachmentPicker,,SpecialChar'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,Table,HorizontalRule-,Outdent,Indent,-,Blockquote,CreateDiv'
 					 & '|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
+					 & '|Format',
 		};
 
 	}
@@ -820,5 +873,16 @@ component {
 		var major = Val( ListFirst( luceeVersion, "." ) );
 
 		return major > 4;
+	}
+
+	private struct function _getRicheditorLinkPickerConfig() {
+		return {
+			default = {
+				types=[ "sitetreelink", "url", "email", "asset", "anchor" ]
+			}
+			, email = {
+				types=[ "sitetreelink", "url", "email", "asset", "emailvariable" ]
+			}
+		};
 	}
 }

@@ -86,10 +86,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 	private any function _getFactory() {
 		dbInfoService = CreateMock( object=( new preside.system.services.database.DbInfoService() ) );
 
-		var factory   = new preside.system.services.database.adapters.AdapterFactory(
-			  cache         = _getCachebox().getCache( "PresideSystemCache" )
-			, dbInfoService = dbInfoService
-		);
+		var factory   = new preside.system.services.database.adapters.AdapterFactory( dbInfoService = dbInfoService );
 
 		return CreateMock( object=factory );
 	}

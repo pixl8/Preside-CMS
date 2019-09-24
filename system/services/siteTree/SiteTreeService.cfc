@@ -224,7 +224,14 @@ component {
 		}
 
 		return _getPobj().selectData(
-			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
+			  selectFields       = [ 
+				    "page.id as value"
+				  , "page.title as text"
+				  , "parent_page.title as parent"
+				  , "page._hierarchy_depth as depth"
+				  , "page.page_type"
+				  , "page.active as active" 
+			  ]
 			, filter             = filter
 			, extraFilters       = extra
 			, maxRows            = arguments.maxRows
@@ -487,7 +494,6 @@ component {
 		, numeric version           = 0
 		, string  site              = ""
 	) {
-		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
 			  maxRows            = 1
 			, orderBy            = "_hierarchy_sort_order"
@@ -518,6 +524,7 @@ component {
 			return homepage;
 		}
 
+		var loginSvc = _getLoginService();
 		homepage = addPage(
 			  title         = "Home"
 			, slug          = ""
@@ -621,7 +628,7 @@ component {
 		);
 
 		var isManagedType   = Len( Trim( page.parent_type ) ) && getManagedChildTypesForParentType( page.parent_type ).findNoCase( page.page_type );
-		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_from_sub_navigation ) : ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) );
+		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_children_from_navigation ) : Val( page.exclude_from_navigation );
 		if ( isManagedType || excludedFromNav ) {
 			return [];
 		}
@@ -1663,7 +1670,7 @@ component {
 		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
 		if ( Len( Trim( arguments.parent_page ) ) ) {
-			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
+			var parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
 			if ( !parent.recordCount ) {
 				throw(
 					  type    = "SiteTreeService.MissingParent"

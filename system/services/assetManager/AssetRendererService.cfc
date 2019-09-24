@@ -11,10 +11,12 @@ component displayname="Asset Renderer Service" {
 	/**
 	 * @assetManagerService.inject AssetManagerService
 	 * @coldbox.inject             coldbox
+	 * @renderedAssetCache.inject  cachebox:renderedAssetCache
 	 *
 	 */
-	public any function init( required any assetManagerService, required any coldbox ) {
+	public any function init( required any assetManagerService, required any coldbox, required any renderedAssetCache ) {
 		_setAssetManagerService( arguments.assetManagerService );
+		_setRenderedAssetCache( arguments.renderedAssetCache );
 		_setColdbox( arguments.coldbox );
 
 		return this;
@@ -31,6 +33,13 @@ component displayname="Asset Renderer Service" {
 	 * @args.docdefault {}
 	 */
 	public string function renderAsset( required string assetId, string context="default", struct args={} ) {
+		var cacheKey  = "asset-#arguments.assetId#-#arguments.context#-#Serialize( args )#";
+		var fromCache = _getRenderedAssetCache().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
 		var asset = _getAssetManagerService().getAsset( arguments.assetId );
 
 		if ( asset.recordCount ){
@@ -38,11 +47,17 @@ component displayname="Asset Renderer Service" {
 
 			StructAppend( asset, arguments.args, false );
 
-			return _getColdbox().renderViewlet(
+			var rendered = _getColdbox().renderViewlet(
 				  event = _getViewletForAssetType( asset.asset_type, arguments.context )
 				, args  = asset
 			);
+
+			_getRenderedAssetCache().set( cacheKey, rendered );
+
+			return rendered;
 		}
+
+		_getRenderedAssetCache().set( cacheKey, "" );
 
 		return "";
 	}
@@ -90,6 +105,13 @@ component displayname="Asset Renderer Service" {
 	}
 	private void function _setColdbox( required any coldbox ) {
 		_coldbox = arguments.coldbox;
+	}
+
+	private any function _getRenderedAssetCache() {
+	    return _renderedAssetCache;
+	}
+	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
+	    _renderedAssetCache = arguments.renderedAssetCache;
 	}
 
 }

@@ -61,6 +61,8 @@ component {
 			arguments.append( getDefaultExportFieldsForObject( arguments.objectName ) );
 		}
 
+		$announceInterception( "preDataExportPrepareData", arguments );
+
 		var selectDataArgs       = Duplicate( arguments );
 		var cleanedSelectFields  = [];
 		var presideObjectService = $getPresideObjectService();
@@ -166,6 +168,8 @@ component {
 			cleanedSelectFields.append( field.listLast( " " ) );
 		}
 		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
+
+		$announceInterception( "postDataExportPrepareData", arguments );
 
 		var result = coldboxController.runEvent(
 			  private        = true

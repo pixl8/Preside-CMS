@@ -6,27 +6,28 @@
 component extends="coldbox.system.web.services.RequestService" {
 
 	/**
-	 * When service starts up, add a mockFlashScope to use
-	 * for stateless requests.
+	 * Use our own session flash scope that protects against
+	 * per-request sessions being disabled
 	 */
 	public any function buildFlashScope() {
-		super.buildFlashScope( argumentCollection=arguments );
-
-		variables.mockFlashScope = createObject( "component", "coldbox.system.web.flash.MockFlash" ).init( controller, variables.flashData );
+		if ( variables.flashData.scope == "session" ){
+			variables.flashScope = CreateObject( "component", "preside.system.coldboxModifications.SessionFlash" ).init( controller, variables.flashData );
+		} else {
+			super.buildFlashScope( argumentCollection=arguments );
+		}
 	}
 
-	/**
-	 * Additional checks for whether or not sessions are enabled.
-	 * If not, get our mock flash scope - otherwise, proceed as normal.
-	 */
-	public any function getFlashScope() {
-		var appSettings = GetApplicationSettings( true );
+	function getContext( string classPath = "preside.system.coldboxModifications.RequestContext" ){
+		return request.cb_requestContext ?: createContext( classPath );
+	}
 
-		if ( IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement ) {
-			return super.getFlashScope();
+	function createContext( required string classPath ) {
+		if ( !StructKeyExists( variables, "cb_requestContext" ) ) {
+			variables.cb_requestContext = super.createContext( arguments.classPath );
 		}
 
-		return variables.mockFlashScope;
-	}
+		setContext( variables.cb_requestContext );
 
+		return variables.cb_requestContext;
+	}
 }

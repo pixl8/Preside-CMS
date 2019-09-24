@@ -2,7 +2,8 @@
  * Represents the running of an adhoc task
  *
  * @nolabel
- * @versioned  false
+ * @versioned false
+ * @useCache  false
  *
  */
 component extends="preside.system.base.SystemPresideObject"  {

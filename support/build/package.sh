@@ -9,7 +9,7 @@ if [[ $TRAVIS_JDK_VERSION == 'openjdk7' ]] ; then
 	exit 0;
 fi
 
-if  [[ $TRAVIS_PULL_REQUEST == 'true' ]] ; then
+if  [[ $TRAVIS_PULL_REQUEST != 'false' ]] ; then
 	echo "Finished (not packaging up source due to running in a pull request)."
 	exit 0;
 fi

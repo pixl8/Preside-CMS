@@ -9,7 +9,7 @@
 		<fieldset id="body" sortorder="20">
 			<field binding="email_template.subject"     control="textinput"   sortorder="10" />
 			<field binding="email_template.attachments"                       sortorder="20" sortable="true" />
-			<field binding="email_template.html_body"   control="richeditor"  sortorder="30" toolbar="email" />
+			<field binding="email_template.html_body"   control="richeditor"  sortorder="30" widgetCategories="email" linkPickerCategory="email" toolbar="email" />
 			<field binding="email_template.text_body"   control="textarea"    sortorder="40" />
 		</fieldset>
 	</tab>

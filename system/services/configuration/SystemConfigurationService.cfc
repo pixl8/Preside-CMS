@@ -3,6 +3,7 @@
  * for interacting with Preside' [[editablesystemsettings]].
  *
  * @singleton
+ * @presideService
  * @autodoc
  */
 component displayName="System configuration service" {
@@ -11,22 +12,25 @@ component displayName="System configuration service" {
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @dao.inject                     presidecms:object:system_config
-	 * @injectedConfig.inject          coldbox:setting:injectedConfig
+	 * @env.inject                     coldbox:setting:env
 	 * @formsService.inject            delayedInjector:formsService
 	 * @siteService.inject             delayedInjector:siteService
+	 * @settingsCache.inject           cachebox:PresideSystemSettingsCache
 	 */
 	public any function init(
 		  required array  autoDiscoverDirectories
 		, required any    dao
-		, required struct injectedConfig
+		, required struct env
 		, required any    formsService
 		, required any    siteService
+		, required any    settingsCache
 	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao );
-		_setInjectedConfig( arguments.injectedConfig );
+		_setEnv( arguments.env );
 		_setFormsService( arguments.formsService );
 		_setSiteService( arguments.siteService );
+		_setSettingsCache( arguments.settingsCache );
 		_setLoaded( false );
 
 		return this;
@@ -45,15 +49,23 @@ component displayName="System configuration service" {
 	 */
 	public string function getSetting( required string category, required string setting, string default="" ) {
 		_reloadCheck();
-
-		var injected   = _getInjectedConfig();
 		var activeSite = _getSiteService().getActiveSiteId();
+		var cache      = _getSettingsCache();
+		var cacheKey   = "setting.#arguments.category#.#arguments.setting#.#arguments.default#.#activeSite#";
+		var fromCache  = cache.get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var injected   = _getEnv();
 		var result     = _getDao().selectData(
 			  selectFields = [ "value" ]
 			, filter       = { category = arguments.category, setting = arguments.setting, site=activeSite }
 		);
 
 		if ( result.recordCount ) {
+			cache.set( cacheKey, result.value );
 			return result.value;
 		}
 
@@ -64,10 +76,14 @@ component displayName="System configuration service" {
 		);
 
 		if ( result.recordCount ) {
+			cache.set( cacheKey, result.value );
 			return result.value;
 		}
 
-		return injected[ "#arguments.category#.#arguments.setting#" ] ?: arguments.default;
+		result = injected[ "#arguments.category#.#arguments.setting#" ] ?: arguments.default;
+		cache.set( cacheKey, result );
+
+		return result;
 	}
 
 	/**
@@ -87,6 +103,13 @@ component displayName="System configuration service" {
 		,          string  siteId             = _getSiteService().getActiveSiteId()
 	) {
 		_reloadCheck();
+		var cache      = _getSettingsCache();
+		var cacheKey   = "setting.#arguments.category#.category.#arguments.includeDefaults#.#arguments.globalDefaultsOnly#.#arguments.siteId#";
+		var fromCache  = cache.get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
 
 		var result = {};
 
@@ -115,7 +138,7 @@ component displayName="System configuration service" {
 				}
 			}
 
-			var injected = _getInjectedConfig().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
+			var injected = _getEnv().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
 			for( var key in injected ) {
 				var setting = ListRest( key, "." );
 
@@ -124,6 +147,8 @@ component displayName="System configuration service" {
 				}
 			}
 		}
+
+		cache.set( cacheKey, result );
 
 		return result;
 	}
@@ -147,7 +172,8 @@ component displayName="System configuration service" {
 	)  {
 		_reloadCheck();
 
-		var dao = _getDao();
+		var dao    = _getDao();
+		var result = "";
 
 		transaction {
 			var filter = "category = :category and setting = :setting and site ";
@@ -167,12 +193,12 @@ component displayName="System configuration service" {
 			);
 
 			if ( currentRecord.recordCount ) {
-				return dao.updateData(
+				result = dao.updateData(
 					  data = { value = arguments.value }
 					, id   = currentRecord.id
 				);
 			} else {
-				return dao.insertData(
+				result = dao.insertData(
 					data = {
 						  category = arguments.category
 						, setting  = arguments.setting
@@ -182,6 +208,11 @@ component displayName="System configuration service" {
 				);
 			}
 		}
+
+		clearSettingsCache( arguments.category );
+
+
+		return result;
 	}
 
 	public any function deleteSetting(
@@ -200,10 +231,14 @@ component displayName="System configuration service" {
 			params.site = arguments.siteId;
 		}
 
-		return dao.deleteData(
+		var result = dao.deleteData(
 			  filter       = filter
 			, filterParams = params
 		);
+
+		clearSettingsCache( arguments.category );
+
+		return result;
 	}
 
 	public array function listConfigCategories() {
@@ -241,6 +276,17 @@ component displayName="System configuration service" {
 	public void function reload() {
 		_setConfigCategories({});
 		_autoDiscoverCategories();
+
+		$announceInterception( "onReloadConfigCategories", { categories=_getConfigCategories() } );
+	}
+
+	public void function clearSettingsCache( required string category ) {
+		_getSettingsCache().clearByKeySnippet(
+			  keySnippet = "^setting\.#arguments.category#\."
+			, regex      = true
+			, async      = false
+		);
+		$announceInterception( "onClearSettingsCache", arguments );
 	}
 
 // PRIVATE HELPERS
@@ -342,11 +388,11 @@ component displayName="System configuration service" {
 		_configCategories = arguments.configCategories;
 	}
 
-	private struct function _getInjectedConfig() {
+	private struct function _getEnv() {
 		return _injectedConfig;
 	}
-	private void function _setInjectedConfig( required struct injectedConfig ) {
-		_injectedConfig = arguments.injectedConfig;
+	private void function _setEnv( required struct env ) {
+		_injectedConfig = arguments.env;
 	}
 
 	private struct function _getFormsService() {
@@ -368,5 +414,12 @@ component displayName="System configuration service" {
 	}
 	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
+	}
+
+	private any function _getSettingsCache() {
+	    return _settingsCache;
+	}
+	private void function _setSettingsCache( required any settingsCache ) {
+	    _settingsCache = arguments.settingsCache;
 	}
 }

@@ -232,7 +232,7 @@ component extends="coldbox.system.Bootstrap" {
 			}
 
 		} catch( Any e ) {
-			var defaultShowErrorsSetting = IsBoolean( application.injectedConfig.showErrors ?: "" ) && application.injectedConfig.showErrors;
+			var defaultShowErrorsSetting = IsBoolean( application.env.showErrors ?: "" ) && application.env.showErrors;
 			var showErrors               = cbController.getSetting( name="showErrors", defaultValue=defaultShowErrorsSetting );
 
 			if ( !IsBoolean( showErrors ) || !showErrors ) {

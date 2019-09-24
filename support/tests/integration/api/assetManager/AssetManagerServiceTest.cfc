@@ -111,7 +111,7 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "getDerivativeUrl()", function(){
-			it( "should return an internal URL when no derivative DB record yet exists", function(){
+			it( "should return an internal URL when no derivative DB record yet exists and queue the creation of the derivative", function(){
 				var service    = _getService();
 				var assetId    = CreateUUId();
 				var derivative = "thumbnailyarh";
@@ -127,14 +127,26 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getActiveAssetVersion", "" );
 				service.$( "getDerivativeConfig", "" );
 				service.$( "getDerivativeConfigHash", "" );
+				service.$( "$isFeatureEnabled" ).$args( "assetQueue" ).$results( true );
 				service.$( "getInternalAssetUrl" ).$args(
 					  id         = assetId
 					, versionId  = ""
 					, derivative = derivative
 					, trashed    = false
 				).$results( internalUrl );
+				mockAssetQueueService.$( "queueAssetGeneration" );
 
 				expect( service.getDerivativeUrl( assetId=assetId, derivativeName=derivative ) ).toBe( internalUrl );
+
+				var callLog = mockAssetQueueService.$callLog().queueAssetGeneration;
+
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( {
+					   assetId        = assetId
+					 , derivativeName = derivative
+					 , versionId      = ""
+					 , configHash     = ""
+				} );
 			} );
 
 			it( "should return an internal URL when no derivative DB record yet exists for specific asset version", function(){
@@ -147,6 +159,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getActiveAssetVersion", "" );
 				service.$( "getDerivativeConfig", "" );
 				service.$( "getDerivativeConfigHash", "" );
+				service.$( "$isFeatureEnabled" ).$args( "assetQueue" ).$results( false );
 				service.$( "getAssetDerivative" ).$args(
 					  assetId           = assetId
 					, derivativeName    = derivative
@@ -238,7 +251,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
-				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
+				service.$( "getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( dummyUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( dummyUrl );
@@ -260,7 +273,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
-				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
+				service.$( "getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
 				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false, derivative="" ).$results( internalUrl );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( storageUrl );
 
@@ -310,7 +323,7 @@ component extends="testbox.system.BaseSpec"{
 				var storageProvider = CreateStub();
 				var dummyUrl        = "https://www.static-site.com/" & CreateUUId();
 
-				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
+				service.$( "getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
 				service.$( "isDerivativePubliclyAccessible" ).$args( derivative ).$results( true );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( dummyUrl );
 
@@ -388,19 +401,21 @@ component extends="testbox.system.BaseSpec"{
 
 
 	private any function _getService() {
-		mockDefaultStorageProvider  = CreateStub();
-		mockAssetTransformer        = CreateStub();
-		mockDocumentMetadataService = CreateStub();
-		mockStorageLocationService  = CreateStub();
-		mockStorageProviderService  = CreateStub();
-		mockAssetDao                = CreateStub();
-		mockAssetVersionDao         = CreateStub();
-		mockAssetFolderDao          = CreateStub();
-		mockAssetDerivativeDao      = CreateStub();
-		mockAssetMetaDao            = CreateStub();
-		configuredDerivatives       = {};
-		configuredTypesByGroup      = {};
-		configuredFolders           = {};
+		mockDefaultStorageProvider     = CreateStub();
+		mockDocumentMetadataService    = CreateStub();
+		mockStorageLocationService     = CreateStub();
+		mockStorageProviderService     = CreateStub();
+		mockAssetDao                   = CreateStub();
+		mockAssetVersionDao            = CreateStub();
+		mockAssetFolderDao             = CreateStub();
+		mockAssetDerivativeDao         = CreateStub();
+		mockAssetQueueService          = CreateStub();
+		mockAssetMetaDao               = CreateStub();
+		assetCache                     = CreateStub();
+		mockDerivativeGeneratorService = CreateStub();
+		configuredDerivatives          = {};
+		configuredTypesByGroup         = {};
+		configuredFolders              = {};
 
 		var service = CreateObject( "preside.system.services.assetManager.AssetManagerService" );
 
@@ -414,16 +429,21 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "_setupSystemFolders" );
 		service.$( "_migrateFromLegacyRecycleBinApproach" );
 
+		assetCache.$( "clearByKeySnippet" );
+
 		return service.init(
-			  defaultStorageProvider  = mockDefaultStorageProvider
-			, assetTransformer        = mockAssetTransformer
-			, documentMetadataService = mockDocumentMetadataService
-			, storageLocationService  = mockStorageLocationService
-			, storageProviderService  = mockStorageProviderService
-			, configuredDerivatives   = configuredDerivatives
-			, configuredTypesByGroup  = configuredTypesByGroup
-			, configuredFolders       = configuredFolders
+			  defaultStorageProvider     = mockDefaultStorageProvider
+			, documentMetadataService    = mockDocumentMetadataService
+			, storageLocationService     = mockStorageLocationService
+			, storageProviderService     = mockStorageProviderService
+			, assetQueueService          = mockAssetQueueService
+			, derivativeGeneratorService = mockDerivativeGeneratorService
+			, configuredDerivatives      = configuredDerivatives
+			, configuredTypesByGroup     = configuredTypesByGroup
+			, configuredFolders          = configuredFolders
+			, renderedAssetCache         = assetCache
 		);
+
 	}
 
 }

@@ -1,24 +1,23 @@
 <cfscript>
 	isDraft            = IsTrue( args.isDraft   ?: "" );
 	canCancel          = IsTrue( args.canCancel ?: "" );
-	sendMethod         = args.sendMethod    ?: "";
-	scheduleType       = args.scheduleType  ?: "";
-	sendDate           = args.sendDate      ?: "";
-	cancelLink         = args.cancelLink    ?: "";
-	cancelPrompt       = args.cancelPrompt  ?: "";
-	cancelSend         = args.cancelSend    ?: "";
+	sendMethod         = args.sendMethod              ?: "";
+	scheduleType       = args.scheduleType            ?: "";
+	sendDate           = args.sendDate                ?: "";
+	cancelLink         = args.cancelLink              ?: "";
+	cancelPrompt       = args.cancelPrompt            ?: "";
+	cancelSend         = args.cancelSend              ?: "";
 	sent               = Val( args.sent               ?: "" );
 	queued             = Val( args.queued             ?: "" );
 	estimatedSendCount = Val( args.estimatedSendCount ?: "" );
 </cfscript>
 <cfoutput>
 	<p class="light-grey">
-		<i class="fa fa-fw fa-info-circle"></i>
-
 		<cfif IsDraft>
+			<i class="fa fa-fw fa-info-circle"></i>
 			#translateResource( uri="cms:emailcenter.customTemplates.draft.notice" )#
-
 		<cfelseif sendMethod == "scheduled">
+			<i class="fa fa-fw fa-info-circle"></i>
 			<cfif scheduleType == "repeat">
 				<cfif IsDate( sendDate )>
 					#translateResource( uri="cms:emailcenter.next.send.date.alert", data=[ DateTimeFormat( sendDate, "d mmm, yyyy HH:nn"), NumberFormat( estimatedSendCount ) ])#
@@ -49,6 +48,7 @@
 			</cfif>
 		<cfelse>
 			<cfif queued>
+				<i class="fa fa-fw fa-info-circle"></i>
 				#translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#
 				<cfif canCancel>
 					<a href="#cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( cancelPrompt )#">

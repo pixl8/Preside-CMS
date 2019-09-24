@@ -3,7 +3,7 @@
     "openbrowser":false,
     "trayEnable":false,
     "web":{
-        "webroot":"./",
+        "webroot":"/",
         "http":{
             "port":"9999"
         }

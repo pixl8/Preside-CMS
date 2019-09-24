@@ -14,7 +14,7 @@
 <cfoutput>
 	<meta property="og:title" content="#XmlFormat( local.title )#" />
 	<meta property="og:type"  content="#local.ogType#" />
-	<meta property="og:url"   content="#event.getSiteUrl()##HtmlEditFormat( event.getCurrentUrl() )#" />
+	<meta property="og:url"   content="#event.getSiteUrl( includeLanguageSlug=false )##HtmlEditFormat( event.getCurrentUrl() )#" /> 
 	<cfif Len( local.teaser )>
 		<meta property="og:description" content="#HtmlEditFormat( local.teaser )#" />
 	</cfif>
