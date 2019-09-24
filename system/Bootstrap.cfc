@@ -12,6 +12,7 @@ component {
 		, string  scriptProtect                = "none"
 		, string  reloadPassword               = "true"
 		, boolean showDbSyncScripts            = false
+		, boolean bufferOutput                 = true
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -25,6 +26,7 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
+		this.bufferOutput                            = arguments.bufferOutput;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
