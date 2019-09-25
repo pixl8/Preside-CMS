@@ -833,7 +833,7 @@ component displayName="AssetManager Service" {
 		var asset       = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
-		var fileNameChanged = StructKeyExists( arguments.data, "file_name" ) && asset.file_name != arguments.data.file_name;
+		var fileNameChanged = StructKeyExists( arguments.data, "file_name" ) && Compare( asset.file_name, arguments.data.file_name );
 		var updateData  = {};
 
 		if ( fileNameChanged ) {
