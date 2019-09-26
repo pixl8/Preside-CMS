@@ -248,7 +248,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:datamanager.addrecord.breadcrumb.title" )
+			  title = translateResource( uri="cms:datamanager.addrecord.breadcrumb.title", data=[ objectTitleSingular ] )
 			, link  = ""
 		);
 	}
