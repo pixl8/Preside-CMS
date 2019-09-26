@@ -34,6 +34,7 @@ component displayname="Image Manipulation Service" {
 		,          string  focalPoint          = ""
 		,          string  cropHint            = ""
 		,          string  useCropHint         = false
+		,          boolean isSvg               = false
 	) {
 		var args = arguments;
 
@@ -54,6 +55,7 @@ component displayname="Image Manipulation Service" {
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
+		,          boolean isSvg   = false
 	) {
 		return _getImplementation().shrinkToFit( argumentCollection = arguments);
 	}

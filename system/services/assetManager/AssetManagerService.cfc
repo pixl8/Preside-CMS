@@ -1425,12 +1425,17 @@ component displayName="AssetManager Service" {
 			transformationArgs.focalPoint = asset.focal_point;
 			transformationArgs.cropHint   = asset.crop_hint;
 
+			if( fileext == 'svg' ) {
+				transformation.outputFileType = "png";
+			}
+
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
 				assetBinary = _applyAssetTransformation(
 					  assetBinary          = assetBinary
 					, transformationMethod = transformation.method ?: ""
 					, transformationArgs   = transformationArgs
 					, filename             = filename              ?: ""
+					, isSvg                = ( fileext == 'svg' )  ? true : false
 				);
 
 				if ( Len( Trim( transformation.outputFileType ?: "" ) ) ) {
@@ -1908,11 +1913,12 @@ component displayName="AssetManager Service" {
 		}
 	}
 
-	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs, required string filename) {
+	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs, required string filename, boolean isSvg ) {
 		var args        = Duplicate( arguments.transformationArgs );
 
 		// todo, sanity check the input
 		args.asset    = arguments.assetBinary;
+		args.isSvg      = arguments.isSvg;
 
 		return _getAssetTransformer()[ arguments.transformationMethod ]( argumentCollection = args );
 	}

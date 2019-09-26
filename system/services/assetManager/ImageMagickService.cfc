@@ -24,6 +24,7 @@ component displayname="ImageMagick"  {
 		,          string  gravity             = 'center'
 		,          string  focalPoint          = ""
 		,          struct  cropHintArea        = {}
+		,          boolean isSvg               = false
 	) {
 
 		var imageBinary       = arguments.asset;
@@ -32,7 +33,7 @@ component displayname="ImageMagick"  {
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
-		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
+		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" ) & ( isSvg == 1 ?".png":"" );
 
 		FileWrite( tmpSourceFilePath, arguments.asset );
 
@@ -56,8 +57,14 @@ component displayname="ImageMagick"  {
 			$raiseError( e );
 			rethrow;
 		} finally {
+			tempFileName = listFirst( getFileInfo( tmpDestFilePath ).name, "." )&".tmp"; // .tmp file created when adding ext on getTempFile().
+
 			FileDelete( tmpSourceFilePath );
 			FileDelete( tmpDestFilePath   );
+			
+			if( fileExists( GetTempDirectory()&tempFileName ) ) {
+				FileDelete( GetTempDirectory()&tempFileName );
+			}
 		}
 
 		return imageBinary;
@@ -93,6 +100,7 @@ component displayname="ImageMagick"  {
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
+		,          boolean isSvg   = false
 	) {
 		var imageBinary = arguments.asset;
 
@@ -101,7 +109,8 @@ component displayname="ImageMagick"  {
 		var currentImageInfo  = getImageInformation( imageBinary );
 
 		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
-		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
+		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" ) & ( isSvg == 1 ?".png":"" );
+
 		var shrinkToWidth     = arguments.width;
 		var shrinkToHeight    = arguments.height;
 		var widthChangeRatio  = currentImageInfo.width / shrinkToWidth;
@@ -124,7 +133,7 @@ component displayname="ImageMagick"  {
 			imageMagickResize(
 				  sourceFile      = tmpSourceFilePath
 				, destinationFile = tmpDestFilePath
-				, qualityArgs      = _cfToImQuality( arguments.quality )
+				, qualityArgs     = _cfToImQuality( arguments.quality )
 				, width           = shrinkToWidth
 				, height          = shrinkToHeight
 				, expand          = true
@@ -136,8 +145,14 @@ component displayname="ImageMagick"  {
 			$raiseError( e );
 			rethrow;
 		} finally {
+			tempFileName = listFirst( getFileInfo( tmpDestFilePath ).name, "." )&".tmp"; // .tmp file created when adding ext on getTempFile().
+
 			FileDelete( tmpSourceFilePath );
 			FileDelete( tmpDestFilePath   );
+			
+			if( fileExists( GetTempDirectory()&tempFileName ) ) {
+				FileDelete( GetTempDirectory()&tempFileName );
+			}
 		}
 
 		return imageBinary;

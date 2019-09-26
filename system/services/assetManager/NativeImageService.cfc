@@ -42,8 +42,13 @@ component displayname="Native Image Manipulation Service" {
 		var currentAspectRatio = 0;
 
 		try {
+			var assetBinary = arguments.asset;
 
-			image = ImageNew( correctImageOrientation( arguments.asset ) );
+			if( isSvg ) {
+				assetBinary = SVGToPngBinary ( arguments.asset );
+			}
+
+			image = ImageNew( correctImageOrientation( assetBinary ) );
 			currentImageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
@@ -94,14 +99,21 @@ component displayname="Native Image Manipulation Service" {
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
+		,          boolean isSvg   = false
+
 	) {
 		var image         = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
 
 		try {
+			var assetBinary = arguments.asset;
 
-			image = ImageNew( correctImageOrientation( arguments.asset ) );
+			if( isSvg ) {
+				assetBinary = SVGToPngBinary ( arguments.asset );
+			}
+
+			image = ImageNew( correctImageOrientation( assetBinary ) );
 			imageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
@@ -254,4 +266,44 @@ component displayname="Native Image Manipulation Service" {
 		return ( imageBinary );
 	}
 
+	private binary function SVGToPngBinary( required binary asset ) {
+		var imageBinary = arguments.asset;
+
+		var svgFile = getTempFile( GetTempDirectory(), "ntv" );
+		var pngFile = getTempFile( GetTempDirectory(), "ntv" );
+
+		FileWrite( svgFile, arguments.asset );
+
+		try{
+			var t       = createObject("java", "org.apache.batik.transcoder.image.PNGTranscoder", _getLib() ).init();
+			var svgURI  = createObject("java", "java.io.File").init(svgFile).toURL().toString();
+			var input   = createObject("java", "org.apache.batik.transcoder.TranscoderInput", _getLib() ).init(svgURI);
+			var ostream = createObject("java", "java.io.FileOutputStream").init(pngFile);
+			var output  = createObject("java", "org.apache.batik.transcoder.TranscoderOutput", _getLib() ).init(ostream);
+			var t.transcode(input,output);
+
+			ostream.flush();
+			ostream.close();
+
+			imageBinary = FileReadBinary( pngFile );
+		}
+		catch ( any e ) {
+			$raiseError( e );
+			rethrow;
+		} finally {
+			FileDelete( svgFile );
+			FileDelete( pngFile   );
+		}
+
+		return imageBinary;
+	}
+
+	private array function _getLib() {
+		return [
+			  "/preside/system/services/assetmanager/lib/batik-all-1.9.jar"
+			, "/preside/system/services/assetmanager/lib/xml-apis-ext-1.3.04.jar"
+			, "/preside/system/services/assetmanager/lib/xmlgraphics-commons-2.3.jar"
+		];
+	}
+	
 }
