@@ -173,6 +173,12 @@ component {
 		var propName     = "";
 		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
+		if ( !ArrayLen( orderedProps ) ) {
+			for( prop in arguments.properties ) {
+				ArrayAppend( orderedProps, prop.name );
+			}
+		}
+
 		param name="arguments.meta.properties"    default=StructNew();
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
@@ -434,6 +440,17 @@ component {
 	}
 
 	private array function _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( required string pathToCfc ) {
+		var propFilePath = arguments.pathToCfc.reReplace( "\.cfc$", "$props.json" );
+
+		if ( FileExists( propFilePath ) ) {
+			try {
+				var props = DeserializeJson( FileRead( propFilePath ) );
+				if ( IsArray( props ) ) {
+					return props;
+				}
+			} catch( any e ) {}
+		}
+
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 
