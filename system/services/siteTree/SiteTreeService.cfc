@@ -1416,6 +1416,7 @@ component {
 			, allowDraftVersions = true
 			, filter             = filter
 			, bypassTenants      = bypassTenants
+			, useCache           = false
 		);
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
