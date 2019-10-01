@@ -444,6 +444,7 @@ component {
 			, allowDraftVersions = arguments.allowDrafts
 			, fromversionTable   = arguments.fromVersionTable
 			, specificVersion    = arguments.version
+			, useCache           = false
 		);
 
 		for( var t in template ) {
