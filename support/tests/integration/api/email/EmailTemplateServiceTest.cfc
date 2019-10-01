@@ -655,7 +655,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				for( var r in mockResult ) { expected = r; }
 
-				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false, specificVersion=0 ).$results( mockResult );
+				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false, specificVersion=0, useCache=false ).$results( mockResult );
 
 				expect( service.getTemplate( template ) ).toBe( expected );
 			} );
@@ -668,7 +668,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				for( var r in mockResult ) { expected = r; }
 
-				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=true, fromversionTable=true, specificVersion=0 ).$results( mockResult );
+				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=true, fromversionTable=true, specificVersion=0, useCache=false ).$results( mockResult );
 
 				expect( service.getTemplate( id=template, allowDrafts=true ) ).toBe( expected );
 			} );
@@ -687,6 +687,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, allowDraftVersions = false
 					, fromversionTable   = true
 					, specificVersion    = version
+					, useCache           = false
 				).$results( mockResult );
 
 				expect( service.getTemplate( id=template, version=version ) ).toBe( expected );
@@ -705,7 +706,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, service_provider = mockBlueprint.service_provider
 				};
 
-				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false, specificVersion=0 ).$results( mockResult );
+				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false, specificVersion=0, useCache=false ).$results( mockResult );
 				mockBlueprintDao.$( "selectData" ).$args( id=mockResult.email_blueprint ).$results( mockBlueprint );
 
 				expect( service.getTemplate( template ) ).toBe( expected );
