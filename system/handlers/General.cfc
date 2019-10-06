@@ -211,31 +211,31 @@ component {
 	private void function _startHeartbeats() {
 		if ( isFeatureEnabled( "emailQueueHeartBeat" ) ) {
 			for( var i=1; i<=emailQueueConcurrency; i++ ) {
-				getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
+				getModel( "PresideEmailQueueHeartBeat#i#" ).start();
 			}
 		}
 
 		if ( isFeatureEnabled( "healthchecks" ) ) {
 			for( var serviceId in healthcheckService.listRegisteredServices() ) {
-				getModel( "healthCheckHeartbeat#serviceId#" ).startInNewRequest();
+				getModel( "healthCheckHeartbeat#serviceId#" ).start();
 			}
 		}
 
 		if ( isFeatureEnabled( "adhocTaskHeartBeat" ) ) {
-			presideAdhocTaskHeartBeat.startInNewRequest();
+			presideAdhocTaskHeartBeat.start();
 		}
 
 		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
-			presideTaskmanagerHeartBeat.startInNewRequest();
+			presideTaskmanagerHeartBeat.start();
 		}
 
 		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
 			for( var i=1; i<=assetQueueConcurrency; i++ ) {
-				getModel( "AssetQueueHeartBeat#i#" ).startInNewRequest();
+				getModel( "AssetQueueHeartBeat#i#" ).start();
 			}
 		}
 
-		cacheboxReapHeartBeat.startInNewRequest();
+		cacheboxReapHeartBeat.start();
 	}
 
 	private void function _setupCatchAllAdminUserGroup() {

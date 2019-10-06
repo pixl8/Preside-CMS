@@ -6,21 +6,21 @@
 component extends="AbstractHeartBeat" {
 
 	/**
-	 * @threadUtil.inject        threadUtil
-	 * @assetQueueService.inject presidecms:dynamicservice:assetQueue
+	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
+	 * @assetQueueService.inject           presidecms:dynamicservice:assetQueue
 	 *
 	 */
 	public function init(
-		  required any     threadUtil
+		  required any     scheduledThreadpoolExecutor
 		, required any     assetQueueService
 		,          numeric instanceNumber = 1
 		,          string  threadName     = "Preside Asset Queue Processor #arguments.instanceNumber#"
 	){
 		super.init(
-			  threadName   = arguments.threadName
-			, threadUtil   = arguments.threadUtil
-			, intervalInMs = 2000
-			, feature      = "assetQueueHeartBeat"
+			  threadName                  = arguments.threadName
+			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, intervalInMs                = 2000
+			, feature                     = "assetQueueHeartBeat"
 		);
 
 		_setAssetQueueService( arguments.assetQueueService );
@@ -37,29 +37,6 @@ component extends="AbstractHeartBeat" {
 			queueService.processQueue();
 		} catch( any e ) {
 			$raiseError( e );
-		}
-	}
-
-	public void function startInNewRequest() {
-		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startAssetQueueHeartbeat" );
-
-		thread name=CreateUUId() startUrl=startUrl {
-			var attemptLimit = 10;
-			var attempt      = 1;
-			var success      = false;
-
-			do {
-				try {
-					sleep( 2000 + ( 100 * _getInstanceNumber() ) );
-					http method="post" url=startUrl timeout=10 throwonerror=true {
-						httpparam type="formfield" name="instanceNumber" value=_getInstanceNumber();
-					}
-					success = true;
-				} catch( any e ) {
-					$raiseError( e );
-					$systemOutput( "Failed to start asset queue heartbeat at #startUrl#. Retrying...(attempt #attempt#)");
-				}
-			} while ( !success && ++attempt <= 10 );
 		}
 	}
 
