@@ -40,6 +40,8 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
+
+		setLastRun();
 	}
 
 // GETTERS AND SETTERS

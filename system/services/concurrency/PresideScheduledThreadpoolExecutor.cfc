@@ -20,6 +20,28 @@ component extends="cfconcurrent.ScheduledThreadPoolExecutor" {
 		super.stop();
 	}
 
+// monitoring
+	public struct function getTaskStatuses() {
+		var tasks     = getStoredTasks();
+		var statuses  = StructNew( "linked" );
+		var taskNames = StructKeyArray( tasks );
+
+		ArraySort( taskNames, "textnocase" );
+
+		for( var taskName in taskNames ) {
+			var future = tasks[ taskName ].future;
+			var task   = tasks[ taskName ].task;
+
+			statuses[ taskName ] = {
+				  isUp    = !future.isDone() && !future.isCancelled()
+				, lastRun = task.getLastRun()
+				, uptime  = task.getUptime()
+			};
+		}
+
+		return statuses;
+	}
+
 // private helpers
 	private string function _getAppName() {
 		var appSettings = getApplicationMetadata();

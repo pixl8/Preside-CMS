@@ -48,6 +48,8 @@ component {
 				, timeUnit     = tpe.getObjectFactory().MILLISECONDS
 			);
 
+			setStartTime();
+
 			$systemOutput( "Started #_getThreadName()# heartbeat." );
 
 			_setTaskFuture( taskFuture );
@@ -76,6 +78,24 @@ component {
 		if ( !taskFuture.isDone() && !taskFuture.isCancelled() ) {
 			$systemOutput( "FAILED TO SHUTDOWN #_getThreadName()#" );
 		}
+	}
+
+	public date function getLastRun() {
+	    return _lastRun;
+	}
+	public void function setLastRun( date lastRun=Now() ) {
+	    _lastRun = arguments.lastRun;
+	}
+
+	public numeric function getUptime() {
+		return GetTickCount() - getStartTime();
+	}
+
+	public numeric function getStartTime() {
+	    return _startTime;
+	}
+	public void function setStartTime( numeric startTime=GetTickCount() ) {
+	    _startTime = arguments.startTime;
 	}
 
 // PRIVATE HELPERS
