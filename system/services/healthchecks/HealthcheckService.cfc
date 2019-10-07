@@ -23,7 +23,7 @@ component {
 
 // PUBLIC API METHODS
 	/**
-	 * Returns configured services that whose health
+	 * Returns configured services whose health
 	 * will be periodically checked.
 	 *
 	 * @autodoc true
@@ -93,6 +93,23 @@ component {
 	 */
 	public void function setIsUp( required string serviceId, required boolean isUp ) {
 		variables._services[ arguments.serviceId ] = arguments.isUp;
+	}
+
+	/**
+	 * Gets a struct of services whose keys are the service IDs
+	 * and values their boolean up status
+	 *
+	 * @autodoc
+	 *
+	 */
+	public struct function getAllStatuses() {
+		var statuses = {};
+
+		for( var serviceId in _getConfiguredServices() ) {
+			statuses[ serviceId ] = isUp( serviceId );
+		}
+
+		return statuses;
 	}
 
 // PRIVATE HELPERS

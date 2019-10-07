@@ -6,21 +6,21 @@
 component extends="AbstractHeartBeat" {
 
 	/**
-	 * @cachebox.inject   cachebox
-	 * @threadUtil.inject threadUtil
+	 * @cachebox.inject                    cachebox
+	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
 	 *
 	 */
 	public function init(
-		  required any    threadUtil
+		  required any    scheduledThreadpoolExecutor
 		, required any    cachebox
 		,          string threadName = "Preside Cache Reap Heartbeat"
 	){
 		_setCachebox( arguments.cachebox );
 
 		super.init(
-			  threadName   = arguments.threadName
-			, threadUtil   = arguments.threadUtil
-			, intervalInMs = ( 1000 * 60 ) // 1 minutes
+			  threadName                  = arguments.threadName
+			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, intervalInMs                = ( 1000 * 60 ) // 1 minutes
 		);
 
 		return this;
@@ -37,23 +37,7 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-	}
-
-	public void function startInNewRequest() {
-		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startCacheReapHeartbeat" );
-
-		thread name=CreateUUId() startUrl=startUrl {
-			do {
-				try {
-					sleep( 20478 );
-					http method="post" url=startUrl timeout=20 throwonerror=true {}
-					success = true;
-				} catch( any e ) {
-					$raiseError( e );
-					$systemOutput( "Failed to start cache reap heartbeat. Retrying...(attempt #attempt#)");
-				}
-			} while ( !success && ++attempt <= 10 );
-		}
+		setLastRun();
 	}
 
 // GETTERS AND SETTERS

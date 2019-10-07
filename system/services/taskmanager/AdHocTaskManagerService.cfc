@@ -13,16 +13,18 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @siteService.inject siteService
 	 * @threadUtil.inject  threadUtil
 	 * @logger.inject      logbox:logger:taskmanager
+ 	 * @executor.inject    presideTaskManagerExecutor
 	 */
 	public any function init(
 		  required any siteService
 		, required any logger
 		, required any threadUtil
+		, required any executor
 	) {
 		_setSiteService( arguments.siteService );
 		_setLogger( arguments.logger );
 		_setThreadUtil( arguments.threadUtil );
-
+		_setExecutor( arguments.executor );
 
 		return this;
 	}
@@ -150,7 +152,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			var nextTask = getNextScheduledTaskToRun();
 
 			if ( !IsNull( nextTask ) ) {
-				_runTaskInNewRequest( nextTask.id );
+				runTaskInThread( nextTask.id );
 			}
 		} while( !IsNull( nextTask ) );
 	}
@@ -163,15 +165,14 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to run
 	 */
 	public void function runTaskInThread( required string taskId ) {
-		thread name="adhocTaskThread-#CreateUUId()#" taskId=arguments.taskId {
-			var tu   = _getThreadUtil();
-			var task = getTask( attributes.taskId );
-
-			tu.setThreadRequestDefaults();
-			tu.setThreadName( "Preside Adhoc task #task.event#: #arguments.taskId#" );
-
-			runTask( attributes.taskId );
+		if ( !_getExecutor().isStarted() ) {
+			_getExecutor().start();
 		}
+
+		_getExecutor().submit( new AdhocTaskManagerRunnable(
+			  service = this
+			, taskId  = arguments.taskId
+		) );
 	}
 
 	/**
@@ -517,26 +518,6 @@ component displayName="Ad-hoc Task Manager Service" {
 		return Round( Val( arguments.input ) * secondsInADay );
 	}
 
-	private void function _runTaskInNewRequest( required string taskId ) {
-		var event         = $getRequestContext();
-		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.adhocTask" );
-		var logger        = _getTaskLogger( arguments.taskId );
-
-		if ( taskRunnerUrl.reFindNoCase( "^https" ) && !$isFeatureEnabled( "sslInternalHttpCalls" ) ) {
-			taskRunnerUrl = taskRunnerUrl.reReplaceNoCase( "^https", "http" );
-		}
-
-		try {
-			http url=taskRunnerUrl method="post" timeout=10 throwonerror=true {
-				httpparam name="taskId" value=arguments.taskId type="formfield";
-			}
-		} catch( any e ) {
-			failTask( taskId=arguments.taskId, error=e, forceRetry=true );
-			$raiseError( error=e );
-			logger.error( "An [#( e.type ?: '' )#] error occurred running task. Error message: [#( e.message ?: '' )#]" );
-		}
-	}
-
 // GETTERS AND SETTERS
 	private any function _getSiteService() {
 		return _siteService;
@@ -557,5 +538,12 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 	private void function _setThreadUtil( required any threadUtil ) {
 		_threadUtil = arguments.threadUtil;
+	}
+
+	private any function _getExecutor() {
+	    return _executor;
+	}
+	private void function _setExecutor( required any executor ) {
+	    _executor = arguments.executor;
 	}
 }

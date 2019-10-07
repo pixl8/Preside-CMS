@@ -739,6 +739,7 @@ component extends="testbox.system.BaseSpec" {
 		mockSiteService     = CreateStub();
 		mockLogboxLogger    = CreateStub();
 		mockThreadUtil      = CreateStub();
+		mockExecutor        = CreateStub();
 		nowish              = DateAdd( 'd', 1, Now() );
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
@@ -746,6 +747,7 @@ component extends="testbox.system.BaseSpec" {
 			, siteService          = mockSiteService
 			, logger               = mockLogBoxLogger
 			, threadUtil           = mockThreadUtil
+			, executor             = mockExecutor
 		) );
 
 		mockRequestContext.$( "setUseQueryCache" );

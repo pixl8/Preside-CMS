@@ -51,7 +51,6 @@ component {
 
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
-		_ensureHeartbeatsAreStillRunning();
 	}
 
 	public void function onAbort() {
@@ -738,24 +737,5 @@ component {
 
 	private void function _preserveLocaleCookieIfPresent() {
 		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
-	}
-
-	private void function _ensureHeartbeatsAreStillRunning(){
-		var lastChecked = application._ensureHeartbeatsAreStillRunningLastCheck ?: '1900-01-01';
-
-		if ( DateDiff( 'n', lastChecked, Now() ) >= 1 ) {
-			try {
-				lock type="exclusive" timeout=0 name="_ensureHeartbeatsAreStillRunning-#GetCurrentTemplatePath()#" {
-					application._ensureHeartbeatsAreStillRunningLastCheck = Now();
-
-					var beats = StructKeyArray( application._presideHeartbeatThreads ?: {} );
-					for( var beatName in beats ) {
-						try {
-							application._presideHeartbeatThreads[ beatName ].ensureAlive();
-						} catch( any e ) {}
-					}
-				}
-			} catch( any e ) {}
-		}
 	}
 }
