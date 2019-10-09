@@ -15,7 +15,15 @@
 	<p class="light-grey">
 		<cfif IsDraft>
 			<i class="fa fa-fw fa-info-circle"></i>
-			#translateResource( uri="cms:emailcenter.customTemplates.draft.notice" )#
+			<cfif sendMethod == "scheduled">
+				#translateResource( uri="cms:emailcenter.customTemplates.draftScheduled.notice" )#<br /><br />
+				#translateResource( uri="cms:emailcenter.customTemplates.draftScheduled.additionalNotice" )#
+			<cfelseif sendMethod == "manual">
+				#translateResource( uri="cms:emailcenter.customTemplates.draft.notice" )#<br /><br />
+				#translateResource( uri="cms:emailcenter.customTemplates.draftManual.additionalNotice" )#
+			<cfelse>
+				#translateResource( uri="cms:emailcenter.customTemplates.draft.notice" )#
+			</cfif>
 		<cfelseif sendMethod == "scheduled">
 			<i class="fa fa-fw fa-info-circle"></i>
 			<cfif scheduleType == "repeat">
