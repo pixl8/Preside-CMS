@@ -79,7 +79,7 @@ component {
 				PresidePageCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
-						  objectDefaultTimeout           = 1200
+						  objectDefaultTimeout           = 120
 						, objectDefaultLastAccessTimeout = 0
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 20
@@ -87,7 +87,9 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 500
 						, maxObjects                     = 2000
-						, objectStore                    = "ConcurrentStore"
+						, objectStore                    = "DiskStore"
+						, directoryPath                  = getTempDirectory() & "/" & "fullpagecache"
+						, autoExpandPath                 = false
 					}
 				},
 
