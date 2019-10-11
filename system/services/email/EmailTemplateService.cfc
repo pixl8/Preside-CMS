@@ -771,6 +771,7 @@ component {
 			, filter       = { id=arguments.templateId, "send_logs.sent"=true }
 			, forceJoins   = "inner"
 			, extraFilters = extraFilters
+			, useCache     = false
 		);
 
 		return Val( result.sent_count ?: "" );
@@ -809,6 +810,7 @@ component {
 			, filter       = { id=arguments.templateId, "send_logs.delivered"=true }
 			, forceJoins   = "inner"
 			, extraFilters = extraFilters
+			, useCache     = false
 		);
 
 		return Val( result.delivered_count ?: "" );
@@ -980,6 +982,7 @@ component {
 			  selectFields = [ "Count( queued_emails.id ) as queued_count" ]
 			, filter       = { id=arguments.templateId }
 			, forceJoins   = "inner"
+			, useCache     = false
 		);
 
 		return Val( result.queued_count ?: "" );
