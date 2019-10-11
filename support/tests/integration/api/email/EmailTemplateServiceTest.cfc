@@ -1425,6 +1425,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, filter       = { id=templateId, "send_logs.sent"=true }
 					, forceJoins   = "inner"
 					, extraFilters = []
+					, useCache     = false
 				).$results( stats );
 
 				expect( service.getSentCount( templateId ) ).toBe( 635 );
@@ -1442,9 +1443,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, filter       = { id=templateId, "send_logs.sent"=true }
 					, forceJoins   = "inner"
 					, extraFilters = [
-						  { filter="send_logs.sent_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
-						, { filter="send_logs.sent_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+						  { filter="send_logs.sent_date >= :dateFrom", filterParams={ dateFrom = { type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="send_logs.sent_date <= :dateTo"  , filterParams={ dateTo   = { type="cf_sql_timestamp", value=dateTo   } } }
 					]
+					, useCache     = false
 				).$results( stats );
 
 				expect( service.getSentCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
@@ -1462,6 +1464,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, filter       = { id=templateId, "send_logs.delivered"=true }
 					, forceJoins   = "inner"
 					, extraFilters = []
+					, useCache     = false
 				).$results( stats );
 
 				expect( service.getDeliveredCount( templateId ) ).toBe( 635 );
@@ -1482,6 +1485,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						  { filter="send_logs.delivered_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
 						, { filter="send_logs.delivered_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
 					]
+					, useCache     = false
 				).$results( stats );
 
 				expect( service.getDeliveredCount( templateId, dateFrom, dateTo ) ).toBe( 23 );
@@ -1572,6 +1576,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  selectFields = [ "Count( queued_emails.id ) as queued_count" ]
 					, filter       = { id=templateId }
 					, forceJoins   = "inner"
+					, useCache     = false
 				).$results( stats );
 
 				expect( service.getQueuedCount( templateId ) ).toBe( 459 );

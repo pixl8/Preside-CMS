@@ -192,6 +192,7 @@ component {
 			, extraFilters    = getTemplateRecipientFilters( arguments.templateId )
 			, recordCountOnly = true
 			, distinct        = true
+			, useCache        = false
 		);
 	}
 
