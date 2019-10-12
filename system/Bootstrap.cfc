@@ -13,6 +13,7 @@ component {
 		, string  reloadPassword               = "true"
 		, boolean showDbSyncScripts            = false
 		, boolean bufferOutput                 = true
+		, boolean allowPingRequests            = false
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -27,6 +28,7 @@ component {
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 		this.bufferOutput                            = arguments.bufferOutput;
+		this.allowPingRequests                       = arguments.allowPingRequests;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -34,6 +36,7 @@ component {
 
 // APPLICATION LIFECYCLE EVENTS
 	public boolean function onRequestStart( required string targetPage ) {
+		_pingCheck();
 		_maintenanceModeCheck();
 		_readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
@@ -412,6 +415,18 @@ component {
 		}
 
 		return true;
+	}
+
+	private void function _pingCheck() {
+		if ( !this.allowPingRequests ) {
+			var headers     = GetHttpRequestData( false ).headers;
+			var contentType = headers[ "Content-Type" ] ?: "";
+
+			if ( contentType == "text/ping" ) {
+				header statuscode=204 statustext="No Content";
+				abort;
+			}
+		}
 	}
 
 	private void function _maintenanceModeCheck() {
