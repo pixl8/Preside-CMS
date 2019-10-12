@@ -202,13 +202,26 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) {
+	public string function getDeleteSql( 
+		  required string tableName
+		, required any    filter
+		,          string tableAlias = "" 
+		,          array  joins      = []
+	) {
 		var sql = "delete "
 
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
 			sql &= "#escapeEntity( arguments.tableAlias )# from #escapeEntity( arguments.tableName )# as #escapeEntity( arguments.tableAlias )#";
 		} else {
 			sql &= "from #escapeEntity( arguments.tableName )#";
+		}
+
+		if ( ArrayLen( arguments.joins ) ) {
+			sql &= getJoinSql(
+				  tableName  = arguments.tableName
+				, tableAlias = arguments.tableAlias
+				, joins      = arguments.joins
+			);
 		}
 
 		return sql & getClauseSql(

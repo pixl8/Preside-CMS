@@ -213,7 +213,12 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) {
+	public string function getDeleteSql( 
+		  required string tableName
+		, required any    filter
+		,          string tableAlias = ""
+		,          array  joins      = []
+	) {
 		var sql = "delete from "
 
 		if(Len( Trim( arguments.tableAlias ) ) ) {
@@ -222,6 +227,14 @@ component extends="BaseAdapter" {
 			sql &= escapeEntity( arguments.tableName );
 		}
 
+		if ( ArrayLen( arguments.joins ) ) {
+			sql &= getJoinSql(
+				  tableName  = arguments.tableName
+				, tableAlias = arguments.tableAlias
+				, joins      = arguments.joins
+			);
+		}
+		
 		return sql & getClauseSql(
 			  filter     = arguments.filter
 			, tableAlias = arguments.tableAlias

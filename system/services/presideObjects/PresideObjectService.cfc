@@ -853,12 +853,14 @@ component displayName="Preside Object Service" {
 	public numeric function deleteData(
 		  required string  objectName
 		,          string  id
-		,          any     filter         = {}
-		,          struct  filterParams   = {}
-		,          array   extraFilters   = []
-		,          array   savedFilters   = []
-		,          boolean forceDeleteAll = false
-		,          boolean clearCaches    = _objectUsesCaching( arguments.objectName )
+		,          any     filter           = {}
+		,          struct  filterParams     = {}
+		,          array   extraFilters     = []
+		,          array   savedFilters     = []
+		,          boolean forceDeleteAll   = false
+		,          string  forceJoins       = ""
+		,          boolean fromVersionTable = false
+		,          boolean clearCaches      = _objectUsesCaching( arguments.objectName )
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
 
@@ -881,25 +883,29 @@ component displayName="Preside Object Service" {
 			);
 		}
 
-		preparedFilter = _prepareFilter(
+		args.preparedFilter = _prepareFilter(
 			  adapter           = adapter
 			, columnDefinitions = obj.properties
 			, argumentCollection = args
 		);
 
+		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
+		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
+
 		sql = adapter.getDeleteSql(
 			  tableName  = obj.tableName
 			, tableAlias = args.objectName
-			, filter     = preparedFilter.filter
+			, filter     = args.preparedFilter.filter
+			, joins      = _convertObjectJoinsToTableJoins( argumentCollection=args )
 		);
 
-		result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+		result = _runSql( sql=sql, dsn=obj.dsn, params=args.preparedFilter.params, returnType="info" );
 
 		if ( arguments.clearCaches && Val( result.recordCount ?: 0 ) ) {
 			clearRelatedCaches(
 				  objectName   = args.objectName
-				, filter       = preparedFilter.filter
-				, filterParams = preparedFilter.filterParams
+				, filter       = args.preparedFilter.filter
+				, filterParams = args.preparedFilter.filterParams
 			);
 		}
 
