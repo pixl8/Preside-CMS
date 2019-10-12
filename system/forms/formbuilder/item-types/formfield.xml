@@ -18,6 +18,7 @@ it will be merged with this form definition.
 			<field name="layout"    control="formbuilderFieldLayoutPicker" required="true"  sortorder="30" />
 			<field name="mandatory" control="yesnoswitch"                  required="false" sortorder="40" />
 			<field name="help"      control="textarea"                     required="false" sortorder="50" />
+			<field name="export"    control="yesnoswitch"                                   sortorder="60" />
 		</fieldset>
 	</tab>
 </form>
