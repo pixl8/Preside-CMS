@@ -34,7 +34,7 @@ component displayname="ImageMagick"  {
 
 		var imageBinary       = arguments.asset;
 		var currentImageInfo  = getImageInformation( imageBinary );
-		var isSvg             = arguments.fileProperties.fileExt == "svg";
+		var isSvg             = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
@@ -44,7 +44,7 @@ component displayname="ImageMagick"  {
 
 		if ( isSvg ) {
 			imageBinary = _getSvgToPngService().SVGToPngBinary( imageBinary, arguments.width, arguments.height );
-			arguments.fileProperties.fileExt = "png";
+			fileProperties.fileExt = "png";
 		}
 
 		FileWrite( tmpSourceFilePath, arguments.asset );
@@ -111,7 +111,7 @@ component displayname="ImageMagick"  {
 		,          struct  fileProperties = {}
 	) {
 		var imageBinary = arguments.asset;
-		var isSvg       = fileProperties.fileExt == "svg";
+		var isSvg       = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
@@ -140,7 +140,7 @@ component displayname="ImageMagick"  {
 
 		if ( isSvg ) {
 			imageBinary = _getSvgToPngService().SVGToPngBinary( imageBinary, shrinkToWidth, shrinkToHeight );
-			arguments.fileProperties.fileExt = "png";
+			fileProperties.fileExt = "png";
 		}
 
 		FileWrite( tmpSourceFilePath, imageBinary );
