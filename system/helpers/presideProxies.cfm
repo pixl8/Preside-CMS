@@ -100,6 +100,7 @@
 	</cffunction>
 
 	<cffunction name="validateForms" access="public" returntype="any" output="false">
+		<cfargument name="formData" type="struct" default="#getController().getRequestContext().getCollection()#" />
 		<cfscript>
 			var formsService     = getSingleton( "formsService" );
 			var validationResult = getSingleton( "validationEngine" ).newValidationResult();
@@ -107,12 +108,11 @@
 			var formNames        = event.getSubmittedPresideForms();
 
 			for( var formName in formNames ) {
-				var formData = event.getCollectionForForm( formName );
 
 				validationResult = formsService.validateForm(
 					  argumentCollection = arguments
 					, formName           = formName
-					, formData           = formData
+					, formData           = arguments.formData
 					, validationResult   = validationResult
 				);
 			}
