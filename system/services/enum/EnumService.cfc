@@ -45,56 +45,39 @@ component {
 		return itemsWithLabelsAndDescriptions;
 	}
 
-	public struct function getStructItems( required string enum, string value = "" ) {
-		var enums                          = _getConfiguredEnums();
-		var rawItems                       = enums[ arguments.enum ] ?: [];
-		var value                          = arguments.value         ?: "";
-		var itemsWithLabelsAndDescriptions = {};
-		var valueEnumResult                = {};
+	public struct function getEnumProperties( required string enum, array restrictToKeys=[], array properties=[ "label", "description" ] ) {
+		var enums     = _getConfiguredEnums();
+		var enumKeys  = enums[ arguments.enum ] ?: [];
+		var enumProps = {};
 
-		for( var itemId in rawItems ) {
-			itemsWithLabelsAndDescriptions[ itemId ] = {
-				  label       = $translateResource( uri="enum.#arguments.enum#:#itemId#.label"      , defaultValue=itemId )
-				, description = $translateResource( uri="enum.#arguments.enum#:#itemId#.description", defaultValue=""     )
-			}
-		}
-
-		if ( !isEmpty( arguments.value ) ) {
-			for ( item in listToArray( value, "," ) ) {
-				if ( itemsWithLabelsAndDescriptions.keyExists( item ) ) {
-					valueEnumResult[ item ] = itemsWithLabelsAndDescriptions[ item ];
+		for( var key in enumKeys ) {
+			if ( !ArrayLen( restrictToKeys ) || ArrayFindNoCase( restrictToKeys, key ) ) {
+				var enumValue = {};
+				for( var propName in arguments.properties ) {
+					enumValue[ propName ] = $translateResource(
+						  uri          = "enum.#arguments.enum#:#key#.#propName#"
+						, defaultValue = ( propName == "label" ? key : "" )
+					);
 				}
-			}
 
-			return valueEnumResult;
-		} else {
-			return itemsWithLabelsAndDescriptions;
-		}
-	}
-
-	public string function getLabelByValue( required string enum, required string value = "" ) {
-		var enums    = _getConfiguredEnums();
-		var rawItems = enums[ arguments.enum ] ?: [];
-		var value    = arguments.value         ?: "";
-
-		for( var itemId in rawItems ) {
-			if ( itemId eq value ) {
-				return $translateResource( uri="enum.#arguments.enum#:#itemId#.label" , defaultValue=itemId );
+				enumProps[ key ] = enumValue;
 			}
 		}
 
-		return "";
+		return enumProps;
 	}
 
-	public string function getValueByLabel( required string enum, required string label = "" ) {
-		var enums    = _getConfiguredEnums();
-		var rawItems = enums[ arguments.enum ] ?: [];
-		var label    = arguments.label         ?: "";
+	public string function getLabelByKey( required string enum, required string key ) {
+		return $translateResource( uri="enum.#arguments.enum#:#arguments.key#.label", defaultValue=arguments.key );
+	}
 
-		for( var itemId in rawItems ) {
-			var itemLabel = $translateResource( uri="enum.#arguments.enum#:#itemId#.label" , defaultValue=itemId );
-			if ( itemLabel eq label ) {
-				return itemId;
+	public string function getKeyByLabel( required string enum, required string label ) {
+		var enums    = _getConfiguredEnums();
+		var enumKeys = enums[ arguments.enum ] ?: [];
+
+		for( var key in enumKeys ) {
+			if ( getLabelByKey( arguments.enum, key ) == arguments.label ) {
+				return key;
 			}
 		}
 
