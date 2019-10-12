@@ -21,14 +21,16 @@ component extends="coldbox.system.Interceptor" {
 				event.setHTTPHeader( name="X-Cache", value="HIT" );
 				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
 				var contentType      = cached.contentType ?: "";
+				var pageId           = event.getCurrentPageId();
 
-				var pageId = getPresideObject( "page" ).selectData( selectFields=[ "id" ] ,filter={ _hierarchy_slug=prc.slug } ).id;
-				websiteUserActionService.recordAction(
-					  action     = "pagevisit"
-					, type       = "request"
-					, identifier = pageId
-					, userId     = getLoggedInUserId()
-				);
+				if ( Len( Trim( pageId ) ) ) {
+					websiteUserActionService.recordAction(
+						  action     = "pagevisit"
+						, type       = "request"
+						, identifier = pageId
+						, userId     = getLoggedInUserId()
+					);
+				}
 
 				content reset=true;
 				if ( len( contentType ) ) {
