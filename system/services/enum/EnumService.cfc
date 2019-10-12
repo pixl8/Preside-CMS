@@ -45,6 +45,62 @@ component {
 		return itemsWithLabelsAndDescriptions;
 	}
 
+	public struct function getStructItems( required string enum, string value = "" ) {
+		var enums                          = _getConfiguredEnums();
+		var rawItems                       = enums[ arguments.enum ] ?: [];
+		var value                          = arguments.value         ?: "";
+		var itemsWithLabelsAndDescriptions = {};
+		var valueEnumResult                = {};
+
+		for( var itemId in rawItems ) {
+			itemsWithLabelsAndDescriptions[ itemId ] = {
+				  label       = $translateResource( uri="enum.#arguments.enum#:#itemId#.label"      , defaultValue=itemId )
+				, description = $translateResource( uri="enum.#arguments.enum#:#itemId#.description", defaultValue=""     )
+			}
+		}
+
+		if ( !isEmpty( arguments.value ) ) {
+			for ( item in listToArray( value, "," ) ) {
+				if ( itemsWithLabelsAndDescriptions.keyExists( item ) ) {
+					valueEnumResult[ item ] = itemsWithLabelsAndDescriptions[ item ];
+				}
+			}
+
+			return valueEnumResult;
+		} else {
+			return itemsWithLabelsAndDescriptions;
+		}
+	}
+
+	public string function getLabelByValue( required string enum, required string value = "" ) {
+		var enums    = _getConfiguredEnums();
+		var rawItems = enums[ arguments.enum ] ?: [];
+		var value    = arguments.value         ?: "";
+
+		for( var itemId in rawItems ) {
+			if ( itemId eq value ) {
+				return $translateResource( uri="enum.#arguments.enum#:#itemId#.label" , defaultValue=itemId );
+			}
+		}
+
+		return "";
+	}
+
+	public string function getValueByLabel( required string enum, required string label = "" ) {
+		var enums    = _getConfiguredEnums();
+		var rawItems = enums[ arguments.enum ] ?: [];
+		var label    = arguments.label         ?: "";
+
+		for( var itemId in rawItems ) {
+			var itemLabel = $translateResource( uri="enum.#arguments.enum#:#itemId#.label" , defaultValue=itemId );
+			if ( itemLabel eq label ) {
+				return itemId;
+			}
+		}
+
+		return "";
+	}
+
 
 	/**
 	 * @validator        true
