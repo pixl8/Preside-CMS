@@ -45,6 +45,45 @@ component {
 		return itemsWithLabelsAndDescriptions;
 	}
 
+	public struct function getEnumProperties( required string enum, array restrictToKeys=[], array properties=[ "label", "description" ] ) {
+		var enums     = _getConfiguredEnums();
+		var enumKeys  = enums[ arguments.enum ] ?: [];
+		var enumProps = {};
+
+		for( var key in enumKeys ) {
+			if ( !ArrayLen( restrictToKeys ) || ArrayFindNoCase( restrictToKeys, key ) ) {
+				var enumValue = {};
+				for( var propName in arguments.properties ) {
+					enumValue[ propName ] = $translateResource(
+						  uri          = "enum.#arguments.enum#:#key#.#propName#"
+						, defaultValue = ( propName == "label" ? key : "" )
+					);
+				}
+
+				enumProps[ key ] = enumValue;
+			}
+		}
+
+		return enumProps;
+	}
+
+	public string function getLabelByKey( required string enum, required string key ) {
+		return $translateResource( uri="enum.#arguments.enum#:#arguments.key#.label", defaultValue=arguments.key );
+	}
+
+	public string function getKeyByLabel( required string enum, required string label ) {
+		var enums    = _getConfiguredEnums();
+		var enumKeys = enums[ arguments.enum ] ?: [];
+
+		for( var key in enumKeys ) {
+			if ( getLabelByKey( arguments.enum, key ) == arguments.label ) {
+				return key;
+			}
+		}
+
+		return "";
+	}
+
 
 	/**
 	 * @validator        true
