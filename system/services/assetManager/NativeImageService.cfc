@@ -47,11 +47,12 @@ component displayname="Native Image Manipulation Service" {
 		var targetAspectRatio  = 0;
 		var currentImageInfo   = {};
 		var currentAspectRatio = 0;
+		var isSvg              = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		try {
 			var assetBinary = arguments.asset;
 
-			if( fileProperties.fileExt == "svg" ) {
+			if( isSvg ) {
 				assetBinary = _getSvgToPngService().SVGToPngBinary( arguments.asset, arguments.width, arguments.height );
 				fileProperties.fileExt = "png";
 			}
@@ -113,11 +114,12 @@ component displayname="Native Image Manipulation Service" {
 		var image         = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
+		var isSvg         = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		try {
 			var assetBinary = arguments.asset;
 
-			if( fileProperties.fileExt == "svg" ) {
+			if( isSvg ) {
 				assetBinary = _getSvgToPngService().SVGToPngBinary ( arguments.asset, arguments.width, arguments.height );
 				fileProperties.fileExt = "png";
 			}
