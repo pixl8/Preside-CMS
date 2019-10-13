@@ -55,20 +55,20 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var uid = CreateUUId();
 				var sqlAndParams = {
 					  sql = "blah blah blah test = :param1 and blah = :param_oh_boy"
-					, params = {
-						  param1       = { type="cf_sql_varchar", value=CreateUUId() }
-						, param_oh_boy = { type="cf_sql_varchar", value=CreateUUId() }
-					  }
+					, params = [
+						  { name="param1", type="cf_sql_varchar", value=CreateUUId() }
+						, { name="param_oh_boy", type="cf_sql_varchar", value=CreateUUId() }
+					  ]
 				};
 
 				service.$( "_uuid", uid );
 
 				expect( service.makeUniqueParams( Duplicate( sqlAndParams ) ) ).toBe( {
 					  sql = "blah blah blah test = :param1#uid# and blah = :param_oh_boy#uid#"
-					, params = {
-						  "param1#uid#"       = sqlAndParams.params.param1
-						, "param_oh_boy#uid#" = sqlAndParams.params.param_oh_boy
-					  }
+					, params = [
+						  { name="param1#uid#", type="cf_sql_varchar", value=sqlAndParams.params[1].value }
+						, { name="param_oh_boy#uid#", type="cf_sql_varchar", value=sqlAndParams.params[2].value }
+					  ]
 				} );
 			} );
 		} );

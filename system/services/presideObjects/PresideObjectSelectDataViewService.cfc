@@ -69,12 +69,9 @@ component {
 
 	public struct function makeUniqueParams( required struct sqlAndParams ) {
 		var uid = _uuid();
-
-		for( var paramName in sqlAndParams.params ) {
-			sqlAndParams.params[ paramName & uid ] = sqlAndParams.params[ paramName ];
-			sqlAndParams.sql = ReplaceNoCase( sqlAndParams.sql, ":#paramName#", ":#paramName##uid#", "all" );
-
-			StructDelete( sqlAndParams.params, paramName );
+		for( var param in sqlAndParams.params ) {
+			sqlAndParams.sql = ReplaceNoCase( sqlAndParams.sql, ":#param.name#", ":#param.name##uid#", "all" );
+			param.name &= uid;
 		}
 
 		return sqlAndParams;
