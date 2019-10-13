@@ -2663,24 +2663,39 @@ component displayName="Preside Object Service" {
 		return joins;
 	}
 
-	private array function _convertObjectJoinsToTableJoins( required array joins, array extraJoins=[], array extraFilters=[], array savedFilters=[] ) {
+	private array function _convertObjectJoinsToTableJoins(
+		  required array  joins
+		,          array  extraJoins   = []
+		,          array  extraFilters = []
+		,          array  savedFilters = []
+		,          struct preparedFilter = {}
+	) {
 		var tableJoins = [];
 		var objJoin    = "";
 		var objects    = _getObjects();
 		var tableJoin  = "";
+		var join       = {};
 
 		for( objJoin in arguments.joins ){
-			var join = {
-				  tableName    = objects[ objJoin.joinToObject ].meta.tableName
-				, tableAlias   = objJoin.tableAlias ?: objJoin.joinToObject
-				, tableColumn  = objJoin.joinToProperty
-				, joinToTable  = objJoin.joinFromAlias ?: objJoin.joinFromObject
-				, joinToColumn = objJoin.joinFromProperty
-				, type         = objJoin.type
-			};
+			if ( Len( Trim( objJoin.subquery ?: "" ) ) ) {
+				join = objJoin;
+				if ( IsArray( join.subQueryParams ?: "" ) ) {
+					arguments.preparedFilter.params = arguments.preparedFilter.params ?: [];
+					arguments.preparedFilter.params.append( join.subQueryParams, true );
+				}
+			} else {
+				join = {
+					  tableName    = objects[ objJoin.joinToObject ].meta.tableName
+					, tableAlias   = objJoin.tableAlias ?: objJoin.joinToObject
+					, tableColumn  = objJoin.joinToProperty
+					, joinToTable  = objJoin.joinFromAlias ?: objJoin.joinFromObject
+					, joinToColumn = objJoin.joinFromProperty
+					, type         = objJoin.type
+				};
 
-			if ( IsBoolean( objJoin.addVersionClause ?: "" ) && objJoin.addVersionClause ) {
-				join.additionalClauses = "#join.tableAlias#._version_number = #join.joinToTable#._version_number";
+				if ( IsBoolean( objJoin.addVersionClause ?: "" ) && objJoin.addVersionClause ) {
+					join.additionalClauses = "#join.tableAlias#._version_number = #join.joinToTable#._version_number";
+				}
 			}
 
 			tableJoins.append( join );
