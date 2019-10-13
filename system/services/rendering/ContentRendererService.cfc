@@ -37,7 +37,7 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
+	public any function render( required string renderer, required any data, any context="default", struct args={} ) {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
