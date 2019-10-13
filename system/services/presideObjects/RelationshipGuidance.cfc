@@ -315,26 +315,24 @@ component singleton=true {
 							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#] using foreign key property named, [#relationshipKey#]. The property could not be found."
 						);
 					}
-				} else if ( Len( Trim( property.viewRelationship ?: "" ) ) ) {
-					if ( property.viewRelationship == "one-to-many" ) {
-						var view     = property.relatedto ?: "";
-						var viewArgs = _getSelectDataViewService().getViewArgs( property.relatedto );
+				} else if ( property.relationship == "select-data-view" )  {
+					var view     = property.relatedto ?: "";
+					var viewArgs = _getSelectDataViewService().getViewArgs( property.relatedto );
 
-						if ( Len( Trim( viewArgs.objectName ?: "" ) ) ) {
-							relationships[ objectName ][ viewArgs.objectName ] = relationships[ objectName ][ viewArgs.objectName ] ?: [];
-							relationships[ objectName ][ viewArgs.objectName ].append({
-								  type           = "one-to-many"
-								, required       = false
-								, pk             = property.relationshipKey ?: "" // todo raise error if bad
-								, fk             = propertyName
-								, onUpdate       = "error"
-								, onDelete       = "error"
-								, alias          = propertyName
-								, selectDataView = view
-							});
-						} else {
-							// TODO, raise error
-						}
+					if ( Len( Trim( viewArgs.objectName ?: "" ) ) ) {
+						relationships[ objectName ][ viewArgs.objectName ] = relationships[ objectName ][ viewArgs.objectName ] ?: [];
+						relationships[ objectName ][ viewArgs.objectName ].append({
+							  type           = "select-data-view"
+							, required       = false
+							, pk             = property.relationshipKey ?: "" // todo raise error if bad
+							, fk             = propertyName
+							, onUpdate       = "error"
+							, onDelete       = "error"
+							, alias          = propertyName
+							, selectDataView = view
+						});
+					} else {
+						// TODO, raise error
 					}
 				}
 			}

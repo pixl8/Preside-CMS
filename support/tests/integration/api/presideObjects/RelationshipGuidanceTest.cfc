@@ -487,7 +487,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test15_setupRelationships_shouldCatalogOneToManyViewRelationships" returntype="void">
+	<cffunction name="test15_setupRelationships_shouldCatalogSelectDataViewRelationships" returntype="void">
 		<cfscript>
 			var guidanceService = _getGuidanceService();
 			var objects = { obj_a = { meta = {
@@ -496,7 +496,7 @@
 				, tableName  = "pobj_obj_a"
 				, properties = {
 					  id     = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" }
-					, obj_bs = { relationship="none", viewRelationship="one-to-many", relatedTo="testView", relationshipKey="obj_a", required=false }
+					, obj_bs = { relationship="select-data-view", relatedTo="testView", relationshipKey="obj_a", required=false }
 				  }
 			} }, obj_b.meta     = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } } };
 
