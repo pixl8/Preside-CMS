@@ -36,14 +36,13 @@ component singleton=true {
 
 		for( target in arguments.joinTargets ){
 			columnJoins = _calculateColumnJoins( objectName, target, joins, arguments.forceJoins ?: "" );
-
 			if ( ArrayLen( columnJoins ) ) {
 				discoveredJoins[ target ] = 1;
 				discoveredColumnJoins[ target ] = 1;
 
 				for( join in columnJoins ) {
 					if ( !_joinExists( join, joins ) ) {
-						target = join.tableAlias ?: join.joinToObject;
+						target = join.tableAlias ?: ( join.joinToObject ?: join.subQueryAlias );
 						discoveredColumnJoins[ target ] = 1;
 						if ( arguments.joinTargets.findNoCase( target ) ){
 							discoveredJoins[ target ] = 1;
@@ -318,6 +317,7 @@ component singleton=true {
 				} else if ( property.relationship == "select-data-view" )  {
 					var view     = property.relatedto ?: "";
 					var viewArgs = _getSelectDataViewService().getViewArgs( property.relatedto );
+					var idField  = objects[ objectName ].meta.idField ?: "id";
 
 					if ( Len( Trim( viewArgs.objectName ?: "" ) ) ) {
 						relationships[ objectName ][ viewArgs.objectName ] = relationships[ objectName ][ viewArgs.objectName ] ?: [];
@@ -325,7 +325,7 @@ component singleton=true {
 							  type           = "select-data-view"
 							, required       = false
 							, pk             = property.relationshipKey ?: "" // todo raise error if bad
-							, fk             = propertyName
+							, fk             = idField
 							, onUpdate       = "error"
 							, onDelete       = "error"
 							, alias          = propertyName
@@ -427,16 +427,16 @@ component singleton=true {
 			}
 
 			joinAlias = ListAppend( joinAlias, targetCol, "$" );
-			var join = {
-				  type             = joinType
-				, joinToObject     = relationship.object
-			};
+
+			var join = { type=joinType };
+
 			switch( relationship.type ){
 				case "many-to-many":
 					join.append({
 						  joinFromObject   = relationship.pivotObject
 						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : relationship.pivotObject
 						, joinFromProperty = ( relationship.sourceObject == currentSource ? relationship.targetFk : relationship.sourceFk )
+						, joinToObject     = relationship.object
 						, joinToProperty   = pkMappings[ relationship.object ]
 					});
 				break;
@@ -445,6 +445,7 @@ component singleton=true {
 						  joinFromObject   = currentSource
 						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
 						, joinFromProperty = relationship.fk
+						, joinToObject     = relationship.object
 						, joinToProperty   = relationship.pk
 					});
 				break;
@@ -453,7 +454,20 @@ component singleton=true {
 						  joinFromObject   = currentSource
 						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
 						, joinFromProperty = relationship.pk
+						, joinToObject     = relationship.object
 						, joinToProperty   = relationship.fk
+					});
+				break;
+				case "select-data-view":
+					var sqlAndParams = _getSelectDataViewService().getSqlAndParams( relationship.selectDataView );
+
+					join.append({
+						  subQuery       = sqlAndParams.sql
+						, subQueryParams = sqlAndParams.params
+						, subQueryAlias  = relationship.alias
+						, subQueryColumn = relationship.pk
+						, joinToTable    = Len( currentAlias ) ? currentAlias : currentSource
+						, joinToColumn   = relationship.fk
 					});
 				break;
 			}
@@ -461,7 +475,7 @@ component singleton=true {
 			currentSource = relationship.object;
 			currentAlias  = joinAlias;
 
-			if ( joinAlias neq relationship.object ) {
+			if ( joinAlias neq relationship.object && relationship.type != "select-data-view" ) {
 				join.tableAlias = joinAlias;
 			}
 
@@ -478,11 +492,15 @@ component singleton=true {
 
 		for( var foreignObj in relationships ){
 			for( var join in relationships[ foreignObj ] ) {
-				if ( join.type eq "many-to-one" and join.fk eq arguments.columnName ) {
+				if ( join.type == "many-to-one" and join.fk == arguments.columnName ) {
 					found = Duplicate( join );
 					found.object = foreignObj;
 					return found;
-				} else if ( join.type eq "one-to-many" && join.alias == arguments.columnName ) {
+				} else if ( join.type == "one-to-many" && join.alias == arguments.columnName ) {
+					found = Duplicate( join );
+					found.object = foreignObj;
+					return found;
+				} else if ( join.type == "select-data-view" && join.alias == arguments.columnName ) {
 					found = Duplicate( join );
 					found.object = foreignObj;
 					return found;
@@ -494,7 +512,7 @@ component singleton=true {
 		relationships = relationships[ arguments.objectName ] ?: {};
 		for( var foreignObj in relationships ){
 			for( var join in relationships[ foreignObj ] ) {
-				if ( join.propertyName eq arguments.columnName ) {
+				if ( join.propertyName == arguments.columnName ) {
 					found = Duplicate( join );
 					found.object = foreignObj;
 					return found;

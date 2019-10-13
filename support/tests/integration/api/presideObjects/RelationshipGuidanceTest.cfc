@@ -510,6 +510,52 @@
 			super.assertEquals( 2, relationships.obj_b.len() );
 			super.assertEquals( "obj_bs", relationships.obj_b[2].alias ?: "" );
 			super.assertEquals( "testView", relationships.obj_b[2].selectDataView ?: "" );
+			super.assertEquals( "id", relationships.obj_b[2].fk ?: "" );
+			super.assertEquals( "obj_a", relationships.obj_b[2].pk ?: "" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test16_calculateJoins_shouldCalculate_selectDataViewJoins_basedOnPropertyNames" returntype="void">
+		<cfscript>
+			var guidanceService  = _getGuidanceService();
+			var mockSqlAndParams = {
+				  sql    = "blah blah #CreateUUId()#"
+				, params = { test=CreateUUId() }
+			};
+			var objects = { obj_a = { meta = {
+				  dsn        = "test"
+				, name       = "some.path.to.obj_a"
+				, tableName  = "pobj_obj_a"
+				, properties = {
+					  id     = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" }
+					, obj_bs = { relationship="select-data-view", relatedTo="testView", relationshipKey="obj_a", required=false }
+				  }
+			} }, obj_b.meta     = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } } };
+
+
+			mockSelectDataViewService.$( "getViewArgs" ).$args( "testView" ).$results({objectName = "obj_b"});
+			mockSelectDataViewService.$( "getSqlAndParams" ).$args( "testView" ).$results( mockSqlAndParams )
+
+			var expected = [{
+				  type           = "left"
+				, subQuery       = mockSqlAndParams.sql
+				, subQueryParams = mockSqlAndParams.params
+				, subQueryAlias  = "obj_bs"
+				, subQueryColumn = "obj_a"
+				, joinToTable    = "obj_a"
+				, joinToColumn   = "id"
+			}];
+
+			guidanceService.setupRelationships( objects );
+
+			var result = guidanceService.calculateJoins(
+				  objectName    = "obj_a"
+				, joinTargets   = [
+					  "obj_bs"
+				  ]
+			);
+
+			super.assertEquals( expected, result );
 		</cfscript>
 	</cffunction>
 
