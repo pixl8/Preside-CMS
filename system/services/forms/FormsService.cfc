@@ -197,11 +197,10 @@ component displayName="Forms service" {
 	 * @autodoc
 	 * @formName.hint Name of the form whose fields you wish to list.
 	 */
-	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[] ) {
+	public array function listFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[], array suppressFields =[] ) {
 		var frm            = getForm( argumentCollection=arguments );
 		var ignoreControls = [ "readonly", "oneToManyManager" ];
 		var fields         = [];
-
 
 		for( var tab in frm.tabs ){
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
@@ -214,8 +213,46 @@ component displayName="Forms service" {
 				for( var field in fieldset.fields ) {
 					var control = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
 
-					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
+					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) && !arguments.suppressFields.findNoCase( field.name ) ) {
 						ArrayAppend( fields, field.name ?: "" );
+					}
+				}
+			}
+		}
+
+		return fields;
+	}
+
+	/**
+	 * Returns a struct containing arrays of the field names explicitly enabled/disabled for automatic whitespace trimming
+	 *
+	 * @autodoc
+	 * @formName.hint Name of the form whose autoTrim fields you wish to list.
+	 */
+	public struct function listAutoTrimFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[], array suppressFields =[] ) {
+		var frm            = getForm( argumentCollection=arguments );
+		var ignoreControls = [ "readonly", "oneToManyManager" ];
+		var fields         = { enabled=[], disabled=[] };
+
+		for( var tab in frm.tabs ){
+			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
+				continue;
+			}
+			for( var fieldset in tab.fieldsets ) {
+				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
+					continue;
+				}
+				for( var field in fieldset.fields ) {
+					var control         = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
+					var deleted         = IsBoolean( field.deleted         ?: "" ) && field.deleted;
+
+					if ( !IsBoolean( field.autoTrim ?: "" ) || ignoreControls.findNoCase( control ) || deleted || arguments.suppressFields.findNoCase( field.name ) ) {
+						continue;
+					}
+					if ( field.autoTrim ) {
+						fields.enabled.append( field.name ?: "" );
+					} else {
+						fields.disabled.append( field.name ?: "" );
 					}
 				}
 			}
@@ -313,6 +350,9 @@ component displayName="Forms service" {
 		,          string  permissionContext       = ""
 		,          array   permissionContextKeys   = []
 	) {
+		var interceptorArgs = arguments;
+		$announceInterception( "preRenderForm", interceptorArgs );
+
 		var mergedFormName    = Len( Trim( arguments.mergeWithFormName ) ) ? getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
 		var frm               = getForm( argumentCollection=arguments, formName=mergedFormName );
 		var coldbox           = _getColdbox();
@@ -421,7 +461,11 @@ component displayName="Forms service" {
 
 		formArgs.append( frm, false );
 
-		return coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
+		interceptorArgs.rendered = coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
+
+		$announceInterception( "postRenderForm", arguments );
+
+		return interceptorArgs.rendered;
 	}
 
 	/**
@@ -429,36 +473,42 @@ component displayName="Forms service" {
 	 * use `renderForm` instead of rendering individual form controls.
 	 *
 	 * @autodoc
-	 * @name.hint         The name of the field to use
-	 * @type.hint         The control type, e.g. 'richeditor'
-	 * @context.hint      The context
-	 * @id.hint           The HTML ID to use for the rendered form control
-	 * @label.hint        The label for the control. Can be an i18n resource URI.
-	 * @defaultValue.hint The default value to prepopulate the control with (e.g. a saved value from the database)
-	 * @help.hint         Help text to accompany the control. Can be an i18n resource URI.
-	 * @savedData.hint    Structure of saved data for the entire form that is being rendered.
-	 * @error.hint        Error string to display with the control
-	 * @required.hint     Whether or not the form field is required
-	 * @layout.hint       Viewlet to use to render the field's layout
+	 * @name.hint           The name of the field to use
+	 * @type.hint           The control type, e.g. 'richeditor'
+	 * @context.hint        The context
+	 * @id.hint             The HTML ID to use for the rendered form control
+	 * @label.hint          The label for the control. Can be an i18n resource URI.
+	 * @defaultValue.hint   The default value to prepopulate the control with (e.g. a saved value from the database)
+	 * @help.hint           Help text to accompany the control. Can be an i18n resource URI.
+	 * @savedData.hint      Structure of saved data for the entire form that is being rendered.
+	 * @savedDataField.hint If specified, the form control's defaultValue will be sourced from this alternate field in savedData
+	 * @error.hint          Error string to display with the control
+	 * @required.hint       Whether or not the form field is required
+	 * @layout.hint         Viewlet to use to render the field's layout
 	 */
 	public string function renderFormControl(
 		  required string  name
 		, required string  type
-		,          string  context      = _getDefaultContextName()
-		,          string  id           = arguments.name
-		,          string  label        = ""
-		,          string  savedValue   = ""
-		,          string  defaultValue = ""
-		,          string  help         = ""
-		,          struct  savedData    = {}
-		,          string  error        = ""
-		,          boolean required     = false
-		,          string  layout       = "formcontrols.layouts.field"
+		,          string  context        = _getDefaultContextName()
+		,          string  id             = arguments.name
+		,          string  label          = ""
+		,          string  savedValue     = ""
+		,          string  defaultValue   = ""
+		,          string  help           = ""
+		,          struct  savedData      = {}
+		,          string  savedDataField = ""
+		,          string  error          = ""
+		,          boolean required       = false
+		,          string  layout         = "formcontrols.layouts.field"
 
 	) {
 		var coldbox         = _getColdbox();
 		var handler         = _getFormControlHandler( type=arguments.type, context=arguments.context );
 		var renderedControl = "";
+
+		if ( len( arguments.savedDataField ) && StructKeyExists( arguments.savedData, arguments.savedDataField ) ) {
+			arguments.defaultValue = arguments.savedData[ arguments.savedDataField ];
+		}
 
 		try {
 			renderedControl = coldbox.renderViewlet(
@@ -544,6 +594,7 @@ component displayName="Forms service" {
 		,          array   permissionContextKeys   = []
 		,          string  fieldNamePrefix         = ""
 		,          string  fieldNameSuffix         = ""
+		,          array   suppressFields          = []
 	) {
 		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
 		var result  = arguments.preProcessData ? preProcessForm( argumentCollection = arguments ) : "";
@@ -560,6 +611,7 @@ component displayName="Forms service" {
 				, ignoreMissing   = arguments.ignoreMissing
 				, fieldNamePrefix = arguments.fieldNamePrefix
 				, fieldNameSuffix = arguments.fieldNameSuffix
+				, suppressFields  = arguments.suppressFields
 			);
 		}
 
@@ -569,6 +621,7 @@ component displayName="Forms service" {
 			, result          = arguments.validationResult
 			, fieldNamePrefix = arguments.fieldNamePrefix
 			, fieldNameSuffix = arguments.fieldNameSuffix
+			, suppressFields  = arguments.suppressFields
 		);
 	}
 
@@ -610,8 +663,8 @@ component displayName="Forms service" {
 	 * @formData         Submitted form data
 	 * @validationResult A pre-existing validation result to which to append any errors found during preprocessing
 	 */
-	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult() ) {
-		var formFields       = listFields( arguments.formName );
+	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult(), array suppressFields= [] ) {
+		var formFields       = listFields( formName=arguments.formName, suppressFields=arguments.suppressFields );
 		var fieldValue       = "";
 
 		for( var field in formFields ){

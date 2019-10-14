@@ -173,6 +173,12 @@ component {
 		var propName     = "";
 		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
+		if ( !ArrayLen( orderedProps ) ) {
+			for( prop in arguments.properties ) {
+				ArrayAppend( orderedProps, prop.name );
+			}
+		}
+
 		param name="arguments.meta.properties"    default=StructNew();
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
@@ -314,8 +320,8 @@ component {
 		var defaults = {
 			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
 			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
-			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
-			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datecreated" }
+			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datemodified" }
 		};
 
 		if ( labelField == "label" ) {
@@ -434,6 +440,17 @@ component {
 	}
 
 	private array function _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( required string pathToCfc ) {
+		var propFilePath = arguments.pathToCfc.reReplace( "\.cfc$", "$props.json" );
+
+		if ( FileExists( propFilePath ) ) {
+			try {
+				var props = DeserializeJson( FileRead( propFilePath ) );
+				if ( IsArray( props ) ) {
+					return props;
+				}
+			} catch( any e ) {}
+		}
+
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 

@@ -16,7 +16,6 @@ component displayName="RulesEngine Expression Service" {
 	 * @contextService.inject              rulesEngineContextService
 	 * @autoExpressionGenerator.inject     rulesEngineAutoPresideObjectExpressionGenerator
 	 * @expressionDirectories.inject       presidecms:directories:/handlers/rules/expressions
-	 * @rulesEngineExpressionCache.inject  cachebox:rulesEngineExpressionCache
 	 * @i18n.inject                        coldbox:plugin:i18n
 	 *
 	 */
@@ -26,15 +25,14 @@ component displayName="RulesEngine Expression Service" {
 		, required any   contextService
 		, required any   autoExpressionGenerator
 		, required array expressionDirectories
-		, required any   rulesEngineExpressionCache
 		, required any   i18n
 	) {
 		_setFieldTypeService( fieldTypeService );
 		_setContextService( contextService );
 		_setAutoExpressionGenerator( arguments.autoExpressionGenerator );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) );
-		_setRulesEngineExpressionCache( rulesEngineExpressionCache );
 		_setI18n( i18n );
+		_setRulesEngineExpressionCache( {} );
 
 		return this;
 	}
@@ -49,18 +47,19 @@ component displayName="RulesEngine Expression Service" {
 	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
 	 */
 	public array function listExpressions( string context="", string filterObject="" ) {
+		var cache    = _getRulesEngineExpressionCache();
+		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context;
+
+		if ( StructKeyExists( cache, cacheKey ) ) {
+			return cache[ cacheKey ];
+		}
+
 		_lazyLoadDynamicExpressions( argumentCollection=arguments );
 
 		var allExpressions  = _getExpressions();
 		var list            = [];
 		var filterOnContext = arguments.context.len() > 0;
 		var filterOnObject  = arguments.filterObject.len();
-		var cachekey        = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context;
-		var cachedResult    = _getRulesEngineExpressionCache().get( cacheKey );
-
-		if ( !IsNull( local.cachedResult ) ) {
-			return cachedResult;
-		}
 
 		for( var expressionId in allExpressions ) {
 			var contexts = allExpressions[ expressionId ].contexts ?: [];
@@ -93,7 +92,8 @@ component displayName="RulesEngine Expression Service" {
 			return aCategory > bCategory ? 1 : -1;
 		} );
 
-		_getRulesEngineExpressionCache().set( cacheKey, list );
+		cache[ cacheKey ] = list;
+
 		return list;
 	}
 
@@ -551,10 +551,10 @@ component displayName="RulesEngine Expression Service" {
 		_contextService = arguments.contextService;
 	}
 
-	private any function _getRulesEngineExpressionCache() {
+	private struct function _getRulesEngineExpressionCache() {
 		return _rulesEngineExpressionCache;
 	}
-	private void function _setRulesEngineExpressionCache( required any rulesEngineExpressionCache ) {
+	private void function _setRulesEngineExpressionCache( required struct rulesEngineExpressionCache ) {
 		_rulesEngineExpressionCache = arguments.rulesEngineExpressionCache;
 	}
 

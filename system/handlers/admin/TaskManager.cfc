@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="taskHistoryDao"             inject="presidecms:object:taskmanager_task_history";
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
+	property name="cookieStorage"              inject="cookieStorage@cbstorages";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
@@ -17,8 +18,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
-		prc.taskGroups = taskManagerService.getAllTaskDetails();
+		prc.activeTaskGroup    = 1;
+		prc.taskGroups         = taskManagerService.getAllTaskDetails();
 		prc.autoRunningEnabled = systemConfigurationService.getSetting( "taskmanager", "scheduledtasks_enabled", false );
+
+		if ( len( rc.tab ?: "" ) ) {
+			cookieStorage.setVar( "_presideTaskManagerTab", rc.tab );
+		}
+		var tab = cookieStorage.getVar( "_presideTaskManagerTab", "" );
+		if ( len( tab ) ) {
+			prc.taskGroups.each( function( group, index, array ){
+				if ( group.slug == tab ) {
+					prc.activeTaskGroup = index;
+					break;
+				}
+			} );
+		}
 
 		prc.pageTitle    = translateResource( "cms:taskmanager.page.title"    );
 		prc.pageSubTitle = translateResource( "cms:taskmanager.page.subtitle" );

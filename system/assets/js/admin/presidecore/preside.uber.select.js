@@ -24,7 +24,8 @@
 						selected: option.selected,
 						disabled: option.disabled,
 						classes: option.className,
-						style: option.style.cssText
+						style: option.style.cssText,
+						active: option.active
 					});
 				} else {
 					this.parsed.push({
@@ -188,13 +189,19 @@
 			var classes, style;
 
 			option = $.extend( {}, {
-				  disabled          : false
-				, superQuickAdd     : false
-				, classes           : ""
-				, style             : { cssText : "" }
-				, text              : ""
-				, value             : ""
+				  disabled      : false
+				, superQuickAdd : false
+				, classes       : ""
+				, style         : { cssText : "" }
+				, text          : ""
+				, value         : ""
+				, active        : true
+				, inactiveClass : ""
 			}, option );
+
+			if ( option.active === "" ) {
+				option.active = true;
+			}
 
 			if (!this.include_option_in_results(option)) {
 				return '';
@@ -218,10 +225,13 @@
 			if (option.classes !== "") {
 				classes.push(option.classes);
 			}
+			if( !option.active ) {
+				option.inactiveClass  = "inactive";
+			}
 
 			style = option.style.cssText !== "" ? " style=\"" + option.style + "\"" : "";
 			return "<li class=\"" + (classes.join(' ')) + "\"" + style + ">"
-					+ Mustache.render( this.result_template, option ) +
+					+ Mustache.render( this.result_template , option ) +
 					"</li>";
 		};
 

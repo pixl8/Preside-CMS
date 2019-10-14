@@ -614,11 +614,11 @@ component extends="testbox.system.BaseSpec" {
 				mockSiteService.$( "getActiveSiteId", siteId );
 
 				tm.$( "getRunnableTasks", tasks );
-				tm.$( "_runTaskInNewRequest" );
+				tm.$( "runTask" );
 
 				tm.runScheduledTasks();
 
-				expect( tm.$callLog()._runTaskInNewRequest.len() ).toBe( 3 );
+				expect( tm.$callLog().runTask.len() ).toBe( 3 );
 			} );
 
 			it( "should return an array of the tasks that were started", function(){
@@ -633,7 +633,7 @@ component extends="testbox.system.BaseSpec" {
 				mockSiteService.$( "getActiveSiteId", siteId );
 
 				tm.$( "getRunnableTasks", tasks );
-				tm.$( "_runTaskInNewRequest" );
+				tm.$( "runTask" );
 
 				var result = tm.runScheduledTasks();
 
@@ -655,6 +655,7 @@ component extends="testbox.system.BaseSpec" {
 		mockErrorLogService  = mockbox.createStub();
 		mockSiteService      = mockbox.createStub();
 		mockThreadUtil       = mockbox.createStub();
+		mockExecutor         = mockbox.createStub();
 		mockLogger           = _getMockLogger();
 
 		configWrapper.$( "getConfiguredTasks", arguments.dummyConfig );
@@ -683,6 +684,7 @@ component extends="testbox.system.BaseSpec" {
 			, errorLogService              = mockErrorLogService
 			, siteService                  = mockSiteService
 			, threadUtil                   = mockThreadUtil
+			, executor                     = mockExecutor
 		);
 	}
 

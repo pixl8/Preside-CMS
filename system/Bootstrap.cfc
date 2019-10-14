@@ -12,6 +12,8 @@ component {
 		, string  scriptProtect                = "none"
 		, string  reloadPassword               = "true"
 		, boolean showDbSyncScripts            = false
+		, boolean bufferOutput                 = true
+		, boolean allowPingRequests            = false
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -25,6 +27,8 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
+		this.bufferOutput                            = arguments.bufferOutput;
+		this.allowPingRequests                       = arguments.allowPingRequests;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -32,6 +36,7 @@ component {
 
 // APPLICATION LIFECYCLE EVENTS
 	public boolean function onRequestStart( required string targetPage ) {
+		_pingCheck();
 		_maintenanceModeCheck();
 		_readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
@@ -43,12 +48,19 @@ component {
 	}
 
 	public void function onRequestEnd() {
+		if ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest ) {
+			_isReloading( false );
+		}
+
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
-		_ensureHeartbeatsAreStillRunning();
 	}
 
 	public void function onAbort() {
+		if ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest ) {
+			_isReloading( false );
+		}
+
 		_invalidateSessionIfNotUsed();
 		_cleanupCookies();
 	}
@@ -141,34 +153,54 @@ component {
 		var requestTimeout = this.PRESIDE_APPLICATION_RELOAD_TIMEOUT;
 		var lockTimeout    = this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT;
 
-		setting requesttimeout=requestTimeout;
+		if ( _isReloading() ) {
+			_stillReloadingError();
+		}
 
 		try {
 			lock name=lockname type="exclusive" timeout=locktimeout {
-				if ( _reloadRequired() ) {
-					_announceInterception( "prePresideReload" );
-
-					SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
-
-					_clearExistingApplication();
-					_ensureCaseSensitiveStructSettingsAreActive();
-					_applyJavaPropToImproveXalanXmlPerformance();
-					_fetchInjectedSettings();
-					_setupInjectedDatasource();
-					_preserveLocaleCookieIfPresent();
-					_initColdBox();
-
-					_announceInterception( "postPresideReload" );
-					SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" & Chr( 13 ) & Chr( 10 ) );
+				if ( _isReloading() ) {
+					_stillReloadingError();
 				}
+				if ( !_reloadRequired() ) {
+					_isReloading( false );
+					return;
+				}
+				setting requesttimeout=requestTimeout;
+
+				request._isPresideReloadRequest = true;
+				_isReloading( true );
+
+				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
+
+				_announceInterception( "prePresideReload" );
+				_clearExistingApplication();
+				_isReloading( true );
+				_ensureCaseSensitiveStructSettingsAreActive();
+				_applyJavaPropToImproveXalanXmlPerformance();
+				_fetchInjectedSettings();
+				_setupInjectedDatasource();
+				_preserveLocaleCookieIfPresent();
+				_initColdBox();
+				_announceInterception( "postPresideReload" );
+
+				_isReloading( false );
+				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" & Chr( 13 ) & Chr( 10 ) );
 			}
-		} catch( lock e ) {
+		} catch( any e ) {
 			if ( ( e.lockOperation ?: "" ) == "Timeout" ) {
-				_friendlyError( e, 503 );
-				abort;
-			} else {
-				rethrow;
+				_stillReloadingError();
 			}
+			_isReloading( false );
+			rethrow;
+		}
+	}
+
+	private any function _isReloading( boolean set ) {
+		if ( StructKeyExists( arguments, "set" ) ) {
+			application._preside_reloading = arguments.set;
+		} else {
+			return application._preside_reloading ?: false;
 		}
 	}
 
@@ -184,6 +216,8 @@ component {
 	}
 
 	private void function _initColdBox() {
+		application.applicationName = this.name;
+
 		var bootstrap = new preside.system.coldboxModifications.Bootstrap(
 			  COLDBOX_CONFIG_FILE   = _discoverConfigPath()
 			, COLDBOX_APP_ROOT_PATH = variables.COLDBOX_APP_ROOT_PATH
@@ -237,10 +271,10 @@ component {
 	}
 
 	private void function _fetchInjectedSettings() {
-		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, configurationDirectory="#COLDBOX_APP_MAPPING#/config" );
+		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, appDirectory=COLDBOX_APP_MAPPING );
 		var config          = settingsManager.getConfig();
 
-		application.injectedConfig = config;
+		application.env = application.injectedConfig = config;
 	}
 
 	private void function _setupInjectedDatasource() {
@@ -258,7 +292,7 @@ component {
 				, password                          = config[ "datasource.password"                    ] ?: ""
 				, timezone                          = config[ "datasource.timezone"                    ] ?: ""
 				, ConnectionLimit                   = config[ "datasource.ConnectionLimit"             ] ?: -1
-				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 0
+				, ConnectionTimeout                 = config[ "datasource.ConnectionTimeout"           ] ?: 1
 				, metaCacheTimeout                  = config[ "datasource.metaCacheTimeout"            ] ?: 60000
 				, blob                              = config[ "datasource.blob"                        ] ?: false
 				, clob                              = config[ "datasource.clob"                        ] ?: false
@@ -312,8 +346,8 @@ component {
 
 	private boolean function _showErrors() {
 		var coldboxController = _getColdboxController();
-		var injectedExists    = IsBoolean( application.injectedConfig.showErrors ?: "" );
-		var nonColdboxDefault = injectedExists && application.injectedConfig.showErrors;
+		var injectedExists    = IsBoolean( application.env.showErrors ?: "" );
+		var nonColdboxDefault = injectedExists && application.env.showErrors;
 
 		if ( !injectedExists ) {
 			var localEnvRegexes = this.LOCAL_ENVIRONMENT_REGEX ?: "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$";
@@ -381,6 +415,18 @@ component {
 		}
 
 		return true;
+	}
+
+	private void function _pingCheck() {
+		if ( !this.allowPingRequests ) {
+			var headers     = GetHttpRequestData( false ).headers;
+			var contentType = headers[ "Content-Type" ] ?: "";
+
+			if ( contentType == "text/ping" ) {
+				header statuscode=204 statustext="No Content";
+				abort;
+			}
+		}
 	}
 
 	private void function _maintenanceModeCheck() {
@@ -591,31 +637,42 @@ component {
 		return ExpandPath( "/" );
 	}
 
-	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
+	private void function _stillReloadingError() {
+		_friendlyError( errorCode=503 );
+		abort;
+	}
+
+	private void function _friendlyError( any exception, numeric statusCode=500 ) {
 		var appMapping     = request._presideMappings.appMapping ?: "/app";
 		var appMappingPath = Replace( ReReplace( appMapping, "^/", "" ), "/", ".", "all" );
 		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
 
-		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-			if ( !StructKeyExists( application, "errorLogService" ) ) {
-				application.errorLogService = new preside.system.services.errors.ErrorLogService(
-					  appMapping     = attributes.appMapping
-					, appMappingPath = attributes.appMappingPath
-					, logsMapping    = attributes.logsMapping
-					, logDirectory   = attributes.logsMapping & "/rte-logs"
-				);
+		if ( StructKeyExists( arguments, "exception" ) ) {
+			thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
+				if ( !StructKeyExists( application, "errorLogService" ) ) {
+					application.errorLogService = new preside.system.services.errors.ErrorLogService(
+						  appMapping     = attributes.appMapping
+						, appMappingPath = attributes.appMappingPath
+						, logsMapping    = attributes.logsMapping
+						, logDirectory   = attributes.logsMapping & "/rte-logs"
+					);
+				}
+				application.errorLogService.raiseError( attributes.e );
 			}
-			application.errorLogService.raiseError( attributes.e );
 		}
 
 		content reset=true;
 		header statuscode=arguments.statusCode;
 
-		if ( FileExists( ExpandPath( "/#arguments.statusCode#.htm" ) ) ) {
-			Writeoutput( FileRead( ExpandPath( "/#arguments.statusCode#.htm" ) ) );
-		} else {
-			Writeoutput( FileRead( "/preside/system/html/#arguments.statusCode#.htm" ) );
+		if ( !StructKeyExists( application, "error_template_#arguments.statusCode#" ) ) {
+			if ( FileExists( ExpandPath( "/#arguments.statusCode#.htm" ) ) ) {
+				application[ "error_template_#arguments.statusCode#" ] = FileRead( ExpandPath( "/#arguments.statusCode#.htm" ) );
+			} else {
+				application[ "error_template_#arguments.statusCode#" ] = FileRead( "/preside/system/html/#arguments.statusCode#.htm" );
+			}
 		}
+
+		WriteOutput( application[ "error_template_#arguments.statusCode#" ] );
 	}
 
 	private void function _setupDefaultTagAttributes() {
@@ -695,24 +752,5 @@ component {
 
 	private void function _preserveLocaleCookieIfPresent() {
 		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
-	}
-
-	private void function _ensureHeartbeatsAreStillRunning(){
-		var lastChecked = application._ensureHeartbeatsAreStillRunningLastCheck ?: '1900-01-01';
-
-		if ( DateDiff( 'n', lastChecked, Now() ) >= 1 ) {
-			try {
-				lock type="exclusive" timeout=0 name="_ensureHeartbeatsAreStillRunning-#GetCurrentTemplatePath()#" {
-					application._ensureHeartbeatsAreStillRunningLastCheck = Now();
-
-					var beats = StructKeyArray( application._presideHeartbeatThreads ?: {} );
-					for( var beatName in beats ) {
-						try {
-							application._presideHeartbeatThreads[ beatName ].ensureAlive();
-						} catch( any e ) {}
-					}
-				}
-			} catch( any e ) {}
-		}
 	}
 }

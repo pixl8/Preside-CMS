@@ -17,6 +17,8 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 				return _processSystemSettingDsl( ListRest( dsl, ":" ) );
 			case "directories":
 				return _processDirectoriesDsl( ListRest( dsl, ":" ) );
+			case "dynamicservice":
+				return _processDynamicService( ListRest( dsl, ":" ) );
 		}
 
 		return "";
@@ -79,6 +81,21 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 		}
 
 		return dirs;
+	}
+
+	private any function _processDynamicService( required string serviceName ) {
+		var cb       = _getInjector().getInstance( dsl="coldbox" );
+		var services = cb.getSetting( name="presideservices", default={} );
+
+		if ( StructKeyExists( services, arguments.serviceName ) ) {
+			if ( IsSimpleValue( services[ arguments.serviceName ] ) ) {
+				return _getInjector().getInstance( services[ arguments.serviceName ] );
+			} else {
+				return _getInjector().getInstance( argumentCollection=services[ arguments.serviceName ] );
+			}
+		}
+
+		throw( type="preside.missing.service", message="The service, [#arguments.serviceName#], does not exist. This error was caused by a wirebox injection using DSL: [presidecms:dynamicservice:#serviceName#]." );
 	}
 
 

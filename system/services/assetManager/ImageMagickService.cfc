@@ -8,7 +8,12 @@
  */
 component displayname="ImageMagick"  {
 
-	public any function init() {
+	/**
+	 * @svgToPngService.inject svgToPngService
+	 *
+	 */
+	public any function init( required any svgToPngService ) {
+		_setSvgToPngService( arguments.svgToPngService );
 		_setActiveOperations( {} );
 		_setActiveOperationsLockName( "imageMagickActiveOperationsLock_" & CreateUUId() );
 
@@ -24,15 +29,23 @@ component displayname="ImageMagick"  {
 		,          string  gravity             = 'center'
 		,          string  focalPoint          = ""
 		,          struct  cropHintArea        = {}
+		,          struct  fileProperties      = {}
 	) {
 
 		var imageBinary       = arguments.asset;
 		var currentImageInfo  = getImageInformation( imageBinary );
+		var isSvg             = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
-		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
-		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
+		var tmpDir            = _createTmpDir();
+		var tmpSourceFilePath = getTempFile( tmpDir, "mgk" );
+		var tmpDestFilePath   = getTempFile( tmpDir, "mgk" );
+
+		if ( isSvg ) {
+			imageBinary = _getSvgToPngService().SVGToPngBinary( imageBinary, arguments.width, arguments.height );
+			fileProperties.fileExt = "png";
+		}
 
 		FileWrite( tmpSourceFilePath, arguments.asset );
 
@@ -56,8 +69,7 @@ component displayname="ImageMagick"  {
 			$raiseError( e );
 			rethrow;
 		} finally {
-			FileDelete( tmpSourceFilePath );
-			FileDelete( tmpDestFilePath   );
+			_deleteDir( tmpDir );
 		}
 
 		return imageBinary;
@@ -70,10 +82,12 @@ component displayname="ImageMagick"  {
 		,          string format
 		,          string pages
 		,          string transparent
+		,          struct fileProperties = {}
 	) {
 		var imagePrefix    = CreateUUId();
-		var tmpFilePathPDF = GetTempFile( GetTempDirectory(), "mgk" );
-		var tmpFilePathJpg = GetTempFile( GetTempDirectory(), "mgk" ) & ".jpg";
+		var tmpDir         = _createTmpDir();
+		var tmpFilePathPDF = GetTempFile( tmpDir, "mgk" );
+		var tmpFilePathJpg = GetTempFile( tmpDir, "mgk" ) & ".jpg";
 		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB -flatten "#tmpFilePathJpg#"';
 
 		FileWrite( tmpFilePathPDF, arguments.asset );
@@ -82,8 +96,9 @@ component displayname="ImageMagick"  {
 
 		var binary = FileReadBinary( tmpFilePathJpg );
 
-		FileDelete( tmpFilePathPDF );
-		FileDelete( tmpFilePathJpg );
+		_deleteDir( tmpDir );
+
+		arguments.fileProperties.fileExt = "jpg";
 
 		return binary;
 	}
@@ -93,21 +108,24 @@ component displayname="ImageMagick"  {
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
+		,          struct  fileProperties = {}
 	) {
 		var imageBinary = arguments.asset;
+		var isSvg       = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		imageBinary = autoCorrectImageOrientation( imageBinary );
 
 		var currentImageInfo  = getImageInformation( imageBinary );
+		var tmpDir            = _createTmpDir();
+		var tmpSourceFilePath = GetTempFile( tmpDir, "mgk" );
+		var tmpDestFilePath   = GetTempFile( tmpDir, "mgk" );
 
-		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
-		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
+
 		var shrinkToWidth     = arguments.width;
 		var shrinkToHeight    = arguments.height;
 		var widthChangeRatio  = currentImageInfo.width / shrinkToWidth;
 		var heightChangeRatio = currentImageInfo.height / shrinkToHeight;
 
-		FileWrite( tmpSourceFilePath, imageBinary );
 
 		if ( widthChangeRatio > heightChangeRatio ) {
 			shrinkToHeight = 0;
@@ -120,11 +138,18 @@ component displayname="ImageMagick"  {
 			shrinkToHeight = currentImageInfo.height;
 		}
 
+		if ( isSvg ) {
+			imageBinary = _getSvgToPngService().SVGToPngBinary( imageBinary, shrinkToWidth, shrinkToHeight );
+			fileProperties.fileExt = "png";
+		}
+
+		FileWrite( tmpSourceFilePath, imageBinary );
+
 		try {
 			imageMagickResize(
 				  sourceFile      = tmpSourceFilePath
 				, destinationFile = tmpDestFilePath
-				, qualityArgs      = _cfToImQuality( arguments.quality )
+				, qualityArgs     = _cfToImQuality( arguments.quality )
 				, width           = shrinkToWidth
 				, height          = shrinkToHeight
 				, expand          = true
@@ -136,8 +161,7 @@ component displayname="ImageMagick"  {
 			$raiseError( e );
 			rethrow;
 		} finally {
-			FileDelete( tmpSourceFilePath );
-			FileDelete( tmpDestFilePath   );
+			_deleteDir( tmpDir );
 		}
 
 		return imageBinary;
@@ -402,6 +426,24 @@ component displayname="ImageMagick"  {
 		return abs( arguments.dimension1 - arguments.dimension2 ) > 2; // within 2px is fine
 	}
 
+	private string function _createTmpDir() {
+		var dir = GetTempDirectory() & "imgmgkoperation-#CreateUUId()#";
+
+		DirectoryCreate( dir );
+
+		return dir;
+	}
+
+	private void function _deleteDir( required string dir ) {
+		try {
+			DirectoryDelete( dir, true );
+		} catch( any e ) {
+			if ( DirectoryExists( dir ) ) {
+				rethrow;
+			}
+		}
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getActiveOperations() {
 		return _activeOperations;
@@ -415,6 +457,13 @@ component displayname="ImageMagick"  {
 	}
 	private void function _setActiveOperationsLockName( required string activeOperationsLockName ) {
 		_activeOperationsLockName = arguments.activeOperationsLockName;
+	}
+
+	private any function _getSvgToPngService() {
+	    return _svgToPngService;
+	}
+	private void function _setSvgToPngService( required any svgToPngService ) {
+	    _svgToPngService = arguments.svgToPngService;
 	}
 
 }

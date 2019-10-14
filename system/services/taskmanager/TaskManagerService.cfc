@@ -19,6 +19,7 @@ component displayName="Task Manager Service" {
 	 * @errorLogService.inject             errorLogService
 	 * @siteService.inject                 siteService
 	 * @threadUtil.inject                  threadUtil
+	 * @executor.inject                    presideTaskManagerExecutor
 	 *
 	 */
 	public any function init(
@@ -31,6 +32,7 @@ component displayName="Task Manager Service" {
 		, required any errorLogService
 		, required any siteService
 		, required any threadUtil
+		, required any executor
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
@@ -41,6 +43,7 @@ component displayName="Task Manager Service" {
 		_setErrorLogService( arguments.errorLogService );
 		_setSiteService( arguments.siteService );
 		_setThreadUtil( arguments.threadUtil );
+		_setExecutor( arguments.executor );
 		_setMachineId();
 
 		_initialiseDb();
@@ -225,14 +228,17 @@ component displayName="Task Manager Service" {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			thread name=newThreadId threadId=newThreadId logger=logger args=arguments.args taskKey=arguments.taskKey {
-				runTaskWithinThread(
-					  taskKey  = attributes.taskKey
-					, args     = attributes.args
-					, threadId = attributes.threadId
-					, logger   = attributes.logger
-				)
+			if ( !_getExecutor().isStarted() ) {
+				_getExecutor().start();
 			}
+
+			_getExecutor().submit( new TaskManagerRunnable(
+				  service  = this
+				, taskKey  = arguments.taskKey
+				, args     = arguments.args
+				, threadId = newThreadId
+				, logger   = logger
+			) );
 		}
 	}
 
@@ -242,13 +248,11 @@ component displayName="Task Manager Service" {
 		, required string threadId
 		, required any    logger
 	) {
-		var task       = getTask( arguments.taskKey );
-		var start      = getTickCount();
-		var success    = false;
-		var tu         = _getThreadUtil();
+		var task    = getTask( arguments.taskKey );
+		var start   = getTickCount();
+		var success = false;
+		var tu      = _getThreadUtil();
 
-		tu.setThreadName( "Preside Scheduled Task: #taskKey#" );
-		tu.setThreadRequestDefaults();
 		markTaskAsStarted( arguments.threadId, tu.getCurrentThread() );
 
 		try {
@@ -491,7 +495,7 @@ component displayName="Task Manager Service" {
 		var tasks = getRunnableTasks();
 
 		for( var taskKey in tasks ){
-			_runTaskInNewRequest( taskKey );
+			runTask( taskKey );
 		}
 
 		return { tasksStarted=tasks };
@@ -566,6 +570,7 @@ component displayName="Task Manager Service" {
 
 				grouped.append({
 					  id          = groupId
+					, slug        = $slugify( groupId )
 					, title       = $translateResource( "taskmanager.taskgroups:#groupId#.title", groupId )
 					, description = $translateResource( "taskmanager.taskgroups:#groupId#.description", "" )
 					, stats       = { total=0, success=0, fail=0, running=0, neverRun=0 }
@@ -696,7 +701,6 @@ component displayName="Task Manager Service" {
 	public void function shutdown() {
 		if ( tasksAreRunning() ) {
 			killAllRunningTasks( timeout=1000 );
-
 		}
 	}
 
@@ -751,19 +755,6 @@ component displayName="Task Manager Service" {
 
 		var state = threadRef.getState()
 		return !state.equals( state.TERMINATED );
-	}
-
-	private void function _runTaskInNewRequest( required string taskKey ) {
-		var event         = $getRequestContext();
-		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.scheduledTask" );
-
-		if ( taskRunnerUrl.reFindNoCase( "^https" ) && !$isFeatureEnabled( "sslInternalHttpCalls" ) ) {
-			taskRunnerUrl = taskRunnerUrl.reReplaceNoCase( "^https", "http" );
-		}
-
-		http url=taskRunnerUrl method="post" timeout=10 throwonerror=true {
-			httpparam name="taskKey" value=arguments.taskKey type="formfield";
-		}
 	}
 
 // GETTERS AND SETTERS
@@ -857,6 +848,13 @@ component displayName="Task Manager Service" {
 	}
 	private void function _setThreadUtil( required any threadUtil ) {
 		_threadUtil = arguments.threadUtil;
+	}
+
+	private any function _getExecutor() {
+	    return _executor;
+	}
+	private void function _setExecutor( required any executor ) {
+	    _executor = arguments.executor;
 	}
 
 }

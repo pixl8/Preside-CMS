@@ -14,22 +14,20 @@ component displayName="Preside Object View Service" {
 	 * @presideObjectService.inject   PresideObjectService
 	 * @presideContentRenderer.inject ContentRendererService
 	 * @coldboxRenderer.inject        presideRenderer
-	 * @cacheProvider.inject          cachebox:PresideObjectViewCache
 	 * @cachebox.inject               cachebox
 	 */
 	public any function init(
 		  required any presideObjectService
 		, required any presideContentRenderer
 		, required any coldboxRenderer
-		, required any cacheProvider
 		, required any cachebox
 
 	) {
 		_setPresideObjectService  ( arguments.presideObjectService   );
 		_setPresideContentRenderer( arguments.presideContentRenderer );
 		_setColdboxRenderer       ( arguments.coldboxRenderer        );
-		_setCacheProvider         ( arguments.cacheProvider          );
 		_setCacheBox              ( arguments.cachebox               );
+		_setSimpleLocalCache      ( {}                               );
 	}
 
 // public api methods
@@ -136,20 +134,23 @@ component displayName="Preside Object View Service" {
 
 // private helpers
 	private struct function _readView( required string object, required string viewPath ) {
-		var cacheKey = "PresideObjectService._readView() cache for object [#arguments.object#] and view path [#arguments.viewPath#]";
-		var args     = Duplicate( arguments );
+		var cache    = _getSimpleLocalCache();
+		var cacheKey = "_readView-#arguments.object#-#arguments.viewPath#";
 
-		return _getCacheProvider().getOrSet( cacheKey, function(){
-			return _parseFieldsFromViewFile(
-				  objectName = args.object
-				, filePath   = args.viewPath
-			)
-		} );
+		if ( !StructKeyExists( cache, cacheKey ) ) {
+			cache[ cacheKey ] = _parseFieldsFromViewFile(
+				  objectName = arguments.object
+				, filePath   = arguments.viewPath
+			);
+		}
+
+		return cache[ cacheKey ];
 	}
 
 	private struct function _parseFieldsFromViewFile( required string objectName, required string filePath ) {
 		var fields          = { selectFields=[], fieldOptions={} };
-		var fileContent     = FileExists( arguments.filePath ) ? FileRead( arguments.filePath ) : "";
+		var paramFile       = arguments.filePath.reReplace( "\.cfm$", "$params.txt" );
+		var fileContent     = FileExists( paramFile ) ? FileRead( paramFile ) : ( FileExists( arguments.filePath ) ? FileRead( arguments.filePath ) : "" );
 		var regexes         = [ '<' & '(?:cfparam|cf_presideparam)\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;]*?name\s*=\s*"args\.(.*?)".*?;' ];
 		var fieldRegex      = 'field\s*=\s*"(.*?)"';
 		var rendererRegex   = 'renderer\s*=\s*"(.*?)"';
@@ -394,11 +395,11 @@ component displayName="Preside Object View Service" {
 	private void function _setColdboxRenderer( required any coldboxRenderer ) {
 		_coldboxRenderer = arguments.coldboxRenderer;
 	}
-	private any function _getCacheProvider() {
-		return _CacheProvider;
+	private struct function _getSimpleLocalCache() {
+	    return _simpleLocalCache;
 	}
-	private void function _setCacheProvider( required any CacheProvider ) {
-		_CacheProvider = arguments.CacheProvider;
+	private void function _setSimpleLocalCache( required struct simpleLocalCache ) {
+	    _simpleLocalCache = arguments.simpleLocalCache;
 	}
 
 	private any function _getCacheBox() {

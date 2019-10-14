@@ -6,21 +6,22 @@
 component extends="AbstractHeartBeat" {
 
 	/**
-	 * @healthCheckService.inject healthCheckService
-	 * @threadUtil.inject         threadUtil
+	 * @healthCheckService.inject          healthCheckService
+	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
 	 *
 	 */
 	public function init(
 		  required any     healthCheckService
-		, required any     threadUtil
+		, required any     scheduledThreadpoolExecutor
 		, required string  serviceId
 		, required numeric intervalInMs
 		,          string  threadName     = "Preside Service Healthcheck: #arguments.serviceId#"
 	){
 		super.init(
-			  threadName   = arguments.threadName
-			, threadUtil   = arguments.threadUtil
-			, intervalInMs = arguments.intervalInMs
+			  threadName                  = arguments.threadName
+			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, intervalInMs                = arguments.intervalInMs
+			, feature                     = "healthchecks"
 		);
 
 		_setHealthcheckService( arguments.healthCheckService );
@@ -42,25 +43,7 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-	}
-
-	public void function startInNewRequest() {
-		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startHealthCheckHeartbeat" );
-
-		thread name=CreateUUId() startUrl=startUrl {
-			do {
-				try {
-					sleep( 10000 );
-					http method="post" url=startUrl timeout=10 throwonerror=true {
-						httpparam name="serviceId" type="formfield" value=_getServiceId();
-					}
-					success = true;
-				} catch( any e ) {
-					$raiseError( e );
-					$systemOutput( "Failed to start healthcheck heartbeat. Retrying...(attempt #attempt#)");
-				}
-			} while ( !success && ++attempt <= 10 );
-		}
+		setLastRun();
 	}
 
 // GETTERS AND SETTERS

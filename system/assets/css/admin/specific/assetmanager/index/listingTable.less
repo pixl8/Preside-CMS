@@ -21,15 +21,33 @@
 						display          : inline-block;
 					}
 
+					.asset-title {
+						display     : inline-block;
+						width       : 80%;
+						height      : 100%;
+						padding-left: 6px;
+					}
+
 					.asset-preview {
-						width   : 60px;
-						display : inline-block;
+						width     : 20%;
+						max-width : 60px;
+						height    : 100%;
+						display   : flex;
+						float     : left ;
 
 						img {
 							max-width  : 48px;
 							max-height : 32px;
+							display    : inline-block;
+							margin     : auto 0;
 						}
 					}
+				}
+
+				.asset-name {
+					word-wrap: break-word;
+					max-width: 250px;
+					height   : 100%;
 				}
 
 				&:first-child td {

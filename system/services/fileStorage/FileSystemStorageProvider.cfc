@@ -62,7 +62,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public boolean function objectExists( required string path, boolean trashed=false, boolean private=false ){
-		return FileExists( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
+		return FileExists( _expandPath( arguments.path, arguments.trashed, arguments.private, true ) );
 	}
 
 	public query function listObjects( required string path, boolean private=false ){
@@ -92,7 +92,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public binary function getObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			return FileReadBinary( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
+			return FileReadBinary( _expandPath( arguments.path, arguments.trashed, arguments.private, true ) );
 		} catch ( java.io.FileNotFoundException e ) {
 			throw(
 				  type    = "storageProvider.objectNotFound"
@@ -103,7 +103,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public struct function getObjectInfo( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			var info = GetFileInfo( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
+			var info = GetFileInfo( _expandPath( arguments.path, arguments.trashed, arguments.private, true ) );
 
 			return {
 				  size         = info.size
@@ -142,22 +142,31 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public void function deleteObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			FileDelete( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
+			var expandedPath = _expandPath( arguments.path, arguments.trashed, arguments.private, true );
+			var dir          = GetDirectoryFromPath( expandedPath );
+
+			FileDelete( expandedPath );
 		} catch ( any e ) {
-			if ( e.message contains "does not exist" ) {
-				return;
+			if ( !( e.message contains "does not exist" ) ) {
+				rethrow;
 			}
-			rethrow;
 		}
+
+		_deleteEmptyDirs( dir );
 	}
 
 	public string function softDeleteObject( required string path, boolean private=false ){
-		var fullPath      = _expandPath( path=arguments.path, private=arguments.private );
+		var fullPath      = _expandPath( path=arguments.path, private=arguments.private, detectLegacyLowerCase=true );
 		var newPath       = CreateUUId() & ".trash";
 		var fullTrashPath = _getTrashDirectory() & newPath;
 
 		try {
 			FileMove( fullPath, fullTrashPath );
+
+			try {
+				_deleteEmptyDirs( GetDirectoryFromPath( fullPath ) );
+			} catch( any e ){}
+
 			return newPath;
 		} catch ( any e ) {
 			if ( e.message contains "does not exist" ) {
@@ -169,7 +178,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public boolean function restoreObject( required string trashedPath, required string newPath, boolean private=false ){
-		var fullTrashedPath   = _expandPath( path=arguments.trashedPath, trashed=true );
+		var fullTrashedPath   = _expandPath( path=arguments.trashedPath, trashed=true, detectLegacyLowerCase=true );
 		var fullNewPath       = _expandPath( path=arguments.newPath, private=arguments.private );
 		var trashedFileExists = false;
 
@@ -190,27 +199,33 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		var rootUrl = _getRootUrl();
 
 		if ( Trim( rootUrl ).len() ) {
-			return rootUrl & _cleanPath( arguments.path );
+			return rootUrl & _cleanPath( path=arguments.path, detectLegacyLowerCase=true );
 		}
 
 		return "";
 	}
 
 // PRIVATE HELPERS
-	private string function _expandPath( required string path, boolean trashed=false, boolean private=false ){
-		var relativePath = _cleanPath( arguments.path, arguments.trashed, arguments.private );
-		var rootPath     = arguments.trashed ? _getTrashDirectory() : ( arguments.private ? _getPrivateDirectory() : _getRootDirectory() );
+	private string function _getRootPath( boolean trashed=false, boolean private=false ) {
+		return arguments.trashed ? _getTrashDirectory() : ( arguments.private ? _getPrivateDirectory() : _getRootDirectory() );
+	}
+
+	private string function _expandPath( required string path, boolean trashed=false, boolean private=false, boolean detectLegacyLowerCase=false ){
+		var relativePath = _cleanPath( arguments.path, arguments.trashed, arguments.private, arguments.detectLegacyLowerCase );
+		var rootPath     = _getRootPath( argumentCollection=arguments );
 
 		return rootPath & relativePath;
 	}
 
-	private string function _cleanPath( required string path, boolean trashed=false, boolean private=false ){
+	private string function _cleanPath( required string path, boolean trashed=false, boolean private=false, boolean detectLegacyLowerCase=false ){
 		var cleaned = ListChangeDelims( arguments.path, "/", "\" );
 
 		cleaned = ReReplace( cleaned, "^/", "" );
 		cleaned = Trim( cleaned );
-		if ( !arguments.trashed ) {
+
+		if ( arguments.detectLegacyLowerCase && !FileExists( _getRootPath( argumentCollection=arguments ) & cleaned ) ) {
 			cleaned = LCase( cleaned );
+			systemoutput( cleaned );
 		}
 
 		return cleaned;
@@ -229,15 +244,55 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public void function moveObject( required string originalPath, required string newPath, boolean originalIsPrivate=false, boolean newIsPrivate=false ) {
-		var fullOriginalPath = _expandPath( path=arguments.originalPath, private=arguments.originalIsPrivate );
+		var fullOriginalPath = _expandPath( path=arguments.originalPath, private=arguments.originalIsPrivate, detectLegacyLowerCase=true );
 		var fullNewPath      = _expandPath( path=arguments.newPath     , private=arguments.newIsPrivate      );
 
 		try {
 			_ensureDirectoryExists( GetDirectoryFromPath( fullNewPath ) );
 			FileMove( fullOriginalPath, fullNewPath );
+			_deleteEmptyDirs( GetDirectoryFromPath( fullOriginalPath ) );
 		} catch( any e ) {
 			throw( type="preside.FileSystemStorageProvider.could.not.move", message="Could not move file, [#fullOriginalPath#] to [#fullnewPath#]. Error message: [#e.message#]", detail=e.detail );
 		}
+	}
+
+// PRIVATE HELPERS
+	private void function _deleteEmptyDirs( required string dir ) {
+		if ( _isRootDir( arguments.dir ) || _dirHasFiles( arguments.dir ) ) {
+			return;
+		}
+
+		try {
+			DirectoryDelete( dir, false );
+			_deleteEmptyDirs( ListDeleteAt( dir, ListLen( dir, "\/" ), "\/" ) );
+		} catch( any e ) {
+			return;
+		}
+	}
+
+	private boolean function _isRootDir( required string dir ) {
+		var rootDirs = {
+			  trash   = LCase( ReReplaceNoCase( _getTrashDirectory(), "[\\/]$", "" ) )
+			, root    = LCase( ReReplaceNoCase( _getRootDirectory(), "[\\/]$", "" ) )
+			, private = LCase( ReReplaceNoCase( _getPrivateDirectory(), "[\\/]$", "" ) )
+		};
+
+		arguments.dir = ReReplaceNoCase( arguments.dir, "[\\/]$", "" );
+
+		for( var rootDirName in rootDirs ) {
+			var rootDir = rootDirs[ rootDirName ];
+			if ( rootDir.startsWith( LCase( arguments.dir ) ) || rootDir == LCase( arguments.dir ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean function _dirHasFiles( required string dir ) {
+		var files = DirectoryList( arguments.dir, false, "path" );
+
+		return files.len() > 0;
 	}
 
 // GETTERS AND SETTERS

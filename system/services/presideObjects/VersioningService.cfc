@@ -74,43 +74,38 @@ component {
 		, required struct  filterParams
 		, required struct  data
 		, required struct  manyToManyData
+		, required query   existingRecords
+		, required struct  changedData
 		,          numeric versionNumber        = getNextVersionNumber()
 		,          boolean forceVersionCreation = false
 		,          string  versionAuthor        = $getAdminLoggedInUserId()
 		,          boolean isDraft              = false
 	) {
 		var poService         = $getPresideObjectService();
-		var existingRecords   = poService.selectData(
-			  argumentCollection = arguments
-			, allowDraftVersions = true
-			, fromVersionTable   = true
-		);
-		var prevVersionsExist = existingRecords.recordCount > 0;
 		var newData           = Duplicate( arguments.data );
 		var idField           = poService.getidField( arguments.objectName );
 		var dateCreatedField  = poService.getdateCreatedField( arguments.objectName );
 		var dateModifiedField = poService.getdateModifiedField( arguments.objectName );
 
-		if ( !prevVersionsExist ) {
-			existingRecords = poService.selectData(
-				  argumentCollection = arguments
-				, allowDraftVersions = true
-				, fromVersionTable   = false
-			);
-		}
-
 		newData.delete( dateCreatedField  );
 		newData.delete( dateModifiedField );
 
 		for( var oldData in existingRecords ) {
-			var versionedManyToManyFields = _getVersionedManyToManyFieldsForObject( arguments.objectName );
+			var versionedManyToManyFields = getVersionedManyToManyFieldsForObject( arguments.objectName );
 			var oldManyToManyData = versionedManyToManyFields.len() ? poService.getDeNormalizedManyToManyData(
 				  objectName   = arguments.objectName
 				, id           = oldData[ idField ]
 				, selectFields = versionedManyToManyFields
 			) : {};
+			var prevVersionsExist = poService.dataExists(
+				  objectName         = arguments.objectName
+				, id                 = oldData.id
+				, fromVersionTable   = true
+				, allowDraftVersions = true
+			);
 
 			if ( !prevVersionsExist ) {
+
 				saveVersionForInsert(
 					  objectName     = arguments.objectName
 					, data           = oldData
@@ -121,20 +116,7 @@ component {
 				arguments.versionNumber = getNextVersionNumber();
 			}
 
-			var newDataForChangedFieldsCheck = Duplicate( arguments.data );
-
-			newDataForChangedFieldsCheck.append( arguments.manyToManyData );
-			var changedFields = getChangedFields(
-				  objectName             = arguments.objectName
-				, recordId               = oldData.id
-				, newData                = newDataForChangedFieldsCheck
-				, existingData           = oldData
-				, existingManyToManyData = oldManyToManyData
-			);
-			var dataChanged = changedFields.len();
-
-
-			if ( !arguments.forceVersionCreation && !dataChanged ) {
+			if ( !arguments.forceVersionCreation && !StructKeyExists( arguments.changedData, oldData.id ) ) {
 				if ( prevVersionsExist ) {
 					updateLatestVersionWithNonVersionedChanges(
 						  objectName = arguments.objectName
@@ -167,7 +149,7 @@ component {
 				, versionNumber  = arguments.versionNumber
 				, versionAuthor  = arguments.versionAuthor
 				, manyToManyData = mergedManyToManyData
-				, changedFields  = changedFields
+				, changedFields  = StructKeyArray( arguments.changedData[ oldData.id ] ?: {} )
 				, isDraft        = arguments.isDraft
 			);
 		}
@@ -817,7 +799,7 @@ component {
 		return ignoredFields;
 	}
 
-	private array function _getVersionedManyToManyFieldsForObject( required string objectName ) {
+	public array function getVersionedManyToManyFieldsForObject( required string objectName ) {
 		var poService       = $getPresideObjectService();
 		var properties      = poService.getObjectProperties( arguments.objectName );
 		var versionedFields = [];

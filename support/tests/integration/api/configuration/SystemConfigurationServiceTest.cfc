@@ -116,6 +116,34 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site=siteId } } );
 			} );
 
+			it( "should clear related caches", function(){
+				var configService = _getConfigSvc( testDirs );
+				var siteId        = CreateUUId();
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category="mycategory", setting="mysetting", site=siteId }, selectFields=["id"] )
+					.$results( QueryNew('id') );
+
+				mockDao.$( "insertData", CreateUUId() );
+
+
+				configService.saveSetting(
+					  category = "mycategory"
+					, setting  = "mysetting"
+					, value    = "this is the value of my setting"
+					, siteId   = siteId
+				);
+
+				var log = mockCache.$callLog().clearByKeySnippet;
+
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  keySnippet = "^setting\.mycategory\."
+					, regex      = true
+					, async      = false
+				} );
+			} );
+
 		} );
 
 		describe( "getSetting", function(){
@@ -283,6 +311,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		testDirs         = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
 		mockFormsService = createEmptyMock( "preside.system.services.forms.FormsService" );
 		mockSiteService  = createEmptyMock( "preside.system.services.siteTree.SiteService" );
+		mockCache        = createStub();
 
 		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
 		mockFormsService.$( "formExists", true );
@@ -291,14 +320,22 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		activeSite = CreateUUId();
 		mockSiteService.$( "getActiveSiteId", activeSite );
 
+		mockCache.$( "get" );
+		mockCache.$( "set" );
+		mockCache.$( "clearByKeySnippet" );
 
-		return new preside.system.services.configuration.SystemConfigurationService(
+		var svc = CreateMock( object=new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
-			, injectedConfig          = arguments.injectedConfig
+			, env                     = arguments.injectedConfig
 			, formsService            = mockFormsService
 			, siteService             = mockSiteService
-		);
+			, settingsCache           = mockCache
+		) );
+
+		svc.$( "$announceInterception" );
+
+		return svc;
 	}
 
 }

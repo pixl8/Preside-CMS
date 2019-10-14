@@ -131,13 +131,22 @@
 		mData     : "_checkbox",
 		sWidth    : "5em"
 	} );
-	for( i=1; i < $tableHeaders.length-1; i++ ){
-		colConfig.push( {
-			  mData     : $( $tableHeaders.get(i) ).data( 'field' )
-			, sWidth    : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
-			, bSortable : true
-		} );
-	}
+	colConfig.push( {
+		  mData     : $( $tableHeaders.get(1) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(1) ).data( 'width' ) || 'auto'
+		, bSortable : true
+		, sClass    : "asset-name"
+	} );
+	colConfig.push( {
+		  mData     : $( $tableHeaders.get(2) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(2) ).data( 'width' ) || 'auto'
+		, bSortable : true
+	} );
+	colConfig.push( {
+		  mData     : $( $tableHeaders.get(3) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(3) ).data( 'width' ) || 'auto'
+		, bSortable : true
+	} );
 	colConfig.push( {
 		sClass    : "center",
 		bSortable : false,

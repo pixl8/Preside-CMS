@@ -29,6 +29,7 @@ component displayName="Preside Super Class" {
 	 * @i18n.inject                       delayedInjector:i18n
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
 	 * @healthcheckService.inject         delayedInjector:healthcheckService
+	 * @presideHelperClass.inject         presideHelperClass
 	 *
 	 */
 	public any function init(
@@ -53,6 +54,7 @@ component displayName="Preside Super Class" {
 		, required any i18n
 		, required any htmlHelper
 		, required any healthcheckService
+		, required any presideHelperClass
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -75,6 +77,8 @@ component displayName="Preside Super Class" {
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
 		$healthcheckService         = arguments.healthcheckService;
+
+		this.$helpers = arguments.presideHelperClass;
 
 		return this;
 	}
@@ -770,6 +774,23 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
+	 * Proxy to the core coldbox 'runEvent' method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var result = $runEvent( event="my.viewlet", eventArguments={ args=someData }, private=true, prePostExempt=true );
+	 *
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $runEvent() {
+		return $getColdbox().runEvent( argumentCollection=arguments );
+	}
+
+	/**
 	 * Proxy to Coldbox's InterceptorService.processState() method.
 	 * \n
 	 * ## Example
@@ -826,10 +847,28 @@ component displayName="Preside Super Class" {
 	 * // Will return "my-site-about-us"
 	 * ```
 	 *
-	 * @autodoc
+	 * @autodoc           true
+	 * @str.hint          The String to 'slugify'
+	 * @maxLength.hint    Max length of the resultant string. Will be trimmed to this length if longer.
+	 * @allow.hint        A regex safe list of additional characters to allow
+	 * @preserveCase.hint Whether or not to allow mixed case. If false, default, the slug will be all lowercase.
 	 */
-	public string function $slugify() {
-		return $htmlHelper.slugify( argumentCollection=arguments );
+	public string function $slugify( required str, numeric maxLength=0, allow="", preserveCase=false ) {
+		var slug = Trim( arguments.str );
+
+		if ( !preserveCase ) {
+			slug = LCase( slug );
+		}
+		slug = ReplaceList( slug, '#chr(228)#,#chr(252)#,#chr(246)#,#chr(223)#', 'ae,ue,oe,ss' );
+		slug = ReReplace( slug, "[^a-zA-Z0-9-\s#arguments.allow#]", "", "all" );
+		slug = Trim( ReReplace( slug, "[\s-]+", " ", "all" ) );
+		slug = ReReplace( slug, "\s", "-", "all" );
+
+		if ( arguments.maxlength ) {
+			slug = left( slug, arguments.maxlength );
+		}
+
+		return slug;
 	}
 
 	/**

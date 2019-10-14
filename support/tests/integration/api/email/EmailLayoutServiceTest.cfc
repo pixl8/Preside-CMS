@@ -121,6 +121,45 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( rendered ).toBe( dummyRendered );
 			} );
+
+			it( "should pass keys from templateDetail argument into the layout viewlets args", function(){
+				var service        = _getService();
+				var layout         = "layout2";
+				var emailTemplate  = CreateUUId();
+				var blueprint      = CreateUUId();
+				var dummyRendered  = CreateUUId();
+				var templateDetail = { header_line=CreateUUid(), body=CreateUUId() }
+				var args           = {
+					  subject="Blah #CreateUUId()#"
+					, body=CreateUUId()
+					, unsubscribeLink=CreateUUId()
+					, viewOnlineLink=CreateUUId()
+					, test=CreateUUId()
+				};
+				var config         = { dummy=CreateUUId(), test=Now() };
+				var argsPlusConfig = Duplicate( args );
+
+				argsPlusConfig.append( config, false );
+				argsPlusConfig.append( templateDetail, false );
+
+				service.$( "getLayoutConfig" ).$args( layout=layout, emailTemplate=emailTemplate, blueprint=blueprint, merged=true ).$results( config );
+				service.$( "$renderViewlet" ).$args(
+					  event = "email.layout.layout2.text"
+					, args  = argsPlusConfig
+				).$results( dummyRendered );
+
+
+				var rendered = service.renderLayout(
+					  argumentCollection = args
+					, layout             = layout
+					, emailTemplate      = emailTemplate
+					, templateDetail     = templateDetail
+					, blueprint          = blueprint
+					, type               = "text"
+				);
+
+				expect( rendered ).toBe( dummyRendered );
+			} );
 		} );
 
 		describe( "getLayoutConfigFormName", function(){
@@ -365,6 +404,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		service.$( "$getPresideObject" ).$args( "email_layout_config_item" ).$results( mockConfigDao );
+		service.$( "$announceInterception" );
 
 		return service;
 	}

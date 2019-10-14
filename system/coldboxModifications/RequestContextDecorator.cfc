@@ -2,7 +2,61 @@
  *	Helper methods and standard event method overrides that are specific to Preside
  *	live here.
  */
-component extends="coldbox.system.web.context.RequestContextDecorator" {
+component accessors=true extends="preside.system.coldboxModifications.RequestContext" {
+
+	// The original request context
+	property name="requestContext";
+
+	/**
+	* Constructor
+	*/
+	RequestContextDecorator function init( required oContext, required controller ){
+		// Set the memento state
+		setMemento( arguments.oContext.getMemento() );
+		// Set Controller+wirebox
+		instance.controller = arguments.controller;
+		instance.wirebox    = instance.controller.getWireBox();
+
+		// Composite the original context
+		variables.requestContext = arguments.oContext;
+
+
+		return this;
+	}
+
+	/**
+	* Override to provide a pseudo-constructor for your decorator
+	*/
+	function configure(){
+
+		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( "adminObjectLinkBuilderService" );
+		instance.auditService                     = instance.wirebox.getInstance( "auditService" );
+		instance.csrfProtectionService            = instance.wirebox.getInstance( "csrfProtectionService" );
+		instance.delayedStickerRendererService    = instance.wirebox.getInstance( "delayedStickerRendererService" );
+		instance.delayedViewletRendererService    = instance.wirebox.getInstance( "delayedViewletRendererService" );
+		instance.featureService                   = instance.wirebox.getInstance( "featureService" );
+		instance.formsService                     = instance.wirebox.getInstance( "formsService" );
+		instance.i18n                             = instance.wirebox.getInstance( "i18n" );
+		instance.loginService                     = instance.wirebox.getInstance( "loginService" );
+		instance.multilingualPresideObjectService = instance.wirebox.getInstance( "multilingualPresideObjectService" );
+		instance.presideRenderer                  = instance.wirebox.getInstance( "presideRenderer" );
+		instance.rulesEngineWebRequestService     = instance.wirebox.getInstance( "rulesEngineWebRequestService" );
+		instance.sessionStorage                   = instance.wirebox.getInstance( "sessionStorage" );
+		instance.siteService                      = instance.wirebox.getInstance( "siteService" );
+		instance.sitetreeService                  = instance.wirebox.getInstance( "sitetreeService" );
+		instance.stickerForPreside                = instance.wirebox.getInstance( "stickerForPreside" );
+		instance.tenancyService                   = instance.wirebox.getInstance( "tenancyService" );
+		instance.websiteLoginService              = instance.wirebox.getInstance( "websiteLoginService" );
+		instance.websitePermissionService         = instance.wirebox.getInstance( "websitePermissionService" );
+	}
+
+	/**
+	* Get original controller
+	*/
+	function getController(){
+		return instance.controller;
+	}
+
 
 // URL related
 	public void function setSite( required struct site ) {
@@ -29,7 +83,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var protocol  = ( site.protocol ?: getProtocol() );
-		var siteUrl   = protocol & "://" & ( fetchSite ? ( site.domain ?: cgi.server_name ) : cgi.server_name );
+		var domain    = "";
+
+		if ( overwriteDomainForBuildLink() ) {
+			domain = getOverwriteDomainForBuildLink();
+		} else if ( fetchSite && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
+			domain = site.domain;
+		} else {
+			domain = cgi.server_name;
+		}
+
+		var siteUrl = protocol & "://" & domain;
 
 		prc.delete( "_forceDomainLookup" );
 
@@ -115,9 +179,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			return this.getSiteUrl( site="", includePath=false, includeLanguageSlug=false );
 		}
 
+		var protocol = getProtocol() & "://";
+		var port     = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
+
+		if ( overwriteDomainForBuildLink() ) {
+			return protocol & getOverwriteDomainForBuildLink() & port;
+		}
+
 		var allowedDomains = getController().getSetting( "allowedDomains" );
-		var protocol       = getProtocol() & "://";
-		var port           = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
 
 		if ( IsArray( allowedDomains ) && allowedDomains.len() ) {
 			return protocol & allowedDomains[1] & port;
@@ -142,6 +211,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return getRequestContext().getValue( name="_presideUrlPath", private=true, defaultValue="/" );
 	}
 
+	public boolean function overwriteDomainForBuildLink() {
+		return getRequestContext().valueExists( name="_overwriteDomainForBuildLink", private=true );
+	}
+
+	public string function getOverwriteDomainForBuildLink() {
+		return getRequestContext().getValue( name="_overwriteDomainForBuildLink", defaultValue="", private=true );
+	}
+
+	public void function setOverwriteDomainForBuildLink( required string domain ) {
+		if ( len( arguments.domain ) ) {
+			getRequestContext().setValue( name="_overwriteDomainForBuildLink", value=arguments.domain, private=true );
+		}
+	}
+
+	public void function removeOverwriteDomainForBuildLink() {
+		getRequestContext().removeValue( name="_overwriteDomainForBuildLink", private=true );
+	}
+
 // REQUEST DATA
 	public struct function getCollectionWithoutSystemVars() {
 		var collection = Duplicate( getRequestContext().getCollection() );
@@ -163,6 +250,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		, array   permissionContextKeys   = []
 		, string  fieldNamePrefix         = ""
 		, string  fieldNameSuffix         = ""
+		, array   suppressFields          = []
+		, boolean autoTrim                = _getAutoTrimDefault()
 	) {
 		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
 		var formsService = getModel( "formsService" );
@@ -170,10 +259,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		var collection   = {};
 
 		for( var name in formNames ) {
-			var formFields = formsService.listFields( argumentCollection=arguments, formName=name );
+			var formFields     = formsService.listFields( argumentCollection=arguments, formName=name );
+			var autoTrimFields = formsService.listAutoTrimFields( argumentCollection=arguments, formName=name );
+
 			for( var field in formFields ){
 				var fieldName = arguments.fieldNamePrefix & field & arguments.fieldNameSuffix;
-				collection[ field ] = ( rc[ fieldName ] ?: "" );
+				if ( ( arguments.autoTrim && !autoTrimFields.disabled.find( field ) ) || autoTrimFields.enabled.find( field ) ) {
+					collection[ field ] = trim( rc[ fieldName ] ?: "" );
+				} else {
+					collection[ field ] = ( rc[ fieldName ] ?: "" );
+				}
 			}
 		}
 
@@ -188,10 +283,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 
 // Admin specific
 	public string function buildAdminLink(
-		  string linkTo      = ""
-		, string queryString = ""
-		, string siteId      = this.getSiteId()
+		  string linkTo          = ""
+		, string queryString     = ""
+		, string siteId          = this.getSiteId()
+		, string operationSource = ""
 	) {
+		if ( Len( Trim( arguments.operationSource ) ) ) {
+			arguments.queryString = ListAppend( arguments.queryString, "_psource=" & arguments.operationSource, "&" );
+		}
+
 		if ( StructKeyExists( arguments, "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
@@ -253,11 +353,17 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public boolean function showNonLiveContent() {
-		if ( this.isAdminRequest() ) {
-			return true;
-		}
+		try {
+			return request._showNonLiveContent;
+		} catch( any e ) {
+			if ( this.isAdminRequest() ) {
+				request._showNonLiveContent = true;
+			} else {
+				request._showNonLiveContent = getModel( "loginService" ).isShowNonLiveEnabled();
+			}
 
-		return getModel( "loginService" ).isShowNonLiveEnabled();
+			return request._showNonLiveContent;
+		}
 	}
 
 	public struct function getAdminUserDetails() {
@@ -312,7 +418,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		args.append({
 			  eventArguments = {}
 			, action         = "__custom"
-		});
+		}, false );
 
 		getController().runEvent(
 			  event          = "admin.datamanager._loadCommonVariables"
@@ -389,21 +495,28 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		}
 	}
 
+	public string function getAdminOperationSource( string defaultValue="" ) {
+		return getModel( "sessionStorage" ).getVar( "_adminOperationSource", arguments.defaultValue );
+	}
+	public string function setAdminOperationSource( required string source ) {
+		getModel( "sessionStorage" ).setVar( "_adminOperationSource", arguments.source );
+	}
+
 // Sticker
 	public any function include() {
-		return _getSticker().include( argumentCollection = arguments );
+		return getModel( "StickerForPreside" ).include( argumentCollection = arguments );
 	}
 
 	public any function includeData() {
-		return _getSticker().includeData( argumentCollection = arguments );
+		return getModel( "StickerForPreside" ).includeData( argumentCollection = arguments );
 	}
 
 	public any function includeUrl() {
-		return _getSticker().includeUrl( argumentCollection = arguments );
+		return getModel( "StickerForPreside" ).includeUrl( argumentCollection = arguments );
 	}
 
 	public string function renderIncludes( string type, string group="default" ) {
-		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
+		var rendered      = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments );
 
 		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
@@ -447,14 +560,11 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 // private helpers
-	private any function _simpleRequestCache( required string key, required any generator ) {
-		request._simpleRequestCache = request._simpleRequestCache ?: {};
+	private boolean function _getAutoTrimDefault() {
+		var context = isAdminRequest() ? "admin" : "frontend";
+		var autoTrimDefault = getController().getSetting( "autoTrimFormSubmissions.#context#" );
 
-		if ( !StructKeyExists( request._simpleRequestCache, arguments.key ) ) {
-			request._simpleRequestCache[ arguments.key ] = arguments.generator();
-		}
-
-		return request._simpleRequestCache[ arguments.key ];
+		return IsBoolean( autoTrimDefault ) && autoTrimDefault;
 	}
 
 	public any function _getSticker() {
@@ -462,16 +572,11 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public any function getModel( required string beanName ) {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService", "tenancyService", "featureService", "i18n", "sessionStorage" ];
-
-		if ( singletons.findNoCase( arguments.beanName ) ) {
-			var args = arguments;
-			return _simpleRequestCache( "getModel" & arguments.beanName, function(){
-				return getController().getWireBox().getInstance( args.beanName );
-			} );
+		if ( StructKeyExists( instance, arguments.beanName ) ) {
+			return instance[ arguments.beanName ];
 		}
 
-		return getController().getWireBox().getInstance( arguments.beanName );
+		return instance.wireBox.getInstance( arguments.beanName );
 	}
 
 	public any function announceInterception( required string state, struct interceptData={} ) {
@@ -557,7 +662,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			return;
 		}
 
-		for( p in page ){ page = p; break; } // quick query row to struct hack
+		for( var p in page ){ page = p; break; } // quick query row to struct hack
 
 		StructAppend( page, sitetreeSvc.getExtendedPageProperties( id=page.id, pageType=page.page_type, getLatest=getLatest, allowDrafts=allowDrafts ) );
 		var ancestors = sitetreeSvc.getAncestors( id = page.id );
@@ -586,8 +691,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			}
 		}
 
-		p[ "slug" ] = p._hierarchy_slug;
-		StructDelete( p, "_hierarchy_slug" );
+		page[ "slug" ] = page._hierarchy_slug;
+		StructDelete( page, "_hierarchy_slug" );
 
 		prc.presidePage = page;
 	}
@@ -903,20 +1008,31 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public struct function getCacheableRequestData() {
-		var event           = getRequestContext();
-		var rc              = event.getCollection( private=false );
-		var prc             = event.getCollection( private=true  );
-		var unCacheableKeys = prc._fullPageCachingUncacheableKeys ?: [];
-		var cacheableVars   = { prc={}, rc={} };
+		var event            = getRequestContext();
+		var rc               = event.getCollection( private=false );
+		var prc              = event.getCollection( private=true  );
+		var unCacheableKeys  = prc._fullPageCachingUncacheableKeys ?: [];
+		var fpcSettings      = getController().getSetting( name="fullpagecaching", defaultValue={} );
+		var limitData        = IsBoolean( fpcSettings.limitCacheData ?: "" ) && fpcSettings.limitCacheData;
+		var cacheableVars    = { prc={}, rc={} };
 
-		for( var key in rc ) {
-			if ( !isNull( rc[ key ] ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
-				cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+		if ( limitData ) {
+			var limitRc  = fpcSettings.limitCacheDataKeys.rc  ?: [];
+			var limitPrc = fpcSettings.limitCacheDataKeys.prc ?: [];
+		}
+
+		if ( !limitData || limitRc.len() ) {
+			for( var key in rc ) {
+				if ( !isNull( rc[ key ] ) && (!limitData || ArrayFind( limitRc, key ) ) && !ArrayFind( unCacheableKeys, LCase( key ) ) && isCacheable( rc[ key ] ) ) {
+					cacheableVars.rc[ key ] = Duplicate( rc[ key ] );
+				}
 			}
 		}
-		for( var key in prc ) {
-			if ( !isNull( prc[ key ] ) && isCacheable( prc[ key ] ) ) {
-				cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+		if ( !limitData || limitPrc.len() ) {
+			for( var key in prc ) {
+				if ( !isNull( prc[ key ] ) && ( !limitData || ArrayFind( limitPrc, key ) ) && isCacheable( prc[ key ] ) ) {
+					cacheableVars.prc[ key ] = Duplicate( prc[ key ] );
+				}
 			}
 		}
 

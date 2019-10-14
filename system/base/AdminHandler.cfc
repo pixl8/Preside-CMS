@@ -11,6 +11,11 @@ component {
 		_checkLogin( event );
 
 		var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
+		var operationSource   = event.getValue( "_psource", "" );
+
+		if ( Len( Trim( operationSource ) ) ) {
+			event.setAdminOperationSource( operationSource );
+		}
 
 		event.setXFrameOptionsHeader( "SAMEORIGIN" );
 		event.setLayout( applicationsService.getLayout( activeApplication ) );
@@ -39,8 +44,12 @@ component {
 			var isAuthenticated = isAdminUser && !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() );
 
 			if ( !isAuthenticated ) {
-
-				if ( event.isActionRequest() ) {
+				if ( event.isAjax() ) {
+					content reset=true type="application/json";
+					header statuscode="401" statustext="Access denied";
+					echo( SerializeJson( { error="access denied"} ) );
+					abort;
+				} else if ( event.isActionRequest() ) {
 					if ( Len( Trim( cgi.http_referer ) ) ) {
 						postLoginUrl = cgi.http_referer;
 						if ( event.getHttpMethod() eq "POST" ) {

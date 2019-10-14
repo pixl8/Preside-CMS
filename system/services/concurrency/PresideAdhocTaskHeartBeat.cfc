@@ -6,15 +6,16 @@
 component extends="AbstractHeartBeat" {
 
 	/**
-	 * @adhocTaskmanagerService.inject adhocTaskmanagerService
-	 * @threadUtil.inject              threadUtil
+	 * @adhocTaskmanagerService.inject     adhocTaskmanagerService
+	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
 	 *
 	 */
-	public function init( required any adhocTaskmanagerService, required any threadUtil ){
+	public function init( required any adhocTaskmanagerService, required any scheduledThreadpoolExecutor ){
 		super.init(
-			  threadName   = "Preside Heartbeat: Adhoc Tasks"
-			, intervalInMs = 1000
-			, threadUtil   = arguments.threadUtil
+			  threadName                  = "Preside Heartbeat: Adhoc Tasks"
+			, intervalInMs                = 1000
+			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, feature                     = "adhocTaskHeartBeat"
 		);
 
 		_setAdhocTaskmanagerService( arguments.adhocTaskmanagerService );
@@ -29,28 +30,10 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
+
+		setLastRun();
 	}
 
-	public void function startInNewRequest() {
-		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startAdhocTaskManagerHeartbeat" );
-
-		thread name=CreateUUId() startUrl=startUrl {
-			var attemptLimit = 10;
-			var attempt      = 1;
-			var success      = false;
-
-			do {
-				try {
-					sleep( 5000 );
-					http method="post" url=startUrl timeout=10 throwonerror=true;
-					success = true;
-				} catch( any e ) {
-					$raiseError( e );
-					$systemOutput( "Failed to start adhoc taskmanager heartbeat. Retrying...(attempt #attempt#)");
-				}
-			} while ( !success && ++attempt <= 10 );
-		}
-	}
 
 // GETTERS AND SETTERS
 	private any function _getAdhocTaskmanagerService() {

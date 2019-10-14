@@ -255,6 +255,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, generator    = "none"
 					, generate     = "never"
 					, required     = true
+					, indexes      = "datemodified"
 				} );
 			} );
 
@@ -300,6 +301,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, generate     = "never"
 					, required     = true
 					, aliases      = "datemodified"
+					, indexes      = "datemodified"
 				} );
 			} );
 
@@ -336,6 +338,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, generator    = "none"
 					, generate     = "never"
 					, required     = true
+					, indexes      = "datecreated"
 				} );
 			} );
 
@@ -381,6 +384,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, generate     = "never"
 					, required     = true
 					, aliases      = "datecreated"
+					, indexes      = "datecreated"
 				} );
 			} );
 

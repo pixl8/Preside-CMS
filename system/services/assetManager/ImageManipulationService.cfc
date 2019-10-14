@@ -34,6 +34,7 @@ component displayname="Image Manipulation Service" {
 		,          string  focalPoint          = ""
 		,          string  cropHint            = ""
 		,          string  useCropHint         = false
+		,          struct  fileProperties      = {}
 	) {
 		var args = arguments;
 
@@ -54,6 +55,7 @@ component displayname="Image Manipulation Service" {
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
+		,          struct  fileProperties      = {}
 	) {
 		return _getImplementation().shrinkToFit( argumentCollection = arguments);
 	}
@@ -65,6 +67,7 @@ component displayname="Image Manipulation Service" {
 		,          string format
 		,          string pages
 		,          string transparent
+		,          struct fileProperties      = {}
 	) {
 		return _getImplementation().pdfPreview( argumentCollection = arguments );
 	}

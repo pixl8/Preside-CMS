@@ -8,7 +8,13 @@
 component displayname="Native Image Manipulation Service" {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @svgToPngService.inject svgToPngService
+	 *
+	 */
+	public any function init( required any svgToPngService ) {
+		_setSvgToPngService( arguments.svgToPngService );
+
 		return this;
 	}
 
@@ -34,16 +40,24 @@ component displayname="Native Image Manipulation Service" {
 		,          boolean maintainAspectRatio = false
 		,          string  focalPoint          = ""
 		,          struct  cropHintArea        = {}
+		,          struct  fileProperties      = {}
 	) {
 		var image              = "";
 		var interpolation      = arguments.quality;
 		var targetAspectRatio  = 0;
 		var currentImageInfo   = {};
 		var currentAspectRatio = 0;
+		var isSvg              = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		try {
+			var assetBinary = arguments.asset;
 
-			image = ImageNew( correctImageOrientation( arguments.asset ) );
+			if( isSvg ) {
+				assetBinary = _getSvgToPngService().SVGToPngBinary( arguments.asset, arguments.width, arguments.height );
+				fileProperties.fileExt = "png";
+			}
+
+			image = ImageNew( correctImageOrientation( assetBinary ) );
 			currentImageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
@@ -94,14 +108,23 @@ component displayname="Native Image Manipulation Service" {
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
+		,          struct  fileProperties = {}
+
 	) {
 		var image         = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
+		var isSvg         = ( fileProperties.fileExt ?: "" ) == "svg";
 
 		try {
+			var assetBinary = arguments.asset;
 
-			image = ImageNew( correctImageOrientation( arguments.asset ) );
+			if( isSvg ) {
+				assetBinary = _getSvgToPngService().SVGToPngBinary ( arguments.asset, arguments.width, arguments.height );
+				fileProperties.fileExt = "png";
+			}
+
+			image = ImageNew( correctImageOrientation( assetBinary ) );
 			imageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
@@ -170,16 +193,18 @@ component displayname="Native Image Manipulation Service" {
 	 *
 	 */
 	public binary function pdfPreview(
-		  required binary asset
-		,          string scale
-		,          string resolution
-		,          string format
-		,          string pages
-		,          string transparent
+		  required binary  asset
+		,          string  scale
+		,          string  resolution
+		,          string  format
+		,          string  pages
+		,          string  transparent
+		,          numeric width = 300
+		,          struct  fileProperties = {}
 	) {
 		var imagePrefix = CreateUUId();
 		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & "_page_" & arguments.page & ".jpg";
-		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
+		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth", "width" ];
 		var pdfAttributes = {
 			  action      = "thumbnail"
 			, source      = asset
@@ -193,7 +218,34 @@ component displayname="Native Image Manipulation Service" {
 			}
 		}
 
-		pdf attributeCollection=pdfAttributes;
+		if ( Val( Left( SERVER.lucee.version ?: "", 1 ) ) >= 5 ) {
+			var tmpFilePDF  = GetTempDirectory() & imagePrefix & "_page_" & arguments.page & ".pdf";
+			var tmpFileJPG  = GetTempDirectory() & imagePrefix & "1.jpg";
+
+			FileWrite( tmpFilePDF, pdfAttributes.source );
+
+			var returnFilePrefix = GetTempDirectory() & imagePrefix;
+			var bufferedImage    = createObject("java","java.awt.image.BufferedImage");
+			var imageWriter      = createObject("java","org.apache.pdfbox.util.PDFImageWriter");
+			var document         = createObject("java","org.apache.pdfbox.pdmodel.PDDocument").load( tmpFilePDF );
+
+			imageWriter.writeImage( document, JavaCast( "string", "jpg" ), JavaCast( "string", "" ), "1", "1", JavaCast( "string", returnFilePrefix ), bufferedImage.TYPE_INT_RGB, arguments.width );
+			document.close();
+
+			cfimage(
+				  action      = "resize"
+				, source      = tmpFileJPG
+				, destination = tmpFileJPG
+				, overwrite   = true
+				, width       = arguments.width
+			);
+
+			tmpFilePath = tmpFileJPG;
+		} else {
+			pdf attributeCollection=pdfAttributes;
+		}
+
+		fileProperties.fileExt = "jpg";
 
 		return FileReadBinary( tmpFilePath );
 	}
@@ -252,6 +304,14 @@ component displayname="Native Image Manipulation Service" {
 		}
 
 		return ( imageBinary );
+	}
+
+// GETTERS/SETTERS
+	private any function _getSvgToPngService() {
+	    return _svgToPngService;
+	}
+	private void function _setSvgToPngService( required any svgToPngService ) {
+	    _svgToPngService = arguments.svgToPngService;
 	}
 
 }
