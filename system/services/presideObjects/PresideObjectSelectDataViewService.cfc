@@ -54,7 +54,6 @@ component {
 		var args = getViewArgs( arguments.view );
 
 		args.getSqlAndParamsOnly = true;
-		args.formatSqlParams     = true;
 
 		for( var arg in arguments ) {
 			if ( arg != "view" ) {

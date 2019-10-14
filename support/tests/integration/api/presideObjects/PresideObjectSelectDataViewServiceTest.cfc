@@ -95,7 +95,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					  selectFields        = mockArgs.selectFields
 					, useCache            = false
 					, getSqlAndParamsOnly = true
-					, formatSqlParams     = true
 				).$results( mockResult );
 				service.$( "makeUniqueParams" ).$args( mockResult ).$results( mockUniqueResult );
 
