@@ -37,4 +37,4 @@ The project is maintained by [The Pixl8 Group](https://www.pixl8.co.uk). The lea
 
 ## Code of conduct
 
-We are a small, friendly and professional community. For the erradication of doubt, we publish a simple [code of conduct](https://github.com/pixl8/Preside-CMS/blob/stable/CODE_OF_CONDUCT.md) and expect all contributors, users and passers-by to observe it.
+We are a small, friendly and professional community. For the eradication of doubt, we publish a simple [code of conduct](https://github.com/pixl8/Preside-CMS/blob/stable/CODE_OF_CONDUCT.md) and expect all contributors, users and passers-by to observe it.
