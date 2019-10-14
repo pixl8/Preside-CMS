@@ -29,6 +29,7 @@ component displayName="Preside Super Class" {
 	 * @i18n.inject                       delayedInjector:i18n
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
 	 * @healthcheckService.inject         delayedInjector:healthcheckService
+	 * @presideHelperClass.inject         presideHelperClass
 	 *
 	 */
 	public any function init(
@@ -53,6 +54,7 @@ component displayName="Preside Super Class" {
 		, required any i18n
 		, required any htmlHelper
 		, required any healthcheckService
+		, required any presideHelperClass
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -75,6 +77,8 @@ component displayName="Preside Super Class" {
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
 		$healthcheckService         = arguments.healthcheckService;
+
+		this.$helpers = arguments.presideHelperClass;
 
 		return this;
 	}
