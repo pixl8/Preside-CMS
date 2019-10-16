@@ -19,15 +19,15 @@ component {
 			styleAttribute = data ? "booleanBadgeTrueStyle" : "booleanBadgeFalseStyle";
 		}
 		
-		var booleanBadgeValue = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName=valueAttribute, defaultValue="" );
-		var booleanBadgeStyle = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName=styleAttribute, defaultValue="info" );
+		var booleanBadgeValue = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName=valueAttribute );
+		booleanBadgeValue = translateResource( uri="preside-objects.#objectName#:field.#propertyName#.#valueAttribute#", defaultValue=booleanBadgeValue );
 		
 		if ( isEmpty( booleanBadgeValue ) ) {
 			return "";
 		}
 		
-		booleanBadgeValue = translateResource( uri="preside-objects.#objectName#:field.#propertyName#.#valueAttribute#", defaultValue=booleanBadgeValue );
-		booleanBadgeValue = translateResource( uri="preside-objects.#objectName#:field.#propertyName#.#styleAttribute#", defaultValue=booleanBadgeStyle );
+		var booleanBadgeStyle = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName=styleAttribute, defaultValue="info" );
+		booleanBadgeStyle = translateResource( uri="preside-objects.#objectName#:field.#propertyName#.#styleAttribute#", defaultValue=booleanBadgeStyle );
 		
 		return '<span class="badge badge-pill badge-#booleanBadgeStyle#">#booleanBadgeValue#</span>';
 	}
