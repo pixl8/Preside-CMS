@@ -104,7 +104,10 @@ component implements="coldbox.system.cache.store.IObjectStore" accessors="true"{
 	 * Clear all the elements in the store
 	 */
 	void function clearAll(){
-		directoryDelete( variables.directoryPath, true );
+		try {
+			directoryDelete( variables.directoryPath, true );
+		} catch( any e ) {} // already gone
+
 		variables.indexer.clearAll();
 		directoryCreate( variables.directoryPath );
 	}
