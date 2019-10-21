@@ -257,6 +257,7 @@ component displayName="Task Manager Service" {
 
 		try {
 			$getRequestContext().setUseQueryCache( false );
+			_setActiveSite();
 			success = _getController().runEvent(
 				  event          = task.event
 				, private        = true
@@ -755,6 +756,20 @@ component displayName="Task Manager Service" {
 
 		var state = threadRef.getState()
 		return !state.equals( state.TERMINATED );
+	}
+
+	private void function _setActiveSite(){
+		if ( $isFeatureEnabled( "sites" ) ) {
+			var event       = $getRequestContext();
+			var siteContext = $getPresideSetting( "taskmanager", "site_context" );
+
+			if ( Len( Trim( siteContext ) ) ) {
+				event.setSite( _getSiteService().getSite( siteContext ) );
+				return;
+			}
+
+			event.autoSetSiteByHost();
+		}
 	}
 
 // GETTERS AND SETTERS
