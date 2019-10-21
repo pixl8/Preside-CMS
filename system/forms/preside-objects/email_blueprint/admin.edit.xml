@@ -2,12 +2,12 @@
 <form i18nBaseUri="preside-objects.email_blueprint:">
 	<tab id="basic">
 		<fieldset id="basic" sortorder="10">
-			<field binding="email_blueprint.name"             control="textinput"                  sortorder="10" />
-			<field binding="email_blueprint.layout"           control="emailLayoutPicker"          sortorder="20" />
+			<field binding="email_blueprint.name"             control="textinput"         sortorder="10" />
+			<field binding="email_blueprint.layout"           control="emailLayoutPicker" sortorder="20" />
 		</fieldset>
 		<fieldset id="recipients" sortorder="20">
-			<field binding="email_blueprint.recipient_type"   control="emailRecipientTypePicker"   sortorder="10" />
-			<field binding="email_blueprint.recipient_filter" control="filterPicker"               sortorder="20" quickadd="true" quickedit="true" />
+			<field binding="email_blueprint.recipient_type"   control="readOnly"     sortorder="10" required="false" renderer="emailRecipientType" />
+			<field binding="email_blueprint.recipient_filter" control="filterPicker" sortorder="20" quickadd="true" quickedit="true" />
 		</fieldset>
 		<fieldset id="service" sortorder="30">
 			<field binding="email_blueprint.service_provider" control="emailServiceProviderPicker" sortorder="10" />
