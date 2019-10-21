@@ -25,7 +25,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	// PUBLIC API METHODS
-	public void function run() {
+	public void function $run() {
 		try {
 			var result = _getTaskmanagerService().runScheduledTasks();
 			_getTaskmanagerService().cleanupNoLongerRunningTasks();

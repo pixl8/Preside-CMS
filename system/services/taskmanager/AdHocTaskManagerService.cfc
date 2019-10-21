@@ -65,7 +65,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	) {
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
 			  event               = arguments.event
-			, event_args          = SerializeJson( arguments.args )
+			, event_args          = SerializeJson( _addRequestStateArgs( arguments.args ) )
 			, admin_owner         = arguments.adminOwner
 			, web_owner           = arguments.webOwner
 			, discard_on_complete = arguments.discardOnComplete
@@ -102,6 +102,8 @@ component displayName="Ad-hoc Task Manager Service" {
 			var event = task.event ?: "";
 			var args  = IsJson( task.event_args ?: "" ) ? DeserializeJson( task.event_args ) : {};
 			var e     = "";
+
+			_setRequestState( args.__requestState ?: {} );
 
 			if ( !task.recordCount ) {
 				return true;
@@ -516,6 +518,37 @@ component displayName="Ad-hoc Task Manager Service" {
 		var secondsInADay = 86400;
 
 		return Round( Val( arguments.input ) * secondsInADay );
+	}
+
+	private void function _setRequestState( required struct requestState ){
+		var event = $getRequestContext();
+
+		if ( Len( Trim( requestState.site ?: "" ) ) ) {
+			event.setSite( _getSiteService().getSite( requestState.site ) );
+		} else if ( $isFeatureEnabled( "sites" ) ) {
+			var siteContext = $getPresideSetting( "taskmanager", "site_context" );
+
+			if ( Len( Trim( siteContext ) ) ) {
+				event.setSite( _getSiteService().getSite( siteContext ) );
+			} else {
+				event.setSite( _getSiteService().getSiteByHost() );
+			}
+		}
+
+		if ( Len( Trim( requestState.language ?: "" ) ) ) {
+			event.setLanguage( requestState.language );
+		}
+	}
+
+	private struct function _addRequestStateArgs( required struct args ) {
+		var event = $getRequestContext();
+
+		args.__requestState = {
+			  site     = event.getSiteId()
+			, language = event.getLanguage()
+		}
+
+		return args;
 	}
 
 // GETTERS AND SETTERS
