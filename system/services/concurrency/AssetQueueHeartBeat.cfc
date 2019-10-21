@@ -30,7 +30,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	// PUBLIC API METHODS
-	public void function run() {
+	public void function $run() {
 		var queueService = _getAssetQueueService();
 
 		try {

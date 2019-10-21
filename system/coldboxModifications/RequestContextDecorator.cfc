@@ -68,6 +68,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		);
 	}
 
+	public void function autoSetSiteByHost() {
+		setSite( getModel( "siteService" ).matchSite( this.getServerName(), this.getCurrentPresideUrlPath() ) );
+	}
+
 	public struct function getSite() {
 		var site = getRequestContext().getValue( name="_site", private=true, defaultValue={} );
 

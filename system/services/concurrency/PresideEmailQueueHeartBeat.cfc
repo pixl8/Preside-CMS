@@ -30,7 +30,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	// PUBLIC API METHODS
-	public void function run() {
+	public void function $run() {
 		try {
 			if ( _getInstanceNumber() == 1 ) {
 				_getEmailMassSendingService().autoQueueScheduledSendouts();

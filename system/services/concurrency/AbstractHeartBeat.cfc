@@ -25,7 +25,12 @@ component {
 	}
 
 	public void function run() {
-		throw( type="preside.AbstractHeartBeat.method.not.implemented", message="Implementing sub-classes must implement their own RUN method." );
+		$getRequestContext().autoSetSiteByHost();
+		$run();
+	}
+
+	public void function $run() {
+		throw( type="preside.AbstractHeartBeat.method.not.implemented", message="Implementing sub-classes must implement their own $run() method." );
 	}
 
 	public void function start() {

@@ -27,7 +27,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	// PUBLIC API METHODS
-	public void function run() {
+	public void function $run() {
 		try {
 			if ( $isInterrupted() ) {
 				return;

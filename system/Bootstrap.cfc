@@ -176,6 +176,7 @@ component {
 				_announceInterception( "prePresideReload" );
 				_clearExistingApplication();
 				_isReloading( true );
+				_checkLuceeVersionCompatibility();
 				_ensureCaseSensitiveStructSettingsAreActive();
 				_applyJavaPropToImproveXalanXmlPerformance();
 				_fetchInjectedSettings();
@@ -236,6 +237,25 @@ component {
 		}
 
 		return application.cbBootStrap.isfwReinit();
+	}
+
+	private void function _checkLuceeVersionCompatibility() {
+		var versionString = server.lucee.version ?: "";
+
+		if ( ListLen( versionString, "." ) > 3 ) {
+			var major = Val( ListGetAt( versionString, 1, "." ) );
+			var minor = Val( ListGetAt( versionString, 2, "." ) );
+			var patch = Val( ListGetAt( versionString, 3, "." ) );
+
+			if ( major == 5 ) {
+				if ( ( minor == 2 && patch < 9 ) || ( minor < 2 ) ) {
+					throw(
+						  type    = "preside.compatibility.error"
+						, message = "Lucee version [#versionString#] has compatibility issues with this Preside release. You must install Lucee version 5.2.9 or greater."
+					);
+				}
+			}
+		}
 	}
 
 	private void function _ensureCaseSensitiveStructSettingsAreActive() {
