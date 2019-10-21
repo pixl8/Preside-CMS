@@ -2294,7 +2294,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( redirectOnSuccess ) {
 				if ( ids.len() eq 1 ) {
-					messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records["label"][1] ] ) );
+					messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records.label[1] ] ) );
 				} else {
 					messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
 				}
