@@ -2238,7 +2238,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		records = obj.selectData( selectFields=[ "id", labelField ], filter={ id = ids }, useCache=false );
+		records = obj.selectData( selectFields=[ "id", "#labelField# as label" ], filter={ id = ids }, useCache=false );
 
 		if ( records.recordCount neq ids.len() ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[objectName] ) );
@@ -2294,7 +2294,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( redirectOnSuccess ) {
 				if ( ids.len() eq 1 ) {
-					messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records[labelField][1] ] ) );
+					messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records["label"][1] ] ) );
 				} else {
 					messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
 				}
