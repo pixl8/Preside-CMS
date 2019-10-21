@@ -173,7 +173,7 @@ component extends="testbox.system.BaseSpec" {
 
 				mockTaskDao.$( "insertData" ).$args( {
 					  event               = event
-					, event_args          = SerializeJson( args )
+					, event_args          = SerializeJson( _addMockRequestState( args ) )
 					, admin_owner         = owner
 					, web_owner           = ""
 					, discard_on_complete = false
@@ -201,7 +201,7 @@ component extends="testbox.system.BaseSpec" {
 
 				mockTaskDao.$( "insertData" ).$args( {
 					  event               = event
-					, event_args          = SerializeJson( args )
+					, event_args          = SerializeJson( _addMockRequestState( args ) )
 					, admin_owner         = ""
 					, web_owner           = owner
 					, discard_on_complete = true
@@ -241,7 +241,7 @@ component extends="testbox.system.BaseSpec" {
 
 				mockTaskDao.$( "insertData" ).$args( {
 					  event               = event
-					, event_args          = SerializeJson( args )
+					, event_args          = SerializeJson( _addMockRequestState( args ) )
 					, admin_owner         = owner
 					, web_owner           = ""
 					, discard_on_complete = false
@@ -279,7 +279,7 @@ component extends="testbox.system.BaseSpec" {
 
 				mockTaskDao.$( "insertData" ).$args( {
 					  event               = event
-					, event_args          = SerializeJson( args )
+					, event_args          = SerializeJson( _addMockRequestState( args ) )
 					, admin_owner         = ""
 					, web_owner           = ""
 					, discard_on_complete = false
@@ -307,7 +307,7 @@ component extends="testbox.system.BaseSpec" {
 
 				mockTaskDao.$( "insertData" ).$args( {
 					  event               = event
-					, event_args          = SerializeJson( args )
+					, event_args          = SerializeJson( _addMockRequestState( args ) )
 					, admin_owner         = ""
 					, web_owner           = ""
 					, discard_on_complete = false
@@ -337,7 +337,7 @@ component extends="testbox.system.BaseSpec" {
 
 				mockTaskDao.$( "insertData" ).$args( {
 					  event               = event
-					, event_args          = SerializeJson( args )
+					, event_args          = SerializeJson( _addMockRequestState( args ) )
 					, admin_owner         = ""
 					, web_owner           = owner
 					, discard_on_complete = true
@@ -751,12 +751,15 @@ component extends="testbox.system.BaseSpec" {
 		) );
 
 		mockRequestContext.$( "setUseQueryCache" );
+		mockRequestContext.$( "getSiteId", "mock-site-id" );
+		mockRequestContext.$( "getLanguage", "mock-language" );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$getRequestContext", mockRequestContext );
 		service.$( "$isFeatureEnabled" ).$args( "sslInternalHttpCalls" ).$results( true );
 		service.$( "_now", nowish );
+		service.$( "_setRequestState" );
 
 		return service;
 	}
@@ -780,5 +783,14 @@ component extends="testbox.system.BaseSpec" {
 		service.$( "_getTaskLogger" ).$args( arguments.taskId ).$results( dummyObj );
 
 		return dummyObj;
+	}
+
+	private struct function _addMockRequestState( struct args ){
+		args.__requestState = {
+			  site     = "mock-site-id"
+			, language = "mock-language"
+		};
+
+		return args;
 	}
 }
