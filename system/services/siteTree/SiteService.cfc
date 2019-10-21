@@ -57,28 +57,6 @@ component displayname="Site service" {
 	}
 
 	/**
-	 * Returns a single site matched by hostname only
-	 *
-	 * @host.hint Hostname for the site
-	 * @autodoc   true
-	 */
-	public struct function getSiteByHost( string host=cgi.server_name ) {
-		var dao     = _getSiteDao();
-		var adapter = dao.getDbAdapter();
-		var site    = dao.selectData(
-			  filter       = "domain = '*' or domain = :domain"
-			, filterParams = { domain=arguments.host }
-			, orderBy      = "#adapter.getLengthFunctionSql( "domain" )# desc, #adapter.getLengthFunctionSql( "path" )#"
-		);
-
-		for( var s in site ){
-			return s;
-		}
-
-		return {};
-	}
-
-	/**
 	 * "Deletes" the given site. Marks it as deleted and obfuscates the
 	 * unique index fields.
 	 *
@@ -277,8 +255,7 @@ component displayname="Site service" {
 	 */
 	public query function getRedirectSiteForDomain( required string domain ) output=false {
 		return _getSiteRedirectDomainDao().selectData(
-			  selectFields = [ "site.id", "site.protocol", "site.domain" ]
-			, filter       = { domain = arguments.domain }
+			  filter       = { domain = arguments.domain }
 			, savedFilters = [ "nonDeletedSites" ]
 		);
 	}

@@ -69,7 +69,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public void function autoSetSiteByHost() {
-		setSite( getModel( "siteService" ).getSiteByHost() );
+		setSite( getModel( "siteService" ).matchSite( this.getServerName(), this.getCurrentPresideUrlPath() ) );
 	}
 
 	public struct function getSite() {

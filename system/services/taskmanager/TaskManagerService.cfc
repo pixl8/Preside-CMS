@@ -768,7 +768,7 @@ component displayName="Task Manager Service" {
 				return;
 			}
 
-			event.setSite( _getSiteService().getSiteByHost() );
+			event.autoSetSiteByHost();
 		}
 	}
 

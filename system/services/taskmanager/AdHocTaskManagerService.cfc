@@ -531,7 +531,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			if ( Len( Trim( siteContext ) ) ) {
 				event.setSite( _getSiteService().getSite( siteContext ) );
 			} else {
-				event.setSite( _getSiteService().getSiteByHost() );
+				event.autoSetSiteByHost();
 			}
 		}
 
