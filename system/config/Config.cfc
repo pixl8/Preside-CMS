@@ -400,6 +400,7 @@ component {
 			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.sslcert"      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {
