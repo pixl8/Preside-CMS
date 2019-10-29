@@ -2709,6 +2709,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string savedFilters      = ( rc.savedFilters      ?: '' )
 		,          array  extraFilters      = []
 		,          string returnUrl         = cgi.http_referer
+		,          struct additionalArgs    = {}
 
 	) {
 		var exporterDetail = dataExportService.getExporterDetails( arguments.exporter );
@@ -2722,6 +2723,7 @@ component extends="preside.system.base.AdminHandler" {
 			, autoGroupBy    = true
 			, exportFileName = fullFileName
 			, mimetype       = exporterDetail.mimeType
+			, additionalArgs = arguments.additionalArgs
 		};
 
 		try {
