@@ -55,7 +55,7 @@ component serializable=false accessors=true extends="coldbox.system.web.context.
 	}
 
 	public struct function getRenderingRegions() {
-	    return request.cb_rendering_regions ?: setRenderingRegions( false );
+	    return request.cb_rendering_regions ?: setRenderingRegions( {} );
 	}
 	public struct function setRenderingRegions( required struct renderingRegions ) {
 	    request.cb_rendering_regions = arguments.renderingRegions;
