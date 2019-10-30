@@ -29,7 +29,8 @@ component singleton=true {
 		}
 
 		if ( StructKeyExists( arguments, "params" ) ) {
-			for( var param in arguments.params ){
+			var argumentsParams = duplicate( arguments.params );
+			for( var param in argumentsParams ){
 				param.value = param.value ?: "";
 
 				if ( !IsSimpleValue( param.value ) ) {
