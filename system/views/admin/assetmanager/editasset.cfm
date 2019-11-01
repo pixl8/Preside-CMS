@@ -24,6 +24,9 @@
 	canTranslate       = prc.canTranslate      ?:false;
 	assetTranslations  = prc.assetTranslations ?: [];
 	translateUrlBase   = event.buildAdminLink( linkTo="assetManager.translateAssetRecord", queryString="object=asset&id=#assetId#&language=" );
+
+	tooLargeForDerivatives = IsTrue( prc.tooLargeForDerivatives ?: "" );
+	tooLargeMessage        = prc.tooLargeMessage ?: "";
 </cfscript>
 
 <cfoutput>
@@ -93,6 +96,14 @@
 					#renderView( view="/general/_errorDetail", args={ error=DeserializeJson( failedQueue.last_error ) } )#
 				</div>
 			</div>
+		</div>
+	</cfif>
+
+	<cfif tooLargeForDerivatives>
+		<div class="alert alert-danger">
+			<p><i class="fa fa-fw fa-exclamation-triangle"></i>
+				#tooLargeMessage#
+			</p>
 		</div>
 	</cfif>
 

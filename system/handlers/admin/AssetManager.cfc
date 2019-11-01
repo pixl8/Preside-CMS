@@ -13,6 +13,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="datatableHelper"                  inject="jQueryDatatablesHelpers";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="assetQueueService"                inject="presidecms:dynamicservice:assetQueue";
+	property name="derivativeLimits"                 inject="coldbox:setting:assetManager.derivativeLimits";
 
 	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -574,6 +575,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( isFeatureEnabled( "assetQueue" ) && hasCmsPermission( "assetmanager.failedDerivatives" ) ) {
 			prc.latestFailedQueueItem = assetQueueService.getFailedItems( assetId=rc.asset, maxRows=1 );
+		}
+
+		prc.tooLargeForDerivatives = assetManagerService.assetIsTooLargeForDerivatives( prc.asset.width, prc.asset.height );
+		if ( prc.tooLargeForDerivatives ) {
+			prc.tooLargeMessage = _getAssetTooLargeMessage( argumentCollection=arguments );
 		}
 	}
 
@@ -1314,5 +1320,25 @@ component extends="preside.system.base.AdminHandler" {
 
 	private void function _editAssetLocationInBackgroundThread( event, rc, prc, args={} ){
 		assetManagerService.ensureAssetsAreInCorrectLocation( folderId=args.id ?: "" );
+	}
+
+	private string function _getAssetTooLargeMessage( event, rc, prc ) {
+		var maxWidth      = Val( derivativeLimits.maxWidth      ?: "" );
+		var maxHeight     = Val( derivativeLimits.maxHeight     ?: "" );
+		var maxResolution = Val( derivativeLimits.maxResolution ?: "" );
+
+		var messages = [];
+
+		if ( maxWidth ) {
+			messages.append( translateResource( uri="cms:assetmanager.image.too.large.max.width", data=[ NumberFormat( maxWidth ) ] ) );
+		}
+		if ( maxHeight ) {
+			messages.append( translateResource( uri="cms:assetmanager.image.too.large.max.height", data=[ NumberFormat( maxHeight ) ] ) );
+		}
+		if ( maxResolution ) {
+			messages.append( translateResource( uri="cms:assetmanager.image.too.large.max.resolution", data=[ NumberFormat( maxResolution ) ] ) );
+		}
+
+		return translateResource( uri="cms:assetmanager.image.too.large.for.derivatives" ) & "<br><br>" & ArrayToList( messages, " " );
 	}
 }
