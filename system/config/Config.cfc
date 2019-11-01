@@ -255,6 +255,7 @@ component {
 		};
 		settings.assetManager = {
 			  maxFileSize = "5"
+			, derivativeLimits = { maxHeight=0, maxWidth=0, maxResolution=0, tooBigPlaceholder="/preside/system/assets/images/placeholders/largeimage.jpg" }
 			, types       = _getConfiguredFileTypes()
 			, derivatives = _getConfiguredAssetDerivatives()
 			, queue       = { concurrency=1, batchSize=100, downloadWaitSeconds=5 }

@@ -32,7 +32,12 @@ component {
 		var signature           = arguments.derivativeSignature;
 		var config              = arguments.assetTransformationConfig;
 		var configHash          = arguments.assetTransformationConfigHash;
-		var assetBinary         = assetManagerService.getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
+		var assetBinary         = assetManagerService.getAssetBinary(
+			  id                    = arguments.assetId
+			, versionId             = arguments.versionId
+			, throwOnMissing        = true
+			, placeholderIfTooLarge = true
+		);
 		var fileProperties      = {
 			  filename    = ListLast( asset.storage_path, "\/" )
 			, fileExt     = ListLast( asset.storage_path, "." )

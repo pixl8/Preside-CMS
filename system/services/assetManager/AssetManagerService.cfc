@@ -18,6 +18,7 @@ component displayName="AssetManager Service" {
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
+	 * @derivativeLimits.inject           coldbox:setting:assetManager.derivativeLimits
 	 * @renderedAssetCache.inject         cachebox:renderedAssetCache
 	 */
 	public any function init(
@@ -28,9 +29,10 @@ component displayName="AssetManager Service" {
 		, required any    assetQueueService
 		, required any    derivativeGeneratorService
 		, required any    renderedAssetCache
-		,          struct configuredDerivatives={}
-		,          struct configuredTypesByGroup={}
-		,          struct configuredFolders={}
+		,          struct configuredDerivatives  = {}
+		,          struct configuredTypesByGroup = {}
+		,          struct derivativeLimits       = {}
+		,          struct configuredFolders      = {}
 	) {
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( arguments.configuredFolders );
@@ -42,6 +44,7 @@ component displayName="AssetManager Service" {
 		_setAssetQueueService( arguments.assetQueueService );
 		_setDerivativeGeneratorService( arguments.derivativeGeneratorService );
 		_setRenderedAssetCache( arguments.renderedAssetCache );
+		_setDerivativeLimits( arguments.derivativeLimits );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
@@ -1087,15 +1090,24 @@ component displayName="AssetManager Service" {
 		);
 	}
 
-	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
+	public binary function getAssetBinary(
+		  required string  id
+		,          string  versionId             = ""
+		,          boolean throwOnMissing        = false
+		,          boolean isTrashed             = false
+		,          boolean placeholderIfTooLarge = false
+	) {
 		var assetBinary = "";
 		var isPrivate   = isAssetAccessRestricted( arguments.id )
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder" ] )
-			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder" ] );
+			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder", "asset.width", "asset.height" ] )
+			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder", "width", "height" ] );
 
 		if ( asset.recordCount ) {
+			if ( arguments.placeholderIfTooLarge && assetIsTooLargeForDerivatives( asset.width, asset.height ) ) {
+				return _getLargeImagePlaceholder();
+			}
 			return getStorageProviderForFolder( asset.asset_folder ).getObject(
 				  path    = asset.storage_path
 				, trashed = arguments.isTrashed
@@ -1969,6 +1981,26 @@ component displayName="AssetManager Service" {
 		);
 	}
 
+	public boolean function assetIsTooLargeForDerivatives( required string width, required string height ) {
+		if ( !IsNumeric( arguments.width ) || !IsNumeric( arguments.height ) ) {
+			return false;
+		}
+
+		var limits = _getDerivativeLimits();
+
+		if ( limits.maxWidth && arguments.width > limits.maxWidth ) {
+			return true;
+		}
+		if ( limits.maxHeight && arguments.height > limits.maxHeight ) {
+			return true;
+		}
+		if ( limits.maxResolution && (arguments.width*arguments.height) > limits.maxResolution ) {
+			return true;
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private void function _migrateFromLegacyRecycleBinApproach() {
 		var folderDao   = _getFolderDao();
@@ -2326,6 +2358,10 @@ component displayName="AssetManager Service" {
 		}
 	}
 
+	private binary function _getLargeImagePlaceholder() {
+		return FileReadBinary( ExpandPath( _getDerivativeLimits().tooBigPlaceholder ) );
+	}
+
 // GETTERS AND SETTERS
 	private any function _getDefaultStorageProvider() {
 		return _defaultStorageProvider;
@@ -2422,5 +2458,17 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setDerivativeGeneratorService( required any derivativeGeneratorService ) {
 	    _derivativeGeneratorService = arguments.derivativeGeneratorService;
+	}
+
+	private struct function _getDerivativeLimits() {
+	    return _derivativeLimits;
+	}
+	private void function _setDerivativeLimits( required struct derivativeLimits ) {
+		_derivativeLimits = {
+			  maxHeight         = Val( arguments.derivativeLimits.maxHeight     ?: "" )
+			, maxWidth          = Val( arguments.derivativeLimits.maxWidth      ?: "" )
+			, maxResolution     = Val( arguments.derivativeLimits.maxResolution ?: "" )
+			, tooBigPlaceholder = arguments.derivativeLimits.tooBigPlaceholder ?: "/preside/system/assets/images/placeholders/largeimage.jpg"
+		};
 	}
 }
