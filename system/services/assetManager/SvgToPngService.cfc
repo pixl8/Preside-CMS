@@ -55,6 +55,6 @@ component {
 			, "/preside/system/services/assetmanager/lib/xml-apis-ext-1.3.04.jar"
 			, "/preside/system/services/assetmanager/lib/xmlgraphics-commons-2.3.jar"
 		];
-	}S
+	}
 
 }
