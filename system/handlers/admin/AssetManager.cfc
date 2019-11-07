@@ -38,6 +38,9 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		prc.rootFolderId = assetManagerService.getRootFolderId();
+		if ( Len( Trim( rc.asset_folder ?: "" ) ) ) {
+			rc.folder = rc.asset_folder;
+		}
 		if ( !Len( Trim( rc.folder ?: "" ) ) ) {
 			rc.folder = prc.rootFolderId;
 		}
