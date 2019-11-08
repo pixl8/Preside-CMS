@@ -923,7 +923,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickAddForm( event, rc, prc ) {
  		_checkPermission( argumentCollection=arguments, key="add" );
-		 
+
 		 var object      = prc.objectName     ?: "";
 		 if ( customizationService.objectHasCustomization( object, "preQuickAddRecordForm" ) ) {
 			customizationService.runCustomization(
@@ -1234,7 +1234,7 @@ component extends="preside.system.base.AdminHandler" {
 			, id             = id
 			, currentVersion = ( selectedVersion ? selectedVersion : args.latestVersion )
 		);
-		if ( !selectedVersion && args.prevVersion ) {
+		if ( !selectedVersion ) {
 			selectedVersion = args.latestVersion;
 		}
 
@@ -2206,7 +2206,7 @@ component extends="preside.system.base.AdminHandler" {
 	) {
 		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 		var validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
-		
+
 		if ( customizationService.objectHasCustomization( object, "preQuickAddRecordAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
@@ -2631,8 +2631,8 @@ component extends="preside.system.base.AdminHandler" {
 				, action     = "preQuickEditRecordAction"
 				, args       = {objectName = object,formData: formData}
 			);
-		}	
-		
+		}
+
 		if ( presideObjectService.dataExists( objectName=arguments.object, filter={ id=id } ) ) {
 			formData.id = id;
 			validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
@@ -2650,7 +2650,7 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			event.renderData( type="json", data={ success = false });
 		}
-		
+
 		if ( customizationService.objectHasCustomization( object, "postQuickEditRecordAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
