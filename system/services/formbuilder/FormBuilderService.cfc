@@ -910,10 +910,10 @@ component {
 		}
 		for( var i=1; i <= formItems.len(); i++ ) {
 			if ( formItems[i].type.isFormField ) {
-				var export  = isBoolean( formItems[i].configuration.export ?: "" ) && formItems[i].configuration.export;
-				var columns = export ? renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration ) : [];
+				var exclude = isBoolean( formItems[i].configuration.exclude_export ?: "" ) && formItems[i].configuration.exclude_export;
+				var columns = !exclude ? renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration ) : [];
 
-				if ( columns.len() && export ) {
+				if ( columns.len() && !exclude ) {
 					itemsToRender.append( formItems[i] );
 					itemColumnMap[ formItems[ i ].id ] = columns;
 					headers.append( columns, true );
