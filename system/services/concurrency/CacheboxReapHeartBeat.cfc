@@ -8,11 +8,13 @@ component extends="AbstractHeartBeat" {
 	/**
 	 * @cachebox.inject                    cachebox
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
+	 * @hostname.inject                    coldbox:setting:heartbeats.cacheboxreap.hostname
 	 *
 	 */
 	public function init(
 		  required any    scheduledThreadpoolExecutor
 		, required any    cachebox
+		, required string hostname
 		,          string threadName = "Preside Cache Reap Heartbeat"
 	){
 		_setCachebox( arguments.cachebox );
@@ -20,6 +22,7 @@ component extends="AbstractHeartBeat" {
 		super.init(
 			  threadName                  = arguments.threadName
 			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, hostname                    = arguments.hostname
 			, intervalInMs                = ( 1000 * 60 ) // 1 minutes
 		);
 
@@ -37,7 +40,6 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-		setLastRun();
 	}
 
 // GETTERS AND SETTERS

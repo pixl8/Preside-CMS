@@ -8,14 +8,19 @@ component extends="AbstractHeartBeat" {
 	/**
 	 * @adhocTaskmanagerService.inject     adhocTaskmanagerService
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
-	 *
+	 * @hostname.inject                    coldbox:setting:heartbeats.adhoctask.hostname
 	 */
-	public function init( required any adhocTaskmanagerService, required any scheduledThreadpoolExecutor ){
+	public function init(
+		  required any    adhocTaskmanagerService
+		, required any    scheduledThreadpoolExecutor
+		, required string hostname
+	){
 		super.init(
 			  threadName                  = "Preside Heartbeat: Adhoc Tasks"
 			, intervalInMs                = 1000
 			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
 			, feature                     = "adhocTaskHeartBeat"
+			, hostname                    = arguments.hostname
 		);
 
 		_setAdhocTaskmanagerService( arguments.adhocTaskmanagerService );
@@ -30,8 +35,6 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-
-		setLastRun();
 	}
 
 

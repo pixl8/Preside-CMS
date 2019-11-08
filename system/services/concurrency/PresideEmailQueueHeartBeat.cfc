@@ -8,11 +8,12 @@ component extends="AbstractHeartBeat" {
 	/**
 	 * @emailMassSendingService.inject     emailMassSendingService
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
-	 *
+	 * @hostname.inject                    coldbox:setting:heartbeats.emailqueue.hostname
 	 */
 	public function init(
 		  required any     emailMassSendingService
 		, required any     scheduledThreadpoolExecutor
+		, required string  hostname
 		,          numeric instanceNumber = 1
 		,          string  threadName     = "Preside Email Queue Processor #arguments.instanceNumber#"
 	){
@@ -21,6 +22,7 @@ component extends="AbstractHeartBeat" {
 			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
 			, intervalInMs                = 5000
 			, feature                     = "emailQueueHeartBeat"
+			, hostname                    = arguments.hostname
 		);
 
 		_setInstanceNumber( arguments.instanceNumber );
@@ -40,8 +42,6 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-
-		setLastRun();
 	}
 
 // GETTERS AND SETTERS

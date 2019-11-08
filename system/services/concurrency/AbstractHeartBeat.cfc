@@ -8,18 +8,19 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
-	 *
 	 */
 	public any function init(
 		  required string  threadName
 		, required numeric intervalInMs
 		, required any     scheduledThreadpoolExecutor
-		,          string  feature = ""
+		,          string  feature  = ""
+		,          string  hostname = cgi.server_name
 	) {
 		_setThreadName( arguments.threadName );
 		_setIntervalInMs( arguments.intervalInMs );
 		_setScheduledThreadpoolExecutor( arguments.scheduledThreadpoolExecutor );
 		_setFeature( arguments.feature );
+		_setHostname( arguments.hostname );
 
 		return this;
 	}
@@ -27,6 +28,7 @@ component {
 	public void function run() {
 		$getRequestContext().autoSetSiteByHost();
 		$run();
+		setLastRun();
 	}
 
 	public void function $run() {
@@ -51,11 +53,12 @@ component {
 				, initialDelay = 0
 				, period       = _getIntervalInMs()
 				, timeUnit     = tpe.getObjectFactory().MILLISECONDS
+				, hostname     = _getHostname()
 			);
 
 			setStartTime();
 
-			$systemOutput( "Started #_getThreadName()# heartbeat." );
+			$systemOutput( "Started #_getThreadName()# heartbeat with hostname: #_getHostname()#" );
 
 			_setTaskFuture( taskFuture );
 		}
@@ -152,5 +155,12 @@ component {
 	}
 	private void function _setTaskFuture( required any taskFuture ) {
 	    _taskFuture = arguments.taskFuture;
+	}
+
+	private string function _getHostname() {
+	    return _hostname;
+	}
+	private void function _setHostname( required string hostname ) {
+	    _hostname = arguments.hostname;
 	}
 }

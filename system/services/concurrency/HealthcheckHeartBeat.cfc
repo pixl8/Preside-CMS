@@ -8,6 +8,7 @@ component extends="AbstractHeartBeat" {
 	/**
 	 * @healthCheckService.inject          healthCheckService
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
+	 * @hostname.inject                    coldbox:setting:heartbeats.healthcheck.hostname
 	 *
 	 */
 	public function init(
@@ -15,12 +16,14 @@ component extends="AbstractHeartBeat" {
 		, required any     scheduledThreadpoolExecutor
 		, required string  serviceId
 		, required numeric intervalInMs
+		, required string  hostname
 		,          string  threadName     = "Preside Service Healthcheck: #arguments.serviceId#"
 	){
 		super.init(
 			  threadName                  = arguments.threadName
 			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
 			, intervalInMs                = arguments.intervalInMs
+			, hostname                    = arguments.hostname
 			, feature                     = "healthchecks"
 		);
 
@@ -43,7 +46,6 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-		setLastRun();
 	}
 
 // GETTERS AND SETTERS
