@@ -1464,11 +1464,11 @@
 				return document.documentMode >= 8;
 			}
 			if (/iP(od|hone)/i.test(window.navigator.userAgent)) {
-				return false;
+				return true;
 			}
 			if (/Android/i.test(window.navigator.userAgent)) {
 				if (/Mobile/i.test(window.navigator.userAgent)) {
-					return false;
+					return true;
 				}
 			}
 			return true;
