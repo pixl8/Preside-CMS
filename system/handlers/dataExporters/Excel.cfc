@@ -48,7 +48,7 @@ component {
 
 		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
 		spreadsheetLib.addFreezePane( workbook, 0, 1 );
-		for( var i=1; i <= headers.len(); i++ ){
+		for( var i=1; i <= dataCols.len(); i++ ){
 			spreadsheetLib.autoSizeColumn( workbook, i );
 		}
 
