@@ -512,6 +512,23 @@ component {
 			, derivativeGenerator = "derivativeGeneratorService"
 		};
 
+		settings.heartbeats = {
+			  defaultHostname = settings.env.DEFAULT_HEARTBEAT_HOSTNAME ?: cgi.server_name
+			, assetQueue      = {}
+			, cacheBoxReap    = {}
+			, healthCheck     = {}
+			, adhocTask       = {}
+			, taskmanager     = {}
+			, emailQueue      = {}
+		};
+
+		settings.heartbeats.assetQueue.hostname   = settings.env.ASSETQUEUE_HEARTBEAT_HOSTNAME   ?: settings.heartbeats.defaultHostname;
+		settings.heartbeats.adhocTask.hostname    = settings.env.ADHOCTASK_HEARTBEAT_HOSTNAME    ?: settings.heartbeats.defaultHostname;
+		settings.heartbeats.taskmanager.hostname  = settings.env.TASKMANAGER_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
+		settings.heartbeats.emailQueue.hostname   = settings.env.EMAILQUEUE_HEARTBEAT_HOSTNAME   ?: settings.heartbeats.defaultHostname;
+		settings.heartbeats.cacheBoxReap.hostname = settings.env.CACHEBOXREAP_HEARTBEAT_HOSTNAME ?: settings.heartbeats.defaultHostname;
+		settings.heartbeats.healthCheck.hostname  = settings.env.HEALTHCHECK_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

@@ -8,17 +8,20 @@ component extends="AbstractHeartBeat" {
 	/**
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
 	 * @assetQueueService.inject           presidecms:dynamicservice:assetQueue
+	 * @hostname.inject                    coldbox:setting:heartbeats.assetqueue.hostname
 	 *
 	 */
 	public function init(
 		  required any     scheduledThreadpoolExecutor
 		, required any     assetQueueService
+		, required string  hostname
 		,          numeric instanceNumber = 1
 		,          string  threadName     = "Preside Asset Queue Processor #arguments.instanceNumber#"
 	){
 		super.init(
 			  threadName                  = arguments.threadName
 			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, hostname                    = arguments.hostname
 			, intervalInMs                = 2000
 			, feature                     = "assetQueueHeartBeat"
 		);
@@ -38,8 +41,6 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-
-		setLastRun();
 	}
 
 // GETTERS AND SETTERS

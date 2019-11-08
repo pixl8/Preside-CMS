@@ -923,6 +923,15 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickAddForm( event, rc, prc ) {
  		_checkPermission( argumentCollection=arguments, key="add" );
+		 
+		 var object      = prc.objectName     ?: "";
+		 if ( customizationService.objectHasCustomization( object, "preQuickAddRecordForm" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preQuickAddRecordForm"
+				, args       = {objectName = object}
+			);
+		}
 
 		event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog", args={
 			allowAddAnotherSwitch = IsTrue( rc.multiple ?: "" )
@@ -932,11 +941,19 @@ component extends="preside.system.base.AdminHandler" {
 	public void function quickAddRecordAction( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="add" );
 
-		runEvent(
-			  event          = "admin.DataManager._quickAddRecordAction"
-			, prePostExempt  = true
-			, private        = true
-		);
+		if ( customizationService.objectHasCustomization( objectName, "quickAddRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "quickAddRecordAction"
+				, args       = { objectName=objectName }
+			);
+		} else {
+			runEvent(
+				  event          = "admin.DataManager._quickAddRecordAction"
+				, prePostExempt  = true
+				, private        = true
+			);
+		}
 	}
 
 	public void function superQuickAddAction( event, rc, prc ) {
@@ -954,17 +971,34 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.record = queryRowToStruct( prc.record );
 
+		var object      = prc.objectName     ?: "";
+		if ( customizationService.objectHasCustomization( object, "preQuickEditRecordForm" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preQuickEditRecordForm"
+				, args       = {objectName = object}
+			);
+		}
+
 		event.setView( view="/admin/datamanager/quickEditForm", layout="adminModalDialog" );
 	}
 
 	public void function quickEditRecordAction( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
-		runEvent(
-			  event          = "admin.DataManager._quickEditRecordAction"
-			, prePostExempt  = true
-			, private        = true
-		);
+		if ( customizationService.objectHasCustomization( objectName, "quickEditRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "quickEditRecordAction"
+				, args       = { objectName=objectName }
+			);
+		} else {
+			runEvent(
+				  event          = "admin.DataManager._quickEditRecordAction"
+				, prePostExempt  = true
+				, private        = true
+			);
+		}
 	}
 
 	public void function configuratorForm( event, rc, prc ) {
@@ -2172,6 +2206,14 @@ component extends="preside.system.base.AdminHandler" {
 	) {
 		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 		var validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		
+		if ( customizationService.objectHasCustomization( object, "preQuickAddRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preQuickAddRecordAction"
+				, args       = {objectName = object,formData: formData}
+			);
+		}
 
 		if ( validationResult.validated() ) {
 			var obj = presideObjectService.getObject( object );
@@ -2186,6 +2228,14 @@ component extends="preside.system.base.AdminHandler" {
 				  success          = false
 				, validationResult = translateValidationMessages( validationResult )
 			});
+		}
+
+		if ( customizationService.objectHasCustomization( object, "postQuickAddRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "postQuickAddRecordAction"
+				, args       = {objectName = object,formData: formData,newId: newId ?: ''}
+			);
 		}
 	}
 
@@ -2575,6 +2625,14 @@ component extends="preside.system.base.AdminHandler" {
 		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 		var validationResult = "";
 
+		if ( customizationService.objectHasCustomization( object, "preQuickEditRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preQuickEditRecordAction"
+				, args       = {objectName = object,formData: formData}
+			);
+		}	
+		
 		if ( presideObjectService.dataExists( objectName=arguments.object, filter={ id=id } ) ) {
 			formData.id = id;
 			validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
@@ -2591,6 +2649,14 @@ component extends="preside.system.base.AdminHandler" {
 
 		} else {
 			event.renderData( type="json", data={ success = false });
+		}
+		
+		if ( customizationService.objectHasCustomization( object, "postQuickEditRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "postQuickEditRecordAction"
+				, args       = {objectName = object,formData: formData}
+			);
 		}
 	}
 

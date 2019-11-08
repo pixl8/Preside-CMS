@@ -5,14 +5,25 @@
  */
 component extends="cfconcurrent.ExecutorService" {
 
-	public any function init() {
+	/**
+	 * @hostname.inject coldbox:setting:heartbeats.taskmanager.hostname
+	 *
+	 */
+	public any function init( required string hostname ) {
 		var appName = _getAppName();
+
+		_setHostname( arguments.hostName );
 
 		return super.init(
 			  serviceName       = "PresideTaskManagerThreadPool-#appName#"
 			, maxConcurrent     = 0
 			, threadNamePattern = "PresideTaskManagerThreadPool-#appName#-${poolno}-Thread-${threadno}"
 		);
+	}
+
+// submit, passing hostname set in config
+	public function submit( task, hostname=_getHostName() ) {
+		return super.submit( argumentCollection=arguments );
 	}
 
 // shutdown behaviour for when application is reloading
@@ -25,6 +36,14 @@ component extends="cfconcurrent.ExecutorService" {
 		var appSettings = getApplicationMetadata();
 
 		return appSettings.PRESIDE_APPLICATION_ID ?: ( appSettings.name ?: "" );
+	}
+
+// getters and setters
+	private string function _getHostname() {
+	    return _hostname;
+	}
+	private void function _setHostname( required string hostname ) {
+	    _hostname = arguments.hostname;
 	}
 
 }

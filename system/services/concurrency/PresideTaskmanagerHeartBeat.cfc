@@ -9,14 +9,20 @@ component extends="AbstractHeartBeat" {
 	/**
 	 * @taskmanagerService.inject          taskmanagerService
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
+	 * @hostname.inject                    coldbox:setting:heartbeats.taskmanager.hostname
 	 *
 	 */
-	public function init( required any taskmanagerService, required any scheduledThreadpoolExecutor ){
+	public function init(
+		  required any    taskmanagerService
+		, required any    scheduledThreadpoolExecutor
+		, required string hostname
+	){
 		super.init(
 			  threadName                  = "Preside Heartbeat: Scheduled Tasks"
 			, intervalInMs                = 1000
 			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
 			, feature                     = "taskmanagerHeartBeat"
+			, hostname                    = arguments.hostname
 		);
 
 		_setTaskmanagerService( arguments.taskmanagerService );
@@ -36,8 +42,6 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
-
-		setLastRun();
 	}
 
 

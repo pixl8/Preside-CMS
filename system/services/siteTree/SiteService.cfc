@@ -255,7 +255,8 @@ component displayname="Site service" {
 	 */
 	public query function getRedirectSiteForDomain( required string domain ) output=false {
 		return _getSiteRedirectDomainDao().selectData(
-			  filter       = { domain = arguments.domain }
+			  selectFields = [ "site.id", "site.protocol", "site.domain" ]
+			, filter       = { domain = arguments.domain }
 			, savedFilters = [ "nonDeletedSites" ]
 		);
 	}
