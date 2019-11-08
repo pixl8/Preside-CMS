@@ -73,7 +73,15 @@
 	resetForm = function(){
 		$quickAddForm.trigger( "reset" );
 		clearRicheditor();
+		clearObjectPicker();
 	};
+
+	clearObjectPicker = function() {
+		$quickAddForm.find( "li[class='search-choice']" ).remove();
+		$quickAddForm.find( "input[type='hidden'][class='chosen-hidden-field valid']" ).val('');
+		$quickAddForm.find( "input[type='hidden'][class='chosen-hidden-field']" ).val('');
+		$quickAddForm.find( "a[class='chosen-single chosen-single-with-deselect']" ).find("span").html('');
+	}
 
 	clearRicheditor = function() {
 		if( typeof( CKEDITOR ) !== "undefined" ){

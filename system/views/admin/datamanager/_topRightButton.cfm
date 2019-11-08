@@ -2,6 +2,7 @@
 	link      = args.link      ?: "";
 	globalKey = args.globalKey ?: "";
 	btnClass  = args.btnClass  ?: "";
+	quickForm  = args.quickForm  ?: false;
 	iconClass = args.iconClass ?: "";
 	title     = args.title     ?: "";
 	prompt    = args.prompt    ?: "";
@@ -11,7 +12,7 @@
 
 <cfoutput>
 	<cfif !children.len()>
-		<a class="pull-right inline<cfif prompt.len()> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif>>
+		<a class="pull-right inline <cfif quickForm> quickFormObject</cfif><cfif prompt.len()> confirmation-prompt</cfif>" <cfif quickForm> data-title="#title#" data-url="#link#" <cfelse> href="#link#" </cfif> data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif>>
 			<button class="btn #btnClass# btn-sm">
 				<i class="fa fa-fw #iconClass#"></i>
 				#title#

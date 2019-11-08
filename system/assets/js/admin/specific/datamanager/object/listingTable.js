@@ -225,6 +225,11 @@
 					},
 					fnDrawCallback : function() {
 						$( ".datatable-container" ).presideLoadingSheen( false );
+						try {
+							$('.quickFormObject').quickForm(this);
+						}
+						catch(err) {
+						}
 					},
 					fnFooterCallback: function ( nRow, aaData, iStart, iEnd, aiDisplay ) {
 						if ( $( nRow ).length ) {
