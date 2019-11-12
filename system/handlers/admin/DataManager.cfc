@@ -434,7 +434,6 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = prc.objectName ?: "";
 		var recordId   = prc.recordId ?: "";
 
-
 		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
 		if ( customizationService.objectHasCustomization( objectName, "deleteRecordAction" ) ) {
@@ -922,14 +921,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function quickAddForm( event, rc, prc ) {
- 		_checkPermission( argumentCollection=arguments, key="add" );
-		 
-		 var object      = prc.objectName     ?: "";
-		 if ( customizationService.objectHasCustomization( object, "preQuickAddRecordForm" ) ) {
+		_checkPermission( argumentCollection=arguments, key="add" );
+
+		var object = prc.objectName ?: "";
+
+		if ( customizationService.objectHasCustomization( object, "preQuickAddRecordForm" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "preQuickAddRecordForm"
-				, args       = {objectName = object}
+				, args       = { objectName=object }
 			);
 		}
 
@@ -941,11 +941,13 @@ component extends="preside.system.base.AdminHandler" {
 	public void function quickAddRecordAction( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="add" );
 
-		if ( customizationService.objectHasCustomization( objectName, "quickAddRecordAction" ) ) {
+		var object = prc.objectName ?: "";
+
+		if ( customizationService.objectHasCustomization( object, "quickAddRecordAction" ) ) {
 			customizationService.runCustomization(
-				  objectName = objectName
+				  objectName = object
 				, action     = "quickAddRecordAction"
-				, args       = { objectName=objectName }
+				, args       = { objectName=object }
 			);
 		} else {
 			runEvent(
@@ -971,12 +973,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.record = queryRowToStruct( prc.record );
 
-		var object      = prc.objectName     ?: "";
+		var object = prc.objectName ?: "";
+
 		if ( customizationService.objectHasCustomization( object, "preQuickEditRecordForm" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "preQuickEditRecordForm"
-				, args       = {objectName = object}
+				, args       = { objectName=object }
 			);
 		}
 
@@ -986,11 +989,13 @@ component extends="preside.system.base.AdminHandler" {
 	public void function quickEditRecordAction( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
-		if ( customizationService.objectHasCustomization( objectName, "quickEditRecordAction" ) ) {
+		var object = prc.objectName ?: "";
+
+		if ( customizationService.objectHasCustomization( object, "quickEditRecordAction" ) ) {
 			customizationService.runCustomization(
-				  objectName = objectName
+				  objectName = object
 				, action     = "quickEditRecordAction"
-				, args       = { objectName=objectName }
+				, args       = { objectName=object }
 			);
 		} else {
 			runEvent(
@@ -2206,7 +2211,7 @@ component extends="preside.system.base.AdminHandler" {
 	) {
 		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 		var validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
-		
+
 		if ( customizationService.objectHasCustomization( object, "preQuickAddRecordAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
@@ -2631,8 +2636,8 @@ component extends="preside.system.base.AdminHandler" {
 				, action     = "preQuickEditRecordAction"
 				, args       = {objectName = object,formData: formData}
 			);
-		}	
-		
+		}
+
 		if ( presideObjectService.dataExists( objectName=arguments.object, filter={ id=id } ) ) {
 			formData.id = id;
 			validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
@@ -2650,7 +2655,7 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			event.renderData( type="json", data={ success = false });
 		}
-		
+
 		if ( customizationService.objectHasCustomization( object, "postQuickEditRecordAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
