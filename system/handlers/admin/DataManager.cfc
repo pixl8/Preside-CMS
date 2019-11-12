@@ -941,6 +941,8 @@ component extends="preside.system.base.AdminHandler" {
 	public void function quickAddRecordAction( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="add" );
 
+		var objectName = rc.object ?: "";
+
 		if ( customizationService.objectHasCustomization( objectName, "quickAddRecordAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = objectName
@@ -985,6 +987,8 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickEditRecordAction( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="edit" );
+
+		var objectName = rc.object ?: "";
 
 		if ( customizationService.objectHasCustomization( objectName, "quickEditRecordAction" ) ) {
 			customizationService.runCustomization(
@@ -2211,7 +2215,7 @@ component extends="preside.system.base.AdminHandler" {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "preQuickAddRecordAction"
-				, args       = {objectName = object,formData: formData}
+				, args       = {objectName = object, formData = formData}
 			);
 		}
 
@@ -2234,7 +2238,7 @@ component extends="preside.system.base.AdminHandler" {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "postQuickAddRecordAction"
-				, args       = {objectName = object,formData: formData,newId: newId ?: ''}
+				, args       = {objectName = object, formData = formData, newId = newId ?: ''}
 			);
 		}
 	}
@@ -2629,7 +2633,7 @@ component extends="preside.system.base.AdminHandler" {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "preQuickEditRecordAction"
-				, args       = {objectName = object,formData: formData}
+				, args       = {objectName = object, formData = formData}
 			);
 		}	
 		
@@ -2655,7 +2659,7 @@ component extends="preside.system.base.AdminHandler" {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "postQuickEditRecordAction"
-				, args       = {objectName = object,formData: formData}
+				, args       = {objectName = object, formData = formData}
 			);
 		}
 	}
