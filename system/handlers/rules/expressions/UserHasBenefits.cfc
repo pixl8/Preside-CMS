@@ -34,9 +34,9 @@ component {
 
 
 		if ( _all ) {
-			hasBenefits = _possesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
+			var hasBenefits = _possesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
 		} else {
-			hasBenefits = _possesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
+			var hasBenefits = _possesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
 		}
 
 		return _possesses ? hasBenefits : !hasBenefits;

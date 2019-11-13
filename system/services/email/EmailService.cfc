@@ -139,7 +139,7 @@ component displayName="Email service" {
 			dir   = ExpandPath( dir );
 			files = DirectoryList( dir, true, "path", "*.cfc" );
 
-			for( file in files ){
+			for( var file in files ){
 				var templateName = ReplaceNoCase( file, dir, "" );
 				    templateName = ReReplace( templateName, "\.cfc$", "" );
 				    templateName = ListChangeDelims( templateName, ".", "\/" );

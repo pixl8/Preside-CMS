@@ -557,7 +557,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 			return;
 		}
 
-		for( p in page ){ page = p; break; } // quick query row to struct hack
+		for( var p in page ){ page = p; break; } // quick query row to struct hack
 
 		StructAppend( page, sitetreeSvc.getExtendedPageProperties( id=page.id, pageType=page.page_type, getLatest=getLatest, allowDrafts=allowDrafts ) );
 		var ancestors = sitetreeSvc.getAncestors( id = page.id );
@@ -732,7 +732,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 				if ( arguments.cascadeMethod == "collect" ) {
 					var collected = [];
 				}
-				for( node in cascadeSearch ){
+				for( var node in cascadeSearch ){
 					if ( Len( Trim( node[ arguments.propertyName ] ?: "" ) ) && node[ arguments.propertyName ] != arguments.cascadeSkipValue ) {
 						if ( arguments.cascadeMethod != "collect" ) {
 							return node[ arguments.propertyName ];

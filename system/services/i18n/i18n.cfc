@@ -82,8 +82,8 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			ArrayAppend( bundles, "preside-objects." & po );
 		}
 
-		for( bundle in bundles ) {
-			json = resourceBundleService.getBundleAsJson(
+		for( var bundle in bundles ) {
+			var json = resourceBundleService.getBundleAsJson(
 				  bundle   = bundle
 				, language = ListFirst( locale, "-_" )
 				, country  = ListRest( locale, "-_" )
@@ -143,8 +143,8 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			ArrayAppend( bundles, "preside-objects." & po );
 		}
 
-		for( bundle in bundles ) {
-			json = resourceBundleService.getBundleAsJson(
+		for( var bundle in bundles ) {
+			var json = resourceBundleService.getBundleAsJson(
 				  bundle   = bundle
 				, language = ListFirst( locale, "-_" )
 				, country  = ListRest( locale, "-_" )
