@@ -907,9 +907,17 @@ component displayName="AssetManager Service" {
 			  storage_path = newStoragePath
 			, asset_url    = ""
 		} );
+		versionDao.updateData( id=asset.active_version, data={
+			  storage_path = newStoragePath
+			, asset_url    = ""
+		} )
 
 		// move versions
 		for( var version in versions ) {
+			if ( version.id == asset.active_version ) {
+				continue;
+			}
+
 			oldStoragePath = version.storage_path;
 			newStoragePath = "/#LCase( asset.id )#/#LCase( version.id )#/#filename#.#version.asset_type#";
 

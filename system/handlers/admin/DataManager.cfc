@@ -1239,7 +1239,7 @@ component extends="preside.system.base.AdminHandler" {
 			, id             = id
 			, currentVersion = ( selectedVersion ? selectedVersion : args.latestVersion )
 		);
-		if ( !selectedVersion && args.prevVersion ) {
+		if ( !selectedVersion ) {
 			selectedVersion = args.latestVersion;
 		}
 
