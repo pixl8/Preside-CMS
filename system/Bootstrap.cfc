@@ -3,8 +3,8 @@ component {
 	public void function setupApplication(
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
-		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*", "^https?://(.*?)/e/t/.*", "^https?://(.*?)/taskmanager/runtasks/.*" ]
-		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird" ]
+		, array   statelessUrlPatterns         = _getDefaultStatelessUrlPatterns()
+		, array   statelessUserAgentPatterns   = _getDefaultStatelessUserAgents()
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
@@ -15,6 +15,7 @@ component {
 		, boolean bufferOutput                 = true
 		, boolean allowPingRequests            = false
 	)  {
+
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
 		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
@@ -772,5 +773,41 @@ component {
 
 	private void function _preserveLocaleCookieIfPresent() {
 		request.DefaultLocaleFromCookie = cookie.DefaultLocale ?: "";
+	}
+
+	private array function _getDefaultStatelessUrlPatterns() {
+		if ( !StructKeyExists( application, "_presideDefaultStatelessUrlPatterns" ) ) {
+			var _env = server.system.environment ?: {};
+			var defaults = [ "^https?://(.*?)/api/.*", "^https?://(.*?)/e/t/.*" ];
+
+			if ( Len( Trim( _env.PRESIDE_STATELESS_URL_PATTERNS ?: "" ) ) ) {
+				defaults = ListToArray( _env.PRESIDE_STATELESS_URL_PATTERNS );
+			}
+			if ( Len( Trim( _env.PRESIDE_ADDITIONAL_STATELESS_URL_PATTERNS ?: "" ) ) ) {
+				ArrayAppend( defaults, ListToArray( _env.PRESIDE_ADDITIONAL_STATELESS_URL_PATTERNS ), true );
+			}
+
+			application._presideDefaultStatelessUrlPatterns = defaults;
+		}
+
+		return application._presideDefaultStatelessUrlPatterns;
+	}
+
+	private array function _getDefaultStatelessUserAgents() {
+		if ( !StructKeyExists( application, "_presideDefaultStatelessUserAgentPatterns" ) ) {
+			var _env = server.system.environment ?: {};
+			var defaults = [ "CFSCHEDULE", "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird", "healthcheck", "zabbix", "kube-probe" ];
+
+			if ( Len( Trim( _env.PRESIDE_STATELESS_USER_AGENT_PATTERNS ?: "" ) ) ) {
+				defaults = ListToArray( _env.PRESIDE_STATELESS_USER_AGENT_PATTERNS );
+			}
+			if ( Len( Trim( _env.PRESIDE_ADDITIONAL_STATELESS_USER_AGENT_PATTERNS ?: "" ) ) ) {
+				ArrayAppend( defaults, ListToArray( _env.PRESIDE_ADDITIONAL_STATELESS_USER_AGENT_PATTERNS ), true );
+			}
+
+			application._presideDefaultStatelessUserAgentPatterns = defaults;
+		}
+
+		return application._presideDefaultStatelessUserAgentPatterns;
 	}
 }
