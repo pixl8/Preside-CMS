@@ -232,13 +232,15 @@ component displayName="Task Manager Service" {
 				_getExecutor().start();
 			}
 
-			_getExecutor().submit( new TaskManagerRunnable(
+			var executor = _getExecutor().submit( new TaskManagerRunnable(
 				  service  = this
 				, taskKey  = arguments.taskKey
 				, args     = arguments.args
 				, threadId = newThreadId
 				, logger   = logger
 			) );
+
+			markTaskAsStarted( newThreadId, executor );
 		}
 	}
 
@@ -252,8 +254,6 @@ component displayName="Task Manager Service" {
 		var start   = getTickCount();
 		var success = false;
 		var tu      = _getThreadUtil();
-
-		markTaskAsStarted( arguments.threadId, tu.getCurrentThread() );
 
 		try {
 			$getRequestContext().setUseQueryCache( false );
@@ -753,9 +753,13 @@ component displayName="Task Manager Service" {
 		if ( IsNull( threadRef ) ) {
 			return false;
 		}
+		try {
+			return !threadRef.isDone() && !threadRef.isCancelled();
+		} catch( any e ) {
+			_getErrorLogService().raiseError( e );
+		}
 
-		var state = threadRef.getState()
-		return !state.equals( state.TERMINATED );
+		return false;
 	}
 
 	private void function _setActiveSite(){
