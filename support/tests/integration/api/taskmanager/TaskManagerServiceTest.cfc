@@ -135,33 +135,6 @@ component extends="testbox.system.BaseSpec" {
 				} );
 			} );
 
-			it( "should flag the task as started while running and complete when finished", function(){
-				var tm         = _getTaskManagerService();
-				var taskKey    = "syncEvents";
-				var task       = { event="sync.events", name="another task", timeout=120 };
-				var logId      = CreateUUId();
-				var threadId   = CreateUUId();
-				var taskConfig = { crontab_definition = "* */10 * * * *", timeout=120 };
-
-				tm.$( "getTask" ).$args( taskKey ).$results( task );
-				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( taskConfig );
-				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
-				mockColdbox.$( "runEvent", true );
-				tm.$( "markTaskAsStarted" );
-				tm.$( "markTaskAsCompleted" );
-				tm.$( "createTaskHistoryLog", logId );
-				tm.$( "_getLogger" ).$args( logId ).$results( mockLogger );
-
-				tm.runTaskWithinThread( taskKey=taskKey, args={}, threadId=threadId, logger=mockLogger );
-				sleep( 200 );
-
-				expect( tm.$callLog().markTaskAsStarted.len() ).toBe( 1 );
-				expect( tm.$callLog().markTaskAsStarted[1][1] ).toBe( threadId );
-				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 1 );
-				expect( tm.$callLog().markTaskAsCompleted[1].taskKey ).toBe( taskKey );
-				expect( tm.$callLog().markTaskAsCompleted[1].success ).toBe( true );
-			} );
-
 			it( "should flag the task as complete and unsuccessful when task run throws an error", function(){
 				var tm       = _getTaskManagerService();
 				var taskKey = "syncEvents";
