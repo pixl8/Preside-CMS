@@ -171,7 +171,7 @@ component {
 	 *
 	 */
 	public boolean function isInterrupted() {
-		return ( IsBoolean( request.__softInterrupted ?: "" ) && request.__softInterrupted ) || jvmThread.isInterrupted();
+		return ( IsBoolean( request.__softInterrupted ?: "" ) && request.__softInterrupted ) || jvmThread.currentThread().isInterrupted();
 	}
 
 	/**

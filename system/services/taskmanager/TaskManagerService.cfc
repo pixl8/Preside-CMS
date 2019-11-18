@@ -264,14 +264,22 @@ component displayName="Task Manager Service" {
 				, eventArguments = { logger=arguments.logger, args=arguments.args }
 			);
 		} catch( any e ) {
-			if ( logger.canError() ) {
-				logger.error( "An error occurred running task [#task.name#]. Message: [#e.message#], detail [#e.detail#].", e );
+			if ( e.type contains "interrupt" || e.message contains "intterrupted" || e.detail contains "interrupted" )  {
+				success=false;
+
+				if ( logger.canError() ) {
+					logger.error( "The task [#task.name#] was prematurely interrupted and has been stopped." );
+				}
+			} else {
+				if ( logger.canError() ) {
+					logger.error( "An error occurred running task [#task.name#]. Message: [#e.message#], detail [#e.detail#].", e );
+				}
+
+				_getErrorLogService().raiseError( e );
+
+				success = false;
+				rethrow;
 			}
-
-			_getErrorLogService().raiseError( e );
-
-			success = false;
-			rethrow;
 		} finally {
 			try {
 				markTaskAsCompleted(
@@ -308,7 +316,28 @@ component displayName="Task Manager Service" {
 				var theThread    = runningTasks[ task.running_thread ].thread ?: NullValue();
 
 				if ( !IsNull( theThread ) ) {
-					_getThreadUtil().shutdownThread( theThread=theThread, logger=logger );
+					var attempt = 0;
+					var maxAttempts = 10;
+					var cancelled = false;
+					while( ++attempt <= maxAttempts && !cancelled ) {
+						if ( attempt > 1 ) {
+							$systemOutput( "Waiting to gracefully shutdown thread for [#arguments.taskKey#]." );
+							if ( logger.canWarn() ) { logger.warn( "Waiting to gracefully shutdown task." ); }
+						}
+
+						cancelled = theThread.cancel( true ) && theThread.isCancelled();
+						if ( !cancelled ) {
+							sleep( 100 );
+						}
+					}
+
+					if ( theThread.isCancelled() ) {
+						$systemOutput( "Successfully shutdown scheduled task thread for [#arguments.taskKey#]." );
+						if ( logger.canWarn() ) { logger.warn( "Successfully shutdown scheduled task thread." ); }
+					} else {
+						$systemOutput( "Failed to gracefully shutdown scheduled task thread for [#arguments.taskKey#]." );
+						if ( logger.canWarn() ) { logger.warn( "Failed to gracefully shutdown scheduled task thread." ); }
+					}
 				}
 			} catch( any e ) {
 				if ( logger.canError() ) {
