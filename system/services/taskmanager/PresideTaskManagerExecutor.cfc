@@ -9,15 +9,15 @@ component extends="cfconcurrent.ExecutorService" {
 	 * @hostname.inject coldbox:setting:heartbeats.taskmanager.hostname
 	 *
 	 */
-	public any function init( required string hostname ) {
+	public any function init( required string hostname, string serviceName="PresideTaskManagerThreadPool" ) {
 		var appName = _getAppName();
 
 		_setHostname( arguments.hostName );
 
 		return super.init(
-			  serviceName       = "PresideTaskManagerThreadPool-#appName#"
+			  serviceName       = "#arguments.serviceName#-#appName#"
 			, maxConcurrent     = 0
-			, threadNamePattern = "PresideTaskManagerThreadPool-#appName#-${poolno}-Thread-${threadno}"
+			, threadNamePattern = "#arguments.serviceName#-#appName#-${poolno}-Thread-${threadno}"
 		);
 	}
 

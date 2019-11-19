@@ -9,7 +9,7 @@ component extends="PresideTaskManagerExecutor" {
 	 *
 	 */
 	public any function init( required string hostname ) {
-		return super.init( argumentCollection=arguments )
+		return super.init( argumentCollection=arguments, serviceName="PresideAdhocTaskManagerThreadPool" )
 	}
 
 }
