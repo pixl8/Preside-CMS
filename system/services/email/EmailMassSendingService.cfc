@@ -167,7 +167,15 @@ component {
 
 		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );
 
-		return extraFilters;
+		var interceptorArgs = {
+			  extraFilters    = extraFilters
+			, templateId      = arguments.templateId
+			, recipientObject = recipientObject
+			, template        = template
+		};
+		$announceInterception( "onPrepareEmailTemplateRecipientFilters", interceptorArgs );
+
+		return interceptorArgs.extraFilters;
 	}
 
 	/**
