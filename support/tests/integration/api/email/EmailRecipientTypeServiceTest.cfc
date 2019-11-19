@@ -268,6 +268,67 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getRecipientIdLogPropertyForRecipientType( CreateUUId() ) ).toBe( "" );
 			} );
 		} );
+
+		describe( "getUnsubscribeLink()", function(){
+			it( "should invoke the corresponding handler action for the given recipient type, passing through the passed recipient and template IDs", function(){
+				var service         = _getService();
+				var recipientType   = "websiteUser";
+				var expectedHandler = "email.recipientType.websiteUser.getUnsubscribeLink";
+				var recipientId     = CreateUUId();
+				var templateId      = CreateUUId();
+				var mockLink        = CreateUUId();
+
+				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( true );
+				mockColdboxController.$( "runEvent"      ).$args(
+					  event          = expectedHandler
+					, eventArguments = { recipientId=recipientId, templateId=templateId }
+					, private        = true
+					, prePostExempt  = true
+				).$results( mockLink );
+
+				expect( service.getUnsubscribeLink( recipientType=recipientType, recipientId=recipientId, templateId=templateId ) ).toBe( mockLink );
+			} );
+
+			it( "should raise an interception point to attempt creating the link if not specific handler is found", function(){
+				var service         = _getService();
+				var recipientType   = "websiteUser";
+				var expectedHandler = "email.recipientType.websiteUser.getUnsubscribeLink";
+				var recipientId     = CreateUUId();
+				var templateId      = CreateUUId();
+				var mockLink        = CreateUUId();
+
+				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( false );
+
+				service.getUnsubscribeLink( recipientType=recipientType, recipientId=recipientId, templateId=templateId );
+
+				expect( service.$callLog().$announceInterception.len() ).toBe( 1 );
+				expect( service.$callLog().$announceInterception[ 1 ] ).toBe( {
+					  state = "onGenerateEmailUnsubscribeLink"
+					, interceptData = { templateId=templateId, recipientId=recipientId, recipientType=recipientType }
+				} );
+			} );
+
+			it( "should return an empty string when no handler action exists", function(){
+				var service         = _getService();
+				var recipientType   = "websiteUser";
+				var expectedHandler = "email.recipientType.websiteUser.getUnsubscribeLink";
+				var recipientId     = CreateUUId();
+				var templateId      = CreateUUId();
+
+				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( false );
+
+				expect( service.getUnsubscribeLink( recipientType=recipientType, recipientId=recipientId, templateId=templateId ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the recipient type does not exist", function(){
+				var service         = _getService();
+				var recipientType   = CreateUUId();
+				var recipientId     = CreateUUId();
+				var templateId      = CreateUUId();
+
+				expect( service.getUnsubscribeLink( recipientType=recipientType, recipientId=recipientId, templateId=templateId ) ).toBe( "" );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -280,6 +341,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		mockColdboxController = createStub();
 		service.$( "$getColdbox", mockColdboxController );
+		service.$( "$announceInterception" );
 
 		for( var feature in enabledFeatures ) {
 			service.$( "$isFeatureEnabled" ).$args( feature ).$results( true );
