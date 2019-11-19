@@ -547,6 +547,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$isInterrupted", false );
+		service.$( "$announceInterception" );
 		mockPresideObjectService.$( "getDbAdapterForObject", mockDbAdapter );
 		mockPresideObjectService.$( "clearRelatedCaches" );
 
