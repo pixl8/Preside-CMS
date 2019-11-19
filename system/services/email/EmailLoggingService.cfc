@@ -547,6 +547,12 @@ component {
 		data.extra_data = SerializeJson( extra );
 
 		try {
+			$announceInterception( "onEmail#arguments.activity#", data );
+		} catch( any e ) {
+			$raiseError( e );
+		}
+
+		try {
 			$getPresideObject( "email_template_send_log_activity" ).insertData( data );
 		} catch( database e ) {
 			// ignore missing logs when recording activity - but record the error for
