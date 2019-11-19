@@ -150,6 +150,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailMessage"               );
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
 		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
+		interceptorSettings.customInterceptionPoints.append( "onGenerateEmailUnsubscribeLink"        );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
