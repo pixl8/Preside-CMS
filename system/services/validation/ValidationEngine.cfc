@@ -56,13 +56,13 @@ component displayName="Validation Engine" {
 			if ( ( arguments.ignoreMissing && !StructKeyExists( arguments.data, rule.fieldName ) ) || ( arrayLen( arguments.suppressFields ) && arrayFind( arguments.suppressFields, rule.fieldName ) ) ) {
 				continue;
 			}
-			if ( !result.fieldHasError( rule.fieldName ) && _evaluateConditionalRule( rule, data ) ) {
+			if ( !result.fieldHasError( expandedFieldName ) && _evaluateConditionalRule( rule, data ) ) {
 				provider = validators[ rule.validator ];
 
 				fieldResult = provider.runValidator(
 					  name      = rule.validator
-					, fieldName = rule.fieldName
-					, value     = arguments.data[ expandedFieldName ] ?: ( arguments.data[ rule.fieldName ] ?: "" )
+					, fieldName = expandedFieldName
+					, value     = arguments.data[ expandedFieldName ] ?: ""
 					, params    = rule.params
 					, data      = arguments.data
 				);
