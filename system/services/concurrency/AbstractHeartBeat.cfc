@@ -89,7 +89,7 @@ component {
 	}
 
 	public date function getLastRun() {
-	    return _lastRun;
+	    return _lastRun ?: CreateDate( 1900, 1, 1 );
 	}
 	public void function setLastRun( date lastRun=Now() ) {
 	    _lastRun = arguments.lastRun;
@@ -100,7 +100,7 @@ component {
 	}
 
 	public numeric function getStartTime() {
-	    return _startTime;
+	    return _startTime ?: GetTickCount();
 	}
 	public void function setStartTime( numeric startTime=GetTickCount() ) {
 	    _startTime = arguments.startTime;
