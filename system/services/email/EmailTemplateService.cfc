@@ -102,6 +102,11 @@ component {
 				, templateDetail = messageTemplate
 			) );
 
+			var unsubscribeLink = _getEmailRecipientTypeService().getUnsubscribeLink(
+				  recipientType = messageTemplate.recipient_type
+				, recipientId   = arguments.recipientId
+				, templateId    = arguments.template
+			);
 			var message = {
 				  subject     = replaceParameterTokens( messageTemplate.subject, params, "text" )
 				, from        = messageTemplate.from_address
@@ -139,13 +144,14 @@ component {
 				, body          = messageTemplate.text_body
 			};
 			var htmlArgs = {
-				  layout        = messageTemplate.layout
-				, emailTemplate = arguments.template
-				, templateDetail = messageTemplate
-				, blueprint     = messageTemplate.email_blueprint
-				, type          = "html"
-				, subject       = message.subject
-				, body          = body
+				  layout          = messageTemplate.layout
+				, emailTemplate   = arguments.template
+				, templateDetail   = messageTemplate
+				, blueprint       = messageTemplate.email_blueprint
+				, type            = "html"
+				, subject         = message.subject
+				, body            = body
+				, unsubscribeLink = unsubscribeLink
 			};
 			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
@@ -161,6 +167,10 @@ component {
 
 			if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
 				message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+			}
+
+			if ( Len( Trim( unsubscribeLink ) ) && !StructKeyExists( message.params, "List-Unsubscribe" ) ) {
+				message.params[ "List-Unsubscribe" ] = { name="List-Unsubscribe", value=unsubscribeLink };
 			}
 
 			$announceInterception( "postPrepareEmailMessage", { message=message, args=arguments } );
