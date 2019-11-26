@@ -134,6 +134,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
 		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
+		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailTemplateRecipientFilters");
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateSettingsForm"    );
 		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
 		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
 		interceptorSettings.customInterceptionPoints.append( "preDataExportPrepareData"              );
