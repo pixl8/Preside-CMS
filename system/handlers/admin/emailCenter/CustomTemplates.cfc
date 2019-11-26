@@ -66,9 +66,8 @@ component extends="preside.system.base.AdminHandler" {
 		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
 		_checkPermissions( event=event, key=saveAction );
 
-		var formName         = "preside-objects.email_template.admin.add";
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = validateForm( formName, formData );
+		var formData         = event.getCollectionWithoutSystemVars()
+		var validationResult = validateForms( formData );
 
 		if ( validationResult.validated() ) {
 			var id=emailTemplateService.saveTemplate( template=formData, isDraft=( saveAction=="savedraft" ) );
