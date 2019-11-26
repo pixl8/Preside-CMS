@@ -66,9 +66,8 @@ component extends="preside.system.base.AdminHandler" {
 		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
 		_checkPermissions( event=event, key=saveAction );
 
-		var formName         = "preside-objects.email_template.admin.add";
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = validateForm( formName, formData );
+		var formData         = event.getCollectionWithoutSystemVars()
+		var validationResult = validateForms( formData );
 
 		if ( validationResult.validated() ) {
 			var id=emailTemplateService.saveTemplate( template=formData, isDraft=( saveAction=="savedraft" ) );
@@ -421,27 +420,31 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:emailcenter.customTemplates.settings.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.settings", queryString="id=" & templateId )
 		);
+
+		var interceptArgs = {
+			  filterObject       = prc.filterObject
+			, anonymousOnly      = prc.anonymousOnly
+			, formName           = prc.formName
+			, formAdditionalArgs = ( prc.formAdditionalArgs ?: {} )
+		};
+		announceInterception( "preRenderEmailTemplateSettingsForm", interceptArgs );
+
+		prc.filterObject       = interceptArgs.filterObject;
+		prc.anonymousOnly      = interceptArgs.anonymousOnly;
+		prc.formName           = interceptArgs.formName;
+		prc.formAdditionalArgs = interceptArgs.formAdditionalArgs;
 	}
 
 	public void function saveSettingsAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="editSendOptions" );
 		_getTemplate( argumentCollection=arguments, allowDrafts=true, fromVersionTable=false );
 
-		var id            = rc.id ?: "";
-		var filterObject  = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
-		var anonymousOnly = !filterObject.len();
-		var formName      = "preside-objects.email_template.configure.send";
-
-		if ( !anonymousOnly ) {
-			formName = formsService.getMergedFormName( "preside-objects.email_template.configure.send", "preside-objects.email_template.configure.send.methods" );
-		}
-
-		formName = formsService.getMergedFormName( "preside-objects.email_template.admin.edit.settings", formName );
-
-		var formData    = event.getCollectionForForm( formName );
-		    formData.id = id;
-
-		var validationResult = validateForm( formName, formData );
+		var id               = rc.id ?: "";
+		var filterObject     = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
+		var anonymousOnly    = !filterObject.len();
+		var validationResult = validateForms();
+		var formData         = event.getCollectionWithoutSystemVars();
+		    formData.id      = id;
 
 		if ( anonymousOnly ) {
 			formData.sending_method = "auto";

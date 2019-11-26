@@ -1085,6 +1085,83 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, attachments = []
 				} );
 			} );
+
+			it( "should add unsubscribe header when unsubscribe link is not empty", function(){
+				var service                = _getService();
+				var template               = "mytemplate";
+				var mockUnsubscribeLink    = CreateUUId();
+				var mockSubject            = CreateUUId();
+				var mockTo                 = CreateUUId();
+				var mockTextBody           = CreateUUId();
+				var mockTextBodyWithLayout = CreateUUId();
+				var mockHtmlBody           = CreateUUId();
+				var mockHtmlBodyRendered   = CreateUUId();
+				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithStyles = CreateUUId();
+				var mockRecipientId        = CreateUUId();
+				var mockArgs               = { bookingId = CreateUUId() };
+				var mockParams             = { test=CreateUUId(), params=Now() };
+				var mockTemplate           = {
+					  layout          = "testLayout"
+					, recipient_type  = "testRecipientType"
+					, subject         = "Test subject"
+					, from_address    = "From address"
+					, html_body       = "HTML BODY HERE"
+					, text_body       = "TEXT BODY OH YEAH"
+					, email_blueprint = CreateUUId()
+					, view_online     = false
+				};
+
+				mockEmailRecipientTypeService.$( "getUnsubscribeLink" ).$args(
+					  recipientType = "testRecipientType"
+					, recipientId   = mockRecipientId
+					, templateId    = template
+				).$results( mockUnsubscribeLink );
+
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=false ).$results( mockTemplate );
+				service.$( "prepareParameters" ).$args(
+					  template       = template
+					, recipientType  = mockTemplate.recipient_type
+					, recipientId    = mockRecipientId
+					, templateDetail = mockTemplate
+					, args           = mockArgs
+				).$results( mockParams );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
+				service.$( "$renderContent" ).$args( renderer="richeditor", data=mockTemplate.html_body, context="email"  ).$results( mockHtmlBody );
+
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout         = mockTemplate.layout
+					, emailTemplate  = template
+					, templateDetail = mockTemplate
+					, blueprint      = mockTemplate.email_blueprint
+					, type           = "text"
+					, subject        = mockSubject
+					, body           = mockTemplate.text_body
+				).$results( mockTextBodyWithLayout );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout          = mockTemplate.layout
+					, emailTemplate   = template
+					, templateDetail  = mockTemplate
+					, blueprint       = mockTemplate.email_blueprint
+					, type            = "html"
+					, subject         = mockSubject
+					, body            = mockHtmlBody
+					, unsubscribeLInk = mockUnsubscribeLink
+				).$results( mockHtmlBodyWithLayout );
+
+				service.$( "replaceParameterTokens" ).$args( mockTextBodyWithLayout, mockParams, "text" ).$results( mockTextBody );
+				service.$( "replaceParameterTokens" ).$args( mockHtmlBodyWithLayout, mockParams, "html" ).$results( mockHtmlBodyRendered );
+				service.$( "getAttachments", [] );
+
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockEmailStyleInliner.$( "inlineStyles" ).$args( mockHtmlBodyRendered ).$results( mockHtmlBodyWithStyles );
+
+				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
+
+				var prepped = service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs );
+
+				expect( prepped.params ).toBe( { "List-Unsubscribe"={ name="List-Unsubscribe", value=mockUnsubscribeLink } } );
+			} );
 		} );
 
 		describe( "previewTemplate()", function(){
@@ -1655,6 +1732,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockSystemEmailTemplateService.$( "prepareAttachments", [] );
 		mockEmailSendingContextService.$( "setContext" );
 		mockEmailSendingContextService.$( "clearContext" );
+
+		mockEmailRecipientTypeService.$( "getUnsubscribeLink", "" );
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );

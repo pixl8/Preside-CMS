@@ -134,6 +134,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
 		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
+		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailTemplateRecipientFilters");
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateSettingsForm"    );
 		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
 		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
 		interceptorSettings.customInterceptionPoints.append( "preDataExportPrepareData"              );
@@ -150,6 +152,15 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailMessage"               );
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
 		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
+		interceptorSettings.customInterceptionPoints.append( "onGenerateEmailUnsubscribeLink"        );
+		interceptorSettings.customInterceptionPoints.append( "onEmailSend"                           );
+		interceptorSettings.customInterceptionPoints.append( "onEmailFail"                           );
+		interceptorSettings.customInterceptionPoints.append( "onEmailOpen"                           );
+		interceptorSettings.customInterceptionPoints.append( "onEmailMarkAsSpam"                     );
+		interceptorSettings.customInterceptionPoints.append( "onEmailUnsubscribe"                    );
+		interceptorSettings.customInterceptionPoints.append( "onEmailDeliver"                        );
+		interceptorSettings.customInterceptionPoints.append( "onEmailClick"                          );
+		interceptorSettings.customInterceptionPoints.append( "onEmailResend"                         );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
