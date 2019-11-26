@@ -114,6 +114,38 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, reason        = extraData.reason
 				} ]);
 			} );
+
+			it( "should annouce an interception point based on the activity name so that extensions can trigger logic on activity", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var activity  = "whatever";
+				var extraData = { blah=CreateUUId(), test=Now() };
+				var expectedData = extraData.copy();
+
+				extraData.link = CreateUUId();
+				extraData.code = "304.2"
+				extraData.reason = "Test reason: " & CreateUUId();
+
+				mockLogActivityDao.$( "insertData", CreateUUId() );
+
+				service.recordActivity(
+					  messageId = messageId
+					, activity  = activity
+					, extraData = extraData
+				);
+
+				expect( service.$callLog().$announceInterception.len() ).toBe( 1 );
+				expect( service.$callLog().$announceInterception[ 1 ] ).toBe( [ "onEmailWhatever", {
+					  message       = messageId
+					, activity_type = activity
+					, extra_data    = SerializeJson( expectedData )
+					, user_ip       = cgi.remote_addr
+					, user_agent    = cgi.http_user_agent
+					, link          = extraData.link
+					, code          = extraData.code
+					, reason        = extraData.reason
+				} ] );
+			} );
 		} );
 
 		describe( "markAsSent()", function(){
@@ -509,6 +541,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
 		service.$( "$isFeatureEnabled" ).$args( "emailLinkShortener" ).$results( false );
+		service.$( "$announceInterception" );
 
 		nowish  = Now();
 		service.$( "_getNow", nowish );

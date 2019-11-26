@@ -153,6 +153,14 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
 		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
 		interceptorSettings.customInterceptionPoints.append( "onGenerateEmailUnsubscribeLink"        );
+		interceptorSettings.customInterceptionPoints.append( "onEmailSend"                           );
+		interceptorSettings.customInterceptionPoints.append( "onEmailFail"                           );
+		interceptorSettings.customInterceptionPoints.append( "onEmailOpen"                           );
+		interceptorSettings.customInterceptionPoints.append( "onEmailMarkAsSpam"                     );
+		interceptorSettings.customInterceptionPoints.append( "onEmailUnsubscribe"                    );
+		interceptorSettings.customInterceptionPoints.append( "onEmailDeliver"                        );
+		interceptorSettings.customInterceptionPoints.append( "onEmailClick"                          );
+		interceptorSettings.customInterceptionPoints.append( "onEmailResend"                         );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
