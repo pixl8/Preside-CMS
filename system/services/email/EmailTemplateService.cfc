@@ -398,7 +398,11 @@ component {
 				}
 			}
 
-			var newId = $getPresideObject( "email_template" ).insertData( data=arguments.template, isDraft=arguments.isDraft );
+			var newId = $getPresideObject( "email_template" ).insertData(
+				  data                    = arguments.template
+				, isDraft                 = arguments.isDraft
+				, insertManyToManyRecords = true
+			);
 			newId = newId ?: "";
 			$audit(
 				  action   = arguments.isDraft ? "createDraftEmailTemplate" : "insertEmailTemplate"
