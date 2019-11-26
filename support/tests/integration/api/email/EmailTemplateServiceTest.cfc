@@ -14,7 +14,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, text_body = CreateUUId()
 				};
 
-				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=false ).$results( id );
+				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=false, insertManyToManyRecords=true ).$results( id );
 
 				expect( service.saveTemplate( template=template ) ).toBe( id );
 			} );
@@ -109,7 +109,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, text_body = CreateUUId()
 				};
 
-				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=true ).$results( id );
+				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=true, insertManyToManyRecords=true ).$results( id );
 
 				expect( service.saveTemplate( template=template, isDraft=true ) ).toBe( id );
 			} );
