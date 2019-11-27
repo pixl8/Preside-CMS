@@ -99,9 +99,8 @@ component {
 						var extC = extensions[ n ];
 
 						if ( extA.dependsOn.findNoCase( extC.id ) ) {
-							var tmp = extC;
-							extensions[ n ] = extA;
-							extensions[ i ] = tmp;
+							arrayDeleteAt(extensions, n);
+							arrayInsertAt(extensions, i, extC);
 							swapped = true;
 							break;
 						}
