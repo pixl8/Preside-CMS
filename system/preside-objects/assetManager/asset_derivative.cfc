@@ -8,11 +8,11 @@ component extends="preside.system.base.SystemPresideObject" displayName="Asset d
 
 	property name="label" maxLength=200 required=true uniqueindexes="derivative|3";
 
-	property name="storage_path" type="string" dbtype="varchar" maxLength=255 required=true  uniqueindexes="assetpath";
-	property name="asset_url"    type="string" dbtype="varchar" maxLength=255 required=false uniqueindexes="asseturl";
-	property name="asset_type"   type="string" dbtype="varchar" maxLength=10  required=true;
-	property name="config"       type="string" dbtype="text"                  required=false;
-	property name="config_hash"  type="string" dbtype="varchar" maxLength=12  required=false uniqueindexes="derivative|4";
+	property name="storage_path" type="string" dbtype="varchar" maxLength=255  required=true  uniqueindexes="assetpath";
+	property name="asset_url"    type="string" dbtype="varchar" maxLength=1024 required=false;
+	property name="asset_type"   type="string" dbtype="varchar" maxLength=10   required=true;
+	property name="config"       type="string" dbtype="text"                   required=false;
+	property name="config_hash"  type="string" dbtype="varchar" maxLength=12   required=false uniqueindexes="derivative|4";
 
 	property name="is_trashed"   type="boolean" dbtype="boolean"               required=false default=false;
 	property name="trashed_path" type="string"  dbtype="varchar" maxLength=255 required=false;
