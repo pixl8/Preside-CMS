@@ -39,7 +39,7 @@ component {
 						, createIfNotExists = !assetIsQueued
 					);
 
-					if ( !asset.recordCount && queueEnabled && assetIsQueued) {
+					if ( !asset.recordCount && assetIsQueued ) {
 						setting requestTimeout=120;
 						sleep( 1000 );
 					} else {
