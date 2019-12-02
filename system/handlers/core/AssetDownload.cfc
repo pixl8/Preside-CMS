@@ -27,7 +27,7 @@ component {
 				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
 
 				var waitAttempts  = 0;
-				var assetIsQueued = assetQueueService.isQueued( assetId, derivativeName, versionId, configHash );
+				var assetIsQueued = queueEnabled && assetQueueService.isQueued( assetId, derivativeName, versionId, configHash );
 
 				do {
 					asset = assetManagerService.getAssetDerivative(
