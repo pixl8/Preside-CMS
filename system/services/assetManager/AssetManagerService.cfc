@@ -1701,7 +1701,12 @@ component displayName="AssetManager Service" {
 
 		if ( StructKeyExists( derivatives, arguments.derivative ) ) {
 			if ( !StructKeyExists( derivatives[ arguments.derivative ], "signature" ) ) {
-				derivatives[ arguments.derivative ].signature = LCase( Hash( SerializeJson( derivatives[ arguments.derivative ] ) ) );
+				var sigSource = {
+					  permissions     = derivatives[ arguments.derivative ].permissions     ?: "inherit"
+					, transformations = derivatives[ arguments.derivative ].transformations ?: []
+				};
+
+				derivatives[ arguments.derivative ].signature = LCase( Hash( SerializeJson( sigSource ) ) );
 			}
 
 			return derivatives[ arguments.derivative ].signature;
