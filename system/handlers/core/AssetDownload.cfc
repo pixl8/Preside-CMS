@@ -26,7 +26,8 @@ component {
 			if ( Len( Trim( derivativeName ) ) ) {
 				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
 
-				var waitAttempts = 0;
+				var waitAttempts  = 0;
+				var assetIsQueued = assetQueueService.isQueued( assetId, derivativeName, versionId, configHash );
 
 				do {
 					asset = assetManagerService.getAssetDerivative(
@@ -35,10 +36,10 @@ component {
 						, derivativeName    = derivativeName
 						, configHash        = configHash
 						, selectFields      = assetSelectFields
-						, createIfNotExists = !queueEnabled
+						, createIfNotExists = !assetIsQueued
 					);
 
-					if ( !asset.recordCount && queueEnabled && assetQueueService.isQueued( assetId, derivativeName, versionId, configHash ) ) {
+					if ( !asset.recordCount && queueEnabled && assetIsQueued) {
 						setting requestTimeout=120;
 						sleep( 1000 );
 					} else {

@@ -796,6 +796,9 @@ component displayName="AssetManager Service" {
 		}
 
 		invalidateRenderedAssetCache( arguments.assetId );
+
+		_autoQueueDerivatives( arguments.assetId, fileTypeInfo.typeName, fileTypeInfo.groupName, versionId );
+
 		var auditDetail = assetVersion;
 		for( var a in originalAsset ) { auditDetail.append( a ); }
 		$audit(
@@ -861,6 +864,11 @@ component displayName="AssetManager Service" {
 
 		flushAssetUrlCache( arguments.id );
 		invalidateRenderedAssetCache( arguments.id );
+
+		if ( !updateData.isEmpty() ) {
+			var fileTypeInfo  = getAssetType( name=asset.asset_type, throwOnMissing=true );
+			_autoQueueDerivatives( arguments.id, fileTypeInfo.typeName, fileTypeInfo.groupName, asset.active_version );
+		}
 
 		auditDetail.id = arguments.id;
 		$audit(
