@@ -64,7 +64,7 @@ component extends="preside.system.base.AdminHandler" {
 				, isMultilingual      = IsTrue( prc.isMultilingual  ?: "" )
 				, draftsEnabled       = IsTrue( prc.draftsEnabled   ?: "" )
 				, canDelete           = IsTrue( prc.canDelete       ?: "" )
-				, allowDataExport     = IsTrue( prc.allowDataExport ?: "" )
+				, allowDataExport     = structKeyExists( prc, "allowDataExport" ) ? IsTrue( prc.allowDataExport ?: "" ) : true
 			}
 		);
 	}
