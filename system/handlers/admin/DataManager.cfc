@@ -61,9 +61,10 @@ component extends="preside.system.base.AdminHandler" {
 				, gridFields          = prc.gridFields          ?: _getObjectFieldsForGrid( objectName )
 				, hiddenGridFields    = prc.hiddenGridFields    ?: []
 				, batchEditableFields = prc.batchEditableFields ?: []
-				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
-				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
-				, canDelete           = IsTrue( prc.canDelete      ?: "" )
+				, isMultilingual      = IsTrue( prc.isMultilingual  ?: "" )
+				, draftsEnabled       = IsTrue( prc.draftsEnabled   ?: "" )
+				, canDelete           = IsTrue( prc.canDelete       ?: "" )
+				, allowDataExport     = IsTrue( prc.allowDataExport ?: "" )
 			}
 		);
 	}
@@ -108,7 +109,7 @@ component extends="preside.system.base.AdminHandler" {
 				args.append( {
 					  useMultiActions = args.multiActions.len()
 					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-					, allowDataExport = args.allowDataExport ?: true
+					, allowDataExport = IsTrue( args.allowDataExport ?: _checkPermission( argumentCollection=arguments, object=objectName, key="read", throwOnError=false ) )
 				} );
 			}
 
