@@ -105,10 +105,18 @@ component extends="preside.system.base.AdminHandler" {
 					, defaultHandler = "admin.datamanager._listingMultiActions"
 					, args           = args
 				);
+				
+				var allowDataExport = false;
+				
+				if ( dataManagerService.isDataExportEnabled( objectName ) ) {
+					var permissionKey = dataManagerService.getDataExportPermissionKey( objectName );
+					allowDataExport   = _checkPermission( argumentCollection=arguments, object=objectName, key=permissionKey, throwOnError=false );
+				}
+				
 				args.append( {
 					  useMultiActions = args.multiActions.len()
 					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-					, allowDataExport = args.allowDataExport ?: true
+					, allowDataExport = allowDataExport
 				} );
 			}
 
