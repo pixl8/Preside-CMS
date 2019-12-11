@@ -1426,6 +1426,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extraFilters       = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=nowish } } ]
 					, orderby            = "schedule_date"
 					, allowDraftVersions = false
+					, useCache           = false
 				).$results( templateRecords );
 
 				expect( service.listDueOneTimeScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );
@@ -1445,6 +1446,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extraFilters       = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=nowish } } ]
 					, orderby            = "schedule_next_send_date"
 					, allowDraftVersions = false
+					, useCache           = false
 				).$results( templateRecords );
 
 				expect( service.listDueRepeatedScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );

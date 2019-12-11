@@ -549,6 +549,7 @@ component extends="testbox.system.BaseSpec" {
 					, filter       = "enabled = :enabled and is_running = :is_running and next_run < :next_run"
 					, filterParams = { enabled=true, is_running=false, next_run=rightNow }
 					, orderBy      = "priority desc"
+					, useCache     = false
 				).$results( dummyRecordset );
 
 				expect( tm.getRunnableTasks() ).toBe( tasks );

@@ -201,6 +201,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, filterparams = { next_attempt_date=Now(), status=validStatuses }
 			, maxRows      = 1
 			, orderBy      = "attempt_count,datecreated"
+			, useCache     = false
 		);
 
 		if ( potentialTask.recordCount ) {
