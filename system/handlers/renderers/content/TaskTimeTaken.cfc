@@ -59,6 +59,9 @@ component {
 		if ( data < 24 ) {
 			return NumberFormat( data ) & "h " & NumberFormat( minutes ) & "m " & NumberFormat( seconds ) & "s";
 		}
+
+		data = data \ 24;
+		return NumberFormat( data ) & "d";
 	}
 
 }
