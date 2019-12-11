@@ -693,6 +693,7 @@ component {
 			, extraFilters       = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=_getNow() } } ]
 			, orderBy            = "schedule_date"
 			, allowDraftVersions = false
+			, useCache           = false
 		);
 
 		return records.recordCount ? ValueArray( records.id ) : [];
@@ -711,6 +712,7 @@ component {
 			, extraFilters       = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=_getNow() } } ]
 			, orderBy            = "schedule_next_send_date"
 			, allowDraftVersions = false
+			, useCache           = false
 		);
 
 		return records.recordCount ? ValueArray( records.id ) : [];
