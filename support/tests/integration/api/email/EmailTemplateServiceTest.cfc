@@ -14,7 +14,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, text_body = CreateUUId()
 				};
 
-				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=false ).$results( id );
+				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=false, insertManyToManyRecords=true ).$results( id );
 
 				expect( service.saveTemplate( template=template ) ).toBe( id );
 			} );
@@ -109,7 +109,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, text_body = CreateUUId()
 				};
 
-				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=true ).$results( id );
+				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=true, insertManyToManyRecords=true ).$results( id );
 
 				expect( service.saveTemplate( template=template, isDraft=true ) ).toBe( id );
 			} );
@@ -1426,6 +1426,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extraFilters       = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=nowish } } ]
 					, orderby            = "schedule_date"
 					, allowDraftVersions = false
+					, useCache           = false
 				).$results( templateRecords );
 
 				expect( service.listDueOneTimeScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );
@@ -1445,6 +1446,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extraFilters       = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=nowish } } ]
 					, orderby            = "schedule_next_send_date"
 					, allowDraftVersions = false
+					, useCache           = false
 				).$results( templateRecords );
 
 				expect( service.listDueRepeatedScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );

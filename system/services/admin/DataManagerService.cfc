@@ -757,6 +757,21 @@ component {
 
 		return filter;
 	}
+	
+	public boolean function isDataExportEnabled( required string objectName ) {
+	
+		if ( !$isFeatureEnabled( "dataexport" ) ) {
+			return false;
+		}
+
+		var exportEnabled = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportEnabled", defaultValue=true );
+
+		return IsBoolean( exportEnabled ) && exportEnabled;
+	}
+	
+	public string function getDataExportPermissionKey( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportPermissionKey", defaultValue="read" );
+	}
 
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {

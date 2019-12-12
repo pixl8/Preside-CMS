@@ -26,7 +26,8 @@ component {
 			return NumberFormat( data ) & "h";
 		}
 
-		return "?";
+		data = data \ 24;
+		return NumberFormat( data ) & "d";
 	}
 
 	public string function accurate( event, rc, prc, args={} ){
@@ -58,6 +59,9 @@ component {
 		if ( data < 24 ) {
 			return NumberFormat( data ) & "h " & NumberFormat( minutes ) & "m " & NumberFormat( seconds ) & "s";
 		}
+
+		data = data \ 24;
+		return NumberFormat( data ) & "d";
 	}
 
 }
