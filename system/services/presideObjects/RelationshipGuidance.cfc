@@ -459,11 +459,8 @@ component singleton=true {
 					});
 				break;
 				case "select-data-view":
-					var sqlAndParams = _getSelectDataViewService().getSqlAndParams( relationship.selectDataView );
-
 					join.append({
-						  subQuery       = sqlAndParams.sql
-						, subQueryParams = sqlAndParams.params
+						  selectDataView = relationship.selectDataView
 						, subQueryAlias  = relationship.alias
 						, subQueryColumn = relationship.pk
 						, joinToTable    = Len( currentAlias ) ? currentAlias : currentSource

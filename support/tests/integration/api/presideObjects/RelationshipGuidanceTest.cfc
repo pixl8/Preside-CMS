@@ -538,8 +538,7 @@
 
 			var expected = [{
 				  type           = "left"
-				, subQuery       = mockSqlAndParams.sql
-				, subQueryParams = mockSqlAndParams.params
+				, selectDataView = "testView"
 				, subQueryAlias  = "obj_bs"
 				, subQueryColumn = "obj_a"
 				, joinToTable    = "obj_a"
