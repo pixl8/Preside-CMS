@@ -2764,14 +2764,16 @@ component displayName="Preside Object Service" {
 		var join       = {};
 
 		for( objJoin in arguments.joins ){
-			if ( Len( Trim( objJoin.selectDataView ?: "" ) ) ) {
-				var sqlAndParams       = _getSelectDataViewService().getSqlAndParams( objJoin.selectDataView );
-				objJoin.subQuery       = sqlAndParams.sql;
-				objJoin.subQueryParams = sqlAndParams.params;
-			}
+			if ( Len( Trim( objJoin.subquery ?: "" ) ) || Len( Trim( objJoin.selectDataView ?: "" ) ) ) {
+				join = StructCopy( objJoin );
 
-			if ( Len( Trim( objJoin.subquery ?: "" ) ) ) {
-				join = objJoin;
+				if ( Len( Trim( objJoin.selectDataView ?: "" ) ) ) {
+					var sqlAndParams = _getSelectDataViewService().getSqlAndParams( objJoin.selectDataView );
+
+					join.subQuery       = sqlAndParams.sql;
+					join.subQueryParams = sqlAndParams.params;
+				}
+
 				if ( IsArray( join.subQueryParams ?: "" ) ) {
 					arguments.preparedFilter.params = arguments.preparedFilter.params ?: [];
 					arguments.preparedFilter.params.append( join.subQueryParams, true );
