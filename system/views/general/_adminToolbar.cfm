@@ -94,6 +94,9 @@
 					</cfif>
 					<div class="navbar-header pull-right">
 						<ul class="nav ace-nav">
+							<cfif #event.isImpersonated()#>
+								<li>&nbsp; <label class="text-success">Impersonating</label> : #getLoggedInUserDetails().email_address#&nbsp;</li>
+							</cfif>
 							<li>#notificationsMenu#</li>
 							<li>#userMenu#</li>
 						</ul>

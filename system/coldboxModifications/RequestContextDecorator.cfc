@@ -402,6 +402,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return _getSticker().includeUrl( argumentCollection = arguments );
 	}
 
+	public boolean function isImpersonated() {
+		return getModel( "websiteLoginService" ).isImpersonated();
+	}
+
 	public string function renderIncludes( string type, string group="default" ) {
 		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
 
