@@ -53,7 +53,7 @@ component displayName="Website visitor service" {
 			_getCookieService().setVar(
 				  name    = _getCookieKey()
 				, value   = visitorId
-				, expires = "never"
+				, expires = _getVIDCookieExpiry()
 			);
 
 			return visitorId;
@@ -69,6 +69,11 @@ component displayName="Website visitor service" {
 		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
 	}
 
+	private string function _getVIDCookieExpiry() {
+		var VIDCookieExpiry = $getPresideSetting( "tracking", "vid_cookie_expiry" );
+
+		return ( IsNumeric( VIDCookieExpiry ) && VIDCookieExpiry > 0 ? VIDCookieExpiry : "never" );
+	}
 
 // GETTERS AND SETTERS
 	private any function _getCookieService() {
