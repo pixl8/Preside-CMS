@@ -2198,7 +2198,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
-			for( var record in records ) {
+			for( record in records ) {
 				if ( arguments.audit ) {
 					var auditDetail = Duplicate( record );
 					auditDetail.objectName = object;
