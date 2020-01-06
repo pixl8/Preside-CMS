@@ -94,8 +94,8 @@
 					</cfif>
 					<div class="navbar-header pull-right">
 						<ul class="nav ace-nav">
-							<cfif #event.isImpersonated()#>
-								<li>&nbsp; <label class="text-success">Impersonating</label> : #getLoggedInUserDetails().email_address#&nbsp;</li>
+							<cfif event.isWebUserImpersonated()>
+								<li>&nbsp; <i class="fa fa-fw fa-user-md green"></i> #translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ]  )#</li>
 							</cfif>
 							<li>#notificationsMenu#</li>
 							<li>#userMenu#</li>

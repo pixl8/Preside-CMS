@@ -402,7 +402,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return _getSticker().includeUrl( argumentCollection = arguments );
 	}
 
-	public boolean function isImpersonated() {
+	public boolean function isWebUserImpersonated() {
 		return getModel( "websiteLoginService" ).isImpersonated();
 	}
 
