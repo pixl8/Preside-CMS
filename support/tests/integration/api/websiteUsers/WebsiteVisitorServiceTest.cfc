@@ -54,6 +54,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		service.$( "_sessionsAreEnabled", true );
+		service.$( "$getPresideSetting" ).$args( "tracking", "vid_cookie_expiry" ).$results( "" );
 		mockCookieService.$( "setVar" );
 
 		return service;
