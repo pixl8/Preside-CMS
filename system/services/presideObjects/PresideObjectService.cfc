@@ -1755,7 +1755,7 @@ component displayName="Preside Object Service" {
 					filter = { "#join.fk#" = arguments.recordId };
 					recordCount = selectData( objectName=foreignObjName, selectFields=["count(*) as record_count"], filter=filter, useCache=false ).record_count;
 
-					if ( recordCount ) {
+					if ( Val( recordCount ) ) {
 						ArrayAppend( blocking, { objectName=foreignObjName, recordcount=recordcount, fk=join.fk } );
 					}
 				}
