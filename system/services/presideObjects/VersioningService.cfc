@@ -822,7 +822,6 @@ component {
 	private struct function queryRowToStruct( required query qry, numeric row = 1 ) {
 		var strct = StructNew();
 		var cols  = ListToArray( arguments.qry.columnList );
-		var col   = "";
 
 		for( var col in cols ){
 			strct[col] = arguments.qry[col][arguments.row];
