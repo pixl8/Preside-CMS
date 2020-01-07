@@ -915,10 +915,13 @@ component displayName="AssetManager Service" {
 			  storage_path = newStoragePath
 			, asset_url    = ""
 		} );
-		versionDao.updateData( id=asset.active_version, data={
-			  storage_path = newStoragePath
-			, asset_url    = ""
-		} )
+
+		if ( Len( Trim( asset.active_version ) ) ){
+			versionDao.updateData( id=asset.active_version, data={
+				  storage_path = newStoragePath
+				, asset_url    = ""
+			} );
+		}
 
 		// move versions
 		for( var version in versions ) {
