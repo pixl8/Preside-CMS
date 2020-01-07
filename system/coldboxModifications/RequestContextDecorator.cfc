@@ -841,7 +841,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 				if ( arguments.cascadeMethod == "collect" ) {
 					var collected = [];
 				}
-				for( node in cascadeSearch ){
+				for( var node in cascadeSearch ){
 					if ( Len( Trim( node[ arguments.propertyName ] ?: "" ) ) && node[ arguments.propertyName ] != arguments.cascadeSkipValue ) {
 						if ( arguments.cascadeMethod != "collect" ) {
 							return node[ arguments.propertyName ];

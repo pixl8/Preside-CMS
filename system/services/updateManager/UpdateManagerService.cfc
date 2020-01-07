@@ -352,7 +352,7 @@ component {
 
 		try {
 			http url=versionFileUrl result="result" throwOnError=true;
-			resultData = DeSerializeJson(result.fileContent);
+			var resultData  = DeSerializeJson(result.fileContent);
 			resultData.date = result.responseheader['Last-Modified'];
 			// Release notes only available after 10.1.1 in https://www.preside.org/release-notes/release-notes-for-10-1-1.html
 			if ( compareVersions( resultData.version, '10.1.1' ) > 0 ){

@@ -133,7 +133,7 @@ component displayname="Image Manipulation Service" {
 
 
 		if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
-			fitRatio       = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
+			var fitRatio   = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
 			prevCropWidth  = cropWidth;
 			prevCropHeight = cropHeight;
 			cropWidth      = int( cropWidth  * fitRatio );

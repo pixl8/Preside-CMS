@@ -122,9 +122,10 @@ component displayName="Ad-hoc Task Manager Service" {
 
 			var logger   = _getTaskLogger( taskId );
 			var progress = _getTaskProgressReporter( taskId );
+			var success  = true;
 
 			try {
-				$getColdbox().runEvent(
+				success = $getColdbox().runEvent(
 					  event          = task.event
 					, eventArguments = { args=args, logger=logger, progress=progress }
 					, private        = true
@@ -137,7 +138,13 @@ component displayName="Ad-hoc Task Manager Service" {
 				return false;
 			}
 
-			completeTask( taskId=arguments.taskId );
+			if ( IsBoolean( local.success ?: "" ) && !local.success ) {
+				failTask( taskId=arguments.taskId, error={} );
+				return false;
+			} else {
+				completeTask( taskId=arguments.taskId );
+			}
+
 		}
 
 		return true;
