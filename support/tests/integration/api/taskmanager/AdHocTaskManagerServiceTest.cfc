@@ -78,6 +78,32 @@ component extends="testbox.system.BaseSpec" {
 				expect( log[1] ).toBe( { taskId=taskId } );
 			} );
 
+			it( "should fail the task and return false when the handler returns false", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+				var event   = "some.handler.action";
+				var args    = { test=CreateUUId(), fubar=123 };
+				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "pending" ] ] );
+
+				_mockGetTask( taskId, taskDef );
+				mockColdbox.$( "runEvent", false );
+				var mockProgress = _mockProgress( service, taskId );
+				var mockLogger   = _mockLogger( service, taskId );
+
+				service.$( "completeTask" );
+				service.$( "failTask" );
+				service.$( "markTaskAsRunning" );
+
+				expect( service.runTask( taskId ) ).toBe( false );
+
+				log = service.$callLog().completeTask;
+				expect( log.len() ).toBe( 0 );
+
+				log = service.$callLog().failTask;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { taskId=taskId, error={} } );
+			} );
+
 			it( "should return false, fail the task and log error when an error is thrown during execution of the handler action", function(){
 				var service = _getService();
 				var taskId  = CreateUUId();
