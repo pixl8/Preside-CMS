@@ -52,7 +52,7 @@ component {
 		var qAndA = _getQuestionsAndAnswers( argumentCollection=arguments );
 		var justAnswers = [];
 
-		for( qa in qAndA ) {
+		for( var qa in qAndA ) {
 			justAnswers.append( qa.answer );
 		}
 

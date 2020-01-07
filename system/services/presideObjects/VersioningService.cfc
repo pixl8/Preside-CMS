@@ -600,7 +600,7 @@ component {
 		}
 
 		objMeta.indexes = objMeta.indexes ?: {};
-		for(indexKey in objMeta.indexes){
+		for( var indexKey in objMeta.indexes ){
 			objMeta.indexes[ _renameTableIndexes(indexKey, arguments.originalObjectName, arguments.versionedObjectName ) ] = duplicate( objMeta.indexes[indexKey]);
 			structDelete(objMeta.indexes, indexKey);
 		}
@@ -824,7 +824,7 @@ component {
 		var cols  = ListToArray( arguments.qry.columnList );
 		var col   = "";
 
-		for( col in cols ){
+		for( var col in cols ){
 			strct[col] = arguments.qry[col][arguments.row];
 		}
 
