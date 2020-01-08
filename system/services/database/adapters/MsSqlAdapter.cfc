@@ -36,9 +36,6 @@ component extends="BaseAdapter" {
 				columnDef &= "datetime";
 				break;
 			case "longtext":
-				columnDef &= "text";
-				break;
-			case "varchar_max":
 				columnDef &= "varchar(max)";
 				break;
 			case "bigint":
@@ -56,9 +53,6 @@ component extends="BaseAdapter" {
 		
 		if ( arguments.dbType eq "varchar" and not arguments.maxLength ) {
 			arguments.maxLength = 200;
-		}
-		else if ( arguments.dbType eq "varchar_max" ) {
-			arguments.maxLength = 0;
 		}
 
 		if ( arguments.maxLength ) {
