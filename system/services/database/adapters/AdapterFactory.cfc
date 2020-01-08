@@ -7,10 +7,12 @@ component {
 // CONSTRUCTOR
 
 	/**
-	 * @dbInfoService.inject  DbInfoService
+	 * @dbInfoService.inject             DbInfoService
+	 * @msSqlUseVarcharMaxForText.inject coldbox:setting:mssql.useVarcharMaxForText
 	 */
-	public any function init( required any dbInfoService ) {
+	public any function init( required any dbInfoService, required boolean msSqlUseVarcharMaxForText ) {
 		_setDbInfoService( arguments.dbInfoService );
+		_setMsSqlUseVarcharMaxForText( arguments.msSqlUseVarcharMaxForText );
 		_setAdapters( {} );
 
 		return this;
@@ -37,10 +39,10 @@ component {
 
 					// a lot easier offset/limit pagination since version 2012, therefore we use a custom adapter
 					if ( isNumeric( majorVersion ) && majorVersion >= 11 ) {
-						adapters[ arguments.dsn ] = new MsSql2012Adapter();
+						adapters[ arguments.dsn ] = new MsSql2012Adapter( useVarcharMaxForText=_getMsSqlUseVarcharMaxForText() );
 					}
 					else {
-						adapters[ arguments.dsn ] = new MsSqlAdapter();
+						adapters[ arguments.dsn ] = new MsSqlAdapter( useVarcharMaxForText=_getMsSqlUseVarcharMaxForText() );
 					}
 
 					break;
@@ -80,6 +82,13 @@ component {
 	}
 	private void function _setDbInfoService( required any dbInfoService ) {
 		_dbInfoService = arguments.dbInfoService;
+	}
+	
+	private boolean function _getMsSqlUseVarcharMaxForText() {
+		return _msSqlUseVarcharMaxForText;
+	}
+	private void function _setMsSqlUseVarcharMaxForText( required boolean msSqlUseVarcharMaxForText ) {
+		_msSqlUseVarcharMaxForText = arguments.msSqlUseVarcharMaxForText;
 	}
 
 	private any function _getAdapters() {
