@@ -504,7 +504,7 @@ component {
 		settings.dataExport = {};
 		settings.dataExport.csv = { delimiter="," };
 		
-		settings.mssql.useVarcharMaxForText = true;
+		settings.mssql.useVarcharMaxForText = false;
 
 		settings.email = _getEmailSettings();
 
