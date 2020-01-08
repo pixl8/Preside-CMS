@@ -30,7 +30,7 @@ component extends="BaseAdapter" {
 	) {
 		var columnDef  = escapeEntity( arguments.columnName )
 		var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
-		
+
 		switch( arguments.dbType ) {
 			case "boolean":
 				columnDef &= "bit";
@@ -54,7 +54,7 @@ component extends="BaseAdapter" {
 				columnDef &= "#arguments.dbType#";
 				break;
 		}
-		
+
 		if ( arguments.dbType eq "varchar" and not arguments.maxLength ) {
 			arguments.maxLength = 200;
 		}
