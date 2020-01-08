@@ -17,12 +17,12 @@ component extends="BaseAdapter" {
 	}
 
 	public string function getColumnDefinitionSql(
-		  required string   columnName
-		, required string   dbType
-		,          numeric  maxLength     = 0
-		,          boolean  nullable      = true
-		,          boolean  primaryKey    = false
-		,          boolean  autoIncrement = false
+		  required string  columnName
+		, required string  dbType
+		,          string  maxLength     = "0"
+		,          boolean nullable      = true
+		,          boolean primaryKey    = false
+		,          boolean autoIncrement = false
 
 	) {
 		var columnDef  = escapeEntity( arguments.columnName )
@@ -51,11 +51,11 @@ component extends="BaseAdapter" {
 				break;
 		}
 
-		if ( arguments.dbType eq "varchar" and not arguments.maxLength ) {
+		if ( arguments.dbType eq "varchar" and ( isEmpty( arguments.maxLength ) or arguments.maxLength == 0 ) ) {
 			arguments.maxLength = 200;
 		}
 
-		if ( arguments.maxLength ) {
+		if ( ( isValid( "integer", arguments.maxLength ) and arguments.maxLength gt 0 ) or arguments.maxLength == "max" ) {
 
 			columnDef &= "(#arguments.maxLength#)";
 		}
@@ -78,7 +78,7 @@ component extends="BaseAdapter" {
 		, required string  columnName
 		, required string  dbType
 		,          string  defaultValue
-		,          numeric maxLength     = 0
+		,          string  maxLength     = "0"
 		,          boolean nullable      = true
 		,          boolean primaryKey    = false
 		,          boolean autoIncrement = false
@@ -96,6 +96,21 @@ component extends="BaseAdapter" {
 		);
 
 		return "alter table #escapeEntity( arguments.tableName )# alter column #columnDef#";
+	}
+	
+	public string function getAddColumnSql(
+		  required string  tableName
+		, required string  columnName
+		, required string  dbType
+		,          string  defaultValue
+		,          string  maxLength     = "0"
+		,          boolean nullable      = true
+		,          boolean primaryKey    = false
+		,          boolean autoIncrement = false
+	) {
+		var columnDef = getColumnDefinitionSql( argumentCollection = arguments );
+
+		return "alter table #escapeEntity( arguments.tableName )# add #columnDef#";
 	}
 
 	public string function getTableDefinitionSql( required string tableName, required string columnSql ) {
