@@ -282,6 +282,7 @@ component hint="Create various preside system entities such as widgets and page 
 			};
 		}
 
+		var filesCreated = [];
 		try {
 			filesCreated = scaffoldingService.scaffoldExtension(
 				  id          = params.id
@@ -332,6 +333,7 @@ component hint="Create various preside system entities such as widgets and page 
 			};
 		}
 
+		var filesCreated = [];
 		try {
 			filesCreated = scaffoldingService.scaffoldSystemConfigForm( argumentCollection = params );
 		} catch ( any e ) {
@@ -366,6 +368,7 @@ component hint="Create various preside system entities such as widgets and page 
 			};
 		}
 
+		var filesCreated = [];
 		try {
 			filesCreated = scaffoldingService.scaffoldEmailTemplate( argumentCollection = params );
 		} catch ( any e ) {
@@ -407,6 +410,7 @@ component hint="Create various preside system entities such as widgets and page 
 			};
 		}
 
+		var filesCreated = [];
 		try {
 			filesCreated = scaffoldingService.scaffoldFormControl(
 				  id            = params.id
@@ -456,6 +460,7 @@ component hint="Create various preside system entities such as widgets and page 
 			};
 		}
 
+		var filesCreated = [];
 		try {
 			filesCreated = scaffoldingService.scaffoldRuleExpression(
 				  id        = params.id
@@ -499,6 +504,7 @@ component hint="Create various preside system entities such as widgets and page 
 			};
 		}
 
+		var filesCreated = [];
 		try {
 			filesCreated = scaffoldingService.scaffoldTerminalCommand(
 				  name      = params.name

@@ -603,7 +603,7 @@ component autodoc=true displayName="Notification Service" {
 		var notificationDirs = _getNotificationDirectories();
 		var notificationIds  = [];
 
-		for( notificationDir in notificationDirs ){
+		for( var notificationDir in notificationDirs ){
 			var notifications           = [];
 			var notificationId          = "";
 			var notificationDir         = notificationDir & "/renderers/notifications/";
@@ -619,7 +619,7 @@ component autodoc=true displayName="Notification Service" {
 			}
 		}
 
-		for( notificationId in notificationIds ){
+		for( var notificationId in notificationIds ){
 			if ( !configuredTopics.findNoCase( notificationId ) ) {
 				configuredTopics.append( notificationId );
 			}

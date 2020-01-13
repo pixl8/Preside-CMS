@@ -600,7 +600,7 @@ component {
 		}
 
 		objMeta.indexes = objMeta.indexes ?: {};
-		for(indexKey in objMeta.indexes){
+		for( var indexKey in objMeta.indexes ){
 			objMeta.indexes[ _renameTableIndexes(indexKey, arguments.originalObjectName, arguments.versionedObjectName ) ] = duplicate( objMeta.indexes[indexKey]);
 			structDelete(objMeta.indexes, indexKey);
 		}
@@ -822,9 +822,8 @@ component {
 	private struct function queryRowToStruct( required query qry, numeric row = 1 ) {
 		var strct = StructNew();
 		var cols  = ListToArray( arguments.qry.columnList );
-		var col   = "";
 
-		for( col in cols ){
+		for( var col in cols ){
 			strct[col] = arguments.qry[col][arguments.row];
 		}
 
