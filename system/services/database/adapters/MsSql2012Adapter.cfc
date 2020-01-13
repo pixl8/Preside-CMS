@@ -4,11 +4,6 @@
  */
 component extends="MsSqlAdapter" {
 
-// CONSTRUCTOR
-	public any function init() {
-		return this;
-	}
-
 // PUBLIC API METHODS
 	public string function getSelectSql(
 		  required string  tableName
