@@ -105,14 +105,14 @@ component extends="preside.system.base.AdminHandler" {
 					, defaultHandler = "admin.datamanager._listingMultiActions"
 					, args           = args
 				);
-				
+
 				var allowDataExport = false;
-				
+
 				if ( dataManagerService.isDataExportEnabled( objectName ) ) {
 					var permissionKey = dataManagerService.getDataExportPermissionKey( objectName );
 					allowDataExport   = _checkPermission( argumentCollection=arguments, object=objectName, key=permissionKey, throwOnError=false );
 				}
-				
+
 				args.append( {
 					  useMultiActions = args.multiActions.len()
 					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
@@ -3424,6 +3424,9 @@ component extends="preside.system.base.AdminHandler" {
 			case "object":
 			case "getObjectRecordsForAjaxDataTables":
 				prc.objectName = rc.id ?: "";
+			break;
+			case "addRecordAction":
+				prc.objectName = rc.object ?: "";
 			break;
 			case "__custom":
 				prc.objectName = arguments.objectName ?: "";
