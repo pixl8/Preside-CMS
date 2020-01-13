@@ -292,6 +292,10 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		// Array Rendering
 		if( isArray( arguments.collection ) ){
 			recLen = arrayLen( arguments.collection );
+			// adjust item count for collectionStartRow
+			if ( arguments.collectionStartRow > 1 ) {
+				recLen = max( 0, recLen - arguments.collectionStartRow + 1 );
+			}
 			// is max rows passed?
 			if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE recLen ){ recLen = arguments.collectionMaxRows; }
 			// Create local marker
@@ -313,6 +317,10 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 
 		// Query Rendering
 		viewArgs._items = arguments.collection.recordCount;
+		// Adjust item count for collectionStartRow
+		if ( arguments.collectionStartRow > 1 ) {
+			viewArgs._items = max( 0, viewArgs._items - arguments.collectionStartRow + 1 );
+		}
 		// Max Rows
 		if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE arguments.collection.recordCount){
 			viewArgs._items = arguments.collectionMaxRows;

@@ -5,7 +5,10 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required boolean useVarcharMaxForText ) {
+	
+		_setUseVarcharMaxForText( arguments.useVarcharMaxForText );
+		
 		return this;
 	}
 
@@ -36,13 +39,14 @@ component extends="BaseAdapter" {
 				columnDef &= "datetime";
 				break;
 			case "longtext":
-				columnDef &= "text";
+			case "text":
+				arguments.maxLength = 0;
+				columnDef &= _getUseVarcharMaxForText() ? "varchar(max)" : "text";
 				break;
 			case "bigint":
 			case "int":
 			case "float":
 			case "double":
-			case "text":
 				arguments.maxLength = 0;
 				columnDef &= "#arguments.dbType#";
 				break;
@@ -56,7 +60,6 @@ component extends="BaseAdapter" {
 		}
 
 		if ( arguments.maxLength ) {
-
 			columnDef &= "(#arguments.maxLength#)";
 		}
 
@@ -383,5 +386,13 @@ component extends="BaseAdapter" {
 	            from       sys.foreign_keys        as f
 	            inner join sys.foreign_key_columns as fc on f.object_id = fc.constraint_object_id
 	            inner join sys.objects             as o  on o.object_id = fc.referenced_object_id";
+	}
+	
+// GETTERS AND SETTERS	
+	private boolean function _getUseVarcharMaxForText() {
+		return _useVarcharMaxForText;
+	}
+	private void function _setUseVarcharMaxForText( required boolean useVarcharMaxForText ) {
+		_useVarcharMaxForText = arguments.useVarcharMaxForText;
 	}
 }
