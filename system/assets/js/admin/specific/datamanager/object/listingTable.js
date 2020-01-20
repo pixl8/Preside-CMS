@@ -543,7 +543,7 @@
 					  , modalTitle          = i18n.translateResource( "cms:rulesEngine.save.filter.modal" )
 					  , modalOptions        = {
 							title     : modalTitle,
-							className : "filter-quick-save-modal",
+							className : $( this ).data( "modalDialogFull" ) ? "full-screen-dialog" : "filter-quick-save-modal",
 							buttons   : {
 								cancel : {
 									  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
