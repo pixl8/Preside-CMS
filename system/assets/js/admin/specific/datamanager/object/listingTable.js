@@ -528,6 +528,7 @@
 				$filterDiv.fadeOut( 100, function(){
 					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
 					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
+					$filterDiv.find( "[name=filters]" ).val("");
 					refreshFavourites();
 					datatable.fnDraw();
 					$searchContainer.fadeIn( 100 );
