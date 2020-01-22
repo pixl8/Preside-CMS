@@ -519,6 +519,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return getModel( "StickerForPreside" ).includeUrl( argumentCollection = arguments );
 	}
 
+	public boolean function isWebUserImpersonated() {
+		return getModel( "websiteLoginService" ).isImpersonated();
+	}
+
 	public string function renderIncludes( string type, string group="default" ) {
 		var rendered      = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments );
 
