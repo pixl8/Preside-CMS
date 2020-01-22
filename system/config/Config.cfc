@@ -246,7 +246,6 @@ component {
 			, "notification"
 			, "passwordPolicyManager"
 			, "systemConfiguration"
-			, "updateManager"
 			, "rulesEngine"
 			, "links"
 			, "urlRedirects"
@@ -377,7 +376,6 @@ component {
 			, websiteBenefits         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, datamanager             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemConfiguration     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, redirectErrorPages      = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
@@ -503,7 +501,7 @@ component {
 
 		settings.dataExport = {};
 		settings.dataExport.csv = { delimiter="," };
-		
+
 		settings.mssql.useVarcharMaxForText = false;
 
 		settings.email = _getEmailSettings();
