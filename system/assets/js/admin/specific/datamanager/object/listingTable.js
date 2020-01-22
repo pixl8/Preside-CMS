@@ -528,6 +528,7 @@
 				$filterDiv.fadeOut( 100, function(){
 					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
 					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
+					$filterDiv.find( "[name=filters]" ).val("");
 					refreshFavourites();
 					datatable.fnDraw();
 					$searchContainer.fadeIn( 100 );
@@ -543,7 +544,7 @@
 					  , modalTitle          = i18n.translateResource( "cms:rulesEngine.save.filter.modal" )
 					  , modalOptions        = {
 							title     : modalTitle,
-							className : "filter-quick-save-modal",
+							className : $( this ).data( "modalDialogFull" ) ? "full-screen-dialog" : "filter-quick-save-modal",
 							buttons   : {
 								cancel : {
 									  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
