@@ -74,7 +74,10 @@ component {
 // private helpers
 	private void function _xssProtect( event, rc, prc ) {
 		if ( IsTrue( antiSamySettings.enabled ?: "" ) ) {
-			if ( IsFalse( antiSamySettings.bypassForAdministrators ?: "" ) || !event.isAdminUser() ) {
+			var adminBypass = IsTrue( antiSamySettings.bypassForAdministrators ?: "" );
+			var bypass      = adminBypass && ( event.isAdminUser() || event.isAdminRequest() );
+
+			if ( !bypass ) {
 				var policy = antiSamySettings.policy ?: "myspace";
 
 				for( var key in rc ){
