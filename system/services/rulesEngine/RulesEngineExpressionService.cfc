@@ -459,7 +459,7 @@ component displayName="RulesEngine Expression Service" {
 	 */
 	public array function getFilterObjectsForExpression( required string expressionId ) {
 		var expression = _getRawExpression( expressionId, false );
-		return expression.filterObjects ?: [];
+		return Duplicate( expression.filterObjects ?: [] );
 	}
 
 	public string function translateExpressionCategory( required string category ){
