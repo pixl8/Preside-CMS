@@ -2571,6 +2571,20 @@ component displayName="Preside Object Service" {
 		return staticCacheKey;
 	}
 
+	private boolean function _cacheKeyContainsDynamicElements( required string cacheKey ) {
+		if ( ReFindNoCase( "[0-9a-f]{32}\b", arguments.cacheKey ) ){
+			return true;
+		}
+		if ( ReFindNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}\b", arguments.cacheKey ) ){
+			return true;
+		}
+		if ( ReFindNoCase( "field\s?\(.*?\)", arguments.cacheKey ) ){
+			return true;
+		}
+
+		return false;
+	}
+
 	private struct function _getSelectDataArgsFromView( required string view ) {
 		var args               = _getSelectDataViewService().getViewArgs( arguments.view );
 		var arrayAppendFields  = [ "extraFilters", "extraSelectFields", "savedFilters", "extraJoins", "bypassTenants"  ];
@@ -2661,11 +2675,15 @@ component displayName="Preside Object Service" {
 				, realProperty  = aliasCache[ arguments.objectName ][ plainString ]
 			} ];
 		}
-		var cache    = _getSimpleLocalCache();
-		var cacheKey = "_cleanupProperyAliasesFAndR#arguments.objectName##arguments.plainString#";
 
-		if ( StructKeyExists( cache, cachekey ) ) {
-			return cache[ cacheKey ];
+		var useCache = !_cacheKeyContainsDynamicElements( arguments.plainString );
+		if ( useCache ) {
+			var cache    = _getSimpleLocalCache();
+			var cacheKey = "_cleanupProperyAliasesFAndR#arguments.objectName##arguments.plainString#";
+
+			if ( StructKeyExists( cache, cachekey ) ) {
+				return cache[ cacheKey ];
+			}
 		}
 
 		var aliasRegex  = _getAlaisedAliasRegex();
@@ -2690,10 +2708,13 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		cache[ cacheKey ] = results;
+		if ( useCache ) {
+			cache[ cacheKey ] = results;
+		}
 
 		return results;
 	};
+
 
 	private any function _structKeyReplacer( theStruct, objectName ){
 		for( var key in theStruct ) {
@@ -2707,11 +2728,15 @@ component displayName="Preside Object Service" {
 	}
 
 	private any function _simpleReplacer( plainString, objectName, addAsAlias=false ) {
-		var cache = _getSimpleLocalCache();
-		var cacheKey = "_cleanupProperyAliasesReplacer#arguments.objectName##arguments.plainString##arguments.addAsAlias#";
+		var useCache = !_cacheKeyContainsDynamicElements( arguments.plainString );
 
-		if ( StructKeyExists( cache, cacheKey ) ) {
-			return cache[ cacheKey ];
+		if ( useCache ) {
+			var cache = _getSimpleLocalCache();
+			var cacheKey = "_cleanupProperyAliasesReplacer#arguments.objectName##arguments.plainString##arguments.addAsAlias#";
+
+			if ( StructKeyExists( cache, cacheKey ) ) {
+				return cache[ cacheKey ];
+			}
 		}
 
 		var replaced    = plainString;
@@ -2724,7 +2749,9 @@ component displayName="Preside Object Service" {
 			replaced &= " as " & fAndRResult[1].aliasProperty;
 		}
 
-		cache[ cacheKey ] = replaced;
+		if ( useCache ) {
+			cache[ cacheKey ] = replaced;
+		}
 
 		return replaced;
 	}
