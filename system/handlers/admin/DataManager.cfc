@@ -91,7 +91,7 @@ component extends="preside.system.base.AdminHandler" {
 			, isMultilingual      = IsTrue( args.isMultilingual ?: multilingualPresideObjectService.isMultilingual( objectName ) )
 			, draftsEnabled       = IsTrue( args.draftsEnabled  ?: datamanagerService.areDraftsEnabledForObject( objectName ) )
 			, canDelete           = IsTrue( args.canDelete      ?: _checkPermission( argumentCollection=arguments, object=objectName, key="delete", throwOnError=false ) )
-			, footerEnabled       = customizationService.objectHasCustomization( objectName, "renderFooterForGridListing" )
+			, footerEnabled       = StructKeyExists( args, "footerEnabled" ) && !IsTrue( args.footerEnabled ) ? args.footerEnabled : customizationService.objectHasCustomization( objectName, "renderFooterForGridListing" )
 		} );
 
 		if ( args.treeView ) {
