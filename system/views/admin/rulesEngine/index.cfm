@@ -1,6 +1,7 @@
 <cfscript>
 	objectName = "rules_engine_condition";
-	contexts   = prc.contexts ?: [];
+	contexts   = prc.contexts   ?: [];
+	gridFields = prc.gridFields ?: [];
 </cfscript>
 
 
@@ -29,6 +30,6 @@
 		  objectName      = objectName
 		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=rulesengine.getConditionsForAjaxDataTables" )
-		, gridFields      = [ "condition_name", "context", "filter_object", "datemodified" ]
+		, gridFields      = gridFields
 	} )#
 </cfoutput>

@@ -1,5 +1,5 @@
 <cfparam name="args.id"             type="string" />
-<cfparam name="args.condition_name" type="string" />
+<cfparam name="args.condition_name" type="string" default="" />
 
 <cfoutput>
 	<div class="action-buttons">
