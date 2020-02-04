@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineFilterService"    inject="rulesEngineFilterService";
 	property name="dataManagerService"          inject="dataManagerService";
 	property name="messageBox"                  inject="messagebox@cbmessagebox";
+	property name="presideObjectService"        inject="PresideObjectService";
 
 	function preHandler() {
 		super.preHandler( argumentCollection=arguments );
@@ -29,6 +30,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:rulesEngine.page.subtitle" );
 
 		prc.contexts     = rulesEngineContextService.listContexts();
+		prc.gridFields   = ListToArray( presideObjectService.getObjectAttribute( objectName="rules_engine_condition", attributeName="dataManagerGridFields", defaultValue="condition_name,context,filter_object,datemodified" ) );
 	}
 
 	public void function addCondition( event, rc, prc ) {
@@ -247,13 +249,15 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getConditionsForAjaxDataTables( event, rc, prc )  {
 		_checkPermissions( argumentCollection=arguments, key="read" );
 
+		var gridFields = presideObjectService.getObjectAttribute( objectName="rules_engine_condition", attributeName="dataManagerGridFields", defaultValue="condition_name,context,filter_object,datemodified" )
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
 				  object      = "rules_engine_condition"
-				, gridFields  = "condition_name,context,filter_object,datemodified"
+				, gridFields  = gridFields
 				, actionsView = "/admin/rulesEngine/_conditionsTableActions"
 			}
 		);
