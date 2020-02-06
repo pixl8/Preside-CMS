@@ -806,6 +806,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName     = prc.objectName ?: "";
 		var extraFilters   = [];
 		var filterByFields = ListToArray( rc.filterByFields ?: "" );
+		var bypassTenants  = listToArray( rc.bypassTenants ?: "" );
 		var filterValue    = "";
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
@@ -827,6 +828,7 @@ component extends="preside.system.base.AdminHandler" {
 			, orderBy       = orderBy
 			, ids           = ListToArray( rc.values ?: "" )
 			, labelRenderer = labelRenderer
+			, bypassTenants = bypassTenants
 			, useCache      = useCache
 		);
 

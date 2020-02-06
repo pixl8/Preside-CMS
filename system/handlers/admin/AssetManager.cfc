@@ -881,11 +881,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ) {
 			record.icon        = renderAsset( record.value, "pickerIcon" );
-			record.largerImage = event.buildLink( assetId=record.value, derivative='adminThumbnail' );
 
 			if ( Val( record.width ) && Val( record.height ) ) {
+				record.largerImage = event.buildLink( assetId=record.value, derivative='adminThumbnail' );
 				record.dimension =  "(" & record.width & "x" & record.height & ")";
 			} else {
+				record.largerImage = "";
 				record.dimension =  "";
 			}
 
