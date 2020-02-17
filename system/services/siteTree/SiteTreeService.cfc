@@ -555,11 +555,17 @@ component {
 			}
 		}
 
-		var getNavChildren = function( parent, currentDepth, disallowedPageTypes ){
+		var getNavChildren = function( parent, currentDepth, disallowedPageTypes, topLevelSubMenuPage ){
 			filterParams.parent_page = parent;
 
 			var result   = [];
 			var extraFilters = [];
+
+			if( !isEmpty( arguments.topLevelSubMenuPage ?: "" ) ){
+				extraFilters.append({
+					filter = { "page.id" = arguments.topLevelSubMenuPage }
+				});
+			}
 
 			if ( disallowedPageTypes.len() ) {
 				extraFilters.append({
@@ -646,7 +652,7 @@ component {
 			ArrayAppend( savedFilters, "livePages" );
 		}
 
-		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1, disallowedPageTypes );
+		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1, disallowedPageTypes, arguments.topLevelSubMenuPage ?: "" );
 	}
 
 	public string function addPage(
