@@ -76,7 +76,7 @@ component {
 		var enumKeys = enums[ arguments.enum ] ?: [];
 
 		for( var key in enumKeys ) {
-			if ( lCase( getLabelByKey( arguments.enum, key ) ) == lCase( arguments.label ) )
+			if ( lCase( getLabelByKey( arguments.enum, key ) ) == lCase( arguments.label ) ) {
 				return key;
 			}
 		}
