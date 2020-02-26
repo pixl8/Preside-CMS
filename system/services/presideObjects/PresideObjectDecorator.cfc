@@ -13,7 +13,7 @@ component singleton=true {
 		, required any    objectInstance
 		, required any    presideObjectService
 	) output=false {
-		var decorated    = Duplicate( arguments.objectInstance );
+		var decorated    = arguments.objectInstance;
 
 		if ( not IsSimpleValue( arguments.objectInstance ) ) {
 			decorated._presideObjectService = arguments.presideObjectService;
