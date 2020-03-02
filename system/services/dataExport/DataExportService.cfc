@@ -230,7 +230,7 @@ component {
 								continue;
 							break;
 							case "varchar":
-								if ( Val( prop.maxLength ?: "" ) > 200 ) {
+								if ( Val( prop.maxLength ?: "" ) > 800 ) {
 									continue;
 								}
 							break;
