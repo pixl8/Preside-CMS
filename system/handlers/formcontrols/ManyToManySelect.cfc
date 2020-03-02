@@ -18,7 +18,7 @@ component {
 				  objectName       = sourceObject
 				, propertyName     = args.name
 				, id               = args.savedData[ sourceIdField ]
-				, selectFields     = [ "#args.name#.#targetIdField# as id" ]
+				, selectFields     = [ "distinct #args.name#.#targetIdField# as id" ]
 				, useCache         = false
 				, fromVersionTable = useVersioning
 				, specificVersion  = Val( rc.version ?: "" )
