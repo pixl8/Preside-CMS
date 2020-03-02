@@ -42,6 +42,7 @@ component {
 		,          numeric exportPagingSize   = 1000
 		,          any     recordsetDecorator = ""
 		,          string  exportFileName     = ""
+		,          string  orderBy            = ""
 		,          string  mimetype           = ""
 		,          any     logger
 		,          any     progress
@@ -76,11 +77,8 @@ component {
 		selectDataArgs.startRow    = 1;
 		selectDataArgs.autoGroupBy = true;
 		selectDataArgs.useCache    = false;
-		selectDataArgs.orderBy     = presideObjectService.getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "dataExportDefaultSortOrder"
-		);
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
+		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 
 		if ( canReportProgress || canLog ) {
 			var totalRecordsToExport = presideObjectService.selectData(
@@ -309,6 +307,37 @@ component {
 		}
 
 		return arguments.existingTitles;
+	}
+
+	private string function _getOrderBy( required string objectName, required string orderBy ) {
+		var orderElements    = ListToArray( arguments.orderBy );
+		var validDirections  = [ "asc", "desc" ];
+		var validatedOrderBy = arguments.orderBy;
+		var objectProperties = $getPresideObjectService().getObjectProperties( arguments.objectName );
+
+		for( var el in orderElements ) {
+			var fieldName = Trim( ListFirst( el, " " ) );
+			var dir = ListLen( el, " " ) > 1 ? LCase( Trim( ListRest( el, " " ) ) ) : "asc";
+
+			if ( !ArrayFind( validDirections, dir ) ) {
+				validatedOrderBy = "";
+				break;
+			}
+
+			if ( !StructKeyExists( objectProperties, fieldName ) ) {
+				validatedOrderBy = "";
+				break;
+			}
+		}
+
+		if ( !Len( Trim( validatedOrderBy ) ) ) {
+			validatedOrderBy = $getPresideObjectService().getObjectAttribute(
+				  objectName    = arguments.objectName
+				, attributeName = "dataExportDefaultSortOrder"
+			);
+		}
+
+		return validatedOrderBy;
 	}
 
 // GETTERS AND SETTERS

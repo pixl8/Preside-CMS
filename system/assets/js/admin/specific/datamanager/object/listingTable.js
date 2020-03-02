@@ -403,8 +403,11 @@
 					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
 					  , $submissionForm  = $( ".object-listing-table-export-form" )
 					  , $searchContainer = $( dtSettings.aanFeatures.f[0] )
+					  , sortColumns      = dtSettings.aaSorting
+					  , allColumns       = dtSettings.aoColumns
 					  , config           = $configForm.serializeObject()
-					  , favourites, key, $hiddenInput;
+					  , sortOrder        = []
+					  , favourites, key, $hiddenInput, i;
 
 					if ( allowFilter ) {
 						config.filterExpressions = $filterDiv.find( "[name=filter]" ).val();
@@ -428,6 +431,15 @@
 						}
 
 						$hiddenInput.val( config[ key ] );
+					}
+
+					for( i=0; i<sortColumns.length; i++ ) {
+						sortOrder.push( allColumns[ sortColumns[ i ][ 0 ] ].mData + " " + sortColumns[ i ][ 1 ] );
+					}
+					if ( sortOrder.length ) {
+						$hiddenInput = $( '<input type="hidden" name="orderby">' );
+						$hiddenInput.val( sortOrder.join( "," ) );
+						$submissionForm.append( $hiddenInput );
 					}
 
 					$submissionForm.submit();
