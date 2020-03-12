@@ -410,22 +410,24 @@ component displayName="Website login service" {
 	 *
 	 */
 	public string function getPostLoginUrl(
-		  required string explicitUrl  = ""
-		,          string defaultValue = ""
+		, required string defaultValue  = ""
+		,          string explicitValue = ""
 	) {
 
-		if( Len( Trim( arguments.explicitUrl ?: "" ) ) ){
-			setPostLoginUrl( arguments.explicitUrl );
-			return arguments.explicitUrl;
+		if( Len( Trim( arguments.explicitValue ?: "" ) ) ){
+			setPostLoginUrl( arguments.explicitValue );
+			return arguments.explicitValue;
 		}
 
 		var sessionSavedValue = _getSessionStorage().getVar( "websitePostLoginUrl", "" );
 
 		if ( Len( Trim( sessionSavedValue ?: "" ) ) ) {
 			return sessionSavedValue;
-		} else {
-			return arguments.defaultValue;
 		}
+
+		setPostLoginUrl( arguments.defaultValue );
+
+		return arguments.defaultValue;
 	}
 
 	/**
