@@ -20,7 +20,6 @@ component {
 				, id               = args.savedData[ sourceIdField ]
 				, selectFields     = [ "#args.name#.#targetIdField# as id" ]
 				, useCache         = false
-				, distinct         = true
 				, fromVersionTable = useVersioning
 				, specificVersion  = Val( rc.version ?: "" )
 			);
