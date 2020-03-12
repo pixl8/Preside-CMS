@@ -12,7 +12,7 @@ component {
 		}
 		var loginId      = rc.loginId  ?: "";
 		var password     = rc.password ?: "";
-		var postLoginUrl = Len( Trim( rc.postLoginUrl ?: "" ) ) ? rc.postLoginUrl : websiteLoginService.getPostLoginUrl( cgi.http_referer );
+		var postLoginUrl = websiteLoginService.getPostLoginUrl( explicitValue=rc.postLoginUrl ?: "", defaultValue=cgi.http_referer ?: "" );
 		var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
 		var loggedIn     = websiteLoginService.login(
 			  loginId              = loginId
@@ -107,7 +107,7 @@ component {
 		}
 
 		args.allowRememberMe = _getRememberMeAllowed();
-		args.postLoginUrl    = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: event.getCurrentUrl() );
+		args.postLoginUrl    = websiteLoginService.getPostLoginUrl( explicitValue=rc.postLoginUrl ?: "", defaultValue=event.getCurrentUrl() );
 		args.loginId         = args.loginId      ?: ( rc.loginId      ?: "" );
 		args.rememberMe      = args.rememberMe   ?: ( rc.rememberMe   ?: "" );
 		args.message         = args.message      ?: ( rc.message      ?: "" );
@@ -120,7 +120,7 @@ component {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 
-		args.postLoginUrl = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: cgi.http_referer );
+		args.postLoginUrl = websiteLoginService.getPostLoginUrl( explicitValue=rc.postLoginUrl ?: "", defaultValue=cgi.http_referer ?: "" );
 
 		return renderView( view="/login/forgottenPassword", presideObject="forgotten_password", id=event.getCurrentPageId(), args=args );
 	}
