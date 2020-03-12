@@ -107,7 +107,7 @@ component {
 		}
 
 		args.allowRememberMe = _getRememberMeAllowed();
-		args.postLoginUrl    = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: event.getCurrentUrl() );
+		args.postLoginUrl    = !isEmpty( rc.postLoginUrl ?: "" ) ? rc.postLoginUrl : websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: event.getCurrentUrl() );
 		args.loginId         = args.loginId      ?: ( rc.loginId      ?: "" );
 		args.rememberMe      = args.rememberMe   ?: ( rc.rememberMe   ?: "" );
 		args.message         = args.message      ?: ( rc.message      ?: "" );
