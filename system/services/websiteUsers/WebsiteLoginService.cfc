@@ -409,16 +409,23 @@ component displayName="Website login service" {
 	 * @defaultValue.hint Value to use should there be no stored post login URL
 	 *
 	 */
-	public string function getPostLoginUrl( required string defaultValue ) {
+	public string function getPostLoginUrl(
+		  required string explicitUrl  = ""
+		,          string defaultValue = ""
+	) {
+
+		if( Len( Trim( arguments.explicitUrl ?: "" ) ) ){
+			setPostLoginUrl( arguments.explicitUrl );
+			return arguments.explicitUrl;
+		}
+
 		var sessionSavedValue = _getSessionStorage().getVar( "websitePostLoginUrl", "" );
 
 		if ( Len( Trim( sessionSavedValue ?: "" ) ) ) {
 			return sessionSavedValue;
+		} else {
+			return arguments.defaultValue;
 		}
-
-		setPostLoginUrl( arguments.defaultValue );
-
-		return arguments.defaultValue;
 	}
 
 	/**
