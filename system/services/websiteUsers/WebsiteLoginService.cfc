@@ -406,7 +406,8 @@ component displayName="Website login service" {
 	/**
 	 * Gets the post login URL for redirecting a user to after successful login
 	 *
-	 * @defaultValue.hint Value to use should there be no stored post login URL
+	 * @defaultValue.hint  Value to use should there be no stored post login URL
+	 * @explicitValue.hint Value to always use if not empty (and set into session for later retrieval)
 	 *
 	 */
 	public string function getPostLoginUrl(
