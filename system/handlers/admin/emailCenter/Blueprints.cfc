@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="dao"                       inject="presidecms:object:email_blueprint";
+	property name="email_template_dao"        inject="presidecms:object:email_template";
 	property name="emailLayoutService"        inject="emailLayoutService";
 	property name="emailRecipientTypeService" inject="emailRecipientTypeService";
 	property name="messageBox"                inject="messagebox@cbmessagebox";
