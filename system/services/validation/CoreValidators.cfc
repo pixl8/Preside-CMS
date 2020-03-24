@@ -131,7 +131,7 @@ component validationProvider=true {
 			if ( !value.length ) return true;
 			var emailRegex = /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/;
 			if ( !el.multiple )	return value.match( emailRegex ) !== null;
-			var emails = value.split( ', ' );
+			var emails = value.split( /[ ,]+/ );
 			for( var i=0; i<emails.length; i++ ) {
 				if ( emails[ i ].match( emailRegex ) === null ) return false;
 			}
