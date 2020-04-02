@@ -30,5 +30,10 @@
 				#translateResource( "cms:assetmanager.browser.moveMulti.btn" )#
 			</button>
 		</cfif>
+
+		<button class="btn btn-info" type="submit" name="clearDerivatives" disabled="disabled" title="#translateResource( "cms:assetmanager.browser.clearDerivativesMulti.prompt" )#">
+			<i class="fa fa-redo bigger-110"></i>
+			#translateResource( "cms:assetmanager.browser.clearDerivativesMulti.btn" )#
+		</button>
 	</div>
 </cfoutput>
