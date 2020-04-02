@@ -316,8 +316,9 @@ component {
 		var objectProperties = $getPresideObjectService().getObjectProperties( arguments.objectName );
 
 		for( var el in orderElements ) {
-			var fieldName = Trim( ListFirst( el, " " ) );
-			var dir = ListLen( el, " " ) > 1 ? LCase( Trim( ListRest( el, " " ) ) ) : "asc";
+			var fieldName         = Trim( ListFirst( el, " " ) );
+			var fieldRelationship = objectProperties[fieldName].relationship ?: "";
+			var dir               = ListLen( el, " " ) > 1 ? LCase( Trim( ListRest( el, " " ) ) ) : "asc";
 
 			if ( !ArrayFind( validDirections, dir ) ) {
 				validatedOrderBy = "";
@@ -327,6 +328,17 @@ component {
 			if ( !StructKeyExists( objectProperties, fieldName ) ) {
 				validatedOrderBy = "";
 				break;
+			}
+
+			if( fieldRelationship == "many-to-one" ){
+				var fieldRelatedTo = objectProperties[fieldName].relatedto ?: "";
+				if( Len( fieldRelatedTo ) ){
+					var fieldRelatedToLabel = $getPresideObjectService().getLabelField( fieldRelatedTo );
+
+					if( Len( fieldRelatedToLabel ) ){
+						validatedOrderBy = replace( validatedOrderBy, fieldName, "#fieldName#.#fieldRelatedToLabel#" );
+					}
+				}
 			}
 		}
 
