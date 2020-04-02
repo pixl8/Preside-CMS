@@ -17,8 +17,8 @@ PresideRichEditor = ( function( $ ){
 		  , stylesheets           = $elementToReplace.data( "stylesheets" )
 		  , enterMode             = $elementToReplace.data( "enterMode" )
 		  , autoParagraph         = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
-		  , extraAllowedContent   = cfrequest.ckeditorExtraAllowedContent   || ""
-		  , pasteFromWordDisallow = cfrequest.ckeditorPasteFromWordDisallow || []
+		  , defaultConfigs        = cfrequest.ckeditorDefaultConfigs || {}
+		  , pasteFromWordDisallow = []
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
@@ -55,7 +55,16 @@ PresideRichEditor = ( function( $ ){
 		config.autoParagraph       = autoParagraph;
 		config.widgetCategories    = widgetCategories;
 		config.linkPickerCategory  = linkPickerCategory;
-		config.extraAllowedContent = extraAllowedContent;
+
+		for( var defaultConfig in defaultConfigs ) {
+			if ( defaultConfig === "stylesheetParser_validSelectors" ) {
+				config.stylesheetParser_validSelectors = new RegExp( defaultConfigs.stylesheetParser_validSelectors );
+			} else {
+				config[defaultConfig] = defaultConfigs[defaultConfig];
+			}
+		}
+
+		pasteFromWordDisallow = config.pasteFromWordDisallow;
 
 		CKEDITOR.on( "instanceReady", function( event ) {
 			event.editor.initialdata = event.editor.getData();

@@ -1412,6 +1412,24 @@ component displayName="AssetManager Service" {
 		return assetDao.deleteData( id=arguments.id );
 	}
 
+	public boolean function clearAssetDerivatives( required any assetIds ) {
+		var assetDao      = _getAssetDao();
+		var derivativeDao = _getDerivativeDao();
+		var asset         = assetDao.selectData( filter={ id=arguments.assetIds }, selectFields=[ "id", "asset_folder" ] );
+
+		if ( !asset.recordCount ) {
+			return false;
+		}
+
+		return derivativeDao.deleteData( filter={ asset=arguments.assetIds } );
+	}
+
+	public boolean function clearFolderDerivatives( required string folderId ) {
+		var derivativeDao = _getDerivativeDao();
+
+		return derivativeDao.deleteData( filter={ "asset.asset_folder"=arguments.folderId } );
+	}
+
 	public query function getAssetDerivative(
 		  required string  assetId
 		, required string  derivativeName

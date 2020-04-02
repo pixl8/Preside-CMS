@@ -119,6 +119,60 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
+	function clearAssetDerivativesAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
+
+		var assetId = rc.asset ?: "";
+
+		try {
+			assetManagerService.clearAssetDerivatives( assetId );
+		} catch ( any e ) {
+			logError( e );
+			messageBox.error( translateResource( "cms:assetmanager.clear.derivatives.unexpected.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#assetId#" ) );
+		}
+
+		messageBox.info( translateResource( "cms:assetmanager.clear.derivatives.success" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#assetId#" ) );
+	}
+
+	function clearMultiAssetsDerivativesAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
+
+		var assetIds = listToArray( rc.id ?: "" );
+
+		try {
+			assetManagerService.clearAssetDerivatives( assetIds );
+		} catch ( any e ) {
+			logError( e );
+			messageBox.error( translateResource( "cms:assetmanager.clear.derivatives.unexpected.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager" ) );
+		}
+
+		messageBox.info( translateResource( "cms:assetmanager.clear.derivatives.success" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager" ) );
+	}
+
+	function clearFolderDerivativesAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
+
+		var folderId = rc.folder ?: "";
+
+		try {
+			assetManagerService.clearFolderDerivatives( folderId );
+		} catch ( any e ) {
+			logError( e );
+			messageBox.error( translateResource( "cms:assetmanager.clear.derivatives.unexpected.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager" ) );
+		}
+
+		messageBox.info( translateResource( "cms:assetmanager.clear.derivatives.success" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager" ) );
+	}
+
 	function multiRecordAction( event, rc, prc ) {
 		// TODO: permissions checks, etc.
 		var action = rc.multiAction ?: ""
@@ -131,6 +185,8 @@ component extends="preside.system.base.AdminHandler" {
 		switch( action ){
 			case "delete":
 				return trashMultiAssetsAction( argumentCollection = arguments );
+			case "clearDerivatives":
+				return clearMultiAssetsDerivativesAction( argumentCollection = arguments );
 			break;
 		}
 

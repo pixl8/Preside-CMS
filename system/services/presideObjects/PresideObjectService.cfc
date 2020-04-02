@@ -203,6 +203,9 @@ component displayName="Preside Object Service" {
 
 		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
+			if ( ( arguments.selectManyToMany ?: false ) and !isEmpty( arguments.relationshipTable ?: "" ) ) {
+				args.extraFilters.append( _getDraftExclusionFilter( arguments.relationshipTable ) );
+			}
 		}
 
 		args.extraFilters.append( _expandSavedFilters( argumentCollection=args ), true );
@@ -440,6 +443,7 @@ component displayName="Preside Object Service" {
 							, sourceId            = newId
 							, targetIdList        = manyToManyData[ key ]
 							, requiresVersionSync = false
+							, isDraft             = args.isDraft
 						);
 					} else if ( relationship == "one-to-many" ) {
 						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
@@ -671,9 +675,9 @@ component displayName="Preside Object Service" {
 
 				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
 				var oldManyToManyData = versionedManyToManyFields.len() ? getDeNormalizedManyToManyData(
-					objectName   = arguments.objectName
-					, id           = record[ idField ]
-					, selectFields = versionedManyToManyFields
+					objectName         = arguments.objectName
+					, id               = record[ idField ]
+					, selectFields     = versionedManyToManyFields
 				) : {};
 
 				var newDataForChangedFieldsCheck = Duplicate( cleanedData );
@@ -767,6 +771,7 @@ component displayName="Preside Object Service" {
 								, sourceId            = updatedId
 								, targetIdList        = manyToManyData[ key ]
 								, requiresVersionSync = false
+								, isDraft             = arguments.isDraft
 							);
 						}
 					} else if ( relationship == "one-to-many" ) {
@@ -1001,6 +1006,9 @@ component displayName="Preside Object Service" {
 			}
 		}
 
+		selectDataArgs.selectManyToMany  = true;
+		selectDataArgs.relationshipTable = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
+
 		return selectData( argumentCollection = selectDataArgs );
 	}
 
@@ -1031,6 +1039,7 @@ component displayName="Preside Object Service" {
 		, required string  sourceId
 		, required string  targetIdList
 		,          boolean requiresVersionSync = true
+		,          boolean isDraft             = false
 	) autodoc=true {
 		if ( arguments.requiresVersionSync ) {
 			return updateData(
@@ -1049,6 +1058,8 @@ component displayName="Preside Object Service" {
 
 		if ( Len( Trim( pivotTable ) ) and Len( Trim( targetObject ) ) ) {
 			var newRecords      = ListToArray( arguments.targetIdList );
+			var newAddedRecords = duplicate( newRecords );
+			var existingRecords = [];
 			var anythingChanged = false;
 			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), "sort_order" );
 			var currentSelect   = [ "#targetFk# as targetId" ];
@@ -1067,27 +1078,28 @@ component displayName="Preside Object Service" {
 
 				for( var record in currentRecords ) {
 					if ( newRecords.find( record.targetId ) && ( !hasSortOrder || newRecords.find( record.targetId ) == record.sort_order ) ) {
-						ArrayDelete( newRecords, record.targetId );
+						ArrayDelete( newAddedRecords, record.targetId );
+						ArrayAppend( existingRecords, record.targetId );
 					} else {
 						anythingChanged = true;
 						break;
 					}
 				}
 
-				anythingChanged = anythingChanged || newRecords.len();
+				anythingChanged = anythingChanged || newAddedRecords.len();
 
-				if ( anythingChanged ) {
+				if ( anythingChanged && !arguments.isDraft ) {
 					deleteData(
 						  objectName = pivotTable
 						, filter     = { "#sourceFk#" = arguments.sourceId }
 					);
 
-					newRecords = ListToArray( arguments.targetIdList );
+					
 					for( var i=1; i <=newRecords.len(); i++ ) {
 						insertData(
 							  objectName    = pivotTable
 							, useVersioning = false
-							, data          = { "#sourceFk#"=arguments.sourceId, "#targetFk#"=newRecords[i], sort_order=i }
+							, data          = { "#sourceFk#"=arguments.sourceId, "#targetFk#"=newRecords[i], sort_order=i, _version_has_drafts=arguments.isDraft }
 						);
 					}
 				}

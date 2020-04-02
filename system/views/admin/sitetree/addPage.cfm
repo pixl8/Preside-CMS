@@ -15,6 +15,7 @@
 
 	canPublish   = IsTrue( prc.canPublish   ?: "" );
 	canSaveDraft = IsTrue( prc.canSaveDraft ?: "" );
+	cancelLink   = Len( Trim( prc.cancelLink ?: "" ) ) ? prc.cancelLink : event.buildAdminLink( linkTo="sitetree" );
 </cfscript>
 
 <cfoutput>
@@ -48,7 +49,7 @@
 			)#
 
 			<div class="col-md-offset-2">
-				<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">
+				<a href="#cancelLink#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>
