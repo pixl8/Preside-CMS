@@ -56,7 +56,7 @@
 			</a>
 		</cfif>
 
-		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="assetmanager.clearAssetDerivativesAction", queryString="asset=#assetId#")#">
+		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="assetmanager.clearAssetDerivativesAction", queryString="asset=#assetId#")#" title="#translateResource( "cms:assetmanager.clear.derivatives.prompt" )#">
 			<button class="btn btn-info btn-sm">
 				<i class="fa fa-redo"></i>
 				#translateResource( uri="cms:assetmanager.clear.derivatives.btn" )#
