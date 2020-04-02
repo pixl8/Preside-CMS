@@ -155,6 +155,24 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager" ) );
 	}
 
+	function clearFolderDerivativesAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
+
+		var folderId = rc.folder ?: "";
+
+		try {
+			assetManagerService.clearFolderDerivatives( folderId );
+		} catch ( any e ) {
+			logError( e );
+			messageBox.error( translateResource( "cms:assetmanager.clear.derivatives.unexpected.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager" ) );
+		}
+
+		messageBox.info( translateResource( "cms:assetmanager.clear.derivatives.success" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager" ) );
+	}
+
 	function multiRecordAction( event, rc, prc ) {
 		// TODO: permissions checks, etc.
 		var action = rc.multiAction ?: ""

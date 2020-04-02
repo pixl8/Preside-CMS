@@ -44,6 +44,9 @@
 					<cfif hasManageLocationsPermission>
 						<li><a href="#event.buildAdminLink( linkTo="assetmanager.setFolderLocation", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-folder"></i>&nbsp; #translateResource( uri="cms:assetmanager.set.folder.location.menu.title" )#</a></li>
 					</cfif>
+					<cfif hasEditFolderPermission>
+						<li><a href="#event.buildAdminLink( linkTo="assetmanager.clearFolderDerivativesAction", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-redo"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.clear.derivatives" )#</a></li>
+					</cfif>
 					<cfif hasManageFolderPermsPermission>
 						<li><a href="#event.buildAdminLink( linkTo="assetmanager.managePerms", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-lock"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.manage.perms" )#</a></li>
 					</cfif>
