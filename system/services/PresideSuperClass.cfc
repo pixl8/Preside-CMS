@@ -753,7 +753,10 @@ component displayName="Preside Super Class" {
 	 * ```
 	 */
 	public string function $getI18nLocale() {
-		return $i18n.getFWLanguageCode() & "-" & $i18n.getFWCountryCode();
+		if ( len( $i18n.getFWCountryCode() ) ) {
+			return $i18n.getFWLanguageCode() & "_" & $i18n.getFWCountryCode();
+		}
+		return $i18n.getFWLanguageCode();
 	}
 
 	/**
