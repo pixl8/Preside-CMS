@@ -15,7 +15,7 @@
 
 	canPublish   = IsTrue( prc.canPublish   ?: "" );
 	canSaveDraft = IsTrue( prc.canSaveDraft ?: "" );
-	cancelLink   = Len( Tirm( prc.cancelLink ?: "" ) ) ? prc.cancelLink : event.buildAdminLink( linkTo="sitetree" );
+	cancelLink   = Len( Trim( prc.cancelLink ?: "" ) ) ? prc.cancelLink : event.buildAdminLink( linkTo="sitetree" );
 </cfscript>
 
 <cfoutput>
