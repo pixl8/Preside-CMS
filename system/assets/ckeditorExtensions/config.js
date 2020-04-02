@@ -14,8 +14,4 @@
 CKEDITOR.editorConfig = function( config ) {
 	// activate our plugins
 	config.extraPlugins = "autogrow,widgets,imagepicker,attachmentpicker,presidelink,codesnippet";
-
-	// configuring the auto imported styles from editor stylesheet (see stylesheetparser plugin)
-	config.stylesSet = [];
-	config.stylesheetParser_validSelectors = /^(h[1-6]|p|span|pre|li|ul|ol|dl|dt|dd|small|i|b|em|strong|table)\.\w+/;
 };

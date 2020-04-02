@@ -367,6 +367,8 @@ component {
 						, "*{*}"  // Strip all inline-styles
 					]
 					, extraAllowedContent   = "img dl dt dd"
+					, stylesSet = []
+					, stylesheetParser_validSelectors = "^(h[1-6]|p|span|pre|li|ul|ol|dl|dt|dd|small|i|b|em|strong|table)\.\w+"
 				}
 			  }
 			, linkPicker = _getRicheditorLinkPickerConfig()

@@ -57,7 +57,11 @@ PresideRichEditor = ( function( $ ){
 		config.linkPickerCategory  = linkPickerCategory;
 
 		for( var defaultConfig in defaultConfigs ) {
-			config[defaultConfig] = defaultConfigs[defaultConfig];
+			if ( defaultConfig === "stylesheetParser_validSelectors" ) {
+				config.stylesheetParser_validSelectors = new RegExp( defaultConfigs.stylesheetParser_validSelectors );
+			} else {
+				config[defaultConfig] = defaultConfigs[defaultConfig];
+			}
 		}
 
 		pasteFromWordDisallow = config.pasteFromWordDisallow;
