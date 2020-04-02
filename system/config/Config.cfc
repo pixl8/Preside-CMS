@@ -350,7 +350,7 @@ component {
 				, minHeight             = 0
 				, maxHeight             = 300
 				, autoParagraph         = false
-				, configFile            = "/ckeditorExtensions/config.js?v=10.11.38+0006339"
+				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
 				, defaultConfigs        = {
 					  pasteFromWordPromptCleanup      = true
 					, codeSnippet_theme               = "atelier-dune.dark"
