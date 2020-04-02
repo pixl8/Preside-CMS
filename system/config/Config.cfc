@@ -763,7 +763,7 @@ component {
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|PresideLink,PresideUnlink,-,Widgets,ImagePicker,AttachmentPicker,,SpecialChar'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
-					 & '|NumberedList,BulletedList,Table,HorizontalRule-,Outdent,Indent,-,Blockquote,CreateDiv'
+					 & '|NumberedList,BulletedList,Table,HorizontalRule,-,Outdent,Indent,-,Blockquote,CreateDiv'
 					 & '|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Format',
 		};
