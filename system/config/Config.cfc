@@ -350,13 +350,24 @@ component {
 				, minHeight             = 0
 				, maxHeight             = 300
 				, autoParagraph         = false
-				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
-				, extraAllowedContent   = "img dl dt dd"
-				, pasteFromWordDisallow = [
-					  "span"  // Strip all span elements
-					, "*(*)"  // Strip all classes
-					, "*{*}"  // Strip all inline-styles
-				  ]
+				, configFile            = "/ckeditorExtensions/config.js?v=10.11.38+0006339"
+				, defaultConfigs        = {
+					  pasteFromWordPromptCleanup      = true
+					, codeSnippet_theme               = "atelier-dune.dark"
+					, skin                            = "bootstrapck"
+					, format_tags                     = 'p;h1;h2;h3;h4;h5;h6;pre;div'
+					, autoGrow_onStartup              = true
+					, emailProtection                 = 'encode'
+					, removePlugins                   = 'iframe'
+					, disallowedContent               = 'font;*[align];*{line-height};*{margin*};'
+					, scayt_sLang                     = "en_GB"
+					, pasteFromWordDisallow           = [
+						  "span"  // Strip all span elements
+						, "*(*)"  // Strip all classes
+						, "*{*}"  // Strip all inline-styles
+					]
+					, extraAllowedContent   = "img dl dt dd"
+				}
 			  }
 			, linkPicker = _getRicheditorLinkPickerConfig()
 			, toolbars   = _getCkEditorToolbarConfig()
