@@ -203,7 +203,7 @@ component displayName="Preside Object Service" {
 
 		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
-			if ( ( arguments.selectManyToMany ?: false ) and !isEmpty( arguments.relationshipTable ?: "" ) ) {
+			if ( ( arguments.selectManyToMany ?: false ) && !isEmpty( arguments.relationshipTable ?: "" ) && objectIsVersioned( arguments.relationshipTable ) ) {
 				args.extraFilters.append( _getDraftExclusionFilter( arguments.relationshipTable ) );
 			}
 		}
@@ -1094,7 +1094,7 @@ component displayName="Preside Object Service" {
 						, filter     = { "#sourceFk#" = arguments.sourceId }
 					);
 
-					
+
 					for( var i=1; i <=newRecords.len(); i++ ) {
 						insertData(
 							  objectName    = pivotTable
