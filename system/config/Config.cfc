@@ -351,12 +351,25 @@ component {
 				, maxHeight             = 300
 				, autoParagraph         = false
 				, configFile            = "/ckeditorExtensions/config.js?v=VERSION_NUMBER"
-				, extraAllowedContent   = "img dl dt dd"
-				, pasteFromWordDisallow = [
-					  "span"  // Strip all span elements
-					, "*(*)"  // Strip all classes
-					, "*{*}"  // Strip all inline-styles
-				  ]
+				, defaultConfigs        = {
+					  pasteFromWordPromptCleanup      = true
+					, codeSnippet_theme               = "atelier-dune.dark"
+					, skin                            = "bootstrapck"
+					, format_tags                     = 'p;h1;h2;h3;h4;h5;h6;pre;div'
+					, autoGrow_onStartup              = true
+					, emailProtection                 = 'encode'
+					, removePlugins                   = 'iframe'
+					, disallowedContent               = 'font;*[align];*{line-height};*{margin*};'
+					, scayt_sLang                     = "en_GB"
+					, pasteFromWordDisallow           = [
+						  "span"  // Strip all span elements
+						, "*(*)"  // Strip all classes
+						, "*{*}"  // Strip all inline-styles
+					]
+					, extraAllowedContent   = "img dl dt dd"
+					, stylesSet = []
+					, stylesheetParser_validSelectors = "^(h[1-6]|p|span|pre|li|ul|ol|dl|dt|dd|small|i|b|em|strong|table)\.\w+"
+				}
 			  }
 			, linkPicker = _getRicheditorLinkPickerConfig()
 			, toolbars   = _getCkEditorToolbarConfig()
@@ -750,7 +763,7 @@ component {
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|PresideLink,PresideUnlink,-,Widgets,ImagePicker,AttachmentPicker,,SpecialChar'
 					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
-					 & '|NumberedList,BulletedList,Table,HorizontalRule-,Outdent,Indent,-,Blockquote,CreateDiv'
+					 & '|NumberedList,BulletedList,Table,HorizontalRule,-,Outdent,Indent,-,Blockquote,CreateDiv'
 					 & '|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Format',
 		};

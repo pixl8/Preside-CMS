@@ -2,8 +2,10 @@
 <form i18nBaseUri="preside-objects.email_template:">
 	<tab id="default">
 		<fieldset id="general" sortorder="10">
+			<field binding="email_template$email_blueprint.recipient_type" control="hidden" sortorder="1" />
+
 			<field binding="email_template.name"            required="true"  sortorder="10" control="textinput" />
-			<field binding="email_template.email_blueprint" required="true"  sortorder="20" />
+			<field binding="email_template.email_blueprint" required="true"  sortorder="20" filterBy="recipient_type" />
 			<field binding="email_template.from_address"    required="false" sortorder="30" control="textinput" />
 			<field binding="email_template.track_clicks"    required="false" sortorder="40" />
 		</fieldset>

@@ -56,6 +56,13 @@
 			</a>
 		</cfif>
 
+		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="assetmanager.clearAssetDerivativesAction", queryString="asset=#assetId#")#" title="#translateResource( "cms:assetmanager.clear.derivatives.prompt" )#">
+			<button class="btn btn-info btn-sm">
+				<i class="fa fa-redo"></i>
+				#translateResource( uri="cms:assetmanager.clear.derivatives.btn" )#
+			</button>
+		</a>
+
 		<a class="pull-right inline" data-global-key="a" id="upload-button">
 			<button class="btn btn-success btn-sm">
 				<i class="fa fa-cloud-upload"></i>

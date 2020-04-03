@@ -217,13 +217,23 @@ component {
 		var totalQueued       = 0;
 
 		for( var oneTimeTemplate in oneTimeTemplates ){
-			totalQueued += queueSendout( oneTimeTemplate );
-			templateService.updateScheduledSendFields( templateId=oneTimeTemplate, markAsSent=true );
+			try {
+				totalQueued += queueSendout( oneTimeTemplate );
+				templateService.updateScheduledSendFields( templateId=oneTimeTemplate, markAsSent=true );
+			}
+			catch( any e ) {
+				$raiseError( e );
+			}
 		}
 
 		for( var repeatedTemplate in repeatedTemplates ){
-			totalQueued += queueSendout( repeatedTemplate );
-			templateService.updateScheduledSendFields( templateId=repeatedTemplate );
+			try {
+				totalQueued += queueSendout( repeatedTemplate );
+				templateService.updateScheduledSendFields( templateId=repeatedTemplate );
+			}
+			catch( any e ) {
+				$raiseError( e );
+			}
 		}
 
 		return totalQueued;

@@ -82,13 +82,9 @@ component {
 		,          boolean isDraft              = false
 	) {
 		var poService         = $getPresideObjectService();
-		var newData           = Duplicate( arguments.data );
 		var idField           = poService.getidField( arguments.objectName );
 		var dateCreatedField  = poService.getdateCreatedField( arguments.objectName );
 		var dateModifiedField = poService.getdateModifiedField( arguments.objectName );
-
-		newData.delete( dateCreatedField  );
-		newData.delete( dateModifiedField );
 
 		for( var oldData in existingRecords ) {
 			var versionedManyToManyFields = getVersionedManyToManyFieldsForObject( arguments.objectName );
@@ -111,6 +107,7 @@ component {
 					, data           = oldData
 					, manyToManyData = oldManyToManyData
 					, versionNumber  = arguments.versionNumber
+					, isDraft        = arguments.isDraft
 				);
 
 				arguments.versionNumber = getNextVersionNumber();
@@ -222,6 +219,7 @@ component {
 					, values           = manyToManyData[ propertyName ]
 					, versionNumber    = arguments.versionNumber
 					, versionAuthor    = arguments.versionAuthor
+					, isDraft          = arguments.isDraft
 				);
 			} else if ( relationship == "one-to-many" && poService.isOneToManyConfiguratorObject( arguments.objectName, propertyName ) ) {
 				_saveOneToManyConfiguratorVersion(
@@ -683,6 +681,7 @@ component {
 		, required string  values
 		, required numeric versionNumber
 		, required string  versionAuthor
+		,          boolean isDraft = false
 	) {
 		var poService      = $getPresideObjectService();
 		var prop           = poService.getObjectProperty( arguments.sourceObjectName, arguments.joinPropertyName );
@@ -695,6 +694,25 @@ component {
 
 		if ( Len( Trim( versionedPivot ) ) and Len( Trim( targetObject ) ) ) {
 			transaction {
+
+			if( arguments.isDraft ){
+				poService.updateData(
+					  objectName = versionedPivot
+					, filter     = { "#sourceFk#"=arguments.sourceObjectId, _version_is_latest_draft=1 }
+					, data       = {
+						_version_is_latest_draft = 0
+					}
+				);
+			}else{
+				poService.updateData(
+					  objectName = versionedPivot
+					, filter     = { "#sourceFk#"=arguments.sourceObjectId, _version_is_latest=1 }
+					, data       = {
+						_version_is_latest = 0
+					}
+				);
+			}
+
 				var recordsToInsert = ListToArray( arguments.values );
 
 				for( var targetId in recordsToInsert ) {
@@ -706,6 +724,9 @@ component {
 							, sort_order      = ++sortOrder
 							, _version_number = arguments.versionNumber
 							, _version_author = arguments.versionAuthor
+							, _version_is_latest       = !arguments.isDraft
+							, _version_is_draft        = arguments.isDraft
+							, _version_is_latest_draft = arguments.isDraft
 						}
 					);
 				}
