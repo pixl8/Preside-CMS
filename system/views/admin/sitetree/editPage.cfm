@@ -69,7 +69,7 @@
 								#addPageLinkTitle#
 							</a>
 						<cfelse>
-							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=pageId&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( addPageLinkTitle )#">
+							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#pageId#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( addPageLinkTitle )#">
 								<i class="fa fa-fw fa-plus"></i>&nbsp;
 								#addPageLinkTitle#
 							</a>
