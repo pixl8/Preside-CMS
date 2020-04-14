@@ -3296,10 +3296,40 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test096_loadObjects_shouldThrowInformativeError_whenTableNameIsTooLongAndErrorsEnabled" returntype="void">
+		<cfscript>
+			var poService       = "";
+			var errorThrown     = false;
+			var expectedMessage = "Table name is too long";
+			var expectedDetail  = "The table name, [ptest_this_is_a_very_long_name_for_the_many_to_many_linking_table_too_long_in_fact], is longer than the maximum [64 characters] allowed by the database.";
+
+			try {
+				_getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithLongTableName/" ], throwOnLongTableName=true );
+			} catch ( "PresideObjectService.invalidTableName" e ) {
+				super.assertEquals( expectedMessage, e.message )
+				super.assertEquals( expectedDetail , e.detail )
+				errorThrown = true;
+			}
+
+			super.assert( errorThrown, "A controlled error was not thrown" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test097_loadObjects_shouldTruncateTableName_whenTableNameIsTooLongAndErrorsDisabled" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithLongTableName/" ] );
+			var expected  = "ptest_this_is_a_very_long_name_for_the_many_to_many_linking_tabl";
+			var actual    = poService.getObjectAttribute( "this_is_a_very_long_name_for_the_many_to_many_linking_table_too_long_in_fact", "tableName" );
+
+			super.assertEquals( expected, actual, "A controlled error was not thrown" );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
-		<cfargument name="objectDirectories" type="array"  required="true" />
-		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
+		<cfargument name="objectDirectories"    type="array"   required="true" />
+		<cfargument name="defaultPrefix"        type="string"  required="false" default="ptest_" />
+		<cfargument name="throwOnLongTableName" type="boolean" required="false" />
 
 		<cfscript>
 			cachebox                  = _getCachebox( forceNewInstance = true );
@@ -3320,6 +3350,7 @@
 				, coldbox               = mockColdbox
 				, interceptorService    = mockInterceptorService
 				, selectDataViewService = mockSelectDataViewService
+				, throwOnLongTableName  = arguments.throwOnLongTableName ?: false
 			)
 		</cfscript>
 	</cffunction>

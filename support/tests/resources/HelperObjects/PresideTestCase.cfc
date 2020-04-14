@@ -50,6 +50,7 @@
 		<cfargument name="cachebox"                  type="any"     required="false" />
 		<cfargument name="coldbox"                   type="any"     required="false" />
 		<cfargument name="msSqlUseVarcharMaxForText" type="boolean" required="false" default="false" />
+		<cfargument name="throwOnLongTableName"      type="boolean" required="false" default="false" />
 
 		<cfscript>
 			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
@@ -125,6 +126,7 @@
 					, interceptorService     = arguments.interceptorService
 					, selectDataViewService  = arguments.selectDataViewService
 					, reloadDb               = false
+					, throwOnLongTableName   = arguments.throwOnLongTableName
 				);
 
 				request[ key ] = getMockbox().createMock( object=request[ key ] );
