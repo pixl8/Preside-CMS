@@ -43,7 +43,6 @@ component {
 		var tableExists        = "";
 		var tableVersionExists = "";
 
-		_ensureValidDbEntityNames( arguments.objects );
 		for( objName in objects ) {
 			obj       = objects[ objName ];
 			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
@@ -674,18 +673,6 @@ component {
 		var versionScripts = _getSchemaVersioningService().getSetVersionPlainSql( argumentCollection=arguments );
 		for( var script in versionScripts ){
 			syncScripts.append( script );
-		}
-	}
-
-	private void function _ensureValidDbEntityNames( required struct objects ) {
-		for( var objectName in arguments.objects ) {
-			var objMeta = arguments.objects[ objectName ].meta ?: {};
-			var adapter = _getAdapterFactory().getAdapter( objMeta.dsn ?: "" );
-			var maxTableNameLength = adapter.getTableNameMaxLength();
-
-			if ( Len( objMeta.tableName ?: "" ) > maxTableNameLength ) {
-				objMeta.tableName = Left( objMeta.tableName, maxTableNameLength );
-			}
 		}
 	}
 
