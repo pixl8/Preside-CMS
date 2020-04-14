@@ -25,6 +25,7 @@ component displayName="Preside Object Service" {
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 * @reloadDb.inject               coldbox:setting:syncDb
+	 * @throwOnLongTableName.inject   coldbox:setting:throwOnLongTableName
 	 */
 	public any function init(
 		  required array   objectDirectories
@@ -41,6 +42,7 @@ component displayName="Preside Object Service" {
 		, required any     defaultQueryCache
 		, required any     interceptorService
 		,          boolean reloadDb = true
+		,          boolean throwOnLongTableName = false
 	) {
 		_setObjectDirectories( arguments.objectDirectories );
 		_setObjectReader( arguments.objectReader );
@@ -55,6 +57,7 @@ component displayName="Preside Object Service" {
 		_setVersioningService( arguments.versioningService );
 		_setLabelRendererService( arguments.labelRendererService );
 		_setInterceptorService( arguments.interceptorService );
+		_setThrowOnLongTableName( arguments.throwOnLongTableName );
 		_setInstanceId( CreateObject('java','java.lang.System').identityHashCode( this ) );
 
 		_loadObjects();
@@ -2216,11 +2219,28 @@ component displayName="Preside Object Service" {
 			_getVersioningService().setupVersioningForVersionedObjects( objects, StructKeyArray( dsns )[1] );
 		}
 
+		_ensureValidDbEntityNames( objects );
 		_setObjects( objects );
 		_setDsns( StructKeyArray( dsns ) );
 		_setupAliasCache();
 
 		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
+	}
+
+	private void function _ensureValidDbEntityNames( required struct objects ) {
+		for( var objectName in arguments.objects ) {
+			var objMeta = arguments.objects[ objectName ].meta ?: {};
+			var adapter = _getAdapter( objMeta.dsn ?: "" );
+			var maxTableNameLength = adapter.getTableNameMaxLength();
+
+			if ( Len( objMeta.tableName ?: "" ) > maxTableNameLength ) {
+				if ( _getThrowOnLongTableName() ) {
+					throw( type="PresideObjectService.invalidTableName", message="Table name is too long", detail="The table name, [#objMeta.tableName#], is longer than the maximum [#maxTableNameLength# characters] allowed by the database." );
+				}
+
+				objMeta.tableName = Left( objMeta.tableName, maxTableNameLength );
+			}
+		}
 	}
 
 	private void function _setupAliasCache() {
@@ -3669,6 +3689,13 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setInterceptorService( required any IiterceptorService ) {
 		_interceptorService = arguments.IiterceptorService;
+	}
+
+	private string function _getThrowOnLongTableName() {
+		return _throwOnLongTableName;
+	}
+	private void function _setThrowOnLongTableName( required string throwOnLongTableName ) {
+		_throwOnLongTableName = arguments.throwOnLongTableName;
 	}
 
 	private struct function _getObjects() {
