@@ -213,6 +213,7 @@ component {
 		settings.notificationCountLimit      = 100;
 		settings.syncDb                      = IsBoolean( settings.env.syncDb ?: ""  ) ? settings.env.syncDb : true;
 		settings.autoSyncDb                  = IsBoolean( settings.env.autoSyncDb ?: ""  ) && settings.env.autoSyncDb;
+		settings.throwOnLongTableName        = false;
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.devConsoleToggleKeyCode     = 96;
