@@ -297,9 +297,6 @@ component {
 				case "many-to-one":
 					selectFields[i] = "#field#.${labelfield} as " & field;
 				break;
-
-				default:
-					selectFields[i] = objectName & "." & field;
 			}
 		}
 
