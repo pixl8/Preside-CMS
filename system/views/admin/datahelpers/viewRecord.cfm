@@ -13,12 +13,12 @@
 	#preRenderRecord#
 
 	<div class="row">
-		<div class="col-md-6">
+		<div class="col-lg-12">
 			#preRenderRecordLeftCol#
 			#leftCol#
 			#postRenderRecordLeftCol#
 		</div>
-		<div class="col-md-6">
+		<div class="col-lg-12">
 			#preRenderRecordRightCol#
 			#rightCol#
 			#postRenderRecordRightCol#
