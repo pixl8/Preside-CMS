@@ -249,4 +249,12 @@ component validationProvider=true {
 	public string function earlierThanOrSameAsField_js() {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
 	}
+
+	public boolean function phoneNumber( required string value ) validatorMessage="cms:validation.validPhoneNumber.default" {
+		if ( not Len( Trim( arguments.value ) ) ) {
+			return true;
+		}
+
+		return isValid( type="regex", value=arguments.value, pattern="^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$" )
+	}
 }
