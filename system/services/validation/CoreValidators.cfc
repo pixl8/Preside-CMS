@@ -250,7 +250,7 @@ component validationProvider=true {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
 	}
 
-	public boolean function phoneNumber( required string value ) validatorMessage="cms:validation.validPhoneNumber.default" {
+	public boolean function phoneNumber( required string value ) validatorMessage="cms:validation.phoneNumber.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
