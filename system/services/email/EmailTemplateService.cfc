@@ -647,10 +647,8 @@ component {
 					}
 
 					if ( IsDate( template.schedule_end_date ) && updatedData.schedule_next_send_date >= template.schedule_end_date ){
-						updatedData.delete( "schedule_next_send_date" );
+						updatedData.schedule_next_send_date = "";
 					}
-				} else {
-					updatedData.delete( "schedule_next_send_date" );
 				}
 
 				updatedData.schedule_date = "";
