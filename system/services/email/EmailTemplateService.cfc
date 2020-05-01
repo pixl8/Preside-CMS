@@ -636,15 +636,17 @@ component {
 
 		if ( template.sending_method == "scheduled" ) {
 			if ( template.schedule_type == "repeat" ) {
-				var nowish = _getNow();
-				var expired = ( IsDate( template.schedule_start_date ) && template.schedule_start_date > nowish ) || ( IsDate( template.schedule_end_date ) && template.schedule_end_date < nowish );
+				var nowish  = _getNow();
+				var expired = ( IsDate( template.schedule_end_date ) && template.schedule_end_date < nowish );
 
-				if ( !expired ) {
-					var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit, template.schedule_start_date );
-
-					if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date <= nowish || template.schedule_next_send_date > newSendDate ) {
-						updatedData.schedule_next_send_date = newSendDate;
+				if( !expired ){
+					if( ( IsDate( template.schedule_start_date ) && template.schedule_start_date > nowish ) ){
+						updatedData.schedule_next_send_date = template.schedule_start_date;
 					} else {
+						updatedData.schedule_next_send_date = _calculateNextSendDate( template.schedule_measure, template.schedule_unit, template.schedule_start_date );
+					}
+
+					if ( IsDate( template.schedule_end_date ) && updatedData.schedule_next_send_date >= template.schedule_end_date ){
 						updatedData.delete( "schedule_next_send_date" );
 					}
 				}
@@ -1303,12 +1305,11 @@ component {
 		var nowish = _getNow();
 		var cfunit = _timeUnitToCfMapping[ arguments.unit ];
 
-		if ( IsDate( arguments.startDate ) ) {
-			var measureFromStart = DateDiff( cfunit, arguments.startDate, nowish ) + arguments.measure;
-			var nextDate         = DateAdd( cfunit, measureFromStart, arguments.startDate );
+		if ( IsDate( arguments.startDate ) ) {		
+			var nextDate         = arguments.startDate;
 
 			while( nextDate <= nowish ) {
-				nextDate = DateAdd( cfunit, 1, nextDate );
+				nextDate = DateAdd( cfunit, arguments.measure, nextDate );
 			}
 
 			return nextDate;
