@@ -649,6 +649,8 @@ component {
 					if ( IsDate( template.schedule_end_date ) && updatedData.schedule_next_send_date >= template.schedule_end_date ){
 						updatedData.delete( "schedule_next_send_date" );
 					}
+				} else {
+					updatedData.delete( "schedule_next_send_date" );
 				}
 
 				updatedData.schedule_date = "";
@@ -1305,7 +1307,7 @@ component {
 		var nowish = _getNow();
 		var cfunit = _timeUnitToCfMapping[ arguments.unit ];
 
-		if ( IsDate( arguments.startDate ) ) {		
+		if ( IsDate( arguments.startDate ) ) {
 			var nextDate         = arguments.startDate;
 
 			while( nextDate <= nowish ) {
