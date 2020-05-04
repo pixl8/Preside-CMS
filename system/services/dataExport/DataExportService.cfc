@@ -78,6 +78,7 @@ component {
 		selectDataArgs.autoGroupBy = true;
 		selectDataArgs.useCache    = false;
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
+		selectDataArgs.distinct     = true;
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 
 		if ( canReportProgress || canLog ) {
@@ -285,8 +286,17 @@ component {
 		for( var field in arguments.selectFields ) {
 			i++;
 
-			if ( ( props[ field ].relationship ?: "" ) == "many-to-one" ) {
-				arguments.selectFields[ i ] = "#field#.${labelfield} as #field#";
+			var prop = props[ field ];
+
+			switch( prop.relationship ?: "none" ) {
+				case "one-to-many":
+				case "many-to-many":
+					selectFields[i] = "'' as " & field;
+				break;
+
+				case "many-to-one":
+					selectFields[i] = "#field#.${labelfield} as " & field;
+				break;
 			}
 		}
 

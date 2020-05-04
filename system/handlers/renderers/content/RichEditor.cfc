@@ -18,4 +18,9 @@ component {
 		return renderView( view="renderers/content/richeditor/adminView", args=args );
 	}
 
+	public string function email( event, rc, prc, args={} ){
+		args.data = args.data ?: "";
+		args.data = contentRendererService.renderEmbeddedWidgets( richContent=args.data, context="email" );
+		return default( argumentCollection=arguments );
+	}
 }
