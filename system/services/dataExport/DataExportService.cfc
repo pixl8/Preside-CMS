@@ -281,21 +281,21 @@ component {
 		, required array  selectFields
 	) {
 		var props = $getPresideObjectService().getObjectProperties( arguments.objectName );
+		var prop  = {};
 		var i     = 0;
 
 		for( var field in arguments.selectFields ) {
 			i++;
-
-			var prop = props[ field ];
+			prop = props[ field ] ?: {};
 
 			switch( prop.relationship ?: "none" ) {
 				case "one-to-many":
 				case "many-to-many":
-					selectFields[i] = "'' as " & field;
+					selectFields[ i ] = "'' as " & field;
 				break;
 
 				case "many-to-one":
-					selectFields[i] = "#field#.${labelfield} as " & field;
+					selectFields[ i ] = "#field#.${labelfield} as " & field;
 				break;
 			}
 		}
