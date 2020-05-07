@@ -234,6 +234,7 @@ component displayName="Website login service" {
 				  reset_password_token        = resetToken
 				, reset_password_key          = hashedResetKey
 				, reset_password_token_expiry = resetTokenExpiry
+				, reset_password_datecreated  = now()
 			} );
 
 			_getEmailService().send(
@@ -263,6 +264,7 @@ component displayName="Website login service" {
 				  reset_password_token        = token.resetToken
 				, reset_password_key          = token.hashedResetKey
 				, reset_password_token_expiry = token.resetTokenExpiry
+				, reset_password_datecreated  = now()
 			} );
 
 			_getEmailService().send(
@@ -293,6 +295,7 @@ component displayName="Website login service" {
 			  reset_password_token        = token.resetToken
 			, reset_password_key          = token.hashedResetKey
 			, reset_password_token_expiry = token.resetTokenExpiry
+			, reset_password_datecreated  = now()
 		} );
 
 		var result = _getEmailService().send(
@@ -332,7 +335,16 @@ component displayName="Website login service" {
 	public boolean function validateResetPasswordToken( required string token ) autodoc=true {
 		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
-		return record.recordCount == 1;
+		return record.recordCount && record.is_token_valid ?: false;
+	}
+
+	/**
+	 * Get user record by password reset token
+	 *
+	 * @token.hint The  password reset token token
+	 */
+	public query function getUserRecordByPasswordResetToken( required string token, boolean fromVersionTable=false ) autodoc=true {
+		return _getUserRecordByPasswordResetToken( arguments.token, arguments.fromVersionTable );
 	}
 
 	/**
@@ -341,26 +353,36 @@ component displayName="Website login service" {
 	 * @token.hint    The temporary reset password token to look the user up with
 	 * @password.hint The new password
 	 */
-	public boolean function resetPassword( required string token, required string password ) autodoc=true {
-		var record = _getUserRecordByPasswordResetToken( arguments.token );
+	public boolean function resetPassword( required string token, required string password, boolean allowOldToken=false ) autodoc=true {
+		var record = _getUserRecordByPasswordResetToken( token=arguments.token, fromVersionTable=allowOldToken );
 
 		if ( record.recordCount ) {
-			var hashedPw = _getBCryptService().hashPw( password );
+			if( record.is_token_valid ?: false ){
+				var hashedPw = _getBCryptService().hashPw( password );
 
-			var result = _getUserDao().updateData(
-				  id   = record.id
-				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
-			);
-
-			if ( result ) {
-				$recordWebsiteUserAction(
-					  userId = record.id
-					, action = "changepassword"
-					, type   = "login"
+				var result = _getUserDao().updateData(
+					  id   = record.id
+					, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="", reset_password_datecreated="", last_password_updated=now() }
 				);
-			}
 
-			return result;
+				if ( result ) {
+					$recordWebsiteUserAction(
+						  userId = record.id
+						, action = "changepassword"
+						, type   = "login"
+					);
+				}
+
+				return result;
+
+			} else {
+
+				var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+
+				if ( IsBoolean( resendToken ) && resendToken ) {
+					resendPasswordResetInstructions( record.id );
+				}
+			}
 		}
 
 		return false;
@@ -546,6 +568,34 @@ component displayName="Website login service" {
 		return false;
 	}
 
+	public struct function allowResetPassword( required string loginId ) {
+		var result = {
+			allowedReset = true
+		};
+
+		var record = _getUserDao().selectData(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
+			, filterParams = { login_id = arguments.loginId }
+			, useCache     = false
+			, selectFields = [
+				'reset_password_datecreated'
+			]
+		);
+
+		if( isDate( record.reset_password_datecreated ) ){
+			var nextAllowResetDate = _getSystemConfigurationService().getSetting( "website_users", "next_reset_password_allowed_after_x_minute", 10 );
+
+			var sinceLastResetPasswordInMinutes = dateDiff( "n", record.reset_password_datecreated, now() );
+
+			if( sinceLastResetPasswordInMinutes < nextAllowResetDate ) {
+				result.allowedReset                  = false;
+				result.nextAllowedResetAfterXMinutes = nextAllowResetDate - sinceLastResetPasswordInMinutes;
+			}
+		}
+
+		return result;
+	}
+
 // private helpers
 	private struct function _getUserByLoginId( required string loginId ) {
 		var record = _getUserDao().selectData(
@@ -723,7 +773,7 @@ component displayName="Website login service" {
 		}
 	}
 
-	private query function _getUserRecordByPasswordResetToken( required string token ) {
+	private query function _getUserRecordByPasswordResetToken( required string token, string fromVersionTable=false ) {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
 
@@ -732,26 +782,27 @@ component displayName="Website login service" {
 		}
 
 		var record = _getUserDao().selectData(
-			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
-			, filter       = { reset_password_token = t }
+			  selectFields             = [ "id", "reset_password_key", "reset_password_token_expiry", "reset_password_datecreated", "'' as is_token_expired", "'' as is_token_key_valid", "'' as is_token_valid", "'' as latest_token_created_date", "'' as last_password_updated" ]
+			, filter                   = { reset_password_token = t }
+			, allowLatestDraftVersions = !( arguments.fromVersionTable ?: false )
+			, fromVersionTable         = arguments.fromVersionTable ?: false
 		);
 
-		if ( !record.recordCount ) {
-			return record;
-		}
-
-		if ( Now() > record.reset_password_token_expiry || !_getBCryptService().checkPw( k, record.reset_password_key ) ) {
-			_getUserDao().updateData(
-				  id     = record.id
-				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
-			);
-
-			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
-			if ( IsBoolean( resendToken ) && resendToken ) {
-				resendPasswordResetInstructions( record.id );
+		if( record.recordCount ){
+			if( arguments.fromVersionTable ?: false ){
+				var latestUserRecord = _getUserDao().selectData(
+				 	  selectFields = [ "reset_password_datecreated", "last_password_updated" ]
+					, id           = record.id
+				);
+				if( !isEmpty( latestUserRecord.reset_password_datecreated ?: "" ) ){
+					querySetCell( record, 'latest_token_created_date', latestUserRecord.reset_password_datecreated );
+				} else if( !isEmpty( latestUserRecord.last_password_updated ?: "" ) ) {
+					querySetCell( record, 'last_password_updated', latestUserRecord.last_password_updated );
+				}
 			}
-
-			return QueryNew('');
+			querySetCell( record, 'is_token_expired'   , _expiredResetPasswordToken( record.reset_password_token_expiry ) );
+			querySetCell( record, 'is_token_key_valid' ,  _getBCryptService().checkPw( k, record.reset_password_key ) );
+			querySetCell( record, 'is_token_valid'     , !record.is_token_expired && record.is_token_key_valid  );
 		}
 
 		return record;
@@ -763,6 +814,12 @@ component displayName="Website login service" {
 		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
 			SessionRotate();
 		}
+	}
+
+	private boolean function _expiredResetPasswordToken(
+		required string resetPasswordTokenExpiry
+	) {
+		return Now() > arguments.resetPasswordTokenExpiry ?: now();
 	}
 
 // private accessors
