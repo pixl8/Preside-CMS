@@ -357,28 +357,36 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test18_validateResetPasswordToken_shouldReturnFalse_whenTokenRecordNotFound() output=false {
-		var userService = _getUserService();
-		var testToken   = "xxxxxx-yyyyyy";
+		var userService      = _getUserService();
+		var testToken        = "xxxxxx-yyyyyy";
+		var fromVersionTable = false;
 
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
-			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
+			  filter                   = { reset_password_token = ListFirst( testToken, "-" ) }
+			, selectFields             = [ "id", "reset_password_key", "reset_password_token_expiry", "reset_password_datecreated","'' as is_token_expired", "'' as is_token_key_valid", "'' as is_token_valid", "'' as latest_token_created_date", "'' as last_password_updated" ]
+			, allowLatestDraftVersions = !fromVersionTable
+			, fromVersionTable         = fromVersionTable
 		).$results( QueryNew('') );
 
 		super.assertFalse( userService.validateResetPasswordToken( testToken ) );
 	}
 
 	function test19_validateResetPasswordToken_shouldReturnFalseAndClearToken_whenRecordFoundButTokenHasExpired() output=false {
-		var userService = _getUserService();
-		var testToken   = "xxxxxx-yyyyyy";
-		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", -1, Now() ) ]]);
+		var userService      = _getUserService();
+		var testToken        = "xxxxxx-yyyyyy";
+		var testRecord       = QueryNew('id,reset_password_key,reset_password_token_expiry,reset_password_datecreated,is_token_expired,is_token_key_valid,is_token_valid,latest_token_created_date,last_password_updated', 'varchar,varchar,date,date,varchar,varchar,varchar,varchar,varchar', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ), Now(),'','','','','' ]]);
+		var fromVersionTable = false;
 
 		userService.$( "$getPresideSetting", false );
 		userService.$( "resendPasswordResetInstructions", true );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
-			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
+			  filter                   = { reset_password_token = ListFirst( testToken, "-" ) }
+			, selectFields             = [ "id", "reset_password_key", "reset_password_token_expiry", "reset_password_datecreated","'' as is_token_expired", "'' as is_token_key_valid", "'' as is_token_valid", "'' as latest_token_created_date", "'' as last_password_updated" ]
+			, allowLatestDraftVersions = !fromVersionTable
+			, fromVersionTable         = fromVersionTable
 		).$results( testRecord );
+
+		mockBCryptService.$( "checkPw" ).$args( ListLast( testToken, "-" ), testRecord.reset_password_key ).$results( false );
 
 		mockUserDao.$( "updateData" ).$args(
 			  id     = testRecord.id
@@ -390,15 +398,18 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test20_validateResetPasswordToken_shouldReturnFalseClearTokenAndSendEmail_whenRecordFoundAndNotExpiredByHashedKeyDoesNotMatch() output=false {
-		var userService = _getUserService();
-		var testToken   = "xxxxxx-yyyyyy";
-		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ) ]]);
+		var userService      = _getUserService();
+		var testToken        = "xxxxxx-yyyyyy";
+		var testRecord       = QueryNew('id,reset_password_key,reset_password_token_expiry,reset_password_datecreated,is_token_expired,is_token_key_valid,is_token_valid,latest_token_created_date,last_password_updated', 'varchar,varchar,date,date,varchar,varchar,varchar,varchar,varchar', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ), Now(),'','','','','' ]]);
+		var fromVersionTable = false;
 
 		userService.$( "$getPresideSetting" ).$args( category="email", setting="resendtoken", default=false ).$results( true );
 		userService.$( "resendPasswordResetInstructions", true );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
-			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
+			  filter                   = { reset_password_token = ListFirst( testToken, "-" ) }
+			, selectFields             = [ "id", "reset_password_key", "reset_password_token_expiry", "reset_password_datecreated","'' as is_token_expired", "'' as is_token_key_valid", "'' as is_token_valid", "'' as latest_token_created_date", "'' as last_password_updated" ]
+			, allowLatestDraftVersions = !fromVersionTable
+			, fromVersionTable         = fromVersionTable
 		).$results( testRecord );
 
 		mockUserDao.$( "updateData" ).$args(
@@ -414,13 +425,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test21_validateResetPasswordToken_shouldReturnTrue_whenRecordFoundAndNotExpiredAndHashedKeyMatches() output=false {
-		var userService = _getUserService();
-		var testToken   = "xxxxxx-yyyyyy";
-		var testRecord  = QueryNew('id,reset_password_key,reset_password_token_expiry', 'varchar,varchar,date', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ) ]]);
+		var userService      = _getUserService();
+		var testToken        = "xxxxxx-yyyyyy";
+		var testRecord       = QueryNew('id,reset_password_key,reset_password_token_expiry,reset_password_datecreated,is_token_expired,is_token_key_valid,is_token_valid,latest_token_created_date,last_password_updated', 'varchar,varchar,date,date,varchar,varchar,varchar,varchar,varchar', [[ "someid", "hashedkey", DateAdd( "d", +1, Now() ), Now(),'','','','','' ]]);
+		var fromVersionTable = false;
 
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
-			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
+			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry", "reset_password_datecreated","'' as is_token_expired", "'' as is_token_key_valid", "'' as is_token_valid", "'' as latest_token_created_date", "'' as last_password_updated" ]
+			, allowLatestDraftVersions = !fromVersionTable
+			, fromVersionTable         = fromVersionTable
 		).$results( testRecord );
 
 		mockBCryptService.$( "checkPw" ).$args( ListLast( testToken, "-" ), testRecord.reset_password_key ).$results( true );
@@ -448,7 +462,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockBCryptService.$( "hashPw" ).$args( plainPassword ).$results( encryptedPassword );
 		mockUserDao.$( "updateData" ).$args(
 			  id     = testRecord.id
-			, data   = { password=encryptedPassword, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
+			, data   = { password=encryptedPassword, reset_password_token="", reset_password_key="", reset_password_token_expiry="",reset_password_datecreated="", last_password_updated=now() }
 		).$results( true );
 
 		super.assert( userService.resetPassword( testToken, plainPassword ) );

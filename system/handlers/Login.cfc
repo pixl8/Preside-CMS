@@ -160,10 +160,10 @@ component {
 			} );
 		}
 
-		var latestToken = websiteLoginService.getUserRecordByPasswordResetToken( rc.token );
+		var latestToken = websiteLoginService.getUserRecordByToken( rc.token );
 
 		if ( !latestToken.recordCount  || latestToken.recordCount && !( isBoolean( latestToken.is_token_valid ?: "" ) && latestToken.is_token_valid ) ) {
-			var olderVersionToken = websiteLoginService.getUserRecordByPasswordResetToken( token=rc.token, fromVersionTable=true );
+			var olderVersionToken = websiteLoginService.getUserRecordByToken( token=rc.token, fromVersionTable=true );
 			var persist           = {
 				message = "INVALID_RESET_TOKEN"
 			};
