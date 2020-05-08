@@ -74,8 +74,10 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 
 	public void function rotate() {
 		if ( _usePresideSessionManagement() ) {
-			if ( Len( getVar( "sessionId" ) ) ) {
+			var currentSessionId = getVar( "sessionId" );
+			if ( Len( currentSessionId ) ) {
 				setVar( "sessionId", CreateUUId() );
+				$getPresideObject( "session_storage" ).deleteData( id=currentSessionId );
 			}
 		} else {
 			var appSettings = getApplicationSettings();
