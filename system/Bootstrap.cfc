@@ -5,6 +5,7 @@ component {
 		, string  name                         = arguments.id & ExpandPath( "/" )
 		, array   statelessUrlPatterns         = _getDefaultStatelessUrlPatterns()
 		, array   statelessUserAgentPatterns   = _getDefaultStatelessUserAgents()
+		, boolean presideSessionManagement     = _usePresideSessionManagement()
 		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
@@ -27,7 +28,8 @@ component {
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
 		this.statelessRequest                        = isStatelessRequest( _getUrl() );
-		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
+		this.presideSessionManagement                = arguments.presideSessionManagement;
+		this.sessionManagement                       = !arguments.presideSessionManagement && ( arguments.sessionManagement ?: !this.statelessRequest );
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 		this.bufferOutput                            = arguments.bufferOutput;
@@ -47,6 +49,8 @@ component {
 			_initEveryEverything();
 		}
 
+		_restoreSession();
+
 		return application.cbBootstrap.onRequestStart( arguments.targetPage );
 	}
 
@@ -55,7 +59,12 @@ component {
 			_isReloading( false );
 		}
 
-		_invalidateSessionIfNotUsed();
+		if ( this.presideSessionManagement ) {
+			_persistSession();
+			_removeSessionCookies();
+		} else {
+			_invalidateSessionIfNotUsed();
+		}
 		_cleanupCookies();
 	}
 
@@ -64,7 +73,12 @@ component {
 			_isReloading( false );
 		}
 
-		_invalidateSessionIfNotUsed();
+		if ( this.presideSessionManagement ) {
+			_persistSession();
+			_removeSessionCookies();
+		} else {
+			_invalidateSessionIfNotUsed();
+		}
 		_cleanupCookies();
 	}
 
@@ -818,5 +832,35 @@ component {
 		}
 
 		return application._presideDefaultStatelessUserAgentPatterns;
+	}
+
+	private boolean function _usePresideSessionManagement() {
+		var _env = server.system.environment ?: {};
+
+		return IsBoolean( _env.PRESIDE_SESSION_MANAGEMENT ?: "" ) && _env.PRESIDE_SESSION_MANAGEMENT;
+	}
+
+	private void function _restoreSession() {
+		var storage = _getSessionStorage();
+		if ( !IsNull( local.storage ) ) {
+			storage.restore();
+		}
+	}
+
+	private void function _persistSession() {
+		var storage = _getSessionStorage();
+		if ( !IsNull( local.storage ) ) {
+			storage.persist();
+		}
+	}
+
+	private any function _getSessionStorage() {
+		var controller = _getColdboxController();
+
+		if ( !IsNull( local.controller ) ) {
+			return controller.getWirebox().getInstance( "sessionStorage" );
+		}
+
+		return;
 	}
 }

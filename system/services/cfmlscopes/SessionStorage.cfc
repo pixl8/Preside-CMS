@@ -1,0 +1,199 @@
+/**
+ * @presideService true
+ *
+ */
+component extends="preside.system.modules.cbstorages.models.SessionStorage" output=false {
+
+	variables.epoch = CreateDate( 1970, 1, 1 );
+
+	public any function init() {
+		return super.init();
+	}
+
+// CUSTOM FUNCTIONS FOR PRESIDE SESSION MANAGEMENT
+	public any function restore() {
+		var sessionId = cookie.psid ?: "";
+		if ( Len( Trim( sessionId ) ) ) {
+			var record = $getPresideObject( "session_storage" ).selectData( id=sessionId, selectFields=[ "expiry", "value" ] );
+
+			if ( record.recordCount ) {
+				if ( _expired( record.expiry ) ) {
+					$getPresideObject( "session_storage" ).deleteData( id=sessionId );
+				} else {
+					try {
+						request._presideSession = DeserializeJson( record.value );
+					} catch( any e ) {
+						request._presideSession = {};
+					}
+					request._presideSession.sessionId = sessionId;
+				}
+			}
+		}
+	}
+
+	public any function persist() {
+		var storage              = getStorage();
+		var ignoreKeys           = [ "sessionid" ];
+		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
+		var sessionIsUsed        = false;
+
+		for( var key in storage ) {
+			if ( ignoreKeys.findNoCase( key ) ) {
+				continue;
+			}
+			if ( keysToBeEmptyStructs.findNoCase( key ) && IsStruct( storage[ key ] ) && storage[ key ].isEmpty() ) {
+				continue;
+			}
+
+			sessionIsUsed = true;
+			break;
+		}
+
+		if ( sessionIsUsed ) {
+			var updated = false;
+			var sessionId = storage.sessionId ?: "";
+			var sessionData = { expiry=_getUnixTimeStamp() + _getSessionTimeoutInSeconds() };
+
+			StructDelete( storage, "sessionId" );
+			sessionData.value = SerializeJson( storage );
+
+			if ( Len( Trim( sessionId ) ) ) {
+				updated = $getPresideObject( "session_storage" ).updateData(
+					  id   = sessionId
+					, data = sessionData
+				);
+			}
+
+			if ( !updated ) {
+				sessionId = $getPresideObject( "session_storage" ).insertData( sessionData );
+
+				cookie name="psid" value=LCase( sessionId );
+			}
+		}
+	}
+
+	public void function rotate() {
+		if ( _usePresideSessionManagement() ) {
+			if ( Len( getVar( "sessionId" ) ) ) {
+				setVar( "sessionId", CreateUUId() );
+			}
+		} else {
+			var appSettings = getApplicationSettings();
+
+			if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+				SessionRotate();
+			}
+		}
+	}
+
+// STANDARD SESSION STORAGE FUNCTIONS
+	public any function getVar( name, default ) output=false {
+		if ( _usePresideSessionManagement() ) {
+			var storage = getStorage();
+			return storage[ arguments.name ] ?: ( arguments.default ?: "" );
+		} else if ( _areSessionsEnabled() ) {
+			return super.getVar( argumentCollection=arguments );
+		}
+
+		return arguments.default ?: "";
+	}
+
+	public any function setVar( name, value ) output=false {
+		if ( _usePresideSessionManagement() ) {
+			var storage = getStorage();
+			storage[ arguments.name ] = arguments.value;
+		} else if ( _areSessionsEnabled() ) {
+			return super.setVar( argumentCollection=arguments );
+		}
+		return;
+	}
+
+	public any function deleteVar( name ) output=false {
+		if ( _usePresideSessionManagement() ) {
+			var storage = getStorage();
+
+			return StructDelete( storage, arguments.name, true );
+		} else if ( _areSessionsEnabled() ) {
+			return super.deleteVar( argumentCollection=arguments );
+		}
+		return false;
+	}
+
+	public any function exists( name ) output=false {
+		if ( _usePresideSessionManagement() ) {
+			var storage = getStorage();
+
+			return StructKeyExists( storage, arguments.name );
+		} else if ( _areSessionsEnabled() ) {
+			return super.exists( argumentCollection=arguments );
+		}
+
+		return false;
+	}
+
+	public any function clearAll() output=false {
+		if ( _usePresideSessionManagement() ) {
+			removeStorage();
+		} else if ( _areSessionsEnabled() ) {
+			return super.clearAll( argumentCollection=arguments );
+		}
+		return;
+	}
+
+	public any function getStorage() output=false {
+		if ( _usePresideSessionManagement() ) {
+			return request._presideSession ?: _createStorage();
+		} else if ( _areSessionsEnabled() ) {
+			return super.getStorage( argumentCollection=arguments );
+		}
+		return {};
+	}
+
+	public any function removeStorage() output=false {
+		if ( _usePresideSessionManagement() ) {
+			StructDelete( request, "_presideSession" );
+		} else if ( _areSessionsEnabled() ) {
+			return super.removeStorage( argumentCollection=arguments );
+		}
+		return;
+	}
+
+// PRIVATE HELPERS
+	private boolean function _areSessionsEnabled() output=false {
+		var appSettings = getApplicationSettings();
+
+		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
+	}
+
+	private boolean function _usePresideSessionManagement() output=false {
+		var appSettings = getApplicationSettings();
+
+		return IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
+	}
+
+	private struct function _createStorage() {
+		request._presideSession = request._presideSession ?: {};
+
+		return request._presideSession;
+	}
+
+	private boolean function _expired( expiryTimeout ) {
+		return _getUnixTimeStamp() > arguments.expiryTimeout;
+	}
+
+	private numeric function _getSessionTimeoutInSeconds() {
+		var appSettings   = getApplicationSettings();
+		var timeout       = appSettings.sessionTimeout ?: CreateTimeSpan( 0, 0, 20, 0 );
+		var secondsInADay = 86400;
+
+		return Round( Val( timeout ) * secondsInADay );
+	}
+
+	private numeric function _getUnixTimeStamp() {
+		var utcNow = DateConvert( "local2utc", Now() );
+
+		return DateDiff( 's', epoch, utcNow );
+	}
+
+
+}
