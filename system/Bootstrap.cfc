@@ -59,7 +59,7 @@ component {
 			_isReloading( false );
 		}
 
-		if ( this.presideSessionManagement ) {
+		if ( this.presideSessionManagement && !this.statelessRequest ) {
 			_persistSession();
 			_removeSessionCookies();
 		} else {
@@ -841,16 +841,20 @@ component {
 	}
 
 	private void function _restoreSession() {
-		var storage = _getSessionStorage();
-		if ( !IsNull( local.storage ) ) {
-			storage.restore();
+		if ( this.presideSessionManagement && !this.statelessRequest ) {
+			var storage = _getSessionStorage();
+			if ( !IsNull( local.storage ) ) {
+				storage.restore();
+			}
 		}
 	}
 
 	private void function _persistSession() {
-		var storage = _getSessionStorage();
-		if ( !IsNull( local.storage ) ) {
-			storage.persist();
+		if ( this.presideSessionManagement && !this.statelessRequest ) {
+			var storage = _getSessionStorage();
+			if ( !IsNull( local.storage ) ) {
+				storage.persist();
+			}
 		}
 	}
 

@@ -6,6 +6,7 @@
  * @useCache       false
  * @noLabel        true
  * @nodatemodified true
+ * @feature        presideSessionManagement
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Session storage"  {
 	property name="expiry" type="numeric" dbtype="int"      required=true indexes="expiry";
