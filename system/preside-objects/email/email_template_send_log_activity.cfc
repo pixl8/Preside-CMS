@@ -14,7 +14,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="user_ip"       type="string" dbtype="varchar" maxLength=255  required=true;
 	property name="user_agent"    type="string" dbtype="text"                   required=false;
 	property name="extra_data"    type="string" dbtype="longtext";
-	property name="link"          type="string" dbtype="varchar" maxlength=800  indexes="link";
+	property name="link"          type="string" dbtype="varchar" maxlength=750  indexes="link";
 	property name="link_title"    type="string" dbtype="text";
 	property name="link_body"     type="string" dbtype="text";
 	property name="code"          type="string" dbtype="varchar" maxlength=20  indexes="errorcode";
