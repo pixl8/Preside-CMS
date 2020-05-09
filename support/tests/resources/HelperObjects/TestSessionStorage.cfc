@@ -74,6 +74,10 @@
 		<cfset StructDelete( variables, "_presideStorage" )>
 	</cffunction>
 
+	<cffunction name="rotate" access="public" returntype="void" output="false">
+		<!--- DUMMY --->
+	</cffunction>
+
 <!--- PRIVATE HELPERS --->
 
 	<cffunction name="_createStorage" access="private" returntype="void" hint="Create the session storage scope" output="false" >
