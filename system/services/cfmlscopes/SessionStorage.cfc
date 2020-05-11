@@ -4,7 +4,7 @@
  */
 component extends="preside.system.modules.cbstorages.models.SessionStorage" output=false {
 
-	variables.epoch = CreateDate( 1970, 1, 1 );
+	variables.epoch = "1970-01-01 00:00:00";
 
 	public any function init() {
 		return super.init();
