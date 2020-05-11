@@ -1,10 +1,12 @@
 /**
  * @presideService true
- *
+ * @singleton      true
  */
 component extends="preside.system.modules.cbstorages.models.SessionStorage" output=false {
 
-	variables.epoch = CreateDate( 1970, 1, 1 );
+	variables.epoch = "1970-01-01 00:00:00";
+
+	property name="sqlRunner" inject="sqlRunner";
 
 	public any function init() {
 		return super.init();
@@ -14,11 +16,11 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 	public any function restore() {
 		var sessionId = cookie.psid ?: "";
 		if ( Len( Trim( sessionId ) ) ) {
-			var record = $getPresideObject( "session_storage" ).selectData( id=sessionId, selectFields=[ "expiry", "value" ] );
+			var record = _getSessionRecord( sessionId );
 
 			if ( record.recordCount ) {
 				if ( _expired( record.expiry ) ) {
-					$getPresideObject( "session_storage" ).deleteData( id=sessionId );
+					_deleteSessionRecord( sessionId );
 				} else {
 					try {
 						request._presideSession = DeserializeJson( record.value );
@@ -52,20 +54,17 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 		if ( sessionIsUsed ) {
 			var updated = false;
 			var sessionId = storage.sessionId ?: "";
-			var sessionData = { expiry=_getUnixTimeStamp() + _getSessionTimeoutInSeconds() };
+			var expiry = expiry=_getUnixTimeStamp() + _getSessionTimeoutInSeconds();
 
 			StructDelete( storage, "sessionId" );
-			sessionData.value = SerializeJson( storage );
+			var value = SerializeJson( storage );
 
 			if ( Len( Trim( sessionId ) ) ) {
-				updated = $getPresideObject( "session_storage" ).updateData(
-					  id   = sessionId
-					, data = sessionData
-				);
+				updated = _updateSessionRecord( sessionId, expiry, value );
 			}
 
 			if ( !updated ) {
-				sessionId = $getPresideObject( "session_storage" ).insertData( sessionData );
+				sessionId = _createSessionRecord( expiry, value );
 
 				cookie name="psid" value=LCase( sessionId );
 			}
@@ -77,7 +76,7 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 			var currentSessionId = getVar( "sessionId" );
 			if ( Len( currentSessionId ) ) {
 				setVar( "sessionId", CreateUUId() );
-				$getPresideObject( "session_storage" ).deleteData( id=currentSessionId );
+				_deleteSessionRecord( currentSessionId );
 			}
 		} else {
 			var appSettings = getApplicationSettings();
@@ -195,6 +194,62 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 		var utcNow = DateConvert( "local2utc", Now() );
 
 		return DateDiff( 's', epoch, utcNow );
+	}
+
+	private query function _getSessionRecord( required string sessionId ) {
+		return sqlRunner.runSql(
+			  sql = "select session_storage.expiry, session_storage.value from psys_session_storage session_storage where id = :id"
+			, dsn = _getSessionStorageDsn()
+			, params = [ { type="cf_sql_varchar", value=arguments.sessionId, name="id" } ]
+		);
+	}
+
+	private query function _deleteSessionRecord( required string sessionId ) {
+		return sqlRunner.runSql(
+			  sql = "delete from psys_session_storage where id = :id"
+			, dsn = _getSessionStorageDsn()
+			, params = [ { type="cf_sql_varchar", value=arguments.sessionId, name="id" } ]
+		);
+	}
+
+	private string function _getSessionStorageDsn() {
+		if ( !StructKeyExists( variables, "_sessionStorageDsn" ) ) {
+			variables._sessionStorageDsn = $getPresideObject( "session_storage" ).getDsn();
+		}
+		return variables._sessionStorageDsn;
+	}
+
+	private boolean function _updateSessionRecord( required string sessionId, required numeric expiry, required string value ) {
+		var result = sqlRunner.runSql(
+			  sql        = "update psys_session_storage set expiry = :expiry, value = :value where id = :id"
+			, dsn        = _getSessionStorageDsn()
+			, returnType = "info"
+			, params     = [
+				  { type="cf_sql_varchar" , value=arguments.sessionId, name="id"     }
+				, { type="cf_sql_int"     , value=arguments.expiry   , name="expiry" }
+				, { type="cf_sql_clob"    , value=arguments.value    , name="value"  }
+			  ]
+		);
+
+		return Val( result.recordCount ?: 0 ) > 0;
+	}
+
+	private string function _createSessionRecord( required numeric expiry, required string value ) {
+		var id = CreateUUId();
+
+		sqlRunner.runSql(
+			  sql        = "insert into psys_session_storage ( id, datecreated, expiry, value ) values ( :id, :datecreated, :expiry, :value )"
+			, dsn        = _getSessionStorageDsn()
+			, returnType = "info"
+			, params     = [
+				  { type="cf_sql_varchar"  , value=id              , name="id"          }
+				, { type="cf_sql_timestamp", value=Now()           , name="datecreated" }
+				, { type="cf_sql_int"      , value=arguments.expiry, name="expiry"      }
+				, { type="cf_sql_clob"     , value=arguments.value , name="value"       }
+			  ]
+		);
+
+		return id;
 	}
 
 
