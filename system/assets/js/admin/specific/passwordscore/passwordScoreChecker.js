@@ -22,12 +22,12 @@
 						if ( scoreCache.hasOwnProperty( password ) ) {
 							showScore( scoreCache[ password ] );
 						} else {
-							$.getJSON( scoreCheckerUrl, { password : password, context : context }, function( scoreData ){
+							$.post( scoreCheckerUrl, { password : password, context : context }, function( scoreData ){
 								scoreCache[ password ] = scoreData;
 								if ( password === $passwordInput.val() ) {
 									showScore( scoreData );
 								}
-							} );
+							}, "json" );
 						}
 					}
 
