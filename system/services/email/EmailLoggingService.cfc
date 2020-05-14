@@ -111,15 +111,17 @@ component {
 	 *
 	 */
 	public void function markAsSent( required string id ) {
-		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
+		var updated = $getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
 			  sent      = true
 			, sent_date = _getNow()
 		} );
 
-		recordActivity(
-			  messageId = arguments.id
-			, activity  = "send"
-		);
+		if ( updated ) {
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "send"
+			);
+		}
 	}
 
 	/**
@@ -133,7 +135,7 @@ component {
 	 */
 	public void function markAsFailed( required string id, required string reason, string code="" ) {
 		var errorCode = Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "";
-		$getPresideObject( "email_template_send_log" ).updateData(
+		var updated = $getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
 			, filterParams = { id=arguments.id, failed=false, opened=false }
 			, data={
@@ -144,11 +146,13 @@ component {
 			  }
 		);
 
-		recordActivity(
-			  messageId = arguments.id
-			, activity  = "fail"
-			, extraData = { reason=arguments.reason, code=errorCode }
-		);
+		if ( updated ) {
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "fail"
+				, extraData = { reason=arguments.reason, code=errorCode }
+			);
+		}
 	}
 
 
@@ -160,7 +164,7 @@ component {
 	 *
 	 */
 	public void function markAsMarkedAsSpam( required string id ) {
-		$getPresideObject( "email_template_send_log" ).updateData(
+		var updated = $getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( marked_as_spam is null or marked_as_spam = :marked_as_spam )"
 			, filterParams = { id=arguments.id, marked_as_spam=false }
 			, data={
@@ -169,10 +173,12 @@ component {
 			  }
 		);
 
-		recordActivity(
-			  messageId = arguments.id
-			, activity  = "markasspam"
-		);
+		if ( updated ) {
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "markasspam"
+			);
+		}
 	}
 
 	/**
@@ -183,7 +189,7 @@ component {
 	 *
 	 */
 	public void function markAsUnsubscribed( required string id ) {
-		$getPresideObject( "email_template_send_log" ).updateData(
+		var updated = $getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( unsubscribed is null or unsubscribed = :unsubscribed )"
 			, filterParams = { id=arguments.id, unsubscribed=false }
 			, data={
@@ -192,10 +198,12 @@ component {
 			  }
 		);
 
-		recordActivity(
-			  messageId = arguments.id
-			, activity  = "unsubscribe"
-		);
+		if ( updated ) {
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "unsubscribe"
+			);
+		}
 	}
 
 	/**
@@ -246,17 +254,21 @@ component {
 
 		if ( !arguments.softMark ) {
 			data.delivered_date = _getNow();
+		}
+
+		var updated = $getPresideObject( "email_template_send_log" ).updateData(
+			  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
+			, filterParams = { id=arguments.id, delivered=false }
+			, data         = data
+		);
+
+		if ( !arguments.softMark && updated ) {
+			data.delivered_date = _getNow();
 			recordActivity(
 				  messageId = arguments.id
 				, activity  = "deliver"
 			);
 		}
-
-		$getPresideObject( "email_template_send_log" ).updateData(
-			  filter       = "id = :id and ( delivered is null or delivered = :delivered )"
-			, filterParams = { id=arguments.id, delivered=false }
-			, data         = data
-		);
 
 	}
 
@@ -275,7 +287,7 @@ component {
 			data.opened_date = _getNow();
 		}
 
-		$getPresideObject( "email_template_send_log" ).updateData(
+		var updated = $getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( opened is null or opened = :opened )"
 			, filterParams = { id=arguments.id, opened=false }
 			, data         = data
@@ -283,7 +295,7 @@ component {
 
 		markAsDelivered( arguments.id, true );
 
-		if ( !arguments.softMark ) {
+		if ( !arguments.softMark && updated ) {
 			recordActivity( messageId=arguments.id, activity="open" );
 		}
 	}
@@ -299,13 +311,15 @@ component {
 			var current = dao.selectData( id=arguments.id );
 
 			if ( current.recordCount ) {
-				dao.updateData( id=arguments.id, data={ click_count=Val( current.click_count )+1 } );
+				var updated = dao.updateData( id=arguments.id, data={ click_count=Val( current.click_count )+1 } );
 
-				recordActivity(
-					  messageId = arguments.id
-					, activity  = "click"
-					, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
-				);
+				if ( updated ) {
+					recordActivity(
+						  messageId = arguments.id
+						, activity  = "click"
+						, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
+					);
+				}
 
 				markAsOpened( id=id, softMark=true );
 			}
