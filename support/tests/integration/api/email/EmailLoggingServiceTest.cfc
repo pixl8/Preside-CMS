@@ -153,7 +153,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var logId   = CreateUUId();
 
-				mockLogDao.$( "updateData" );
+				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
 
 				service.markAsSent( logId );
@@ -170,6 +170,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, activity  = "send"
 				} );
 			} );
+			it( "should not record an activity when log record not updated", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData", 0 );
+				service.$( "recordActivity" );
+
+				service.markAsSent( logId );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 0 );
+			} );
 		} );
 
 		describe( "markAsDelivered()", function(){
@@ -177,7 +188,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var logId   = CreateUUId();
 
-				mockLogDao.$( "updateData" );
+				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
 
 				service.markAsDelivered( logId );
@@ -237,7 +248,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var reason  = "Recipient does not want to see you right now" & CreateUUId();
 				var code    = 610;
 
-				mockLogDao.$( "updateData" );
+				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
 
 				service.markAsFailed( logId, reason, code );
@@ -255,6 +266,19 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, activity  = "fail"
 					, extraData = { reason=reason, code=code }
 				} );
+			} );
+			it( "should not record an activity when log record not updated", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+				var reason  = "Recipient does not want to see you right now" & CreateUUId();
+				var code    = 610;
+
+				mockLogDao.$( "updateData", 0 );
+				service.$( "recordActivity" );
+
+				service.markAsFailed( logId, reason, code );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 0 );
 			} );
 		} );
 
@@ -290,7 +314,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var logId   = CreateUUId();
 
-				mockLogDao.$( "updateData" );
+				mockLogDao.$( "updateData", 1 );
 				service.$( "markAsDelivered" );
 				service.$( "recordActivity" );
 
@@ -335,7 +359,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var logId   = CreateUUId();
 
-				mockLogDao.$( "updateData" );
+				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
 
 				service.markAsMarkedAsSpam( logId );
@@ -353,6 +377,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, activity  = "markasspam"
 				} );
 			} );
+			it( "should not record an activity when log record not updated", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData", 0 );
+				service.$( "recordActivity" );
+
+				service.markAsMarkedAsSpam( logId );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 0 );
+			} );
 		} );
 
 		describe( "markAsUnsubscribed()", function(){
@@ -360,7 +395,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var logId   = CreateUUId();
 
-				mockLogDao.$( "updateData" );
+				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
 
 				service.markAsUnsubscribed( logId );
@@ -377,6 +412,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  messageId = logId
 					, activity  = "unsubscribe"
 				} );
+			} );
+			it( "should not record an activity when log record not updated", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData", 0 );
+				service.$( "recordActivity" );
+
+				service.markAsUnsubscribed( logId );
+
+				expect( service.$callLog().recordActivity.len() ).toBe( 0 );
 			} );
 		} );
 
