@@ -5,7 +5,10 @@
 			<field binding="email_template.name"            control="textinput" sortorder="10" />
 			<field binding="email_template.email_blueprint" required="true"     sortorder="20" quickadd="true" />
 			<field binding="email_template.subject"         control="textinput" sortorder="30" />
-			<field binding="email_template.from_address"    required="false" sortorder="40" control="textinput" />
+			<field binding="email_template.from_address"    required="false" sortorder="40" control="textinput">
+				<rule validator="email" />
+				<rule validator="allowedSenderEmail" />
+			</field>
 			<field binding="email_template.track_clicks"    required="false" sortorder="50" />
 		</fieldset>
 		<fieldset id="save_content" sortorder="15">

@@ -7,7 +7,11 @@ This form is used for configuring general email settings
 <form i18nBaseUri="cms:emailcenter.settings.general.form.">
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
-			<field sortorder="10" name="default_from_address" control="textinput" required="false" />
+			<field sortorder="10" name="default_from_address" control="textinput" required="false">
+				<rule validator="email" />
+				<rule validator="allowedSenderEmail" />
+			</field>
+			<field sortorder="20" name="allowed_sending_domains" control="textarea" required="false" />
 		</fieldset>
 		<fieldset id="providers" sortorder="20">
 			<field sortorder="10" name="defaultProvider"   control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" />
