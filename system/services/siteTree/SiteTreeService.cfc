@@ -224,13 +224,13 @@ component {
 		}
 
 		return _getPobj().selectData(
-			  selectFields       = [ 
+			  selectFields       = [
 				    "page.id as value"
 				  , "page.title as text"
 				  , "parent_page.title as parent"
 				  , "page._hierarchy_depth as depth"
 				  , "page.page_type"
-				  , "page.active as active" 
+				  , "page.active as active"
 			  ]
 			, filter             = filter
 			, extraFilters       = extra
@@ -1502,7 +1502,7 @@ component {
 		var addPageArgs = {
 			  title                   = _getI18nService().translateResource( uri=pageType.getName(), defaultValue=pageType.getid() )
 			, page_type               = pageType.getId()
-			, slug                    = pageType.getId() == "homepage" ? "" : LCase( ReReplace( pageType.getId(), "[\W_]", "-", "all" ) )
+			, slug                    = pageType.getDefaultSystemPageSlug()
 			, active                  = 1
 			, userId                  = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 			, exclude_from_navigation = pageType.getId() != "homepage"
