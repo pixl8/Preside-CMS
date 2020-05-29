@@ -4,8 +4,6 @@
  */
 component extends="preside.system.modules.cbstorages.models.SessionStorage" output=false {
 
-	variables.epoch = "1970-01-01 00:00:00";
-
 	property name="sqlRunner" inject="sqlRunner";
 
 	public any function init() {
@@ -191,9 +189,9 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 	}
 
 	private numeric function _getUnixTimeStamp() {
-		var utcNow = DateConvert( "local2utc", Now() );
+		var epochInMs = CreateObject( "java", "java.time.Instant" ).now().toEpochMilli();
 
-		return DateDiff( 's', epoch, utcNow );
+		return Ceiling( epochInMs / 1000  );
 	}
 
 	private query function _getSessionRecord( required string sessionId ) {
