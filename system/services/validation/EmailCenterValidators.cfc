@@ -38,4 +38,22 @@ component {
 		return false;
 	}
 
+	public array function existingEmailsUsingInvalidDomains( required string validDomains ) {
+		var delims    = ", #Chr( 10 )##Chr( 13 )#";
+		var domains   = ListToArray( Trim( arguments.validDomains ), delims );
+		var addresses = $getPresideObject( "email_template" ).selectData( distinct=true, selectFields=[ "from_address" ] );
+		var badaddresses = [];
+
+		for( var address in addresses ) {
+			if ( Len( address.from_address) ) {
+				var domain = ListRest( address.from_address, "@" );
+				if ( !ArrayFindNoCase( domains, domain ) ) {
+					ArrayAppend( badaddresses, address.from_address );
+				}
+			}
+		}
+
+		return badaddresses;
+	}
+
 }
