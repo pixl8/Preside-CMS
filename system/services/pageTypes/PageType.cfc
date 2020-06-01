@@ -38,7 +38,7 @@ component accessors=true {
 		if ( len( variables.defaultSystemPageSlug ) ) {
 			return LCase( variables.defaultSystemPageSlug );
 		}
-		return LCase( ReReplace( pageType.getId(), "[\W_]", "-", "all" ) );
+		return LCase( ReReplace( getId(), "[\W_]", "-", "all" ) );
 	}
 
 	public struct function getMemento(){
