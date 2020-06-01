@@ -5,6 +5,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			  "/tests/resources/presideObjectService/_dataViews/views1"
 			, "/tests/resources/presideObjectService/_dataViews/views2"
 			, "/tests/resources/presideObjectService/_dataViews/views3"
+			, "/tests/resources/presideObjectService/_dataViews/views4"
 		];
 
 		describe( "renderView()", function(){
@@ -116,6 +117,33 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					expect( log[i].args.data           ).toBe( mockData.data[i] );
 				}
 			} );
+		} );
+
+		describe( "_parseFieldsFromViewFile()", function(){
+
+			it( "should correctly parse the fields specified in view", function(){
+				var svc = _getPresideObjectViewService( [ viewFolders[4] ] );
+
+				makePublic( svc, "_parseFieldsFromViewFile", "publicParseFieldsFromViewFile" );
+
+				var expected = {
+					  team = {
+						  editable = false
+						, field    = "object_b.team"
+						, renderer = ""
+					  }
+					, team_name = {
+						  editable = false
+						, field    = "team.name"
+						, renderer = ""
+					  }
+				};
+
+				var result = svc.publicParseFieldsFromViewFile( objectName="object_b", filePath="/tests/resources/presideObjectService/_dataViews/views4/preside-objects/object_b/index.cfm" );
+
+				expect( result.fieldOptions ).toBe( expected );
+			} );
+
 		} );
 	}
 

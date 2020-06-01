@@ -151,7 +151,7 @@ component displayName="Preside Object View Service" {
 		var fields          = { selectFields=[], fieldOptions={} };
 		var paramFile       = arguments.filePath.reReplace( "\.cfm$", "$params.txt" );
 		var fileContent     = FileExists( paramFile ) ? FileRead( paramFile ) : ( FileExists( arguments.filePath ) ? FileRead( arguments.filePath ) : "" );
-		var regexes         = [ '<' & '(?:cfparam|cf_presideparam)\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;]*?name\s*=\s*"args\.(.*?)".*?;' ];
+		var regexes         = [ '<' & '(?:cfparam|cf_presideparam)\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;>]*?name\s*=\s*"args\.([^>]*?)"[^>]*?;' ];
 		var fieldRegex      = 'field\s*=\s*"(.*?)"';
 		var rendererRegex   = 'renderer\s*=\s*"(.*?)"';
 		var editableRegex   = 'editable\s*=\s*(true|"true")'

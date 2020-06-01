@@ -19,7 +19,7 @@ component {
 		_doBrowserEtagLookup( etag );
 
 		header name="cache-control" value="max-age=31536000";
-		header name="etag" value=etag;
+		header name="ETag" value=etag;
 		content file="#assetFile#" type=_getMimeType( assetFile );abort;
 	}
 
@@ -40,7 +40,8 @@ component {
 	}
 
 	private string function _doBrowserEtagLookup( required string etag ) {
-		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {
+		var headers = getHTTPRequestData( false ).headers;
+		if ( ( headers[ "If-None-Match" ] ?: "" ) == arguments.etag ) {
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
 		}
 	}
@@ -72,7 +73,7 @@ component {
 		setting showdebugoutput=false;
 
 		header name="cache-control" value="max-age=#( 2400 )#"; // cache for 20 min
-		header name="etag" value=etag;
+		header name="ETag" value=etag;
 		content reset=true type="application/javascript";WriteOutput(js);abort;
 	}
 
