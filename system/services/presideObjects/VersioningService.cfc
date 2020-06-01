@@ -312,7 +312,7 @@ component {
 						changedFields.append( field );
 					}
 				} else if ( propDbType == "varchar" || propDbType == "text" ){
-					if ( trim( oldData[ field ] ?: "" ) != trim( arguments.newData[ field ] ?: "" ) ){
+					if ( compare( trim( oldData[ field ] ?: "" ), trim( arguments.newData[ field ] ?: "" ) ) != 0 ){
 						changedFields.append( field );
 					}
 				} else if ( propDbType == "int" || propDbType == "float" ){
