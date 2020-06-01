@@ -25,6 +25,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( Len( Trim( log ) ) ) {
 			event.renderData( data=log, type="HTML" );
+		} else {
+			event.renderData( data=translateResource( "cms:errorLogs.log.notFound" ), type="HTML" );
 		}
 	}
 
