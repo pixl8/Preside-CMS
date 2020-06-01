@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="emailServiceProviderService" inject="emailServiceProviderService";
 	property name="siteService"                 inject="siteService";
 	property name="systemConfigurationService"  inject="systemConfigurationService";
+	property name="emailCenterValidators"       inject="emailCenterValidators";
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
@@ -73,6 +74,13 @@ component extends="preside.system.base.AdminHandler" {
 			, formData      = formData
 			, ignoreMissing = Len( Trim( siteId ) )
 		);
+
+		if ( Len( Trim( formData.allowed_sending_domains ?: "" ) ) ) {
+			var badAddresses = emailCenterValidators.existingEmailsUsingInvalidDomains( formData.allowed_sending_domains )
+			if ( ArrayLen( badAddresses ) ) {
+				validationResult.addError( "allowed_sending_domains", "cms:validation.allowedSenderEmail.existing.emails", [ ArrayToList( badAddresses, ", " ) ] );
+			}
+		}
 
 		if ( !validationResult.validated() ) {
 			messageBox.error( translateResource( uri="cms:sysconfig.validation.failed" ) );
