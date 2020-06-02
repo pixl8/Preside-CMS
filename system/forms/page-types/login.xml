@@ -9,6 +9,13 @@
 		</fieldset>
 	</tab>
 
+	<tab id="messages">
+		<fieldset id="messages">
+			<field binding="login.login_required"/>
+			<field binding="login.login_failed" />
+		</fieldset>
+	</tab>
+
 	<tab id="access" deleted="true" />
 	<tab id="dates" deleted="true" />
 </form>

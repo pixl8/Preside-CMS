@@ -1,37 +1,93 @@
-<cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
+component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
-	<cffunction name="test01_getAdapter_shouldReturnMySqlAdapter_whenDatasourceIsMySqlDb" returntype="void">
-		<cfscript>
-			var adapter = _getFactory().getAdapter( dsn = application.dsn );
+	function run(){
 
-			super.assertEquals( "preside.system.services.database.adapters.MySqlAdapter", GetMetaData( adapter ).name );
-		</cfscript>
-	</cffunction>
+		describe( "getAdapter()", function(){
+			it( "should return MySQL Adapter when datasource is a MySQL DB", function(){
+				var factory = _getFactory();
 
-	<cffunction name="test02_getAdapter_shouldThrowError_whenDatasourceDoesNotExist" returntype="void">
-		<cfscript>
-			var errorThrown = false;
+				var mockedDbInfo = querySim( "database_productname,database_version
+				    MySql | whatever"
+				);
 
-			try {
-				_getFactory().getAdapter( dsn = "nonExistantDb" );
+				factory.$( "_getDbInfo" ).$args( dsn=application.dsn ).$results( mockedDbInfo );
 
-			} catch ( "PresideObjects.datasourceNotFound" e ) {
-				super.assertEquals( "Datasource, [nonExistantDb], not found.", e.message );
-				errorThrown = true;
-			}
+				var adapter = factory.getAdapter( dsn = application.dsn );
 
-			super.assert( errorThrown, "No helpful error was thrown" );
-		</cfscript>
-	</cffunction>
+				expect( GetMetaData( adapter ).name ).toBe( "preside.system.services.database.adapters.MySqlAdapter" );
+			} );
 
-<!--- private helpers --->
-	<cffunction name="_getFactory" access="private" returntype="any" output="false">
-		<cfscript>
-			return new preside.system.services.database.adapters.AdapterFactory(
-				  cache         = _getCachebox().getCache( "PresideSystemCache" )
-				, dbInfoService = new preside.system.services.database.DbInfoService()
-			);
-		</cfscript>
-	</cffunction>
+			it( "should return SQL Server Adapter when datasource is a Microsoft SQL Server DB", function(){
+				var factory = _getFactory();
 
-</cfcomponent>
+				var mockedDbInfo = querySim( "database_productname,database_version
+				    Microsoft SQL Server | 8.1.2"
+				);
+
+				factory.$( "_getDbInfo" ).$args( dsn=application.dsn ).$results( mockedDbInfo );
+
+				var adapter = factory.getAdapter( dsn = application.dsn );
+
+				expect( GetMetaData( adapter ).name ).toBe( "preside.system.services.database.adapters.MsSqlAdapter" );
+			} );
+
+			it( "should return SQL Server 2012 Adapter when datasource is a Microsoft SQL Server DB and version is >= 11", function(){
+				var factory = _getFactory();
+
+				var mockedDbInfo = querySim( "database_productname,database_version
+				    Microsoft SQL Server | 11.1.2"
+				);
+
+				factory.$( "_getDbInfo" ).$args( dsn=application.dsn ).$results( mockedDbInfo );
+
+				var adapter = factory.getAdapter( dsn = application.dsn );
+
+				expect( GetMetaData( adapter ).name ).toBe( "preside.system.services.database.adapters.MsSql2012Adapter" );
+			} );
+
+			it( "should return PostgreSQL Adapter when datasource is a PostgreSQL DB", function(){
+				var factory = _getFactory();
+
+				var mockedDbInfo = querySim( "database_productname,database_version
+				    PostgreSQL | whatever"
+				);
+
+				factory.$( "_getDbInfo" ).$args( dsn=application.dsn ).$results( mockedDbInfo );
+
+				var adapter = factory.getAdapter( dsn = application.dsn );
+
+				expect( GetMetaData( adapter ).name ).toBe( "preside.system.services.database.adapters.PostgreSqlAdapter" );
+			} );
+
+			it( "should throw error when DB is not a supported engine", function(){
+				var factory = _getFactory();
+
+				var mockedDbInfo = querySim( "database_productname,database_version
+				    Some DB Engine | whatever"
+				);
+
+				factory.$( "_getDbInfo" ).$args( dsn="somedsn" ).$results( mockedDbInfo );
+
+				expect( function(){
+					factory.getAdapter( dsn="somedsn" );
+
+				} ).toThrow( type="PresideObjects.databaseEngineNotSupported" );
+			} );
+
+			it( "should throw error when datasource does not exist", function(){
+				expect( function(){
+					_getFactory().getAdapter( dsn = "nonExistantDb" );
+
+				} ).toThrow( type="PresideObjects.datasourceNotFound" );
+			} );
+		} );
+	}
+
+	private any function _getFactory() {
+		dbInfoService = CreateMock( object=( new preside.system.services.database.DbInfoService() ) );
+
+		var factory   = new preside.system.services.database.adapters.AdapterFactory( dbInfoService = dbInfoService, msSqlUseVarcharMaxForText = false );
+
+		return CreateMock( object=factory );
+	}
+}

@@ -1,9 +1,9 @@
 <cfscript>
-	linkType = rc.type ?: "sitetreelink";
+	linkTypes = prc.linkTypes ?: [];
+	linkType  = LCase( rc.type ?: ( linkTypes[ 1 ] ?: "" ) );
 
-	validLinkTypes = "email,url,sitetreelink";
-	if ( !ListFindNoCase( validLinkTypes, linkType ) ) {
-		linkType = "sitetreelink";
+	if ( !ArrayFind( linkTypes, linkType ) ) {
+		linkType = linkTypes[ 1 ] ?: "";
 	}
 </cfscript>
 
@@ -17,7 +17,7 @@
 	<div class="row">
 		<div class="col-sm-2">
 			<div class="link-type-menu">
-				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=(rc.type ?: "sitetreelink" ) } )#
+				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ allowedTypes=linkTypes, selectedType=linkType } )#
 			</div>
 		</div>
 		<div class="col-sm-10">

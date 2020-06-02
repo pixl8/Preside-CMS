@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.fileupload:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="accept"           control="filetypepicker"  required="false"  sortorder="34"  multiple="true" defaultvalue="" />
+			<field name="maximumFileSize"  control="textInput"       required="false"  sortorder="36"  defaultvalue="5" />
+		</fieldset>
+	</tab>
+</form>

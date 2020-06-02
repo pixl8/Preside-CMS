@@ -42,12 +42,15 @@
 	</cffunction>
 
 	<cffunction name="_getPresideObjectService" access="private" returntype="any" output="false">
-		<cfargument name="objectDirectories"  type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
-		<cfargument name="defaultPrefix"      type="string"  required="false" default="pobj_" />
-		<cfargument name="forceNewInstance"   type="boolean" required="false" default="false" />
-		<cfargument name="interceptorService" type="any"    required="false" default="#_getMockInterceptorService()#" />
-		<cfargument name="cachebox"           type="any"     required="false" />
-		<cfargument name="coldbox"            type="any"     required="false" />
+		<cfargument name="objectDirectories"         type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
+		<cfargument name="defaultPrefix"             type="string"  required="false" default="pobj_" />
+		<cfargument name="forceNewInstance"          type="boolean" required="false" default="false" />
+		<cfargument name="interceptorService"        type="any"     required="false" default="#_getMockInterceptorService()#" />
+		<cfargument name="selectDataViewService"     type="any"     required="false" default="#createStub()#" />
+		<cfargument name="cachebox"                  type="any"     required="false" />
+		<cfargument name="coldbox"                   type="any"     required="false" />
+		<cfargument name="msSqlUseVarcharMaxForText" type="boolean" required="false" default="false" />
+		<cfargument name="throwOnLongTableName"      type="boolean" required="false" default="false" />
 
 		<cfscript>
 			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
@@ -55,19 +58,18 @@
 			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
 				var mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
+				var mockRequestContext = getMockBox().createStub();
+				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
+				var dbInfoService  = new preside.system.services.database.DbInfoService();
+				var sqlRunner      = new preside.system.services.database.sqlRunner( logger = logger );
+
+				var adapterFactory = new preside.system.services.database.adapters.AdapterFactory( dbInfoService=dbInfoService, msSqlUseVarcharMaxForText=arguments.msSqlUseVarcharMaxForText );
 				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 					, interceptorService = arguments.interceptorService
 					, featureService = mockFeatureService
-				);
-				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
-				var dbInfoService  = new preside.system.services.database.DbInfoService();
-				var sqlRunner      = new preside.system.services.database.sqlRunner( logger = logger );
-
-				var adapterFactory = new preside.system.services.database.adapters.AdapterFactory(
-					  cache         = cachebox.getCache( "PresideSystemCache" )
-					, dbInfoService = dbInfoService
+					, adapterFactory = adapterFactory
 				);
 				var schemaVersioning = new preside.system.services.presideObjects.sqlSchemaVersioning(
 					  adapterFactory = adapterFactory
@@ -84,21 +86,28 @@
 				);
 				var relationshipGuidance = new preside.system.services.presideObjects.relationshipGuidance(
 					  objectReader = objReader
+					, selectDataViewService = createStub()
 				);
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
 				var coldbox = arguments.coldbox ?: getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+				var versioningService = getMockBox().createMock( object=new preside.system.services.presideObjects.VersioningService() );
+
+				var mockLabelRendererCache = getMockBox().createStub();
+				var labelRendererService = getMockBox().createMock( object= new preside.system.services.rendering.LabelRendererService(
+					labelRendererCache = mockLabelRendererCache
+				) );
 
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
 				mockFeatureService.$( "isFeatureEnabled", true );
 
-				if ( !StructKeyExists( arguments, "coldbox" ) ) {
-					var event   = getMockbox().createStub();
+				mockRequestContext.$( "isAdminUser", true );
+				mockRequestContext.$( "getAdminUserId", "" );
+				mockRequestContext.$( "getUseQueryCache", true );
 
-					event.$( "isAdminUser", true );
-					event.$( "getAdminUserId", "" );
-					coldbox.$( "getRequestContext", event );
+				if ( !StructKeyExists( arguments, "coldbox" ) ) {
+					coldbox.$( "getRequestContext", mockRequestContext );
 				}
 
 				request[ key ] = new preside.system.services.presideObjects.PresideObjectService(
@@ -109,13 +118,25 @@
 					, sqlRunner              = sqlRunner
 					, relationshipGuidance   = relationshipGuidance
 					, presideObjectDecorator = presideObjectDecorator
+					, versioningService      = versioningService
+					, labelRendererService   = labelRendererService
 					, filterService          = mockFilterService
-					, cache                  = cachebox.getCache( "PresideSystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
 					, coldboxController      = coldbox
 					, interceptorService     = arguments.interceptorService
+					, selectDataViewService  = arguments.selectDataViewService
 					, reloadDb               = false
+					, throwOnLongTableName   = arguments.throwOnLongTableName
 				);
+
+				request[ key ] = getMockbox().createMock( object=request[ key ] );
+
+				versioningService.$( "$getPresideObjectService", request[ key ] );
+				versioningService.$( "$getAdminLoggedInUserId", "" );
+				request[ key ].$( "$isAdminUserLoggedIn", false );
+				request[ key ].$( "$getRequestContext", mockRequestContext );
+				request[ key ].$( "$isFeatureEnabled" ).$args( "queryCachePerObject" ).$results( false );
+				mockRequestContext.$( "showNonLiveContent", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];
@@ -151,16 +172,17 @@
 	</cffunction>
 
 	<cffunction name="_emptyDatabase" access="private" returntype="any" output="false">
-		<cfset var tables = _getDbTables() />
-		<cfset var table  = "" />
-		<cfset var fks    = "" />
-		<cfset var fk     = "" />
+		<cfset var dbAdapter = _getDbAdapter() />
+		<cfset var tables    = _getDbTables() />
+		<cfset var table     = "" />
+		<cfset var fks       = "" />
+		<cfset var fk        = "" />
 
 		<cfloop list="#tables#" index="table">
 			<cfset fks = _getTableForeignKeys( table ) />
 			<cfloop collection="#fks#" item="fk">
 				<cfquery datasource="#application.dsn#">
-					alter table #fks[fk].fk_table# drop foreign key #fk#
+					#dbAdapter.getDropForeignKeySql( foreignKeyName=fk, tableName=fks[fk].fk_table )#
 				</cfquery>
 			</cfloop>
 		</cfloop>
@@ -172,9 +194,23 @@
 	</cffunction>
 
 	<cffunction name="_getDbTables" access="private" returntype="string" output="false">
-		<cfset var tables = "" />
-		<cfdbinfo type="tables" name="tables" datasource="#application.dsn#" />
-		<cfreturn ValueList( tables.table_name ) />
+		<cfscript>
+			var tableInfo       = "";
+			var tables          = [];
+			var reservedSchemas = [ "sys", "information_schema" ]
+
+			dbinfo type="tables" name="tableInfo" datasource=application.dsn;
+
+			for( var table in tableInfo ){
+				var isInReservedSchema = reservedSchemas.find( table.table_schem ?: "" );
+				var isPhysicalTable    = ( table.table_type ?: "table" ) == "table";
+				if ( !isInReservedSchema && isPhysicalTable ) {
+					tables.append( table.table_name );
+				}
+			}
+
+			return tables.toList();
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="_getTableForeignKeys" access="private" returntype="struct" output="false">
@@ -226,7 +262,10 @@
 			dbinfo type="index" table="#arguments.tableName#" name="indexes" datasource="#application.dsn#";
 
 			for( index in indexes ){
-				if ( index.index_name neq "PRIMARY" ) {
+				var isPrimaryKeyIndex = index.index_name == "PRIMARY" || ReFindNoCase( "^pk_", index.index_name ) || ReFindNoCase( "_pkey$", index.index_name );
+				var isActuallyAnIndex = index.index_name.len();
+
+				if ( isActuallyAnIndex && !isPrimaryKeyIndex ) {
 					if ( not StructKeyExists( ixs, index.index_name ) ){
 						ixs[ index.index_name ] = {
 							  unique = not index.non_unique
@@ -252,6 +291,13 @@
 
 			return columns;
 		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getDbAdapter" access="private" returntype="any" output="false">
+		<cfreturn new preside.system.services.database.adapters.AdapterFactory(
+			  dbInfoService             = new preside.system.services.database.DbInfoService()
+			, msSqlUseVarcharMaxForText = false
+		).getAdapter( application.dsn ) />
 	</cffunction>
 
 </cfcomponent>

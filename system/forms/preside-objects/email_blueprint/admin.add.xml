@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_blueprint:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="email_blueprint.name"             control="textinput"                  sortorder="10" />
+			<field binding="email_blueprint.recipient_type"   control="emailRecipientTypePicker"   sortorder="20" />
+			<field binding="email_blueprint.layout"           control="emailLayoutPicker"          sortorder="30" />
+			<field binding="email_blueprint.service_provider" control="emailServiceProviderPicker" sortorder="40" />
+		</fieldset>
+	</tab>
+</form>

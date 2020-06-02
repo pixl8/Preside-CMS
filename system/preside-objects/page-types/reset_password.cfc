@@ -7,4 +7,8 @@
  * @feature              websiteUsers
  *
  */
-component extends="preside.system.base.SystemPresideObject" displayName="Page type: Reset password" {}
+component extends="preside.system.base.SystemPresideObject" displayName="Page type: Reset password" {
+    property name="empty_password"         type="string" dbtype="varchar" control="textArea";
+    property name="passwords_do_not_match" type="string" dbtype="varchar" control="textArea";
+    property name="unknown_error"          type="string" dbtype="varchar" control="textArea";
+}

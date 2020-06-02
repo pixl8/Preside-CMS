@@ -1,89 +1,80 @@
 //some page-content variables
-@content-bg:#FFF;
-@content-header-border:#E2E2E2;
-@content-header-color:#2679B5;
-@content-header-size:24px;
-@content-header-small-color:#8089A0;
-@content-header-small-size:14px;
+@content-bg: #FFF;
+@content-header-border: #E2E2E2;
+@content-header-color: #2679B5;
+@content-header-small-color: #8089A0;
+
+
+html {
+  min-height: 100%;
+  position: relative;
+}
 
 body {
+  background-color: @body-background;
+  min-height: 100%;
   padding-bottom: 0;
-  background-color:@body-bg;
-  min-height:100%;
 
-  font-family: @default-font;
-  font-size:13px;
-  color:@text-color;
+  font-family: 'Preside Open sans'
+;
+  font-size: @base-font-size;
+  color: @text-color;
 
-  line-height:1.5;
-
-
-// &:before{
-//	 content:"";
-//	 display:none;
-//	 position:fixed;
-//	 top:0; bottom:0; left:0; right:0; z-index:-1;
-//	 background-color:#FFF;
-// }
-  &.navbar-fixed {
-	padding-top:@navbar-mh;
-  }
-  &.breadcrumbs-fixed {
-	padding-top:@navbar-mh + @breadcrumb-height;
-  }
+  line-height: 1.5;
 }
 
 
-
-/* ace default theme layout sections */
 .main-container {
-	position: static;
-	padding:0;
-}
-.main-container:after {
-    background-color: #FFF;
-    bottom: 0;
-    content: "";
-    display: block;
-    max-width: inherit;
-    //position: absolute;
-	position:fixed;
-    top: 0;
-    width: 100%;
-    z-index: -2;
-}
-@media (min-width: @screen-tablet) {
- .container.main-container:after {
-	.box-shadow(~"0 0 0 1px rgba(0,0,0,0.1)");
- }
-}
+	//this is the white page background, used especially when inside ".container"
+	//it will expand all the way down to fill all the page space
+	&:before {
+		display: block;
+		content: "";
+		position: absolute;
+		z-index: -2;
 
-.main-container > .main-container-inner{
-	position: relative;
-}
-.container.main-container {
- .sidebar.sidebar-fixed {
-	& , &:before {
-		left: auto;
+		width: 100%;
+		max-width: inherit;
+		bottom: 0;
+		top: 0;
+
+		background-color: #FFF;
 	}
- }
+
+	&.container {
+		&, .rtl & {padding-left: 0; padding-right: 0;}
+
+		&:before {
+			.box-shadow(~"0 0 0 1px rgba(0,0,0,0.1)");
+			width: inherit;
+
+			//we use above+this instead of min-width, for better results when we disable responsiveness
+			@media (max-width: @screen-xs-max) {
+				.box-shadow(~"none");
+				width: 100%;
+			}
+		}
+	}
 }
-
-
-
 
 .main-content {
- margin-left:@sidebar-width;
- margin-right:0; margin-top:0;
- min-height:100%;
- padding:0;
+	.clearfix;
+
+	margin-left: 0;
+	min-height: 100%;
+	padding: 0;
+
+	.sidebar + & {
+		margin-left: @sidebar-width;
+	}
 }
 
 .page-content {
- background:@content-bg;
- margin:0;
- padding:8px 20px 24px;
-}//.page-content
+	background-color: @content-bg;
+	position: relative;
+	margin: 0;
+	padding: @page-content-padding-top 20px 24px;
+}
 
 .page-header {
 	margin:0 0 12px;
@@ -93,19 +84,57 @@ body {
     padding-top: 7px;
 
 	h1 {
-	  padding:0;
-	  margin:0 8px;
-	  font-size:@content-header-size;
-	  font-weight:lighter;
-	  color:@content-header-color;
+	  padding: 0;
+	  margin: 0 8px;
+	  font-size: @font-size-content-header;
+	  font-weight: lighter;
+	  color: @content-header-color;
 
 	  small {
-		margin:0 6px;
-		font-size:@content-header-small-size;
-		font-weight:normal;
-		color:@content-header-small-color;
+		margin: 0 6px;
+		font-size: @font-size-content-header-small;
+		font-weight: normal;
+		color: @content-header-small-color;
 	  }//small
 	}//h1
-}//.page-header
+}
 
+
+.ajax-loading-overlay {
+	position: absolute;
+	z-index: 1999;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+
+	background-color: rgba(255, 255, 255, 0.5);
+	filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#80FFFFFF', endColorstr='#80FFFFFF',GradientType=0 )";
+
+
+	> .ajax-loading-icon {
+		position: relative;
+		left: 8px;
+		top: 8px;
+	}
+
+	&.content-loaded {
+		background-color: rgba(255, 255, 255, 0.4);
+		filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#66FFFFFF', endColorstr='#66FFFFFF',GradientType=0 )";
+	}
+	&.almost-loaded {//just waiting for scripts
+		background-color: rgba(255, 255, 255, 0.3);
+		filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#4CFFFFFF', endColorstr='#4CFFFFFF',GradientType=0 )";
+	}
+
+	&.ajax-overlay-body {
+		position: fixed;
+		z-index: 2999;
+
+		> .ajax-loading-icon {
+			left: 8px;
+			top: 8px;
+		}
+	}
+}
 

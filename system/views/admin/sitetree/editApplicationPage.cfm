@@ -12,11 +12,14 @@
 		<input type="hidden" name="id" value="#pageId#" />
 
 		#renderForm(
-			  formName          = configFormName
-			, context           = "admin"
-			, formId            = formId
-			, savedData         = pageConfig
-			, validationResult  = validationResult
+			  formName                = configFormName
+			, context                 = "admin"
+			, formId                  = formId
+			, savedData               = pageConfig
+			, validationResult        = validationResult
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
 
 		<div class="form-actions row">

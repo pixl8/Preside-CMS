@@ -4,6 +4,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockPresideObjectService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockLogger               = _getTestLogger();
 		mockResourceBundleSvc    = getMockbox().createEmptyMock( "preside.system.services.i18n.ResourceBundleService" );
+		mockAssetManagerSvc      = getMockbox().createEmptyMock( "preside.system.services.assetManager/AssetManagerService" );
 
 		mockPresideObjectService.$( "getResourceBundleUriRoot", "preside-objects.test:" );
 		mockResourceBundleSvc.$( "getResource", "somevalue" );
@@ -12,6 +13,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  presideObjectService  = mockPresideObjectService
 			, logger                = mockLogger
 			, resourceBundleService = mockResourceBundleSvc
+			, assetManagerService   = mockAssetManagerSvc
 		);
 	}
 

@@ -17,6 +17,8 @@
 	css        = event.renderIncludes( "css" );
 	bottomJs   = event.renderIncludes( "js" );
 
+	modalClasses = prc.modalClasses ?: "";
+
 
 	event.include( assetId="/js/admin/coretop/ie/", group="top" );
 	event.include( assetId="/js/admin/coretop/", group="top" );
@@ -37,7 +39,7 @@
 	</head>
 
 	<body class="preside-theme">
-		<div class="main-container modal-dialog-layout-container" id="main-container">
+		<div class="main-container modal-dialog-layout-container #modalClasses#" id="main-container">
 			<div class="main-container-inner">
 				<div class="main-content">
 					<div class="page-content">
@@ -48,7 +50,10 @@
 								, icon     = ( prc.pageIcon     ?: "" )
 							} )#
 						</cfif>
-						#body#
+
+						<div class="modal-padding">
+							#body#
+						</div>
 					</div>
 				</div>
 			</div>

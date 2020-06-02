@@ -3,6 +3,7 @@
  * CMS admin login and user sessions. See [[cmspermissioning]]
  * for a full guide to CMS admin users.
  *
+ * @presideService
  * @singleton
  * @autodoc
  */
@@ -10,11 +11,14 @@ component displayName="Admin login service" {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject coldbox:plugin:sessionStorage
-	 * @bCryptService.inject  BCryptService
-	 * @systemUserList.inject coldbox:setting:system_users
-	 * @userDao.inject        presidecms:object:security_user
-	 * @emailService.inject   emailService
+	 * @sessionStorage.inject      sessionStorage
+	 * @bCryptService.inject       BCryptService
+	 * @systemUserList.inject      coldbox:setting:system_users
+	 * @userDao.inject             presidecms:object:security_user
+	 * @emailService.inject        emailService
+	 * @cookieService.inject       cookieService
+	 * @googleAuthenticator.inject googleAuthenticator
+	 * @qrCodeGenerator.inject     qrCodeGenerator
 	 */
 	public any function init(
 		  required any    sessionStorage
@@ -22,14 +26,23 @@ component displayName="Admin login service" {
 		, required string systemUserList
 		, required any    userDao
 		, required any    emailService
-		,          string sessionKey = "admin_user"
+		, required any    cookieService
+		, required any    googleAuthenticator
+		, required any    qrCodeGenerator
+		,          string sessionKey      = "admin_user"
+		,          string twoFaSessionKey = "admin_user_authenticated_with_2fa"
 	) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setBCryptService( arguments.bCryptService );
 		_setSystemUserList( arguments.systemUserList );
 		_setUserDao( arguments.userDao );
 		_setSessionKey( arguments.sessionKey );
+		_setTwoFaSessionKey( arguments.twoFaSessionKey );
+		_setGoogleAuthenticator( arguments.googleAuthenticator );
 		_setEmailService( arguments.emailService );
+		_setCookieService( arguments.cookieService );
+		_setQrCodeGenerator( arguments.qrCodeGenerator );
+		_setRememberMeCookieKey( "_presidecms-admin-persist" );
 
 		return this;
 	}
@@ -45,16 +58,51 @@ component displayName="Admin login service" {
 	 * @password.hint User provided password
 	 *
 	 */
-	public boolean function login( required string loginId, required string password ) {
+	public boolean function login(
+		  required string  loginId
+		, required string  password
+		,          boolean rememberLogin        = false
+		,          numeric rememberExpiryInDays = 9
+		,          boolean skipPasswordCheck    = false
+	) {
 		var usr = _getUserByLoginId( arguments.loginId );
-		var success = usr.recordCount and _getBCryptService().checkPw( arguments.password, usr.password );
+		var success = usr.recordCount && ( arguments.skipPasswordCheck || _getBCryptService().checkPw( arguments.password, usr.password ) );
 
 		if ( success ) {
 			_persistUserSession( usr );
 			recordLogin();
+
+			if ( arguments.rememberLogin ) {
+				_setRememberMeCookie( userId=usr.id, loginId=usr.login_id, expiry=arguments.rememberExpiryInDays );
+			}
+		} else if ( usr.recordCount ) {
+			$audit(
+				  userId   = usr.id
+				, source   = "login"
+				, action   = "login_failure"
+				, type     = "user"
+			);
 		}
 
 		return success;
+	}
+
+	/**
+	 * Validates the logged in user's password
+	 *
+	 * @autodoc
+	 * @password.hint the user provided password
+	 */
+	public boolean function isPasswordCorrect( required string password ) {
+		var userId = getLoggedInUserId();
+
+		if ( !userId.len() ) {
+			return false;
+		}
+
+		var usr = _getUserDao().selectData( id=userId, selectFields=[ "password" ] );
+
+		return usr.recordCount && _getBCryptService().checkPw( arguments.password, usr.password );
 	}
 
 	/**
@@ -68,6 +116,7 @@ component displayName="Admin login service" {
 		if ( isLoggedIn() ) {
 			recordLogout();
 			_destroyUserSession();
+			_deleteRememberMeCookie();
 		}
 	}
 
@@ -79,7 +128,7 @@ component displayName="Admin login service" {
 	 * @autodoc
 	 */
 	public boolean function isLoggedIn() {
-		return _getSessionStorage().exists( name=_getSessionKey() );
+		return _getSessionStorage().exists( name=_getSessionKey() ) || _autoLogin();
 	}
 
 	/**
@@ -96,9 +145,9 @@ component displayName="Admin login service" {
 	 */
 	public struct function getLoggedInUserDetails() {
 		if ( !StructKeyExists( request, "__presideCmsAminUserDetails" ) ) {
-			var userId = _getSessionStorage().getVar( name=_getSessionKey(), default="" );
+			var userId = getLoggedInUserId();
 
-			if ( Len( Trim( userId ) ) ) {
+			if ( Len( Trim( userId ?: "" ) ) ) {
 				var userRecord = _getUserDao().selectData( id=userId );
 				if ( userRecord.recordCount ) {
 					for( var u in userRecord ) {
@@ -126,7 +175,9 @@ component displayName="Admin login service" {
 	 *
 	 */
 	public string function getLoggedInUserId() {
-		return _getSessionStorage().getVar( name=_getSessionKey(), default="" );
+		var userId = _getSessionStorage().getVar( name=_getSessionKey(), default="" );
+
+		return userId ?: "";
 	}
 
 	/**
@@ -160,16 +211,49 @@ component displayName="Admin login service" {
 	}
 
 	public boolean function isUserDatabaseNotConfigured() {
-		var user = _getUserDao().selectData( selectFields=[ "login_id", "password" ], maxRows=2 );
+		var systemUserid = getSystemUserId();
+		var user         = _getUserDao().selectData( selectFields=[ "id", "password" ], maxRows=2 );
 
-		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.login_id == ListFirst( _getSystemUserList() );
+		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.id == systemUserid;
 	}
 
 	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) {
-		return _getUserDao().updateData( id=getSystemUserId(), data={
+		var userId = getSystemUserId();
+		var result = _getUserDao().updateData( id=getSystemUserId(), data={
 			  email_address = arguments.emailAddress
 			, password      = _getBCryptService().hashPw( arguments.password )
 		} );
+
+		$audit(
+			  userId   = userId
+			, source   = "login"
+			, action   = "firsttime_setup"
+			, type     = "user"
+		);
+
+		return result;
+	}
+
+	public boolean function isShowNonLiveEnabled() {
+		if ( isLoggedIn() ) {
+			var showDrafts = _getSessionStorage().getVar( name="_presideAdminShowNonLiveContent", default="" );
+
+			if ( IsBoolean( showDrafts ) ) {
+				return showDrafts;
+			}
+
+			showDrafts = $getColdbox().getSetting( name="showNonLiveContentByDefault", defaultValue="" );
+
+			return IsBoolean( showDrafts ) ? showDrafts : true;
+		}
+
+		return false;
+	}
+
+	public void function toggleShowNonLiveContent() {
+		if ( isLoggedIn() ) {
+			_getSessionStorage().setVar( name="_presideAdminShowNonLiveContent", value=!isShowNonLiveEnabled() );
+		}
 	}
 
 	/**
@@ -185,15 +269,45 @@ component displayName="Admin login service" {
 			var tokenInfo = createLoginResetToken( userRecord.id );
 
 			_getEmailService().send(
-				  template = "resetCMSPassword"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#", expires=tokenInfo.resetExpiry, username=userRecord.known_as }
+				  template    = "resetCMSPassword"
+				, recipientId = userRecord.id
+				, args        = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#" }
+			);
+
+			$audit(
+				  userId   = userRecord.id
+				, source   = "login"
+				, action   = "password_reset_instructions_sent"
+				, type     = "user"
 			);
 
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * @autodoc
+	 * Resends new token to expired token and reminds them the token is expired
+	 */
+	public boolean function resendPasswordResetInstructions( required string userId ) {
+		var tokenInfo = createLoginResetToken( arguments.userId );
+
+		_getEmailService().send(
+			  template    = "resetCmsPasswordForTokenExpiry"
+			, recipientId = arguments.userId
+			, args        = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#" }
+		);
+
+		$audit(
+			  userId   = arguments.userId
+			, source   = "login"
+			, action   = "password_reset_instructions_sent"
+			, type     = "user"
+		);
+
+		return true;
 	}
 
 	/**
@@ -210,16 +324,22 @@ component displayName="Admin login service" {
 			var tokenInfo = createLoginResetToken( userRecord.id );
 
 			_getEmailService().send(
-				  template = "cmsWelcome"
-				, to       = [ "#(userRecord.known_as ?: '')# <#(userRecord.email_address ?: '')#>" ]
-				, args     = {
+				  template    = "cmsWelcome"
+				, recipientId = arguments.userId
+				, args        = {
 					  resetToken     = "#tokenInfo.resetToken#-#tokenInfo.resetKey#"
 					, expires        = tokenInfo.resetExpiry
-					, username       = userRecord.known_as
 					, welcomeMessage = arguments.welcomeMessage
 					, createdBy      = arguments.createdBy
-					, loginId        = userRecord.login_id
 				}
+			);
+
+			$audit(
+				  userId = userRecord.id
+				, source = "login"
+				, action = "welcome_email_sent"
+				, type   = "user"
+				, detail = { message = arguments.welcomeMessage, createdBy=arguments.createdBy }
 			);
 
 			return true;
@@ -279,11 +399,19 @@ component displayName="Admin login service" {
 
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
-
-			return _getUserDao().updateData(
+			var updated  = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			$audit(
+				  userId   = record.id
+				, source   = "reset_password"
+				, action   = "reset_password_success"
+				, type     = "user"
+			);
+
+			return updated;
 		}
 		return false;
 	}
@@ -295,6 +423,13 @@ component displayName="Admin login service" {
 	 */
 	public boolean function recordLogin() {
 		var userId = getLoggedInUserId();
+
+		$audit(
+			  userId   = userId
+			, source   = "login"
+			, action   = "login_success"
+			, type     = "user"
+		);
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
 			last_logged_in = Now()
@@ -309,6 +444,13 @@ component displayName="Admin login service" {
 	 */
 	public boolean function recordLogout() {
 		var userId = getLoggedInUserId();
+
+		$audit(
+			  userId   = userId
+			, source   = "logout"
+			, action   = "logout_success"
+			, type     = "user"
+		);
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
 			last_logged_out = Now()
@@ -329,21 +471,434 @@ component displayName="Admin login service" {
 		} );
 	}
 
+
+	/**
+	 * Returns whether or not two factor authentication is required
+	 * for the current user. This is a combination of whether or not
+	 * the feature is enabled, whether or not authentication is enabled
+	 * for the admin, whether or not authentication is enforced or enabled
+	 * by the user and whether or not the user is already authenticated.
+	 *
+	 * @autodoc
+	 * @ipAddress.hint The originating IP address of the request
+	 * @userAgent.hint The originating user agent of the request
+	 */
+	public boolean function twoFactorAuthenticationRequired( required string ipAddress, required string userAgent ) {
+		if ( isTwoFactorAuthenticated( argumentCollection=arguments ) ) {
+			return false;
+		}
+
+		if ( !$isFeatureEnabled( "twoFactorAuthentication" ) ) {
+			return false;
+		}
+
+		var configuration = $getPresideCategorySettings( "admin-login-security" );
+		var adminEnabled  = IsBoolean( configuration.tfa_enabled  ?: "" ) && configuration.tfa_enabled;
+		var adminEnforced = IsBoolean( configuration.tfa_enforced ?: "" ) && configuration.tfa_enforced;
+
+		return adminEnabled && ( adminEnforced || isTwoFactorAuthenticationEnabledForUser() );
+	}
+
+	/**
+	 * Returns whether or not the logged in user
+	 * has been authenticated with two factor
+	 * authentication.
+	 *
+	 * @autodoc
+	 * @ipAddress.hint The originating IP address of the request
+	 * @userAgent.hint The originating user agent of the request
+	 */
+	public boolean function isTwoFactorAuthenticated( required string ipAddress, required string userAgent ) {
+		var authenticated = _getSessionStorage().getVar( name=_getTwoFaSessionKey(), default="" );
+
+		if ( IsBoolean( authenticated ?: "" ) && authenticated ) {
+			return true;
+		}
+
+		var tfaTrustPeriod = Val( $getPresideSetting( "admin-login-security", "tfa_trust_period", 7 ) );
+		if ( !tfaTrustPeriod ) {
+			return false;
+		}
+
+		var tfaLoginRecord = $getPresideObject( "security_user_two_factor_login_record" ).selectData(
+			  selectFields = [ "logged_in_date" ]
+			, filter       = {
+				  security_user = getLoggedInUserId()
+				, ip_address    = arguments.ipAddress
+				, user_agent    = arguments.userAgent
+			  }
+		);
+
+		if ( !tfaLoginRecord.recordCount ) {
+			return false;
+		}
+
+		if ( DateDiff( 'd', Now(), tfaLoginRecord.logged_in_date ) <= tfaTrustPeriod ) {
+			_getSessionStorage().setVar( name=_getTwoFaSessionKey(), value=true );
+			return true;
+		}
+
+		return false;
+
+	}
+
+	/**
+	 * Returns the logged in user's secret two factor
+	 * authentication key
+	 *
+	 * @autodoc
+	 *
+	 */
+	public string function getTwoFactorAuthenticationKey() {
+		var details = getLoggedInUserDetails();
+
+		return details.two_step_auth_key ?: "";
+	}
+
+	/**
+	 * Returns whether or not two factor authentication
+	 * has been setup for the logged in user
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function isTwoFactorAuthenticationSetupForUser() {
+		var details      = getLoggedInUserDetails();
+		var keyGenerated = Len( Trim( details.two_step_auth_key ?: "" ) );
+		var keyUsed      = IsBoolean( details.two_step_auth_key_in_use ?: "" ) && details.two_step_auth_key_in_use;
+
+		return keyGenerated && keyUsed;
+	}
+
+	/**
+	 * Returns whether or not two factor authentication
+	 * is enabled for the admin
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function isTwoFactorAuthenticationEnabled() {
+		var adminEnabled = $getPresideSetting( "admin-login-security", "tfa_enabled" );
+
+		return $isFeatureEnabled( "twoFactorAuthentication" ) && IsBoolean( adminEnabled ) && adminEnabled;
+	}
+
+	/**
+	 * Returns whether or not two factor authentication
+	 * is enabled for the logged in user specifically
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function isTwoFactorAuthenticationEnabledForUser() {
+		var details = getLoggedInUserDetails();
+
+		return IsBoolean( details.two_step_auth_enabled ?: "" ) && details.two_step_auth_enabled;
+	}
+
+
+	/**
+	 * Generates, saves and returns a new two factor authentication
+	 * key for the logged in user
+	 *
+	 * @autodoc
+	 */
+	public string function generateTwoFactorAuthenticationKey() {
+		var userId = getLoggedInUserId();
+
+		if ( !Len( Trim( userId ) ) ) {
+			return "";
+		}
+
+		var userRecord = _getUserDao().selectData( id=userId, selectFields=[ "login_id", "password" ] );
+		var key        = _getGoogleAuthenticator().generateKey( password=Hash( SerializeJson( userRecord ) ) );
+
+		_getUserDao().updateData( id=userId, data={
+			  two_step_auth_key         = key
+			, two_step_auth_key_created = Now()
+		} );
+
+		return key;
+	}
+
+	/**
+	 * Returns base64 encoded image of QR code for the given authentication key
+	 *
+	 * @audotoc
+	 * @key.hint  Private authenticator key
+	 * @size.hint Size of the image (pixels)
+	 */
+	public string function getTwoFactorAuthenticationQrCodeImage( required string key, numeric size=125 ) {
+		var userDetails     = getLoggedInUserDetails()
+		var applicationName = $getPresideSetting( "admin-login-security", "tfa_app_name" );
+
+		if ( !Len( Trim( applicationName ) ) ) {
+			applicationName = "PresideCMS";
+		}
+
+		var qrCodeUrl = _getGoogleAuthenticator().getOtpUrl(
+			  applicationName = applicationName
+			, email           = userDetails.email_address ?: ""
+			, key             = arguments.key
+		);
+
+		return toBase64( _getQrCodeGenerator().generateQrCode( input=qrCodeUrl, size=arguments.size ) );
+
+	}
+
+	/**
+	 * Attempts authentication using a one time secret token
+	 * generated by google authenticator app for the currently
+	 * logged in user. Returns true on success.
+	 *
+	 * @autodoc
+	 * @token.hint     The user provided one time token (should have been generated by authenticator app)
+	 * @ipAddress.hint The IP address of the incoming request
+	 * @userAgent.hint The user agent ot the incoming request
+	 *
+	 */
+	public boolean function attemptTwoFactorAuthentication( required string token, required string ipAddress, required string userAgent ) {
+		var userId = getLoggedInUserId();
+		var key    = getTwoFactorAuthenticationKey();
+
+		if ( !key.len() ) {
+			return false;
+		}
+
+		var authenticated = _getGoogleAuthenticator().verifyGoogleToken(
+			  base32Secret = key
+			, userValue    = arguments.token
+			, grace        = 1
+		);
+
+		if ( authenticated ) {
+			_getUserDao().updateData( id=userId, data={
+				two_step_auth_key_in_use = true
+			} );
+
+			var loginRecordDao = $getPresideObject( "security_user_two_factor_login_record" );
+			var updated = loginRecordDao.updateData( filter={
+				  security_user = userId
+				, ip_address    = arguments.ipAddress
+				, user_agent    = arguments.userAgent
+			}, data={ logged_in_date=Now() } );
+
+			if ( !updated ) {
+				loginRecordDao.insertData({
+					  security_user  = userId
+					, ip_address     = arguments.ipAddress
+					, user_agent     = arguments.userAgent
+					, logged_in_date = Now()
+				});
+			}
+
+			$audit(
+				  userId = userId
+				, source = "login"
+				, action = "login_2fa_success"
+				, type   = "user"
+			);
+		} else {
+			$audit(
+				  userId = userId
+				, source = "login"
+				, action = "login_2fa_failure"
+				, type   = "user"
+			);
+		}
+
+		_getSessionStorage().setVar( name=_getTwoFaSessionKey(), value=authenticated );
+
+		return authenticated;
+	}
+
+	/**
+	 * Enables 2FA for the logged in user
+	 *
+	 * @autodoc
+	 *
+	 */
+	public void function enableTwoFactorAuthenticationForUser() {
+		var userId = getLoggedInUserId();
+
+		if ( userId.len() ) {
+			_getUserDao().updateData( id=userId, data={ two_step_auth_enabled=true } );
+		}
+	}
+
+	/**
+	 * Disables 2FA for the logged in user
+	 *
+	 * @autodoc
+	 *
+	 */
+	public void function disableTwoFactorAuthenticationForUser() {
+		var userId = getLoggedInUserId();
+
+		if ( userId.len() ) {
+			_getUserDao().updateData( id=userId, data={
+				  two_step_auth_enabled     = false
+				, two_step_auth_key         = ""
+				, two_step_auth_key_created = ""
+				, two_step_auth_key_in_use  = ""
+			} );
+		}
+	}
+
+	/**
+	 * Allows external services to create users on the fly
+	 * if they do not already exist based on the loginId. Useful
+	 * for single sign on extensions, for example.
+	 *
+	 * @autodoc true
+	 * @loginId Login ID or email address with which to match any existing users in the system
+	 * @data    Additional fields to set on the user when creating/updating existing user
+	 */
+	public string function getOrCreateUser( required string loginId, struct data={} ) {
+		var existingUser = _getUserByLoginId( arguments.loginId );
+
+		if ( existingUser.recordCount ) {
+			_getUserDao().updateData(
+				  id   = existingUser.id
+				, data = arguments.data
+			);
+
+			return existingUser.id;
+		}
+
+		arguments.data.login_id      = arguments.data.login_id      ?: arguments.loginId;
+		arguments.data.email_address = arguments.data.email_address ?: arguments.loginId;
+
+		return _getUserDao().insertData( arguments.data );
+	}
+
 // PRIVATE HELPERS
 	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.usr.id );
+		_preventSessionFixation();
 	}
 
 	private void function _destroyUserSession() {
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
+		_getSessionStorage().deleteVar( name=_getTwoFaSessionKey() );
+		_preventSessionFixation();
 	}
 
 	private query function _getUserByLoginId( required string loginId ) {
 		return _getUserDao().selectData(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
+		);
+	}
+
+	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
+		var cookieValue = {
+			  loginId = arguments.loginId
+			, expiry  = arguments.expiry
+			, series  = _createNewLoginTokenSeries()
+			, token   = _createNewLoginToken()
+		};
+
+		$getPresideObject( "security_user_login_token" ).insertData( data={
+			  user   = arguments.userId
+			, series = cookieValue.series
+			, token  = _getBCryptService().hashPw( cookieValue.token )
+		} );
+
+		_getCookieService().setVar(
+			  name     = _getRememberMeCookieKey()
+			, value    = cookieValue
+			, expires  = arguments.expiry
+			, httpOnly = true
+		);
+	}
+
+	private void function _deleteRememberMeCookie() {
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+
+			if ( Len( cookieValue.series ?: "" ) ) {
+				$getPresideObject( "security_user_login_token" ).deleteData( filter={ series = cookieValue.series } );
+			}
+
+			_getCookieService().deleteVar( _getRememberMeCookieKey() );
+		}
+	}
+
+	private struct function _readRememberMeCookie() {
+		var cookieValue = _getCookieService().getVar( _getRememberMeCookieKey(), {} );
+
+		if ( IsStruct( cookieValue ) ) {
+			var keys = cookieValue.keyArray()
+			keys.sort( "textNoCase" );
+
+			if ( keys.toList() == "expiry,loginId,series,token" ) {
+				return cookieValue;
+			}
+		}
+
+		return {};
+	}
+
+	private boolean function _autoLogin() {
+		if ( StructKeyExists( request, "_presideAdminAutoLoginResult" ) ) {
+			return request._presideAdminAutoLoginResult;
+		}
+
+		request._presideAdminAutoLoginResult = false;
+
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+			var user        = _getUserRecordFromCookie( cookieValue );
+
+			if ( user.recordcount ) {
+				_persistUserSession( user );
+
+				request._presideAdminAutoLoginResult = true;
+				return true;
+			}
+
+			_deleteRememberMeCookie();
+		}
+
+		return false;
+	}
+
+	private query function _getUserRecordFromCookie( required struct cookieValue ) {
+		if ( StructCount( arguments.cookieValue ) ) {
+			var tokenRecord = $getPresideObject( "security_user_login_token" ).selectData(
+				  selectFields = [ "security_user_login_token.id", "security_user_login_token.token", "security_user.login_id" ]
+				, filter       = { series = arguments.cookieValue.series }
+			);
+
+			if ( tokenRecord.recordCount && tokenRecord.login_id == arguments.cookieValue.loginId ) {
+				if ( _getBCryptService().checkPw( arguments.cookieValue.token, tokenRecord.token ) ) {
+					_recycleLoginToken( tokenRecord.id, arguments.cookieValue );
+					return _getUserByLoginId( tokenRecord.login_id );
+				}
+
+				$getPresideObject( "security_user_login_token" ).deleteData( id=tokenRecord.id );
+			}
+		}
+
+		return QueryNew('');
+	}
+
+	private void function _recycleLoginToken( required string tokenId, required struct cookieValue ) {
+		arguments.cookieValue.token = _createNewLoginToken();
+
+		$getPresideObject( "security_user_login_token" ).updateData(
+			  id   = arguments.tokenId
+			, data = { token = _getBCryptService().hashPw( arguments.cookieValue.token ) }
+		);
+
+		_getCookieService().setVar(
+			  name     = _getRememberMeCookieKey()
+			, value    = arguments.cookieValue
+			, expires  = arguments.cookieValue.expiry
+			, httpOnly = true
 		);
 	}
 
@@ -383,12 +938,16 @@ component displayName="Admin login service" {
 	}
 
 	private date function _createTemporaryResetTokenExpiry() {
-		return DateAdd( "n", 60, Now() );
+		return DateAdd( "n", 2880, Now() );
 	}
 
 	private query function _getUserRecordByPasswordResetToken( required string token ) {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
+
+		if( isEmpty( t ) || isEmpty( k ) ){
+			return QueryNew('');
+		}
 
 		var record = _getUserDao().selectData(
 			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
@@ -405,10 +964,23 @@ component displayName="Admin login service" {
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
 
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( IsBoolean( resendToken ) && resendToken ){
+				resendPasswordResetInstructions( record.id );
+			}
+
 			return QueryNew('');
 		}
 
 		return record;
+	}
+
+	private void function _preventSessionFixation() {
+		var appSettings = getApplicationSettings();
+
+		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+			SessionRotate();
+		}
 	}
 
 // GETTERS AND SETTERS
@@ -433,6 +1005,13 @@ component displayName="Admin login service" {
 		_sessionKey = arguments.sessionKey;
 	}
 
+	private string function _getTwoFaSessionKey() {
+		return _twoFaSessionKey;
+	}
+	private void function _setTwoFaSessionKey( required string twoFaSessionKey ) {
+		_twoFaSessionKey = arguments.twoFaSessionKey;
+	}
+
 	private any function _getUserDao() {
 		return _userDao;
 	}
@@ -452,6 +1031,34 @@ component displayName="Admin login service" {
 	}
 	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
+	}
+
+	private any function _getCookieService() {
+		return _cookieService;
+	}
+	private void function _setCookieService( required any cookieService ) {
+		_cookieService = arguments.cookieService;
+	}
+
+	private any function _getGoogleAuthenticator() {
+		return _googleAuthenticator;
+	}
+	private void function _setGoogleAuthenticator( required any googleAuthenticator ) {
+		_googleAuthenticator = arguments.googleAuthenticator;
+	}
+
+	private any function _getQrCodeGenerator() {
+		return _qrCodeGenerator;
+	}
+	private void function _setQrCodeGenerator( required any qrCodeGenerator ) {
+		_qrCodeGenerator = arguments.qrCodeGenerator;
+	}
+
+	private string function _getRememberMeCookieKey() {
+		return _rememberMeCookieKey;
+	}
+	private void function _setRememberMeCookieKey( required string rememberMeCookieKey ) {
+		_rememberMeCookieKey = arguments.rememberMeCookieKey;
 	}
 
 }

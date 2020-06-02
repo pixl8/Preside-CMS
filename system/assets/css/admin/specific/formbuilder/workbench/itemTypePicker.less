@@ -1,0 +1,30 @@
+@import url( 'globals.less' );
+
+.presidecms {
+	.formbuilder-item-type-picker {
+		.formbuilder-item-type-picker-category-title {
+			font-weight : normal;
+			color       : @default-light-font-colour;
+			margin      : 0 0 10px 2px;
+			font-size   : 100%;
+		}
+
+		.formbuilder-item-type-picker-item-list {
+			margin : 0;
+
+			.item-type {
+				cursor           : move;
+				display          : block;
+				float            : left;
+				width            : ~"calc(50% - 4px)";
+				padding          : 10px 15px;
+				background-color : @default-panel-background-colour;
+				border           : 1px solid @default-panel-border-colour;
+				border-radius    : 5px;
+				margin           : 2px;
+				font-size        : 110%;
+			}
+		}
+
+	}
+}

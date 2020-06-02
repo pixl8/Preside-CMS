@@ -23,15 +23,18 @@
 	};
 
 	if ( args.alignment == "center" ) {
-		style = "margin:#Trim(spacing.top)#px auto #Trim(spacing.bottom)#px auto; display:block;text-align:center";
+		style = "margin:#Trim(spacing.top)#px auto #Trim(spacing.bottom)#px auto; display:block;text-align:center;";
 	} else {
 		style &= "margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px #Trim(spacing.left)#px;";
 	}
+
+	renderedWidth  = ListLen( args.dimensions ?: "", "x" ) == 2 && Val( ListFirst( args.dimensions, "x" ) ) ? Val( ListFirst( args.dimensions, "x" ) ) : Val( args.width ?: "" );
+	figureMaxWidth = renderedWidth ? "max-width:#renderedWidth#px;" : "";
 </cfscript>
 
 <cfoutput>
 	<cfif hasFigure>
-		<figure style="#style#">
+		<figure style="#style##figureMaxWidth#">
 	</cfif>
 
 	<cfif hasLink>

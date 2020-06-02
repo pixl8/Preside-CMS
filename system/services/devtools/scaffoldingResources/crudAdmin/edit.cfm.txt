@@ -1,0 +1,29 @@
+<cfscript>
+	recordId = rc.id      ?: "";
+	version  = rc.version ?: "";
+</cfscript>
+
+<cfoutput>
+	#renderViewlet( event='admin.datamanager.versionNavigator', args={
+		  object         = "${objectId}"
+		, id             = recordId
+		, version        = version
+		, isDraft        = IsTrue( prc.record._version_is_draft ?: "" )
+		, baseUrl        = event.buildAdminLink( linkto="${handlerRoot}.edit", queryString="id=#recordId#&version=" )
+		, allVersionsUrl = event.buildAdminLink( linkto="${handlerRoot}.versionHistory", queryString="id=#recordId#" )
+	} )#
+
+	#renderView( view="/admin/datamanager/_editRecordForm", args={
+		  object           = "${objectId}"
+		, id               = rc.id      ?: ""
+		, record           = prc.record ?: {}
+		, editRecordAction = event.buildAdminLink( linkTo='${handlerRoot}.editAction' )
+		, cancelAction     = event.buildAdminLink( linkTo='${handlerRoot}' )
+		, useVersioning    = true
+// BEGIN DRAFTS
+		, draftsEnabled    = true
+		, canPublish       = IsTrue( prc.canSaveDraft ?: "" )
+		, canSaveDraft     = IsTrue( prc.canPublish   ?: "" )
+// END DRAFTS
+	} )#
+</cfoutput>

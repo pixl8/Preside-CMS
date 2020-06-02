@@ -1,4 +1,4 @@
-component implements="iRouteHandler" output=false singleton=true {
+component implements="iRouteHandler" singleton=true {
 
 // constructor
 	/**
@@ -48,22 +48,13 @@ component implements="iRouteHandler" output=false singleton=true {
 		var params        = "";
 		var rc            = event.getCollection();
 		var prc           = event.getCollection( private=true );
-		var site          = event.getSite();
-		var pathMinusSite = arguments.path;
 
-		if ( Len( site.path ?: "" ) > 1 ) {
-			pathMinusSite = Right( pathMinusSite, Len( pathMinusSite ) - Len( site.path ) );
-			if ( Left( pathMinusSite, 1 ) != "/" ) {
-				pathMinusSite = "/" & pathMinusSite;
-			}
-		}
-
-		if ( pathMinusSite eq "/index.cfm" or pathMinusSite eq "/" ) {
+		if ( arguments.path eq "/index.cfm" or arguments.path eq "/" ) {
 			slug      = "/";
 		} else {
-			slug      = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\1/" );
-			subaction = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\3" );
-			id        = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\5" );
+			slug      = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\1/" );
+			subaction = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\3" );
+			id        = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\5" );
 		}
 
 		if ( Find( "!", slug ) ) {
@@ -97,16 +88,16 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var treeSvc  = _getSiteTreeService();
-		var homepage = treeSvc.getSiteHomepage();
-		var page     = _getPageByIdOrPageType( arguments.buildArgs.page );
+		var site     = arguments.buildArgs.site ?: "";
+		var page     = _getPageByIdOrPageType( page=arguments.buildArgs.page, site=site );
 		var link     = "";
 		var root     = event.getSiteUrl( page.site );
 
-
 		if ( page.recordCount ) {
-			if ( page.id eq homepage.id ) {
-				return root & "/";
+			var homepageId = _getHomepageId( site );
+
+			if ( page.id == homepageId ) {
+				return ReReplace( root, "([^/])$", "\1/" ); // ensures trailing slash
 			}
 
 			link &= ReReplace( page.slug, "/$", "" );
@@ -138,10 +129,15 @@ component implements="iRouteHandler" output=false singleton=true {
 		return root & link;
 	}
 
-	private query function _getPageByIdOrPageType( required string page ) output=false {
-		var ptService = _getPageTypesService();
-		var getPageArgs = {
-			selectFields=[ "page.id", "page._hierarchy_slug as slug", "page.site" ]
+	private query function _getPageByIdOrPageType( required string page, string site="" ) output=false {
+		var ptService       = _getPageTypesService();
+		var siteTreeService = _getSiteTreeService();
+		var getPageArgs     = {
+			  selectFields = [ "page.id", "page._hierarchy_slug as slug", "page.site" ]
+			, version      = 0
+			, getLatest    = false
+			, allowDrafts  = true
+			, site         = arguments.site
 		};
 
 		if ( ptService.pageTypeExists( arguments.page ) && ptService.isSystemPageType( arguments.page ) ) {
@@ -150,8 +146,32 @@ component implements="iRouteHandler" output=false singleton=true {
 			getPageArgs.id = arguments.page;
 		}
 
-		return _getSiteTreeService().getPage( argumentCollection=getPageArgs );
+		if ( siteTreeService.arePageSlugsMultilingual() ) {
+			getPageArgs.selectFields = [ "page.id", "page.slug", "page.site" ];
+			var page = Duplicate( siteTreeService.getPage( argumentCollection=getPageArgs ) );
+
+			if ( page.recordCount ) {
+				var ancestors = siteTreeService.getAncestors( id=page.id, selectFields=[ "slug" ], site=arguments.site );
+
+				if ( ancestors.recordCount ) {
+					var newSlug = "/" & ValueList( ancestors.slug, "/" ) & "/" & page.slug & "/";
+					newSlug = newSlug.reReplace( "/+", "/", "all" );
+					page.slug[ 1 ] = newSlug;
+				}
+			}
+
+			return page;
+		}
+
+		return siteTreeService.getPage( argumentCollection=getPageArgs );
 	}
+
+	private string function _getHomepageId( required string site ) {
+		request[ "_siteHomepageId#site#" ] = request[ "_siteHomepageId#site#" ] ?: _getSiteTreeService().getSiteHomepage( site=site, selectFields=[ "id" ] ).id;
+
+		return request[ "_siteHomepageId#site#" ]
+	}
+
 
 // private getters and setters
 	private string function _getEventName() output=false {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Data export: configuration form
+
+This form is used for configuring fields, title and format of an object data export
+-->
+<form i18nBaseUri="cms:dataexport.config.form.">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="filename"     control="textinput"             required="true" sortorder="10" />
+			<field name="exportFields" control="dataExportFieldPicker" required="true" sortorder="20" />
+			<field name="exporter"     control="dataExporterPicker"    required="true" sortorder="30" />
+		</fieldset>
+	</tab>
+</form>

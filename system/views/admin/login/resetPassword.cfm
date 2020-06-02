@@ -4,7 +4,8 @@
 	policyMessage = prc.policyMessage ?: "";
 
 	event.include( "/js/admin/specific/passwordscore/" )
-	     .include( "/css/admin/specific/passwordscore/" );
+	     .include( "/css/admin/specific/passwordscore/" )
+	     .includeData( { passwordScoreCheckerUrl=event.buildLink( linkTo="passwordStrengthReport.index" ) } );
 </cfscript>
 
 <cfoutput>

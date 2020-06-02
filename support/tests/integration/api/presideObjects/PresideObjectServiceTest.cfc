@@ -3,7 +3,7 @@
 	<cffunction name="setup" access="public" returntype="void" output="false">
 		<cfscript>
 			super.setup();
-			_dropAllTables();
+			_emptyDatabase();
 		</cfscript>
 	</cffunction>
 
@@ -14,6 +14,7 @@
 			var tables    = "";
 			var i         = "";
 			var columns   = "";
+			var datetimeTypeName = _getDbAdapter().getColumnDBType('datetime');
 
 			poService.dbSync();
 			tables = _getDbTables();
@@ -35,10 +36,10 @@
 				super.assertFalse( columns.label.nullable, "The label column should not be nullable" );
 
 				super.assert( StructKeyExists( columns, "datecreated" ), "The datecreated column was not created." );
-				super.assertEquals( "datetime", columns.datecreated.type_name, "The datecreated column was not a datetime field." );
+				super.assertEquals( datetimeTypeName, columns.datecreated.type_name, "The datecreated column was not a datetime field." );
 				super.assertFalse( columns.datecreated.nullable, "The datecreated column should not be nullable" );
 				super.assert( StructKeyExists( columns, "datemodified" ), "The datemodified column was not created." );
-				super.assertEquals( "datetime", columns.datemodified.type_name, "The datemodified column was not a datetime field." );
+				super.assertEquals( datetimeTypeName, columns.datemodified.type_name, "The datemodified column was not a datetime field." );
 				super.assertFalse( columns.datemodified.nullable, "The datemodified column should not be nullable" );
 			}
 		</cfscript>
@@ -71,6 +72,10 @@
 			var expectedTables = [ "test_test_1", "test_test_2", "test_3" ];
 			var table          = "";
 
+			var idTypeName = _getDbAdapter().getColumnDBType('int', 'autoIncrement');
+			var bitTypeName = _getDbAdapter().getColumnDBType('bit');
+			var datetimeTypeName = _getDbAdapter().getColumnDBType('datetime');
+
 			poService.dbSync();
 			tables = _getDbTables();
 
@@ -80,13 +85,13 @@
 				columns = _getDbTableColumns( table );
 
 				super.assert( StructKeyExists( columns, "id" ), "The id column was not created." );
-				super.assertEquals( "int", columns.id.type_name, "The id column was not an int." );
+				super.assertEquals( idTypeName, ListFirst( columns.id.type_name, " " ), "The id column was not an int." );
 				super.assertFalse( columns.id.nullable, "The id column should not be nullable" );
 				super.assert( columns.id.is_primarykey, "The id column should be the primary key" );
 				super.assert( columns.id.is_autoincrement, "The id column should be auto incrementing" );
 
 				super.assert( StructKeyExists( columns, "test_property" ), "The test_property column was not created." );
-				super.assertEquals( "bit", columns.test_property.type_name, "The test_property column was not an bit." );
+				super.assertEquals( bitTypeName, columns.test_property.type_name, "The test_property column was not an bit." );
 
 				switch( table ){
 					case "test_test_1":
@@ -97,7 +102,7 @@
 						super.assert( columns.test_property.nullable, "The test_property column for table 1 was not nullable." );
 
 						super.assert( StructKeyExists( columns, "some_date" ), "The some_date column was not created." );
-						super.assertEquals( "datetime", columns.some_date.type_name, "The some_date column was not an int." );
+						super.assertEquals( datetimeTypeName, columns.some_date.type_name, "The some_date column was not an int." );
 
 						if ( table eq "test_table_2" ){
 							super.assertFalse( columns.some_date.nullable, "The some_date column for table 2 was nullable." );
@@ -120,6 +125,8 @@
 			var columns        = "";
 			var expectedTables = [ "test_test_1", "test_test_2", "test_3" ];
 			var table          = "";
+			var idTypeName = _getDbAdapter().getColumnDBType('int', 'autoIncrement');
+			var bitTypeName = _getDbAdapter().getColumnDBType('bit');
 
 			poService.dbSync();
 
@@ -141,22 +148,20 @@
 				columns = _getDbTableColumns( table );
 
 				super.assert( StructKeyExists( columns, "id" ), "The id column was not created." );
-				super.assertEquals( "varchar", columns.id.type_name, "The id column was not a varchar." );
-				super.assertEquals( "35", columns.id.column_size, "The id column did not have a length of 35." );
+				super.assertEquals( idTypeName, ListFirst( columns.id.type_name, " " ), "The id column was not an int." );
 				super.assertFalse( columns.id.nullable, "The id column should not be nullable" );
 				super.assert( columns.id.is_primarykey, "The id column should be the primary key" );
-				super.assertFalse( columns.id.is_autoincrement, "The id column should not be auto incrementing" );
 
 				switch( table ){
 					case "test_test_1":
 						super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not soft deleted." );
-						super.assertEquals( "bit", columns.__deprecated__test_property.type_name, "The test_property column was not a bit." );
+						super.assertEquals( bitTypeName, columns.__deprecated__test_property.type_name, "The test_property column was not a bit." );
 						super.assert( columns.__deprecated__test_property.nullable, "The test_property column for table 1 was not nullable." );
 					break;
 					case "test_test_2":
 					case "test_3":
 						super.assert( StructKeyExists( columns, "test_property" ), "The test_property column does not exist." );
-						super.assertEquals( "bit", columns.test_property.type_name, "The test_property column was not a bit." );
+						super.assertEquals( bitTypeName, columns.test_property.type_name, "The test_property column was not a bit." );
 						super.assert( columns.test_property.nullable, "The test_property column for table 1 was not nullable." );
 
 						super.assert( StructKeyExists( columns, "some_date" ), "The some_date column was not created." );
@@ -173,6 +178,48 @@
 					break;
 				}
 			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test004a_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChanged" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3a_propertyChanged" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "30", columns.test_property.column_size, "The test_property column has not been modified to a length of 30" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test004b_dbsync_shouldModifyColumnLength_whenDeprecatedPropertyReinstatedAndChangedToRelationship" returntype="void">
+		<cfscript>
+			var columns   = "";
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/1_originalProperty" ] );
+
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "20", columns.test_property.column_size, "The test_property column did not have a length of 20" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/2_deprecatedProperty" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not deprecated" );
+
+			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithPropertyChangedToRelationShip/3b_propertyChangedToRelationship" ] );
+			poService.dbSync();
+			columns   = _getDbTableColumns( "ptest_object_a" );
+			super.assertEquals( "35", columns.test_property.column_size, "The test_property column has not been modified to a length of 35" );
 		</cfscript>
 	</cffunction>
 
@@ -248,17 +295,19 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
-				  ix_an_object_indexa     = { unique="false", fields="field1,field2,field5" }
-				, ix_an_object_indexb     = { unique="false", fields="field6,field3"        }
-				, ix_an_object_indexc     = { unique="false", fields="field4,field1"        }
-				, ux_an_object_uniqueness = { unique="true" , fields="field2,field1"        }
-				, ux_an_object_uniq       = { unique="true" , fields="field3"               }
+				  ix_an_object_datecreated  = { unique="false", fields="datecreated" }
+				, ix_an_object_datemodified = { unique="false", fields="datemodified" }
+				, ix_an_object_indexa       = { unique="false", fields="field1,field2,field5" }
+				, ix_an_object_indexb       = { unique="false", fields="field6,field3"        }
+				, ix_an_object_indexc       = { unique="false", fields="field4,field1"        }
+				, ux_an_object_uniqueness   = { unique="true" , fields="field2,field1"        }
+				, ux_an_object_uniq         = { unique="true" , fields="field3"               }
 			}
 			var realIndexes = "";
 
 			poService.dbSync();
 
-			realIndexes = _getDbTableIndexes( "ptest_an_object" );
+			realIndexes = _getTableIndexes( "ptest_an_object" );
 
 			super.assertEquals( expectedIndexes, realIndexes );
 
@@ -270,12 +319,14 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
-				  ix_an_object_indexa     = { unique="false", fields="field1,field2,field5" }
-				, ix_an_object_indexb     = { unique="false", fields="field3,field6"        }
-				, ix_an_object_indexc     = { unique="false", fields="field4,field1"        }
-				, ix_an_object_indexd     = { unique="false", fields="field2"               }
-				, ux_an_object_uniqueness = { unique="true" , fields="field4"               }
-				, ux_an_object_uniq       = { unique="true" , fields="field3"               }
+				  ix_an_object_indexa       = { unique="false", fields="field1,field2,field5" }
+				, ix_an_object_indexb       = { unique="false", fields="field3,field6"        }
+				, ix_an_object_indexc       = { unique="false", fields="field4,field1"        }
+				, ix_an_object_indexd       = { unique="false", fields="field2"               }
+				, ix_an_object_datecreated  = { unique="false", fields="datecreated"          }
+				, ix_an_object_datemodified = { unique="false", fields="datemodified"         }
+				, ux_an_object_uniqueness   = { unique="true" , fields="field4"               }
+				, ux_an_object_uniq         = { unique="true" , fields="field3"               }
 			}
 			var realIndexes = "";
 
@@ -285,7 +336,7 @@
 
 			poService.dbSync();
 
-			realIndexes = _getDbTableIndexes( "ptest_an_object" );
+			realIndexes = _getTableIndexes( "ptest_an_object" );
 
 			super.assertEquals( expectedIndexes, realIndexes );
 		</cfscript>
@@ -295,31 +346,32 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
+			var cascadeType = _getDbAdapter().supportsCascadeUpdateDelete() ? "cascade" : "error";
 			var expectedResult = {
-				"fk_c3f5fa6fe828a7c89f411d93d5e0ce7c" = {
-					  pk_table  = "ptest_object_a"
-					, fk_table  = "ptest_object_b"
-					, pk_column = "id"
-					, fk_column = "related_to_a"
-					, on_update = "cascade"
-					, on_delete = "error"
-				},
-				"fk_6a2b9624ca18e99fd0b48df47187ed70" = {
+				"fk_42709d43f4e9e0a700118b1d05838c80" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
 					, fk_column = "related_to_a_again"
-					, on_update = "cascade"
-					, on_delete = "set null"
+					, on_update = cascadeType
+					, on_delete = cascadeType
 				},
-				"fk_e8ad2c420c66dc63e413e0b99e7137e5" = {
+				"fk_dca37975fb35a68ddd367abaa9fc79ff" = {
 					  pk_table  = "ptest_object_b"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
 					, fk_column = "object_b"
-					, on_update = "cascade"
-					, on_delete = "error"
+					, on_update = cascadeType
+					, on_delete = cascadeType
 				},
+				"fk_04256baa79b5ed9099b1dde0da7eb613" = {
+					  pk_table  = "ptest_object_a"
+					, fk_table  = "ptest_object_b"
+					, pk_column = "id"
+					, fk_column = "related_to_a"
+					, on_update = cascadeType
+					, on_delete = cascadeType
+				}
 			};
 			var keys = "";
 
@@ -338,7 +390,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
 			var expectedResult = {
-				"fk_7b0efa45ba5b99ef2e95c33daa364812" = {
+				"fk_142d828e532be648a208122b793acd09" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -346,7 +398,7 @@
 					, on_update = "cascade"
 					, on_delete = "set null"
 				},
-				"fk_fe1fa86e7f112dd7c84afaeeac1da997" = {
+				"fk_ee8b3bcde97ee8b5b8dff6de1bb5682f" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
@@ -358,6 +410,7 @@
 			var keys = "";
 
 			poService.dbSync();
+			request.delete( "_allForeignKeys.preside_test_suite" );
 			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship_changed/" ] );
 			poService.dbSync();
 
@@ -414,7 +467,7 @@
 			super.assertFalse( poService.dataExists( objectName="object_a" ), "dataExists() returned true when no data does exist" );
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			cachebox.clearAll();
@@ -428,7 +481,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var q = new query();
 			var result = "";
-			var filter = "label like :label and ( DateDiff( Now(), datemodified ) <= :age or DateDiff( Now(), datecreated ) <= :age )";
+			var filter = "label like :label and ( -1 <= :age or -1 <= :age )";
 			var filterParams = {
 				  label = "test%"
 				, age       = { value=2, type="cf_sql_integer" }
@@ -445,7 +498,7 @@
 			super.assertFalse( result, "dataExists() returned true when no data does exist" );
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.dataExists(
@@ -463,7 +516,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
 			var result = "";
-			var filter = "object_e.label like :object_e.label and ( DateDiff( Now(), object_e.datemodified ) <= :age or DateDiff( Now(), object_d.datecreated ) <= :age )";
+			var filter = "object_e.label like :object_e.label and ( -1 <= :age or -1 <= :age )";
 			var filterParams = {
 				  "object_e.label" = "test%"
 				, age       = { value=2, type="cf_sql_integer" }
@@ -502,7 +555,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.dataExists(
@@ -539,32 +592,32 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values (  Now(), Now(), 'a test' )" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values (  #_getNowSql()#, #_getNowSql()#, 'a test' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values (  Now(), Now(), '#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values (  #_getNowSql()#, #_getNowSql()#, '#eId#','e test' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values (  Now(), Now(), 'd test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values (  #_getNowSql()#, #_getNowSql()#, 'd test', '#eId#' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  Now(), Now(),  '#bId#', 'b test', 1, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  #_getNowSql()#, #_getNowSql()#,  '#bId#', 'b test', 1, 1 )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  Now(), Now(),  '#cId#', 'testing c', '#bId#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  #_getNowSql()#, #_getNowSql()#,  '#cId#', 'testing c', '#bId#' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  Now(), Now(),  '#fId#', 'testing f', '#cId#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  #_getNowSql()#, #_getNowSql()#,  '#fId#', 'testing f', '#cId#' )" );
 			q.execute();
 
 			result = poService.dataExists(
@@ -596,7 +649,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -622,7 +675,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test'),( Now(), Now(), 'test2'),( Now(), Now(), 'test3'),( Now(), Now(), 'test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test'),( #_getNowSql()#, #_getNowSql()#, 'test2'),( #_getNowSql()#, #_getNowSql()#, 'test3'),( #_getNowSql()#, #_getNowSql()#, 'test4')" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -648,7 +701,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test'),( Now(), Now(), 'test2'),( Now(), Now(), 'test3'),( Now(), Now(), 'test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test'),( #_getNowSql()#, #_getNowSql()#, 'test2'),( #_getNowSql()#, #_getNowSql()#, 'test3'),( #_getNowSql()#, #_getNowSql()#, 'test4')" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -694,7 +747,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() ), ('test2', Now(), Now() ), ('test3', Now(), Now() ), ('test4', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# ), ('test2', #_getNowSql()#, #_getNowSql()# ), ('test3', #_getNowSql()#, #_getNowSql()# ), ('test4', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			super.assert( poService.dataExists( objectName="object_a" ), "Test failed, data should have been inserted into the table before attempting the delete" );
@@ -800,7 +853,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test1' ), ( Now(), Now(), 'test2'), ( Now(), Now(), 'test3'), ( Now(), Now(), 'test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test1' ), ( #_getNowSql()#, #_getNowSql()#, 'test2'), ( #_getNowSql()#, #_getNowSql()#, 'test3'), ( #_getNowSql()#, #_getNowSql()#, 'test4')" );
 			q.execute();
 
 			super.assert( poService.dataExists( objectName="object_a" ), "Test failed, data should have been inserted into the table before attempting the delete" );
@@ -848,7 +901,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test1' ), ( Now(), Now(), 'test2'), ( Now(), Now(), 'test3'), ( Now(), Now(), 'test4'), ( Now(), Now(), 'test5')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test1' ), ( #_getNowSql()#, #_getNowSql()#, 'test2'), ( #_getNowSql()#, #_getNowSql()#, 'test3'), ( #_getNowSql()#, #_getNowSql()#, 'test4'), ( #_getNowSql()#, #_getNowSql()#, 'test5')" );
 			q.execute();
 
 			result = poService.updateData(
@@ -883,22 +936,22 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'a test' ), ( Now(), Now(), 'another test')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'a test' ), ( #_getNowSql()#, #_getNowSql()#, 'another test')" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( Now(), Now(), '#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( #_getNowSql()#, #_getNowSql()#, '#eId#','e test' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( Now(), Now(), 'd test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( #_getNowSql()#, #_getNowSql()#, 'd test', '#eId#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  Now(), Now(), '#bId#', 'b test', 1, 1 ),(  Now(), Now(), '#bId2#', 'b test', 2, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  #_getNowSql()#, #_getNowSql()#, '#bId#', 'b test', 1, 1 ),(  #_getNowSql()#, #_getNowSql()#, '#bId2#', 'b test', 2, 1 )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  Now(), Now(), '#cId#', 'testing c', '#bId#' ),(  Now(), Now(), '#cId2#', 'testing c 2', '#bId2#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  #_getNowSql()#, #_getNowSql()#, '#cId#', 'testing c', '#bId#' ),(  #_getNowSql()#, #_getNowSql()#, '#cId2#', 'testing c 2', '#bId2#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  Now(), Now(), '#fId#', 'testing f', '#cId#' ),(  Now(), Now(), '#fId2#', 'testing f again', '#cId2#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  #_getNowSql()#, #_getNowSql()#, '#fId#', 'testing f', '#cId#' ),(  #_getNowSql()#, #_getNowSql()#, '#fId2#', 'testing f again', '#cId2#' )" );
 			q.execute();
 
 			result = poService.updateData(
@@ -932,22 +985,22 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'a test' ), ( Now(), Now(), 'another test')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'a test' ), ( #_getNowSql()#, #_getNowSql()#, 'another test')" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( Now(), Now(), '#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( #_getNowSql()#, #_getNowSql()#, '#eId#','e test' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( Now(), Now(), 'd test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( #_getNowSql()#, #_getNowSql()#, 'd test', '#eId#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values ( Now(), Now(), '#bId#', 'b test', 1, 1 ),(  Now(), Now(), '#bId2#', 'b test', 2, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values ( #_getNowSql()#, #_getNowSql()#, '#bId#', 'b test', 1, 1 ),(  #_getNowSql()#, #_getNowSql()#, '#bId2#', 'b test', 2, 1 )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values ( Now(), Now(), '#cId#', 'testing c', '#bId#' ),(  Now(), Now(), '#cId2#', 'testing c 2', '#bId2#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values ( #_getNowSql()#, #_getNowSql()#, '#cId#', 'testing c', '#bId#' ),(  #_getNowSql()#, #_getNowSql()#, '#cId2#', 'testing c 2', '#bId2#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values ( Now(), Now(), '#fId#', 'testing f', '#cId#' ),( Now(), Now(),  '#fId2#', 'testing f again', '#cId2#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values ( #_getNowSql()#, #_getNowSql()#, '#fId#', 'testing f', '#cId#' ),( #_getNowSql()#, #_getNowSql()#,  '#fId2#', 'testing f again', '#cId2#' )" );
 			q.execute();
 
 			result = poService.updateData(
@@ -976,7 +1029,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, label, datemodified ) values ( Now(), 'test1',  '1980-12-09 03:15:34'), ( Now(), 'test2', '1980-12-09 03:15:34'), ( Now(), 'test3', '1980-12-09 03:15:34'), ( Now(), 'test4', '1980-12-09 03:15:34'), ( Now(), 'test5', '1980-12-09 03:15:34')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, label, datemodified ) values ( #_getNowSql()#, 'test1',  '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test2', '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test3', '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test4', '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test5', '1980-12-09 03:15:34')" );
 			q.execute();
 
 			result = poService.updateData(
@@ -1024,6 +1077,74 @@
 			for( i=1; i lte 4; i++ ){
 				super.assertEquals( "label #i#", result.label[i] );
 			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test027a_selectData_shouldSelectAdditionalColumnsAndData_whenExtraSelectFieldsArgumentSupplied" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds           = [];
+			var bId            = "";
+			var cId            = "";
+			var expectedFields = ["id", "label", "obj_b", "a_count" ];
+			var field          = "";
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bId = poService.insertData( objectName="object_b", data={ label="isn't this lovely", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true );
+			cId = poService.insertData( objectName="object_c", data={ label="isn't this lovely", obj_b=bId } );
+
+			var result = poService.selectData(
+				  objectName        = "object_c"
+				, extraSelectFields = [ "a_count" ]
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , cId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Formula field not calculated correctly" );
+
+			for( field in expectedFields ){
+				super.assert( ListFindNoCase( result.columnList, field ), "[#field#] column missing from results" );
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test027b_selectData_shouldIncludeAllFormulaColumnsAndData_whenIncludeAllFormulaFieldsIsTrue" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds           = [];
+			var bId            = "";
+			var cId            = "";
+			var expectedFields = ["id", "label", "obj_b", "a_count", "compound_label" ];
+			var expectedLabel  = "object_c label object_b label";
+			var field          = "";
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bId = poService.insertData( objectName="object_b", data={ label="object_b label", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true );
+			cId = poService.insertData( objectName="object_c", data={ label="object_c label", obj_b=bId } );
+
+			var result = poService.selectData(
+				  objectName              = "object_c"
+				, includeAllFormulaFields = true
+			);
+
+			for( field in expectedFields ){
+				super.assert( ListFindNoCase( result.columnList, field ), "[#field#] column missing from results" );
+			}
+
+			super.assertEquals( result.recordCount   , 1            , "Expected record count mismatch" );
+			super.assertEquals( result.id            , cId          , "Expected record ID mismatch" );
+			super.assertEquals( result.a_count       , 3            , "Formula field not calculated correctly" );
+			super.assertEquals( result.compound_label, expectedLabel, "Formula field not calculated correctly" );
 		</cfscript>
 	</cffunction>
 
@@ -1119,6 +1240,39 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test030_1_selectData_shouldAutomaticallyJoinRelevantTables_whenJoinsIntimatedInSavedFilters" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result         = "";
+			var field          = "";
+			var i              = 0;
+			var aId            = "";
+			var bId            = "";
+			var cId            = "";
+			var dId            = "";
+			var eId            = "";
+			var fId            = "";
+
+			poService.dbSync();
+
+			aId = poService.insertData( objectName="object_a", data={ label="label 1" } );
+			eId = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			dId = poService.insertData( objectName="object_d", data={ label="label 3", object_e=eId } );
+			bId = poService.insertData( objectName="object_b", data={ label="label 4", related_to_a=aId, object_d=dId } );
+			cId = poService.insertData( objectName="object_c", data={ label="label 5", object_b=bId } );
+			fId = poService.insertData( objectName="object_f", data={ label="label 4", object_c=cId } );
+
+			mockFilterService.$( "getFilter" ).$args( "testfilter" ).$results( { filter={ "object_c$object_b.label" = "label 4" } } );
+
+			result = poService.selectData(
+				  objectname   = "object_f"
+				, savedFilters = [ "testfilter" ]
+			);
+
+			super.assertEquals( 1, result.recordCount, "Expected 1 record to be returned" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test031_selectData_shouldSelectDataUsingFilters" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
@@ -1173,12 +1327,67 @@
 
 			result = poService.selectData(
 				  objectname   = "object_b"
-				, filter       = "object_a.id = :object_a.id and DateDiff( Now(), object_d.datecreated ) <= :age"
+				, filter       = "object_a.id = :object_a.id and -1 <= :age"
 				, filterParams = { "object_a.id" = 2, age = { value = 0, type="cf_sql_integer" } }
 			);
 
 			super.assertEquals( 1, result.recordCount, "Expected 1 record to be returned" );
 			super.assertEquals( "label 5", result.label );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test031_2_selectData_shouldSelectDataUsingExplicitlyDefinedFilterParamWithArrayValues" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+			var result    = "";
+
+			poService.dbSync();
+
+			poService.insertData( objectName="object_a", data={ label="1" } );
+			poService.insertData( objectName="object_a", data={ label="2" } );
+			poService.insertData( objectName="object_a", data={ label="3" } );
+			poService.insertData( objectName="object_a", data={ label="4" } );
+
+			result = poService.selectData(
+				  objectname   = "object_a"
+				, filter       = "label in ( :selectedLabels )"
+				, filterParams = {
+					selectedLabels = { type="varchar", value=[ "1", "2" ] }
+				  }
+				, orderBy      = "label"
+			);
+
+			super.assertEquals( 2, result.recordCount, "Expected 2 records to be returned" );
+			super.assertEquals( "1", result.label[ 1 ] );
+			super.assertEquals( "2", result.label[ 2 ] );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test031_3_selectData_shouldSelectDataUsingArrayValuesWithCommas" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+			var result    = "";
+
+			poService.dbSync();
+
+			poService.insertData( objectName="object_a", data={ label="1" } );
+			poService.insertData( objectName="object_a", data={ label="2" } );
+			poService.insertData( objectName="object_a", data={ label="3" } );
+			poService.insertData( objectName="object_a", data={ label="4" } );
+			poService.insertData( objectName="object_a", data={ label="5" } );
+			poService.insertData( objectName="object_a", data={ label="6" } );
+			poService.insertData( objectName="object_a", data={ label="1,2,3" } );
+			poService.insertData( objectName="object_a", data={ label="4,5,6" } );
+
+			result = poService.selectData(
+				  objectname = "object_a"
+				, filter     = { label = [ "1,2,3", "4,5,6" ] }
+				, orderBy    = "label"
+			);
+
+			super.assertEquals( 2, result.recordCount, "Expected 2 records to be returned" );
+			super.assertEquals( "1,2,3", result.label[ 1 ] );
+			super.assertEquals( "4,5,6", result.label[ 2 ] );
 		</cfscript>
 	</cffunction>
 
@@ -1323,12 +1532,12 @@
 			var result    = "";
 			var key       = "";
 			var expected  = {
-				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
-				, object_d         = { name="object_d"        , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade" }
-				, related_to_a     = { name="related_to_a"    , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade" }
+				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datecreated" }
+				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datemodified" }
+				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
+				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
+				, object_d     = { name="object_d"    , control="default"  , dbtype="int"     , generator="none", generate="never" , maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade-if-no-cycle-check" }
+				, related_to_a = { name="related_to_a", control="default"  , dbtype="int"     , generator="none", generate="never" , maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade-if-no-cycle-check" }
 			};
 
 			result = poService.getObjectProperties( objectName = "object_b" );
@@ -1349,13 +1558,14 @@
 				, control      = "default"
 				, dbtype       = "int"
 				, generator    = "none"
+				, generate     = "never"
 				, maxLength    = 0
 				, relatedTo    = "object_d"
 				, relationship = "many-to-one"
 				, required     = false
 				, type         = "string"
 				, onDelete     = "set null"
-				, onUpdate     = "cascade"
+				, onUpdate     = "cascade-if-no-cycle-check"
 			};
 
 			result = poService.getObjectProperty( objectName = "object_b", propertyName="object_d" );
@@ -1409,7 +1619,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.listForeignObjectsBlockingDelete(
@@ -1431,11 +1641,13 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', #_getNowSql()#, #_getNowSql()# )" );
+			q.execute();
+			q.setSQL( "insert into ptest_object_g ( object_e, datemodified, datecreated) values ('TEST-UUID', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.listForeignObjectsBlockingDelete(
@@ -1457,11 +1669,11 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			super.assert( poService.selectData( objectName="object_d" ).recordCount );
@@ -1552,6 +1764,7 @@
 			poService.dbSync();
 			poService.insertData( objectName="object_2", data={ label="some label" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data = poService.selectData( argumentCollection = selectDataArgs );
@@ -1564,7 +1777,7 @@
 
 			report = cache.getStoreMetadataReport();
 			super.assert( StructKeyExists( report, cacheKeys[1] ) );
-			super.assertEquals( 3, report[ cachekeys[1] ].hits, "The cache was not hit the predicted number of times" );
+			super.assertEquals( 2, report[ cachekeys[1] ].hits, "The cache was not hit the predicted number of times" );
 		</cfscript>
 	</cffunction>
 
@@ -1634,6 +1847,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
@@ -1646,9 +1860,8 @@
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
-
 			poService.updateData( objectName="object_1", data={ label="changed" }, filter={ id = objId } );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
@@ -1681,18 +1894,19 @@
 
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
-			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
-			data.set2 = poService.selectData( objectName="object_1", filter="id = :id", filterParams={id=objId} );
-			data.set3 = poService.selectData( objectName="object_1", filter="id = :id", filterParams={id="meh"} );
-			data.set4 = poService.selectData( objectName="object_1", filter={ id = "meh" } );
-			data.set5 = poService.selectData( objectName="object_1" );
-			data.set6 = poService.selectData( objectName="object_2" );
-			data.set7 = poService.selectData( objectName="object_3" );
+			data.set1 = poService.selectData( objectName="object_1", test=CreateUUId(), filter={ id = objId } );
+			data.set2 = poService.selectData( objectName="object_1", test=CreateUUId(), filter="id = :id", filterParams={id=objId} );
+			data.set3 = poService.selectData( objectName="object_1", test=CreateUUId(), filter="id = :id", filterParams={id="meh"} );
+			data.set4 = poService.selectData( objectName="object_1", test=CreateUUId(), filter={ id = "meh" } );
+			data.set5 = poService.selectData( objectName="object_1", test=CreateUUId() );
+			data.set6 = poService.selectData( objectName="object_2", test=CreateUUId() );
+			data.set7 = poService.selectData( objectName="object_3", test=CreateUUId() );
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
 
 			poService.deleteData( objectName="object_1", filter={ id = objId } );
+			sleep( 1000 );
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
@@ -1724,6 +1938,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
@@ -1738,7 +1953,7 @@
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
 
 			poService.updateData( objectName="object_1", data={ label="changed" }, filter="label is not null" );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
@@ -1772,6 +1987,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
@@ -1786,7 +2002,7 @@
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
 
 			poService.deleteData( objectName="object_1", filter="label is not null" );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
@@ -1825,9 +2041,9 @@
 
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
-			data.set1 = poService.selectData( objectName="object_b", selectFields=[ "object_a.label as obja" ], filter={ id = objId } );
-			data.set2 = poService.selectData( objectName="object_b", selectFields=[ "object_a.label as obja" ], filter="object_b.id = :id", filterParams={id=objId} );
-			data.set3 = poService.selectData( objectName="object_b", selectFields=[ "object_a.label as obja" ], filter="object_b.id = :id", filterParams={id="meh"} );
+			data.set1 = poService.selectData( objectName="object_b", selectFields=[ "related_to_a.label as obja" ], filter={ id = objId } );
+			data.set2 = poService.selectData( objectName="object_b", selectFields=[ "related_to_a.label as obja" ], filter="object_b.id = :id", filterParams={id=objId} );
+			data.set3 = poService.selectData( objectName="object_b", selectFields=[ "related_to_a.label as obja" ], filter="object_b.id = :id", filterParams={id="meh"} );
 			data.set4 = poService.selectData( objectName="object_b", filter={ id = "meh" } );
 			data.set5 = poService.selectData( objectName="object_b" );
 			data.set6 = poService.selectData( objectName="object_a" );
@@ -1835,17 +2051,18 @@
 
 			cacheKeys = cache.getKeys();
 			super.assertEquals( 7, ArrayLen( cacheKeys ), "Test queries were not loaded into the cache" );
-
 			poService.updateData( objectName="object_a", data={ label="a new label" }, filter="label is not null" );
-
+			sleep( 1000 );
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 3, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 1, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set6, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>
@@ -1857,14 +2074,14 @@
 			var obj                      = poService.getObject( "object_to_be_merged" );
 			var mergedProperties         = poService.getObjectProperties( "object_to_be_merged" );
 			var expectedMergedProperties = {
-				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, id                          = { name="id"                         , control="none"     , dbtype="varchar" , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label                       = { name="label"                      , control="textinput", dbtype="varchar" , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
+				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datecreated" }
+				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", generate="never" , maxLength=0, relatedTo="none", relationship="none", required=true, type="date", indexes="datemodified" }
+				, id                          = { name="id"                         , control="none"     , dbtype="varchar" , generator="UUID", generate="insert", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
+				, label                       = { name="label"                      , control="textinput", dbtype="varchar" , generator="none", generate="never" , maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 
-				, propertyThatWillBePreserved = { name="propertyThatWillBePreserved", type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
-				, propertyWhosTypeWillChange  = { name="propertyWhosTypeWillChange" , type="numeric", dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
-				, addedProperty               = { name="addedProperty"              , type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
+				, propertyThatWillBePreserved = { name="propertyThatWillBePreserved", type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", generate="never", required="false" }
+				, propertyWhosTypeWillChange  = { name="propertyWhosTypeWillChange" , type="numeric", dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", generate="never", required="false" }
+				, addedProperty               = { name="addedProperty"              , type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", generate="never", required="false" }
 			};
 			var actualPropNames   = mergedProperties.keyArray();
 			var expectedPropNames = [ 'addedProperty','datecreated','datemodified','id','label','propertyThatWillBePreserved','propertyWhosTypeWillChange' ];
@@ -1909,13 +2126,14 @@
 	<cffunction name="test057_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object__join__an_object_with_versionin", "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
+			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object_no_version_on_insert", left("_version_ptest_category_join_object",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object_no_version_on_insert", "ptest_category_join_object", "ptest_an_object_with_versioning" ];
 			var tables         = "";
 
 			poService.dbSync();
 
 			tables = ListToArray( _getDbTables() );
 			tables.sort( "textnocase" );
+			expectedTables.sort( "textnocase" );
 
 			super.assertEquals( expectedTables, tables );
 		</cfscript>
@@ -1996,6 +2214,21 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test0_62_b_insertData_shouldNotAddVersionRecord_forVersionedObject_whenVersionOnInsertIsFalse" returntype="void">
+		<cfscript>
+			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
+
+			poService.dbSync();
+
+			var newId          = poService.insertData( "a_category_object_no_version_on_insert", { label="my new label" } );
+			var versionRecords = poService.selectData( "vrsn_a_category_object_no_version_on_insert" );
+			var records        = poService.selectData( "a_category_object_no_version_on_insert" );
+
+			super.assertEquals( 0, versionRecords.recordCount );
+			super.assertEquals( 1, records.recordCount );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test0_63_insertData_shouldCreateVersionedManyToManyRecords_whenObjectUsesVersioning" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
@@ -2022,7 +2255,7 @@
 			var versionRecord = poService.selectData( "vrsn_an_object_with_versioning" );
 
 			super.assertEquals( 1, versionRecord.recordCount );
-			var multiRecords  = poService.selectData( objectName="vrsn_a_category_object__join__an_object_with_versioning", filter={ _version_number = versionRecord._version_number } );
+			var multiRecords  = poService.selectData( objectName="vrsn_category_join_object", filter={ _version_number = versionRecord._version_number } );
 
 			super.assertEquals( 4, multiRecords.recordCount );
 			for( var record in multiRecords ){
@@ -2050,8 +2283,8 @@
 
 			poService.updateData(
 				  objectName   = "a_category_object"
-				, filter       = "label like :label"
-				, filterParams = { label = "my new label%" }
+				, filter       = "a_category_object.label like :a_category_object.label"
+				, filterParams = { "a_category_object.label" = "my new label%" }
 				, data         = { label = "changed" }
 			);
 
@@ -2142,7 +2375,7 @@
 			super.assertEquals( catIds[1], versionRecord.a_many_to_one_relationship );
 
 			var versionedRecords = poService.selectData(
-				  objectName = "vrsn_a_category_object__join__an_object_with_versioning"
+				  objectName = "vrsn_category_join_object"
 				, filter     = { _version_number = versionRecord._version_number }
 			);
 			super.assertEquals( catIds.len(), versionedRecords.recordCount );
@@ -2189,7 +2422,7 @@
 			super.assertEquals( 1, versionRecord.recordCount );
 
 			var versionedRecords = poService.selectData(
-				  objectName = "vrsn_a_category_object__join__an_object_with_versioning"
+				  objectName = "vrsn_category_join_object"
 				, filter     = { _version_number = versionRecord._version_number }
 			);
 			super.assertEquals( 2, versionedRecords.recordCount );
@@ -2240,7 +2473,7 @@
 			super.assertEquals( catIds[1], versionRecord.a_many_to_one_relationship );
 
 			var versionedRecords = poService.selectData(
-				  objectName = "vrsn_a_category_object__join__an_object_with_versioning"
+				  objectName = "vrsn_category_join_object"
 				, filter     = { _version_number = versionRecord._version_number }
 			);
 			super.assertEquals( catIds.len(), versionedRecords.recordCount );
@@ -2289,47 +2522,6 @@
 
 			super.assertEquals( 1, record.recordCount );
 			super.assertEquals( "changed", record.label );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test072_selectData_shouldSelectLatestVersionBeneathSuppliedMaxVersionNumber" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var catIds    = [];
-
-			poService.dbSync();
-
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 1" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 2" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 3" } ) );
-
-			var newId = poService.insertData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, data = {
-					  label             = "myLabel"
-					, a_category_object = ArrayToList( catIds )
-				  }
-			);
-
-			poService.updateData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, id      = newId
-				, data = { label="changed" }
-			);
-
-			var record = poService.selectData(
-				  objectName       = "an_object_with_versioning"
-				, id               = newId
-				, fromVersionTable = true
-				, maxVersion       = 4
-			);
-
-			super.assertEquals( 1, record.recordCount );
-			super.assertEquals( "myLabel", record.label );
 		</cfscript>
 	</cffunction>
 
@@ -2500,7 +2692,7 @@
 			var versions = poService.getRecordVersions( objectName="a_category_object", id=id );
 
 			super.assertEquals( 5, versions.recordCount );
-			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields", versions.columnList );
+			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts,_version_is_latest,_version_is_latest_draft", versions.columnList );
 			for( var i=1; i <= versions.recordCount; i++ ) {
 				super.assertEquals( 6-i, versions._version_number[i] );
 			}
@@ -2572,6 +2764,24 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test080_01_insertData_shouldPopulateGeneratedFieldsWithTheirGeneratedValues" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
+
+			poService.dbSync();
+
+			var obj       = poService.getObject( "object_with_generated_fields" );
+			var recordId  = obj.insertData( data={ firstname="Fred", lastname="Smith", title="Mrs" } );
+			var record    = obj.selectData( id=recordId );
+
+			super.assertEquals( "Mrs Fred Smith", record.label );
+			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
+			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+			super.assertEquals( "mrs-fred-smith", record.slug );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test081_dbSync_shouldNotCreateDbFieldsForOneToManyRelationshipTypeProperties" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
@@ -2584,59 +2794,565 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test083_selectData_shouldReturnJustARecordCount_whenRecordCountOnlyIsPassedAsTrue" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+			var result         = "";
+			var expectedFields = ["id", "label" ];
+			var field          = "";
+			var i              = 0;
 
+			poService.dbSync();
 
-<!--- private helpers --->
-	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
-		<cfset var tables = _getDbTables() />
-		<cfset var table  = "" />
-		<cfset var fks    = "" />
-		<cfset var fk     = "" />
+			poService.insertData( objectName="object_a", data={ label="label 1" } );
+			poService.insertData( objectName="object_a", data={ label="label 2" } );
+			poService.insertData( objectName="object_a", data={ label="label 3" } );
+			poService.insertData( objectName="object_a", data={ label="label 4" } );
 
-		<cfloop list="#tables#" index="table">
-			<cfset fks = _getTableForeignKeys( table ) />
-			<cfloop collection="#fks#" item="fk">
-				<cfquery datasource="#application.dsn#">
-					alter table #fks[fk].fk_table# drop foreign key #fk#
-				</cfquery>
-			</cfloop>
-		</cfloop>
-		<cfloop list="#tables#" index="table">
-			<cfquery datasource="#application.dsn#">
-				drop table #table#
-			</cfquery>
-		</cfloop>
+			result = poService.selectData( objectname="object_a", selectFields=expectedFields, recordCountOnly=true );
+
+			super.assertEquals( 4, result );
+		</cfscript>
 	</cffunction>
 
+	<cffunction name="test084_selectData_shouldUseAHavingClause_whenHavingArgumentSupplied" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname      = "obj_a"
+				, having          = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy         = "obj_a.id"
+				, filterParams    = { bees_count = { type="cf_sql_int", value=2 } }
+				, recordCountOnly = true
+			);
+
+			super.assertEquals( 2, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test084_selectData_shouldMergeHavingClausesFromExtraFilters" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname      = "obj_a"
+				, having          = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy         = "obj_a.id"
+				, filterParams    = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters    = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly = true
+			);
+
+			super.assertEquals( 1, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test085_selectData_shouldReturnRawSQLAndFilters_withoutExecution_whenReturnSqlIsSetToTrue" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, having              = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy             = "obj_a.id"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters        = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly     = true
+				, getSqlAndParamsOnly = true
+			);
+
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( [ { name="bees_count", type="cf_sql_int", value=2 }, { name="bees_count_2", type="cf_sql_int", value=4 } ], result.params ?: [] );
+
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test085a_selectData_shouldReturnRawSQLAndFormattedFilters_whenFormatSqlParamsIsSetToTrue" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, having              = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy             = "obj_a.id"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters        = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly     = true
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+			);
+
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( { bees_count={ type="cf_sql_int", value=2 }, bees_count_2={ type="cf_sql_int", value=4 } }, result.params ?: {} );
+
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test086_selectData_shouldMakeUseOfAdditionalJoinsPassed" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, groupBy             = "obj_a.id"
+				, filter              = "bee_count.bee_count >= :bees_count"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, recordCountOnly     = true
+				, extraJoins          = [ {
+					  subQuery       = "select count(*) as bee_count, obj_a from ptest_obj_a__join__obj_b group by obj_a"
+					, subQueryAlias  = "bee_count"
+					, subQueryColumn = "obj_a"
+					, joinToTable    = "obj_a"
+					, joinToColumn   = "id"
+					, type           = "inner"
+				} ]
+			);
+
+			super.assertEquals( 2, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test087_selectData_shouldMakeUseOfAdditionalJoinsPassedInExtraFiltersArray" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, groupBy             = "obj_a.id"
+				, recordCountOnly     = true
+				, extraFilters        = [{
+					  filter       = "bee_count.bee_count >= :bees_count"
+					, filterParams = { bees_count = { type="cf_sql_int", value=2 } }
+					, extraJoins   = [ {
+						  subQuery       = "select count(*) as bee_count, obj_a from ptest_obj_a__join__obj_b group by obj_a"
+						, subQueryAlias  = "bee_count"
+						, subQueryColumn = "obj_a"
+						, joinToTable    = "obj_a"
+						, joinToColumn   = "id"
+						, type           = "inner"
+					} ]
+				}]
+			);
+
+			super.assertEquals( 2, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test088_insertDataFromSelect_should_enable_selecting_data_from_one_object_and_inserting_into_another_with_a_single_db_call" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/twoLookups/" ] );
+
+			poService.dbSync();
+
+			var obja = poService.getObject( "lookup_a" );
+			var objb = poService.getObject( "lookup_b" );
+
+			obja.insertData( data={ label="Hello world 1" } );
+			obja.insertData( data={ label="Hello world 2" } );
+			obja.insertData( data={ label="Hello world 3" } );
+			obja.insertData( data={ label="Hello world 4" } );
+
+			super.assertEquals( 4, obja.selectData( useCache=false ).recordCount );
+			super.assertEquals( 0, objb.selectData( useCache=false ).recordCount );
+
+			var insertedCount = objb.insertDataFromSelect( fieldList=[ "id", "label", "datecreated", "datemodified" ], selectDataArgs={
+				  objectName   = "lookup_a"
+				, selectFields = [ "id", "label", "Now()", "Now()" ]
+			} );
+
+			super.assertEquals( 4, insertedCount );
+			super.assertEquals( 4, objb.selectData( useCache=false ).recordCount );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test089_updateData_shouldGenerateFieldValues_forPropsThatGenerateAlways" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithGenerators" ] );
+			poService.$( "slugify" ).$args( "Mrs Fred Smith" ).$results( "mrs-fred-smith" );
+			poService.$( "slugify" ).$args( "Miss Roberta Holness" ).$results( "miss-roberta-holness" );
+
+			poService.dbSync();
+
+			var obj       = poService.getObject( "object_with_generated_fields" );
+			var recordId  = obj.insertData( data={ firstname="Fred", lastname="Smith", title="Mrs" } );
+			obj.updateData( id=recordId, data={ firstname="Roberta", lastname="Holness", title="Miss" } );
+			var record    = obj.selectData( id=recordId );
+
+			super.assertEquals( "Miss Roberta Holness", record.label );
+			super.assert( DateDiff( "n", Now(), record.sometimestamp ) == 0 );
+			super.assertEquals( Hash( "Fred" ), record.hashed_firstname );
+			super.assertEquals( "miss-roberta-holness", record.slug );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test090_selectData_shouldReplaceFormulaPropertyWithItsDefinedFormulaInSelectFields" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds      = [];
+			var bId       = "";
+			var cId       = "";
+			var dId       = "";
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bId = poService.insertData( objectName="object_b", data={ label="isn't this lovely", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true );
+			cId = poService.insertData( objectName="object_c", data={ label="isn't this lovely", obj_b=bId } );
+			dId = poService.insertData( objectName="object_d", data={ label="isn't this lovely", obj_c=cId } );
+
+			var result = poService.selectData(
+				  objectName   = "object_d"
+				, selectFields = [ "obj_c.a_count", "id" ]
+				, groupBy      = "object_d.id"
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , dId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Forumla field not calculated correctly" );
+
+			var result = poService.selectData(
+				  objectName   = "object_c"
+				, selectFields = [ "object_c.a_count", "id" ]
+				, groupBy      = "object_c.id"
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , cId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Forumla field not calculated correctly" );
+
+			var result = poService.selectData(
+				  objectName   = "object_c"
+				, selectFields = [ "a_count", "id" ]
+				, groupBy      = "object_c.id"
+			);
+
+			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
+			super.assertEquals( result.id         , cId, "Expected record ID mismatch" );
+			super.assertEquals( result.a_count    , 3  , "Forumla field not calculated correctly" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test091_selectData_shouldReplaceForumulaPropertyWithItsDefinedFormulaInOrderByClause" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds      = [];
+			var bIds      = [];
+			var cIds      = [];
+			var dIds      = [];
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 1", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2", lots_of_a="#aIds[2]#" }, insertManyToManyRecords=true ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[1] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[2] } ) );
+
+			var result = poService.selectData(
+				  objectName   = "object_d"
+				, selectFields = [ "obj_c.a_count", "id" ]
+				, groupBy      = "object_d.id"
+				, orderBy      = "obj_c.a_count desc"
+			);
+
+			super.assertEquals( result.recordCount, 2      , "Expected record count mismatch" );
+			super.assertEquals( result.id[1]      , dIds[1], "Expected record ID mismatch" );
+			super.assertEquals( result.a_count[1] , 3      , "Forumla field not calculated correctly" );
+			super.assertEquals( result.id[2]      , dIds[2], "Expected record ID mismatch" );
+			super.assertEquals( result.a_count[2] , 1      , "Forumla field not calculated correctly" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test092_selectData_shouldAutomaticallyAddGroupByClauseWhenAskedToDoSoAndWhenHavingAggregateInFields" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds      = [];
+			var bIds      = [];
+			var cIds      = [];
+			var dIds      = [];
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 1", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2", lots_of_a="#aIds[2]#" }, insertManyToManyRecords=true ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[1] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[2] } ) );
+
+			var result = poService.selectData(
+				  objectName   = "object_d"
+				, selectFields = [ "obj_c.a_count", "id", "datecreated", "datemodified" ]
+				, autoGroupBy  = true
+				, orderBy      = "obj_c.a_count desc"
+			);
+			super.assertEquals( result.recordCount, 2      , "Expected record count mismatch" );
+			super.assertEquals( result.id[1]      , dIds[1], "Expected record ID mismatch" );
+			super.assertEquals( result.a_count[1] , 3      , "Forumla field not calculated correctly" );
+			super.assertEquals( result.id[2]      , dIds[2], "Expected record ID mismatch" );
+			super.assertEquals( result.a_count[2] , 1      , "Forumla field not calculated correctly" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test093_selectData_shouldReplaceForumulaPropertyWithItsDefinedFormulaAndPutObjectNameAsAliasWhereNecessaryToAvoidAmbiguousColumnNames" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var bIds      = [];
+			var cIds      = [];
+
+
+			poService.dbSync();
+
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 1" } ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2" } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
+
+			var result = poService.selectData(
+				  objectName   = "object_c"
+				, selectFields = [ "compound_label", "id" ]
+				, orderBy      = "compound_label"
+			);
+
+			super.assertEquals( result.recordCount      , 2        , "Expected record count mismatch" );
+			super.assertEquals( result.id[1]            , cIds[1]  , "Expected record ID mismatch" );
+			super.assertEquals( result.id[2]            , cIds[2]  , "Expected record ID mismatch" );
+			super.assertEquals( result.compound_label[1], "c 1 b 1", "Forumla field not calculated correctly" );
+			super.assertEquals( result.compound_label[2], "c 2 b 2", "Forumla field not calculated correctly" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test094_parseSelectFields_shouldCorrectlyParseTheProvidedSelectFields" returntype="void">
+		<cfscript>
+			var poService    = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents" ] );
+			var selectFields = [
+				  "id"
+				, "label"
+				, "label as labelAlias"
+				, "${labelField} as labelAlias"
+				, "object_1.label"
+				, "object_1.label as labelAlias"
+				, "undefined"
+				, "undefined as undefinedAlias"
+			];
+			var expected     = [
+				  "`object_1`.`id`"
+				, "`object_1`.`label`"
+				, "`object_1`.`label` as labelAlias"
+				, "${labelField} as labelAlias"
+				, "object_1.label"
+				, "object_1.label as labelAlias"
+				, "undefined"
+				, "undefined as undefinedAlias"
+			];
+
+			poService.dbSync();
+
+			var result = poService.parseSelectFields(
+				  objectName   = "object_1"
+				, selectFields = selectFields
+			);
+
+			for( var i=1; i<=result.len(); i++ ) {
+				super.assertEquals( result[ i ], expected[ i ], "Expected [ #expected[ i ]# ] but received [ #result[ i ]# ]" );
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test095_selectView_shouldPrePopulateSelectDataArgsFromPassedSelectDataView_mixingInAnyOtherSuppliedArguments" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var view      = "testView";
+			var bees      = [];
+
+			poService.dbSync();
+
+			mockSelectDataViewService.$( "getViewArgs" ).$args( "testView" ).$results( {
+				  objectname   = "obj_a"
+				, having       = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy      = "obj_a.id"
+				, filter       = "1=1"
+				, filterParams = { bees_count = { type="cf_sql_int", value=2 } }
+			} );
+
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectView(
+				  view            = "testView"
+				, filter          = "2 = :two"
+				, filterParams    = { two={ type="cf_sql_int", value=2 } }
+				, recordCountOnly = true
+			);
+
+			expect( result ).toBe( 2 );
+
+			result = poService.selectView(
+				  view            = "testView"
+				, recordCountOnly = true
+				, filter          = { label="label 2" }
+			);
+
+			expect( result ).toBe( 1 );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test096_loadObjects_shouldThrowInformativeError_whenTableNameIsTooLongAndErrorsEnabled" returntype="void">
+		<cfscript>
+			var poService       = "";
+			var errorThrown     = false;
+			var expectedMessage = "Table name is too long";
+			var expectedDetail  = "The table name, [ptest_this_is_a_very_long_name_for_the_many_to_many_linking_table_too_long_in_fact], is longer than the maximum [64 characters] allowed by the database.";
+
+			try {
+				_getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithLongTableName/" ], throwOnLongTableName=true );
+			} catch ( "PresideObjectService.invalidTableName" e ) {
+				super.assertEquals( expectedMessage, e.message )
+				super.assertEquals( expectedDetail , e.detail )
+				errorThrown = true;
+			}
+
+			super.assert( errorThrown, "A controlled error was not thrown" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test097_loadObjects_shouldTruncateTableName_whenTableNameIsTooLongAndErrorsDisabled" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithLongTableName/" ] );
+			var expected  = "ptest_this_is_a_very_long_name_for_the_many_to_many_linking_tabl";
+			var actual    = poService.getObjectAttribute( "this_is_a_very_long_name_for_the_many_to_many_linking_table_too_long_in_fact", "tableName" );
+
+			super.assertEquals( expected, actual, "A controlled error was not thrown" );
+		</cfscript>
+	</cffunction>
+
+<!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
-		<cfargument name="objectDirectories" type="array"  required="true" />
-		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
+		<cfargument name="objectDirectories"    type="array"   required="true" />
+		<cfargument name="defaultPrefix"        type="string"  required="false" default="ptest_" />
+		<cfargument name="throwOnLongTableName" type="boolean" required="false" />
 
 		<cfscript>
-			cachebox               = _getCachebox( forceNewInstance = true );
-			mockColdbox            = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
-			mockColdboxEvent       = getMockbox().createStub();
-			mockInterceptorService = _getMockInterceptorService();
+			cachebox                  = _getCachebox( forceNewInstance = true );
+			mockColdbox               = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+			mockColdboxEvent          = getMockbox().createStub();
+			mockInterceptorService    = _getMockInterceptorService();
+			mockSelectDataViewService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectSelectDataViewService" );
 
 			mockColdboxEvent.$( "isAdminUser", true );
 			mockColdboxEvent.$( "getAdminUserId", "" );
 			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
 			return _getPresideObjectService(
-				  objectDirectories  = arguments.objectDirectories
-				, defaultPrefix      = arguments.defaultPrefix
-				, forceNewInstance   = true
-				, cacheBox           = cacheBox
-				, coldbox            = mockColdbox
-				, interceptorService = mockInterceptorService
+				  objectDirectories     = arguments.objectDirectories
+				, defaultPrefix         = arguments.defaultPrefix
+				, forceNewInstance      = true
+				, cacheBox              = cacheBox
+				, coldbox               = mockColdbox
+				, interceptorService    = mockInterceptorService
+				, selectDataViewService = mockSelectDataViewService
+				, throwOnLongTableName  = arguments.throwOnLongTableName ?: false
 			)
 		</cfscript>
-	</cffunction>
-
-	<cffunction name="_getDbTables" access="private" returntype="string" output="false">
-		<cfset var tables = "" />
-		<cfdbinfo type="tables" name="tables" datasource="#application.dsn#" />
-		<cfreturn ValueList( tables.table_name ) />
 	</cffunction>
 
 	<cffunction name="_getDbTableColumns" access="private" returntype="struct" output="false">
@@ -2653,33 +3369,6 @@
 			}
 
 			return cols;
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="_getDbTableIndexes" access="private" returntype="struct" output="false">
-		<cfargument name="table" type="string" required="true" />
-
-		<cfscript>
-			var indexes = "";
-			var index   = "";
-			var ixs     = {};
-
-			dbinfo type="index" table="#arguments.table#" name="indexes" datasource="#application.dsn#";
-
-			for( index in indexes ){
-				if ( index.index_name neq "PRIMARY" ) {
-					if ( not StructKeyExists( ixs, index.index_name ) ){
-						ixs[ index.index_name ] = {
-							  unique = not index.non_unique
-							, fields = ""
-						}
-					}
-
-					ixs[ index.index_name ].fields = ListAppend( ixs[ index.index_name ].fields, index.column_name );
-				}
-			}
-
-			return ixs;
 		</cfscript>
 	</cffunction>
 
@@ -2721,4 +3410,7 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_getNowSql" access="private" returntype="string" output="false">
+		<cfreturn _getDbAdapter().getNowFunctionSql() />
+	</cffunction>
 </cfcomponent>

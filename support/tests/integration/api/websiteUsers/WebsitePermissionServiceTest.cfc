@@ -118,7 +118,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
 
-		super.assert( permsService.hasPermission( "key.c" ) );
+		super.assert( permsService.hasPermission( "key.C" ) );
 	}
 
 	function test06_hasPermission_shouldReturnFalse_whenLoggedInUserDoesNotHaveAGrantToPassedPermissionKey_andDoesNotHaveAnyContextPerms() output=false {
@@ -132,7 +132,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
-		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, permd = true } );
+		mockCacheProvider.$( "get", { perma = true, permb = false, permc = true, permd = true } );
 
 		super.assertFalse( permsService.hasPermission(
 			  permissionKey = testPermissionKey
@@ -152,7 +152,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
-		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, permd = true } );
+		mockCacheProvider.$( "get", { perma = true, permb = false, permc = true, permd = true } );
 
 		super.assert( permsService.hasPermission(
 			  permissionKey = testPermissionKey
@@ -172,7 +172,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
-		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, "keyb_key.c_fred" = false, permc = true, permd = true } );
+		mockCacheProvider.$( "get", { perma = true, permb = false, "keyb_key.c_fred" = false, permc = true, permd = true } );
 
 		super.assertFalse( permsService.hasPermission(
 			  permissionKey = testPermissionKey
@@ -192,7 +192,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
-		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, "keyb_key.d_fred" = true, permd = true } );
+		mockCacheProvider.$( "get", { perma = true, permb = false, permc = true, "keyb_key.d_fred" = true, permd = true } );
 
 		super.assert( permsService.hasPermission(
 			  permissionKey = testPermissionKey
@@ -212,7 +212,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
-		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, "keyb_key.c_benefita" = false, "keyb_key.c_benefitb" = true, "keyb_key.c_benefitc" = true, permc = true, permd = true } );
+		mockCacheProvider.$( "get", { perma = true, permb = false, "keyb_key.c_benefita" = false, "keyb_key.c_benefitb" = true, "keyb_key.c_benefitc" = true, permc = true, permd = true } );
 
 		super.assertFalse( permsService.hasPermission(
 			  permissionKey = testPermissionKey
@@ -232,7 +232,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
-		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, "keyb_key.d_benefita" = true, "keyb_key.d_benefitb" = false, "keyb_key.d_benefitc" = false, permd = true } );
+		mockCacheProvider.$( "get", { perma = true, permb = false, permc = true, "keyb_key.d_benefita" = true, "keyb_key.d_benefitb" = false, "keyb_key.d_benefitc" = false, permd = true } );
 
 		super.assert( permsService.hasPermission(
 			  permissionKey = testPermissionKey
@@ -251,7 +251,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockAppliedPermDao     = getMockbox().createStub();
 		mockCacheProvider      = getMockbox().createStub();
 
-		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsitePermissionService(
+		var service = getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsitePermissionService(
 			  websiteLoginService = mockWebsiteLoginService
 			, cacheProvider      = mockCacheProvider
 			, permissionsConfig  = arguments.permissionsConfig
@@ -259,6 +259,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, userDao            = mockUserDao
 			, appliedPermDao     = mockAppliedPermDao
 		) );
+
+		service.$( "$isFeatureEnabled" ).$args( "websitebenefits" ).$results( true );
+
+		return service;
 	}
 
 	private struct function _getDefaultPermsConfig() output=false {

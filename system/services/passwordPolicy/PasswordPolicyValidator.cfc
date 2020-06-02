@@ -1,5 +1,5 @@
 /**
- * A class that provides validators for PresideCMS's validation framework
+ * A class that provides validators for Preside's validation framework
  *
  * @singleton          true
  * @validationProvider true

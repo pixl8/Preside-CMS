@@ -4,7 +4,6 @@
 		<fieldset>
 			<field binding="security_user.known_as" control="overridenControl" required="false" />
 			<field binding="missingObject.id" control="overridenControl" required="false" />
-			<field binding="security_user.id" control="overridenControl" required="false" />
 		</fieldset>
 	</tab>
 </form>

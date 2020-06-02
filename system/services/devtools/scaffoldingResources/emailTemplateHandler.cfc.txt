@@ -1,6 +1,6 @@
 /**
- * Email template scaffolded by the PresideCMS scaffolding service.
- * See https://docs.presidecms.com/devguides/emailtemplating.html for a full guide
+ * Email template scaffolded by the Preside scaffolding service.
+ * See https://docs.preside.org/devguides/emailtemplating.html for a full guide
  * on email templating.
  *
  */

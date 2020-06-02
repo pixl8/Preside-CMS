@@ -1,3 +1,5 @@
+.enable_plugin_inline_editable() when(@enable-plugin-inline-editable = true) {
+
 .editable-container .popover-title {
 	color:#438EB9;
 }
@@ -21,16 +23,16 @@
 	display:inline-block;
 }
 .editable-buttons {
-	margin-left:1px;
+	margin-left: 1px;
 	.btn {
-		padding:0;
-		width:28px;
-		line-height:24px;
-		border-width:3px;
-		font-size:12px;
-		margin:0 1px 0 0;
-		> [class*="fa-"] {
-			margin:0;
+		padding: 0;
+		width: 28px;
+		line-height: 24px;
+		border-width: 3px;
+		font-size: @base-font-size - 1;
+		margin: 0 1px 0 0;
+		> .@{icon} {
+			margin: 0;
 		}
 	}
 }
@@ -46,11 +48,15 @@
 		display:inline-block;
 		content:"\f057";
 
-		font-family:@icon-font;font-size:15px;
+		font-family: PresideFontAwesome;
 
-		position:absolute;
-		margin-top:-9px;
-		width:16px; height:30px; line-height:30px;
+		font-size: @font-size-editable-clear;
+
+		position: absolute;
+		margin-top: -9px;
+		width: 16px;
+		height: 30px;
+		line-height: 30px;
 		text-align:center;
 	}
 }
@@ -58,28 +64,34 @@
 
 
 .editable-input .ace-spinner {
- margin-right:8px;
+ margin-right: 8px;
+ .spinner-input {
+	width: 100%;
+ }
 }
+
 
 .editable-inline .editable-slider {
-  margin-top:10px;
-  margin-right:4px;
+  margin-top: 10px;
+  margin-right: 4px;
 }
 .editable-popup .editable-slider {
-	display:block;
-	margin-bottom:16px;
-	margin-top:4px;
+	display: block;
+	margin-bottom: 16px;
+	margin-top: 4px;
 }
-.editable-slider input{
-	display:none;
+.editable-slider input[type=text] {
+	display: none;
 }
-
+.editable-slider input[type=range] {
+	outline: none !important;
+}
 
 
 .editable-input .ace-file-input {
 	display:block;
 }
-.editable-image .ace-file-multiple label.selected {
+.editable-image .ace-file-multiple .ace-file-container.selected {
 	border-color:transparent;
 }
 
@@ -113,17 +125,32 @@
 .editable-inline .editableform {
 	margin-bottom:0;
 }
-
+.editableform .control-group {
+	display: block;
+}
 
 
 .editableform-loading {
 	background:none;
-	[class*="fa-"] , .progress{
+	.@{icon} , .progress{
 		position:relative;
 		top:35%;
 	}
 }
 
 
+.input-group.date .input-group-addon {
+	cursor:pointer;
+}
 
 
+//IE!!!!
+//.editable-input .input-group .input-group-addon {
+ ///width: auto \9;
+//}
+
+
+
+
+}
+.enable_plugin_inline_editable();

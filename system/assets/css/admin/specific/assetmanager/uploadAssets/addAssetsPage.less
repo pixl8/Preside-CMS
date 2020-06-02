@@ -1,0 +1,72 @@
+@import url( 'globals.less' );
+
+.presidecms {
+	.batch-add-assets-form {
+		.upload-options-title {
+			padding       : 5px 0px;
+			margin        : 0px 0px 5px;
+			border-bottom : 2px solid #ddd;
+			color         : #707070;
+			line-height   : 1.42857;
+			font-size     : 13px;
+			font-weight   : 700;
+		}
+	}
+
+	.no-files-chosen-message {
+		border     : 3px dashed @default-panel-border-colour;
+		background : rgba( 0, 0, 0, 0.03 );
+		padding    : 30px;
+		margin     : 8px;
+	}
+
+	.table tbody > tr.asset-preview {
+		> td {
+			vertical-align : middle;
+			min-height     : 50px;
+
+			&.upload-type {
+				width : 8em;
+			}
+			&.upload-size {
+				width : 8em;
+			}
+			&.upload-detail {
+
+			}
+			&.upload-actions {
+				text-align : right;
+			}
+		}
+
+		&.upload-error {
+			> td {
+				color : @error-red;
+			}
+		}
+
+		&.upload-success {
+			> td {
+				color : @success-green;
+			}
+		}
+	}
+
+	.progress {
+		height : 30px;
+	};
+
+	.upload-detail {
+		.progress {
+			position      : relative;
+			margin-bottom : 0px;
+
+			.progress-bar-placeholder {
+				position : absolute;
+				left     : 10px;
+				top      : 5px;
+			}
+		}
+	}
+}
+

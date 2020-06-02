@@ -1,0 +1,27 @@
+@import url( 'globals.less' );
+
+.presidecms {
+	.email-stats-list {
+		display : table-row;
+		float   : right;
+		margin  : 0 0 10px;
+
+		dt, dd {
+			display : table-cell;
+			vertical-align : middle;
+			padding : 0px 1em;
+		}
+
+		dt {
+			font-weight : normal;
+		}
+
+		dd {
+			border-right : 1px dotted @input-border;
+
+			&:last-child {
+				border-right : none;
+			}
+		}
+	}
+}

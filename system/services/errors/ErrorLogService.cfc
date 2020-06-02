@@ -8,7 +8,7 @@ component displayName="Error Log Service" {
 
 // CONSTRUCTOR
 	public any function init(
-		  string appMapping     = "/app"
+		  string appMapping     = "app"
 		, string appMappingPath = "app"
 		, string logsMapping    = "/logs"
 		, string logDirectory   = ExpandPath( "#arguments.logsMapping#/rte-logs" )
@@ -16,13 +16,14 @@ component displayName="Error Log Service" {
 		_setLogDirectory( arguments.logDirectory );
 		_setAppMapping( arguments.appMapping );
 		_setAppMappingPath( arguments.appMappingPath );
+		_setupListeners();
 
 		return this;
 	}
 
 // PUBLIC API METHODS
 	/**
-	 * Records an error in the PresideCMS internal error log
+	 * Records an error in the Preside internal error log
 	 *
 	 * @autodoc
 	 * @error.hint Structure of the error (this would normally be a caught error object)
@@ -39,6 +40,7 @@ component displayName="Error Log Service" {
 		}
 		FileWrite( filePath, Trim( rendered ) );
 		_cleanupLogFiles();
+
 		_callErrorListeners( arguments.error );
 	}
 
@@ -53,7 +55,10 @@ component displayName="Error Log Service" {
 		var errors = [];
 
 		for( var file in files ) {
-			errors.append( { date=file.dateLastModified, filename=file.name } );
+			var errorMessage   = REMatchNoCase( "<\s*title[^>]*>(.*?)<\s*\/\s*title>", FileRead( _getLogDirectory() & "/" & file.name ) );
+			var messageContent = errorMessage.len() ? ReplaceList( errorMessage[1] , "<title>,</title>", "#chr(10)# ,#chr(10)#" ) : "";
+
+			errors.append( { date=file.dateLastModified, filename=file.name, message=messageContent } );
 		}
 
 		errors.sort( function( a, b ){
@@ -106,23 +111,11 @@ component displayName="Error Log Service" {
 
 // PRIVATE HELPERS
 	private void function _callErrorListeners( required struct error ) {
-		_callListener( "#_getAppMappingPath()#.services.errors.ErrorHandler", arguments.error );
+		var listeners = _getListeners();
 
-		var extensions = new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping          = _getAppMapping()
-			, extensionsDirectory = "#_getAppMapping()#/extensions"
-		).listExtensions( activeOnly=true );
-
-		for( var extension in extensions ) {
-			_callListener( "#_getAppMappingPath()#.extensions.#extension.name#.services.errors.ErrorHandler", arguments.error );
-		}
-	}
-
-	private void function _callListener( required string listenerPath, required struct error ) {
-		var filePath = ExpandPath( "/" & Replace( arguments.listenerPath, ".", "/", "all" ) & ".cfc" );
-		if ( FileExists( filePath ) ) {
+		for( var listenerPath in listeners ) {
 			try {
-				CreateObject( arguments.listenerPath ).raiseError( arguments.error );
+				CreateObject( listenerPath ).raiseError( arguments.error );
 			} catch ( any e ){}
 		}
 	}
@@ -147,6 +140,32 @@ component displayName="Error Log Service" {
 		}
 	}
 
+	private void function _setupListeners() {
+		var listeners = [];
+		var appListenerPath = "#_getAppMappingPath()#.services.errors.ErrorHandler";
+		var appFilePath     = ExpandPath( "/" & Replace( appListenerPath, ".", "/", "all" ) & ".cfc" );
+
+		if ( FileExists( appFilePath ) ) {
+			listeners.append( appListenerPath );
+		}
+
+		var extensions = new preside.system.services.devtools.ExtensionManagerService(
+			  appMapping          = _getAppMapping()
+			, extensionsDirectory = "#_getAppMapping()#/extensions"
+		).listExtensions( activeOnly=true );
+
+		for( var extension in extensions ) {
+			var listenerPath = "#_getAppMappingPath()#.extensions.#extension.name#.services.errors.ErrorHandler";
+			var filePath     = ExpandPath( "/" & Replace( listenerPath, ".", "/", "all" ) & ".cfc" );
+
+			if ( FileExists( filePath ) ) {
+				listeners.append( listenerPath );
+			}
+		}
+
+		_setListeners( listeners );
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLogDirectory() {
 		return _logDirectory;
@@ -164,14 +183,21 @@ component displayName="Error Log Service" {
 		return _appMapping;
 	}
 	private void function _setAppMapping( required string appMapping ) {
-		_appMapping = arguments.appMapping;
+		_appMapping = "/" & arguments.appMapping.reReplace( "^/", "" );
 	}
 
 	private string function _getAppMappingPath() {
 		return _appMappingPath;
 	}
 	private void function _setAppMappingPath( required string appMappingPath ) {
-		_appMappingPath = arguments.appMappingPath;
+		_appMappingPath = "/" & arguments.appMappingPath.reReplace( "^/", "" );
+	}
+
+	private array function _getListeners() {
+		return _listeners;
+	}
+	private void function _setListeners( required array listeners ) {
+		_listeners = arguments.listeners;
 	}
 
 }

@@ -1,16 +1,12 @@
 <cfscript>
-	objectName          = rc.object ?: "";
-	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
-
-	prc.pageIcon  = "plus";
-	prc.pageTitle = addRecordTitle;
+	topRightButtons = prc.topRightButtons ?: "";
+	addRecordForm   = prc.addRecordForm   ?: "";
 </cfscript>
 
 <cfoutput>
-	#renderView( view="/admin/datamanager/_addRecordForm", args={
-		  objectName            = objectName
-		, addRecordAction       = event.buildAdminLink( linkTo='datamanager.addRecordAction', queryString="object=#objectName#" )
-		, allowAddAnotherSwitch = true
-	} )#
+	<cfif topRightButtons.len()>
+		<div class="top-right-button-group">#topRightButtons#</div>
+	</cfif>
+
+	#addRecordForm#
 </cfoutput>

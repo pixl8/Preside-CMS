@@ -4,10 +4,16 @@ component output="false" singleton=true {
 	/**
 	 * @resourceBundleService.inject ResourceBundleService
 	 * @presideObjectService.inject  PresideObjectService
+	 * @assetManagerService.inject   AssetManagerService
 	 */
-	public any function init( required any resourceBundleService, required any presideObjectService ) output=false {
+	public any function init(
+		  required any resourceBundleService
+		, required any presideObjectService
+		, required any assetManagerService
+	) output=false {
 		_setResourceBundleService( arguments.resourceBundleService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setAssetManagerService( arguments.assetManagerService );
 
 		return this;
 	}
@@ -59,11 +65,12 @@ component output="false" singleton=true {
 						continue;
 					}
 
-					param name="field.name" default="";
-					param name="field.binding" default="";
+					param name="field.name"         default="";
+					param name="field.binding"      default="";
+					param name="field.sourceObject" default="";
 
 					fieldRules = getRulesForField(
-						  objectName      = ListFirst( field.binding, "." )
+						  objectName      = field.sourceObject.len() ? field.sourceObject : ListFirst( field.binding, "." )
 						, fieldName       = field.name
 						, fieldAttributes = field
 					);
@@ -72,7 +79,7 @@ component output="false" singleton=true {
 						ArrayAppend( rules, rule );
 					}
 
-					if ( field.keyExists( "rules" ) ) {
+					if ( StructKeyExists( field, "rules" ) ) {
 						for( rule in field.rules ){
 							rule.fieldName = field.name;
 							ArrayAppend( rules, rule );
@@ -120,7 +127,11 @@ component output="false" singleton=true {
 			break;
 
 			case "date":
-				ArrayAppend( rules, { fieldName=arguments.fieldName, validator=field.dbtype } );
+				if ( field.dbtype == "timestamp" ) {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="datetime" } );
+				} else {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator=field.dbtype } );
+				}
 			break;
 
 			case "string":
@@ -134,26 +145,46 @@ component output="false" singleton=true {
 			break;
 		}
 
+		// controls
+		switch( field.control ?: "" ){
+			case "emailInput":
+				var multiple = isBoolean( field.multiple ?: "" ) && field.multiple;
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email", params={ multiple=multiple } } );
+			break;
+
+			case "fileupload":
+				if ( Len( Trim( field.allowedTypes ?: "" ) ) ) {
+					var allowedExtensions = _getAssetManagerService().expandTypeList( ListToArray( field.allowedTypes ) ).toList();
+					var allowedTypes      = listChangeDelims( field.allowedTypes, ", " );
+				 	ArrayAppend( rules, { fieldName=arguments.fieldName, validator="fileType", params={ allowedTypes=allowedTypes, allowedExtensions=allowedExtensions } } );
+				}
+			break;
+
+			case "captcha":
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="recaptcha" } );
+			break;
+		}
+
 		// text length
 		if ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) and StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="rangeLength", params={ minLength = Val( field.minLength ), maxLength = Val( field.maxLength ) } } );
-		} elseif ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) ) {
+		} else if ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="minLength", params={ length = Val( field.minLength ) } } );
-		} elseif ( StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
+		} else if ( StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="maxLength", params={ length = Val( field.maxLength ) } } );
 		}
 
 		// min/max values
 		if ( StructKeyExists( field, "minValue" ) and StructKeyExists( field, "maxValue" ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="range", params={ min = Val( field.minValue ), max = Val( field.maxValue ) } } );
-		} elseif ( StructKeyExists( field, "minValue" ) ) {
+		} else if ( StructKeyExists( field, "minValue" ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="min", params={ min = Val( field.minValue ) } } );
-		} elseif ( StructKeyExists( field, "maxValue" ) ) {
+		} else if ( StructKeyExists( field, "maxValue" ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="max", params={ max = Val( field.maxValue ) } } );
 		}
 
 		// unique indexes
-		if ( StructKeyExists( field, "uniqueindexes" ) ) {
+		if ( StructKeyExists( field, "uniqueindexes" ) && arguments.objectName.len() ) {
 			for( index in ListToArray( field.uniqueindexes ) ) {
 				if ( _isLastFieldInUniqueIndex( index, arguments.objectName, arguments.fieldName ) ) {
 					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="presideObjectUniqueIndex", params={ objectName=arguments.objectName, fields=_getUniqueIndexFields( index, arguments.objectName ) } } );
@@ -164,6 +195,11 @@ component output="false" singleton=true {
 		// password policies
 		if ( Len( Trim( field.passwordPolicyContext ?: "" ) ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="meetsPasswordPolicy", params={ passwordPolicyContext = field.passwordPolicyContext } } );
+		}
+
+		// enum
+		if ( Len( Trim( field.enum ?: "" ) ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="enum", params={ enum=field.enum, multiple=( IsBoolean( field.multiple ?: "" ) && field.multiple ) } } );
 		}
 
 		for( rule in rules ){
@@ -242,5 +278,12 @@ component output="false" singleton=true {
 	}
 	private void function _setPresideObjectService( required any presideObjectService ) output=false {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getAssetManagerService() output=false {
+		return _assetManagerService;
+	}
+	private void function _setAssetManagerService( required any assetManagerService ) output=false {
+		_assetManagerService = arguments.assetManagerService;
 	}
 }

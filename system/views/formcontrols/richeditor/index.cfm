@@ -1,11 +1,14 @@
 <cfscript>
-	inputName    = args.name         ?: "";
-	inputId      = args.id           ?: "";
-	placeholder  = args.placeholder  ?: "";
-	defaultValue = args.defaultValue ?: "";
-	extraClasses = args.extraClasses ?: "";
-	stylesheets  = args.stylesheets ?: "";
-	maxLength    = Val( args.maxLength ?: 0 );
+	inputName          = args.name               ?: "";
+	inputId            = args.id                 ?: "";
+	inputClass         = args.class              ?: "";
+	placeholder        = args.placeholder        ?: "";
+	defaultValue       = args.defaultValue       ?: "";
+	extraClasses       = args.extraClasses       ?: "";
+	stylesheets        = args.stylesheets        ?: "";
+	widgetCategories   = args.widgetCategories   ?: ( rc.widgetCategories ?: "" );
+	linkPickerCategory = args.linkPickerCategory ?: ( rc.linkPickerCategory ?: "" );
+	maxLength     = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -19,13 +22,19 @@
 	<textarea id          = "#inputId#"
 	          placeholder = "#placeholder#"
 	          name        = "#inputName#"
-	          class       = "richeditor #extraClasses#"
+	          class       = "#inputClass# richeditor #extraClasses#"
 	          tabindex="#getNextTabIndex()#"
 	          <cfif Len( Trim( args.toolbar ?: "" ) )>
 	               data-toolbar = "#Trim( args.toolbar )#"
 	          </cfif>
 	          <cfif Len( Trim( args.customConfig ?: "" ) )>
 	              data-custom-config="#Trim( args.customConfig )#"
+	          </cfif>
+	          <cfif Len( Trim( args.autoParagraph ?: "" ) )>
+	              data-auto-paragraph="#isTrue( args.autoParagraph )#"
+	          </cfif>
+	          <cfif Len( Trim( args.enterMode ?: "" ) )>
+	              data-enter-mode="#Trim( args.enterMode )#"
 	          </cfif>
 	          <cfif Len( Trim( args.stylesheets ?: "" ) )>
 	              data-stylesheets="#Trim( args.stylesheets )#"
@@ -38,6 +47,12 @@
 	          </cfif>
 	          <cfif Val( args.maxHeight ?: "" )>
 	              data-max-height="#Val( args.maxHeight )#"
+	          </cfif>
+	          <cfif Len( Trim( widgetCategories ) )>
+	              data-widget-categories="#Trim( widgetCategories )#"
+	          </cfif>
+	          <cfif Len( Trim( linkPickerCategory ) )>
+	              data-link-picker-category="#Trim( linkPickerCategory )#"
 	          </cfif>
 
 	>#value#</textarea>

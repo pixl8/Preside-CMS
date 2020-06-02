@@ -63,7 +63,7 @@ component {
 		,          date   expires
 
 	) {
-		var existingWf = getState( argumentCollection=arguments );
+		var existingWf = getState( argumentCollection=arguments, useCache=false );
 		var newState   = existingWf.state ?: {};
 
 		newState.append( arguments.state );
@@ -76,9 +76,10 @@ component {
 		, string reference  = ""
 		, string owner      = _getCookieBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
+		, boolean useCache  = false
 	) {
 		if ( Len( Trim( arguments.id  ) ) ) {
-			var record = _getStateDao().selectData( id=arguments.id );
+			var record = _getStateDao().selectData( id=arguments.id, useCache=arguments.useCache );
 
 			if ( _hasStateExpired( record.expires ) ) {
 				complete( id=record.id );
@@ -112,6 +113,7 @@ component {
 			var record = _getStateDao().selectData(
 				  selectFields = [ "id", "expires" ]
 				, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=arguments.owner }
+				, useCache     = false
 			);
 
 			if ( _hasStateExpired( record.expires ) ) {
@@ -123,6 +125,7 @@ component {
 				record = _getStateDao().selectData(
 					  selectFields = [ "id" ]
 					, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=_getCookieBasedOwner() }
+					, useCache     = false
 				);
 
 				if ( record.recordCount ) {
@@ -143,7 +146,7 @@ component {
 
 		if ( !Len( Trim( owner ) ) ) {
 			var owner = CreateUUId();
-			cookieService.setVar( cookieKey, owner );
+			cookieService.setVar( name=cookieKey, value=owner, httpOnly=true );
 		}
 
 		return owner;

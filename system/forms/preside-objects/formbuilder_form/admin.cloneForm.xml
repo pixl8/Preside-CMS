@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Form builder form: clone form
+
+This form is used for cloning forms from existing forms to the form builder system.
+-->
+<form i18nBaseUri="preside-objects.formbuilder_form:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field sortorder="10" binding="formbuilder_form.name"        control="textinput" />
+			<field sortorder="20" binding="formbuilder_form.description" control="textarea"  />
+		</fieldset>
+	</tab>
+</form>

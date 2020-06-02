@@ -1,4 +1,5 @@
-component output=false {
+component {
+
 	function configure(){
 		cacheBox = {
 			// core coldbox cache
@@ -9,7 +10,7 @@ component output=false {
 				, reapFrequency                  = 2
 				, freeMemoryPercentageThreshold  = 0
 				, evictionPolicy                 = "LFU"
-				, evictCount                     = 1
+				, evictCount                     = 100
 				, maxObjects                     = 300
 				, objectStore                    = "ConcurrentStore"
 				, coldboxEnabled                 = true
@@ -27,22 +28,8 @@ component output=false {
 						, reapFrequency                  = 2
 						, freeMemoryPercentageThreshold  = 0
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 2
-						, maxObjects                     = 300
-						, objectStore                    = "ConcurrentSoftReferenceStore"
-					}
-				},
-
-				PresideSystemCache = {
-					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
-					, properties = {
-						  objectDefaultTimeout           = 0
-						, objectDefaultLastAccessTimeout = 0
-						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 60
-						, evictionPolicy                 = "LFU"
-						, evictCount                     = 1
-						, maxObjects                     = 300
+						, evictCount                     = 200
+						, maxObjects                     = 1000
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -55,9 +42,9 @@ component output=false {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 50
+						, evictCount                     = 200
 						, maxObjects                     = 1000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -69,9 +56,9 @@ component output=false {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 20
-						, maxObjects                     = 100
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, evictCount                     = 100
+						, maxObjects                     = 500
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
@@ -83,37 +70,69 @@ component output=false {
 						, useLastAccessTimeouts          = true
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 50
+						, evictCount                     = 100
 						, maxObjects                     = 500
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
-				PresideObjectViewCache = {
+				PresidePageCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
-						  objectDefaultTimeout           = 0
+						  objectDefaultTimeout           = 120
 						, objectDefaultLastAccessTimeout = 0
 						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 10
+						, reapFrequency                  = 20
+						, freeMemoryPercentageThreshold  = 0
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 500
+						, maxObjects                     = 2000
+						, objectStore                    = "DiskStore"
+						, directoryPath                  = getTempDirectory() & "/" & "fullpagecache"
+						, autoExpandPath                 = false
+					}
+				},
+
+				ImpersonationCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 5
+						, objectDefaultLastAccessTimeout = 5
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 10
-						, maxObjects                     = 200
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, maxObjects                     = 10
+						, objectStore                    = "ConcurrentStore"
 					}
 				},
 
-				ViewletExistsCache = {
+				PresideSystemSettingsCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
-						  objectDefaultTimeout           = 0
+						  objectDefaultTimeout           = 1200
 						, objectDefaultLastAccessTimeout = 0
 						, useLastAccessTimeouts          = false
-						, reapFrequency                  = 10
+						, reapFrequency                  = 20
+						, freeMemoryPercentageThreshold  = 0
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 200
 						, maxObjects                     = 1000
-						, objectStore                    = "ConcurrentSoftReferenceStore"
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
+
+				renderedAssetCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 120
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 2000
+						, maxObjects                     = 10000
+						, objectStore                    = "ConcurrentStore"
 					}
 				}
 			}

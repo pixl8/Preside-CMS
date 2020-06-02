@@ -6,17 +6,23 @@ component singleton=true {
 	 * @pageTypesService.inject     PageTypesService
 	 * @presideObjectService.inject PresideObjectService
 	 * @appMapping.inject           coldbox:setting:appMapping
+	 * @notificationDao.inject      presidecms:object:admin_notification
+	 * @configuredTopics.inject     coldbox:setting:notificationTopics
 	 */
 	public any function init(
 		  required any    widgetsService
 		, required any    pageTypesService
 		, required any    presideObjectService
 		, required string appMapping
+		, required array  configuredTopics
+		, required any    notificationDao
 	) {
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setConfiguredTopics( arguments.configuredTopics );
 		_setAppMapping( arguments.appMapping );
+		_setNotificationDao( arguments.notificationDao );
 
 		return this;
 	}
@@ -34,19 +40,18 @@ component singleton=true {
 			filesCreated.append( scaffoldWidgetViewletHandler( handlerName=arguments.id, subDir="widgets", extension=arguments.extension ) );
 			filesCreated.append( scaffoldView( viewName="index", subDir="widgets/#arguments.id#", extension=arguments.extension, args=ListToArray( arguments.options ) ) );
 			filesCreated.append( scaffoldWidgetPlaceholderView( widgetId=arguments.id, extension=arguments.extension, args=ListToArray( arguments.options ) ) );
-
 		} else {
 			filesCreated.append( scaffoldView( viewName=arguments.id, subDir="widgets", extension=arguments.extension, args=ListToArray( arguments.options ) ) );
 		}
 
 		i18nProps["title"]=arguments.name;
 		i18nProps["description"]=arguments.description;
-		i18nProps["iconclass"]=arguments.icon;
+		i18nProps["iconclass"]= arguments.icon;
 
 		for( var option in ListToArray( arguments.options ) ) {
-			i18nProps[ "field.#option#.title" ] = option;
+			i18nProps[ "field.#option#.title" ]       = _convertToReadableFormat( words = option );
 			i18nProps[ "field.#option#.placeholder" ] = "";
-			i18nProps[ "field.#option#.help" ] = "";
+			i18nProps[ "field.#option#.help" ]        = "";
 		}
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="widgets", extension=arguments.extension, properties=i18nProps ) );
 
@@ -80,9 +85,9 @@ component singleton=true {
 		i18nProps[ "description" ] = arguments.description;
 		i18nProps[ "iconclass" ]   = arguments.icon;
 		for( var field in ListToArray( arguments.fields ) ) {
-			i18nProps[ "field.#field#.title" ] = field;
+			i18nProps[ "field.#field#.title" ] = _convertToReadableFormat( words = field );
 		}
-		i18nProps[ "tab.#arguments.id#.title" ] = arguments.name;
+		i18nProps[ "tab.#arguments.id#.title" ] = _convertToReadableFormat( words = arguments.name );
 		i18nProps[ "tab.#arguments.id#.description" ] = "";
 		i18nProps[ "fieldset.#arguments.id#.title" ] = "";
 		i18nProps[ "fieldset.#arguments.id#.description" ] = "";
@@ -109,7 +114,7 @@ component singleton=true {
 		}
 
 		for( var field in ListToArray( arguments.properties ) ) {
-			i18nProps[ "field.#field#.title" ] = field;
+			i18nProps[ "field.#field#.title" ] = _convertToReadableFormat( words = field );
 		}
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.objectName, subDir="preside-objects", extension=arguments.extension, properties=i18nProps ) );
 
@@ -140,7 +145,7 @@ component singleton=true {
 		i18nProps[ "description" ] = arguments.description;
 		i18nProps[ "iconclass" ]   = arguments.icon;
 		for( var field in ListToArray( arguments.fields ) ) {
-			i18nProps[ "field.#field#.title" ]       = field;
+			i18nProps[ "field.#field#.title" ]       = _convertToReadableFormat( words = field );
 			i18nProps[ "field.#field#.placeholder" ] = "";
 			i18nProps[ "field.#field#.help" ]        = "";
 		}
@@ -199,7 +204,7 @@ component singleton=true {
 			fileContent &= "	private function #context#( event, rc, prc, args={} ) {" & _nl()
 			             & "		// TODO: create your handler logic here" & _nl()
 			             & "		return renderView( view='#viewPath#', args=args );" & _nl()
-			             & "	}" & _nl() & _nl()
+			             & "	}" & _nl() & _nl();
 		}
 
 		fileContent &= "}" & _nl();
@@ -316,7 +321,7 @@ component singleton=true {
 		}
 
 		fileContent &= _nl() & _nl();
-		fileContent &= "<cfoutput>##translateResource( uri='widgets.#arguments.widgetId#:title' )##</cfoutput>"
+		fileContent &= "<cfoutput>##translateResource( uri='widgets.#arguments.widgetId#:title' )##</cfoutput>";
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );
@@ -402,7 +407,7 @@ component singleton=true {
 
 	public string function scaffoldPresideObjectCfc( required string objectName, string subDir="", string extension="", array properties=[], string name="", string description="", boolean createI18nFile=false, string datamanagerGroup="" ) {
 		var root        = _getScaffoldRoot( arguments.extension );
-		var filePath    = root & "preside-objects/" & arguments.subDir & "/" & arguments.objectName & ".cfc";
+		var filePath    = root & "preside-objects/" & arguments.subDir & ( len( trim( arguments.subDir ) ) ? "/" : "" ) & arguments.objectName & ".cfc";
 		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/object.cfc.txt" );
 		var props       = "";
 		var dmGroup     = Len( Trim( arguments.datamanagerGroup ) ) ? 'dataManagerGroup="#arguments.datamanagerGroup#"' : "";
@@ -452,7 +457,7 @@ component singleton=true {
 		var filePath     = root & "handlers/admin/devtools/terminalCommands/#arguments.name#.cfc";
 		var fileContent  = 'component hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
 		                 & _nl()
-		                 & '	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";' & _nl()
+		                 & '	property name="jsonRpc2Plugin" inject="JsonRpc2";' & _nl()
 		                 & _nl()
 		                 & '	private any function index( event, rc, prc ) {' & _nl()
 		                 & '		var params  = jsonRpc2Plugin.getRequestParams();' & _nl()
@@ -469,6 +474,95 @@ component singleton=true {
 		return filesCreated;
 	}
 
+	public array function scaffoldRuleExpression( required string id, required string label, required string text, required string context, string extension="" ) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+		var i18nProps    = StructNew( "linked" );
+
+		var root            = _getScaffoldRoot( arguments.extension );
+		var filePath        = root & "handlers/rules/expressions/" & arguments.id & ".cfc";
+		var fileContent     = "/**" & _nl()
+		                    & " * Scaffolded rules engine expression. See " & _nl()
+							& " * See the official documentation on Preside's rules engine for more" & _nl()
+							& " * details on creating and using expressions." & _nl()
+		                    & " *" & _nl()
+							& " * @expressionContexts #arguments.context#" & _nl()
+							& " */" & _nl()
+		                    & "component {" & _nl() & _nl()
+							& _tab() & "/**" & _nl()
+							& _tab() & " * The evaluateExpression() action required for expression" & _nl()
+							& _tab() & " * handlers to evaluate a configured expression at runtime." & _nl()
+							& _tab() & " * See the official documentation on Preside's rules engine for more" & _nl()
+							& _tab() & " * details on creating and using expressions." & _nl()
+							& _tab() & " *" & _nl()
+							& _tab() & " */" & _nl()
+		                    & _tab() & "private boolean function evaluateExpression( " & _nl()
+		                    & _tab() & _tab() & "  required string context" & _nl()
+		                    & _tab() & _tab() & ", required struct payload" & _nl()
+		                    & _tab() & _tab() & "/* add your own field arguments here */" & _nl()
+		                    & _tab() & ") {" & _nl()
+		                    & _tab() & _tab() & "// TODO: create your handler logic here to evaluate the expression" & _nl()
+		                    & _tab() & _tab() & "return true; // or false, depending on the payload and your logic" & _nl()
+		                    & _tab() & "}" & _nl() & _nl()
+		                    & "}" & _nl();
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		filesCreated.append( filePath );
+
+		i18nProps["label"] = arguments.label;
+		i18nProps["text"]  = arguments.text;
+
+		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="rules/expressions", extension=arguments.extension, properties=i18nProps ) );
+
+		return filesCreated;
+	}
+
+	public array function scaffoldNotification( required string notificationId, string title="", string description="", string icon="fa-magic", string dataTableTitle="", string extension="" ) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+		var i18nProps    = StructNew( "ordered" );
+		var topics       = _getConfiguredTopics();
+
+		if( arrayFindNoCase( topics, arguments.notificationId ) ){
+			throw( type="scaffoldwidget.notification.exists", message="The '#arguments.notificationId#' notification already exists" );
+		}
+
+		filesCreated.append( scaffoldNotificationViewletHandler( handlerName=arguments.notificationId, subDir="renderers/notifications", extension=arguments.extension ) );
+		filesCreated.append( scaffoldView( viewName="full", subDir="renderers/notifications/#arguments.notificationId#", extension=arguments.extension ) );
+
+		i18nProps["title"]          = arguments.title;
+		i18nProps["description"]    = arguments.description;
+		i18nProps["iconclass"]      = arguments.icon;
+		i18nProps["datatabletitle"] = arguments.dataTableTitle;
+
+		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.notificationId, subDir="notifications", extension=arguments.extension, properties=i18nProps ) );
+
+		// Append notification topic in config.cfc
+		arrayAppend( topics, arguments.notificationId );
+
+		return filesCreated;
+	}
+
+	public string function scaffoldNotificationViewletHandler( required string handlerName, string subDir="", string extension="" ) {
+		var root            = _getScaffoldRoot( arguments.extension );
+		var filePath        = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
+		var viewPath        = arguments.subDir & "/" & handlerName & "/dataTable";
+		var fileContent     = "component {" & _nl()
+		                    & "	private function dataTable( event, rc, prc, args={} ) {" & _nl()
+		                    & "		// TODO: create your handler logic here" & _nl()
+		                    & "		return " & "translateResource( uri='notifications.#arguments.handlerName#:dataTableTitle' );" & _nl()
+		                    & "	}" & _nl()
+		                    & " private string function full( event, rc, prc, args={} ) {" & _nl()
+		                    & "		return renderView( view = '/renderers/notifications/#arguments.handlerName#/full', args = args );" & _nl()
+		                    & " }" & _nl()
+		                    & "}" & _nl();
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureDirectoryExists( required string dir ) {
 		var parentDir = "";
@@ -480,7 +574,7 @@ component singleton=true {
 	}
 
 	private array function _ensureExtensionExists( required string extension ) {
-		if ( !Len( Trim( arguments.extension ) ) ) {
+		if ( !Len( Trim( arguments.extension ) ) || arguments.extension == "core" ) {
 			return [];
 		}
 
@@ -493,11 +587,27 @@ component singleton=true {
 	}
 
 	private string function _getScaffoldRoot( required string extension ) {
-		return Len( Trim( arguments.extension ) ) ? "#_getAppMapping()#/extensions/#arguments.extension#/" : "#_getAppMapping()#/";
+		switch( Trim( arguments.extension ) ) {
+			case "":
+				return "#_getAppMapping()#/";
+			case "core":
+				return "/preside/system/";
+			default:
+				return "#_getAppMapping()#/extensions/#arguments.extension#/";
+		}
 	}
 
 	private string function _nl() {
 		return Chr(13) & Chr(10);
+	}
+
+	private string function _tab() {
+		return Chr(9);
+	}
+
+	private string function _convertToReadableFormat( required string words ){
+		var removedNonChar = reReplace( arguments.words, "[^a-zA-Z0-9]+", " ", "all" );	
+		return reReplaceNocase( removedNonChar, "\b(\w)", "\u\1", "all" );
 	}
 
 
@@ -527,7 +637,20 @@ component singleton=true {
 		return _appMapping;
 	}
 	private void function _setAppMapping( required string appMapping ) {
-		_appMapping = arguments.appMapping;
+		_appMapping = "/" & arguments.appMapping.reReplace( "^/", "" );
 	}
 
+	private any function _getNotificationDao() {
+		return _notificationDao;
+	}
+	private void function _setNotificationDao( required any notificationDao ) {
+		_notificationDao = arguments.notificationDao;
+	}
+
+	private any function _getConfiguredTopics() {
+		return _configuredTopics;
+	}
+	private void function _setConfiguredTopics( required any configuredTopics ) {
+		_configuredTopics = arguments.configuredTopics;
+	}
 }

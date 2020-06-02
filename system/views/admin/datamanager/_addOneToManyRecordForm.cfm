@@ -1,15 +1,18 @@
 <cfscript>
-	param name="args.objectName"            type="string";
-	param name="args.parentId"              type="string";
-	param name="args.relationshipKey"       type="string";
-	param name="args.addRecordAction"       type="string";
-	param name="args.allowAddAnotherSwitch" type="boolean";
-	param name="args.validationResult"      type="any"     default=( rc.validationResult ?: '' );
-	param name="args.cancelAction"          type="string"  default=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", querystring='object=#args.objectName#&parentId=#args.parentId#&relationshipKey=#args.relationshipKey#' );
+	param name="args.objectName"              type="string";
+	param name="args.parentId"                type="string";
+	param name="args.relationshipKey"         type="string";
+	param name="args.addRecordAction"         type="string";
+	param name="args.allowAddAnotherSwitch"   type="boolean";
+	param name="args.stripPermissionedFields" type="boolean" default=true;
+	param name="args.permissionContext"       type="string"  default=args.objectName;
+	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
+	param name="args.validationResult"        type="any"     default=( rc.validationResult ?: '' );
+	param name="args.cancelAction"            type="string"  default=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", querystring='object=#args.objectName#&parentId=#args.parentId#&relationshipKey=#args.relationshipKey#' );
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
-	addRecordButton     = translateResource( uri="cms:datamanager.addrecord.btn", data=[ LCase( objectTitleSingular ) ] );
+	addRecordButton     = translateResource( uri="cms:datamanager.addrecord.btn", data=[  objectTitleSingular  ] );
 	formId              = "addForm-" & CreateUUId();
 </cfscript>
 
@@ -24,12 +27,14 @@
 		<input type="hidden" name="relationshipKey" value="#args.relationshipKey#" />
 
 		#renderForm(
-			  formName         = "preside-objects.#args.objectName#.admin.add"
-			, context          = "admin"
-			, formId           = formId
-			, validationResult = args.validationResult
-			, savedData        = { "#args.relationshipKey#" = args.parentId }
-			, suppressFields   = [ args.relationshipKey ]
+			  formName              = "preside-objects.#args.objectName#.admin.add"
+			, context               = "admin"
+			, formId                = formId
+			, validationResult      = args.validationResult
+			, savedData             = { "#args.relationshipKey#" = args.parentId }
+			, suppressFields        = [ args.relationshipKey ]
+			, permissionContext     = args.permissionContext
+			, permissionContextKeys = args.permissionContextKeys
 		)#
 
 		<div class="form-actions row">

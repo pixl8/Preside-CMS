@@ -1,3 +1,5 @@
+.enable_plugin_tag_input() when(@enable-plugin-tag-input = true) {
+
 .tags {
   display: inline-block;
   padding: 4px 6px;
@@ -16,9 +18,9 @@
   }
   
   &-hover , &-hover:hover {
-    border-color: @input-focus-border;
+    border-color: @input-border-focus;
     outline: 0;
-    outline: thin dotted \9; /* IE6-9 */
+    //outline: thin dotted \9; /* IE6-9 */
   }
   
   &[class*="span"] {
@@ -33,7 +35,7 @@
     outline: 0;
     margin: 0;
     padding: 0;
-    line-height: 14px;
+    line-height: 18px;
     .box-shadow(none);
     width: 100%;
   }
@@ -44,7 +46,7 @@
   display: inline-block;
   position:relative;
   
-  font-size: 13px;
+  font-size: @base-font-size;
   font-weight: normal;
   //line-height: 14px; // ensure proper line-height if floated
 
@@ -103,23 +105,31 @@
   &-inverse     { background-color: @btn-inverse; }
 
   .close {
-    font-size: 15px;
+    font-size: @font-size-tag-remove;
     line-height: 20px;
 
 	.opacity(1);
-	color:#FFF;
-	text-shadow:none;
+	color: #FFF;
+	text-shadow: none;
 	
-	float:none;
-	position:absolute;
-	right:0;
-	top:0; bottom:0;
-	width:18px;
-	text-align:center;
+	float: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	width: 18px;
+	text-align: center;
 	
 	&:hover {
-		background-color:rgba(0,0,0,0.2);
+		background-color: rgba(0,0,0,0.2);
 	}
   }
  }
 }
+
+
+
+
+
+}
+.enable_plugin_tag_input();

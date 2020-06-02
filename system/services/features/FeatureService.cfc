@@ -1,6 +1,6 @@
 /**
  * The Feature Service provides an API to preside's configured features.
- * This allows other systems within PresideCMS to check the enabled status
+ * This allows other systems within Preside to check the enabled status
  * of features before proceeding to provide a page or perform some action.
  *
  */
@@ -24,8 +24,8 @@ component singleton=true autodoc=true displayName="Feature service" {
 	 * @siteTemplate.hint current active site template - can be used to check features that can be site template specific
 	 */
 	public boolean function isFeatureEnabled( required string feature, string siteTemplate ) autodoc=true {
-		var features           = _getConfiguredFeatures();
-		var isEnabled          = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
+		var features  = _getConfiguredFeatures();
+		var isEnabled = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
 
 		if ( !isEnabled ) {
 			return false;
@@ -50,11 +50,29 @@ component singleton=true autodoc=true displayName="Feature service" {
 	public boolean function isFeatureDefined( required string feature ) {
 		var features = _getConfiguredFeatures();
 
-		return features.keyExists( arguments.feature );
+		return StructKeyExists( features, arguments.feature );
 	}
 
+	/**
+	 * Returns the feature that the given widget belongs to.
+	 * Returns an empty string if the widget does not belong to a feature
+	 *
+	 * @autodoc
+	 * @widget.hint ID of the widget
+	 */
+	public string function getFeatureForWidget( required string widget ) {
+		var features = _getConfiguredFeatures();
 
-// PRIVATE HELPERS
+		for( var featureName in features ) {
+			var widgets = features[ featureName ].widgets ?: [];
+
+			if ( IsArray( widgets ) && widgets.findNoCase( arguments.widget ) ) {
+				return featureName;
+			}
+		}
+
+		return "";
+	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredFeatures() {

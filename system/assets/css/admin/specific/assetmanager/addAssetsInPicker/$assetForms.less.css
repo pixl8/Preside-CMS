@@ -1,7 +1,0 @@
-.add-asset-forms .add-asset-form {
-  display: none;
-  padding: 10px;
-}
-.add-asset-forms .add-asset-form.active {
-  display: block;
-}

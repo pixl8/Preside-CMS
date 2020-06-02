@@ -1,4 +1,8 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -6,25 +10,32 @@ component output=false singleton=true {
 	 * @tablePrefix.inject        coldbox:setting:presideObjectsTablePrefix
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @featureService.inject     featureService
+	 * @adapterFactory.inject     adapterFactory
 	 */
-	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService ) output=false {
+	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService, required any adapterFactory ) {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );
 		_setInterceptorService( arguments.interceptorService );
 		_setFeatureService( arguments.featureService );
+		_setDbAdapter( arguments.adapterFactory.getAdapter( arguments.dsn ) );
 
 		return this;
 	}
 
 
 // PUBLIC API METHODS
-	public struct function readObjects( required array objectPaths ) output=false {
+	public struct function readObjects( required array objectPaths ) {
 		var objects = {};
 
 		for( var objPath in arguments.objectPaths ){
 			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
 
 			var objName = ListLast( objPath, "/" );
+
+			if( !isValid( "regex", objName, "[a-zA-Z_][a-zA-Z0-9_]*" ) ) {
+				throw( type="PresideObjectService.invalidObjectName", message="The filename, [#objName#], is not a valid preside object filename. Filenames should start with either a letter or underscrore (_) and contain only letters, underscores and numbers" );
+			}
+
 			var obj     = {};
 
 			obj.instance = CreateObject( "component", objPath );
@@ -44,8 +55,8 @@ component output=false singleton=true {
 		return objects;
 	}
 
-	public struct function readObject( required any object ) output=false {
-		_announceInterception( "preReadPresideObject", { object=object } );
+	public struct function readObject( required any object ) {
+		_announceInterception( state="preReadPresideObject", interceptData={ object=object } );
 
 		var meta          = _mergeExtendedObjectMeta( getMetaData( arguments.object ) );
 		var componentName = ListLast( meta.name, "." );
@@ -58,11 +69,11 @@ component output=false singleton=true {
 		return meta;
 	}
 
-	public void function finalizeMergedObject( required any object ) output=false {
+	public void function finalizeMergedObject( required any object ) {
 		var meta = arguments.object.meta = arguments.object.meta ?: {};
 		var componentName = ListLast( meta.name, "." );
 
-		_announceInterception( "postReadPresideObject", { objectMeta=meta } );
+		_announceInterception( state="postReadPresideObject", interceptData={ objectMeta=meta } );
 
 		meta.tablePrefix   = meta.tablePrefix   ?: _getTablePrefix();
 		meta.tableName     = meta.tableName     ?: componentName;
@@ -71,38 +82,47 @@ component output=false singleton=true {
 		meta.propertyNames = meta.propertyNames ?: [];
 		meta.properties    = meta.properties    ?: {};
 
-
+		_defineIdField( meta );
+		_defineCreatedField( meta );
+		_defineModifiedField( meta );
 		_defineLabelField( meta );
-		_addDefaultsToProperties( meta.properties );
+		_addDefaultsToProperties( meta );
 		_mergeSystemPropertyDefaults( meta );
+		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
 		_fixOrderOfProperties( meta );
 
-		meta.dbFieldList = _calculateDbFieldList( meta.properties );
-		meta.tableName   = LCase( meta.tablePrefix & meta.tableName );
-		meta.indexes     = _discoverIndexes( meta.properties, componentName );
+
+		meta.dbFieldList      = _calculateDbFieldList( meta.properties );
+		meta.formulaFieldList = _calculateFormulaFieldList( meta.properties );
+		meta.tableName        = LCase( meta.tablePrefix & meta.tableName );
+		meta.indexes          = _discoverIndexes( meta.properties, componentName );
 
 		_ensureAllPropertiesHaveName( meta.properties );
 	}
 
-	public struct function getAutoPivotObjectDefinition( required struct sourceObject, required struct targetObject, required string pivotObjectName, required string sourcePropertyName, required string targetPropertyName ) output=false {
+	public struct function getAutoPivotObjectDefinition( required struct sourceObject, required struct targetObject, required string pivotObjectName, required string sourcePropertyName, required string targetPropertyName ) {
 		var tmp = "";
 		var autoObject = "";
 		var objAName = LCase( ListLast( sourceObject.name, "." ) );
 		var objBName = LCase( ListLast( targetObject.name, "." ) );
 		var fieldOrder = ( sourcePropertyName < targetPropertyName ) ? "#sourcePropertyName#,#targetPropertyName#" : "#targetPropertyName#,#sourcePropertyName#";
+		var sourceObjectIdField = sourceObject.idField ?: "id";
+		var sourceObjectPk      = sourceObject.properties[ sourceObjectIdField ];
+		var targetObjectIdField = targetObject.idField ?: "id";
+		var targetObjectPk      = targetObject.properties[ targetObjectIdField ];
 
 		autoObject = {
 			  dbFieldList = "#fieldOrder#,sort_order"
 			, dsn         = sourceObject.dsn
-			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields="#fieldOrder#" } }
+			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields=fieldOrder } }
 			, name        = pivotObjectName
 			, tableName   = LCase( sourceObject.tablePrefix & pivotObjectName )
 			, tablePrefix = sourceObject.tablePrefix
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
 			, properties  = {
-				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObject.properties.id.type, dbtype=sourceObject.properties.id.dbtype, maxLength=sourceObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
-				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObject.properties.id.type, dbtype=targetObject.properties.id.dbtype, maxLength=targetObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
-				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"                      , dbtype="int"                            , maxLength=0                                   , generator="none", relationship="none"                           , required=false }
+				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
+				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
+				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"          , dbtype="int"                , maxLength=0                       , generator="none", generate="never", relationship="none"                           , required=false }
 			  }
 		};
 
@@ -110,7 +130,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private struct function _mergeObjects( required struct unMergedObjects ) output=false {
+	private struct function _mergeObjects( required struct unMergedObjects ) {
 		var merged = {};
 		var merger = new Merger();
 
@@ -126,7 +146,7 @@ component output=false singleton=true {
 		return merged;
 	}
 
-	private struct function _mergeExtendedObjectMeta( required struct meta ) output=false {
+	private struct function _mergeExtendedObjectMeta( required struct meta ) {
 		var merged = {};
 		var prop   = "";
 		var systemAttribs = "extends,accessors,displayname,fullname,hashCode,hint,output,path,persistent,properties,remoteAddress,synchronized";
@@ -148,32 +168,38 @@ component output=false singleton=true {
 		return merged;
 	}
 
-	private void function _mergeProperties( required struct meta, required array properties, required string pathToCfc ) output=false {
+	private void function _mergeProperties( required struct meta, required array properties, required string pathToCfc ) {
 		var prop         = "";
 		var propName     = "";
-		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
+		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
-		param name="arguments.meta.properties"    default=StructNew( "linked" );
+		if ( !ArrayLen( orderedProps ) ) {
+			for( prop in arguments.properties ) {
+				ArrayAppend( orderedProps, prop.name );
+			}
+		}
+
+		param name="arguments.meta.properties"    default=StructNew();
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
-				if ( prop.name eq propName ) {
-					if ( not StructKeyExists( arguments.meta.properties, prop.name ) ) {
+				if ( prop.name == propName ) {
+					if ( !StructKeyExists( arguments.meta.properties, prop.name ) ) {
 						arguments.meta.properties[ prop.name ] = {};
 					}
 
 					arguments.meta.properties[ prop.name ] = _readProperty( prop, arguments.meta.properties[ prop.name ] );
 
-					if ( not arguments.meta.propertyNames.find( prop.name ) ) {
-						ArrayAppend( arguments.meta.propertyNames, prop.name );
+					if ( !arguments.meta.propertyNames.find( prop.name ) ) {
+						arguments.meta.propertyNames.append( prop.name );
 					}
 				}
 			}
 		}
 	}
 
-	private void function _mergeMethods( required struct meta, required array methods ) output=false {
+	private void function _mergeMethods( required struct meta, required array methods ) {
 		var method = "";
 
 		if ( not StructKeyExists( arguments.meta, "methods" ) ) {
@@ -188,15 +214,19 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _readProperty( required struct property, required struct inheritedProperty ) output=false {
+	private struct function _readProperty( required struct property, required struct inheritedProperty ) {
 		var prop = Duplicate( arguments.property );
+
+		if ( prop.type == "any" ) {
+			prop.delete( "type" );
+		}
 
 		StructAppend( prop, inheritedProperty, false );
 
 		return prop;
 	}
 
-	private void function _addDefaultsToProperties( required struct properties ) output=false {
+	private void function _addDefaultsToProperties( required struct meta ) {
 		var defaultAttributes = {
 			  type         = "string"
 			, dbtype       = "varchar"
@@ -207,29 +237,57 @@ component output=false singleton=true {
 			, generator    = "none"
 			, required     = "false"
 		};
+		var dbAdapterSupportsFkIndexes = _getDbAdapter().autoCreatesFkIndexes();
+		var corePropertyNames = [];
 
-		for( var propName in properties ){
-			var prop           = properties[ propName ];
-			var isCoreProperty = ListFindNoCase( "id,label,datecreated,datemodified", propName );
+		if ( !arguments.meta.noId ) {
+			corePropertyNames.append( arguments.meta.idField ?: "id" );
+		}
+		if ( !arguments.meta.noDateCreated ) {
+			corePropertyNames.append( "datecreated" );
+		}
+		if ( !arguments.meta.noDateModified ) {
+			corePropertyNames.append( "datemodified" );
+		}
+		if ( ( arguments.meta.labelField ?: "label" ) == "label" ) {
+			corePropertyNames.append( "label" );
+		}
+
+		for( var propName in arguments.meta.properties ){
+			var prop           = arguments.meta.properties[ propName ];
+			var isCoreProperty = corePropertyNames.findNoCase( propName );
+			var createFkIndex  = ( prop.createFkIndex ?: !dbAdapterSupportsFkIndexes );
 
 			if ( ( prop.type ?: "" ) == "any" ) {
 				StructDelete( prop, "type" );
 			}
-			if ( not isCoreProperty ) {
+			if ( !isCoreProperty ) {
+				defaultAttributes.generate = ( prop.generator ?: "none" ) == "none" ? "never" : "always";
 				StructAppend( prop, defaultAttributes, false );
 			}
 
-			if ( StructKeyExists( prop, "relationship" ) and prop.relationship neq "none" and prop.relatedTo eq "none" ) {
+			if ( StructKeyExists( prop, "relationship" ) && prop.relationship != "none" && ( prop.relatedTo ?: "none" ) == "none" ) {
 				prop.relatedTo = propName;
 			}
 
 			if ( [ "many-to-many", "one-to-many" ].find( prop.relationship ?: "" ) ) {
 				prop.dbtype = "none";
 			}
+
+			if ( ( prop.formula ?: "" ).len() ) {
+				prop.dbtype = "none";
+			}
+
+			if ( ( ( prop.relationship ?: "" ) == "many-to-one" ) && IsBoolean( createFkIndex ) && createFkIndex ) {
+				prop.indexes = prop.indexes ?: "";
+				if ( !prop.indexes.listFindNoCase( "fk_#propName#" ) ) {
+					prop.indexes = prop.indexes.listAppend( "fk_#propName#" );
+				}
+			}
 		}
 	}
 
-	private string function _calculateDbFieldList( required struct properties ) output=false {
+	private string function _calculateDbFieldList( required struct properties ) {
 		var list = [];
 		for( var propName in arguments.properties ){
 			if ( ( arguments.properties[ propName ].dbtype ?: "" ) != "none" ) {
@@ -240,46 +298,94 @@ component output=false singleton=true {
 		return list.toList();
 	}
 
-	private void function _mergeSystemPropertyDefaults( required struct meta ) output=false {
+	private string function _calculateFormulaFieldList( required struct properties ) {
+		var list = [];
+		for( var propName in arguments.properties ){
+			if ( len ( arguments.properties[ propName ].formula ?: "" ) ) {
+				list.append( propName );
+			}
+		}
+
+		return list.toList();
+	}
+
+	private void function _mergeSystemPropertyDefaults( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
+		var labelField        = arguments.meta.labelField        ?: "label";
+		var idField           = arguments.meta.idField           ?: "id";
+		var dateCreatedField  = arguments.meta.dateCreatedField  ?: "datecreated";
+		var dateModifiedField = arguments.meta.dateModifiedField ?: "datemodified";
+
 		var defaults = {
-			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
-			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
-			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
-			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
+			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
+			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datecreated" }
+			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datemodified" }
 		};
 
-		if ( arguments.meta.propertyNames.find( "label" ) ) {
-			StructAppend( arguments.meta.properties.label, defaults.label, false );
-		} elseif ( !arguments.meta.noLabel ) {
-			arguments.meta.properties[ "label" ] = defaults[ "label" ];
-			ArrayPrepend( arguments.meta.propertyNames, "label" );
+		if ( labelField == "label" ) {
+			if ( arguments.meta.propertyNames.find( "label" ) ) {
+				StructAppend( arguments.meta.properties.label, defaults.label, false );
+			} else if ( !arguments.meta.noLabel ) {
+				arguments.meta.properties[ "label" ] = defaults[ "label" ];
+				ArrayPrepend( arguments.meta.propertyNames, "label" );
+			}
 		}
 
-		if ( arguments.meta.propertyNames.find( "id" ) ) {
-			StructAppend( arguments.meta.properties.id, defaults.id, false );
-		} else {
-			arguments.meta.properties[ "id" ] = defaults[ "id" ];
-			ArrayPrepend( arguments.meta.propertyNames, "id" );
+		if ( !arguments.meta.noId ) {
+			if ( arguments.meta.propertyNames.find( idField ) ) {
+				StructAppend( arguments.meta.properties[ idField ], defaults.id, false );
+			} else {
+				arguments.meta.properties[ idField ] = defaults[ "id" ];
+				ArrayPrepend( arguments.meta.propertyNames, idField );
+			}
+			if ( idField.len() && idField != "id" && !arguments.meta.propertyNames.findNoCase( "id" ) ) {
+				arguments.meta.properties[ idField ].aliases = ( arguments.meta.properties[ idField ].aliases ?: "" ).listAppend( "id" );
+			}
 		}
 
-		if ( arguments.meta.propertyNames.find( "datecreated" ) ) {
-			StructAppend( arguments.meta.properties.datecreated, defaults.datecreated, false );
-		} else {
-			arguments.meta.properties[ "datecreated" ] = defaults[ "datecreated" ];
-			ArrayAppend( arguments.meta.propertyNames, "datecreated" );
+		if ( !arguments.meta.noDateCreated ) {
+			if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
+				StructAppend( arguments.meta.properties[ dateCreatedField ], defaults.dateCreated, false );
+			} else {
+				arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
+				ArrayAppend( arguments.meta.propertyNames, dateCreatedField );
+			}
+			if ( dateCreatedField.len() && dateCreatedField != "dateCreated" && !arguments.meta.propertyNames.findNoCase( "dateCreated" ) ) {
+				arguments.meta.properties[ dateCreatedField ].aliases = ( arguments.meta.properties[ dateCreatedField ].aliases ?: "" ).listAppend( "dateCreated" );
+			}
 		}
 
-		if ( arguments.meta.propertyNames.find( "datemodified" ) ) {
-			StructAppend( arguments.meta.properties.datemodified, defaults.datemodified, false );
-		} else {
-			arguments.meta.properties[ "datemodified" ] = defaults[ "datemodified" ];
-			ArrayAppend( arguments.meta.propertyNames, "datemodified" );
+		if ( !arguments.meta.noDateModified ) {
+			if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
+				StructAppend( arguments.meta.properties[ dateModifiedField ], defaults.datemodified, false );
+			} else {
+				arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
+				ArrayAppend( arguments.meta.propertyNames, dateModifiedField );
+			}
+			if ( dateModifiedField.len() && dateModifiedField != "dateModified" && !arguments.meta.propertyNames.findNoCase( "dateModified" ) ) {
+				arguments.meta.properties[ dateModifiedField ].aliases = ( arguments.meta.properties[ dateModifiedField ].aliases ?: "" ).listAppend( "dateModified" );
+			}
+		}
+
+	}
+
+	private void function _deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( required struct meta ) {
+		for( var propertyName in meta.properties ) {
+			var prop              = meta.properties[ propertyName ];
+			var featureService    = _getFeatureService();
+			var markedForDeletion = IsBoolean( prop.deleted ?: "" ) && prop.deleted;
+			var inDisabledFeature = Len( Trim( prop.feature ?: "" ) ) && !featureService.isFeatureEnabled( prop.feature );
+
+			if ( markedForDeletion || inDisabledFeature ) {
+				meta.properties.delete( propertyName );
+				meta.propertyNames.delete( propertyName );
+			}
 		}
 	}
 
-	private struct function _discoverIndexes( required struct properties, required string objectName ) output=false {
+	private struct function _discoverIndexes( required struct properties, required string objectName ) {
 		var prop        = "";
 		var indexes     = {};
 		var propIndexes = "";
@@ -319,7 +425,7 @@ component output=false singleton=true {
 		return indexes;
 	}
 
-	private void function _fixOrderOfProperties( required struct meta ) output=false {
+	private void function _fixOrderOfProperties( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 		param name="arguments.meta.properties"    default=StructNew();
 
@@ -333,7 +439,18 @@ component output=false singleton=true {
 		arguments.meta.properties = orderedProps;
 	}
 
-	private array function _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( required string pathToCfc ) output=false {
+	private array function _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( required string pathToCfc ) {
+		var propFilePath = arguments.pathToCfc.reReplace( "\.cfc$", "$props.json" );
+
+		if ( FileExists( propFilePath ) ) {
+			try {
+				var props = DeserializeJson( FileRead( propFilePath ) );
+				if ( IsArray( props ) ) {
+					return props;
+				}
+			} catch( any e ) {}
+		}
+
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 
@@ -344,7 +461,7 @@ component output=false singleton=true {
 		return [];
 	}
 
-	private struct function $reSearch( required string regex, required string text ) output=false {
+	private struct function $reSearch( required string regex, required string text ) {
 		var final 	= StructNew();
 		var pos		= 1;
 		var result	= ReFindNoCase( arguments.regex, arguments.text, pos, true );
@@ -364,16 +481,43 @@ component output=false singleton=true {
 		return final;
 	}
 
-	private void function _defineLabelField( required struct objectMeta ) output=false {
-		// if ( arguments.objectMeta.isPageType ) {
-		// 	arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.title";
-		// }
+	private void function _defineIdField( required struct objectMeta ) {
+		if ( IsBoolean ( arguments.objectMeta.noId ?: "" ) && arguments.objectMeta.noId ) {
+			arguments.objectMeta.idField = "";
+		} else {
+			arguments.objectMeta.idField = arguments.objectMeta.idField ?: "id";
+		}
+		arguments.objectMeta.noId = !Len( Trim( arguments.objectMeta.idField ) );
+	}
+
+	private void function _defineCreatedField( required struct objectMeta ) {
+		if ( IsBoolean ( arguments.objectMeta.noDateCreated ?: "" ) && arguments.objectMeta.noDateCreated ) {
+			arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "";
+		} else {
+			arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "datecreated";
+		}
+		arguments.objectMeta.noDateCreated = arguments.objectMeta.noDateCreated ?: arguments.objectMeta.dateCreatedField == "";
+		arguments.objectMeta.noDateCreated = IsBoolean ( arguments.objectMeta.noDateCreated ?: "" ) && arguments.objectMeta.noDateCreated;
+	}
+
+	private void function _defineModifiedField( required struct objectMeta ) {
+		if ( IsBoolean ( arguments.objectMeta.noDateModified ?: "" ) && arguments.objectMeta.noDateModified ) {
+			arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "";
+		} else {
+			arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "datemodified";
+		}
+		arguments.objectMeta.noDateModified = arguments.objectMeta.noDateModified ?: arguments.objectMeta.dateModifiedField == "";
+		arguments.objectMeta.noDateModified = IsBoolean ( arguments.objectMeta.noDateModified ?: "" ) && arguments.objectMeta.noDateModified;
+	}
+
+	private void function _defineLabelField( required struct objectMeta ) {
 		if ( IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel ) {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "";
 		} else {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "label";
 		}
-		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield !== "label";
+		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield == "";
+		arguments.objectMeta.noLabel = IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel;
 	}
 
 	private void function _removeObjectsUsedInDisabledFeatures( required struct objects ) {
@@ -388,7 +532,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private any function _announceInterception() output=false {
+	private any function _announceInterception( required string state, struct interceptData={} ) {
 		return _getInterceptorService().processState( argumentCollection=arguments );
 	}
 
@@ -399,31 +543,38 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private string function _getDsn() output=false {
+	private string function _getDsn() {
 		return _dsn;
 	}
-	private void function _setDsn( required string dsn ) output=false {
+	private void function _setDsn( required string dsn ) {
 		_dsn = arguments.dsn;
 	}
 
-	private string function _getTablePrefix() output=false {
+	private string function _getTablePrefix() {
 		return _tablePrefix;
 	}
-	private void function _setTablePrefix( required string tablePrefix ) output=false {
+	private void function _setTablePrefix( required string tablePrefix ) {
 		_tablePrefix = arguments.tablePrefix;
 	}
 
-	private any function _getInterceptorService() output=false {
+	private any function _getInterceptorService() {
 		return _interceptorService;
 	}
-	private void function _setInterceptorService( required any interceptorService ) output=false {
+	private void function _setInterceptorService( required any interceptorService ) {
 		_interceptorService = arguments.interceptorService;
 	}
 
-	private any function _getFeatureService() output=false {
+	private any function _getFeatureService() {
 		return _featureService;
 	}
-	private void function _setFeatureService( required any featureService ) output=false {
+	private void function _setFeatureService( required any featureService ) {
 		_featureService = arguments.featureService;
+	}
+
+	private any function _getDbAdapter() {
+		return _dbAdapter;
+	}
+	private void function _setDbAdapter( required any dbAdapter ) {
+		_dbAdapter = arguments.dbAdapter;
 	}
 }

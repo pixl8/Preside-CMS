@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.formbuilder_formaction:">
+	<tab id="default">
+		<fieldset id="condition" sortorder="1000">
+			<field binding="formbuilder_formaction.condition" control="conditionpicker" quickadd="true" quickedit="true" />
+		</fieldset>
+	</tab>
+</form>

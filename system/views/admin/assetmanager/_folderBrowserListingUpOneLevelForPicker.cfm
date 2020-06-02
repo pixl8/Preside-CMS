@@ -1,10 +1,12 @@
 <cfparam name="args.parent_folder" type="string" />
+
 <cfscript>
 	allowedTypes = rc.allowedTypes ?: "";
 	multiple     = rc.multiple     ?: "";
+	savedFilters = rc.savedFilters ?: "";
 	folderLink   = event.buildAdminLink(
 		  linkTo      = "assetManager.assetPickerBrowser"
-		, queryString = "folder=#args.parent_folder#&allowedTypes=#allowedTypes#&multiple=#multiple#"
+		, queryString = "folder=#args.parent_folder#&allowedTypes=#allowedTypes#&savedFilters=#savedFilters#&multiple=#multiple#"
 	);
 </cfscript>
 <cfoutput>

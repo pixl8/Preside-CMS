@@ -1,4 +1,4 @@
-component output="false" {
+component {
 
 	public any function init( required any sourceCfc ) output=false {
 		_setSourceCfc( arguments.sourceCfc );
@@ -35,7 +35,7 @@ component output="false" {
 	public any function runValidator(
 		  required string name
 		,          string fieldName = ""
-		,          string value     = ""
+		,          any    value     = ""
 		,          struct data      = {}
 		,          struct params    = {}
 	) output=false {

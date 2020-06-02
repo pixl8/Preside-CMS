@@ -1,4 +1,4 @@
-component output=false extends="PresideDbAppender" {
+component extends="PresideDbAppender" {
 
 	public void function logMessage( required any logEvent ) output=false {
 		if ( super.getUtil().inThread() ) {

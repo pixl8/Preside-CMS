@@ -10,5 +10,6 @@
 		, record           = prc.record ?: {}
 		, editRecordAction = event.buildAdminLink( linkTo='userManager.editGroupAction' )
 		, cancelAction     = event.buildAdminLink( linkTo='usermanager.groups' )
+		, mergeWithFormName = prc.mergeWithFormName ?: ""
 	} )#
 </cfoutput>

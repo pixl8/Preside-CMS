@@ -1,94 +1,127 @@
-component output=false {
+component {
 
-	property name="assetManagerService" inject="assetManagerService";
+	property name="assetManagerService"          inject="assetManagerService";
+	property name="assetQueueService"            inject="presidecms:dynamicservice:assetQueue";
+	property name="websiteUserActionService"     inject="websiteUserActionService";
+	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
+	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
 
 	public function asset( event, rc, prc ) output=false {
 		announceInterception( "preDownloadAsset" );
 
 		_checkDownloadPermissions( argumentCollection=arguments );
 
-		var assetId         = rc.assetId      ?: "";
-		var versionId       = rc.versionId    ?: "";
-		var derivativeName  = rc.derivativeId ?: "";
-		var isTrashed       = IsTrue( rc.isTrashed ) ?: "";
-		var asset           = "";
-		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
+		var assetId           = rc.assetId      ?: "";
+		var versionId         = rc.versionId    ?: "";
+		var derivativeName    = rc.derivativeId ?: "";
+		var isTrashed         = IsTrue( rc.isTrashed ?: "" );
+		var asset             = "";
+		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
+		var passwordProtected = false;
+		var config            = assetManagerService.getDerivativeConfig( assetId );
+		var configHash        = assetManagerService.getDerivativeConfigHash( config );
+		var queueEnabled      = isFeatureEnabled( "assetQueue" );
 
-		if ( Len( Trim( derivativeName ) ) ) {
-			try {
-				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
-			} catch ( "AssetManager.assetNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "AssetManager.versionNotFound" e ) {
-				asset = QueryNew('');
-			} catch ( "storageProvider.objectNotFound" e ) {
-				asset = QueryNew('');
-			}
-		} elseif( Len( Trim( versionId ) ) ) {
-			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
-		} else {
-			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
-		}
-
-		if ( asset.recordCount ) {
-			var assetBinary = "";
-			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
-			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
-
-			_doBrowserEtagLookup( etag );
-
+		try {
 			if ( Len( Trim( derivativeName ) ) ) {
-				assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
+				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
+
+				var waitAttempts  = 0;
+				var assetIsQueued = queueEnabled && assetQueueService.isQueued( assetId, derivativeName, versionId, configHash );
+
+				do {
+					asset = assetManagerService.getAssetDerivative(
+						  assetId           = assetId
+						, versionId         = versionId
+						, derivativeName    = derivativeName
+						, configHash        = configHash
+						, selectFields      = assetSelectFields
+						, createIfNotExists = !assetIsQueued
+					);
+
+					if ( !asset.recordCount && assetIsQueued ) {
+						setting requestTimeout=120;
+						sleep( 1000 );
+					} else {
+						break;
+					}
+				} while( ++waitAttempts <= queueMaxWaitAttempts );
+			} else if( Len( Trim( versionId ) ) ) {
+				arrayAppend( assetSelectFields , "asset_version.asset_type" );
+				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
 			} else {
-				assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
+				arrayAppend( assetSelectFields , "asset.asset_type" );
+				asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
 			}
-
-			announceInterception( "onDownloadAsset", {
-				  assetId        = assetId
-				, derivativeName = derivativeName
-				, asset          = asset
-			} );
-
-			var filename = _getFilenameForAsset( asset.title, type.extension );
-			if ( type.serveAsAttachment ) {
-				header name="Content-Disposition" value="attachment; filename=""#filename#""";
-			} else {
-				header name="Content-Disposition" value="inline; filename=""#filename#""";
+		} catch ( "AssetManager.assetNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "AssetManager.versionNotFound" e ) {
+			asset = QueryNew('');
+		} catch ( "AssetManagerService.missingDerivativeConfiguration" e ) {
+			if ( getSetting( name="showErrors", defaultValue=false ) ) {
+				rethrow;
 			}
-
-			header name="etag" value=etag;
-			header name="cache-control" value="max-age=31536000";
-			content
-				reset    = true
-				variable = assetBinary
-				type     = type.mimeType;
-			abort;
+			asset = QueryNew('');
+		} catch ( "storageProvider.objectNotFound" e ) {
+			asset = QueryNew('');
+		} catch( "AssetManager.Password error" e ){
+			asset = QueryNew('');
+			passwordProtected = true;
 		}
+
+		try {
+			if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
+				var assetBinary = "";
+				var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
+				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, throwOnMissing=true, isTrashed=isTrashed  );
+				_doBrowserEtagLookup( etag );
+
+				if ( Len( Trim( derivativeName ) ) ) {
+					assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash );
+				} else {
+					assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
+				}
+
+				announceInterception( "onDownloadAsset", {
+					  assetId        = assetId
+					, derivativeName = derivativeName
+					, asset          = asset
+				} );
+
+				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
+				if ( type.serveAsAttachment ) {
+					websiteUserActionService.recordAction(
+						  action     = "download"
+						, type       = "asset"
+						, userId     = getLoggedInUserId()
+						, identifier = assetId
+					);
+					header name="Content-Disposition" value="attachment; filename=""#filename#""";
+				} else {
+					header name="Content-Disposition" value="inline; filename=""#filename#""";
+				}
+
+				header name="etag" value=etag;
+				header name="cache-control" value="max-age=31536000";
+				content
+					reset    = true
+					variable = assetBinary
+					type     = type.mimeType;
+				abort;
+			} else if( passwordProtected ){
+				assetBinary = fileReadBinary(event.buildLink( systemStaticAsset = "/images/asset-type-icons/48px/locked-pdf.png" ));
+				header name="Content-Disposition" value="inline; filename=""ProctedPDF""";
+				content
+					reset    = true
+					variable = assetBinary
+					type     = 'png';
+				abort;
+			}
+		} catch ( "storageProvider.objectNotFound" e ) {}
 
 		event.renderData( data="404 not found", type="text", statusCode=404 );
 
 	}
-
-	public function tempFile( event, rc, prc ) output=false {
-		var tmpId           = rc.assetId ?: "";
-		var fileDetails     = assetManagerService.getTemporaryFileDetails( tmpId );
-		var fileTypeDetails = "";
-
-		if ( StructCount( fileDetails ) ) {
-			fileTypeDetails = assetManagerService.getAssetType( filename=filedetails.name );
-
-			if ( ( fileTypeDetails.groupName ?: "" ) eq "image" ) {
-				// brutal for now - no thumbnail generation, just spit out the file
-				content reset=true variable="#assetManagerService.getTemporaryFileBinary( tmpId )#" type="#fileTypeDetails.mimeType#";abort;
-			} else {
-				var iconFile = "/preside/system/assets/images/asset-type-icons/48px/#ListLast( fileDetails.name, "." )#.png";
-				content reset=true file="#iconFile#" deleteFile=false type="image/png";abort;
-			}
-		}
-
-		event.renderData( data="404 not found", type="text", statusCode=404 );
-	}
-
 
 // private helpers
 	private string function _doBrowserEtagLookup( required string etag ) output=false {
@@ -103,8 +136,8 @@ component output=false {
 	}
 
 	private void function _checkDownloadPermissions( event, rc, prc ) output=false {
-		var assetId        = rc.assetId      ?: "";
-		var derivativeName = rc.derivativeId ?: "";
+		var assetId        = rc.assetId       ?: "";
+		var derivativeName = rc.derivativeId  ?: "";
 
 		if ( Len( Trim( derivativeName ) ) && assetManagerService.isDerivativePubliclyAccessible( derivativeName ) ) {
 			return;
@@ -112,23 +145,49 @@ component output=false {
 
 		var permissionSettings = assetManagerService.getAssetPermissioningSettings( assetId );
 
-		if ( permissionSettings.restricted ) {
-			var hasPerm = event.isAdminUser() && hasCmsPermission(
+		if ( !event.isAdminUser() ) {
+			if ( permissionSettings.restricted ) {
+				if ( Len( Trim( permissionSettings.conditionId ) ) ) {
+					var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( permissionSettings.conditionId );
+
+					if ( !conditionIsTrue ) {
+						if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+							event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+						} else {
+							event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+						}
+					}
+					return;
+				}
+				var hasPerm = event.isAdminUser() && hasCmsPermission(
+					  permissionKey       = "assetmanager.assets.download"
+					, context             = "assetmanagerfolder"
+					, contextKeys         = permissionSettings.contextTree
+					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
+				);
+				if ( hasPerm ) { return; }
+
+				if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+					event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+				}
+
+				hasPerm = hasWebsitePermission(
+					  permissionKey       = "assets.access"
+					, context             = "asset"
+					, contextKeys         = permissionSettings.contextTree
+					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
+				)
+				if ( !hasPerm ) {
+					event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				}
+			}
+		} else {
+
+			hasPerm = hasCmsPermission(
 				  permissionKey = "assetmanager.assets.download"
 				, context       = "assetmanagerfolder"
-				, contextKeys   = permissionSettings.contextTree
+				, contextKeys   = permissionSettings.contextTree ?: []
 			);
-			if ( hasPerm ) { return; }
-
-			if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-				event.accessDenied( reason="LOGIN_REQUIRED" );
-			}
-
-			hasPerm = hasWebsitePermission(
-				  permissionKey = "assets.access"
-				, context       = "asset"
-				, contextKeys   = permissionSettings.contextTree
-			)
 			if ( !hasPerm ) {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}

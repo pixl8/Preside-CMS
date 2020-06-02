@@ -6,77 +6,106 @@
 @wizard-step-active-title-color:#2B3D53;
 
 
-/* spinner */
-.ace-spinner {
-  display:inline-block;
+//spinner
 
-  .spinner-buttons {
-	 min-width:18px;
+.enable_plugin_fuelux_spinner() when (@enable-plugin-fuelux-spinner = true) {
+.ace-spinner {
+  display: inline-block;
+
+  .spinbox-buttons.btn-group-vertical {
+	 min-width: 18px;
 
 	> .btn {
-		.border-radius(0) !important;
-		font-size:10px;
-		padding:0;
-		width:18px;
-		height:14px;
-		line-height:10px;
+		//.border-radius(0) !important;
+		font-size: @font-size-spinner-button;
+		padding: 0;
+		width: 22px;
+
+		height: 16px;
+		line-height: 8px;
+		margin-left: 0;
 
 		&:first-child {
-			margin-top:0;
+			margin-top: 0;
 		}
 
-		> [class*="fa-"] {
-			//font-size:10px;
-			margin:0; padding:0;
+		> .@{icon} {
+			margin: 0;
+			padding: 0;
+		}
+
+		+ .btn {
+			margin-top: 2px;
 		}
 	}
-	> button.btn {
-		&:active { left:auto; top:auto; }
+	> .btn-xs {
+		height: 14px;
+		line-height: 7px;
+	}
+	> .btn-lg {
+		height: 22px;
+		line-height: 10px;
+		width: 22px;
 	}
   }
 
-  .spinner-input {
-	text-align:center;
-	height:29px;
-	line-height:28px;
-	color:#777;
-  }
-
-  input[type=text].spinner-input.form-control {
-    //ie8-9
-	width: ~"auto\0/" !important;
-	line-height: ~"1\0/" !important;
-	padding-bottom: ~"4px\0/" !important;
+  .spinbox-buttons {
+	> button.btn.spinbox-up:active {
+		top: -1px;
+	}
   }
 }
 
-
-/* touch spinner buttons */
-.ace-spinner.touch-spinner .spinner-buttons {
-   margin:0;
-   font-size:0;
-}
-.ace-spinner.touch-spinner .spinner-buttons > .btn {
-  height:29px; line-height:20px; width:24px;
-  font-size:18px;
-  display:inline-block;
-  vertical-align:sub;
-  margin:0 1px;
-}
-.ace-spinner.touch-spinner .spinner-buttons > .btn > [class*="fa-"]{
-  vertical-align:middle;
-  display:inline-block;
+.ace-spinner:not(.touch-spinner) .spinbox-buttons > .btn > .@{icon} {
+  margin-top: -1px;
 }
 
 
+//touch spinner buttons
+.ace-spinner.touch-spinner .spinbox-buttons {
+   margin: 0;
+   font-size: 0;
+
+   .btn-sm {
+	   width: 32px;
+	   padding-left: 6px;
+	   padding-right: 6px;
+   }
+   .btn-xs {
+      width: 24px;
+	  padding-left: 4px;
+	  padding-right: 4px;
+   }
+   .btn-lg {
+      width: 40px;
+	  padding-left: 8px;
+	  padding-right: 8px;
+   }
+}
+.ace-spinner.touch-spinner .spinbox-buttons > .btn {
+  margin: 0 1px !important;//to override .RTL's
+}
+.ace-spinner.touch-spinner .spinbox-buttons > .btn-xs {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.ace-spinner.touch-spinner .spinbox-buttons > .btn > .@{icon}{
+  vertical-align: middle;
+  display: inline-block;
+}
+
+}
+.enable_plugin_fuelux_spinner();
 
 
 
 
 
 
-/* wizard */
-.wizard-steps  {
+//wizard
+.enable_plugin_fuelux_wizard() when (@enable-plugin-fuelux-wizard = true) {
+.steps  {
 	list-style:none;
 	display:table;
 	width:100%;
@@ -85,41 +114,49 @@
 	position:relative;
 
 	li {
-		display:table-cell;
-		text-align:center;
-		width:1%;
+		display: table-cell;
+		text-align: center;
+		width: 1%;
 
 		.step {
-			border:5px solid @wizard-step-border;
-			color:@wizard-step-color;
-			font-size:15px;
-			border-radius:100%;
-			background-color:#FFF;
+			border: 5px solid @wizard-step-border;
+			color: @wizard-step-color;
+			font-size: @font-size-wizard-step;
+			border-radius: 100%;
+			background-color: #FFF;
 
-			position:relative;
-			z-index:2;
-			display:inline-block;
+			position: relative;
+			z-index: 2;
+			display: inline-block;
 
-			width:40px; height:40px;
-			line-height:30px;
-			text-align:center;
+			width: 40px;
+			height: 40px;
+			line-height: 30px;
+			text-align: center;
 		}
 
 
-		&:before {/* the line running through each step*/
-			 display:block;
-			 content:"";
+		&:before {//the line running through each step
+			 display: block;
+			 content: "";
 
-			 width:100%;
-			 height:1px; font-size:0; overflow:hidden;
+			 width: 100%;
+			 height: 1px;
+			 font-size: 0;
+			 overflow: hidden;
 
-			 border-top:4px solid #CED1D6;
+			 border-top: 4px solid #CED1D6;
 
-			 position:relative; top:21px;
-			 z-index:1;
+			 position: relative;
+			 top: 21px;
+			 z-index: 1;
 		}
 
-		&:last-child:before  {
+		&.last-child:before {
+			max-width:50%;
+			width:50%;
+		}
+		&:last-child:before {
 			max-width:50%;
 			width:50%;
 		}
@@ -145,15 +182,16 @@
 					position:absolute;
 					top:0; left:0; bottom:0; right:0;
 					line-height:30px; text-align:center;
-					border-radius:100%;
+					border-radius: 100%;
 
 					content:"\f00c";
 
-					background-color:#FFF;
-					z-index:3;
+					background-color: #FFF;
+					z-index: 3;
 
-					font-family:@icon-font;
-					font-size:17px;
+					font-family: PresideFontAwesome;
+
+					font-size: @font-size-wizard-complete;
 					color:@wizard-step-complete-color;
 				}
 
@@ -177,7 +215,7 @@
 			max-width:100%;
 
 			color:@wizard-step-title-color;
-			font-size:14px;
+			font-size: @font-size-wizard-title;
 
 			z-index:104;
 
@@ -196,13 +234,16 @@
 
 }
 
+.step-content {
+ position: relative;
+}
 .step-content .step-pane {
   display: none;
-  min-height:200px;
-  padding:4px 8px 12px;
+  min-height: 200px;
+  padding: 4px 8px 12px;
 }
 
-.step-content .active {
+.step-content .step-pane.active {
   display: block;
 }
 
@@ -211,27 +252,32 @@
 }
 
 @media only screen and (max-width: @screen-xs-max) {
- .wizard-steps li .step {
-	width:30px; height:30px; line-height:24px;
-	border-width:3px;
- }
- .wizard-steps li:before  , .wizard-steps li:after {
-	border-width:3px;
- }
- .wizard-steps li.complete .step:before{
+ .steps li .step {
+	width: 30px;
+	height: 30px;
 	line-height:24px;
-	font-size:13px;
+	border-width: 3px;
  }
- .wizard-steps li:before {
+ .steps li:before  , .steps li:after {
+	border-width: 3px;
+ }
+ .steps li.complete .step:before{
+	line-height: 24px;
+	font-size: @base-font-size;
+ }
+ .steps li:before {
 	top:16px;
  }
 
  .step-content .step-pane {
-	padding:4px 4px 6px;
+	padding: 4px 4px 6px;
+	min-height: 150px;
  }
 }
 
 
+}
+.enable_plugin_fuelux_wizard();
 
 
 
@@ -239,19 +285,33 @@
 
 
 
-
-/* tree control */
+//tree control
+.enable_plugin_fuelux_treeview() when (@enable-plugin-fuelux-treeview = true) {
 @tree-border-color:#67B2DD;
-.tree {
-	padding-left:9px;
-	overflow-x: hidden;	overflow-y: auto;
+ .tree {
+	margin: auto;
+	padding: 0 0 0 9px;
+	overflow-x: hidden;
+	overflow-y: auto;
 	position: relative;
+
 	&:before {
-		display:inline-block; content:"";
-		position:absolute; top:-20px; bottom:16px; left:0;
+		display:inline-block;
+		content: "";
 
+		position: absolute;
+		top: -20px;
+		bottom: 16px;
+		left: 0;
+		z-index: 1;
+	}
 
-		z-index:1;
+	.tree-folder-name, .tree-item-name {
+		cursor: pointer;
+	}
+
+	.icon-caret {
+		vertical-align: baseline !important;
 	}
 
 
@@ -263,50 +323,85 @@
 		.tree-folder-header {
 			position: relative;
 			height: 20px;
-			line-height:20px;
+			line-height: 20px;
+
 			&:hover {
-				background-color: #F0F7FC;
+				background-color: rgba(98, 168, 209 , 0.1);
+			}
+		}
+
+		//in folderSelect mode
+		.icon-caret + .tree-folder-header {
+			display: inline-block;
+			width: 80%;
+			width: ~"calc(100% - 36px)";
+		}
+
+
+		&.tree-selected  > .tree-folder-header {
+			background-color: rgba(98, 168, 209 , 0.18);
+		}
+
+
+	}
+
+	.tree-folder .tree-folder-header .tree-folder-name , .tree-item .tree-item-name {
+		display: inline;
+		z-index: 2;
+	}
+	.tree-folder .tree-folder-header > .tree-folder-name > .@{icon}:first-child ,
+	.tree-item > .tree-item-name > .@{icon}:first-child {
+	  display: inline-block;
+	  position: relative;
+	  z-index: 2;
+	  top: -1px;
+	}
+	.tree-folder {
+		> .tree-folder-header {
+			> .tree-folder-name  {
+				> .tree-label {
+					margin-left: 2px;
+				}
+				> .@{icon}:first-child {
+					margin: -2px 0 0 -2px;
+				}
+			}
+		}
+		&:last-child:after {
+			display: inline-block;
+			content: "";
+
+			position: absolute;
+			z-index: 1;
+			top: 15px;
+			bottom: 0;
+			left: -15px;
+			border-left: 1px solid #FFF;
+		}
+		.tree-folder-content {
+			margin: 0 0 0 23px;
+			padding: 0;
+			position: relative;
+
+			&:before {
+				display: inline-block;
+				content: "";
+
+				position: absolute;
+				z-index: 1;
+				top: -14px;
+				bottom: 16px;
+				left: -14px;
+
+				border: 1px dotted @tree-border-color;
+				border-width: 0 0 0 1px;
 			}
 		}
 	}
 
-	.tree-folder .tree-folder-header .tree-folder-name , .tree-item .tree-item-name {
-		display:inline;
-		z-index:2;
-	}
-	.tree-folder .tree-folder-header > [class*="fa-"]:first-child ,
-	.tree-item > [class*="fa-"]:first-child {
-	  display:inline-block;
-	  position:relative;
-	  z-index:2;
-	  top:-1px;
-	}
-	.tree-folder {
-		.tree-folder-header {
-			.tree-folder-name  {
-				margin-left:2px;
-			}
-			> [class*="fa-"]:first-child {
-				margin:-2px 0 0 -2px;
-			}
-		}
-		&:last-child:after {
-			display:inline-block; content:"";
-			position:absolute; z-index:1;
-			top:15px; bottom:0; left:-15px;
-			border-left:1px solid #FFF;
-		}
-		.tree-folder-content {
-			margin-left: 23px;
-			position:relative;
-			&:before {
-				display:inline-block; content:"";
-				position:absolute; z-index:1;
-				top:-14px; bottom:16px; left:-14px;
-				border:1px dotted @tree-border-color;
-				border-width:0 0 0 1px;
-			}
-		}
+
+	.tree-folder.tree-selected > .icon-caret + .tree-folder-header > .tree-folder-name > .tree-label {
+		font-weight: bold;
 	}
 
 
@@ -314,31 +409,52 @@
 	.tree-item {
 		position: relative;
 		height: 20px;
-		line-height:20px;
+		line-height: 20px;
 		cursor: pointer;
+
+		max-width: ~"calc(100% - 20px)";
+
 		&:hover {
-			background-color: #F0F7FC;
+			background-color: rgba(98, 168, 209 , 0.1);
 		}
 
-		.tree-item-name {
-			margin-left:3px;
-			> [class*="fa-"]:first-child {
-				margin-right:3px;
+		&.tree-selected {
+			& , &:hover {
+				background-color: rgba(98, 168, 209 , 0.16);
 			}
 		}
-		> [class*="fa-"]:first-child {
-			margin-top:-1px;
+
+
+
+		> .tree-item-name {
+			> .@{icon}:first-child {
+				margin-right: 3px;
+			}
+			> .tree-label > .@{icon}:first-child {
+				margin-left: 3px;
+				margin-right: 3px;
+			}
+		}
+		> .@{icon}:first-child {
+			margin-top: -1px;
 		}
 	}
 
 	.tree-folder , .tree-item {
-		position:relative;
+		position: relative;
+		list-style: none;
+
 		&:before {
-			display:inline-block; content:"";
-			position:absolute;
-			top:14px; left:-13px; width:18px;
-			height:0;
-			border-top:1px dotted @tree-border-color;
+			display: inline-block;
+			content: "";
+			position: absolute;
+			top: 14px;
+			left: -13px;
+
+			width: 18px;
+			height: 0;
+
+			border-top: 1px dotted @tree-border-color;
 
 			z-index:1;
 		}
@@ -346,115 +462,146 @@
 
 
 	.tree-selected {
-		background-color: rgba(98, 168, 209 , 0.1);
-		color:#6398B0;
-		&:hover {
-			background-color: rgba(98, 168, 209 , 0.1);
-		}
+		//background-color: rgba(98, 168, 209 , 0.1);
+		color: #6398B0;
+		//&:hover {
+			//background-color: rgba(98, 168, 209 , 0.1);
+		//}
 	}
 
 	.tree-item  , .tree-folder {
-		border:1px solid #FFF;
+		border-left: 1px solid #FFF;
+		margin: 1px 0;
 	}
 
 	.tree-folder .tree-folder-header {
-		border-radius:0;
+		border-radius: 0;
 	}
 	.tree-item  , .tree-folder .tree-folder-header {
-		margin:0;
-		padding:5px;
-		color:#4D6878;
+		//margin: 0;
+		padding: 5px;
+		color: #4D6878;
 
 		.box-sizing(content-box);
 	}
 
-
-	.tree-item > [class*="fa-"]:first-child {
-		color:#F9E8CE;
-		border:1px solid #CCC;
-		width:13px; height:13px; line-height:13px;
-		font-size:11px;
-		text-align:center;
-		border-radius:3px;
-
-		.box-sizing(content-box);
-
-		background-color: #FAFAFA;
-		border: 1px solid #CCC;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-	}
-
-	.tree-selected > [class*="fa-"]:first-child {
+	.tree-selected > .tree-item-name > .@{icon}:first-child {
 		background-color: #F9A021;
 		border-color: #F9A021;
 		color: #FFF;
 	}
 
 
-	.icon-plus[class*="fa-"]:first-child , .icon-minus[class*="fa-"]:first-child {
-		 border:1px solid #DDD;
-		 vertical-align:middle;
-		 height:11px; width:11px;
+	.tree-plus.@{icon}:first-child , .tree-minus.@{icon}:first-child {
+		display: inline-block;
+		font-style: normal;
+		 border: 1px solid #DDD;
+		 vertical-align: middle;
+		 height: 11px;
+		 width: 11px;
 		 .box-sizing(content-box);
 
 		 text-align:center;
 
-		 border:1px solid #8BAEBF;
-		 line-height:10px;
-		 background-color:#FFF;
+		 border: 1px solid #8BAEBF;
+		 line-height: 10px;
+		 background-color: #FFF;
 
-		 position:relative;
-		 z-index:1;
-	}
-	.icon-plus[class*="fa-"]:first-child:before {
-		display:block;
-		content:"+";
-		font-family:@default-font;
-		font-size:16px;
-		position:relative; z-index:1;
-	}
-	.icon-minus[class*="fa-"]:first-child:before {
-		  content: "";
-		  display:block;
-		  width:7px; height:0;
-		  border-top:1px solid #4D6878;
+		 position: relative;
+		 z-index: 2;
 
-		  position:absolute;
-		  top:5px;
-		  left:2px;
+		 &:before {
+			content: "";
+			display: block;
+			width: 7px;
+			height: 0;
+			border-top: 1px solid #4D6878;
+
+			position: absolute;
+			top: 5px;
+			left: 2px;
+		 }
+	}
+	.tree-plus.@{icon}:first-child:after {
+		content: "";
+		display: block;
+		height: 7px;
+		width: 0;
+		border-left: 1px solid #4D6878;
+
+		position: absolute;
+		top: 2px;
+		left: 5px;
 	}
 
-	.tree-unselectable .tree-item > [class*="fa-"]:first-child {
-		color:#5084A0;
-		border:none;
-		width:13px; height:13px; line-height:13px;
-		font-size:10px;
-		text-align:center;
-		border-radius:0;
+	.tree-unselectable .tree-item > .tree-item-name > .tree-label > .@{icon}:first-child {
+		color: #5084A0;
+		border: none;
+		width: 13px;
+		height: 13px;
+		line-height: 13px;
+
+		font-size: @font-size-tree-icon - 1;
+		text-align: center;
+		border-radius: 0;
 
 		background-color: transparent;
 		border: none;
-		box-shadow:none;
+		box-shadow: none;
 	}
 
 
-	[class*="fa-"][class*="-down"] {
-		transform:rotate(-45deg);
+	.@{icon}[class*="-down"] {
+		transform: rotate(-45deg);
 	}
-	.icon-spin {
-		height:auto;
+	.@{icon}[class*="-download"] {
+		transform: none;
+	}
+
+	.fa-spin {
+		height: auto;
 	}
 	.tree-loading {
-		margin-left:36px;
+		margin-left: 36px;
 	}
 
 	img {
-		display:inline;
-		veritcal-align:middle;
+		display: inline;
+		veritcal-align: middle;
 	}
+
+
+	.icon-open {
+		width: 16px;
+
+		position: relative;
+		z-index: 2;
+
+		padding-left: 2px;
+	}
+
+	.tree .tree-open > .tree-folder-header .icon-open {
+		.rotate(90deg);
+	}
+ }
+
+
+ .tree-container {
+    background-color: #FFF;
+    border: 1px solid #DDD;
+	border-left-color: @tree-border-color;
+
+	display: block;
+    padding: 0;
+
+	max-width: 200px;
+	max-height: 250px;
+
+
+	.tree::before {
+		margin-left: -1px;
+	}
+ }
+
 }
-
-
-
-
-
+.enable_plugin_fuelux_treeview();

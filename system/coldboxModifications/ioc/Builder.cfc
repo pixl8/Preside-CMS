@@ -3,32 +3,35 @@
  * from catching errors and rethrowing them in an unhelpful way
  *
  */
-component output=false extends="coldbox.system.ioc.Builder" {
+component extends="coldbox.system.ioc.Builder" {
 
-	public any function buildCfc( required any mapping, struct initArguments={} ) output=false {
-		var thisMap         = arguments.mapping;
-		var oModel          = CreateObject( "component", thisMap.getPath() );
-		var constructorArgs = "";
-		var viMapping       = "";
+	public any function buildCfc( required any mapping, struct initArguments={} ) {
+		var thisMap 	= arguments.mapping;
+		var oModel 		= createObject( "component", thisMap.getPath() );
 
 		// Do we have virtual inheritance?
 		if( arguments.mapping.isVirtualInheritance() ){
 			// retrieve the VI mapping.
-			viMapping = instance.injector.getBinder().getMapping( arguments.mapping.getVirtualInheritance() );
+			var viMapping = variables.injector.getBinder().getMapping( arguments.mapping.getVirtualInheritance() );
 			// Does it match the family already?
-			if( NOT isInstanceOf(oModel, viMapping.getPath() ) ){
-				toVirtualInheritance( viMapping, oModel );
+			if( NOT isInstanceOf( oModel, viMapping.getPath() ) ){
+				// Virtualize it.
+				toVirtualInheritance( viMapping, oModel, arguments.mapping );
 			}
 		}
 
-		if ( thisMap.isAutoInit() && StructKeyExists( oModel, thisMap.getConstructor() ) ) {
-			constructorArgs = buildArgumentCollection( thisMap, thisMap.getDIConstructorArguments(), oModel );
+		// Constructor initialization?
+		if( thisMap.isAutoInit() AND structKeyExists( oModel, thisMap.getConstructor() ) ){
+			// Get Arguments
+			var constructorArgs = buildArgumentCollection( thisMap, thisMap.getDIConstructorArguments(), oModel );
 
-			if ( !StructIsEmpty( arguments.initArguments ) ) {
-				StructAppend( constructorArgs, arguments.initArguments, true );
+			// Do We have initArguments to override
+			if( NOT structIsEmpty( arguments.initArguments ) ){
+				structAppend( constructorArgs, arguments.initArguments, true );
 			}
 
-			oModel[ thisMap.getConstructor() ]( argumentCollection=constructorArgs );
+			// Invoke constructor
+			invoke( oModel, thisMap.getConstructor(), constructorArgs );
 		}
 
 		return oModel;

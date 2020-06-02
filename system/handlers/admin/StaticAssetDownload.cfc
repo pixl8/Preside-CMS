@@ -1,12 +1,12 @@
 component {
-	property name="i18n"       inject="coldbox:plugin:i18n";
+	property name="i18n"       inject="i18n";
 	property name="appMapping" inject="coldbox:setting:appMapping";
 
 	function download( event, rc, prc ) {
 		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
 		var assetFile       = ExpandPath( staticAssetPath );
 
-		if ( rc.staticAssetPath.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" ) ) {
+		if ( rc.staticAssetPath.reFindNoCase( "^/preside/system/assets/_dynamic/i18nBundle\.js" ) ) {
 			_serveI18nBundle( argumentCollection = arguments );
 		}
 
@@ -19,16 +19,16 @@ component {
 		_doBrowserEtagLookup( etag );
 
 		header name="cache-control" value="max-age=31536000";
-		header name="etag" value=etag;
+		header name="ETag" value=etag;
 		content file="#assetFile#" type=_getMimeType( assetFile );abort;
 	}
 
 // PRIVATE HELPERS
 	private boolean function _fileExists( required string fullPath ) {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
-		var extensionsDirectory  = ExpandPath( "#appMapping#/extensions/" );
+		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
 
-		if ( ( !fullPath.startsWith( rootAllowedDirectory ) && !fullPath.startsWith( extensionsDirectory ) ) || fullPath contains ".." ) {
+		if ( ( fullPath.left( rootAllowedDirectory.len() ) != rootAllowedDirectory && fullPath.left( extensionsDirectory.len() ) != extensionsDirectory ) || fullPath contains ".." ) {
 			return false;
 		}
 
@@ -40,7 +40,8 @@ component {
 	}
 
 	private string function _doBrowserEtagLookup( required string etag ) {
-		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {
+		var headers = getHTTPRequestData( false ).headers;
+		if ( ( headers[ "If-None-Match" ] ?: "" ) == arguments.etag ) {
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
 		}
 	}
@@ -69,12 +70,14 @@ component {
 
 		_doBrowserEtagLookup( etag );
 
+		setting showdebugoutput=false;
+
 		header name="cache-control" value="max-age=#( 2400 )#"; // cache for 20 min
-		header name="etag" value=etag;
+		header name="ETag" value=etag;
 		content reset=true type="application/javascript";WriteOutput(js);abort;
 	}
 
 	private string function _translatePath( required string path ) {
-		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "#appMapping#/extensions/" );
+		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "/#appMapping#/extensions/" );
 	}
 }

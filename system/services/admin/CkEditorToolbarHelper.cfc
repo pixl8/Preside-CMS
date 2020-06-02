@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**

@@ -10,10 +10,16 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/jquery-ui/"    , path="/js/admin/lib/jquery-ui*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/ace/"          , path="/js/admin/lib/ace*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
+		bundle.addAsset( id="/js/admin/lib/plotly/"       , path="/js/admin/lib/plotly*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
+		bundle.addAsset( id="recaptcha-js"                , url="https://www.google.com/recaptcha/api.js" );
+
+		bundle.addAsset( id="highlightjs-css"             , url="/preside/system/assets/ckeditorExtensions/plugins/codesnippet/lib/highlight/styles/preside-atelier-dune.dark.css" );
+		bundle.addAsset( id="highlightjs-js"              , url="/preside/system/assets/ckeditorExtensions/plugins/codesnippet/lib/highlight/highlight.pack.js" );
+		bundle.addAsset( id="highlightjs"                 , path="/js/frontend/hljs/initHighlight.js" );
 
 		bundle.addAssets(
-			  directory   = "/js/admin"
+			  directory   = "/js"
 			, match       = function( path ){ return ReFindNoCase( "_[0-9a-f]{8}\..*?\.min.js$", arguments.path ); }
 			, idGenerator = function( path ) {
 				return ListDeleteAt( path, ListLen( path, "/" ), "/" ) & "/";
@@ -21,7 +27,7 @@ component output=false {
 		);
 
 		bundle.addAssets(
-			  directory   = "/css/admin"
+			  directory   = "/css"
 			, match       = function( path ){ return ReFindNoCase( "_[0-9a-f]{8}\..*?\.min.css$", arguments.path ); }
 			, idGenerator = function( path ) {
 				return ListDeleteAt( path, ListLen( path, "/" ), "/" ) & "/";
@@ -46,6 +52,9 @@ component output=false {
 			                                      .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
 
 		bundle.asset( "/js/admin/specific/assetmanager/editasset/" ).dependsOn( "/js/admin/specific/owlcarousel/" );
+		bundle.asset( "/js/frontend/formbuilder/" ).after( "*jquery*" );
+		bundle.asset( "/js/admin/specific/passwordscore/" ).after( "*jquery*" );
+		bundle.asset( "highlightjs" ).dependsOn( "highlightjs-js" ).dependsOn( "highlightjs-css" );
 	}
 
 }

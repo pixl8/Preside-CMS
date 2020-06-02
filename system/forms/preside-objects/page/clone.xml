@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Sitetree Page: clone form
+
+This form is used as the base "clone page" form for Sitetree pages. See also [[form-sitetreepageeditform]].
+
+>>> When a clone page form is rendered, it gets mixed in with any forms that are defined for the *page type* of the given page.
+-->
+<form i18nBaseUri="preside-objects.page:">
+	<tab id="clone" sortorder="10">
+		<fieldset id="clonebasic" sortorder="10">
+			<field sortorder="10" binding="page.site"        control="objectPicker"     required="true" object="site" objectFilters="nonDeletedSites" />
+			<field sortorder="20" binding="page.parent_page" control="parentPagePicker" required="true" filterby="site" />
+			<field sortorder="30" binding="page.title" />
+			<field sortorder="40" binding="page.slug" control="autoslug" basedOn="title" required="true" />
+		</fieldset>
+		<fieldset id="cloneoptions" sortorder="10">
+			<field sortorder="10" name="clone_include_children" control="yesnoswitch" />
+			<field sortorder="20" name="clone_save_as_draft"    control="yesnoswitch" default="1" />
+		</fieldset>
+	</tab>
+</form>

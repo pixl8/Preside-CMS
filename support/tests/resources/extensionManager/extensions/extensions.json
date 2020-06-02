@@ -1,5 +1,0 @@
-[
-	  { "name" : "someExtension"      , "priority" : 100, "active" : true  }
-	, { "name" : "anotherExtension"   , "priority" : 200, "active" : false }
-	, { "name" : "yetAnotherExtension", "priority" : 50 , "active" : false }
-]

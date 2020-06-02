@@ -1,13 +1,40 @@
 component {
-	property name="applicationReloadService"  inject="applicationReloadService";
-	property name="websiteLoginService"       inject="websiteLoginService";
-	property name="adminLoginService"         inject="loginService";
-	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
+	property name="applicationReloadService"      inject="applicationReloadService";
+	property name="databaseMigrationService"      inject="databaseMigrationService";
+	property name="applicationsService"           inject="applicationsService";
+	property name="websiteLoginService"           inject="websiteLoginService";
+	property name="adminLoginService"             inject="loginService";
+	property name="antiSamySettings"              inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"               inject="delayedInjector:antiSamyService";
+	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
+	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
+	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
+	property name="healthcheckService"            inject="healthcheckService";
+	property name="permissionService"             inject="permissionService";
+	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
+	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
+	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
+	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
+	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
+	property name="validationEngine"              inject="validationEngine";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
+
+		_performDbMigrations();
+		_configureVariousServices();
+		_populateDefaultLanguages();
+		_setupCatchAllAdminUserGroup();
+		_startHeartbeats();
+		_setupValidators();
+
 		announceInterception( "onApplicationStart" );
+	}
+
+	public void function applicationEnd( event, rc, prc ) {
+		applicationReloadService.gracefulShutdown(
+			force = StructKeyExists( url, "force" )
+		);
 	}
 
 	public void function requestStart( event, rc, prc ) {
@@ -18,7 +45,15 @@ component {
 
 	public void function notFound( event, rc, prc ) {
 		var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="errors.notFound" );
-		var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
+		var notFoundLayout  = "";
+
+		if ( event.isAdminRequest() ) {
+			var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
+
+			notFoundLayout = applicationsService.getLayout( activeApplication );
+		} else {
+			notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
+		}
 
 		event.setLayout( notFoundLayout );
 		event.setView( view="/core/simpleBodyRenderer" );
@@ -26,7 +61,7 @@ component {
 		rc.body = renderViewlet( event=notFoundViewlet );
 	}
 
-	public void function accessDenied( event, rc, prc ) {
+	private void function accessDenied( event, rc, prc, args={} ) {
 		var accessDeniedViewlet = getSetting( name="accessDeniedViewlet", defaultValue="errors.accessDenied" );
 		var accessDeniedLayout  = getSetting( name="accessDeniedLayout" , defaultValue="Main" );
 
@@ -39,7 +74,10 @@ component {
 // private helpers
 	private void function _xssProtect( event, rc, prc ) {
 		if ( IsTrue( antiSamySettings.enabled ?: "" ) ) {
-			if ( IsFalse( antiSamySettings.bypassForAdministrators ?: "" ) || !event.isAdminUser() ) {
+			var adminBypass = IsTrue( antiSamySettings.bypassForAdministrators ?: "" );
+			var bypass      = adminBypass && ( event.isAdminUser() || event.isAdminRequest() );
+
+			if ( !bypass ) {
 				var policy = antiSamySettings.policy ?: "myspace";
 
 				for( var key in rc ){
@@ -48,6 +86,9 @@ component {
 					}
 				}
 			}
+
+			request[ "preside.path_info"    ] = antiSamyService.clean( request[ "preside.path_info"    ] ?: "" );
+			request[ "preside.query_string" ] = antiSamyService.clean( request[ "preside.query_string" ] ?: "" );
 		}
 	}
 
@@ -70,6 +111,7 @@ component {
 				, reloadPresideObjects = devSettings
 				, reloadWidgets        = devSettings
 				, reloadPageTypes      = devSettings
+				, reloadStatic         = devSettings
 			};
 		} else {
 			devSettings = {
@@ -80,6 +122,7 @@ component {
 				, reloadPresideObjects = IsBoolean( devSettings.reloadPresideObjects ?: "" ) and devSettings.reloadPresideObjects
 				, reloadWidgets        = IsBoolean( devSettings.reloadWidgets        ?: "" ) and devSettings.reloadWidgets
 				, reloadPageTypes      = IsBoolean( devSettings.reloadPageTypes      ?: "" ) and devSettings.reloadPageTypes
+				, reloadStatic         = IsBoolean( devSettings.reloadStatic         ?: "" ) and devSettings.reloadStatic
 			};
 		}
 
@@ -93,7 +136,7 @@ component {
 				applicationReloadService.reloadPresideObjects();
 				applicationReloadService.dbSync();
 				anythingReloaded = true;
-			} elseif ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
+			} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
 				applicationReloadService.reloadPresideObjects();
 				anythingReloaded = true;
 			}
@@ -118,7 +161,7 @@ component {
 				anythingReloaded = true;
 			}
 
-			if ( event.valueExists( "fwReinitStatic" ) and Hash( rc.fwReinitStatic ) eq reloadPassword ) {
+			if ( devSettings.reloadStatic or ( event.valueExists( "fwReinitStatic" ) and Hash( rc.fwReinitStatic ) eq reloadPassword ) ) {
 				applicationReloadService.reloadStatic();
 				anythingReloaded = true;
 			}
@@ -142,9 +185,81 @@ component {
 	}
 
 	private void function _recordUserVisits( event, rc, prc ) {
-		if ( !event.isAjax() ) {
+		if ( !event.isAjax() && !ReFindNoCase( "^(assetDownload|ajaxproxy|staticAssetDownload)", event.getCurrentHandler() ) ) {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
+		}
+	}
+
+	private void function _performDbMigrations() {
+		databaseMigrationService.migrate();
+	}
+
+	private void function _populateDefaultLanguages() {
+		if ( isFeatureEnabled( "multilingual" ) ) {
+			getModel( "multilingualPresideObjectService" ).populateCoreLanguageSet();
+		}
+	}
+
+	private void function _configureVariousServices() {
+		var i18n = getModel( "i18n" );
+
+		i18n.configure();
+
+		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
+			i18n.setFwLocale( request.DefaultLocaleFromCookie );
+		}
+	}
+
+	private void function _startHeartbeats() {
+		if ( isFeatureEnabled( "emailQueueHeartBeat" ) ) {
+			for( var i=1; i<=emailQueueConcurrency; i++ ) {
+				getModel( "PresideEmailQueueHeartBeat#i#" ).start();
+			}
+		}
+
+		if ( isFeatureEnabled( "healthchecks" ) ) {
+			for( var serviceId in healthcheckService.listRegisteredServices() ) {
+				getModel( "healthCheckHeartbeat#serviceId#" ).start();
+			}
+		}
+
+		if ( isFeatureEnabled( "adhocTaskHeartBeat" ) ) {
+			presideAdhocTaskHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
+			presideTaskmanagerHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
+			for( var i=1; i<=assetQueueConcurrency; i++ ) {
+				getModel( "AssetQueueHeartBeat#i#" ).start();
+			}
+		}
+
+		cacheboxReapHeartBeat.start();
+	}
+
+	private void function _setupCatchAllAdminUserGroup() {
+		permissionService.setupCatchAllGroup();
+	}
+
+	private void function _setupValidators() {
+		if ( IsArray( configuredValidationProviders ) ) {
+			for ( var providerName in configuredValidationProviders ) {
+				validationEngine.newProvider( getModel( dsl=providerName ) );
+			}
+		}
+
+		for( var objName in presideObjectService.listObjects( includeGeneratedObjects=true ) ) {
+			var obj = presideObjectService.getObject( objName );
+			if ( not IsSimpleValue( obj ) ) {
+				validationEngine.newProvider( obj );
+			}
+
+			var rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName );
+			validationEngine.newRuleset( name="PresideObject.#objName#", rules=rules );
 		}
 	}
 }

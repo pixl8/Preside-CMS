@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**
@@ -136,7 +136,7 @@ component output=false singleton=true {
 
 	private struct function _getBundleData( required string bundleName, string language, string country ) output=false {
 		var bundleDataCache    = _getBundleDataCache();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 		var bundleCacheKey     = activeSiteTemplate & arguments.bundleName;
 		var languageCacheKey   = "";
 		var countryCacheKey    =  "";
@@ -173,13 +173,13 @@ component output=false singleton=true {
 
 	private struct function _readBundleData( required string bundleName, string language, string country ) output=false {
 		var directories        = _getBundleDirectories();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 		var siteTemplate       = "";
 		var subDirectory       = "";
 		var files              = "";
 		var directory          = "";
 		var file               = "";
-		var bundleData         = StructNew( "linked" );
+		var bundleData         = {};
 		var filePattern        = ListLast( arguments.bundleName, "." );
 
 		if ( ListLen( arguments.bundleName, "." ) gt 1 ) {
@@ -194,16 +194,21 @@ component output=false singleton=true {
 			}
 		}
 
+		filePattern &= ".properties";
+
 		for( directory in directories ){
 			directory = ReReplace( directory, "[\\/]$", "" );
 
 			siteTemplate = _getSiteTemplateFromPath( directory );
 
 			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
-				files = DirectoryList( directory & subDirectory, false, "path", filePattern & ".properties" );
+				files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
 
 				for( file in files ){
-					StructAppend( bundleData, _propertiesFileToStruct( file ) );
+					if ( filePattern == ListLast( file, "\/" ) ) {
+						StructAppend( bundleData, _propertiesFileToStruct( file ) );
+						break;
+					}
 				}
 			}
 		}

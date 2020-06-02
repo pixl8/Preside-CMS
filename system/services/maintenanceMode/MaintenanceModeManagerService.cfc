@@ -3,7 +3,8 @@
  * for all APIs to do with managing maintenance
  * mode.
  *
- * @singleton true
+ * @singleton
+ * @presideService
  */
 component {
 
@@ -14,7 +15,12 @@ component {
 	 * @maintenanceModeViewlet.inject     coldbox:setting:maintenanceModeViewlet
 	 * @coldbox.inject                    coldbox
 	 */
-	public any function init( required any maintenanceModeService, required any systemConfigurationService, required any coldbox, required string maintenanceModeViewlet ) {
+	public any function init(
+		  required any maintenanceModeService
+		, required any systemConfigurationService
+		, required any coldbox
+		, required string maintenanceModeViewlet
+	) {
 		_setMaintenanceModeService( arguments.maintenanceModeService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setMaintenanceModeViewlet( arguments.maintenanceModeViewlet );
@@ -35,7 +41,7 @@ component {
 				  category = "maintenanceMode"
 				, setting  = settingName
 				, value    = settings[ settingName ]
-			)
+			);
 		}
 
 		active ? _activateMaintenanceMode( arguments.settings ) : _deactivateMaintenanceMode();
@@ -43,15 +49,45 @@ component {
 
 // private helpers
 	private void function _activateMaintenanceMode( required struct settings ) {
+		var taskSettings = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
+		var tasksEnabled = IsBoolean( taskSettings.scheduledtasks_enabled ?: "" ) && taskSettings.scheduledtasks_enabled;
+		if ( tasksEnabled ) {
+			_setScheduledTaskStatus( false );
+		}
+
 		_getMaintenanceModeService().setMaintenanceMode(
-			  maintenanceHtml = _generateMaintenanceModePage( settings )
+			  maintenanceHtml = _generateMaintenanceModePage( arguments.settings )
 			, bypassPassword  = arguments.settings.bypass_password ?: ""
 			, allowedIps      = ListToArray( arguments.settings.ip_whitelist ?: "", Chr(10) & Chr(13) & "," )
+			, tasksEnabled    = tasksEnabled
+		);
+
+		$audit(
+			  action = "activate_maintenance_mode"
+			, type   = "maintenancemode"
 		);
 	}
 
 	private void function _deactivateMaintenanceMode() {
+		var mmSettings = _getMaintenanceModeService().getMaintenanceModeSettings();
 		_getMaintenanceModeService().clearMaintenanceMode();
+
+		if ( isBoolean( mmSettings.tasksEnabled ?: "" ) && mmSettings.tasksEnabled ) {
+			_setScheduledTaskStatus( true );
+		}
+
+		$audit(
+			  action = "deactivate_maintenance_mode"
+			, type   = "maintenancemode"
+		);
+	}
+
+	private void function _setScheduledTaskStatus( required boolean tasksEnabled ) {
+		_getSystemConfigurationService().saveSetting(
+			  category = "taskmanager"
+			, setting  = "scheduledtasks_enabled"
+			, value    = arguments.tasksEnabled
+		);
 	}
 
 	private string function _generateMaintenanceModePage( required struct settings ) {

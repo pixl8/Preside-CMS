@@ -1,4 +1,4 @@
-component extends="coldbox.system.Interceptor" output=false {
+component extends="coldbox.system.Interceptor" {
 
 // PUBLIC
 	public void function configure() output=false {}

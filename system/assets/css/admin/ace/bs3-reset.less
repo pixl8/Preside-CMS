@@ -1,21 +1,24 @@
-//bootstrap mentions that the following need not be floated, as they are full width (100%)
+//the following column widths need not be floated, as they are full width (100%)
 //but in our case it's needed, because sidebar is floated left(not position:absolute) and
-//the .row elements containing .col-*-12 have .clearfix behaviour,
-//which doesn't allow any floating elements on left or side, thus causing problems with our sidebar
-.col-xs-12 , .col-sm-12 , .col-md-12, .col-lg-12 {
- float:left; 
+//the .row elements containing .col-*-12 have .clearfix behavior,
+//which doesn't allow any floating elements on left or right, thus causing problems with our sidebar
+.page-content > .row > {
+ .col-xs-12 , .col-sm-12 , .col-md-12, .col-lg-12 {
+   float: left; 
+   max-width: 100%;//if not, .col-xs-12 > .row > .col-sm-12 will have problems
+ }
 }
 
-.col-xs-reset { width: auto; padding-left:0; padding-right:0; float:none; }
+.col-xs-reset { width: auto; padding-left: 0; padding-right: 0; float: none !important; }
 
-@media (min-width: @screen-tablet) {
- .col-sm-reset { width: auto; padding-left:0; padding-right:0; float:none; }
+@media (min-width: @screen-sm-min) {
+ .col-sm-reset { width: auto; padding-left: 0; padding-right: 0; float: none !important; }
 }
-@media (min-width: @screen-desktop) {
- .col-md-reset { width: auto; padding-left:0; padding-right:0; float:none; }
+@media (min-width: @screen-md-min) {
+ .col-md-reset { width: auto; padding-left: 0; padding-right: 0; float: none !important; }
 }
-@media (min-width: @screen-lg-desktop) {
- .col-lg-reset { width: auto; padding-left:0; padding-right:0; float:none; }
+@media (min-width: @screen-lg-min) {
+ .col-lg-reset { width: auto; padding-left: 0; padding-right: 0; float: none !important; }
 }
 
 
@@ -24,6 +27,7 @@
 }
 .legendLabel {
  .box-sizing(content-box);
- height:20px; 
- font-size:10px;
+ height: 22px; 
+ padding-left: 2px;
+ font-size: @font-flot-chart-label;
 }

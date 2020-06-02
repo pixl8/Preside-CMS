@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="basic">
+		<fieldset id="general" sortorder="10">
+			<field binding="email_template.name"            control="textinput" sortorder="10" />
+			<field binding="email_template.email_blueprint" required="true"     sortorder="20" quickadd="true" />
+			<field binding="email_template.subject"         control="textinput" sortorder="30" />
+			<field binding="email_template.from_address"    required="false" sortorder="40" control="textinput" />
+			<field binding="email_template.track_clicks"    required="false" sortorder="50" />
+		</fieldset>
+		<fieldset id="save_content" sortorder="15">
+			<field binding="email_template.view_online"         required="false" sortorder="10" />
+			<field binding="email_template.save_content"        required="false" sortorder="20" />
+			<field binding="email_template.save_content_expiry" required="false" sortorder="30" />
+		</fieldset>
+	</tab>
+</form>

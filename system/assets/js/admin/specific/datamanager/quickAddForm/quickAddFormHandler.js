@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $quickAddForm = $( ".quick-add-form" ).first()
-	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, addAnother, showSuccessMessage;
+	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, addAnother, showSuccessMessage, clearRicheditor;
 
 	setupBehaviours = function(){
 		$quickAddForm.submit( handleSubmission );
@@ -72,7 +72,16 @@
 
 	resetForm = function(){
 		$quickAddForm.trigger( "reset" );
+		clearRicheditor();
 	};
+
+	clearRicheditor = function() {
+		if( typeof( CKEDITOR ) !== "undefined" ){
+			for ( instance in CKEDITOR.instances ){
+				CKEDITOR.instances[ instance ].setData( "" );
+			}
+		}
+	}
 
 	focusForm = function(){
 		$quickAddForm.find( "input,select,textarea" ).not( ":hidden" ).first().focus();

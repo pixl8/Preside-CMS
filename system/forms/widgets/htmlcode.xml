@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="widgets.htmlcode:" categories="system,js,html,iframe,css,default">
+	<tab id="default">
+		<fieldset id="default">
+			<field sortorder="10" name="html_code" control="textarea" />
+		</fieldset>
+	</tab>
+</form>

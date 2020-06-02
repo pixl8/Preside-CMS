@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Site: delete form
+
+This form is used for the "delete site" prompt form in the site manager
+-->
+<form>
+	<tab id="delete" sortorder="10">
+		<fieldset id="delete" sortorder="10">
+			<field name="deletion_confirmation_text" sortorder="10" control="textinput"   required="true" />
+			<field name="deletion_confirmation_tick" sortorder="20" control="yesnoswitch" required="true" />
+		</fieldset>
+	</tab>
+</form>

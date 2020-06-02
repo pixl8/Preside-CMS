@@ -11,7 +11,7 @@
 
 <cfoutput>
 	<cfsavecontent variable="body">
-		<form class="form-horizontal widget-config-form" data-auto-focus-form="true" id="widget-#( rc.widget ?: '' )#" action="#formAction#" method="post">
+		<form class="form-horizontal widget-config-form" data-auto-focus-form="true" data-widget-config-form="true" id="widget-#( rc.widget ?: '' )#" action="#formAction#" method="post">
 			<input name="widget" type="hidden" value="#( rc.widget ?: "" )#" />
 
 			#renderWidgetConfigForm(

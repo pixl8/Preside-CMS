@@ -1,4 +1,4 @@
-component implements="iRouteHandler" output=false singleton=true {
+component implements="iRouteHandler" singleton=true {
 
 // constructor
 	/**

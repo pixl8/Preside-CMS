@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.radio:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="values" control="textarea" required="false" sortorder="32" defaultvalue="" />
+			<field name="labels" control="textarea" required="false" sortorder="34" defaultvalue="" />
+		</fieldset>
+	</tab>
+</form>

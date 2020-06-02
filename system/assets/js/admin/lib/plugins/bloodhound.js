@@ -124,6 +124,7 @@
     var tokenizers = function(root) {
         return {
             nonword: nonword,
+            nonwordandunderscore: nonwordandunderscore,
             whitespace: whitespace,
             obj: {
                 nonword: getObjTokenizer(nonword),
@@ -135,6 +136,9 @@
         }
         function nonword(s) {
             return s.split(/\W+/);
+        }
+        function nonwordandunderscore(s) {
+            return s.split(/[\W_]+/);
         }
         function getObjTokenizer(tokenizer) {
             return function setKey(key) {
@@ -375,6 +379,7 @@
             }
             this.datumTokenizer = o.datumTokenizer;
             this.queryTokenizer = o.queryTokenizer;
+
             this.reset();
         }
         _.mixin(SearchIndex.prototype, {
@@ -382,22 +387,29 @@
                 this.datums = o.datums;
                 this.trie = o.trie;
             },
-            add: function(data) {
+            add: function(data,bh) {
                 var that = this;
                 data = _.isArray(data) ? data : [ data ];
                 _.each(data, function(datum) {
-                    var id, tokens;
-                    id = that.datums.push(datum) - 1;
-                    tokens = normalizeTokens(that.datumTokenizer(datum));
-                    _.each(tokens, function(token) {
-                        var node, chars, ch;
-                        node = that.trie;
-                        chars = token.split("");
-                        while (ch = chars.shift()) {
-                            node = node.children[ch] || (node.children[ch] = newNode());
-                            node.ids.push(id);
-                        }
-                    });
+                    var id, tokens, duplicate;
+
+                    _.each(that.datums, function(localDatum) {
+                        duplicate = duplicate || bh.dupDetector( datum, localDatum );
+                    } );
+
+                    if( !duplicate ) {
+                        id = that.datums.push(datum) - 1;
+                        tokens = normalizeTokens(that.datumTokenizer(datum));
+                        _.each(tokens, function(token) {
+                            var node, chars, ch;
+                            node = that.trie;
+                            chars = token.split("");
+                            while (ch = chars.shift()) {
+                                node = node.children[ch] || (node.children[ch] = newNode());
+                                node.ids.push(id);
+                            }
+                        });
+                    }
                 });
             },
             get: function get(query) {
@@ -566,7 +578,7 @@
             if (!o || !o.local && !o.prefetch && !o.remote) {
                 $.error("one of local, prefetch, or remote is required");
             }
-            this.limit = o.limit || 5;
+            this.limit = _.isUndefined( o.limit ) ? 5 : o.limit;
             this.sorter = getSorter(o.sorter);
             this.dupDetector = o.dupDetector || ignoreDuplicates;
             this.local = oParser.local(o);
@@ -641,7 +653,7 @@
                 return !this.initPromise || force ? this._initialize() : this.initPromise;
             },
             add: function add(data) {
-                this.index.add(data);
+                this.index.add(data,this);
             },
             get: function get(query, cb) {
                 var that = this, matches = [], cacheHit = false;
@@ -651,11 +663,13 @@
                 } else {
                     matches = this.index.get(query);
 
-                    if (matches.length < this.limit && this.transport) {
+                    if ( ( this.limit == 0 || matches.length < this.limit ) && this.transport) {
                       cacheHit = this._getFromRemote(query, returnRemoteMatches);
                     }
                 }
-                matches = this.sorter(matches).slice(0, this.limit);
+                if ( this.limit > 0 ) {
+                    matches = this.sorter(matches).slice(0, this.limit);
+                }
 
                 if (!cacheHit) {
                     cb && cb(matches);
@@ -668,7 +682,7 @@
                             return that.dupDetector(remoteMatch, match);
                         });
                         !isDuplicate && matchesWithBackfill.push(remoteMatch);
-                        return matchesWithBackfill.length < that.limit;
+                        return that.limit == 0 || matchesWithBackfill.length < that.limit;
                     });
                     cb && cb(that.sorter(matchesWithBackfill));
                 }

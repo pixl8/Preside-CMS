@@ -1,8 +1,10 @@
 <cfscript>
-	assetId   = rc.asset      ?: "";
-	asset     = prc.asset     ?: StructNew();
-	assetType = prc.assetType ?: QueryNew( "" );
-	versions  = prc.versions  ?: QueryNew( "" );
+	assetId      = rc.asset                  ?: "";
+	asset        = prc.asset                 ?: StructNew();
+	assetType    = prc.assetType             ?: QueryNew( "" );
+	versions     = prc.versions              ?: QueryNew( "" );
+	isImageAsset = prc.isImageAsset          ?: false;
+	failedQueue  = prc.latestFailedQueueItem ?: QueryNew( '' );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -19,10 +21,32 @@
 	permissionContext = prc.permissionContext ?: [];
 	hasDeletePermission  = hasCmsPermission( permissionKey="assetmanager.assets.delete" , context="assetmanagerfolder", contextKeys=permissionContext );
 	hasDownloadPermission  = hasCmsPermission( permissionKey="assetmanager.assets.download" , context="assetmanagerfolder", contextKeys=permissionContext );
+	canTranslate       = prc.canTranslate      ?:false;
+	assetTranslations  = prc.assetTranslations ?: [];
+	translateUrlBase   = event.buildAdminLink( linkTo="assetManager.translateAssetRecord", queryString="object=asset&id=#assetId#&language=" );
+
+	tooLargeForDerivatives = IsTrue( prc.tooLargeForDerivatives ?: "" );
+	tooLargeMessage        = prc.tooLargeMessage ?: "";
 </cfscript>
 
 <cfoutput>
 	<div class="top-right-button-group">
+		<cfif canTranslate && assetTranslations.len()>
+			<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
+				<span class="fa fa-caret-down"></span>
+				<i class="fa fa-fw fa-globe"></i>&nbsp; #translateResource( uri="cms:assetManager.translate.record.btn" )#
+			</button>
+
+			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+				<cfloop array="#assetTranslations#" index="i" item="language">
+					<li>
+						<a href="#translateUrlBase##language.id#">
+							<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
+						</a>
+					</li>
+				</cfloop>
+			</ul>
+		</cfif>
 		<cfif hasDeletePermission>
 			<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="assetmanager.trashAssetAction", queryString="asset=#assetId#")#" data-global-key="d" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.trash.asset.link", data=[ asset.title ] ) )#">
 				<button class="btn btn-danger btn-sm">
@@ -31,6 +55,13 @@
 				</button>
 			</a>
 		</cfif>
+
+		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="assetmanager.clearAssetDerivativesAction", queryString="asset=#assetId#")#" title="#translateResource( "cms:assetmanager.clear.derivatives.prompt" )#">
+			<button class="btn btn-info btn-sm">
+				<i class="fa fa-redo"></i>
+				#translateResource( uri="cms:assetmanager.clear.derivatives.btn" )#
+			</button>
+		</a>
 
 		<a class="pull-right inline" data-global-key="a" id="upload-button">
 			<button class="btn btn-success btn-sm">
@@ -51,17 +82,50 @@
 		</form>
 	</div>
 
+	<cfif failedQueue.recordCount>
+		<div class="alert alert-danger">
+			<p><i class="fa fa-fw fa-exclamation-triangle"></i>
+				#translateResource( "cms:assetmanager.generated.asset.errors" )#
+			</p>
+			<p>
+				<a href="#event.buildAdminLink( linkto="assetmanager.dismissQueueErrorsAction", queryString="id=#assetId#" )#" class="btn btn-warning">
+					<i class="fa fa-fw fa-refresh"></i>
+					#translateResource( "cms:assetmanager.generated.asset.dismiss.errors" )#
+				</a>
+				<a href="##full-error-detail" data-toggle="collapse">
+					<i class="fa fa-fw fa-caret-right"></i>
+					#translateResource( "cms:assetmanager.generated.asset.show.errors" )#
+				</a>
+			</p>
+			<br>
+			<div class="collapse" id="full-error-detail">
+				<div class="well">
+					#renderView( view="/general/_errorDetail", args={ error=DeserializeJson( failedQueue.last_error ) } )#
+				</div>
+			</div>
+		</div>
+	</cfif>
+
+	<cfif tooLargeForDerivatives>
+		<div class="alert alert-danger">
+			<p><i class="fa fa-fw fa-exclamation-triangle"></i>
+				#tooLargeMessage#
+			</p>
+		</div>
+	</cfif>
+
 	<div class="row">
 		<div class="col-sm-12 col-m-6 col-lg-7">
 			<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
 				<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
 
 				#renderForm(
-					  formName         = "preside-objects.asset.admin.edit"
-					, formId           = "edit-asset-form"
-					, context          = "admin"
-					, savedData        = asset
-					, validationResult = rc.validationResult ?: ""
+					  formName          = "preside-objects.asset.admin.edit"
+					, mergeWithFormName = isImageAsset ? "preside-objects.asset.cropping" : ""
+					, formId            = "edit-asset-form"
+					, context           = "admin"
+					, savedData         = asset
+					, validationResult  = rc.validationResult ?: ""
 				)#
 
 				<br>

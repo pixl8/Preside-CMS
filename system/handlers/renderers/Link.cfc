@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="linkDao"      inject="presidecms:object:link";
 	property name="pageDao"      inject="presidecms:object:page";
@@ -13,20 +13,21 @@ component output=false {
 			return "<!-- link not found -->";
 		}
 
-		args.href = linksService.getLinkUrl( link.id );
+		args.href  = linksService.getLinkUrl( link.id );
 		args.title = args.title ?: Trim( link.title );
 
 		if ( !Len( Trim( args.body ?: "" ) ) ) {
 			if ( Len( Trim( link.image ) ) ) {
 				args.body = renderAsset( assetId = link.image );
-			} elseif ( Len( Trim( link.text ) ) ) {
+			} else if ( Len( Trim( link.text ) ) ) {
 				args.body = Trim( link.text );
-			} elseif ( link.type == "email" ) {
-				args.body = linksService.emailAntiSpam( link.email_address );
-			} elseif ( link.type == "sitetreelink" ) {
+			} else if ( link.type == "email" ) {
+				args.emailAntiSpam = args.email_anti_spam ?: false;
+				args.body = linksService.emailAntiSpam( link.email_address, args.emailAntiSpam );
+			} else if ( link.type == "sitetreelink" ) {
 				var page = pageDao.selectData( id=link.page, selectFields=[ "title" ] );
 				args.body = page.title;
-			} elseif ( link.type == "url" ) {
+			} else if ( link.type == "url" ) {
 				args.body = args.href;
 			} else {
 				args.body = args.title;
@@ -34,6 +35,7 @@ component output=false {
 		}
 
 		args.target = args.target ?: link.target;
+		args.nofollow = IsTrue( args.nofollow ?: link.nofollow ?: "" )
 
 		return renderView( view=( args.view ?: "/renderers/link/default" ), args=args );
 	}

@@ -1,10 +1,10 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
-	property name="urlRedirectsService" inject="urlRedirectsService";
 	property name="ruleDao"             inject="presidecms:object:url_redirect_rule";
+	property name="messageBox"          inject="messagebox@cbmessagebox";
 
 // public handlers
-	public void function preHandler( event ) output=false {
+	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
 
 		_checkPermissions( event=event, key="navigate" );
@@ -16,12 +16,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	public void function index( event, rc, prc ) output=false {
+	public void function index( event, rc, prc ) {
 		prc.pageTitle    = translateResource( "cms:urlRedirects.pageTitle" );
 		prc.pageSubtitle = translateResource( "cms:urlRedirects.pageSubtitle" );
 	}
 
-	public void function deleteRuleAction( event, rc, prc ) output=false {
+	public void function deleteRuleAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="deleteRule" );
 
 		runEvent(
@@ -29,13 +29,18 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
-				  object     = "url_redirect_rule"
-				, postAction = "urlRedirects"
+				  object      = "url_redirect_rule"
+				, postAction  = "urlRedirects"
+				, audit       = true
+				, auditType   = "urlredirects"
+				, auditAction = "delete_redirect_rule"
 			}
 		);
 	}
 
-	public void function getRulesForAjaxDataTables( event, rc, prc ) output=false {
+	public void function getRulesForAjaxDataTables( event, rc, prc ) {
+		_checkPermissions( event=event, key="read" );
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
@@ -48,7 +53,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	public void function addRule( event, rc, prc ) output=false {
+	public void function addRule( event, rc, prc ) {
 		_checkPermissions( event=event, key="addRule" );
 
 		prc.pageTitle    = translateResource( "cms:urlRedirects.addRule.pageTitle" );
@@ -59,7 +64,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	public void function addRuleAction( event, rc, prc ) output=false {
+	public void function addRuleAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="addRule" );
 
 		runEvent(
@@ -72,11 +77,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, successAction    = "urlRedirects"
 				, addAnotherAction = "urlRedirects.addRule"
 				, viewRecordAction = "urlRedirects.editRule"
+				, audit            = true
+				, auditType        = "urlredirects"
+				, auditAction      = "add_redirect_rule"
 			}
 		);
 	}
 
-	function editRule( event, rc, prc ) output=false {
+	function editRule( event, rc, prc ) {
 		_checkPermissions( event=event, key="editRule" );
 		var ruleId = rc.id ?: "";
 
@@ -97,7 +105,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, link  = event.buildAdminLink( linkTo="urlRedirects.editRule", queryString="id=" & ruleId )
 		);
 	}
-	function editRuleAction( event, rc, prc ) output=false {
+	function editRuleAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="editRule" );
 
 		runEvent(
@@ -108,12 +116,26 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object        = "url_redirect_rule"
 				, errorAction   = "urlRedirects.editRule"
 				, successAction = "urlRedirects"
+				, audit         = true
+				, auditType     = "urlredirects"
+				, auditAction   = "edit_redirect_rule"
 			}
 		);
 	}
 
+	function exportAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="read" );
+
+		runEvent(
+			  event          = "admin.DataManager._exportDataAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = { objectName="url_redirect_rule" }
+		);
+	}
+
 // private utility
-	private void function _checkPermissions( required any event, required string key ) output=false {
+	private void function _checkPermissions( required any event, required string key ) {
 		if ( !hasCmsPermission( "urlRedirects." & arguments.key ) ) {
 			event.adminAccessDenied();
 		}

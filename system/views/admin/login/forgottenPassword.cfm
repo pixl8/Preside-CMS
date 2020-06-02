@@ -16,8 +16,13 @@
 							</div>
 						</cfcase>
 						<cfcase value="INVALID_RESET_TOKEN">
+							<cfset autoResend = getSystemSetting( category="email", setting="resendtoken", default=false ) />
 							<div class="alert alert-block alert-danger">
-								<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error' )#</p>
+								<cfif IsBoolean( autoResend ) and autoResend>
+									<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error.resent' )#</p>
+								<cfelse>
+									<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error' )#</p>
+								</cfif>
 							</div>
 						</cfcase>
 						<cfcase value="PASSWORD_RESET_INSTRUCTIONS_SENT">

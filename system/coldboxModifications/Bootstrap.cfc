@@ -1,6 +1,6 @@
-component extends="coldbox.system.Coldbox" output="false" {
+component extends="coldbox.system.Bootstrap" {
 
-	public void function loadColdbox() output=false {
+	public void function loadColdbox() {
 		var appKey     = super.locateAppKey();
 		var controller = new Controller( COLDBOX_APP_ROOT_PATH, appKey );
 
@@ -15,8 +15,6 @@ component extends="coldbox.system.Coldbox" output="false" {
 	}
 
 	public boolean function onRequestStart( required string targetPage ) output=true {
-		reloadChecks();
-
 		if ( ReFindNoCase( 'index\.cfm$', arguments.targetPage ) ) {
 			var content = "";
 
@@ -34,236 +32,231 @@ component extends="coldbox.system.Coldbox" output="false" {
 		return true;
 	}
 
-	public any function getController() output=false {
+	public any function getController() {
 		return application[ locateAppKey() ] ?: NullValue();
 	}
 
-	public void function processColdBoxRequest() output=true {
-		var cbController       = getController();
-		var event              = 0;
-		var exceptionService   = 0;
-		var exceptionBean      = 0;
-		var renderedContent    = "";
-		var eventCacheEntry    = 0;
-		var interceptorData    = {}
-		var renderData         = {}
-		var refResults         = {}
-		var debugPanel         = "";
-		var interceptorService = "";
+	function processColdBoxRequest() output="true"{
+		// Get Controller Reference
+		lock type="readonly" name="#variables.appHash#" timeout="#variables.lockTimeout#" throwontimeout="true"{
+			var cbController = application[ locateAppKey() ];
+		}
+		// Local references
+		var interceptorService 	= cbController.getInterceptorService();
+		var cacheBox 			= cbController.getCacheBox();
 
-
-		// Setup Local Vars
-		interceptorService = cbController.getInterceptorService();
-		templateCache      = cbController.getColdboxOCM( "template" );
-
-		// set request time
-		request.fwExecTime = getTickCount();
-
-		try {
+		try{
+			// set request time, for info purposes
+			request.fwExecTime = getTickCount();
+			// Load Module CF Mappings
+			cbController.getModuleService().loadMappings();
 			// Create Request Context & Capture Request
-			event = cbController.getRequestService().requestCapture();
+			var event = cbController.getRequestService().requestCapture();
 
-			// Debugging Monitors & Commands Check
-			if ( cbController.getDebuggerService().getDebugMode() ) {
-
-				// ColdBox Command Executions
-				coldboxCommands(cbController,event);
-
-				// Debug Panel rendering
-				debugPanel = event.getValue("debugPanel","");
-				switch( debugPanel ) {
-					case "profiler":
-						WriteOutput( cbController.getDebuggerService().renderProfiler() );
-					break;
-					case "cache,cacheReport,cacheContentReport,cacheViewer":
-						module template="/coldbox/system/cache/report/monitor.cfm" cacheFactory=cbController.getCacheBox();
-					break;
-				}
-
-				// Stop Processing, we are rendering a debugger panel
-				if ( len(debugPanel) ) {
-					setting showdebugoutput=false;
-					return;
-				}
-			}
-
-			// Execute preProcess Interception
+			//****** PRE PROCESS *******/
 			interceptorService.processState( "preProcess" );
-
-			// IF Found in config, run onRequestStart Handler
-			if ( Len( cbController.getSetting("RequestStartHandler" ) ) ) {
+			if( len( cbController.getSetting( "RequestStartHandler" ) ) ){
 				cbController.runEvent( cbController.getSetting( "RequestStartHandler" ), true );
 			}
 
-			// Before Any Execution, do we have cached content to deliver
-			if ( StructKeyExists( event.getEventCacheableEntry(), "cachekey" ) ) {
-				refResults.eventCaching = templateCache.get( event.getEventCacheableEntry().cacheKey );
+			//****** EVENT CACHING CONTENT DELIVERY *******/
+			var refResults	 = {};
+			var eCacheEntry	 = event.getEventCacheableEntry();
+
+			// Verify if event caching item is in selected cache
+			if( StructKeyExists( eCacheEntry, "cachekey" ) ){
+				// Get cache element.
+				refResults.eventCaching = cacheBox
+					.getCache( eCacheEntry.provider )
+					.get( eCacheEntry.cacheKey );
 			}
-			if ( StructKeyExists( refResults, "eventCaching" ) ) {
-				// Is this a renderdata type?
-				if ( refResults.eventCaching.renderData ) {
+
+			// Verify if cached content existed.
+			if ( !isNull( refresults.eventCaching ) ){
+				// check renderdata
+				if( refResults.eventCaching.renderData ){
+					refResults.eventCaching.controller = cbController;
 					renderDataSetup( argumentCollection=refResults.eventCaching );
-					event.showDebugPanel( false );
 				}
+
+				// Caching Header Identifier
+				getPageContextResponse().setHeader( "x-coldbox-cache-response", "true" );
+
+				// Stop Gap for upgrades, remove by 4.2
+				if( isNull( refResults.eventCaching.responseHeaders ) ){
+					refResults.eventCaching.responseHeaders = {};
+				}
+				// Response Headers that were cached
+				refResults.eventCaching.responseHeaders.each( function( key, value ){
+					event.setHTTPHeader( name=key, value=value );
+				} );
+
 				// Render Content as binary or just output
-				if ( refResults.eventCaching.isBinary ) {
-					content type=refResults.eventCaching.contentType variable=refResults.eventCaching.renderedContent;
+				if( refResults.eventCaching.isBinary ){
+					cbController.getDataMarshaller().renderContent( type="#refResults.eventCaching.contentType#", variable="#refResults.eventCaching.renderedContent#" );
 				} else {
-					WriteOutput( refResults.eventCaching.renderedContent );
+					cbController.getDataMarshaller().renderContent( type="#refResults.eventCaching.contentType#", reset=true );
+					writeOutput( refResults.eventCaching.renderedContent );
 				}
-				// Authoritative Header
-				header statuscode=203 statustext="Non-Authoritative Information";
 			} else {
-				// Run Default/Set Event not executing an event
-				if ( not event.isNoExecution() ) {
-					refResults.results = cbController.runEvent( default=true );
+				//****** EXECUTE MAIN EVENT *******/
+				if( NOT event.getIsNoExecution() ){
+					refResults.results = cbController.runEvent( defaultEvent=true );
 				}
+				//****** RENDERING PROCEDURES *******/
+				if( not event.isNoRender() ){
+					var renderedContent = "";
 
-				// No Render Test
-				if ( not event.isNoRender() ) {
-
-					// Execute preLayout Interception
+					// pre layout
 					interceptorService.processState( "preLayout" );
 
 					// Check for Marshalling and data render
-					renderData = event.getRenderData();
+					var renderData = event.getRenderData();
 
 					// Rendering/Marshalling of content
-					if ( IsStruct( renderData ) and not StructisEmpty( renderData ) ) {
-						renderedContent = cbController.getPlugin( "Utilities" ).marshallData( argumentCollection=renderData );
-
-					// Check for Event Handler return results
-					} elseif ( StructKeyExists( refResults, "results" ) ) {
-						renderedContent = refResults.results;
-					} else {
-						// Render Layout/View pair via set variable to eliminate whitespace--->
-						renderedContent = cbController.getPlugin( "Renderer" ).renderLayout( module=event.getCurrentLayoutModule(), viewModule=event.getCurrentViewModule() );
+					if( !structisEmpty( renderData ) ){
+						renderedContent = cbController.getDataMarshaller().marshallData( argumentCollection=renderData );
 					}
-
-					// PreRender Data:--->
-					interceptorData.renderedContent = renderedContent;
-					// Execute preRender Interception
-					interceptorService.processState( "preRender", interceptorData );
-					// Replace back Content From Interception
-					renderedContent = interceptorData.renderedContent;
-
-					// Check if caching the event, this is a cacheable event?
-					eventCacheEntry = event.getEventCacheableEntry();
-					if ( StructKeyExists( eventCacheEntry, "cacheKey"          ) and
-					     StructKeyExists( eventCacheEntry, "timeout"           ) and
-					     StructKeyExists( eventCacheEntry, "lastAccessTimeout" ) ) {
-
-						lock name="#instance.appHash#.caching.#eventCacheEntry.cacheKey#" type="exclusive" timeout="10" throwontimeout="true" {
-							// Double lock for concurrency
-							if ( NOT templateCache.lookup( eventCacheEntry.cacheKey ) ) {
-
-								// Prepare event caching entry
-								refResults.eventCachingEntry = {
-									renderedContent = renderedContent,
-									renderData      = false,
-									contentType     = "",
-									encoding        = "",
-									statusCode      = "",
-									statusText      = "",
-									isBinary        = false
-								}
-
-								// Render Data Caching Metadata
-								if ( IsStruct( renderData ) and not structisEmpty( renderData ) ) {
-									refResults.eventCachingEntry.renderData  = true;
-									refResults.eventCachingEntry.contentType = renderData.contentType;
-									refResults.eventCachingEntry.encoding    = renderData.encoding;
-									refResults.eventCachingEntry.statusCode  = renderData.statusCode;
-									refResults.eventCachingEntry.statusText  = renderData.statusText;
-									refResults.eventCachingEntry.isBinary    = renderData.isBinary;
-								}
-
-								// Cache the content of the event
-								templateCache.set( eventCacheEntry.cacheKey, refResults.eventCachingEntry, eventCacheEntry.timeout, eventCacheEntry.lastAccessTimeout );
-							}
+					// Check if handler returned results
+					else if(
+						!isNull( refResults.results )
+					){
+						// If simple, just return it back, evaluates to HTML
+						if( isSimpleValue( refResults.results ) ){
+							renderedContent = refResults.results;
+						}
+						// ColdBox does native JSON if you return a complex object.
+						else {
+							renderedContent = serializeJSON( refResults.results, true );
+							getPageContextResponse().setContentType( "application/json" );
 						}
 					}
-
-					// Render Data?
-					if ( IsStruct( renderData ) and not StructisEmpty( renderData ) ) {
-						event.showDebugPanel( false );
-						renderDataSetup( argumentCollection=renderData );/*
-						Binary
-						*/if ( renderData.isBinary ) { content type=renderData.contentType variable=renderedContent;/*
-						Non Binary
-						*/} else { WriteOutput( renderedContent ); }
-					// Normal HTML
-					} else {
-						WriteOutput( renderedContent );
+					// Render Layout/View pair via set variable to eliminate whitespace
+					else {
+						renderedContent = cbcontroller.getRenderer()
+							.renderLayout( module=event.getCurrentLayoutModule(), viewModule=event.getCurrentViewModule() );
 					}
 
-					// Execute postRender Interception
+					//****** PRE-RENDER EVENTS *******/
+					var interceptorData = {
+						  renderedContent = renderedContent
+						, contentType     = renderData.contentType ?: ""
+					};
+					interceptorService.processState( "preRender", interceptorData );
+					// replace back content in case of modification, strings passed by value
+					renderedContent = interceptorData.renderedContent;
+
+					//****** EVENT CACHING *******/
+					var eCacheEntry = event.getEventCacheableEntry();
+					if(
+						StructKeyExists( eCacheEntry, "cacheKey" ) AND
+						getPageContextResponse().getStatus() neq 500 AND
+						(
+							renderData.isEmpty()
+							OR
+							(
+								StructKeyExists( renderData, "statusCode" ) and
+								renderdata.statusCode neq 500
+							)
+						)
+					){
+						lock type="exclusive" name="#variables.appHash#.caching.#eCacheEntry.cacheKey#" timeout="#variables.lockTimeout#" throwontimeout="true"{
+
+							// Try to discover the content type
+							var defaultContentType = "text/html";
+							// Discover from event caching first.
+							if( !structisEmpty( renderData ) ){
+								defaultContentType 	= renderData.contentType;
+							} else {
+								// Else, ask the engine
+								defaultContentType = getPageContextResponse().getContentType();
+							}
+
+							// prepare storage entry
+							var cacheEntry = {
+								renderedContent = renderedContent,
+								renderData		= false,
+								contentType 	= defaultContentType,
+								encoding		= "",
+								statusCode		= "",
+								statusText		= "",
+								isBinary		= false,
+								responseHeaders = event.getResponseHeaders()
+							};
+
+							// is this a render data entry? If So, append data
+							if( !structisEmpty( renderData ) ){
+								cacheEntry.renderData 	= true;
+								structAppend( cacheEntry, renderData, true );
+							}
+
+							// Cache it
+							cacheBox
+								.getCache( eCacheEntry.provider )
+								.set(
+									eCacheEntry.cacheKey,
+									cacheEntry,
+									eCacheEntry.timeout,
+									eCacheEntry.lastAccessTimeout
+								);
+						}
+
+					} // end event caching
+
+					// Render Data? With stupid CF whitespace stuff.
+					if( !structisEmpty( renderData ) ){/*
+						*/renderData.controller = cbController;renderDataSetup( argumentCollection=renderData );/*
+						// Binary
+						*/if( renderData.isBinary ){ cbController.getDataMarshaller().renderContent( type="#renderData.contentType#", variable="#renderedContent#" ); }/*
+						// Non Binary
+						*/else{ writeOutput( renderedContent ); }
+					} else {
+						writeOutput( renderedContent );
+					}
+
+					// Post rendering event
 					interceptorService.processState( "postRender" );
-				}
+				} // end no render
 
-			// End else if not cached event
+			} // end normal rendering procedures
+
+			//****** POST PROCESS *******/
+			if( len( cbController.getSetting( "RequestEndHandler" ) ) ){
+				cbController.runEvent( event=cbController.getSetting("RequestEndHandler"), prePostExempt=true );
 			}
-
-			// If Found in config, run onRequestEnd Handler
-			if ( Len( cbController.getSetting( "RequestEndHandler" ) ) ) {
-				cbController.runEvent( cbController.getSetting( "RequestEndHandler" ), true );
-			}
-
-			// Execute postProcess Interception
 			interceptorService.processState( "postProcess" );
 
-			// Save Flash Scope
-			if ( cbController.getSetting( "flash" ).autoSave ) {
+			//****** FLASH AUTO-SAVE *******/
+			if( areSessionsEnabled() && cbController.getSetting( "flash" ).autoSave ){
 				cbController.getRequestService().getFlashScope().saveFlash();
 			}
-		} catch( any e ) {
-			var defaultShowErrorsSetting = IsBoolean( application.injectedConfig.showErrors ?: "" ) && application.injectedConfig.showErrors;
+
+		} catch( Any e ) {
+			var defaultShowErrorsSetting = IsBoolean( application.env.showErrors ?: "" ) && application.env.showErrors;
 			var showErrors               = cbController.getSetting( name="showErrors", defaultValue=defaultShowErrorsSetting );
 
 			if ( !IsBoolean( showErrors ) || !showErrors ) {
 				rethrow;
 			} else {
-				// Get Exception Service
-				exceptionService = cbController.getExceptionService();
-
-				// Intercept The Exception
-				interceptorData = StructNew();
-				interceptorData.exception = e;
-				interceptorService.processState( "onException", interceptorData );
-
-				// Handle The Exception
-				ExceptionBean = exceptionService.ExceptionHandler( cfcatch, "application", "Application Execution Exception" );
-
-				// Render The Exception
-				WriteOutput( exceptionService.renderBugReport( ExceptionBean ) );
+				// process the exception and render its report
+				writeOutput( processException( cbController, e ) );
 			}
 		}
 
 		// Time the request
 		request.fwExecTime = getTickCount() - request.fwExecTime;
-
-		// DebugMode Routines
-		if ( cbController.getDebuggerService().getDebugMode() ) {
-			// Record Profilers
-			cbController.getDebuggerService().recordProfiler();
-			// Render DebugPanel
-			if ( event.getDebugPanelFlag() ) {
-				// Render Debug Log
-				WriteOutput( interceptorService.processState( "beforeDebuggerPanel" ) & cbController.getDebuggerService().renderDebugLog() & interceptorService.processState( "afterDebuggerPanel" ) );
-			}
-		}
 	}
 
 	/**
 	 * Overrideing onSessionEnd to fix a bug
 	 *
 	 */
-	public void function onSessionEnd( required struct sessionScope, required struct appScope ) output=false {
+	public void function onSessionEnd( required struct sessionScope, required struct appScope ) {
 		var cbController = "";
 		var event = "";
 		var iData = structnew();
 
-		lock type="readonly" name="#getAppHash()#" timeout="#instance.lockTimeout#" throwontimeout="true" {
+		lock type="readonly" name="#getAppHash()#" timeout="#variables.lockTimeout#" throwontimeout="true" {
 			cbController = arguments.appScope[ locateAppKey() ] ?: "";
 		}
 
@@ -289,16 +282,22 @@ component extends="coldbox.system.Coldbox" output="false" {
 	}
 
 
-	public string function getCOLDBOX_CONFIG_FILE() output=false {
+	public string function getCOLDBOX_CONFIG_FILE() {
 		return variables.COLDBOX_CONFIG_FILE;
 	}
-	public string function getCOLDBOX_APP_ROOT_PATH() output=false {
+	public string function getCOLDBOX_APP_ROOT_PATH() {
 		return variables.COLDBOX_APP_ROOT_PATH;
 	}
-	public string function getCOLDBOX_APP_KEY() output=false {
+	public string function getCOLDBOX_APP_KEY() {
 		return variables.COLDBOX_APP_KEY;
 	}
-	public string function getCOLDBOX_APP_MAPPING() output=false {
+	public string function getCOLDBOX_APP_MAPPING() {
 		return variables.COLDBOX_APP_MAPPING;
+	}
+
+	private boolean function areSessionsEnabled() {
+		var appSettings = getApplicationSettings();
+
+		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
 	}
 }

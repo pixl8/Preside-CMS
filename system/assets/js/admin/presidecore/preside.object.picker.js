@@ -3,21 +3,56 @@
 	var PresideObjectPicker = (function() {
 		function PresideObjectPicker( $originalInput ) {
 			this.$originalInput = $originalInput;
-			this.setupUberSelect();
+			var _this           = this
+			  , filteredOn      = []
+			  , filterBy        = $originalInput.data( "filterBy" )
+			  , $filterObjectPicker, i;
 
-			if ( this.$originalInput.hasClass( 'quick-add' ) ) {
-				this.setupQuickAdd();
+			if ( typeof filterBy !== "undefined" && filterBy.length ) {
+				filterBy = filterBy.split( ',' );
+
+				for( i=0; i<filterBy.length; i++ ) {
+					$filterObjectPicker = $( "input[name='" + filterBy[ i ] + "'], select[name='" + filterBy[ i ] + "']" ).closest( '.form-group' ).find( '.object-picker' );
+
+					if ( $filterObjectPicker.length ) {
+						var formFieldDeferred       = "objectPicker_" + $filterObjectPicker.attr( "id" );
+	 					window[ formFieldDeferred ] = window[ formFieldDeferred ] || $.Deferred();
+
+	 					filteredOn.push( window[ formFieldDeferred ] );
+	 				}
+				}
 			}
-			if ( this.$originalInput.hasClass( 'quick-edit' ) ) {
-				this.setupQuickEdit();
-			}
+
+			$.when.apply( $, filteredOn ).done( function() {
+				var formFieldDeferred       = "objectPicker_" + _this.$originalInput.attr( "id" )
+				  , formFieldAjaxDeferred   = formFieldDeferred + "_ajax";
+
+ 				window[ formFieldDeferred ]  = window[ formFieldDeferred ] || $.Deferred();
+ 				_this.fieldPopulatedDeferred = $.Deferred();
+
+				_this.setupUberSelect();
+
+				if ( _this.$originalInput.hasClass( 'quick-add' ) ) {
+					_this.setupQuickAdd();
+				}
+				if ( _this.$originalInput.hasClass( 'quick-edit' ) ) {
+					_this.setupQuickEdit();
+				}
+
+ 				$.when( _this.uberSelect.fieldPopulatedDeferred ).done( function() {
+ 					window[ formFieldDeferred ].resolve();
+ 				} );
+			} );
+
 		}
 
 		PresideObjectPicker.prototype.setupUberSelect = function(){
 			this.$originalInput.uberSelect({
-				  allow_single_deselect  : true
+				  allow_single_deselect  : !this.$originalInput.hasClass( 'non-deselectable' )
 				, inherit_select_classes : true
 				, searchable             : !this.$originalInput.hasClass( 'non-searchable' )
+				, superQuickAdd          : this.$originalInput.hasClass( 'super-quick-add' )
+				, superQuickAddUrl       : this.$originalInput.data( 'superQuickAddUrl' )
 			});
 			this.$uberSelect = this.$originalInput.next();
 			this.uberSelect = this.$originalInput.data( "uberSelect" );
@@ -60,8 +95,6 @@
 					}
 				};
 
-			this.quickAddIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
-
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.uberSelect.isSearchable() && this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.uberSelect.search_field.attr( "tabindex" ) );
@@ -70,6 +103,13 @@
 			}
 
 			this.$quickAddButton.on( "click", function( e ) {
+				var filters = presideObjectPicker.getFiltersForQuickAdd();
+
+				if ( presideObjectPicker.uberSelect.is_disabled ) {
+					return;
+				}
+
+				presideObjectPicker.quickAddIframeModal = new PresideIframeModal( iframeSrc + filters, "100%", "100%", callbacks, modalOptions );
 				presideObjectPicker.quickAddIframeModal.open();
 			} );
 
@@ -187,6 +227,38 @@
 		PresideObjectPicker.prototype.getQuickEditIFrame = function(){
 			return this.quickEditIframe;
 		};
+
+		PresideObjectPicker.prototype.getFiltersForQuickAdd = function(){
+			var filterBy      = this.$originalInput.data( 'filterBy' )
+			  , filterByField = this.$originalInput.data( 'filterByField' ) || filterBy
+			  , filters       = []
+			  , filterByValue, i;
+
+			if ( typeof filterBy !== "undefined" && filterBy.length ) {
+				filterBy      = filterBy.split( ',' );
+				filterByField = filterByField.split( ',' );
+
+				for( i=0; i<=filterBy.length; i++ ) {
+					filterByValue = this.getFilterValue( filterBy[ i ] );
+
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+						filters.push ( '&', filterByField[ i ], '=', filterByValue, '&filterByFields=', filterByField[ i ] );
+					}
+				}
+			}
+
+			return filters.join( '' );
+		};
+
+		PresideObjectPicker.prototype.getFilterValue = function( filterBy ) {
+			var field = $( 'input[name="' + filterBy + '"]' );
+
+			if ( field.length ) {
+				return field.val();
+			}
+
+			return cfrequest[ filterBy ] || null;
+		}
 
 		return PresideObjectPicker;
 	})();

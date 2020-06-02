@@ -1,12 +1,17 @@
-component output=false hint="Proxy to cfdbinfo for returning information about a database and its objects" singleton=true {
+/**
+ * Proxy to cfdbinfo for returning information about a database and its objects
+ *
+ * @singleton
+ */
+component {
 
 // CONSTRUCTOR
-	public any function init() output=false {
+	public any function init() {
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public query function getDatabaseVersion( required string dsn ) output=false {
+	public query function getDatabaseVersion( required string dsn ) {
 		var db = "";
 
 		dbinfo type="version" datasource=arguments.dsn name="db";
@@ -14,7 +19,7 @@ component output=false hint="Proxy to cfdbinfo for returning information about a
 		return db;
 	}
 
-	public query function getTableInfo( required string tableName, required string dsn ) output=false {
+	public query function getTableInfo( required string tableName, required string dsn ) {
 		var table = "";
 
 		dbinfo type="tables" name="table" pattern="#arguments.tableName#" datasource="#arguments.dsn#";
@@ -22,7 +27,7 @@ component output=false hint="Proxy to cfdbinfo for returning information about a
 		return table;
 	}
 
-	public query function getTableColumns( required string tableName, required string dsn ) output=false {
+	public query function getTableColumns( required string tableName, required string dsn ) {
 		var columns = "";
 
 		dbinfo type="columns" name="columns" table=arguments.tableName datasource=arguments.dsn;
@@ -30,7 +35,7 @@ component output=false hint="Proxy to cfdbinfo for returning information about a
 		return columns;
 	}
 
-	public struct function getTableIndexes( required string tableName, required string dsn ) output=false {
+	public struct function getTableIndexes( required string tableName, required string dsn ) {
 		var indexes = "";
 		var index   = "";
 		var ixs     = {};
@@ -38,12 +43,12 @@ component output=false hint="Proxy to cfdbinfo for returning information about a
 		dbinfo type="index" table="#arguments.tableName#" name="indexes" datasource="#arguments.dsn#";
 
 		for( index in indexes ){
-			if ( index.index_name neq "PRIMARY" ) {
-				if ( not StructKeyExists( ixs, index.index_name ) ){
+			if ( Len( Trim( index.index_name ) ) && index.index_name != "PRIMARY" ) {
+				if ( !StructKeyExists( ixs, index.index_name ) ){
 					ixs[ index.index_name ] = {
-						  unique = not index.non_unique
+						  unique = !( IsBoolean( index.non_unique ) && index.non_unique )
 						, fields = ""
-					}
+					};
 				}
 
 				ixs[ index.index_name ].fields = ListAppend( ixs[ index.index_name ].fields, index.column_name );
@@ -53,7 +58,7 @@ component output=false hint="Proxy to cfdbinfo for returning information about a
 		return ixs;
 	}
 
-	public struct function getTableForeignKeys( required string tableName, required string dsn ) output=false {
+	public struct function getTableForeignKeys( required string tableName, required string dsn ) {
 		var keys        = "";
 		var key         = "";
 		var constraints = {};

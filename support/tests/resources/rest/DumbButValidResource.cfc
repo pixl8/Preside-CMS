@@ -1,0 +1,3 @@
+component restUri="/some/endpoint/" {
+
+}

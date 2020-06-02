@@ -1,5 +1,5 @@
 /**
- * This exists for legacy applications prior to Preside 10.2.2 who's
+ * This exists for legacy applications prior to Preside 10.2.2 whose
  * Application.cfc extends `preside.system.BaseApplication`.
  *
  * Applications using versions of Preside 10.2.2 or above should use
@@ -12,8 +12,9 @@ component extends="Bootstrap" {
 	this.sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 );
 	this.scriptProtect     = "none";
 
-	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 15;
+	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 0;
 	this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = 1200;
+	this.COLDBOX_RELOAD_PASSWORD                 = true;
 
 	_setupMappings();
 	_setupDefaultTagAttributes();

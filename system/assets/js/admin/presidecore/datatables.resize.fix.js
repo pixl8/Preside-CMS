@@ -6,9 +6,17 @@
 	tableNeedsResizing = function( $tbl ){
 		var prevParentWidth    = $tbl.data( "_previousParentWidth" )
 		  , currentParentWidth = $tbl.parent().width()
-		  , needsResizing      = typeof prevParentWidth === "undefined" || prevParentWidth !== currentParentWidth;
+		  , widthDiff          = typeof prevParentWidth === "undefined" ? 0 : Math.abs( currentParentWidth - prevParentWidth )
+		  , needsResizing      = $tbl.DataTable().fnIsOpen() && typeof prevParentWidth === "undefined" || prevParentWidth !== currentParentWidth;
 
 		if ( needsResizing ) {
+			if ( typeof prevParentWidth === "undefined" || widthDiff < 100 ) {
+				if ( typeof prevParentWidth !== "undefined" ) {
+					return false;
+				}
+
+				needsResizing = false;
+			}
 			$tbl.data( "_previousParentWidth", currentParentWidth );
 		}
 
@@ -27,7 +35,6 @@
 
 		} );
 	};
-
 
 	setInterval( function(){ updateTableSizes(); }, 250 )
 

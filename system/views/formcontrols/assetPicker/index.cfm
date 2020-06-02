@@ -1,6 +1,7 @@
 <cfscript>
 	inputName          = args.name             ?: "";
 	inputId            = args.id               ?: "";
+	inputClass         = args.class            ?: "";
 	placeholder        = args.placeholder      ?: "";
 	defaultValue       = args.defaultValue     ?: "";
 	remoteUrl          = args.remoteUrl        ?: "";
@@ -9,7 +10,7 @@
 	uploaderUrl        = args.uploaderUrl      ?: "";
 	sortable           = args.sortable         ?: "";
 	multiple           = args.multiple         ?: "";
-	resultTemplate     = selectedTemplate = '<div class="result-container"><div class="icon-container">{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div>';
+	resultTemplate     = selectedTemplate = '<div class="result-container"><div class="icon-container" data-image={{largerImage}}>{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}} <i class="text-muted">{{dimension}}</i></span></div></div>';
 	resultTemplateId   = "result_template_" & CreateUUId();
 	selectedTemplateId = "selected_template_" & CreateUUId();
 
@@ -22,7 +23,7 @@
 <cfoutput>
 	<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
 	<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-	<select class="asset-picker"
+	<select class="#inputClass# asset-picker"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"

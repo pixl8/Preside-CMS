@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="maintenanceModeManagerService" inject="maintenanceModeManagerService";
-	property name="messageBox"                    inject="coldbox:plugin:messagebox";
+	property name="messageBox"                    inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );

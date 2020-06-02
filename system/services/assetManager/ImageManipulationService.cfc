@@ -1,66 +1,53 @@
-component output=false singleton=true {
+/**
+ * Provides logic for manipulating images.
+ *
+ * @singleton
+ * @autodoc
+ * @presideservice
+ *
+ */
+component displayname="Image Manipulation Service" {
 
-// CONSTRUCTOR
-	public any function init() output=false {
-		return this;
-	}
+	// CONSTRUCTOR
+	/**
+     * @nativeImageImplementation.inject nativeImageService
+     * @imageMagickImplementation.inject imageMagickService
+     *
+     */
+    public any function init(
+          required any nativeImageImplementation
+        , required any imageMagickImplementation
+    ) {
+        _setNativeImageImplementation( arguments.nativeImageImplementation );
+        _setImageMagickImplementation( arguments.imageMagickImplementation );
 
-// PUBLIC API METHODS
-	public binary function resize(
+        return this;
+    }
+
+	public string function resize(
 		  required binary  asset
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
-	) output=false {
-		var image              = "";
-		var interpolation      = arguments.quality
-		var targetAspectRatio  = 0;
-		var currentImageInfo   = {};
-		var currentAspectRatio = 0;
+		,          string  gravity             = 'center'
+		,          string  focalPoint          = ""
+		,          string  cropHint            = ""
+		,          string  useCropHint         = false
+		,          struct  fileProperties      = {}
+	) {
+		var args = arguments;
 
-		try {
-			image = ImageNew( arguments.asset );
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.resize.notAnImage" );
+		if ( arguments.useCropHint && arguments.cropHint.len() ) {
+			args.cropHintArea = _getCropHintArea(
+				  image    = args.asset
+				, width    = args.width
+				, height   = args.height
+				, cropHint = args.cropHint
+			);
 		}
 
-		currentImageInfo = ImageInfo( image );
-
-		if ( !arguments.height ) {
-			if ( currentImageInfo.width == arguments.width ) {
-				return arguments.asset;
-			}
-			ImageScaleToFit( image, arguments.width, "", interpolation );
-		} else if ( !arguments.width ) {
-			if ( currentImageInfo.height == arguments.height ) {
-				return arguments.asset;
-			}
-			ImageScaleToFit( image, "", arguments.height, interpolation );
-		} else if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
-			return arguments.asset;
-		} else {
-			if ( maintainAspectRatio ) {
-				currentAspectRatio = currentImageInfo.width / currentImageInfo.height;
-				targetAspectRatio  = arguments.width / arguments.height;
-			}
-
-			if ( not maintainAspectRatio or targetAspectRatio eq currentAspectRatio ) {
-				ImageResize( image, arguments.width, arguments.height, interpolation );
-			} else {
-				if ( currentAspectRatio gt targetAspectRatio ) {
-					ImageScaleToFit( image, "", arguments.height, interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, Int( ( scaledImgInfo.width - arguments.width ) / 2 ), 0, arguments.width, arguments.height );
-				} else {
-					ImageScaleToFit( image, arguments.width, "", interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, 0, Int( ( scaledImgInfo.height - arguments.height ) / 2 ), arguments.width, arguments.height );
-				}
-			}
-		}
-
-		return ImageGetBlob( image );
+       	return _getImplementation().resize( argumentCollection = args);
 	}
 
 	public binary function shrinkToFit(
@@ -68,62 +55,129 @@ component output=false singleton=true {
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
-	) output=false {
-		var image         = "";
-		var imageInfo     = "";
-		var interpolation = arguments.quality;
+		,          struct  fileProperties      = {}
+	) {
+		return _getImplementation().shrinkToFit( argumentCollection = arguments);
+	}
 
+	public binary function pdfPreview(
+		  required binary asset
+		,          string scale
+		,          string resolution
+		,          string format
+		,          string pages
+		,          string transparent
+		,          struct fileProperties      = {}
+	) {
+		return _getImplementation().pdfPreview( argumentCollection = arguments );
+	}
+
+	public struct function getImageInformation( required binary asset ) {
+		return _getImplementation().getImageInformation( argumentCollection = arguments );
+	}
+
+	public boolean function isValidImageFile( required string path ) {
+		var asset = fileReadBinary( arguments.path );
 		try {
-			image = ImageNew( arguments.asset );
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
+			var imageInfo = getImageInformation( asset );
 		}
-
-		imageInfo = ImageInfo( image );
-		if ( imageInfo.width > arguments.width && imageInfo.height > arguments.height ) {
-			if ( ( imageInfo.width - arguments.width ) > ( imageInfo.height - arguments.height ) ) {
-				ImageScaleToFit( image, arguments.width, "", interpolation );
-			} else {
-				ImageScaleToFit( image, "", arguments.height, interpolation );
-			}
-		} elseif ( imageInfo.width > arguments.width ) {
-			ImageScaleToFit( image, arguments.width, "", interpolation );
-		} elseif ( imageInfo.height > arguments.height ) {
-			ImageScaleToFit( image, "", arguments.height, interpolation );
+		catch( any e ) {
+			return false;
 		}
-
-		return ImageGetBlob( image );
+		return isStruct( imageInfo ) && StructKeyExists( imageInfo, "height" );
 	}
 
-	public binary function pdfPreview( required binary asset ) output=false {
-		var imagePrefix = CreateUUId();
-		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & "_page_" & arguments.page & ".jpg";
-		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
-		var pdfAttributes = {
-			  action      = "thumbnail"
-			, source      = asset
-			, destination = GetTempDirectory()
-			, imagePrefix = imagePrefix
-		};
+	private struct function _getCropHintArea(
+		  required binary  image
+		, required numeric width
+		, required numeric height
+		, required string  cropHint
+	) {
+		var imageInfo      = getImageInformation( arguments.image );
+		var targetWidth    = arguments.width;
+		var targetHeight   = arguments.height;
+		var targetRatio    = targetWidth / targetHeight;
+		var cropHintCoords = arguments.cropHint.listToArray();
+		var cropX          = int( cropHintCoords[ 1 ] * imageInfo.width );
+		var cropY          = int( cropHintCoords[ 2 ] * imageInfo.height );
+		var cropWidth      = int( cropHintCoords[ 3 ] * imageInfo.width );
+		var cropHeight     = int( cropHintCoords[ 4 ] * imageInfo.height );
+		var cropHintRatio  = cropWidth / cropHeight;
+		var prevCropWidth  = 0;
+		var prevCropHeight = 0;
+		var widthRatio     = 0;
+		var heightRatio    = 0;
 
-		for( var arg in allowedArgs ) {
-			if ( StructKeyExists( arguments, arg ) ) {
-				pdfAttributes[ arg ] = arguments[ arg ];
-			}
+		if ( cropHintRatio > targetRatio ) {
+			prevCropHeight = cropHeight;
+			cropHeight     = int( cropHeight * ( cropHintRatio / targetRatio ) );
+			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+		} else if ( cropHintRatio < targetRatio ) {
+			prevCropWidth = cropWidth;
+			cropWidth     = int( cropWidth * ( targetRatio / cropHintRatio ) );
+			cropX         = int( cropX - ( ( cropWidth - prevCropWidth ) / 2 ) );
 		}
 
-		pdf attributeCollection=pdfAttributes;
-
-		return FileReadBinary( tmpFilePath );
-	}
-
-	public struct function getImageInformation( required binary asset ) output=false {
-		try {
-			return ImageInfo( ImageNew( arguments.asset ) );
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
+		if ( targetWidth > cropWidth ) {
+			prevCropWidth  = cropWidth;
+			widthRatio     = targetWidth / cropWidth;
+			cropWidth      = int( cropWidth  * widthRatio );
+			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+		}
+		if ( targetHeight > cropHeight ) {
+			prevCropHeight = cropHeight;
+			heightRatio    = targetHeight / cropHeight;
+			cropHeight     = int( cropHeight * heightRatio );
+			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
 		}
 
-		return {};
+
+		if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
+			var fitRatio   = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
+			prevCropWidth  = cropWidth;
+			prevCropHeight = cropHeight;
+			cropWidth      = int( cropWidth  * fitRatio );
+			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+			cropHeight     = int( cropHeight * fitRatio );
+			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+		}
+
+		cropX = max( cropX, 0 );
+		cropY = max( cropY, 0 );
+		cropX = min( cropX, imageInfo.width - cropWidth );
+		cropY = min( cropY, imageInfo.height - cropHeight );
+
+		return {
+			  x      = cropX
+			, y      = cropY
+			, width  = cropWidth
+			, height = cropHeight
+		}
 	}
+
+	private function _getImplementation() {
+	    var useImageMagick = $getPresideSetting( "asset-manager", "use_imagemagick" );
+
+	    if ( IsBoolean( useImageMagick ) && useImageMagick ) {
+	        return _getImageMagickImplementation();
+	    }
+
+	    return _getNativeImageImplementation();
+	}
+
+
+	private any function _getNativeImageImplementation() {
+		return _nativeImageImplementation;
+	}
+	private void function _setNativeImageImplementation( required any nativeImageImplementation ) {
+		_nativeImageImplementation = arguments.nativeImageImplementation;
+	}
+
+	private any function _getImageMagickImplementation() {
+		return _imageMagickImplementation;
+	}
+	private void function _setImageMagickImplementation( required any imageMagickImplementation ) {
+		_imageMagickImplementation = arguments.imageMagickImplementation;
+	}
+
 }

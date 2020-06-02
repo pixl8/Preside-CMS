@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**
@@ -6,7 +6,7 @@ component output=false singleton=true {
 	 * @presideObjectService.inject    presideObjectService
 	 * @siteService.inject             siteService
 	 */
-	public any function init( required array autoDiscoverDirectories, required any presideObjectService, required any siteService ) output=false {
+	public any function init( required array autoDiscoverDirectories, required any presideObjectService, required any siteService ) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setSiteService( arguments.siteService );
@@ -17,16 +17,21 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API
-	public array function listPageTypes( string allowedBeneathParent="", boolean includeSystemPageTypes=true ) output=false {
+	public array function listPageTypes(
+		  string  allowedBeneathParent   = ""
+		, boolean includeSystemPageTypes = true
+		, string  allowedAboveChild      = ""
+	) {
 		var pageTypes          = _getRegisteredPageTypes();
 		var result             = [];
 		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
 
 		for( var id in pageTypes ){
 			var allowedBeneathParent = !Len( Trim( arguments.allowedBeneathParent ) ) || typeIsAllowedBeneathParentType( id, arguments.allowedBeneathParent );
+			var allowedBeneathChild  = !Len( Trim( arguments.allowedAboveChild    ) ) || typeIsAllowedBeneathParentType( arguments.allowedAboveChild, id );
 			var allowedInSiteTemplate = isPageTypeAvailableToSiteTemplate( id, activeSiteTemplate );
 
-			if ( allowedBeneathParent && allowedInSiteTemplate && ( arguments.includeSystemPageTypes || !isSystemPageType( id ) ) ) {
+			if ( allowedBeneathParent && allowedBeneathChild && allowedInSiteTemplate && ( arguments.includeSystemPageTypes || !isSystemPageType( id ) ) ) {
 				result.append( pageTypes[ id ] );
 			}
 		}
@@ -34,7 +39,7 @@ component output=false singleton=true {
 		return result;
 	}
 
-	public array function listSiteTreePageTypes() output=false {
+	public array function listSiteTreePageTypes() {
 		var pageTypes = _getRegisteredPageTypes();
 		var result    = [];
 
@@ -47,11 +52,11 @@ component output=false singleton=true {
 		return result;
 	}
 
-	public boolean function pageTypeExists( required string id ) output=false {
+	public boolean function pageTypeExists( required string id ) {
 		return StructKeyExists( _getRegisteredPageTypes(), arguments.id );
 	}
 
-	public any function getPageType( required string id ) output=false {
+	public any function getPageType( required string id ) {
 		var pageTypes = _getRegisteredPageTypes();
 
 		if ( StructKeyExists( pageTypes, arguments.id ) ) {
@@ -61,18 +66,19 @@ component output=false singleton=true {
 		throw( type="PageTypesService.missingPageType", message="The template, [#arguments.id#], was not registered with the Preside page types system" );
 	}
 
-	public array function listLayouts( required string pageTypeId ) output=false {
+	public array function listLayouts( required string pageTypeId ) {
 		return [ "default" ];
 	}
 
-	public void function reload() output=false {
+	public void function reload() {
 		_setRegisteredPageTypes({});
 		_autoDiscoverPageTypes();
 	}
 
-	public boolean function typeIsAllowedBeneathParentType( required string child, required string parent ) output=false {
+	public boolean function typeIsAllowedBeneathParentType( required string child, required string parent ) {
 		var allowedParentTypes = getPageType( arguments.child ).getAllowedParentTypes();
-		var allowedChildTypes  = getPageType( arguments.parent ).getAllowedChildTypes();
+		var allowedChildTypes  = ListAppend( getPageType( arguments.parent ).getAllowedChildTypes(), getPageType( arguments.parent ).getManagedChildTypes() );
+
 
 		if ( allowedChildTypes == "none" || allowedParentTypes == "none" ) {
 			return false;
@@ -90,18 +96,23 @@ component output=false singleton=true {
 		return true;
 	}
 
-	public boolean function isSystemPageType( required string pageTypeId ) output=false {
+	public boolean function isSystemPageType( required string pageTypeId ) {
 		return getPageType( arguments.pageTypeId ).isSystemPageType();
 	}
 
 	public boolean function isPageTypeAvailableToSiteTemplate( required string pageTypeId, string siteTemplate=_getSiteService().getActiveSiteTemplate() ) {
 		var pageType = getPageType( arguments.pageTypeId );
+		var siteTemplates = pageType.getSiteTemplates();
 
-		return pageType.getSiteTemplates() == "*" || ListFindNoCase( pageType.getSiteTemplates(), arguments.siteTemplate );
+		if ( arguments.siteTemplate == "" ) {
+			arguments.siteTemplate = "default";
+		}
+
+		return siteTemplates == "*" || ListFindNoCase( siteTemplates, arguments.siteTemplate );
 	}
 
 // PRIVATE HELPERS
-	private void function _autoDiscoverPageTypes() output=false {
+	private void function _autoDiscoverPageTypes() {
 		var objectsPath             = "/preside-objects/page-types";
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDiscoverDirectories();
@@ -125,7 +136,7 @@ component output=false singleton=true {
 						var layoutFiles = DirectoryList( viewDir, false, "name", "*.cfm" );
 
 						for( var file in layoutFiles ) {
-							if ( !file.startsWith( "_" ) ) {
+							if ( !file.reFind( "^_" ) ) {
 								layouts[ ReReplaceNoCase( file, "\.cfm$", "" ) ] = true;
 							}
 						}
@@ -155,7 +166,7 @@ component output=false singleton=true {
 				var layoutFiles = DirectoryList( viewDir, false, "name", "*.cfm" );
 
 				for( var file in layoutFiles ) {
-					if ( !file.startsWith( "_" ) ) {
+					if ( !file.reFind( "^_" ) ) {
 						layouts[ ReReplaceNoCase( file, "\.cfm$", "" ) ] = true;
 					}
 				}
@@ -171,31 +182,33 @@ component output=false singleton=true {
 		_calculateManagedPageTypes();
 	}
 
-	private void function _registerPageType( required string id, required boolean hasHandler, required string layouts ) output=false {
+	private void function _registerPageType( required string id, required boolean hasHandler, required string layouts ) {
 		var pageTypes = _getRegisteredPageTypes();
 		var poService = _getPresideObjectService();
 
 		pageTypes[ arguments.id ] = new PageType(
-			  id                   = arguments.id
-			, name                 = _getConventionsBasePageTypeName( arguments.id )
-			, description          = _getConventionsBasePageTypeDescription( arguments.id )
-			, addForm              = _getConventionsBasePageTypeAddForm( arguments.id )
-			, defaultForm          = _getConventionsBasePageTypeDefaultForm( arguments.id )
-			, editForm             = _getConventionsBasePageTypeEditForm( arguments.id )
-			, presideObject        = _getConventionsBasePageTypePresideObject( arguments.id )
-			, hasHandler           = arguments.hasHandler
-			, layouts              = arguments.layouts
-			, viewlet              = poService.getObjectAttribute( arguments.id, "pageTypeViewlet", _getConventionsBasePageTypeViewlet( arguments.id ) )
-			, allowedChildTypes    = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*"   )
-			, allowedParentTypes   = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*"   )
-			, showInSiteTree       = poService.getObjectAttribute( objectName=arguments.id, attributeName="showInSiteTree"        , defaultValue=true  )
-			, siteTemplates        = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*"   )
-			, isSystemPageType     = poService.getObjectAttribute( objectName=arguments.id, attributeName="isSystemPageType"      , defaultValue=false )
-			, parentSystemPageType = poService.getObjectAttribute( objectName=arguments.id, attributeName="parentSystemPageType"  , defaultValue="homepage" )
+			  id                    = arguments.id
+			, name                  = _getConventionsBasePageTypeName( arguments.id )
+			, description           = _getConventionsBasePageTypeDescription( arguments.id )
+			, addForm               = _getConventionsBasePageTypeAddForm( arguments.id )
+			, defaultForm           = _getConventionsBasePageTypeDefaultForm( arguments.id )
+			, editForm              = _getConventionsBasePageTypeEditForm( arguments.id )
+			, cloneForm             = _getConventionsBasePageTypeCloneForm( arguments.id )
+			, presideObject         = _getConventionsBasePageTypePresideObject( arguments.id )
+			, hasHandler            = arguments.hasHandler
+			, layouts               = arguments.layouts
+			, viewlet               = poService.getObjectAttribute( arguments.id, "pageTypeViewlet", _getConventionsBasePageTypeViewlet( arguments.id ) )
+			, allowedChildTypes     = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*"   )
+			, allowedParentTypes    = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*"   )
+			, showInSiteTree        = poService.getObjectAttribute( objectName=arguments.id, attributeName="showInSiteTree"        , defaultValue=true  )
+			, siteTemplates         = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*"   )
+			, isSystemPageType      = poService.getObjectAttribute( objectName=arguments.id, attributeName="isSystemPageType"      , defaultValue=false )
+			, parentSystemPageType  = poService.getObjectAttribute( objectName=arguments.id, attributeName="parentSystemPageType"  , defaultValue="homepage" )
+			, defaultSystemPageSlug = poService.getObjectAttribute( objectName=arguments.id, attributeName="defaultSystemPageSlug" , defaultValue=""    )
 		);
 	}
 
-	private void function _calculateManagedPageTypes() output=false {
+	private void function _calculateManagedPageTypes() {
 		var pageTypes         = _getRegisteredPageTypes();
 		var siteTreePageTypes = listSiteTreePageTypes();
 
@@ -224,7 +237,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private boolean function _fileExistsNoCase( required string path ) output=false {
+	private boolean function _fileExistsNoCase( required string path ) {
 		var directory = GetDirectoryFromPath( arguments.path );
 		var fileName  = ListLast( arguments.path, "\/" );
 		var ext       = ListLast( fileName, "." );
@@ -234,54 +247,57 @@ component output=false singleton=true {
 
 	}
 
-	private string function _getConventionsBasePageTypeName( required string id ) output=false {
+	private string function _getConventionsBasePageTypeName( required string id ) {
 		return "page-types.#arguments.id#:name";
 	}
-	private string function _getConventionsBasePageTypeDescription( required string id ) output=false {
+	private string function _getConventionsBasePageTypeDescription( required string id ) {
 		return "page-types.#arguments.id#:description";
 	}
-	private string function _getConventionsBasePageTypeViewlet( required string id ) output=false {
+	private string function _getConventionsBasePageTypeViewlet( required string id ) {
+		return "page-types.#arguments.id#.index";
+	}
+	private string function _getConventionsBasePageTypeDefaultForm( required string id ) {
 		return "page-types.#arguments.id#";
 	}
-	private string function _getConventionsBasePageTypeDefaultForm( required string id ) output=false {
-		return "page-types.#arguments.id#";
-	}
-	private string function _getConventionsBasePageTypeAddForm( required string id ) output=false {
+	private string function _getConventionsBasePageTypeAddForm( required string id ) {
 		return "page-types.#arguments.id#.add";
 	}
-	private string function _getConventionsBasePageTypeEditForm( required string id ) output=false {
+	private string function _getConventionsBasePageTypeEditForm( required string id ) {
 		return "page-types.#arguments.id#.edit";
+	}
+	private string function _getConventionsBasePageTypeCloneForm( required string id ) output=false {
+		return "page-types.#arguments.id#.clone";
 	}
 	private string function _getConventionsBasePageTypePresideObject( required string id ) output=false {
 		return arguments.id;
 	}
 
 // GETTERS AND SETTERS
-	private array function _getAutoDiscoverDirectories() output=false {
+	private array function _getAutoDiscoverDirectories() {
 		return _autoDiscoverDirectories;
 	}
-	private void function _setAutoDiscoverDirectories( required array autoDiscoverDirectories ) output=false {
+	private void function _setAutoDiscoverDirectories( required array autoDiscoverDirectories ) {
 		_autoDiscoverDirectories = arguments.autoDiscoverDirectories;
 	}
 
-	private struct function _getRegisteredPageTypes() output=false {
+	private struct function _getRegisteredPageTypes() {
 		return _registeredPageTypes;
 	}
-	private void function _setRegisteredPageTypes( required struct registeredPageTypes ) output=false {
+	private void function _setRegisteredPageTypes( required struct registeredPageTypes ) {
 		_registeredPageTypes = arguments.registeredPageTypes;
 	}
 
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
 	}
 
-	private any function _getSiteService() output=false {
+	private any function _getSiteService() {
 		return _siteService;
 	}
-	private void function _setSiteService( required any siteService ) output=false {
+	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
 	}
 }

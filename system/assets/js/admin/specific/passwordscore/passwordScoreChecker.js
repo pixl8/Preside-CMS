@@ -2,7 +2,7 @@
 
 	$.fn.passwordScoreChecker = function(){
 		var scoreTemplate   = '<div class="password-score"><div class="score-bar-container"><div class="score-bar"></div></div><div class="score-title"></div><div class="clearfix"></div></div>'
-		  , scoreCheckerUrl = buildLink( "passwordStrengthReport" )
+		  , scoreCheckerUrl = cfrequest.passwordScoreCheckerUrl
 		  , typingDelay     = 600
 
 		return this.each( function(){
@@ -22,12 +22,12 @@
 						if ( scoreCache.hasOwnProperty( password ) ) {
 							showScore( scoreCache[ password ] );
 						} else {
-							$.getJSON( scoreCheckerUrl, { password : password, context : context }, function( scoreData ){
+							$.post( scoreCheckerUrl, { password : password, context : context }, function( scoreData ){
 								scoreCache[ password ] = scoreData;
 								if ( password === $passwordInput.val() ) {
 									showScore( scoreData );
 								}
-							} );
+							}, "json" );
 						}
 					}
 
@@ -52,4 +52,4 @@
 		return policyContext && policyContext.length > 0;
 	} ).passwordScoreChecker();
 
-} )( presideJQuery || jQuery );
+} )( typeof presideJQuery !== 'undefined' ? presideJQuery : jQuery );

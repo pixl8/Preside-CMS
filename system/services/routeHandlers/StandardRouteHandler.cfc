@@ -1,4 +1,4 @@
-component implements="iRouteHandler" output=false singleton=true {
+component implements="iRouteHandler" singleton=true {
 
 // constructor
 	/**
@@ -21,12 +21,6 @@ component implements="iRouteHandler" output=false singleton=true {
 		var site          = event.getSite();
 		var pathMinusSite = arguments.path;
 
-		if ( Len( site.path ?: "" ) > 1 ) {
-			pathMinusSite = Right( pathMinusSite, Len( pathMinusSite ) - Len( site.path ) );
-			if ( Left( pathMinusSite, 1 ) != "/" ) {
-				pathMinusSite = "/" & pathMinusSite;
-			}
-		}
 		var translated = ReReplace( pathMinusSite, "^/", "" );
 		    translated = Replace( translated, "/$", "" );
 		    translated = ListChangeDelims( translated, ".", "/" );
@@ -43,7 +37,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var link = ListChangeDelims( arguments.buildArgs.linkTo ?: "", "/", "." ) & "/";
+		var link = "/" & Replace( arguments.buildArgs.linkTo ?: "", ".", "/", "all" ) & "/";
 
 		link = ReReplaceNoCase( link, "index/$", "" );
 

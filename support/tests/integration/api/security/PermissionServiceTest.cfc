@@ -161,8 +161,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var expected = [];
 
 		mockUserDao.$( "selectManyToManyData" )
-			.$args( selectFields=["security_group"], propertyName="groups", id="testuser" )
-			.$results( QueryNew('security_group' ) );
+			.$args( selectFields=["groups.id"], propertyName="groups", id="testuser" )
+			.$results( QueryNew('id' ) );
+
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["id"], filter={ is_catch_all=true } )
+			.$results( QueryNew('id' ) );
 
 		actual = permsService.listPermissionKeys( user="testuser" );
 
@@ -189,8 +193,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		];
 
 		mockUserDao.$( "selectManyToManyData" )
-			.$args( selectFields=["security_group"], propertyName="groups", id="me" )
-			.$results( QueryNew('security_group', 'varchar', [['testgroup'],['testgroup2']] ) );
+			.$args( selectFields=["groups.id"], propertyName="groups", id="me" )
+			.$results( QueryNew('id', 'varchar', [['testgroup'],['testgroup2']] ) );
+
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["id"], filter={ is_catch_all=true } )
+			.$results( QueryNew('id' ) );
 
 		mockGroupDao.$( "selectData" )
 			.$args( selectFields=["roles"], id="testgroup" )
@@ -233,7 +241,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 
-		super.assert( permsService.hasPermission( permissionKey="another.key" ), "Should have permission, yet returned that I don't :(" );
+		super.assert( permsService.hasPermission( permissionKey="another.Key" ), "Should have permission, yet returned that I don't :(" );
 	}
 
 	function test14_hasPermission_shouldReturnTrue_whenPassedUserIsSystemUser(){
@@ -277,9 +285,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -300,9 +308,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -323,9 +331,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "my.perm.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -350,9 +358,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -508,9 +516,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			  selectFields = [ "granted", "context_key" ]
 			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
-			, groupBy      = "context_key"
+			, orderBy      = "context_key, granted"
 			, useCache     = false
 		).$results( mockContextPerms );
 
@@ -568,6 +576,43 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected, actual );
 	}
 
+	function test26_listPermissionKeys_shouldIncludePermissionKeysForTheCatchAllGroup(){
+		var actual   = "";
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var expected = [
+			  "sitetree.navigate"
+			, "sitetree.read"
+			, "sitetree.edit"
+			, "sitetree.delete"
+			, "assetmanager.folders.read"
+			, "assetmanager.assets.read"
+			, "assetmanager.folders.delete"
+			, "assetmanager.assets.delete"
+			, "groupmanager.edit"
+			, "cms.login"
+			, "assetmanager.blah.test.meh"
+			, "assetmanager.blah.test.doh"
+			, "assetmanager.blah.test.blah"
+		];
+
+		mockUserDao.$( "selectManyToManyData" )
+			.$args( selectFields=["groups.id"], propertyName="groups", id="me" )
+			.$results( QueryNew('id') );
+
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["id"], filter={ is_catch_all=true } )
+			.$results( QueryNew('id', 'varchar', ['testgroup'] ) );
+
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["roles"], id="testgroup" )
+			.$results( QueryNew('roles', 'varchar', ['tester,user'] ) );
+
+
+		actual = permsService.listPermissionKeys( user="me" );
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
+	}
+
 
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
@@ -576,6 +621,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockGroupDao        = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_group"              ) );
 		mockUserDao         = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_user"               ) );
 		mockContextPermDao  = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_context_permission" ) );
+
+		mockGroupDao.$( "dataExists", true );
 
 		return getMockBox().createMock( object=new preside.system.services.security.PermissionService(
 			  loginService         = mockLoginService

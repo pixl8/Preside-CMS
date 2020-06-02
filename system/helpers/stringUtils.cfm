@@ -9,7 +9,7 @@
 	<cfargument name="addTitleSpan"    type="boolean" required="false" default="false" />
 
 	<cfscript>
-		var newString = ReReplace(string, "<[^>]*>", " ", "ALL");
+		var newString = Trim( ReReplace(string, "<[^>]*>", " ", "ALL") );
 		var lastSpace = 0;
 
 		newString = ReReplace(newString, " \s*", " ", "ALL");
@@ -38,7 +38,7 @@
 
 <cffunction name="fileSizeFormat" access="public" returntype="string" output="false">
 	<cfargument name="fileSizeInBytes" type="numeric" required="true" />
-	<cfargument name="locale"          type="string"  required="false" default="#getController().getPlugin( "i18n" ).getfwLocale()#" />
+	<cfargument name="locale"          type="string"  required="false" default="#getController().getWireBox().getInstance( "i18n" ).getfwLocale()#" />
 
 	<cfscript>
 		var units   = [ "bytes", "KB", "MB", "GB", "TB", "PB" ];

@@ -21,7 +21,7 @@
 	<cffunction name="_log" access="private" returntype="void" output="false">
 		<cfargument name="type" type="string" required="true">
 		<cfargument name="text" type="string" required="true">
-		 <cfif server.coldfusion.productname neq "Railo">
+		<cfif server.coldfusion.productname NEQ "Railo" AND server.coldfusion.productname NEQ 'Lucee'>
 		 	<cflog type        = "#arguments.type#"
 			       text        = "#arguments.text#"
 			       file        = "#_getDefaultLog()#_#DateFormat( Now(), 'yyyy-mm-dd' )#"

@@ -3,4 +3,4 @@
 	imgTitle   = HtmlEditFormat( args.label ?: '' );
 	loadingGif = event.buildLink( systemStaticAsset="/images/loading-gifs/large.gif" );
 </cfscript>
-<cfoutput><img class="lazy" src="#loadingGif#" data-src="#imgSrc#" alt="#imgTitle#" title="#imgTitle#" /></cfoutput>
+<cfoutput><img class="lazy transparent-image-bg" src="#loadingGif#" data-src="#imgSrc#" alt="#imgTitle#" title="#imgTitle#" /></cfoutput>

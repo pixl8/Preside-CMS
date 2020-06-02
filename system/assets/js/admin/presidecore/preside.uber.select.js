@@ -24,7 +24,8 @@
 						selected: option.selected,
 						disabled: option.disabled,
 						classes: option.className,
-						style: option.style.cssText
+						style: option.style.cssText,
+						active: option.active
 					});
 				} else {
 					this.parsed.push({
@@ -55,6 +56,7 @@
 			this.options = options != null ? options : {};
 			this.is_multiple = this.form_field.multiple;
 			this.selected = [];
+			this.fieldPopulatedDeferred = $.Deferred();
 			this.setup_preselected_value();
 			this.set_sortable_options();
 			this.set_rendering_templates();
@@ -133,6 +135,7 @@
 			this.max_selected_options = this.options.max_selected_options || Infinity;
 			this.inherit_select_classes = this.options.inherit_select_classes || false;
 			this.display_selected_options = this.options.display_selected_options != null ? this.options.display_selected_options : true;
+			this.quick_add_text = this.form_field.getAttribute( "data-quick-add-text" ) || "Press ENTER to create a new tag, '{{value}}'";
 			return this.display_disabled_options = this.options.display_disabled_options != null ? this.options.display_disabled_options : true;
 		};
 
@@ -186,12 +189,19 @@
 			var classes, style;
 
 			option = $.extend( {}, {
-				  disabled          : false
-				, classes           : ""
-				, style             : { cssText : "" }
-				, text              : ""
-				, value             : ""
+				  disabled      : false
+				, superQuickAdd : false
+				, classes       : ""
+				, style         : { cssText : "" }
+				, text          : ""
+				, value         : ""
+				, active        : true
+				, inactiveClass : ""
 			}, option );
+
+			if ( option.active === "" ) {
+				option.active = true;
+			}
 
 			if (!this.include_option_in_results(option)) {
 				return '';
@@ -209,13 +219,19 @@
 			if (option.selected) {
 				classes.push("result-selected");
 			}
+			if ( option.superQuickAdd ) {
+				classes.push("result-super-quick-add-suggestion");
+			}
 			if (option.classes !== "") {
 				classes.push(option.classes);
+			}
+			if( !option.active ) {
+				option.inactiveClass  = "inactive";
 			}
 
 			style = option.style.cssText !== "" ? " style=\"" + option.style + "\"" : "";
 			return "<li class=\"" + (classes.join(' ')) + "\"" + style + ">"
-					+ Mustache.render( this.result_template, option ) +
+					+ Mustache.render( this.result_template , option ) +
 					"</li>";
 		};
 
@@ -257,6 +273,16 @@
 				var userHasChangedSearch = searchText != $uberSelect.get_search_text()
 
 				if ( !userHasChangedSearch ){
+					if ( $uberSelect.allowSuperQuickAdd() && searchText.length && ( !suggestions.length || suggestions[0].text.toLowerCase() != searchText.toLowerCase() ) ) {
+						if ( suggestions.length && suggestions[0].superQuickAdd ) {
+							suggestions.shift();
+						}
+						suggestions.unshift( {
+							  text          : $uberSelect.get_quick_add_text( searchText )
+							, value         : searchText
+							, superQuickAdd : true
+						} );
+					}
 					if ( suggestions.length < 1 && searchText.length ) {
 						$uberSelect.clear_suggestions();
 						return $uberSelect.no_results( searchText );
@@ -277,10 +303,12 @@
 			}
 			this.selected_option_count = 0;
 			_ref = this.form_field.options;
-			for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-				option = _ref[_i];
-				if (option.selected) {
-					this.selected_option_count += 1;
+			if ( _ref ){
+				for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+					option = _ref[_i];
+					if (option.selected) {
+						this.selected_option_count += 1;
+					}
 				}
 			}
 			return this.selected_option_count;
@@ -309,10 +337,7 @@
 					break;
 				case 13:
 					evt.preventDefault();
-					if (this.results_showing) {
-						return this.result_select(evt);
-					}
-					break;
+					return this.result_select(evt);
 				case 27:
 					if (this.results_showing) {
 						this.results_hide();
@@ -353,10 +378,19 @@
 
 		UberSelect.prototype.setup_search_engine = function(){
 			var uberSelect = this
-			  , i;
+			  , i
+			  , prefetch_url  = this.form_field.getAttribute( "data-prefetch-url" )
+			  , remote_url    = this.form_field.getAttribute( "data-remote-url" )
+			  , display_limit = this.form_field.getAttribute( "data-display-limit" );
 
 			if ( isNaN( this.prefetch_ttl ) ) {
 				this.prefetch_ttl = 0;
+			}
+
+			if ( display_limit === null || isNaN( display_limit ) ) {
+				this.display_limit = 200;
+			} else {
+				this.display_limit = parseInt( display_limit );
 			}
 
 			this.local_options = SelectParser.select_to_array( this.form_field );
@@ -365,13 +399,21 @@
 				if ( this.local_options[i].empty ) { this.local_options.splice( i, 1 ); }
 			}
 
+			if( this.filter && this.filter.length ){
+				this.prefetch_url = prefetch_url + this.filter;
+				this.remote_url   = remote_url + this.filter;
+			}else{
+				this.prefetch_url = prefetch_url;
+				this.remote_url   = remote_url;
+			}
+
 			this.search_engine = new Bloodhound( {
 				  local          : this.local_options
-				, prefetch       : ( this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" ) )
-				, remote         : ( this.remote_url = this.form_field.getAttribute( "data-remote-url" ) )
-				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
-			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
-			 	, limit          : 100 // a sensible limit, should probably be configurable, right?!
+				, prefetch       : this.prefetch_url
+				, remote         : this.remote_url
+				, datumTokenizer : function(d) { return Bloodhound.tokenizers.nonwordandunderscore( d.text ); }
+			 	, queryTokenizer : Bloodhound.tokenizers.nonwordandunderscore
+			 	, limit          : this.display_limit
 			 	, dupDetector    : function( remote, local ){ return remote.value == local.value }
 			} );
 
@@ -390,6 +432,8 @@
 						chosen: uberSelect
 					});
 				}
+				uberSelect.fieldPopulatedDeferred.resolve();
+				$( uberSelect.form_field ).closest( "form" ).trigger( "uberSelectInit" );
 			} );
 		};
 
@@ -468,6 +512,7 @@
 			}
 
 			this.container.append( '<input type="hidden" class="chosen-hidden-field" />');
+			this.disabled_if_unfiltered = this.form_field_jq.data( 'disabledIfUnfiltered' ) == true;
 			this.hidden_field = this.container.find( 'input.chosen-hidden-field' ).first();
 			this.hidden_field.attr( 'name', this.form_field_jq.attr( 'name' ) );
 			this.hidden_field.data( "uberSelect", this );
@@ -500,8 +545,63 @@
 				this.selected_item = this.container.find('.chosen-single').first();
 			}
 
+			this.setup_filter();
 			this.setup_search_engine();
+			this.disable_if_unfiltered();
+
+			if ( typeof this.filter_field !== "undefined" ) {
+				this.filter_field.on('change',function(){
+					$uberSelect.setup_filter();
+					$uberSelect.setup_search_engine();
+					$uberSelect.disable_if_unfiltered();
+				});
+			}
 		};
+
+		UberSelect.prototype.setup_filter = function() {
+			var filterBy      = this.form_field.getAttribute( "data-filter-by" )
+			  , filterByField = this.form_field.getAttribute( "data-filter-by-field" )
+			  , filters       = []
+			  , filterInput, filterByValue, i;
+
+			if ( filterBy !== null && filterBy.length ) {
+				filterBy      = filterBy.split( ',' );
+				filterByField = filterByField.split( ',' );
+
+				for( i=0; i<filterBy.length; i++ ) {
+					filterInput = $( "input[name='" + filterBy[ i ] + "']" );
+
+					if ( filterInput.length ) {
+						this.filter_field = filterInput;
+						filterByValue = this.filter_field.val();
+					} else {
+						filterByValue = cfrequest[ filterBy[ i ] ] || null;
+					}
+
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+						filters.push ( '&', filterByField[ i ], '=', filterByValue, '&filterByFields=', filterByField[ i ] );
+					}
+				}
+
+				if ( filters.length ) {
+					this.filter = filters.join( '' );
+				}
+			}
+
+		};
+
+		UberSelect.prototype.disable_if_unfiltered = function() {
+			if ( this.disabled_if_unfiltered ) {
+				if ( this.filter_field.val().length ) {
+					this.form_field_jq.removeAttr( 'disabled' );
+					this.container.siblings( '.quick-add-btn' ).removeClass( 'disabled' );
+				} else {
+					this.form_field_jq.attr( 'disabled', 'disabled' );
+					this.container.siblings( '.quick-add-btn' ).addClass( 'disabled' );
+				}
+				this.search_field_disabled();
+			}
+		}
 
 		UberSelect.prototype.register_observers = function() {
 			var _this = this;
@@ -747,6 +847,9 @@
 			}
 
 			if ( _data.length != _ref.length && uberSelect.remote_url && uberSelect.remote_url.length ) {
+				for( ; _i<_len; _i++ ){
+					uberSelect.add_to_hidden_field( _ref[_i] );
+				}
 				uberSelect.fetch_items_by_value( uberSelect.value.join( ","), function( data ){
 					var _i=0; _len=data.length;
 					for( ; _i<_len; _i++ ){
@@ -927,6 +1030,15 @@
 			}
 		};
 
+		UberSelect.prototype.clear = function() {
+			var uberSelect = this;
+
+			uberSelect.clear_suggestions();
+			uberSelect.search_choices.find( ".search-choice" ).each( function(){
+				uberSelect.choice_destroy( $( this ) );
+			} );
+		};
+
 		UberSelect.prototype.choice_destroy = function(link) {
 			var $li = link.closest( "li.search-choice" )
 			  , item = $li.data( "item" );
@@ -934,8 +1046,9 @@
 			if ( this.result_deselect( item ) ) {
 				$li.remove();
 
+				this.hidden_field.trigger("change");
 				this.form_field_jq.trigger("change", {
-					deselected: item.value
+					deselected: item.__value || item.value
 				});
 
 				if ( this.isSearchable() ) {
@@ -957,6 +1070,7 @@
 			this.single_set_selected_text();
 			this.show_search_field_default();
 			this.results_reset_cleanup();
+			this.hidden_field.trigger("change");
 			this.form_field_jq.trigger("change");
 			if (this.active_field) {
 				return this.results_hide();
@@ -970,7 +1084,7 @@
 		UberSelect.prototype.result_select = function(evt) {
 			var high, item, selected_index;
 
-			if ( this.result_highlight ) {
+			if ( this.result_highlight && this.result_highlight.data( 'item' ) ) {
 				high = this.result_highlight;
 				this.result_clear_highlight();
 
@@ -991,12 +1105,20 @@
 				high.addClass( "result-selected" );
 
 				item = high.data( 'item' );
+
 				this.selected_option_count = null;
-				this.select_item( item );
+
+				if ( item.superQuickAdd ) {
+					this.super_quick_add(  item.value );
+				} else {
+					this.select_item( item );
+				}
+
 				if ( !( (evt.metaKey || evt.ctrlKey ) && this.is_multiple ) ) {
 					this.results_hide();
 				}
 				this.search_field.val( "" );
+				this.hidden_field.trigger("change");
 				this.form_field_jq.trigger("change", {
 					'selected': this.hidden_field.val()
 				});
@@ -1015,6 +1137,7 @@
 				if ( item ) {
 					uberSelect.select_item( item );
 				} else if ( uberSelect.remote_url && uberSelect.remote_url.length ) {
+					this.add_to_hidden_field( value );
 					uberSelect.fetch_items_by_value( value, function( data ){
 						var _i=0; _len=data.length;
 						for( ; _i<_len; _i++ ){
@@ -1035,16 +1158,43 @@
 				return false;
 			}
 
+			this.add_to_hidden_field( item.__value || item.value );
+
 			if ( this.is_multiple ) {
 				this.choice_build( item );
-				this.hidden_field.val( this.hidden_field.val() + "," + item.value );
-
 			} else {
 				this.selected = [];
 				this.single_set_selected_text( Mustache.render( this.selected_template, item ) );
-				this.hidden_field.val( item.value );
 			}
+
 			this.selected.push( item );
+
+			this.hidden_field.trigger( "change" );
+			this.form_field_jq.trigger( "change" );
+		}
+
+		UberSelect.prototype.add_to_hidden_field = function( value ){
+			var selectedValues, i;
+
+			if ( this.is_multiple && this.max_selected_options <= this.choices_count() ) {
+				this.form_field_jq.trigger("chosen:maxselected", {
+					userSelect: this
+				} );
+				return false;
+			}
+
+			if ( this.is_multiple ) {
+				selectedValues = this.hidden_field.val().split( "," );
+				for( i=0; i<selectedValues.length; i++ ) {
+					if ( selectedValues[ i ] == value ) {
+						return;
+					}
+				}
+
+				this.hidden_field.val( this.hidden_field.val() + "," + value );
+			} else {
+				this.hidden_field.val( value );
+			}
 		}
 
 		UberSelect.prototype.single_set_selected_text = function(text) {
@@ -1066,7 +1216,7 @@
 				values = this.hidden_field.val();
 				if ( values.length ) {
 					values    = values.split( ',' );
-					itemIndex = values.indexOf( item.value );
+					itemIndex = values.indexOf( item.__value || item.value );
 					if ( itemIndex !== -1 ){
 						values.splice( itemIndex, 1 );
 					}
@@ -1074,7 +1224,7 @@
 				}
 
 				for( itemIndex=0; itemIndex<this.selected.length; itemIndex++ ){
-					if ( this.selected[itemIndex].value == item.value ) {
+					if ( this.selected[itemIndex].value == item.__value || item.value ) {
 						this.selected.splice( itemIndex, 1 );
 						break;
 					}
@@ -1259,7 +1409,7 @@
 					var $li = $(this)
 					  , item = $li.data( "item" );
 
-					newVal.push( item.value );
+					newVal.push( item.__value || item.value );
 				} );
 
 				$uberSelect.hidden_field.val( newVal.length ? newVal.join( "," ) : "" );
@@ -1274,16 +1424,51 @@
 			return typeof this.options.searchable === "undefined" || this.options.searchable;
 		};
 
+		UberSelect.prototype.allowSuperQuickAdd = function(){
+			return typeof this.options.superQuickAdd !== "undefined" && this.options.superQuickAddUrl !== "undefined" && this.options.superQuickAdd;
+		};
+
+		UberSelect.prototype.super_quick_add = function( newValue ) {
+			if ( !$.trim( newValue ).length ) {
+				return false;
+			}
+
+			var uberSelect = this;
+			var _addOption = function( option ){
+				if ( uberSelect.is_multiple ) {
+					uberSelect.choice_build( option );
+					uberSelect.hidden_field.val( uberSelect.hidden_field.val() + "," + option.value );
+				} else {
+					uberSelect.single_set_selected_text( Mustache.render( uberSelect.selected_template, option ) );
+					uberSelect.hidden_field.val( option.value );
+				}
+			};
+
+			$.ajax( this.options.superQuickAddUrl, {
+				  data    : { value : newValue }
+				, cache   : false
+				, method  : "post"
+				, async   : false
+				, success : function( data ){ _addOption( data ); }
+			} );
+
+			return true;
+		}
+
+		UberSelect.prototype.get_quick_add_text = function( searchText ) {
+			return Mustache.render( this.quick_add_text, { value:searchText } );
+		}
+
 		UberSelect.browser_is_supported = function() {
 			if (window.navigator.appName === "Microsoft Internet Explorer") {
 				return document.documentMode >= 8;
 			}
 			if (/iP(od|hone)/i.test(window.navigator.userAgent)) {
-				return false;
+				return true;
 			}
 			if (/Android/i.test(window.navigator.userAgent)) {
 				if (/Mobile/i.test(window.navigator.userAgent)) {
-					return false;
+					return true;
 				}
 			}
 			return true;

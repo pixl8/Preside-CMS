@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Rules engine condition: super quick add filter form
+
+This form is used for creating a new rules engine filter conditions through the filter builder UI
+-->
+<form>
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="rules_engine_condition.filter_object"  control="hidden"    />
+			<field binding="rules_engine_condition.expressions"    control="hidden"    />
+			<field binding="rules_engine_condition.condition_name" control="textinput" label="preside-objects.rules_engine_condition:field.condition_name.filter.title" />
+			<field binding="rules_engine_condition.is_favourite" />
+		</fieldset>
+	</tab>
+</form>

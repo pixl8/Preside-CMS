@@ -17,11 +17,14 @@
 		<input type="hidden" name="id" value="#event.getValue( name='id', defaultValue='' )#" />
 
 		#renderForm(
-			  formName         = "preside-objects.page.restore"
-			, context          = "admin"
-			, formId           = formId
-			, savedData        = page
-			, validationResult = validationResult
+			  formName                = "preside-objects.page.restore"
+			, context                 = "admin"
+			, formId                  = formId
+			, savedData               = page
+			, validationResult        = validationResult
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
 
 		<div class="form-actions row">

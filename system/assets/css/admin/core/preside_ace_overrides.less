@@ -8,7 +8,7 @@
 	right: 0;
 	bottom: 0;
 	left: 0;
-	z-index: @zindex-modal-background;
+	z-index: (@zindex-modal-background + 1);
 
 	// When fading in the modal, animate it to slide down
 	&.fade .modal-dialog {
@@ -41,12 +41,22 @@ body.modal-open, .modal-open .navbar-fixed-top, .modal-open .navbar-fixed-bottom
 input[type="checkbox"], input[type="radio"] {
 	&.ace, &.ace.ace-checkbox-2 {
 		+ .lbl {
-			z-index : 2;
+			z-index : 0;
 		}
 
 		&:focus + .lbl::before {
   			box-shadow  : 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px 1px 3px rgba(0, 0, 0, 0.1);
 		}
+	}
+}
+
+input.ace.ace-switch[type="checkbox"] + .lbl {
+	vertical-align : middle;
+}
+
+.form-horizontal {
+	input.ace.ace-switch[type="checkbox"] + .lbl {
+		top : 7px;
 	}
 }
 
@@ -106,6 +116,10 @@ input[type="color"] {
 	&:focus {
 		border-color : @default-selected-input-border-colour;
 	}
+}
+
+span.input-icon {
+	display : inline;
 }
 
 .chosen-container {
@@ -169,7 +183,7 @@ input[type="color"] {
 		}
 	}
 
-	&.quick-add {
+	&.quick-add, &.configurator-add {
 		.chosen-single {
 			height      : 41px;
 			line-height : 39px;
@@ -178,15 +192,28 @@ input[type="color"] {
 }
 
 .user-photo {
-	margin        : -4px 8px 0 0;
-	border-radius : 100%;
-	border        : 2px solid @white;
-	max-width     : 40px;
+	margin          : -4px 8px 0 0;
+	border-radius   : 100%;
+	border          : 2px solid @white;
+	width           : 40px;
+	height          : 40px;
+	display         : inline-block;
+	background      : url( ../../../images/avatars/unknown.png ) center center no-repeat;
+	background-size : cover;
 
 	&.tiny {
-		max-width    : 20px;
+		width        : 20px;
+		height       : 20px;
 		border       : none;
 		margin-right : 2px;
+	}
+}
+
+.timeline-info {
+	.user-photo {
+		margin-top   : 0px;
+		margin-left  : 0px;
+		margin-right : 0px;
 	}
 }
 
@@ -202,4 +229,49 @@ input[type="color"] {
 
 .popover-content {
 	min-height : 60px;
+}
+
+
+.nav-tabs {
+	li.error {
+		font-weight : bold;
+		a {
+			background-color : @barely-red;
+		}
+
+		&.active a {
+			background-color : @white;
+		}
+	}
+}
+
+.accordion-header.ui-accordion-header {
+	font-size   : 100%;
+	position    : relative;
+	margin      : 0;
+	font-weight : bold;
+}
+
+.tabs-left, .tabs-right {
+	.tab-content {
+		overflow-x : hidden;
+		overflow-y : auto;
+		padding-bottom : 200px;
+	}
+}
+.tab-content .form-actions {
+	margin-bottom : -20px;
+}
+
+input.ace[type="checkbox"] {
+	z-index : 12;
+}
+
+.btn-group > .btn,
+.btn-group + .btn {
+  border-width: 5px;
+}
+
+.widget-body .table.no-top-border {
+	border-top: none;
 }

@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="assetTypes" inject="coldbox:setting:assetManager.types";
 
@@ -17,7 +17,7 @@ component output=false {
 				types.append( {
 					  value = type
 					, label = translateResource( "filetypes:#type#.picker.label" )
-				} )
+				} );
 			}
 		}
 

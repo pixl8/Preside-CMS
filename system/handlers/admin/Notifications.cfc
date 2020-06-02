@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="notificationService" inject="notificationService";
-	property name="messageBox"          inject="coldbox:plugin:messageBox";
+	property name="notificationService"        inject="notificationService";
+	property name="systemConfigurationService" inject="systemConfigurationService";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
@@ -20,27 +21,33 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getNotificationsForAjaxDataTables( event, rc, prc ) {
-		var topic               = ( rc.topic ?: "" )
+		var topic               = ( rc.topic    ?: "" )
+		var dateFrom            = ( rc.dateFrom ?: "" )
+		var dateTo              = ( rc.dateTo   ?: "" )
 		var checkboxCol         = [];
 		var optionsCol          = [];
-		var gridFields          = [ "data", "datecreated" ];
-		var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
+		var gridFields          = [ "topic", "data", "datecreated" ];
+		var dtHelper            = getModel( "JQueryDatatablesHelpers" );
 		var totalNotifications  = notificationService.getNotificationsCount(
 			  userId = event.getAdminUserId()
 			, topic  = topic
 		);
-		var notifications       = notificationService.getNotifications(
+
+
+		var notifications = notificationService.getNotifications(
 			  userId      = event.getAdminUserId()
 			, topic       = topic
+			, dateFrom    = dateFrom
+			, dateTo      = dateTo
 			, startRow    = dtHelper.getStartRow()
 			, maxRows     = dtHelper.getMaxRows()
 			, orderBy     = dtHelper.getSortOrder()
-			, searchQuery = dtHelper.getSearchQuery()
 		);
 
 		for( var record in notifications ){
 			notifications.data[ notifications.currentRow ]        = renderNotification( topic=record.topic, data=record.data, context='datatable' );
 			notifications.datecreated[ notifications.currentRow ] = renderField( object="admin_notification", property="datecreated", data=record.datecreated, context=[ "datatable", "admin" ] );
+			notifications.topic[ notifications.currentRow ]       = '<i class="fa fa-fw #translateResource( 'notifications.#notifications.topic#:iconClass', 'fa-bell' )#"></i> #translateResource( 'notifications.#notifications.topic#:title', notifications.topic )#';
 
 			ArrayAppend( checkboxCol, renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
 			ArrayAppend( optionsCol, renderView( view="/admin/notifications/_listingGridActions", args=record ) );
@@ -105,7 +112,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function preferences( event, rc, prc ) {
-
 		prc.pageTitle    = translateResource( uri="cms:notifications.preferences.title" );
 		prc.pageSubTitle = translateResource( uri="cms:notifications.preferences.subtitle" );
 
@@ -124,6 +130,8 @@ component extends="preside.system.base.AdminHandler" {
 				setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences" ) );
 			}
 		}
+
+		runEvent( event="admin.editProfile._setupEditProfileTabs", private=true, prePostExempt=true );
 	}
 
 	public void function savePreferencesAction( event, rc, prc ) {
@@ -172,8 +180,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.topics = notificationService.listTopics();
 		if ( prc.topics.len() ) {
-			prc.selectedTopic = rc.topic ?: prc.topics[1];
-			prc.topicConfiguration = notificationService.getGlobalTopicConfiguration( prc.selectedTopic );
+			prc.selectedTopic = rc.topic ?: "";
+			if ( Len( Trim( prc.selectedTopic ) ) ) {
+				prc.topicConfiguration = notificationService.getGlobalTopicConfiguration( prc.selectedTopic );
+			}
 		}
 	}
 
@@ -197,12 +207,54 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure", queryString="topic=#topic#" ), persistStruct=persist );
 	}
 
+	public void function saveGeneralConfigurationAction( event, rc, prc ) {
+		_checkPermission( "configure", event );
+
+		var topic            = rc.topic ?: "";
+		var formName         = "notifications.general-config";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			for( var setting in formData ){
+				systemConfigurationService.saveSetting(
+					  category = "notification"
+					, setting  = setting
+					, value    = formData[ setting ]
+				);
+			}
+
+			messageBox.info( translateResource( uri="cms:notifications.configuration.saved.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure", queryString="topic=#topic#" ) );
+		}
+
+		messageBox.error( translateResource( uri="cms:notifications.configuration.saving.error" ) );
+		var persist = formData;
+		    persist.validationResult = validationResult;
+		setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure" ), persistStruct=persist );
+	}
+
 // VIEWLETS
 	private string function notificationNavPromo( event, rc, prc, args={} ) {
-		args.notificationCount   = notificationService.getUnreadNotificationCount( userId = event.getAdminUserId() );
-		args.latestNotifications = notificationService.getUnreadTopics( userId = event.getAdminUserId() );
+		args.notificationCount   = notificationService.getUnreadNotificationCount( 
+			  userId  = event.getAdminUserId()
+		);
 
 		return renderView( view="/admin/notifications/notificationNavPromo", args=args );
+	}
+
+	public string function getAjaxUnreadTopics( event, rc, prc, args={} ) {
+		
+		args.latestNotifications = notificationService.getUnreadTopics(
+			  userId = event.getAdminUserId()
+			, maxRows = getSetting( "notificationCountLimit" ) + 1
+		);
+		
+		return renderView( 
+			  view = "/admin/notifications/_notificationNavTopic"
+			, args = args
+		);
+
 	}
 
 // HELPERS

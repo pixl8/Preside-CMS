@@ -1,7 +1,7 @@
 <cfscript>
-	objectName          = "url_redirect_rule"
+	objectName          = "url_redirect_rule";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
+	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
 </cfscript>
 
 
@@ -23,5 +23,7 @@
 		, multiActionUrl  = event.buildAdminLink( linkTo='urlRedirects.deleteRuleAction' )
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=urlRedirects.getRulesForAjaxDataTables" )
 		, gridFields      = [ "label", "source_url_pattern", "redirect_to_link" ]
+		, allowDataExport = true
+		, dataExportUrl   = event.buildAdminLink( linkTo='urlRedirects.exportAction' )
 	} )#
 </cfoutput>

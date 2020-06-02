@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.email_template:">
+	<tab id="body">
+		<fieldset id="body" sortorder="10">
+			<field binding="email_template.subject"     control="textinput"   sortorder="10" />
+			<field binding="email_template.html_body"   control="richeditor"  sortorder="30" widgetCategories="email" linkPickerCategory="email" toolbar="email" />
+			<field binding="email_template.text_body"   control="textarea"    sortorder="40" />
+			<field binding="email_template.attachments"                       sortorder="50" sortable="true" />
+		</fieldset>
+	</tab>
+</form>

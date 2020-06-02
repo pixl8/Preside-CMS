@@ -10,7 +10,8 @@
 	hasUploadPermission            = hasCmsPermission( permissionKey="assetmanager.assets.upload"             , context="assetmanagerfolder", contextKeys=permissionContext );
 	hasEditFolderPermission        = hasCmsPermission( permissionKey="assetmanager.folders.edit"              , context="assetmanagerfolder", contextKeys=permissionContext );
 	hasManageFolderPermsPermission = hasCmsPermission( permissionKey="assetmanager.folders.manageContextPerms", context="assetmanagerfolder", contextKeys=permissionContext );
-	hasAnyFolderPermissions        = hasAddFolderPermission || hasEditFolderPermission || hasManageFolderPermsPermission || hasDeleteFolderPermission;
+	hasManageLocationsPermission   = hasCmsPermission( permissionKey="assetmanager.storagelocations.manage" );
+	hasAnyFolderPermissions        = hasAddFolderPermission || hasEditFolderPermission || hasManageFolderPermsPermission || hasDeleteFolderPermission || hasManageLocationsPermission;
 
 	args.folderTitle  = args.folderTitle == "$root" ? translateResource( "cms:assetmanager.root.folder" ) : args.folderTitle;
 </cfscript>
@@ -39,6 +40,12 @@
 					</cfif>
 					<cfif hasEditFolderPermission>
 						<li><a href="#event.buildAdminLink( linkTo="assetmanager.editFolder", queryString="folder=#args.folderId#" )#" data-global-key="e"><i class="fa fa-fw fa-pencil"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.edit" )#</a></li>
+					</cfif>
+					<cfif hasManageLocationsPermission>
+						<li><a href="#event.buildAdminLink( linkTo="assetmanager.setFolderLocation", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-folder"></i>&nbsp; #translateResource( uri="cms:assetmanager.set.folder.location.menu.title" )#</a></li>
+					</cfif>
+					<cfif hasEditFolderPermission>
+						<li><a href="#event.buildAdminLink( linkTo="assetmanager.clearFolderDerivativesAction", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-redo"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.clear.derivatives" )#</a></li>
 					</cfif>
 					<cfif hasManageFolderPermsPermission>
 						<li><a href="#event.buildAdminLink( linkTo="assetmanager.managePerms", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-lock"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.manage.perms" )#</a></li>

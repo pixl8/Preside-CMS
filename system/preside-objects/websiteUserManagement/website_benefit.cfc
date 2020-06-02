@@ -6,13 +6,16 @@
  * This is also a useful object to extend so that you could add other types of benefits other than page / asset access. For
  * example, you could have a disk space field that can tell the system how much disk space a user has in an uploads folder or
  * some such.
+ *
+ *  @dataExportFields   id,label,priority,description,datecreated,datemodified
+ *  @datamanagerEnabled true
  */
-component extends="preside.system.base.SystemPresideObject" output="false" displayName="Website user benefit" {
+component extends="preside.system.base.SystemPresideObject" displayName="Website user benefit" {
 	property name="label" uniqueindexes="benefit_name";
 	property name="priority"    type="numeric" dbtype="int"                      required=false default="method:calculatePriority";
 	property name="description" type="string"  dbtype="varchar" maxLength="200"  required=false;
 
-	property name="combined_benefits" relationship="many-to-many" relatedTo="website_benefit" relatedVia="website_benefit_combined_benefits";
+	property name="combined_benefits" relationship="many-to-many" relatedTo="website_benefit" relatedVia="website_benefit_combined_benefits" relatedViaSourceFk="source_website_benefit" relatedViaTargetFk="target_website_benefit";
 	property name="combined_benefits_are_inclusive" type="boolean" dbtype="boolean" required=false default=false;
 
 	public numeric function calculatePriority( required struct data ) output=false {

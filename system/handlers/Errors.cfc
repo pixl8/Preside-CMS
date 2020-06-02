@@ -6,14 +6,18 @@ component {
 		event.setHTTPHeader( statusCode="404" );
 		event.setHTTPHeader( name="X-Robots-Tag", value="noindex" );
 
-
 		if ( event.isAdminRequest() ){
 			if ( !event.isAdminUser() ) {
 				setNextEvent( url=event.buildAdminLink( "login" ) );
 			}
-			event.setLayout( "admin" );
-			return renderView( view="/admin/errorPages/notFound" )
+
+			return renderView( view="/admin/errorPages/notFound" );
 		}
+
+		if ( isFeatureEnabled( "redirectErrorPages" ) ) {
+			setNextEvent( url=event.buildLink( page="notFound" ) );
+		}
+
 		event.initializePresideSiteteePage( systemPage="notFound" );
 		return renderView( view="/errors/notFound", presideobject="notFound", id=event.getCurrentPageId(), args=args );
 	}
@@ -30,10 +34,17 @@ component {
 
 		switch( args.reason ?: "" ){
 			case "INSUFFICIENT_PRIVILEGES":
+				if ( isFeatureEnabled( "redirectErrorPages" ) ) {
+					setNextEvent( url=event.buildLink( page="accessDenied" ) );
+				}
 				event.initializePresideSiteteePage( systemPage="accessDenied" );
 				return renderView( view="/errors/insufficientPrivileges", presideobject="accessDenied", id=event.getCurrentPageId(), args=args );
 			default:
-				websiteLoginService.setPostLoginUrl( event.getCurrentUrl() );
+				websiteLoginService.setPostLoginUrl( Len( Trim( args.postLoginUrl ?: "" ) ) ? args.postLoginUrl : event.getCurrentUrl() );
+				if ( isFeatureEnabled( "redirectErrorPages" ) ) {
+					setNextEvent( url=event.buildLink( page="login" ), persistStruct={ message="LOGIN_REQUIRED" } );
+				}
+
 				event.initializePresideSiteteePage( systemPage="login" );
 				return renderView( view="/errors/loginRequired", args=args );
 		}

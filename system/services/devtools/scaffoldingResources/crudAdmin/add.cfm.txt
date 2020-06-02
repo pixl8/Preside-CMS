@@ -1,0 +1,13 @@
+<cfoutput>
+	#renderView( view="/admin/datamanager/_addRecordForm", args={
+		  objectName            = "${objectId}"
+		, addRecordAction       = event.buildAdminLink( linkTo='${handlerRoot}.addAction' )
+		, cancelAction          = event.buildAdminLink( linkTo='${handlerRoot}' )
+// BEGIN DRAFTS
+		, draftsEnabled         = true
+		, canPublish            = IsTrue( prc.canPublish   ?: "" )
+		, canSaveDraft          = IsTrue( prc.canSaveDraft ?: "" )
+// END DRAFTS
+		, allowAddAnotherSwitch = true
+	} )#
+</cfoutput>

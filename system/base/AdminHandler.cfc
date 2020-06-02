@@ -1,59 +1,78 @@
-<cfcomponent output="false" hint="I am a base Handler for all admin handlers. All admin handlers should extend me">
-	<cfproperty name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent" />
+component {
+	property name="applicationsService" inject="applicationsService";
+	property name="loginService"        inject="loginService";
+	property name="sessionStorage"      inject="sessionStorage";
+	property name="messageBox"          inject="messagebox@cbmessagebox";
 
-	<cffunction name="preHandler" access="public" returntype="void" output="false">
-		<cfargument name="event"          type="any"    required="true" />
-		<cfargument name="action"         type="string" required="true" />
-		<cfargument name="eventArguments" type="struct" required="true" />
+	public void function preHandler( event, action, eventArguments ) {
+		if( event.isStatelessRequest() ){
+			event.adminAccessDenied();
+		}
+		_checkLogin( event );
 
-		<cfscript>
-			_checkLogin( event );
+		var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
+		var operationSource   = event.getValue( "_psource", "" );
 
-			event.setLayout( "admin" );
-			event.setLanguage( "" );
-			event.includeData( {
-				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy" )
-				, adminBaseUrl = event.getAdminPath()
-			} );
-			event.includeData( event.getCollection() );
+		if ( Len( Trim( operationSource ) ) ) {
+			event.setAdminOperationSource( operationSource );
+		}
 
-			event.addAdminBreadCrumb(
-				  title = translateResource( "cms:home.title" )
-				, link  = event.buildAdminLink( linkTo=adminDefaultEvent )
-			);
-		</cfscript>
-	</cffunction>
+		event.setXFrameOptionsHeader( "SAMEORIGIN" );
+		event.setLayout( applicationsService.getLayout( activeApplication ) );
+		event.setLanguage( "" );
+		event.includeData( {
+			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy" )
+			, adminBaseUrl = event.getAdminPath()
+			, siteId       = event.getSiteId()
+		} );
+		event.includeData( event.getCollection() );
 
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:home.title" )
+			, link  = event.buildLink( linkTo=applicationsService.getDefaultEvent( activeApplication ) )
+		);
+	}
 
-<!--- private helpers --->
-	<cffunction name="_checkLogin" access="private" returntype="void" output="false">
-		<cfargument name="event"          type="any"    required="true" />
+// PRIVATE HELPERS
+	private void function _checkLogin( event ) {
+		var currentEvent = event.getCurrentEvent();
+		var loginExcempt = currentEvent.reFindNoCase( "^admin\.(login|ajaxProxy|general\.setlocale)" );
+		var postLoginUrl = "";
 
-		<cfscript>
-			var loginExcempt = event.getCurrentEvent() contains 'admin.login' or event.getCurrentEvent() contains 'admin.ajaxProxy'; // ajaxProxy does its own login handling...
-			var postLoginUrl = "";
+		if ( !loginExcempt ) {
+			var isAdminUser     = event.isAdminUser();
+			var isAuthenticated = isAdminUser && !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() );
 
-			if ( not loginExcempt and not event.isAdminUser() ) {
-				if ( event.isActionRequest() ) {
+			if ( !isAuthenticated ) {
+				if ( event.isAjax() ) {
+					content reset=true type="application/json";
+					header statuscode="401" statustext="Access denied";
+					echo( SerializeJson( { error="access denied"} ) );
+					abort;
+				} else if ( event.isActionRequest() ) {
 					if ( Len( Trim( cgi.http_referer ) ) ) {
 						postLoginUrl = cgi.http_referer;
 						if ( event.getHttpMethod() eq "POST" ) {
-							getPlugin( "sessionStorage" ).setVar( "_unsavedFormData", Duplicate( form ) );
-							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.saveddata.warning" ) );
+							sessionStorage.setVar( "_unsavedFormData", Duplicate( form ) );
+							messageBox.warn( translateResource( uri="cms:loggedout.saveddata.warning" ) );
+
 						} else {
-							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
+							messageBox.warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
 						}
 					} else {
-						postLoginUrl = event.buildAdminLink( linkTo=adminDefaultEvent );
+						postLoginUrl = event.buildAdminLink( linkTo="" );
 					}
 
 				} else {
-					postLoginUrl = event.getCurrentUrl();
+					postLoginUrl = rc.postLoginUrl ?: event.getCurrentUrl();
 				}
 
-				setNextEvent( url=event.buildAdminLink( "login" ), persistStruct={ postLoginUrl = postLoginUrl } );
+				if ( isAdminUser ) {
+					setNextEvent( url=event.buildAdminLink( "login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
+				} else {
+					setNextEvent( url=event.buildAdminLink( "login" ), persistStruct={ postLoginUrl = postLoginUrl } );
+				}
 			}
-		</cfscript>
-	</cffunction>
-
-</cfcomponent>
+		}
+	}
+}

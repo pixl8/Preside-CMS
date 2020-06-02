@@ -1,11 +1,13 @@
 .modal-dialog-layout-container {
+	padding-bottom : 0 !important;
+
 	.main-content {
 		margin-left : 0;
 	}
 }
 
 
-&.quick-add-modal, &.quick-edit-modal {
+&.quick-add-modal, &.quick-edit-modal, &.configurator-add-modal, &.configurator-edit-modal {
  	.modal-dialog {
  		width: 922px;
 
@@ -92,6 +94,7 @@
 			.modal-body {
 				height  : calc( ~"100% - 116px" );
 				padding : 0;
+				overflow : scroll;
 
 				.bootbox-body {
 					height : 100%;
@@ -100,10 +103,40 @@
 						height : 100%;
 					}
 				}
+
+				.modal-padding {
+					padding : 20px;
+				}
+
+				.modal-padding-horizontal {
+					padding-left  : 20px;
+					padding-right : 20px;
+				}
 			}
 
 			.modal-footer {
 				margin-top : 0;
+			}
+		}
+	}
+
+	&.with-padding {
+		.modal-dialog .modal-content .modal-body {
+			padding : 20px;
+		}
+	}
+
+	&.limited-size {
+		.modal-dialog {
+			max-width  : 1200px;
+			max-height : 800px;
+
+			.modal-content .modal-body {
+				overflow : auto;
+
+				.bootbox-body iframe {
+					height : 99%;
+				}
 			}
 		}
 	}
@@ -117,5 +150,21 @@
 
 	.top-right-button-group {
 		top : 13px;
+	}
+
+	.modal-padding {
+		padding : 20px;
+	}
+	.modal-padding-horizontal {
+		padding : 0 20px;
+	}
+
+	.modal-dialog-less-padding {
+		padding : 0;
+
+		.modal-padding {
+			padding-top    : 0px;
+			padding-bottom : 0px;
+		}
 	}
 }

@@ -2,20 +2,34 @@
  * The website login manager object provides methods for member login, logout and session retrieval
  * \n
  * See also: [[websiteusersandpermissioning]]
+ *
+ * @singleton
+ * @presideservice
+ * @autodoc
  */
-component singleton=true autodoc=true displayName="Website login service" {
+component displayName="Website login service" {
 
 // constructor
 	/**
-	 * @sessionStorage.inject             coldbox:plugin:sessionStorage
+	 * @sessionStorage.inject             sessionStorage
 	 * @cookieService.inject              cookieService
 	 * @userDao.inject                    presidecms:object:website_user
 	 * @userLoginTokenDao.inject          presidecms:object:website_user_login_token
 	 * @bcryptService.inject              bcryptService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @emailService.inject               emailService
+	 * @websiteUserActionService.inject   websiteUserActionService
 	 */
-	public any function init( required any sessionStorage, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) {
+	public any function init(
+		  required any sessionStorage
+		, required any cookieService
+		, required any userDao
+		, required any userLoginTokenDao
+		, required any bcryptService
+		, required any systemConfigurationService
+		, required any emailService
+		, required any websiteUserActionService
+	) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setCookieService( arguments.cookieService );
 		_setUserDao( arguments.userDao );
@@ -23,6 +37,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 		_setBCryptService( arguments.bcryptService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setEmailService( arguments.emailService );
+		_setWebsiteUserActionService( arguments.websiteUserActionService );
 		_setSessionKey( "website_user" );
 		_setRememberMeCookieKey( "_presidecms-site-persist" );
 
@@ -45,18 +60,28 @@ component singleton=true autodoc=true displayName="Website login service" {
 		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
-			if ( userRecord.count() && ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) ) {
-				userRecord.session_authenticated = true;
+			if ( userRecord.count() ) {
+				if ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) {
+					userRecord.session_authenticated = true;
 
-				_setUserSession( userRecord );
+					_setUserSession( userRecord );
 
-				if ( arguments.rememberLogin ) {
-					_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					if ( arguments.rememberLogin ) {
+						_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					}
+
+					_getWebsiteUserActionService().promoteVisitorActionsToUserActions( userRecord.id );
+					recordLogin();
+					_preventSessionFixation();
+
+					return true;
+				} else {
+					$recordWebsiteUserAction(
+						  action = "failedLogin"
+						, type   = "login"
+						, userId = userRecord.id
+					);
 				}
-
-				recordLogin();
-
-				return true;
 			}
 		}
 
@@ -83,6 +108,14 @@ component singleton=true autodoc=true displayName="Website login service" {
 
 			_setUserSession( userRecord );
 
+			$audit(
+				  source   = "websiteusermanager"
+				, type     = "websiteusermanager"
+				, action   = "impersonate_website_user"
+				, recordId = userId
+				, detail   = userRecord
+			);
+
 			return true;
 		}
 
@@ -93,7 +126,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * Validates the supplied password against the a user (defaults to currently logged in user)
 	 *
 	 * @password.hint The user supplied password
-	 * @userId.hint   The id of the user who's password we are to validate. Defaults to the currently logged in user.
+	 * @userId.hint   The id of the user whose password we are to validate. Defaults to the currently logged in user.
 	 *
 	 */
 	public boolean function validatePassword( required string password, string userId=getLoggedInUserId() ) autodoc=true {
@@ -110,6 +143,8 @@ component singleton=true autodoc=true displayName="Website login service" {
 		recordLogout();
 
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
+		_preventSessionFixation();
+
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
 			_deleteRememberMeCookie();
@@ -169,7 +204,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	public struct function getLoggedInUserDetails() autodoc=true {
 		var userDetails = _getSessionStorage().getVar( name=_getSessionKey(), default={} );
 
-		return IsStruct( userDetails ) ? userDetails : {};
+		return !IsNull( local.userDetails ) && IsStruct( userDetails ) ? userDetails : {};
 	}
 
 	/**
@@ -198,13 +233,13 @@ component singleton=true autodoc=true displayName="Website login service" {
 			_getUserDao().updateData( id=userRecord.id, data={
 				  reset_password_token        = resetToken
 				, reset_password_key          = hashedResetKey
-				, reset_password_token_expiry = DateAdd( "d", 10000, Now() )
+				, reset_password_token_expiry = resetTokenExpiry
 			} );
 
 			_getEmailService().send(
-				  template = "websiteWelcome"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginid=userRecord.login_id }
+				  template    = "websiteWelcome"
+				, recipientId = arguments.userId
+				, args        = { resetToken = "#resetToken#-#resetKey#" }
 			);
 
 			return true;
@@ -222,27 +257,70 @@ component singleton=true autodoc=true displayName="Website login service" {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.count() ) {
-			var resetToken       = _createTemporaryResetToken();
-			var resetKey         = _createTemporaryResetKey();
-			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
-			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
+			var token = createPasswordResetToken();
 
 			_getUserDao().updateData( id=userRecord.id, data={
-				  reset_password_token        = resetToken
-				, reset_password_key          = hashedResetKey
-				, reset_password_token_expiry = resetTokenExpiry
+				  reset_password_token        = token.resetToken
+				, reset_password_key          = token.hashedResetKey
+				, reset_password_token_expiry = token.resetTokenExpiry
 			} );
 
 			_getEmailService().send(
-				  template = "resetWebsitePassword"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginId=userRecord.login_id }
+				  template    = "resetWebsitePassword"
+				, recipientId = userRecord.id
+				, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
+			);
+
+			$recordWebsiteUserAction(
+				  userId = userRecord.id
+				, action = "sendPasswordResetInstructions"
+				, type   = "login"
 			);
 
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Resends new token to expired token and reminds them the token is expired
+	 */
+	public boolean function resendPasswordResetInstructions( required string userId ) autodoc=true {
+		var token      = createPasswordResetToken();
+
+		_getUserDao().updateData( id=arguments.userId, data={
+			  reset_password_token        = token.resetToken
+			, reset_password_key          = token.hashedResetKey
+			, reset_password_token_expiry = token.resetTokenExpiry
+		} );
+
+		var result = _getEmailService().send(
+			  template    = "resetWebsitePasswordForTokenExpiry"
+			, recipientId = arguments.userId
+			, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
+		);
+
+		$recordWebsiteUserAction(
+			  userId = arguments.userId
+			, action = "sendPasswordResetInstructions"
+			, type   = "login"
+		);
+
+		return true;
+	}
+
+	/**
+	 * Creates a password reset token.
+	 */
+	public struct function createPasswordResetToken() autodoc=true {
+		var token              = {};
+		token.resetToken       = _createTemporaryResetToken();
+		token.resetKey         = _createTemporaryResetKey();
+		token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
+		token.resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		return token;
 	}
 
 	/**
@@ -269,11 +347,22 @@ component singleton=true autodoc=true displayName="Website login service" {
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
 
-			return _getUserDao().updateData(
+			var result = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			if ( result ) {
+				$recordWebsiteUserAction(
+					  userId = record.id
+					, action = "changepassword"
+					, type   = "login"
+				);
+			}
+
+			return result;
 		}
+
 		return false;
 	}
 
@@ -281,27 +370,59 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * Changes a password
 	 *
 	 * @password.hint The new password
-	 * @userId.hint   ID of the user who's password we wish to change (defaults to currently logged in user id)
+	 * @userId.hint   ID of the user whose password we wish to change (defaults to currently logged in user id)
 	 */
-	public boolean function changePassword( required string password, string userId=getLoggedInUserId() ) autodoc=true {
+	public boolean function changePassword( required string password, string userId=getLoggedInUserId(), boolean changedByAdmin=false ) autodoc=true {
 		var hashedPw = _getBCryptService().hashPw( arguments.password );
-
-		return _getUserDao().updateData(
+		var result   = _getUserDao().updateData(
 			  id   = arguments.userId
 			, data = { password=hashedPw }
 		);
+
+		if ( arguments.changedByAdmin ) {
+			var userRecord = _getUserDao().selectData( id=userId );
+			for( var u in userRecord ) {
+				userRecord = u;
+			}
+			$audit(
+				  source   = "websiteusermanager"
+				, type     = "websiteusermanager"
+				, action   = "change_website_user_password"
+				, recordId = arguments.userId
+				, detail   = userRecord
+			);
+
+		} else {
+			$recordWebsiteUserAction(
+				  userId = arguments.userId
+				, action = "changepassword"
+				, type   = "login"
+			);
+		}
+
+		return result;
 	}
 
 	/**
 	 * Gets the post login URL for redirecting a user to after successful login
 	 *
-	 * @defaultValue.hint Value to use should there be no stored post login URL
+	 * @defaultValue.hint  Value to use should there be no stored post login URL
+	 * @explicitValue.hint Value to always use if not empty (and set into session for later retrieval)
 	 *
 	 */
-	public string function getPostLoginUrl( required string defaultValue ) {
+	public string function getPostLoginUrl(
+		  required string defaultValue  = ""
+		,          string explicitValue = ""
+	) {
+
+		if( Len( Trim( arguments.explicitValue ?: "" ) ) ){
+			setPostLoginUrl( arguments.explicitValue );
+			return arguments.explicitValue;
+		}
+
 		var sessionSavedValue = _getSessionStorage().getVar( "websitePostLoginUrl", "" );
 
-		if ( Len( Trim( sessionSavedValue ) ) ) {
+		if ( Len( Trim( sessionSavedValue ?: "" ) ) ) {
 			return sessionSavedValue;
 		}
 
@@ -356,13 +477,25 @@ component singleton=true autodoc=true displayName="Website login service" {
 
 	/**
 	 * Sets the last logged in date for the logged in user
+	 * and records the action using [[api-websiteuseractionservice]]
 	 */
 	public boolean function recordLogin() autodoc=true {
 		var userId = getLoggedInUserId();
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_in = Now()
-		} );
+		if ( Len( Trim( userId ) ) ) {
+			$recordWebsiteUserAction(
+				  action = "login"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_in = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -371,11 +504,25 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 *
 	 */
 	public boolean function recordLogout() autodoc=true {
-		var userId = getLoggedInUserId();
+		var userDetails  = getLoggedInUserDetails();
+		var userId       = trim( userDetails.id ?: "" );
+		var impersonated = isBoolean( userDetails.impersonated ?: "" ) && userDetails.impersonated;
+		var recordLogout = !impersonated && len( userId );
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_out = Now()
-		} );
+		if ( recordLogout ) {
+			$recordWebsiteUserAction(
+				  action = "logout"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_out = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -384,17 +531,25 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 *
 	 */
 	public boolean function recordVisit() autodoc=true {
-		var userId = getLoggedInUserId();
+		var userDetails  = getLoggedInUserDetails();
+		var userId       = trim( userDetails.id ?: "" );
+		var impersonated = isBoolean( userDetails.impersonated ?: "" ) && userDetails.impersonated;
+		var adminRequest = $getRequestContext().isAdminRequest();
+		var recordVisit  = !adminRequest && !impersonated && len( userId );
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_request_made = Now()
-		} );
+		if ( recordVisit ) {
+			return _getUserDao().updateData( id=userId, data={
+				last_request_made = Now()
+			} );
+		}
+
+		return false;
 	}
 
 // private helpers
 	private struct function _getUserByLoginId( required string loginId ) {
 		var record = _getUserDao().selectData(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
 		);
@@ -411,6 +566,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	}
 
 	private void function _setUserSession( required struct data ) {
+		$announceInterception( "preSetUserSession", arguments.data );
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
 	}
 
@@ -467,6 +623,11 @@ component singleton=true autodoc=true displayName="Website login service" {
 			if ( user.count() ) {
 				user.session_authenticated = false;
 				_setUserSession( user );
+				$recordWebsiteUserAction(
+					  action = "autologin"
+					, type   = "login"
+				);
+				_preventSessionFixation();
 
 				request._presideWebsiteAutoLoginResult = true;
 				return true;
@@ -566,6 +727,10 @@ component singleton=true autodoc=true displayName="Website login service" {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
 
+		if( isEmpty( t ) || isEmpty( k ) ){
+			return QueryNew('');
+		}
+
 		var record = _getUserDao().selectData(
 			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
 			, filter       = { reset_password_token = t }
@@ -581,10 +746,23 @@ component singleton=true autodoc=true displayName="Website login service" {
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
 
+			var resendToken = $getPresideSetting( category="email", setting="resendtoken", default=false );
+			if ( IsBoolean( resendToken ) && resendToken ) {
+				resendPasswordResetInstructions( record.id );
+			}
+
 			return QueryNew('');
 		}
 
 		return record;
+	}
+
+	private void function _preventSessionFixation() {
+		var appSettings = getApplicationSettings();
+
+		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+			SessionRotate();
+		}
 	}
 
 // private accessors
@@ -649,5 +827,12 @@ component singleton=true autodoc=true displayName="Website login service" {
 	}
 	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
+	}
+
+	private any function _getWebsiteUserActionService() {
+		return _websiteUserActionService;
+	}
+	private void function _setWebsiteUserActionService( required any websiteUserActionService ) {
+		_websiteUserActionService = arguments.websiteUserActionService;
 	}
 }

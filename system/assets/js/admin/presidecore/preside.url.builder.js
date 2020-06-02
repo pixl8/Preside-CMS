@@ -1,8 +1,9 @@
 var buildAjaxLink = ( function(){
-	var endpoint = ( cfrequest || {} ).ajaxEndpoint || "";
+	var endpoint = ( cfrequest || {} ).ajaxEndpoint || ""
+	  , qsDelim  = endpoint.indexOf( "?" ) === -1 ? "?" : "&";
 
 	return function( action, options ){
-		var link = endpoint + "?action=" + action
+		var link = endpoint + qsDelim + "action=" + action
 		  , option;
 
 		if ( options ) {
@@ -16,11 +17,13 @@ var buildAjaxLink = ( function(){
 } )();
 
 var buildAdminLink = ( function(){
-	var endpoint = ( cfrequest || {} ).adminBaseUrl || "/";
+	var endpoint = ( cfrequest || {} ).adminBaseUrl || "/"
+	  , siteId   = ( cfrequest || {} ).siteId || "";
 
 	return function( handler, action, options ){
 		var link = endpoint
 		  , option, delim="?";
+
 
 		if ( handler ) {
 			link += handler.replace( /\./g, "/" ) + "/";
@@ -29,11 +32,13 @@ var buildAdminLink = ( function(){
 			}
 		}
 
-		if ( options ) {
-			for ( option in options ) {
-				link += ( delim + option + "=" + options[ option ] );
-				delim = "&";
-			}
+		options = options ? options : {};
+		if ( siteId.length ) {
+			options._sid = siteId;
+		}
+		for ( option in options ) {
+			link += ( delim + option + "=" + options[ option ] );
+			delim = "&";
 		}
 
 		return link;

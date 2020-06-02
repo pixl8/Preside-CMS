@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	public any function init() output=false {
@@ -13,7 +13,7 @@ component output=false singleton=true {
 		, required any    objectInstance
 		, required any    presideObjectService
 	) output=false {
-		var decorated    = Duplicate( arguments.objectInstance );
+		var decorated    = arguments.objectInstance;
 
 		if ( not IsSimpleValue( arguments.objectInstance ) ) {
 			decorated._presideObjectService = arguments.presideObjectService;
@@ -26,9 +26,10 @@ component output=false singleton=true {
 			decorated.$methodInjector( "getDsn"         , this.getDsn          );
 			decorated.$methodInjector( "getTablename"   , this.getTablename    );
 			decorated.$methodInjector( "getName"        , this.getName         );
+			decorated.$methodInjector( "getDbAdapter"   , this.getDbAdapter    );
 			decorated.$methodInjector( "onMissingMethod", this.onMissingMethod );
 
-			StructDelete( decorated, "$methodInjector" )
+			StructDelete( decorated, "$methodInjector" );
 		}
 
 		return decorated;
@@ -36,7 +37,7 @@ component output=false singleton=true {
 
 // METHODS WITH WHICH TO DECORATE
 	public any function onMissingMethod( required string missingMethodName, required struct missingMethodArguments ) output=false {
-		var proxyMethods = "dataExists,fieldExists,selectData,selectManyToManyData,insertData,updateData,deleteData,getObjectProperties";
+		var proxyMethods = "dataExists,fieldExists,selectData,selectManyToManyData,insertData,insertDataFromSelect,updateData,deleteData,getObjectProperties,getIdField,getLabelField,getDateCreatedField,getDateModifiedField";
 		var i            = 1;
 
 		if ( ListFindNoCase( proxyMethods, missingMethodName ) ) {
@@ -65,6 +66,10 @@ component output=false singleton=true {
 
 	public string function getTablename() output=false {
 		return this._tableName;
+	}
+
+	public any function getDbAdapter() {
+		return this._presideObjectService.getDbAdapterForObject( this._objectName );
 	}
 
 	public void function $methodInjector( required string methodName, required any method ) output=false {

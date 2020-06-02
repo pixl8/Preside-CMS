@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+User group: edit catch all group form
+
+This form is used for "edit user group" form for the 'Everyone' user group
+-->
+<form>
+	<tab id="basic">
+		<fieldset id="basic">
+			<field name="users" deleted="true" />
+		</fieldset>
+	</tab>
+</form>

@@ -1,7 +1,7 @@
 <cfscript>
 	page             = prc.page            ?: QueryNew('');
-	mainFormName     = prc.mainFormName    ?: ""
-	mergeFormName    = prc.mergeFormName   ?: ""
+	mainFormName     = prc.mainFormName    ?: "";
+	mergeFormName    = prc.mergeFormName   ?: "";
 	validationResult = rc.validationResult ?: "";
 	formId           = "editForm-" & CreateUUId();
 	editPagePrompt    = translateResource( uri="preside-objects.page:editRecord.prompt", defaultValue="" );
@@ -9,8 +9,9 @@
 	prc.pageIcon     = "pencil";
 	prc.pageTitle    = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.page.title ] );
 
-	pageId  = rc.id      ?: "";
-	version = rc.version ?: "";
+	pageId     = rc.id      ?: "";
+	version    = rc.version ?: "";
+	childCount = prc.childCount ?: 0;
 
 	safeTitle = HtmlEditFormat( page.title );
 
@@ -21,20 +22,27 @@
 	canDeletePage           = prc.canDeletePage           ?: false;
 	canSortChildren         = prc.canSortChildren         ?: false;
 	canManagePagePerms      = prc.canManagePagePerms      ?: false;
+	canClone                = prc.canClone                ?: false;
+	canActivate             = prc.canActivate             ?: false;
 	translations            = prc.translations            ?: [];
 	translateUrlBase        = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
 
 	backToTreeLink  = prc.backToTreeLink  ?: "";
 	backToTreeTitle = prc.backToTreeTitle ?: "";
+
+	canPublish   = IsTrue( prc.canPublish   ?: "" );
+	canSaveDraft = IsTrue( prc.canSaveDraft ?: "" );
 </cfscript>
 
 <cfoutput>
 	#renderViewlet( event='admin.datamanager.versionNavigator', args={
-		  object         = "page"
-		, id             = pageId
-		, version        = version
-		, baseUrl        = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version=" )
-		, allVersionsUrl = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
+		  object           = "page"
+		, id               = pageId
+		, version          = version
+		, isDraft          = IsTrue( page._version_is_draft ?: "" )
+		, baseUrl          = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version={version}" )
+		, allVersionsUrl   = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
+		, discardDraftsUrl = ( canSaveDraft ? event.buildAdminlink( linkTo="sitetree.discardDraftsAction", queryString="id=#pageId#" ) : "" )
 	} )#
 
 	<div class="top-right-button-group">
@@ -44,6 +52,14 @@
 				<i class="fa fa-fw fa-cog"></i>&nbsp; #translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )#
 			</button>
 			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+				<cfif canClone>
+					<li>
+						<a href="#event.buildAdminLink( linkTo='sitetree.clonePage', queryString='id=' & pageId )#">
+							<i class="fa fa-fw fa-clone"></i>&nbsp;
+							#translateResource( "cms:sitetree.clone.page.dropdown" )#
+						</a>
+					</li>
+				</cfif>
 				<cfif canAddChildren>
 					<cfset addPageLinkTitle = translateResource( uri="cms:sitetree.add.child.page.link", data=[ safeTitle ] ) />
 					<li>
@@ -53,7 +69,7 @@
 								#addPageLinkTitle#
 							</a>
 						<cfelse>
-							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=pageId&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( addPageLinkTitle )#">
+							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#pageId#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( addPageLinkTitle )#">
 								<i class="fa fa-fw fa-plus"></i>&nbsp;
 								#addPageLinkTitle#
 							</a>
@@ -61,9 +77,25 @@
 					</li>
 				</cfif>
 
+				<cfif canActivate>
+					<li>
+						<cfif IsTrue( page.active )>
+							<a href="#event.buildAdminLink( linkTo='sitetree.deactivatePageAction', queryString='id=#page.id#' )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.deactivate.child.page.link", data=[ safeTitle ] )#">
+								<i class="fa fa-fw fa-times-circle"></i>&nbsp;
+								#translateResource( "cms:sitetree.deactivate.page.dropdown" )#
+							</a>
+						<cfelse>
+							<a href="#event.buildAdminLink( linkTo='sitetree.activatePageAction', queryString='id=#page.id#' )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.activate.child.page.link", data=[ safeTitle ] )#">
+								<i class="fa fa-fw fa-check-circle"></i>&nbsp;
+								#translateResource( "cms:sitetree.activate.page.dropdown" )#
+							</a>
+						</cfif>
+					</li>
+				</cfif>
+
 				<cfif canDeletePage>
 					<li>
-						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#" data-has-children="#childCount#">
 							<i class="fa fa-fw fa-trash-o"></i>&nbsp;
 							#translateResource( "cms:sitetree.trash.page.dropdown" )#
 						</a>
@@ -136,25 +168,42 @@
 		<input type="hidden" name="id" value="#event.getValue( name='id', defaultValue='' )#" />
 
 		#renderForm(
-			  formName          = mainFormName
-			, mergeWithFormName = mergeFormName
-			, context           = "admin"
-			, formId            = formId
-			, savedData         = page
-			, validationResult  = validationResult
+			  formName                = mainFormName
+			, mergeWithFormName       = mergeFormName
+			, context                 = "admin"
+			, formId                  = formId
+			, savedData               = page
+			, validationResult        = validationResult
+			, stripPermissionedFields = true
+			, permissionContext       = "page"
+			, permissionContextKeys   = ( prc.pagePermissionContext ?: [] )
 		)#
 
+
+		#renderFormControl(
+			  type    = "yesNoSwitch"
+			, context = "admin"
+			, name    = "_backToEdit"
+			, id      = "_backToEdit"
+			, label   = translateResource( uri="cms:sitetree.editPage.backToEdit" )
+		)#
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
-				<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">
+				<a href="#backToTreeLink#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>
 
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-check bigger-110"></i>
-					#translateResource( "cms:sitetree.savepage.btn" )#
-				</button>
+				<cfif canSaveDraft>
+					<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i> #translateResource( "cms:sitetree.savepage.draft.btn" )#
+					</button>
+				</cfif>
+				<cfif canPublish>
+					<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-globe bigger-110"></i> #translateResource( "cms:sitetree.savepage.btn" )#
+					</button>
+				</cfif>
 			</div>
 		</div>
 	</form>

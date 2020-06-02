@@ -1,4 +1,4 @@
-component output=false validationProvider=true singleton=true {
+component validationProvider=true singleton=true {
 
 	/**
 	 * @presideObjectService.inject PresideObjectService
@@ -27,15 +27,11 @@ component output=false validationProvider=true singleton=true {
 		}
 
 		for( field in ListToArray( arguments.fields ) ){
-			if ( not StructKeyExists( arguments.data, field ) ) {
-				return false;
+			if ( !StructKeyExists( arguments.data, field ) || !Len( Trim( arguments.data[ field ] ) ) ) {
+				return true; // yes! a unique index should be by-passed when any field is null
 			}
 
-			if ( Len( Trim( arguments.data[ field ] ) ) ) {
-				filter &= delimiter & "#dbAdapter.escapeEntity( field )# = :#field#";
-			} else {
-				filter &= delimiter & "(#dbAdapter.escapeEntity( field )# = :#field# or #dbAdapter.escapeEntity( field )# is null)";
-			}
+			filter &= delimiter & "#dbAdapter.escapeEntity( field )# = :#field#";
 			filterParams[ field ]  = arguments.data[ field ];
 
 			delimiter = " and ";

@@ -1,6 +1,7 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
-	property name="messagebox" inject="coldbox:plugin:messagebox";
+	property name="messagebox"      inject="messagebox@cbmessagebox";
+	property name="errorLogService" inject="errorLogService";
 
 	public void function preHandler( event ) output=false {
 		super.preHandler( argumentCollection=arguments );
@@ -13,28 +14,30 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	public void function index( event, rc, prc ) output=false {
-		prc.logs  = getModel( "errorLogService" ).listErrors();
+		prc.logs  = errorLogService.listErrors();
 
 		prc.pageTitle    = translateResource( "cms:errorLogs.page.title" );
 		prc.pageSubTitle = translateResource( "cms:errorLogs.page.subtitle" );
 	}
 
 	public void function view( event, rc, prc ) output=false {
-		var log = getModel( "errorLogService" ).readError( rc.log ?: "" );
+		var log = errorLogService.readError( rc.log ?: "" );
 
 		if ( Len( Trim( log ) ) ) {
 			event.renderData( data=log, type="HTML" );
+		} else {
+			event.renderData( data=translateResource( "cms:errorLogs.log.notFound" ), type="HTML" );
 		}
 	}
 
 	public void function deleteLogAction( event, rc, prc ) output=false {
-		getModel( "errorLogService" ).deleteError( rc.log ?: "" );
+		errorLogService.deleteError( rc.log ?: "" );
 		messagebox.info( translateResource( "cms:errorLogs.log.deleted.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( "errorLogs" ) );
 	}
 
 	public void function deleteAllAction( event, rc, prc ) output=false {
-		getModel( "errorLogService" ).deleteAllErrors();
+		errorLogService.deleteAllErrors();
 		messagebox.info( translateResource( "cms:errorLogs.all.logs.deleted.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( "errorLogs" ) );
 	}

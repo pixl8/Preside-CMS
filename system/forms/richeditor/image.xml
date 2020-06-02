@@ -9,9 +9,16 @@ This form is used for the add/edit image screen in the richeditor.
 		<fieldset id="main" sortorder="10">
 			<field sortorder="10" name="asset"       control="assetPicker"     required="true"  label="cms:ckeditor.imagepicker.asset.label" allowedTypes="image" />
 			<field sortorder="20" name="alt_text"    control="textinput"       required="false" label="cms:ckeditor.imagepicker.alt_text.label" maxLength="200" />
-			<field sortorder="30" name="dimensions"  control="imagedimensions" required="true"  label="cms:ckeditor.imagepicker.dimensions.label" />
-			<field sortorder="40" name="quality"     control="select"  required="true"  label="cms:ckeditor.imagepicker.quality.label"   values="highestQuality,highQuality,mediumQuality,highestPerformance,highPerformance,mediumPerformance" labels="cms:ckeditor.imagepicker.quality.highestQuality,cms:ckeditor.imagepicker.quality.highQuality,cms:ckeditor.imagepicker.quality.mediumQuality,cms:ckeditor.imagepicker.quality.highestPerformance,cms:ckeditor.imagepicker.quality.highPerformance,cms:ckeditor.imagepicker.quality.mediumPerformance" defaultValue="highestPerformance" />
-			<field sortorder="50" name="alignment"   control="select"  required="false" label="cms:ckeditor.imagepicker.alignment.label" values="auto,left,right,center" labels="cms:ckeditor.imagepicker.alignment.auto,cms:ckeditor.imagepicker.alignment.left,cms:ckeditor.imagepicker.alignment.right,cms:ckeditor.imagepicker.alignment.center" />
+			<field sortorder="30" name="alignment"   control="select"  required="false" label="cms:ckeditor.imagepicker.alignment.label" values="auto,left,right,center" labels="cms:ckeditor.imagepicker.alignment.auto,cms:ckeditor.imagepicker.alignment.left,cms:ckeditor.imagepicker.alignment.right,cms:ckeditor.imagepicker.alignment.center" />
+	    </fieldset>
+
+		<fieldset id="resize" sortorder="20" title="cms:ckeditor.imagepicker.resize.fieldset">
+
+			<field sortorder="10" name="derivative" control="derivativePicker" required="false" label="cms:ckeditor.imagepicker.derivative.label" />
+
+			<field sortorder="20" name="dimensions"  control="imagedimensions" required="true"  label="cms:ckeditor.imagepicker.dimensions.label" />
+			<field sortorder="30" name="quality"     control="select"  required="true"  label="cms:ckeditor.imagepicker.quality.label"   values="highestQuality,highQuality,mediumQuality,highestPerformance,highPerformance,mediumPerformance" labels="cms:ckeditor.imagepicker.quality.highestQuality,cms:ckeditor.imagepicker.quality.highQuality,cms:ckeditor.imagepicker.quality.mediumQuality,cms:ckeditor.imagepicker.quality.highestPerformance,cms:ckeditor.imagepicker.quality.highPerformance,cms:ckeditor.imagepicker.quality.mediumPerformance" defaultValue="highestPerformance" />
+
 		</fieldset>
 	</tab>
 

@@ -2,12 +2,12 @@
  * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  *
- * May 2014: This file has been lightly modified for the purposes of integrating with PresideCMS
+ * May 2014: This file has been lightly modified for the purposes of integrating with Preside
  */
 
 'use strict';
 
-( function() {
+( function( $ ) {
 	CKEDITOR.plugins.add( 'presidelink', {
 		requires: 'dialog,iframedialog,fakeobjects',
 		lang: 'en',
@@ -204,9 +204,13 @@
 		emailRegex = /^mailto:([^?]+)(?:\?(.+))?$/,
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
+		emailAntiSpamRegex = /emailantispam=(\d)/,
+		emailVariableRegex = /emailvariable=(\$\{[^\}]+\})/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
-		presideLinkRegex = /^{{link:(.*?):link}}$/,
+		presideLinkRegex = /^{{link:(.*?):link}}(?:#([^'"]+))?$/,
+		presideAssetRegex = /^{{asset:(.*?):asset}}$/,
+		customRegex = /^{{custom:(.*?):custom}}$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
 		functionCallProtectedEmailLinkRegex = /^javascript:([^(]+)\(([^)]+)\)$/,
@@ -429,7 +433,7 @@
 			var href = ( element && ( element.data( 'cke-saved-href' ) || element.getAttribute( 'href' ) ) ) || '',
 				compiledProtectionFunction = editor.plugins.presidelink.compiledProtectionFunction,
 				emailProtection = editor.config.emailProtection,
-				javascriptMatch, emailMatch, anchorMatch, urlMatch,
+				javascriptMatch, emailMatch, anchorMatch, urlMatch, data,
 				retval = {};
 
 			if ( ( javascriptMatch = href.match( javascriptProtocolRegex ) ) ) {
@@ -471,18 +475,32 @@
 				}
 				// Protected email link as encoded string.
 				else if ( ( emailMatch = href.match( emailRegex ) ) ) {
-					var subjectMatch = href.match( emailSubjectRegex ),
-						bodyMatch = href.match( emailBodyRegex );
+					var subjectMatch  = href.match( emailSubjectRegex  ),
+						bodyMatch     = href.match( emailBodyRegex     ),
+						anitSpamMatch = href.match( emailAntiSpamRegex );
 
 					retval.type = 'email';
 
 					retval.emailaddress = emailMatch[ 1 ];
-					subjectMatch && ( retval.emailsubject = decodeURIComponent( subjectMatch[ 1 ] ) );
-					bodyMatch && ( retval.emailbody = decodeURIComponent( bodyMatch[ 1 ] ) );
+					subjectMatch  && ( retval.emailsubject  = decodeURIComponent( subjectMatch[ 1 ]  ) );
+					bodyMatch     && ( retval.emailbody     = decodeURIComponent( bodyMatch[ 1 ]     ) );
+					anitSpamMatch && ( retval.emailantispam = decodeURIComponent( anitSpamMatch[ 1 ] ) );
 				}
 				else if ( href && ( urlMatch = href.match( presideLinkRegex ) ) ) {
-					retval.type = 'sitetreelink'
-					retval.page = urlMatch[ 1 ];
+					retval.type       = 'sitetreelink';
+					retval.page       = urlMatch[ 1 ];
+					retval.pageanchor = urlMatch[ 2 ];
+				}
+				else if ( href && ( urlMatch = href.match( presideAssetRegex ) ) ) {
+					retval.type  = 'asset';
+					retval.asset = urlMatch[ 1 ];
+				}
+				else if ( href && ( urlMatch = href.match( customRegex ) ) ) {
+					try{
+						retval = $.parseJSON( atob( urlMatch[ 1 ] ) );
+					} catch( e ){
+						retval = {};
+					}
 				}
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
@@ -490,14 +508,24 @@
 					retval.protocol = urlMatch[ 1 ];
 					retval.address = urlMatch[ 2 ];
 				}
+				else if ( href && ( emailVariableMatch = href.match( emailVariableRegex ) ) ) {
+					retval.type = 'emailvariable';
+					retval.emailvariable = emailVariableMatch[ 1 ];
+				}
+
 			}
 
 			// Load target and popup settings.
 			if ( element ) {
-				var target = element.getAttribute( 'target' );
+				var target = element.getAttribute( 'target' )
+				  , rel    = element.getAttribute( 'rel' );
 
 				if ( target ) {
 					retval.link_target = target;
+				}
+
+				if ( rel == "nofollow" ) {
+					retval.nofollow = 1;
 				}
 
 				for ( var a in advAttrNames ) {
@@ -546,7 +574,10 @@
 			// Compose the URL.
 			switch ( data.type ) {
 				case 'sitetreelink':
-					set[ 'data-cke-saved-href' ] = '{{link:' + ( data.page || '' ) + ':link}}';
+					set[ 'data-cke-saved-href' ] = '{{link:' + ( data.page || '' ) + ':link}}' + ( data.pageanchor ? '#' + data.pageanchor : '' );
+					break;
+				case 'asset':
+					set[ 'data-cke-saved-href' ] = '{{asset:' + ( data.asset || '' ) + ':asset}}';
 					break;
 				case 'url':
 					var protocol = ( data.protocol != undefined ) ? data.protocol : 'http://'
@@ -559,6 +590,10 @@
 					set[ 'data-cke-saved-href' ] = '#' + ( data.anchor || '' );
 
 					break;
+				case 'emailvariable':
+					set[ 'data-cke-saved-href' ] = data.emailvariable || '';
+
+					break;
 				case 'email':
 					var address = data.emailaddress
 					  , linkHref;
@@ -566,16 +601,19 @@
 					switch ( emailProtection ) {
 						case '':
 						case 'encode':
-							var subject = encodeURIComponent( data.emailsubject || '' ),
-								body = encodeURIComponent( data.emailbody || '' ),
-								argList = [];
+							var subject         = encodeURIComponent( data.emailsubject || '' ),
+								body            = encodeURIComponent( data.emailbody    || '' ),
+								antiSpam        = "0",
+								disableAntiSpam = encodeURIComponent( typeof data.emailantispam === "string" && data.emailantispam === "1" ),
+								argList         = [];
 
 							// Build the e-mail parameters first.
-							subject && argList.push( 'subject=' + subject );
-							body && argList.push( 'body=' + body );
+							subject  && argList.push( 'subject=' + subject );
+							body     && argList.push( 'body=' + body );
+							antiSpam && argList.push( 'emailantispam=' + ( disableAntiSpam == "true" ? "1" : "0" ) );
 							argList = argList.length ? '?' + argList.join( '&' ) : '';
 
-							if ( emailProtection == 'encode' ) {
+							if ( emailProtection == 'encode' && disableAntiSpam == "false" ) {
 								linkHref = [
 									'javascript:void(location.href=\'mailto:\'+',
 									protectEmailAddressAsEncodedString( address )
@@ -584,8 +622,9 @@
 								argList && linkHref.push( '+\'', escapeSingleQuote( argList ), '\'' );
 
 								linkHref.push( ')' );
-							} else
+							} else {
 								linkHref = [ 'mailto:', address, argList ];
+							}
 
 							break;
 						default:
@@ -603,11 +642,18 @@
 
 					set[ 'data-cke-saved-href' ] = linkHref.join( '' );
 					break;
+
+				default:
+					set[ 'data-cke-saved-href' ] = '{{custom:' + btoa( JSON.stringify( data ) ) + ':custom}}';
 			}
 
 			// Popups and target.
 			if ( data.link_target && data.link_target !== "_self" ) {
 				set.target = data.link_target;
+			}
+
+			if ( data.nofollow && data.nofollow !== "" ) {
+				set.rel = "nofollow";
 			}
 
 			if ( data.title && data.title.length ) {
@@ -675,8 +721,7 @@
 				// Update text view when user changes protocol (#4612).
 				if ( href == textView || data.type == 'email' && textView.indexOf( '@' ) != -1 ) {
 					// Short mailto link text view (#5736).
-					element.setHtml( data.type == 'email' ?
-						data.email.address : attributes.set[ 'data-cke-saved-href' ] );
+					element.setHtml( data.type == 'email' ? data.emailaddress : attributes.set[ 'data-cke-saved-href' ] );
 
 					// We changed the content, so need to select it again.
 					selection.selectElement( element );
@@ -766,4 +811,4 @@
 		 * @member CKEDITOR.config
 		 */
 	} );
-} )();
+} )( presideJQuery );

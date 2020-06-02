@@ -25,7 +25,7 @@
 			, layout         = ""
 			, placeholder    = args.title
 			, defaultValue   = savedPermsToValueList( args.savedPerms )
-			, disabledValues = savedPermsToValueList( args.inheritedPerms )
+			, enabledValues = savedPermsToValueList( args.inheritedPerms )
 			, ajax           = false
 		)#
 	</div>

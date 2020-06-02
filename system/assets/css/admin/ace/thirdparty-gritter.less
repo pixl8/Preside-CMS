@@ -1,4 +1,6 @@
-/* jquery gritter */
+//jquery gritter
+.enable_plugin_gritter() when(@enable-plugin-gritter = true) {
+
 .gritter-item-wrapper {
 	background-image:none !important;
 	box-shadow:0 2px 10px rgba(50, 50, 50, 0.5);
@@ -49,21 +51,26 @@
 }
 
 .gritter-close {
-	left:auto; right:3px;
+	left: auto;
+	right: 3px;
 
 	background-image:none;
 
-	width:18px;	height:18px; line-height:17px;
-	text-align:center;
-	border:2px solid transparent;
-	border-radius:16px;
+	width: 18px;
+	height: 18px;
+	line-height: 17px;
 
-	color:#E17B67;
+	text-align: center;
+	border: 2px solid transparent;
+	border-radius: 16px;
+
+	color: #E17B67;
 
 	&:before {
-		font-family:@icon-font;
-		font-size:16px;
-		content:"\f00d";
+		font-family: PresideFontAwesome;
+
+		font-size: @font-size-gritter-close;
+		content: "\f00d";
 	}
 }
 
@@ -121,4 +128,6 @@
 }
 }
 
+}
 
+.enable_plugin_gritter();

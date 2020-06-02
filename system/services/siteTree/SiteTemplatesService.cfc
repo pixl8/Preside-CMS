@@ -2,7 +2,7 @@
  * The site templates service provides methods for discovering and listing out
  * site templates which are self contained sets of widgets, page types, objects, etc. See [[workingwithmultiplesites]].
  */
-component output=false singleton=true displayname="Site Templates service" autodoc=true {
+component singleton=true displayname="Site Templates service" autodoc=true {
 
 // CONSTRUCTOR
 	/**
@@ -34,13 +34,13 @@ component output=false singleton=true displayname="Site Templates service" autod
 
 		for( var dir in _getDirectories() ) {
 			var subs = DirectoryList( dir, false, "query" );
-			for( sub in subs ){
+			for( var sub in subs ){
 				if ( sub.type == "Dir" ) {
 					templateIds[ sub.name ] = true;
 				}
 			}
 		}
-		for( templateId in templateIds ) {
+		for( var templateId in templateIds ) {
 			templates.append( new SiteTemplate(
 				  id          = templateId
 				, title       = "site-templates.#templateId#:title"

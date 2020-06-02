@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset: group add form
+
+This form is used when adding assets in the asset manager section of the administrator.
+For multi file uploads, this form will provide options that will apply to all assets
+that have been uploaded.
+-->
+<form>
+	<tab id="standard" sortorder="10">
+		<fieldset id="standard" sortorder="10">
+			<field sortorder="10" binding="asset.asset_folder" control="assetFolderPicker" quickAdd="true" />
+			<field sortorder="20" binding="asset.author" control="textinput" />
+		</fieldset>
+	</tab>
+</form>

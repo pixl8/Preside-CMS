@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form extends="form2">
+	<tab id="tab1">
+		<fieldset id="fieldset1">
+			<field name="field2" deleted="true" />
+			<field name="testfield" />
+		</fieldset>
+		<fieldset id="fieldset2" deleted="true" />
+		<fieldset id="fieldset6">
+			<field name="testfield2" />
+		</fieldset>
+	</tab>
+	<tab id="tab2" deleted="true"/>
+	<tab id="tab3">
+		<fieldset id="fieldset5">
+			<field name="anothertestfield" />
+		</fieldset>
+	</tab>
+</form>

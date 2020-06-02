@@ -3,6 +3,12 @@
 
 <cfoutput>
 	<div class="action-buttons">
+		<cfif hasCmsPermission( "usermanager.read" )>
+			<a class="green" href="#event.buildAdminLink( linkTo="usermanager.viewUser", queryString="id=#args.id#")#" data-context-key="v">
+				<i class="fa fa-eye bigger-130"></i>
+			</a>
+		</cfif>
+
 		<cfif hasCmsPermission( "usermanager.edit" )>
 			<a class="blue" href="#event.buildAdminLink( linkTo="usermanager.editUser", queryString="id=#args.id#")#" data-context-key="e">
 				<i class="fa fa-pencil bigger-130"></i>

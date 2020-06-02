@@ -1,9 +1,9 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
 	property name="loginService"         inject="loginService";
-	property name="messageBox"           inject="coldbox:plugin:messageBox";
-	property name="bCryptService"        inject="bCryptService";
+	property name="permissionService"    inject="permissionService";
+	property name="messageBox"           inject="messagebox@cbmessagebox";
 
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -17,7 +17,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  title = translateResource( "cms:usermanager.groupspage.title" )
 				, link  = event.buildAdminLink( linkTo="usermanager.groups" )
 			);
-		} elseif ( event.getCurrentAction() contains "user" ) {
+		} else if ( event.getCurrentAction() contains "user" ) {
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:usermanager.userspage.title" )
 				, link  = event.buildAdminLink( linkTo="usermanager.users" )
@@ -38,7 +38,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, private        = true
 			, eventArguments = {
 				  object      = "security_group"
-				, gridFields  = "label,description"
+				, gridFields  = "label,description,is_catch_all"
 				, actionsView = "/admin/usermanager/_groupsGridActions"
 			}
 		);
@@ -65,7 +65,26 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, successAction    = "usermanager.groups"
 				, addAnotherAction = "usermanager.addGroup"
 				, viewRecordAction = "userManager.editGroup"
+				, audit            = true
+				, auditAction      = "add_user_group"
+				, auditType        = "usermanager"
 			}
+		);
+	}
+
+	function viewGroup( event, rc, prc ) {
+		_checkPermissions( event=event, key="groupmanager.read" );
+
+		prc.record = presideObjectService.selectData( objectName="security_group", filter={ id=rc.id ?: "" } );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:usermanager.groupNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.groups" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:usermanager.viewGroup.page.title", data=[ prc.record.label ] )
+			, link  = event.buildAdminLink( linkTo="usermanager.viewGroup", queryString="id=#rc.id#" )
 		);
 	}
 
@@ -79,6 +98,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.groups" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
+
+		if ( IsTrue( prc.record.is_catch_all ?: "" ) ) {
+			prc.mergeWithFormName = "preside-objects.security_group.admin.edit.catchall"
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:usermanager.editGroup.page.title", data=[ prc.record.label ] )
@@ -96,6 +119,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object        = "security_group"
 				, errorAction   = "userManager.editGroup"
 				, successAction = "userManager.groups"
+				, audit            = true
+				, auditAction      = "edit_user_group"
+				, auditType        = "usermanager"
 			}
 		);
 	}
@@ -103,13 +129,23 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function deleteGroupAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="groupmanager.delete" );
 
+		for( var groupid in ListToArray( rc.id ?: "" ) ) {
+			if ( permissionService.isCatchAllGroup( groupid ) ) {
+				messageBox.error( translateResource( "cms:usermanager.cannot.delete.catch.all" ) );
+				setNextEvent( url=event.buildAdminLink( linkto="usermanager.groups" ) );
+			}
+		}
+
 		runEvent(
 			  event          = "admin.DataManager._deleteRecordAction"
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
-				  object     = "security_group"
-				, postAction = "userManager.groups"
+				  object      = "security_group"
+				, postAction  = "userManager.groups"
+				, audit       = true
+				, auditAction = "delete_user_group"
+				, auditType   = "usermanager"
 			}
 		);
 	}
@@ -152,6 +188,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object           = "security_user"
 				, errorAction      = "userManager.addUser"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditAction       = "add_user"
+				, auditType         = "usermanager"
 			}
 		);
 
@@ -170,6 +209,25 @@ component extends="preside.system.base.AdminHandler" output=false {
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkTo="userManager.users" ) );
 		}
+	}
+
+	function viewUser( event, rc, prc ) {
+		_checkPermissions( event=event, key="usermanager.read" );
+
+		prc.record = presideObjectService.selectData(
+			  objectName              = "security_user"
+			, filter                  = { id=rc.id ?: "" }
+			, includeAllFormulaFields = true );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:usermanager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.users" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:usermanager.viewUser.page.title", data=[ prc.record.known_as ] )
+			, link  = event.buildAdminLink( linkTo="usermanager.viewUser", queryString="id=#(rc.id ?: '')#" )
+		);
 	}
 
 	function editUser( event, rc, prc ) output=false {
@@ -210,6 +268,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, errorAction       = "userManager.editUser"
 				, successAction     = "userManager.users"
 				, mergeWithFormName = ( userId == event.getAdminUserId() ) ? "preside-objects.security_user.admin.edit.self" : ""
+				, audit             = true
+				, auditAction       = "edit_user"
+				, auditType         = "usermanager"
 			}
 		);
 	}
@@ -227,7 +288,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		var object = "security_user";
 		var obj    = presideObjectService.getObject( object );
-		var record = obj.selectData( selectField=['known_as'], filter={ id = id } );
+		var record = obj.selectData( id = id );
 
 		if ( !record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:usermanager.userNotFound.error" ) );
@@ -242,6 +303,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 			}
 		} else {
 			if ( obj.deleteData( filter={ id = id } ) ) {
+				event.audit(
+					  action   = "delete_user"
+					, type     = "usermanager"
+					, recordId = id
+					, detail   = QueryRowToStruct( record )
+				);
 				messageBox.info( translateResource( uri="cms:usermanager.userDeleted.confirmation", data=[ record.known_as ] ) );
 				setNextEvent( url=postActionUrl );
 			}
