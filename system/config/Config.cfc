@@ -555,6 +555,8 @@ component {
 		settings.heartbeats.cacheBoxReap.hostname = settings.env.CACHEBOXREAP_HEARTBEAT_HOSTNAME ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.healthCheck.hostname  = settings.env.HEALTHCHECK_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
 
+		settings.purgeWorkflowStateTimeFrame = 365;
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

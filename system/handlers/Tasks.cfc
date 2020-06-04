@@ -4,8 +4,9 @@
  */
 component {
 
-	property name="emailLoggingService"     inject="emailLoggingService";
-	property name="notificationService"     inject="notificationService";
+	property name="emailLoggingService" inject="emailLoggingService";
+	property name="notificationService" inject="notificationService";
+	property name="workflowService"     inject="WorkflowService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -32,5 +33,18 @@ component {
 	 */
 	private boolean function deleteOldNotifications( logger ) {
 		return notificationService.deleteOldNotifications( arguments.logger ?: NullValue() );
+	}
+
+	/**
+	 * Delete expired workflows
+	 *
+	 * @priority     5
+	 * @schedule     0 0 3 * * *
+	 * @timeout      1200
+	 * @displayName  Delete expired workflows
+	 * @displayGroup Cleanup
+	 */
+	private boolean function deleteExpiredWorkflows( logger ) {
+		return workflowService.deleteExpiredWorkflows( arguments.logger ?: NullValue() );
 	}
 }
