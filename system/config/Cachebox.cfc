@@ -88,7 +88,7 @@ component {
 						, evictCount                     = 500
 						, maxObjects                     = 2000
 						, objectStore                    = "DiskStore"
-						, directoryPath                  = getTempDirectory() & "/" & "fullpagecache"
+						, directoryPath                  = ExpandPath( "/uploads/.cache/fullpagecache" )
 						, autoExpandPath                 = false
 					}
 				},
