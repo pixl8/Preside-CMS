@@ -28,7 +28,7 @@ component {
 			return true;
 		}
 
-		var emailDomain = Trim( ListRest( arguments.value, "@" ) );
+		var emailDomain = _getDomainFromEmail( arguments.value );
 		for( var allowedDomain in allowedDomains ) {
 			if ( emailDomain == Trim( allowedDomain ) ) {
 				return true;
@@ -46,7 +46,7 @@ component {
 
 		for( var address in addresses ) {
 			if ( Len( address.from_address) ) {
-				var domain = ListRest( address.from_address, "@" );
+				var domain = _getDomainFromEmail( address.from_address );
 				if ( !ArrayFindNoCase( domains, domain ) ) {
 					ArrayAppend( badaddresses, address.from_address );
 				}
@@ -54,6 +54,10 @@ component {
 		}
 
 		return badaddresses;
+	}
+
+	private string function _getDomainFromEmail( required string emailAddress ) {
+		return ReReplace( Trim( arguments.emailAddress ), ".*?@(.*?)>?$", "\1" );
 	}
 
 }

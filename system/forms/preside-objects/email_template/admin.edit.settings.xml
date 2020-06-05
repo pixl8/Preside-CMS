@@ -7,7 +7,6 @@
 			<field binding="email_template.name"            required="true"  sortorder="10" control="textinput" />
 			<field binding="email_template.email_blueprint" required="true"  sortorder="20" filterBy="recipient_type" />
 			<field binding="email_template.from_address"    required="false" sortorder="30" control="textinput">
-				<rule validator="email" />
 				<rule validator="allowedSenderEmail" />
 			</field>
 			<field binding="email_template.track_clicks"    required="false" sortorder="40" />
