@@ -4,7 +4,6 @@
 		<fieldset id="general" sortorder="10">
 			<field binding="email_template.layout"       sortorder="10" control="emailLayoutPicker" />
 			<field binding="email_template.from_address" sortorder="20" control="textinput">
-				<rule validator="email" />
 				<rule validator="allowedSenderEmail" />
 			</field>
 			<field binding="email_template.track_clicks" sortorder="30" />
