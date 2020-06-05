@@ -9,16 +9,14 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @stateDao.inject                    presidecms:object:workflow_state
-	 * @cookieService.inject               cookieService
-	 * @purgeWorkflowStateTimeFrame.inject coldbox:setting:purgeWorkflowStateTimeFrame
+	 * @stateDao.inject      presidecms:object:workflow_state
+	 * @cookieService.inject cookieService
 	 *
 	 */
-	public any function init( required any stateDao, required any cookieService, required any purgeWorkflowStateTimeFrame ) {
+	public any function init( required any stateDao, required any cookieService ) {
 		_setStateDao( arguments.stateDao );
 		_setCookieService( arguments.cookieService );
 		_setCookieKey( "presideworkflowsession" );
-		_setPurgeWorkflowStateTimeFrame( arguments.purgeWorkflowStateTimeFrame );
 
 		return this;
 	}
@@ -110,33 +108,26 @@ component {
 	}
 
 	public boolean function deleteExpiredWorkflows( any logger ) {
+		var canLog  = StructKeyExists( arguments, "logger" );
+		var canInfo = canLog && logger.canInfo();
 
-		var purgeWorkflowStateTimeFrame = Val( _getPurgeWorkflowStateTimeFrame() );
-		var canLog                      = StructKeyExists( arguments, "logger" );
-		var canInfo                     = canLog && logger.canInfo();
-		var canError                    = canLog && logger.canError();
 
-		if( purgeWorkflowStateTimeFrame == 0 ){
-			if ( canInfo ) { logger.info( "Workflow state cleanup is disabled, no Workflow states have been deleted." ); }
-			return true;
-		} else {
-			if ( canInfo ) { logger.info( "Deleting old workflow states..." ); }
+		if ( canInfo ) { logger.info( "Deleting old workflow states..." ); }
 
-			var workflowStatesDeleted = _getStateDao().deleteData(
-				  filter       = "expires < :expires and datemodified < :datemodified"
-				, filterParams = { expires=now(), datemodified=dateAdd( "d", -purgeWorkflowStateTimeFrame, now(), "dd-mmm-yyyy" ) }
-			);
+		var workflowStatesDeleted = _getStateDao().deleteData(
+			  filter       = "expires < :expires and datemodified < :datemodified"
+			, filterParams = { expires=Now(), datemodified=DateAdd( "d", -1, Now() ) }
+		);
 
-			if ( canInfo ) {
-				if ( workflowStatesDeleted ) {
-					logger.info( "Done. Deleted [#NumberFormat( workflowStatesDeleted )#] workflow states." );
-				} else {
-					logger.info( "Done. No workflow states found to delete." );
-				}
+		if ( canInfo ) {
+			if ( workflowStatesDeleted ) {
+				logger.info( "Done. Deleted [#NumberFormat( workflowStatesDeleted )#] workflow states." );
+			} else {
+				logger.info( "Done. No workflow states found to delete." );
 			}
-
-			return true;
 		}
+
+		return true;
 	}
 
 // PRIVATE HELPERS
@@ -208,12 +199,5 @@ component {
 	}
 	private void function _setCookieKey( required string cookieKey ) {
 		_cookieKey = arguments.cookieKey;
-	}
-
-	private array function _getPurgeWorkflowStateTimeFrame() {
-		return _purgeWorkflowStateTimeFrame;
-	}
-	private void function _setPurgeWorkflowStateTimeFrame( required array purgeWorkflowStateTimeFrame ) {
-		_purgeWorkflowStateTimeFrame = arguments.purgeWorkflowStateTimeFrame;
 	}
 }
