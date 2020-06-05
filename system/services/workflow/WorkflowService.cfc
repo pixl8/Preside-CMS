@@ -107,6 +107,29 @@ component {
 		return false;
 	}
 
+	public boolean function deleteExpiredWorkflows( any logger ) {
+		var canLog  = StructKeyExists( arguments, "logger" );
+		var canInfo = canLog && logger.canInfo();
+
+
+		if ( canInfo ) { logger.info( "Deleting old workflow states..." ); }
+
+		var workflowStatesDeleted = _getStateDao().deleteData(
+			  filter       = "expires < :expires and datemodified < :datemodified"
+			, filterParams = { expires=Now(), datemodified=DateAdd( "d", -1, Now() ) }
+		);
+
+		if ( canInfo ) {
+			if ( workflowStatesDeleted ) {
+				logger.info( "Done. Deleted [#NumberFormat( workflowStatesDeleted )#] workflow states." );
+			} else {
+				logger.info( "Done. No workflow states found to delete." );
+			}
+		}
+
+		return true;
+	}
+
 // PRIVATE HELPERS
 	private string function _getRecordIdByWorkflowNameReferenceAndOwner( required string workflow, required string reference, required string owner ) {
 		if ( Len( Trim( arguments.workflow ) ) && Len( Trim( arguments.reference ) ) && Len( Trim( arguments.owner ) ) ) {
