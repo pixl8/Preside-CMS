@@ -189,12 +189,15 @@ component {
 		, array   ids          = []
 		, array   extraFilters = []
 	) {
-		var filter = { "page.trashed" = false };
-		var extra  = Duplicate( arguments.extraFilters );
-		var params = {};
+		var filter  = { "page.trashed" = false };
+		var extra   = Duplicate( arguments.extraFilters );
+		var params  = {};
+		var orderBy = "page._hierarchy_sort_order";
 
 		if ( arguments.ids.len() ) {
 			extra.append( { filter={ "page.id"=arguments.ids } } );
+			params.ids = { list=true, type="varchar", value=arguments.ids }
+			orderBy = "FIELD( page.id, :ids )"
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			extra.append( {
@@ -233,9 +236,10 @@ component {
 				  , "page.active as active"
 			  ]
 			, filter             = filter
+			, filterParams       = params
 			, extraFilters       = extra
 			, maxRows            = arguments.maxRows
-			, orderBy            = "page._hierarchy_sort_order"
+			, orderBy            = orderBy
 			, allowDraftVersions = true
 			, bypassTenants      = Len( Trim( arguments.site ) ) ? [ "site" ] : []
 		);
