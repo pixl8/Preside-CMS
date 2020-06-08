@@ -93,8 +93,6 @@ component displayName="Email service" {
 		var interceptArgs = { sendArgs=sendArgs };
 		$announceInterception( "onPrepareEmailSendArguments", { sendArgs=sendArgs } );
 
-		sendArgs.htmlBody = rereplace( sendArgs.htmlBody, "([^\r\n]{200})\s", "\1#chr(10)#", "all" );
-
 		var result = _getEmailServiceProviderService().sendWithProvider(
 			  provider = _getEmailServiceProviderService().getProviderForTemplate( arguments.template )
 			, sendArgs = interceptArgs.sendArgs
