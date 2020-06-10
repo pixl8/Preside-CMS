@@ -40,7 +40,7 @@ component displayName="Website user action service" {
 		,          string identifier = ""
 		,          any    detail     = {}
 	) {
-		if ( _sessionsAreDisabled() || ( !arguments.userId.len() && _anonymousTrackingIsDisabled() ) ) {
+		if ( !_sessionsAreEnabled() || ( !arguments.userId.len() && _anonymousTrackingIsDisabled() ) ) {
 			return "";
 		}
 
@@ -376,7 +376,7 @@ component displayName="Website user action service" {
 	}
 
 // PRIVATE HELPERS
-	private boolean function _sessionsAreDisabled() {
+	private boolean function _sessionsAreEnabled() {
 		var appSettings              = getApplicationSettings( true );
 		var sessionManagement        = IsBoolean( appSettings.sessionManagement        ?: "" ) && appSettings.sessionManagement;
 		var presideSessionManagement = IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
