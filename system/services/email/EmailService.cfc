@@ -245,13 +245,6 @@ component displayName="Email service" {
 				, detail = "Ensure that a valid email address is used and that it uses one of the allowed sender domains: [#allowedDomains#]. Speak to a system administrator for further details."
 			);
 		}
-		if ( !_getCoreValidators().email( "from", sendArgs.from ) ) {
-			throw(
-				  type   = "EmailService.invalidSender"
-				, message= "The from email address, [#sendArgs.from#], specified in the message with subject [#sendArgs.subject ?: ''#] is invalid."
-				, detail = "Ensure that a valid email address is used."
-			);
-		}
 
 		if ( !( sendArgs.to ?: [] ).len() || !Len( sendArgs.to[ 1 ] ) ) {
 			throw(
