@@ -19,7 +19,7 @@ component {
 		args.sortable     = true;
 
 		for( var prop in propertyNames ) {
-			if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) ) {
+			if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
 				args.values.append( prop );
 			}
 		}
