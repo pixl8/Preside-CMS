@@ -1273,20 +1273,39 @@ component {
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
 		var systemTemplates    = sysTemplateService.listTemplates();
+		var existingTemplates  = _getExistingSystemTemplates();
+		var recipientType      = "";
 
 		for( var template in systemTemplates ) {
-			if ( !templateExists( template.id ) ) {
+			recipientType = sysTemplateService.getRecipientType( template.id );
+			if ( !existingTemplates.keyExists( template.id ) ) {
 				saveTemplate( id=template.id, template={
 					  name            = template.title
 					, layout          = sysTemplateService.getDefaultLayout( template.id )
 					, subject         = sysTemplateService.getDefaultSubject( template.id )
 					, html_body       = sysTemplateService.getDefaultHtmlBody( template.id )
 					, text_body       = sysTemplateService.getDefaultTextBody( template.id )
-					, recipient_type  = sysTemplateService.getRecipientType( template.id )
+					, recipient_type  = recipientType
 					, is_system_email = true
 				} );
+			} else if ( existingTemplates[ template.id ].recipient_type != recipientType ) {
+				saveTemplate( id=template.id, template={ recipient_type=recipientType } );
 			}
 		}
+	}
+
+	private struct function _getExistingSystemTemplates() {
+		var templates     = {};
+		var templateQuery = $getPresideObject( "email_template" ).selectData(
+			  filter       = { is_system_email=true }
+			, selectFields = [ "id", "recipient_type" ]
+		);
+
+		for( var template in templateQuery ) {
+			templates[ template.id ] = template;
+		}
+
+		return templates;
 	}
 
 	private date function _getNow() {
