@@ -12,6 +12,7 @@
 	addMissingValues   		= IsTrue( args.addMissingValues 	?: "" );
 	removeObjectPickerClass	= args.removeObjectPickerClass     	?: false;
 	objectPickerClass  		= removeObjectPickerClass			?  "" : "object-picker" ;
+	includePlaceholder      = IsTrue( args.includePlaceholder  ?: "" );
 	labels            		= ( structKeyExists( args, "labels") && len( args.labels ) )  ?  args.labels : args.values;
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
@@ -21,7 +22,7 @@
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
-	
+
 	if ( !deselectable ) {
 		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
 	}
@@ -43,6 +44,9 @@
 	        	multiple="multiple"
 	        </cfif>
 	>
+		<cfif includePlaceholder>
+			<option value=""></option>
+		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selected   = ListFindNoCase( value, selectValue ) />
 			<cfset valueFound = valueFound || selected />
