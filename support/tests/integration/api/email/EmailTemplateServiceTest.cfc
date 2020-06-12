@@ -570,11 +570,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService( initialize=false );
 				var recipientType = CreateUUId();
 				var systemTemplates = [ { id="t1", title="Template 1" }, { id="t2", title="Template 2" }, { id="t3", title="Template 3" } ];
+				var existingTemplates = { "t2"={ id="t2", recipient_type=recipientType } };
 
 				mockSystemEmailTemplateService.$( "listTemplates", systemTemplates );
 				service.$( "saveTemplate", CreateUUId() );
 				for( var t in systemTemplates ){
-					service.$( "templateExists" ).$args( t.id ).$results( t.id == "t2" );
+					service.$( "_getExistingSystemTemplates" ).$results( existingTemplates );
 					mockSystemEmailTemplateService.$( "getDefaultLayout" ).$args( t.id ).$results( t.id & "layout" );
 					mockSystemEmailTemplateService.$( "getDefaultSubject" ).$args( t.id ).$results( t.id & "subject" );
 					mockSystemEmailTemplateService.$( "getDefaultHtmlBody" ).$args( t.id ).$results( t.id & "html" );
@@ -616,6 +617,40 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, recipient_type  = recipientType
 						, is_system_email = true
 					}
+				} );
+			} );
+
+			it( "should update the recipient type of any system email templates whose config does not match the record in the DB", function(){
+				var service = _getService( initialize=false );
+				var recipientType = CreateUUId();
+				var systemTemplates = [ { id="t1", title="Template 1" }, { id="t2", title="Template 2" } ];
+				var existingTemplates = { "t1"={ id="t1", recipient_type=createUUID() }, "t2"={ id="t2", recipient_type=recipientType } };
+
+				mockSystemEmailTemplateService.$( "listTemplates", systemTemplates );
+				service.$( "saveTemplate", CreateUUId() );
+				for( var t in systemTemplates ){
+					service.$( "_getExistingSystemTemplates" ).$results( existingTemplates );
+					mockSystemEmailTemplateService.$( "getDefaultLayout" ).$args( t.id ).$results( t.id & "layout" );
+					mockSystemEmailTemplateService.$( "getDefaultSubject" ).$args( t.id ).$results( t.id & "subject" );
+					mockSystemEmailTemplateService.$( "getDefaultHtmlBody" ).$args( t.id ).$results( t.id & "html" );
+					mockSystemEmailTemplateService.$( "getDefaultTextBody" ).$args( t.id ).$results( t.id & "text" );
+					mockSystemEmailTemplateService.$( "getRecipientType" ).$args( t.id ).$results( recipientType );
+				}
+
+				service.init(
+					  systemEmailTemplateService = mockSystemEmailTemplateService
+					, emailRecipientTypeService  = mockEmailRecipientTypeService
+					, emailLayoutService         = mockEmailLayoutService
+					, emailSendingContextService = mockEmailSendingContextService
+					, assetManagerService        = mockAssetManagerService
+					, emailStyleInliner          = mockEmailStyleInliner
+					, emailSettings              = mockEmailSettings
+				);
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1] ).toBe( {
+					  id = "t1"
+					, template = { recipient_type=recipientType }
 				} );
 			} );
 		} );
@@ -1713,6 +1748,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );
+			service.$( "_getExistingSystemTemplates" );
 			service.init(
 				  systemEmailTemplateService = mockSystemEmailTemplateService
 				, emailRecipientTypeService  = mockEmailRecipientTypeService
