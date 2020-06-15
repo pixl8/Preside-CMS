@@ -45,7 +45,7 @@
 		</cfif>
 	>
 		<cfif includeEmptyOption>
-			<option value="">#placeholder#</option>
+			<option value=""></option>
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selected   = ListFindNoCase( value, selectValue ) />
