@@ -1795,7 +1795,7 @@ component extends="preside.system.base.AdminHandler" {
 							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
 						} );
 					}
-					if ( canViewVersions ) {
+					if ( useVersioning ) {
 						actions.append( {
 							  link       = viewHistoryLink.replace( "{id}", record.id )
 							, icon       = "fa-history"
