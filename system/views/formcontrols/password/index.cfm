@@ -31,6 +31,6 @@
 <cfoutput>
 	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif>>
 	<cfif IsTrue( args.allowShowHidePassword ?: "" )>
-		<a toggleid="###inputId#" class="fa fa-fw fa-eye toggle-password" title="Help" data-rel="popover" data-trigger="hover" data-placement="left" data-content="Show / hide the input value"></a>
+		<a href="###inputId#" class="fa fa-fw fa-eye toggle-password" title="#translateResource( 'cms:help.popover.title' )#" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#translateResource( 'cms:help.password_reveal.title' )#"></a>
 	</cfif>
 </cfoutput>

@@ -1,9 +1,9 @@
 ( function( $ ){
 
-	$("body").on('click','.toggle-password', function() {
-
+	$("body").on('click','.toggle-password', function(e) {
+		e.preventDefault();
 		$(this).toggleClass("fa-eye fa-eye-slash");
-		var input = $($(this).attr("toggleid"));
+		var input = $($(this).attr("href"));
 
 		if( input.attr("type") == "password" ) {
 			input.attr("type", "text");
