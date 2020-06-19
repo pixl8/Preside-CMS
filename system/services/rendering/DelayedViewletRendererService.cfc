@@ -70,6 +70,12 @@ component {
 					);
 				} else {
 					renderedViewlet = "";
+
+					try {
+						throw( "The delayed viewlet, [#viewlet#], did not return a string value and Preside has rendered an empty string in its place. Be sure that all your viewlets return a string value.", "preside.bad.delayed.viewlet" );
+					} catch( any e ) {
+						$raiseError( e );
+					}
 				}
 
 				processed = Replace( processed, wholeMatch, renderedViewlet ?: "", "all" );
