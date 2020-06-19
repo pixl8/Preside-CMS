@@ -63,10 +63,14 @@ component {
 					, prePostExempt = IsBoolean( prePostExempt  ) && prePostExempt
 				);
 
-				renderedViewlet = _getContentRendererService().render(
-					  renderer = "richeditor"
-					, data     = renderedViewlet
-				);
+				if ( !IsNull( local.renderedViewlet ) && IsSimpleValue( renderedViewlet ) ) {
+					renderedViewlet = _getContentRendererService().render(
+						  renderer = "richeditor"
+						, data     = renderedViewlet
+					);
+				} else {
+					renderedViewlet = "";
+				}
 
 				processed = Replace( processed, wholeMatch, renderedViewlet ?: "", "all" );
 			}
