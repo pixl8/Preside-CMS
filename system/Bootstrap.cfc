@@ -521,8 +521,7 @@ component {
 		}
 
 		if ( ArrayLen( allCookies ) ) {
-			for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
-				var cooky = allCookies[ i ];
+			for( var cooky in allCookies ) {
 				if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
 					cleanedCookies.append( cooky );
 				}
@@ -567,13 +566,9 @@ component {
 		resp.setLocale( locale );
 
 		for( var headerName in headers ) {
-			for( var i=1; i<=ArrayLen( headers[ headerName ] ); i++ ){
-				if ( i == 1 ) {
-					resp.setHeader( headerName, headers[ headerName ][ i ] );
-				} else {
-					resp.addHeader( headerName, headers[ headerName ][ i ] );
-				}
-			}
+                        for( var header in headers[headerName]) {
+                                resp.addHeader( headerName, header );
+                        }
 		}
 	}
 
