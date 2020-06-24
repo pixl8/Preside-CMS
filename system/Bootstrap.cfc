@@ -514,15 +514,14 @@ component {
 		var cleanedCookies = [];
 
 		try {
-			var allCookies = resp.getHeaders( "Set-Cookie" );
+			var allCookies = _getResponseHeader( "Set-Cookie" );
 		} catch( "java.lang.AbstractMethodError" e ) {
 			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
 			return;
 		}
 
 		if ( ArrayLen( allCookies ) ) {
-			for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
-				var cooky = allCookies[ i ];
+			for( var cooky in allCookies ) {
 				if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
 					cleanedCookies.append( cooky );
 				}
@@ -556,7 +555,7 @@ component {
 
 		for( var headerName in headerNames ) {
 			if ( headerName != "Set-Cookie" ) {
-				headers[ headerName ] = resp.getHeaders( headerName );
+				headers[ headerName ] = _getResponseHeader( headerName );
 			}
 		}
 
@@ -577,6 +576,27 @@ component {
 		}
 	}
 
+	private array function _getResponseHeader( required string headerName ) {
+		var pc            = getPageContext();
+		var resp          = pc.getResponse();
+		var rawValues     = resp.getHeaders( arguments.headerName );
+		var headerValues  = [];
+
+		try{
+			if ( IsInstanceOf( obj=rawValues, type='java.util.LinkedHashSet' ) ) {
+				for ( var value in rawValues ) {
+					ArrayAppend( headerValues, value );
+				}
+				return headerValues;
+			}
+		} catch( e ) {}
+
+		for( var i=1; i <= ArrayLen( rawValues ); i++ ) {
+			ArrayAppend( headerValues, rawValues[ i ] );
+		}
+
+		return headerValues;
+	}
 
 	private void function _cleanupCookies() {
 		var pc             = getPageContext();
@@ -585,7 +605,7 @@ component {
 		var sessionCookies = [ "CFID", "CFTOKEN" ];
 
 		try {
-			var allCookies = resp.getHeaders( "Set-Cookie" );
+			var allCookies = _getResponseHeader( "Set-Cookie" );
 		} catch( "java.lang.AbstractMethodError" e ) {
 			// some requests are dummy requests with dummy response objects that do not implement getHeaders()
 			return;
@@ -611,8 +631,7 @@ component {
 		var site              = cbController.getRequestContext().getSite();
 		var isSecure          = ( site.protocol ?: "http" ) == "https";
 
-		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
-			var cooky = allCookies[ i ];
+		for( var cooky in allCookies ) {
 			if ( !Len( Trim( cooky ) ) ) {
 				continue;
 			}
