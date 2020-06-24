@@ -582,19 +582,17 @@ component {
 		var rawValues     = resp.getHeaders( arguments.headerName );
 		var headerValues  = [];
 
-		// convert raw values in whatever form they are in to string values in headerValues array
 		try{
-			if ( isInstanceOf(obj=rawValues, type='java.util.LinkedHashSet') ) {
-				for (var value in rawValues) {
-					headerValues.append(value);
+			if ( IsInstanceOf( obj=rawValues, type='java.util.LinkedHashSet' ) ) {
+				for ( var value in rawValues ) {
+					ArrayAppend( headerValues, value );
 				}
 				return headerValues;
 			}
-		}
-		catch(e) {}
+		} catch( e ) {}
 
 		for( var i=1; i <= ArrayLen( rawValues ); i++ ) {
-			headerValues.append(rawValues[i]);
+			ArrayAppend( headerValues, rawValues[ i ] );
 		}
 
 		return headerValues;
