@@ -566,8 +566,12 @@ component {
 		resp.setLocale( locale );
 
 		for( var headerName in headers ) {
-			for( var header in headers[headerName]) {
-				resp.addHeader( headerName, header );
+			for( var i=1; i<=ArrayLen( headers[ headerName ] ); i++ ){
+				if ( i == 1 ) {
+					resp.setHeader( headerName, headers[ headerName ][ i ] );
+				} else {
+					resp.addHeader( headerName, headers[ headerName ][ i ] );
+				}
 			}
 		}
 	}
