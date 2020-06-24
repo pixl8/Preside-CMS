@@ -9,6 +9,7 @@ component {
 	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
 	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
 	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
+	property name="presideSessionReapHeartbeat"   inject="presideSessionReapHeartbeat";
 	property name="healthcheckService"            inject="healthcheckService";
 	property name="permissionService"             inject="permissionService";
 	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
@@ -230,6 +231,10 @@ component {
 
 		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
 			presideTaskmanagerHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "presideSessionManagement" ) ) {
+			presideSessionReapHeartbeat.start();
 		}
 
 		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {

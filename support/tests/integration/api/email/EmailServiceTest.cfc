@@ -328,9 +328,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockColdBox                = createMock( "preside.system.coldboxModifications.Controller" );
 		mockEmailTemplateService   = createMock( "preside.system.services.email.EmailTemplateService" );
 		mockServiceProviderService = createMock( "preside.system.services.email.EmailServiceProviderService" );
-		
+		mockCoreValidators         = createStub();
+		mockEmailValidators         = createStub();
+
+
 		mockTemplate = createStub();
-		
+
 		mockEmailTemplateService.$( "getTemplate" ).$results( mockTemplate );
 		mockEmailTemplateService.$( "$isFeatureEnabled" ).$args( "emailOverwriteDomain" ).$results( false );
 		mockEmailTemplateService.$( "enableDomainOverwriteForBuildLink" );
@@ -339,11 +342,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			  emailTemplateDirectories    = templateDirs
 			, emailTemplateService        = mockEmailTemplateService
 			, emailServiceProviderService = mockServiceProviderService
+			, emailCenterValidators       = mockEmailValidators
+			, coreValidators              = mockCoreValidators
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
 		mockEmailTemplateService.$( "templateExists", false );
+
+		mockEmailValidators.$( "allowedSenderEmail", true )
+		mockCoreValidators.$( "email", true )
 
 
 		defaultProvider = CreateUUId();

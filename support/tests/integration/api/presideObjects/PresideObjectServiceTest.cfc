@@ -1101,6 +1101,7 @@
 			var result = poService.selectData(
 				  objectName        = "object_c"
 				, extraSelectFields = [ "a_count" ]
+				, autoGroupBy       = true
 			);
 
 			super.assertEquals( result.recordCount, 1  , "Expected record count mismatch" );
@@ -1135,6 +1136,7 @@
 			var result = poService.selectData(
 				  objectName              = "object_c"
 				, includeAllFormulaFields = true
+				, autoGroupBy             = true
 			);
 
 			for( field in expectedFields ){
