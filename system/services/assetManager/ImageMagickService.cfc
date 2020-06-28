@@ -72,6 +72,10 @@ component displayname="ImageMagick"  {
 			_deleteDir( tmpDir );
 		}
 
+		currentImageInfo      = getImageInformation( imageBinary );
+		fileProperties.width  = currentImageInfo.width;
+		fileProperties.height = currentImageInfo.height;
+
 		return imageBinary;
 	}
 
@@ -98,7 +102,10 @@ component displayname="ImageMagick"  {
 
 		_deleteDir( tmpDir );
 
-		arguments.fileProperties.fileExt = "jpg";
+		var imageInfo          = getImageInformation( binary );
+		fileProperties.width   = imageInfo.width;
+		fileProperties.height  = imageInfo.height;
+		fileProperties.fileExt = "jpg";
 
 		return binary;
 	}
@@ -163,6 +170,10 @@ component displayname="ImageMagick"  {
 		} finally {
 			_deleteDir( tmpDir );
 		}
+
+		currentImageInfo      = getImageInformation( imageBinary );
+		fileProperties.width  = currentImageInfo.width;
+		fileProperties.height = currentImageInfo.height;
 
 		return imageBinary;
 	}
