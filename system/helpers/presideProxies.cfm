@@ -56,6 +56,10 @@
 		<cfreturn getSingleton( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="getAssetDimensions" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "assetManagerService" ).getAssetDimensions( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderNotification" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "notificationService" ).renderNotification( argumentCollection = arguments ) />
 	</cffunction>
