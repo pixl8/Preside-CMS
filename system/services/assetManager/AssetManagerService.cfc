@@ -1135,6 +1135,40 @@ component displayName="AssetManager Service" {
 		}
 	}
 
+	public struct function getAssetDimensions( required string id, string derivativeName="", string versionId="" ) {
+		var version    = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.id );
+		var dimensions = {};
+		var asset      = "";
+
+		if ( Len( Trim( arguments.derivativeName ) ) ) {
+			asset = getAssetDerivative(
+				  assetId           = arguments.id
+				, derivativeName    = arguments.derivativeName
+				, selectFields      = [ "asset_derivative.width", "asset_derivative.height" ]
+				, versionId         = version
+				, createIfNotExists = false
+			);
+		} else if ( Len( Trim( version ) ) ) {
+			asset = getAssetVersion(
+				  assetId      = arguments.id
+				, versionId    = version
+				, selectFields = [ "asset_version.width", "asset_version.height" ]
+			);
+		} else {
+			asset = getAsset(
+				  id           = arguments.id
+				, selectFields = [ "width", "height" ]
+			);
+		}
+
+		if ( asset.recordCount && isNumeric( asset.width ) && isNumeric( asset.height ) ) {
+			dimensions.width  = asset.width;
+			dimensions.height = asset.height;
+		}
+
+		return dimensions;
+	}
+
 	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", string configHash="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var asset            = "";
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
