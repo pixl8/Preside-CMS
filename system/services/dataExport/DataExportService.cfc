@@ -212,6 +212,10 @@ component {
 			for( var propId in propertyNames ) {
 				var prop = objectProperties[ propId ];
 
+				if ( IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) {
+					continue;
+				}
+
 				switch( prop.relationship ?: "" ) {
 					case "one-to-many":
 					case "many-to-many":
