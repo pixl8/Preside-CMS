@@ -1,16 +1,12 @@
 ( function( $ ){
 
-	$("body").on('click','.toggle-password', function(e) {
-		e.preventDefault();
-		$(this).toggleClass("fa-eye fa-eye-slash");
-		var input = $($(this).attr("href"));
+	$( "body" ).on( "click", ".toggle-password", function() {
+		var $toggle = $( this )
+		  , $input  = $( $toggle.data( "target" ) )
+		  , type    = $input.attr( "type" );
 
-		if( input.attr("type") == "password" ) {
-			input.attr("type", "text");
-		} else {
-			input.attr("type", "password");
-		}
+		$toggle.toggleClass( "fa-eye fa-eye-slash" );
+		$input.attr( "type", type=="password" ? "text" : "password" );
 	});
-
 
 } )( presideJQuery );
