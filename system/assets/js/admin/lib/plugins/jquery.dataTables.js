@@ -5232,6 +5232,10 @@
 		 */
 		this.fnAdjustColumnSizing = function ( bRedraw )
 		{
+			if ( $( this ).is( ":hidden" ) ) {
+				return;
+			}
+
 			var oSettings = _fnSettingsFromNode(this[DataTable.ext.iApiIndex]);
 			_fnAdjustColumnSizing( oSettings );
 
@@ -5547,6 +5551,10 @@
 		 */
 		this.fnDraw = function( bComplete )
 		{
+			if ( $( this ).is( ":hidden" ) ) {
+				return;
+			}
+
 			var oSettings = _fnSettingsFromNode( this[DataTable.ext.iApiIndex] );
 			if ( bComplete === false )
 			{

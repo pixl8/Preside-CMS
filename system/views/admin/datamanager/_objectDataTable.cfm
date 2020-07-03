@@ -63,7 +63,7 @@
 	}
 </cfscript>
 <cfoutput>
-	<div class="table-responsive<cfif args.compact> table-compact</cfif>">
+	<div class="table-responsive<cfif args.compact> table-compact</cfif>" id="#tableId#-container">
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">

@@ -368,9 +368,10 @@
 			setupDataExport = function( settings ){
 				// setup DOM
 				var paginationContainers = settings.aanFeatures.p
-				  , $dataExportContainer = $( ".object-listing-table-export" )
-				  , $configForm          = $( ".object-listing-data-export-config-form" )
-				  , $exportBtn           = $( ".object-listing-data-export-button" )
+				  , $uberContainer       = $( "#"+tableId+"-container" )
+				  , $dataExportContainer = $( ".object-listing-table-export", $uberContainer )
+				  , $configForm          = $( ".object-listing-data-export-config-form", $uberContainer )
+				  , $exportBtn           = $( ".object-listing-data-export-button", $uberContainer )
 				  , iframeSrc            = $exportBtn.attr( "href" )
 				  , i, $container, modalOptions, callbacks, processExport, exportConfigModal, configIframe;
 
@@ -401,7 +402,7 @@
 				};
 				processExport = function(){
 					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
-					  , $submissionForm  = $( ".object-listing-table-export-form" )
+					  , $submissionForm  = $( ".object-listing-table-export-form", $uberContainer )
 					  , $searchContainer = $( dtSettings.aanFeatures.f[0] )
 					  , sortColumns      = dtSettings.aaSorting
 					  , allColumns       = dtSettings.aoColumns
@@ -449,7 +450,7 @@
 
 				exportConfigModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
 
-				$( ".object-listing-data-export-button" ).on( "click", function(e ){
+				$( ".object-listing-data-export-button", $uberContainer ).on( "click", function(e ){
 					e.preventDefault();
 
 					exportConfigModal.open();
