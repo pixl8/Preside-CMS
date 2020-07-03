@@ -32,6 +32,7 @@
 			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
 			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
 			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
+			  , allowSaveReport     = tableSettings.allowSaveReport || cfrequest.allowSaveReport
 			  , noRecordMessage     = tableSettings.noRecordMessage || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , compact             = tableSettings.compact         || cfrequest.compact
@@ -394,6 +395,13 @@
 						}
 					}
 				}
+				if ( allowSaveReport ) {
+					modalOptions.buttons.save = {
+						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:save.btn" )
+						, className : "btn-success"
+						, callback  : function(){ return saveReport(); }
+					};
+				}
 				callbacks = {
 					onLoad : function( iframe ) {
 						configIframe = iframe;
@@ -434,6 +442,53 @@
 
 					return true;
 				};
+				saveReport = function(){
+					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
+					  , $submissionForm  = $( ".object-listing-table-save-report-form" )
+					  , $searchContainer = $( dtSettings.aanFeatures.f[0] )
+					  , sortColumns      = dtSettings.aaSorting
+					  , allColumns       = dtSettings.aoColumns
+					  , config           = $configForm.serializeObject()
+					  , sortOrder        = []
+					  , favourites, key, $hiddenInput, i;
+
+					if ( allowFilter ) {
+						config.filterExpressions = $filterDiv.find( "[name=filter]" ).val();
+
+						favourites = getFavourites();
+						if ( favourites && favourites.length ) {
+							config.savedFilters = favourites;
+						} else {
+							config.savedFilters = $filterDiv.find( "[name=filters]" ).val();
+						}
+					}
+
+					config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+
+					for( key in config ) {
+						$hiddenInput = $submissionForm.find( "[name=" + key + "]" );
+
+						if ( !$hiddenInput.length ) {
+							$hiddenInput = $( '<input type="hidden" name="' + key + '">' );
+							$submissionForm.append( $hiddenInput );
+						}
+
+						$hiddenInput.val( config[ key ] );
+					}
+
+					for( i=0; i<sortColumns.length; i++ ) {
+						sortOrder.push( allColumns[ sortColumns[ i ][ 0 ] ].mData + " " + sortColumns[ i ][ 1 ] );
+					}
+					if ( sortOrder.length ) {
+						$hiddenInput = $( '<input type="hidden" name="orderby">' );
+						$hiddenInput.val( sortOrder.join( "," ) );
+						$submissionForm.append( $hiddenInput );
+					}
+
+					$submissionForm.submit();
+
+					return true;
+				}
 
 				exportConfigModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
 
