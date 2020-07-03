@@ -82,13 +82,12 @@ component {
 	 * Marks a task as failed
 	 *
 	 * @autodoc    true
-	 * @taskId     ID of the task to mark as failed
 	 * @error      Error that prompted task failure
 	 * @forceRetry If true, will ignore retry config and automatically queue for retry
 	 */
-	public void function failTask( required string taskId, struct error={}, boolean forceRetry=false ) {
+	public void function failTask( struct error={}, boolean forceRetry=false ) {
 		_getAdhocTaskManagerService().failTask(
-			  taskId 			= arguments.taskId
+			  taskId 			= _getTaskId()
 			, error    		= arguments.error
 			, forceRetry 	= arguments.forceRetry
 		);
