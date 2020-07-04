@@ -374,7 +374,7 @@
 				  , $configForm          = $( ".object-listing-data-export-config-form", $uberContainer )
 				  , $exportBtn           = $( ".object-listing-data-export-button", $uberContainer )
 				  , iframeSrc            = $exportBtn.attr( "href" )
-				  , i, $container, modalOptions, callbacks, processExport, exportConfigModal, configIframe;
+				  , i, $container, modalOptions, callbacks, processExport, saveReport, exportConfigModal, configIframe;
 
 				for( i=0; i<paginationContainers.length; i++ ) {
 					$container = $( paginationContainers[i] );
