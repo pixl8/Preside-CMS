@@ -457,7 +457,7 @@
 				};
 				saveReport = function(){
 					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
-					  , $submissionForm  = $( ".object-listing-table-save-report-form" )
+					  , $submissionForm  = $( ".object-listing-table-save-report-form", $uberContainer )
 					  , $searchContainer = $( dtSettings.aanFeatures.f[0] )
 					  , sortColumns      = dtSettings.aaSorting
 					  , allColumns       = dtSettings.aoColumns
