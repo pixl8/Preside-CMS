@@ -254,6 +254,7 @@ component {
 			, "auditTrail"
 			, "maintenanceMode"
 			, "taskmanager"
+			, "savedreport"
 			, "apiManager"
 			, "systemInformation"
 		];
@@ -400,6 +401,7 @@ component {
 			, formbuilder              = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport               = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, savereport               = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication  = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine              = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter              = { enabled=true , siteTemplates=[ "*" ] }
