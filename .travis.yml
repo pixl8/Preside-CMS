@@ -2,7 +2,7 @@ language: java
 rvm:
   - 1.9.3
 jdk:
-  - oraclejdk11
+  - openjdk11
 node_js:
   - "4.2.6"
 services:
