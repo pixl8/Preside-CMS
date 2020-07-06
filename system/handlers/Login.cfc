@@ -43,6 +43,16 @@ component {
 	}
 
 	public void function sendResetInstructions( event, rc, prc ) output=false {
+
+		var allowResetPassword = websiteLoginService.allowResetPassword( rc.loginId ?: "" );
+
+		if( !allowResetPassword.allowedReset ){
+			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
+				  message                          = "NEXT_RESET_AFTER_X_MINUTES"
+				, nextResetPasswordAllowedXMinutes = allowResetPassword.nextAllowedResetAfterXMinutes
+			} );
+		}
+
 		if ( websiteLoginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
 			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
 				  message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
@@ -60,11 +70,7 @@ component {
 		var confirmation = rc.passwordConfirmation ?: "";
 		var token        = rc.token                ?: "";
 
-		if ( !websiteLoginService.validateResetPasswordToken( rc.token ?: "" ) ) {
-			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
-				message = "INVALID_RESET_TOKEN"
-			} );
-		}
+		_tokenValidation( argumentCollection = arguments );
 
 		if ( !Len( Trim( pw ) ) ) {
 			setNextEvent( url=event.buildLink( page="reset_password" ), persistStruct={
@@ -87,7 +93,8 @@ component {
 			} );
 		}
 
-		if ( websiteLoginService.resetPassword( token=token, password=pw ) ) {
+		var invalidTokenAction = getSystemSetting( "website_users", "invalid_reset_password_token_action", "default_action" );
+		if ( websiteLoginService.resetPassword( token=token, password=pw, allowOldToken=( invalidTokenAction=="allow_non_expired_token" ) ) ) {
 			setNextEvent( url=event.buildLink( page="login" ), persistStruct={
 				message = "PASSWORD_RESET"
 			} );
@@ -130,11 +137,7 @@ component {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 
-		if ( !websiteLoginService.validateResetPasswordToken( rc.token ?: "" ) ) {
-			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
-				message = "INVALID_RESET_TOKEN"
-			} );
-		}
+		_tokenValidation( argumentCollection = arguments );
 
 		var passwordPolicy = passwordPolicyService.getPolicy( "website" );
 
@@ -143,6 +146,59 @@ component {
 		}
 
 		return renderView( view="/login/resetPassword", presideObject="reset_password", id=event.getCurrentPageId(), args=args );
+	}
+
+	private void function _tokenValidation( event, rc, prc, args={} ) {
+
+		rc.token = rc.token ?: "";
+
+		var invalidTokenAction = getSystemSetting( "website_users", "invalid_reset_password_token_action", "default_action" );
+
+		if ( isEmpty( rc.token ) ) {
+			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
+				message = "INVALID_RESET_TOKEN"
+			} );
+		}
+
+		var latestToken = websiteLoginService.getUserRecordByToken( rc.token );
+
+		if ( !latestToken.recordCount  || latestToken.recordCount && !( isBoolean( latestToken.is_token_valid ?: "" ) && latestToken.is_token_valid ) ) {
+			var olderVersionToken = websiteLoginService.getUserRecordByToken( token=rc.token, fromVersionTable=true );
+			var persist           = {
+				message = "INVALID_RESET_TOKEN"
+			};
+
+			switch( invalidTokenAction ){
+				case 'newer_token_was_generated':
+					if( olderVersionToken.recordCount ){
+						if( !isEmpty( olderVersionToken.latest_token_created_date ?: "" ) ){
+							persist.latestTokenDate = isDate( olderVersionToken.latest_token_created_date ?: "" ) ? dateFormat( olderVersionToken.latest_token_created_date, 'dd mmm, yyyy' ) & ' ' & timeFormat( olderVersionToken.latest_token_created_date, 'HH:MM:SS' ) : "";
+							persist.message         = "NEWER_TOKEN_WAS_GENERATED";
+						} else {
+							persist.lastPasswordUpdated = isDate( olderVersionToken.last_password_updated ?: "" ) ? dateFormat( olderVersionToken.last_password_updated, 'dd mmm, yyyy' ) & ' ' & timeFormat( olderVersionToken.last_password_updated, 'HH:MM:SS' ) : "";
+							persist.message             = "LAST_PASSWORD_UPDATED";
+						}
+					}
+				break;
+				case 'allow_non_expired_token':
+					if( ( olderVersionToken.is_token_valid ?: false ) ){
+						if( isDate( olderVersionToken.last_password_updated ?: "" ) && olderVersionToken.last_password_updated >= olderVersionToken.reset_password_datecreated ){
+							persist.lastPasswordUpdated = isDate( olderVersionToken.last_password_updated ?: "" ) ? dateFormat( olderVersionToken.last_password_updated, 'dd mmm, yyyy' ) & ' ' & timeFormat( olderVersionToken.last_password_updated, 'HH:MM:SS' ) : "";
+							persist.message             = "LAST_PASSWORD_UPDATED";
+						} else {
+							persist.message = "";
+						}
+					}
+				break;
+			}
+
+			if( !isEmpty( persist.message ?: "" ) ){
+				setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct=persist );
+			}
+
+		}
+
+		return;
 	}
 
 // private helpers
