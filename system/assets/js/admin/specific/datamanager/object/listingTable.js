@@ -458,12 +458,11 @@
 				saveReport = function(){
 					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
 					  , $submissionForm  = $( ".object-listing-table-save-report-form", $uberContainer )
-					  , $searchContainer = $( dtSettings.aanFeatures.f[0] )
 					  , sortColumns      = dtSettings.aaSorting
 					  , allColumns       = dtSettings.aoColumns
 					  , config           = $configForm.serializeObject()
 					  , sortOrder        = []
-					  , favourites, key, $hiddenInput, i;
+					  , favourites, key, $hiddenInput, i, $searchContainer;
 
 					if ( allowFilter ) {
 						config.filterExpressions = $filterDiv.find( "[name=filter]" ).val();
@@ -476,7 +475,10 @@
 						}
 					}
 
-					config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+					if ( allowSearch ) {
+						$searchContainer = $( dtSettings.aanFeatures.f[0] );
+						config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+					}
 
 					for( key in config ) {
 						$hiddenInput = $submissionForm.find( "[name=" + key + "]" );
