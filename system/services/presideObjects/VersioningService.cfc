@@ -363,7 +363,7 @@ component {
 			arguments.filterParams = {};
 		}
 
-		if ( arguments.publishedOnly ) {
+		if ( arguments.publishedOnly && objectUsesDrafts( arguments.objectName ) ) {
 			extraFilters.append( { filter="_version_is_draft is null or _version_is_draft = '0'" } );
 		}
 
