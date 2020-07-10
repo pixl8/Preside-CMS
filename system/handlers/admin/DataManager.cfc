@@ -2825,6 +2825,20 @@ component extends="preside.system.base.AdminHandler" {
 			} catch( any e ){}
 		}
 
+		if( Len( Trim( rc.searchQuery ?: "" ) ) ){
+			try {
+				args.extraFilters.append({
+					  filter       = dataManagerService.buildSearchFilter(
+						  q            = rc.searchQuery
+						, objectName   = objectName
+						, gridFields   = _getObjectFieldsForGrid( objectName )
+						, searchFields = dataManagerService.listSearchFields( objectName )
+					  )
+					, filterParams = { q = { type="varchar", value="%" & rc.searchQuery & "%" } }
+				});
+			} catch( any e ){}
+		}
+
 		var taskId = createTask(
 			  event             = "admin.datahelpers.exportDataInBackgroundThread"
 			, args              = args
