@@ -559,12 +559,23 @@ component displayName="Website login service" {
 	}
 
 	public struct function allowResetPassword( required string loginId ) {
-		var result = { allowedReset = true };
-		var user   = _getUserByLoginId( arguments.loginId );
+		var result = {
+			allowedReset = true
+		};
 
-		if( isDate( user.reset_password_datecreated ?: "" ) ){
-			var nextAllowResetDate              = Val( _getSystemConfigurationService().getSetting( "website_users", "next_reset_password_allowed_after_x_minute", 10 ) );
-			var sinceLastResetPasswordInMinutes = DateDiff( "n", user.reset_password_datecreated, Now() );
+		var record = _getUserDao().selectData(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
+			, filterParams = { login_id = arguments.loginId }
+			, useCache     = false
+			, selectFields = [
+				'reset_password_datecreated'
+			]
+		);
+
+		if( isDate( record.reset_password_datecreated ) ){
+			var nextAllowResetDate = _getSystemConfigurationService().getSetting( "website_users", "next_reset_password_allowed_after_x_minute", 10 );
+
+			var sinceLastResetPasswordInMinutes = dateDiff( "n", record.reset_password_datecreated, now() );
 
 			if( sinceLastResetPasswordInMinutes < nextAllowResetDate ) {
 				result.allowedReset                  = false;
