@@ -257,7 +257,7 @@ component displayName="Website login service" {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.count() ) {
-			var token = createPasswordResetToken();
+			var token = createPasswordResetToken( userRecord );
 
 			_getUserDao().updateData( id=userRecord.id, data={
 				  reset_password_token        = token.resetToken
@@ -313,8 +313,20 @@ component displayName="Website login service" {
 	/**
 	 * Creates a password reset token.
 	 */
-	public struct function createPasswordResetToken() autodoc=true {
+	public struct function createPasswordResetToken( struct existingUser={} ) autodoc=true {
 		var token              = {};
+		var tokenExists        = Len( Trim( arguments.existingUser.reset_password_token ?: "" ) );
+		var existingTokenValid = tokenExists && IsDate( arguments.existingUser.reset_password_token_expiry ?: "" ) && Now() < arguments.existingUser.reset_password_token_expiry;
+
+		if ( existingTokenValid ) {
+			token.resetToken       = arguments.existingUser.reset_password_token;
+			token.resetKey         = arguments.existingUser.reset_password_key;
+			token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
+			token.resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+			return token;
+		}
+
 		token.resetToken       = _createTemporaryResetToken();
 		token.resetKey         = _createTemporaryResetKey();
 		token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
