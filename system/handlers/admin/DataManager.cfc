@@ -1241,7 +1241,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var objectName = prc.objectName ?: "";
-
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
 		runEvent(
