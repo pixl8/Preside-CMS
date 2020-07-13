@@ -364,6 +364,30 @@ component displayName="Website login service" {
 	}
 
 	/**
+	 * Removes expired password reset tokens from the system
+	 *
+	 * @autodoc true
+	 */
+	public boolean function deleteExpiredPasswordResetTokens( any logger ) {
+		var canLog = StructKeyExists( arguments, "logger" );
+		var canInfo = canLog && arguments.logger.canInfo();
+		var deleted = $getPresideObject( "website_user_reset_token" ).deleteData(
+			  filter       = "expiry < :expiry"
+			, filterParams = { expiry = DateAdd( "d", -1, Now() ) }
+		);
+
+		if ( canInfo ) {
+			if ( deleted ) {
+				arguments.logger.info( "Deleted [#NumberFormat( deleted )#] password reset tokens that were over 1 day past their expiry." );
+			} else {
+				arguments.logger.info( "No expired password reset tokens were found ready for deletion." );
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Changes a password
 	 *
 	 * @password.hint The new password

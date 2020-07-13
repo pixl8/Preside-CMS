@@ -6,6 +6,7 @@ component {
 
 	property name="emailLoggingService"     inject="emailLoggingService";
 	property name="notificationService"     inject="notificationService";
+	property name="websiteLoginService"     inject="websiteLoginService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -33,4 +34,19 @@ component {
 	private boolean function deleteOldNotifications( logger ) {
 		return notificationService.deleteOldNotifications( arguments.logger ?: NullValue() );
 	}
+
+	/**
+	 * Delete expired password reset tokens
+	 *
+	 * @priority     5
+	 * @schedule     0 0 3 * * *
+	 * @timeout      1200
+	 * @displayName  Delete expired password reset tokens
+	 * @displayGroup Cleanup
+	 * @feature      websiteUsers
+	 */
+	private boolean function deleteExpiredPasswordResetTokens( logger ) {
+		return websiteLoginService.deleteExpiredPasswordResetTokens( arguments.logger ?: NullValue() );
+	}
+
 }
