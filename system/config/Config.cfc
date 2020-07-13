@@ -444,27 +444,26 @@ component {
 		};
 
 		settings.enum = {};
-		settings.enum.redirectType                    = [ "301", "302" ];
-		settings.enum.pageAccessRestriction           = [ "inherit", "none", "full", "partial" ];
-		settings.enum.pageIframeAccessRestriction     = [ "inherit", "block", "sameorigin", "allow" ];
-		settings.enum.internalSearchAccess            = [ "inherit", "allow", "block" ];
-		settings.enum.searchAccess                    = [ "inherit", "allow", "block" ];
-		settings.enum.assetAccessRestriction          = [ "inherit", "none", "full" ];
-		settings.enum.linkType                        = [ "email", "url", "sitetreelink", "asset" ];
-		settings.enum.linkTarget                      = [ "_blank", "_self", "_parent", "_top" ];
-		settings.enum.linkProtocol                    = [ "http://", "https://", "ftp://", "news://" ];
-		settings.enum.siteProtocol                    = [ "http", "https" ];
-		settings.enum.emailSendingMethod              = [ "auto", "manual", "scheduled" ];
-		settings.enum.emailSendingLimit               = [ "none", "once", "limited" ];
-		settings.enum.emailSendQueueStatus            = [ "queued", "sending" ];
-		settings.enum.timeUnit                        = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
-		settings.enum.emailSendingScheduleType        = [ "fixeddate", "repeat" ];
-		settings.enum.emailActivityType               = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
-		settings.enum.urlStringPart                   = [ "url", "domain", "path", "querystring", "protocol" ];
-		settings.enum.emailAction                     = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
-		settings.enum.adhocTaskStatus                 = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
-		settings.enum.assetQueueStatus                = [ "pending", "running", "failed" ];
-		settings.enum.invalidResetPasswordTokenAction = [ "default_action","newer_token_was_generated", "allow_non_expired_token" ];
+		settings.enum.redirectType                = [ "301", "302" ];
+		settings.enum.pageAccessRestriction       = [ "inherit", "none", "full", "partial" ];
+		settings.enum.pageIframeAccessRestriction = [ "inherit", "block", "sameorigin", "allow" ];
+		settings.enum.internalSearchAccess        = [ "inherit", "allow", "block" ];
+		settings.enum.searchAccess                = [ "inherit", "allow", "block" ];
+		settings.enum.assetAccessRestriction      = [ "inherit", "none", "full" ];
+		settings.enum.linkType                    = [ "email", "url", "sitetreelink", "asset" ];
+		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
+		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://" ];
+		settings.enum.siteProtocol                = [ "http", "https" ];
+		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
+		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
+		settings.enum.emailSendQueueStatus        = [ "queued", "sending" ];
+		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
+		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
+		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
+		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
+		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
+		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService" ];
 
