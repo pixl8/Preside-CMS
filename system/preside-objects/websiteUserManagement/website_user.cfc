@@ -13,8 +13,6 @@ component extends="preside.system.base.SystemPresideObject" labelfield="display_
 	property name="reset_password_token"        type="string"   dbtype="varchar" maxLength="35"  required=false indexes="resettoken" autofilter=false renderer="none";
 	property name="reset_password_key"          type="string"   dbtype="varchar" maxLength="60"  required=false                      autofilter=false renderer="none";
 	property name="reset_password_token_expiry" type="date"     dbtype="datetime"                required=false                      autofilter=false renderer="none";
-	property name="reset_password_datecreated"  type="date"     dbtype="datetime"                required=false                      autofilter=false renderer="none";
-	property name="last_password_updated"       type="date"     dbtype="datetime"                required=false                      autofilter=false renderer="none";
 	property name="last_logged_in"              type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true;
 	property name="last_logged_out"             type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true;
 	property name="last_request_made"           type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true;
