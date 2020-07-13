@@ -346,14 +346,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, recipientId = testUserRecord.id
 			, args        = { resetToken = testTempToken & "-" & testTempKey }
 		).$results( true );
-		mockUserDao.$( "updateData" ).$args(
-			  id   = testUserRecord.id
-			, data = { reset_password_token=testTempToken, reset_password_key=testTempKeyHashed, reset_password_token_expiry=testExpiryDate }
-		).$results( true );
 
 		super.assert( userService.sendPasswordResetInstructions( testLoginId ) );
-		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() );
 		super.assertEquals( 1, mockEmailService.$callLog().send.len() );
+		super.assertEquals( 1, mockResetDao.$callLog().insertData.len() );
+		super.assertEquals( {
+			  user   = testUserRecord.id
+			, token  = testTempToken
+			, key    = testTempKeyHashed
+			, expiry = testExpiryDate
+		}, mockResetDao.$callLog().insertData[ 1 ][ 1 ] );
 	}
 
 	function test18_validateResetPasswordToken_shouldReturnFalse_whenTokenRecordNotFound() output=false {
@@ -363,6 +365,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = { reset_password_token = ListFirst( testToken, "-" ) }
 			, selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
+		).$results( QueryNew('') );
+
+		mockResetDao.$( "selectData" ).$args(
+			  filter       = { token = ListFirst( testToken, "-" ) }
+			, selectFields = [ "user as id", "key as reset_password_key", "expiry as reset_password_token_expiry" ]
 		).$results( QueryNew('') );
 
 		super.assertFalse( userService.validateResetPasswordToken( testToken ) );
@@ -462,6 +469,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockSessionStorage    = getMockbox().createEmptyMock( "preside.system.services.cfmlscopes.SessionStorage" );
 		mockCookieService     = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
 		mockUserDao           = getMockbox().createStub();
+		mockResetDao          = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();
 		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 		mockSysConfigService  = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
@@ -483,6 +491,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		service.$( "$recordWebsiteUserAction" );
 		service.$( "$announceInterception" );
 		mockSessionStorage.$( "rotate" );
+		service.$( "$getPresideObject" ).$args( "website_user_reset_token" ).$results( mockResetDao );
+		mockResetDao.$( "insertData", 1 );
+		mockResetDao.$( "deleteData", 1 );
 
 		return service;
 	}
