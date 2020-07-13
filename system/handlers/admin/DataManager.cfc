@@ -1266,6 +1266,7 @@ component extends="preside.system.base.AdminHandler" {
 					, "filter"
 					, "saved_filter"
 					, "order_by"
+					, "search_query"
 				]
 			);
 
@@ -1277,6 +1278,7 @@ component extends="preside.system.base.AdminHandler" {
 				rc.filterExpressions = savedReportDetail.filter;
 				rc.savedFilters      = savedReportDetail.saved_filter;
 				rc.orderBy           = savedReportDetail.order_by;
+				rc.searchQuery       = savedReportDetail.search_query;
 
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
@@ -2905,16 +2907,17 @@ component extends="preside.system.base.AdminHandler" {
 		,          string filterExpressions = ( rc.filterExpressions ?: '' )
 		,          string savedFilters      = ( rc.savedFilters      ?: '' )
 		,          string orderBy           = ( rc.orderBy           ?: '' )
-
+		,          string searchQuery       = ( rc.searchQuery       ?: '' )
 	) {
 		var newSavedReportId = "";
 		var data             =  {
-			  label       = arguments.filename
-			, file_name   = arguments.filename
-			, object_name = arguments.objectName
-			, fields      = arguments.exportFields
-			, exporter    = arguments.exporter
-			, order_by    = arguments.orderBy
+			  label        = arguments.filename
+			, file_name    = arguments.filename
+			, object_name  = arguments.objectName
+			, fields       = arguments.exportFields
+			, exporter     = arguments.exporter
+			, order_by     = arguments.orderBy
+			, search_query = arguments.searchQuery
 		};
 
 		if ( isFeatureEnabled( "rulesEngine" ) ) {
