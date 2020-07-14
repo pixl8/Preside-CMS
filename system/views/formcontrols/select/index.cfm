@@ -1,18 +1,19 @@
 <cfscript>
-	inputName          		= args.name             			?: "";
-	inputId            		= args.id               			?: "";
-	inputClass         		= args.class            			?: "";
-	placeholder        		= args.placeholder      			?: "";
-	defaultValue       		= args.defaultValue     			?: "";
-	multiple           		= args.multiple         			?: false;
-	sortable           		= args.sortable         			?: "";
-	deselectable            = args.deselectable                 ?: true;
-	extraClasses       		= args.extraClasses     			?: "";
-	values             		= args.values                		?: "";
-	addMissingValues   		= IsTrue( args.addMissingValues 	?: "" );
-	removeObjectPickerClass	= args.removeObjectPickerClass     	?: false;
-	objectPickerClass  		= removeObjectPickerClass			?  "" : "object-picker" ;
-	labels            		= ( structKeyExists( args, "labels") && len( args.labels ) )  ?  args.labels : args.values;
+	inputName               = args.name                    ?: "";
+	inputId                 = args.id                      ?: "";
+	inputClass              = args.class                   ?: "";
+	placeholder             = args.placeholder             ?: "";
+	defaultValue            = args.defaultValue            ?: "";
+	multiple                = args.multiple                ?: false;
+	sortable                = args.sortable                ?: "";
+	deselectable            = args.deselectable            ?: true;
+	extraClasses            = args.extraClasses            ?: "";
+	values                  = args.values                  ?: "";
+	removeObjectPickerClass = args.removeObjectPickerClass ?: false;
+	objectPickerClass       = removeObjectPickerClass ?  "" : "object-picker";
+	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
+	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
+	labels                  = ( structKeyExists( args, "labels") && len( args.labels ) ) ? args.labels : args.values;
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
@@ -21,7 +22,7 @@
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
-	
+
 	if ( !deselectable ) {
 		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
 	}
@@ -32,17 +33,20 @@
 
 <cfoutput>
 	<select class="#inputClass# #objectPickerClass# #extraClasses#"
-	        name="#inputName#"
-	        id="#inputId#"
-	        tabindex="#getNextTabIndex()#"
-	        data-placeholder="#translateResource( uri=placeholder, defaultValue=placeholder )#"
-	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-	        data-value="#value#"
-	        data-display-limit="0"
-	        <cfif IsBoolean( multiple ) && multiple>
-	        	multiple="multiple"
-	        </cfif>
+		name="#inputName#"
+		id="#inputId#"
+		tabindex="#getNextTabIndex()#"
+		data-placeholder="#translateResource( uri=placeholder, defaultValue=placeholder )#"
+		data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
+		data-value="#value#"
+		data-display-limit="0"
+		<cfif IsBoolean( multiple ) && multiple>
+			multiple="multiple"
+		</cfif>
 	>
+		<cfif includeEmptyOption>
+			<option value=""></option>
+		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selected   = ListFindNoCase( value, selectValue ) />
 			<cfset valueFound = valueFound || selected />

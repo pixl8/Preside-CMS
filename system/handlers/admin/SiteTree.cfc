@@ -180,6 +180,12 @@ component extends="preside.system.base.AdminHandler" {
 		prc.mainFormName  = "preside-objects.page.add";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
 
+		if ( _isManagedPage( parentPageId, rc.page_type ) ) {
+			prc.cancelLink = event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#parentPageId#&pageType=#rc.page_type#" );
+		} else {
+			prc.cancelLink = event.buildAdminLink( linkTo="sitetree" );
+		}
+
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.addPage.title" )

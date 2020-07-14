@@ -310,7 +310,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( nextSendDate );
 			} );
 
-			it( "should set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date later than newly calculated send date", function(){
+			it( "should the schedule_next_send_date field when the schedule type is 'repeat' with newly calculated send date", function(){
 				var service      = _getService();
 				var templateId   = CreateUUId();
 				var nowish       = Now();
@@ -337,19 +337,20 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 			} );
 
-			it( "should not set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date is in the future and earlier than newly calculated send date", function(){
+			it( "should set the next send date to start date when start date is in the future", function(){
 				var service      = _getService();
 				var templateId   = CreateUUId();
 				var nowish       = Now();
-				var nextSendDate = DateAdd( "d", 3, nowish );
+				var nextSendDate = DateAdd( "ww", 4, nowish );
+				var startDate    = DateAdd( "ww", 1, nowish );
 				var template = {
 					  sending_method          = "scheduled"
 					, schedule_type           = "repeat"
 					, schedule_measure        = 3
 					, schedule_unit           = "day"
-					, schedule_start_date     = ""
+					, schedule_start_date     = startDate
 					, schedule_end_date       = ""
-					, schedule_next_send_date = DateAdd( "d", 2, nowish )
+					, schedule_next_send_date = nextSendDate
 				};
 
 				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true, fromVersionTable=false ).$results( template );
@@ -360,34 +361,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
 				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
-				expect( service.$callLog().saveTemplate[1].template.keyExists( "schedule_next_send_date" ) ).toBe( false );
-
-			} );
-
-			it( "should set the schedule_next_send_date to empty when schedule start date is in the future", function(){
-				var service      = _getService();
-				var templateId   = CreateUUId();
-				var nowish       = Now();
-				var nextSendDate = DateAdd( "d", 3, nowish );
-				var template = {
-					  sending_method          = "scheduled"
-					, schedule_type           = "repeat"
-					, schedule_measure        = 3
-					, schedule_unit           = "day"
-					, schedule_start_date     = DateAdd( "ww", 1, nowish )
-					, schedule_end_date       = ""
-					, schedule_next_send_date = DateAdd( "ww", 4, nowish )
-				};
-
-				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true, fromVersionTable=false ).$results( template );
-				service.$( "saveTemplate", templateId );
-				service.$( "_getNow", nowish );
-
-				service.updateScheduledSendFields( templateId );
-
-				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
-				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
-				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( "" );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( startDate );
 			} );
 
 			it( "should set the schedule_next_send_date to empty when schedule end date is in the past", function(){
@@ -596,11 +570,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService( initialize=false );
 				var recipientType = CreateUUId();
 				var systemTemplates = [ { id="t1", title="Template 1" }, { id="t2", title="Template 2" }, { id="t3", title="Template 3" } ];
+				var existingTemplates = { "t2"={ id="t2", recipient_type=recipientType } };
 
 				mockSystemEmailTemplateService.$( "listTemplates", systemTemplates );
 				service.$( "saveTemplate", CreateUUId() );
 				for( var t in systemTemplates ){
-					service.$( "templateExists" ).$args( t.id ).$results( t.id == "t2" );
+					service.$( "_getExistingSystemTemplates" ).$results( existingTemplates );
 					mockSystemEmailTemplateService.$( "getDefaultLayout" ).$args( t.id ).$results( t.id & "layout" );
 					mockSystemEmailTemplateService.$( "getDefaultSubject" ).$args( t.id ).$results( t.id & "subject" );
 					mockSystemEmailTemplateService.$( "getDefaultHtmlBody" ).$args( t.id ).$results( t.id & "html" );
@@ -642,6 +617,40 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, recipient_type  = recipientType
 						, is_system_email = true
 					}
+				} );
+			} );
+
+			it( "should update the recipient type of any system email templates whose config does not match the record in the DB", function(){
+				var service = _getService( initialize=false );
+				var recipientType = CreateUUId();
+				var systemTemplates = [ { id="t1", title="Template 1" }, { id="t2", title="Template 2" } ];
+				var existingTemplates = { "t1"={ id="t1", recipient_type=createUUID() }, "t2"={ id="t2", recipient_type=recipientType } };
+
+				mockSystemEmailTemplateService.$( "listTemplates", systemTemplates );
+				service.$( "saveTemplate", CreateUUId() );
+				for( var t in systemTemplates ){
+					service.$( "_getExistingSystemTemplates" ).$results( existingTemplates );
+					mockSystemEmailTemplateService.$( "getDefaultLayout" ).$args( t.id ).$results( t.id & "layout" );
+					mockSystemEmailTemplateService.$( "getDefaultSubject" ).$args( t.id ).$results( t.id & "subject" );
+					mockSystemEmailTemplateService.$( "getDefaultHtmlBody" ).$args( t.id ).$results( t.id & "html" );
+					mockSystemEmailTemplateService.$( "getDefaultTextBody" ).$args( t.id ).$results( t.id & "text" );
+					mockSystemEmailTemplateService.$( "getRecipientType" ).$args( t.id ).$results( recipientType );
+				}
+
+				service.init(
+					  systemEmailTemplateService = mockSystemEmailTemplateService
+					, emailRecipientTypeService  = mockEmailRecipientTypeService
+					, emailLayoutService         = mockEmailLayoutService
+					, emailSendingContextService = mockEmailSendingContextService
+					, assetManagerService        = mockAssetManagerService
+					, emailStyleInliner          = mockEmailStyleInliner
+					, emailSettings              = mockEmailSettings
+				);
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1] ).toBe( {
+					  id = "t1"
+					, template = { recipient_type=recipientType }
 				} );
 			} );
 		} );
@@ -1739,6 +1748,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );
+			service.$( "_getExistingSystemTemplates" );
 			service.init(
 				  systemEmailTemplateService = mockSystemEmailTemplateService
 				, emailRecipientTypeService  = mockEmailRecipientTypeService

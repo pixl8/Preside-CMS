@@ -114,11 +114,29 @@ component validationProvider=true {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
 
-	public boolean function email( required string fieldName, string value="" ) validatorMessage="cms:validation.email.default" {
-		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$" );
+	public boolean function email( required string fieldName, string value="", boolean multiple=false ) validatorMessage="cms:validation.email.default" {
+		var emailRegex = "^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$";
+		if ( !arguments.multiple ) {
+			return match( fieldName=arguments.fieldName, value=arguments.value, regex=emailRegex );
+		}
+		for( var email in listToArray( arguments.value, ", " ) ) {
+			if ( !match( fieldName=arguments.fieldName, value=email, regex=emailRegex ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 	public string function email_js() {
-		return "function( value ){ return !value.length || value.match( /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/ ) !== null }";
+		return "function( value, el, params ){
+			if ( !value.length ) return true;
+			var emailRegex = /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/;
+			if ( !el.multiple )	return value.match( emailRegex ) !== null;
+			var emails = value.split( /[ ,]+/ );
+			for( var i=0; i<emails.length; i++ ) {
+				if ( emails[ i ].match( emailRegex ) === null ) return false;
+			}
+			return true;
+		}";
 	}
 
 	public boolean function uuid( required string value ) validatorMessage="cms:validation.uuid.default" {

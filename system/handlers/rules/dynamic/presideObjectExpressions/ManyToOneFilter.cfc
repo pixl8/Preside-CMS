@@ -38,12 +38,32 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		if ( !expressionArray.len() ) {
 			return [];
 		}
-
-		return [ filterService.prepareFilter(
+		var idField = presideObjectService.getIdField( arguments.relatedTo );
+		var filter = filterService.prepareFilter(
 			  objectName      = arguments.relatedTo
 			, expressionArray = expressionArray
-			, filterPrefix    = filterPrefix.listAppend( arguments.propertyName, "$" )
-		) ];
+		);
+		var subQueryAlias = "manyToOneFilter" & CreateUUId().lCase().replace( "-", "", "all" );
+		var subQuery = presideObjectService.selectData(
+			  objectName          = arguments.relatedTo
+			, selectFields        = [ "#idField# as id" ]
+			, extraFilters        = [ filter ]
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+
+		return [ {
+			  filter = "1=1"
+			, filterParams = subquery.params
+			, extraJoins = [{
+				  type           = "inner"
+				, subQuery       = subQuery.sql
+				, subQueryAlias  = subQueryAlias
+				, subQueryColumn = "id"
+				, joinToTable    = arguments.objectName
+				, joinToColumn   = arguments.propertyName
+			} ]
+		}];
 	}
 
 	private string function getLabel(

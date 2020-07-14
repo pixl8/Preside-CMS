@@ -42,6 +42,7 @@ component {
 		,          numeric exportPagingSize   = 1000
 		,          any     recordsetDecorator = ""
 		,          string  exportFileName     = ""
+		,          string  orderBy            = ""
 		,          string  mimetype           = ""
 		,          any     logger
 		,          any     progress
@@ -76,11 +77,9 @@ component {
 		selectDataArgs.startRow    = 1;
 		selectDataArgs.autoGroupBy = true;
 		selectDataArgs.useCache    = false;
-		selectDataArgs.orderBy     = presideObjectService.getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "dataExportDefaultSortOrder"
-		);
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
+		selectDataArgs.distinct     = true;
+		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 
 		if ( canReportProgress || canLog ) {
 			var totalRecordsToExport = presideObjectService.selectData(
@@ -213,6 +212,10 @@ component {
 			for( var propId in propertyNames ) {
 				var prop = objectProperties[ propId ];
 
+				if ( IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) {
+					continue;
+				}
+
 				switch( prop.relationship ?: "" ) {
 					case "one-to-many":
 					case "many-to-many":
@@ -232,7 +235,7 @@ component {
 								continue;
 							break;
 							case "varchar":
-								if ( Val( prop.maxLength ?: "" ) > 200 ) {
+								if ( Val( prop.maxLength ?: "" ) > 800 ) {
 									continue;
 								}
 							break;
@@ -282,13 +285,22 @@ component {
 		, required array  selectFields
 	) {
 		var props = $getPresideObjectService().getObjectProperties( arguments.objectName );
+		var prop  = {};
 		var i     = 0;
 
 		for( var field in arguments.selectFields ) {
 			i++;
+			prop = props[ field ] ?: {};
 
-			if ( ( props[ field ].relationship ?: "" ) == "many-to-one" ) {
-				arguments.selectFields[ i ] = "#field#.${labelfield} as #field#";
+			switch( prop.relationship ?: "none" ) {
+				case "one-to-many":
+				case "many-to-many":
+					selectFields[ i ] = "'' as " & field;
+				break;
+
+				case "many-to-one":
+					selectFields[ i ] = "#field#.${labelfield} as " & field;
+				break;
 			}
 		}
 
@@ -309,6 +321,49 @@ component {
 		}
 
 		return arguments.existingTitles;
+	}
+
+	private string function _getOrderBy( required string objectName, required string orderBy ) {
+		var orderElements    = ListToArray( arguments.orderBy );
+		var validDirections  = [ "asc", "desc" ];
+		var validatedOrderBy = arguments.orderBy;
+		var objectProperties = $getPresideObjectService().getObjectProperties( arguments.objectName );
+
+		for( var el in orderElements ) {
+			var fieldName         = Trim( ListFirst( el, " " ) );
+			var fieldRelationship = objectProperties[fieldName].relationship ?: "";
+			var dir               = ListLen( el, " " ) > 1 ? LCase( Trim( ListRest( el, " " ) ) ) : "asc";
+
+			if ( !ArrayFind( validDirections, dir ) ) {
+				validatedOrderBy = "";
+				break;
+			}
+
+			if ( !StructKeyExists( objectProperties, fieldName ) ) {
+				validatedOrderBy = "";
+				break;
+			}
+
+			if( fieldRelationship == "many-to-one" ){
+				var fieldRelatedTo = objectProperties[fieldName].relatedto ?: "";
+				if( Len( fieldRelatedTo ) ){
+					var fieldRelatedToLabel = $getPresideObjectService().getLabelField( fieldRelatedTo );
+
+					if( Len( fieldRelatedToLabel ) ){
+						validatedOrderBy = replace( validatedOrderBy, fieldName, "#fieldName#.#fieldRelatedToLabel#" );
+					}
+				}
+			}
+		}
+
+		if ( !Len( Trim( validatedOrderBy ) ) ) {
+			validatedOrderBy = $getPresideObjectService().getObjectAttribute(
+				  objectName    = arguments.objectName
+				, attributeName = "dataExportDefaultSortOrder"
+			);
+		}
+
+		return validatedOrderBy;
 	}
 
 // GETTERS AND SETTERS

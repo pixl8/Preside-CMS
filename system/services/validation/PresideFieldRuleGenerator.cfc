@@ -148,7 +148,8 @@ component output="false" singleton=true {
 		// controls
 		switch( field.control ?: "" ){
 			case "emailInput":
-				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email" } );
+				var multiple = isBoolean( field.multiple ?: "" ) && field.multiple;
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="email", params={ multiple=multiple } } );
 			break;
 
 			case "fileupload":

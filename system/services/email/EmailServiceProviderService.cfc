@@ -242,6 +242,8 @@ component {
 			args.sendArgs.messageId = CreateUUId();
 		}
 
+		args.sendArgs.htmlBody = rereplace( args.sendArgs.htmlBody, "([^\r\n]{100})\s", "\1#chr(10)#", "all" );
+
 		try {
 			sent = $getColdbox().runEvent(
 				  event          = sendAction

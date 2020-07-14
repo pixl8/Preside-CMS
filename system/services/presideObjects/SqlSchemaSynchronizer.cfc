@@ -43,7 +43,6 @@ component {
 		var tableExists        = "";
 		var tableVersionExists = "";
 
-		_ensureValidDbEntityNames( arguments.objects );
 		for( objName in objects ) {
 			obj       = objects[ objName ];
 			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
@@ -218,7 +217,8 @@ component {
 				dropSql = adapter.getDropIndexSql(
 					  indexName = indexName
 					, tableName = arguments.tableName
-				)
+				),
+				relatedForeignKeys = _getRelatedForeignKeys( arguments.relationships, index.fields )
 			};
 		}
 
@@ -246,6 +246,19 @@ component {
 		sql.table.version = Hash( sql.table.sql & SerializeJson( arguments.indexes ) & SerializeJson( arguments.relationships ) );
 
 		return sql;
+	}
+
+	private array function _getRelatedForeignKeys( required struct relationships, required string fields ) {
+		var foreignKeys = [];
+		var indexFields = listToArray( arguments.fields );
+
+		for( var fk in arguments.relationships ) {
+			if ( indexFields.find( arguments.relationships[ fk ].fk_column ) ) {
+				foreignKeys.append( fk );
+			}
+		}
+
+		return foreignKeys;
 	}
 
 	private void function _createObjectInDb( required struct generatedSql, required string dsn ) {
@@ -435,6 +448,7 @@ component {
 				indexSql = indexesSql[ index ];
 				_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
 				_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+				_addForeignKeysToRecreate( indexSql.relatedForeignKeys );
 			} else if ( !StructKeyExists( arguments.indexes, index ) && ReFindNoCase( '^[iu]x_', index ) ) {
 				_runSql(
 					  sql = adapter.getDropIndexSql( indexName=index, tableName=arguments.tableName )
@@ -514,6 +528,7 @@ component {
 				dbKey = dbKeys[ dbKeyName ];
 
 				shouldBeDeleted = !StructKeyExists( obj.meta.relationships, dbKeyName ) && ReFindNoCase( "^fk_[0-9a-f]{32}$", dbKeyName );
+				shouldBeDeleted = shouldBeDeleted || _shouldRecreateForeignKey( dbKeyName );
 				if ( shouldBeDeleted ) {
 					deleteSql = adapter.getDropForeignKeySql(
 						  foreignKeyName = dbKeyName
@@ -539,7 +554,7 @@ component {
 			dbKeys = dsnKeys[ obj.meta.dsn ][ obj.meta.tableName ] ?: {};
 
 			for( key in obj.sql.relationships ){
-				if ( !StructKeyExists( dbKeys, key ) ) {
+				if ( !StructKeyExists( dbKeys, key ) || _shouldRecreateForeignKey( key ) ) {
 					transaction {
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
@@ -574,6 +589,22 @@ component {
 				, sql = adapter.getToggleForeignKeyChecks( checksEnabled=arguments.enabled, tableName=arguments.tableName )
 			);
 		}
+	}
+
+	private boolean function _shouldRecreateForeignKey( required string dbKeyName ) {
+		var fksToRecreate = _getForeignKeysToRecreate();
+		return fksToRecreate.find( arguments.dbKeyName );
+	}
+
+	private void function _addForeignKeysToRecreate( required array dbKeyNames ) {
+		var fksToRecreate = _getForeignKeysToRecreate();
+		fksToRecreate.append( arguments.dbKeyNames, true );
+	}
+
+	private array function _getForeignKeysToRecreate() {
+		request._sqlSchemaSynchronizerFkRecreateArray = request._sqlSchemaSynchronizerFkRecreateArray ?: [];
+
+		return request._sqlSchemaSynchronizerFkRecreateArray;
 	}
 
 	private array function _getBuiltSqlScriptArray() {
@@ -674,18 +705,6 @@ component {
 		var versionScripts = _getSchemaVersioningService().getSetVersionPlainSql( argumentCollection=arguments );
 		for( var script in versionScripts ){
 			syncScripts.append( script );
-		}
-	}
-
-	private void function _ensureValidDbEntityNames( required struct objects ) {
-		for( var objectName in arguments.objects ) {
-			var objMeta = arguments.objects[ objectName ].meta ?: {};
-			var adapter = _getAdapterFactory().getAdapter( objMeta.dsn ?: "" );
-			var maxTableNameLength = adapter.getTableNameMaxLength();
-
-			if ( Len( objMeta.tableName ?: "" ) > maxTableNameLength ) {
-				objMeta.tableName = Left( objMeta.tableName, maxTableNameLength );
-			}
 		}
 	}
 

@@ -78,6 +78,21 @@ component {
 		return !task.recordCount || task.status != "running";
 	}
 
+	/**
+	 * Marks a task as failed
+	 *
+	 * @autodoc    true
+	 * @error      Error that prompted task failure
+	 * @forceRetry If true, will ignore retry config and automatically queue for retry
+	 */
+	public void function failTask( struct error={}, boolean forceRetry=false ) {
+		_getAdhocTaskManagerService().failTask(
+			  taskId 			= _getTaskId()
+			, error    		= arguments.error
+			, forceRetry 	= arguments.forceRetry
+		);
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getAdhocTaskManagerService() {

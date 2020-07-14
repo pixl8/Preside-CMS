@@ -585,6 +585,33 @@ if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
                 clearButtonTitle: 'Clear',
                 clearCaption: 'Not Rated'
             };
+            $.fn.ratingLocales.de = {
+                defaultCaption: '{rating} Sterne',
+                starCaptions: {
+                    0.5: 'Halber Stern',
+                    1: 'Ein Stern',
+                    1.5: 'Anderthalb Sterne',
+                    2: 'Zwei Sterne',
+                    2.5: 'Zweieinhalb Sterne',
+                    3: 'Drei Sterne',
+                    3.5: 'Dreieinhalb Sterne',
+                    4: 'Vier Sterne',
+                    4.5: 'Viereinhalb Sterne',
+                    5: 'Fünf Sterne',
+                    5.5: 'Fünfeinhalb Sterne',
+                    6: 'Sechs Sterne',
+                    6.5: 'Sechseinhalb Sterne',
+                    7: 'Sieben Sterne',
+                    7.5: 'Siebeneinhalb Sterne',
+                    8: 'Acht Sterne',
+                    8.5: 'Achteinhalb Sterne',
+                    9: 'Neun Sterne',
+                    9.5: 'Neuneinhalb Sterne',
+                    10: 'Zehn Sterne',
+                },
+                clearButtonTitle: 'Löschen',
+                clearCaption: 'Nicht bewertet'
+            };
 
             $.fn.rating.Constructor = Rating;
 

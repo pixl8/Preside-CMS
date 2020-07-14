@@ -69,7 +69,7 @@
 								#addPageLinkTitle#
 							</a>
 						<cfelse>
-							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=pageId&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( addPageLinkTitle )#">
+							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#pageId#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( addPageLinkTitle )#">
 								<i class="fa fa-fw fa-plus"></i>&nbsp;
 								#addPageLinkTitle#
 							</a>
@@ -189,7 +189,7 @@
 		)#
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
-				<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">
+				<a href="#backToTreeLink#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>

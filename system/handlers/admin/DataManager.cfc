@@ -1795,7 +1795,7 @@ component extends="preside.system.base.AdminHandler" {
 							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
 						} );
 					}
-					if ( canViewVersions ) {
+					if ( useVersioning ) {
 						actions.append( {
 							  link       = viewHistoryLink.replace( "{id}", record.id )
 							, icon       = "fa-history"
@@ -2788,6 +2788,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string filename          = ( rc.fileName          ?: '' )
 		,          string filterExpressions = ( rc.filterExpressions ?: '' )
 		,          string savedFilters      = ( rc.savedFilters      ?: '' )
+		,          string orderBy           = ( rc.orderBy           ?: '' )
 		,          array  extraFilters      = []
 		,          string returnUrl         = cgi.http_referer
 		,          struct additionalArgs    = {}
@@ -2802,6 +2803,7 @@ component extends="preside.system.base.AdminHandler" {
 			, selectFields   = selectFields
 			, extraFilters   = arguments.extraFilters
 			, autoGroupBy    = true
+			, orderBy        = arguments.orderBy
 			, exportFileName = fullFileName
 			, mimetype       = exporterDetail.mimeType
 			, additionalArgs = arguments.additionalArgs

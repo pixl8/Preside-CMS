@@ -3,14 +3,31 @@ component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService" inject="presideObjectService";
 	property name="linkPickerConfig"     inject="coldbox:setting:ckeditor.linkPicker";
 
-	function index( event, rc, prc ) {
-		var configCat = rc.linkPickerCategory ?: "default";
-		if ( !StructKeyExists( linkPickerConfig, configCat ) ) {
-			configCat = "default";
+	public void function preHandler( event, action ) {
+		super.preHandler( argumentCollection=arguments );
+		
+		if( !isEmptyString( rc.allowedTypes ?:"" ) ) {
+			prc.linkTypes = listToArray( rc.allowedTypes );
+		}else {
+			var configCat = rc.linkPickerCategory ?: "default";
+			if ( !StructKeyExists( linkPickerConfig, configCat ) ) {
+				configCat = "default";
+			}
+			
+			var linkTypes = linkPickerConfig[ configCat ].types ?: [ "sitetreelink", "url", "email", "asset", "anchor" ];
+
+			switch ( action ) {
+				case "quickAddForm"  :
+				case "quickEditForm" :
+					linkTypes = [  "email", "sitetreelink", "url", "asset"  ];
+					break;
+			}
+
+			prc.linkTypes = linkTypes;
 		}
+	}
 
-		prc.linkTypes = linkPickerConfig[ configCat ].types ?: [ "sitetreelink", "url", "email", "asset", "anchor" ];
-
+	function index( event, rc, prc ) {
 		event.setLayout( "adminModalDialog" );
 		event.setView( "admin/linkPicker/index" );
 	}

@@ -18,7 +18,6 @@
 		, ckeditorDefaultMinHeight      = ckeditorSettings.defaults.minHeight             ?: "auto"
 		, ckeditorDefaultMaxHeight      = ckeditorSettings.defaults.maxHeight             ?: 300
 		, ckeditorAutoParagraph         = ckeditorSettings.defaults.autoParagraph         ?: true
-		, ckeditorExtraAllowedContent   = ckeditorSettings.defaults.extraAllowedContent   ?: ""
-		, ckeditorPasteFromWordDisallow = ckeditorSettings.defaults.pasteFromWordDisallow ?: []
+		, ckeditorDefaultConfigs        = ckeditorSettings.defaults.defaultConfigs        ?: {}
 	} );
 </cfscript>

@@ -636,16 +636,18 @@ component {
 
 		if ( template.sending_method == "scheduled" ) {
 			if ( template.schedule_type == "repeat" ) {
-				var nowish = _getNow();
-				var expired = ( IsDate( template.schedule_start_date ) && template.schedule_start_date > nowish ) || ( IsDate( template.schedule_end_date ) && template.schedule_end_date < nowish );
+				var nowish  = _getNow();
+				var expired = ( IsDate( template.schedule_end_date ) && template.schedule_end_date < nowish );
 
-				if ( !expired ) {
-					var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit, template.schedule_start_date );
-
-					if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date <= nowish || template.schedule_next_send_date > newSendDate ) {
-						updatedData.schedule_next_send_date = newSendDate;
+				if( !expired ){
+					if( ( IsDate( template.schedule_start_date ) && template.schedule_start_date > nowish ) ){
+						updatedData.schedule_next_send_date = template.schedule_start_date;
 					} else {
-						updatedData.delete( "schedule_next_send_date" );
+						updatedData.schedule_next_send_date = _calculateNextSendDate( template.schedule_measure, template.schedule_unit, template.schedule_start_date );
+					}
+
+					if ( IsDate( template.schedule_end_date ) && updatedData.schedule_next_send_date >= template.schedule_end_date ){
+						updatedData.schedule_next_send_date = "";
 					}
 				}
 
@@ -1271,20 +1273,39 @@ component {
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
 		var systemTemplates    = sysTemplateService.listTemplates();
+		var existingTemplates  = _getExistingSystemTemplates();
+		var recipientType      = "";
 
 		for( var template in systemTemplates ) {
-			if ( !templateExists( template.id ) ) {
+			recipientType = sysTemplateService.getRecipientType( template.id );
+			if ( !existingTemplates.keyExists( template.id ) ) {
 				saveTemplate( id=template.id, template={
 					  name            = template.title
 					, layout          = sysTemplateService.getDefaultLayout( template.id )
 					, subject         = sysTemplateService.getDefaultSubject( template.id )
 					, html_body       = sysTemplateService.getDefaultHtmlBody( template.id )
 					, text_body       = sysTemplateService.getDefaultTextBody( template.id )
-					, recipient_type  = sysTemplateService.getRecipientType( template.id )
+					, recipient_type  = recipientType
 					, is_system_email = true
 				} );
+			} else if ( existingTemplates[ template.id ].recipient_type != recipientType ) {
+				saveTemplate( id=template.id, template={ recipient_type=recipientType } );
 			}
 		}
+	}
+
+	private struct function _getExistingSystemTemplates() {
+		var templates     = {};
+		var templateQuery = $getPresideObject( "email_template" ).selectData(
+			  filter       = { is_system_email=true }
+			, selectFields = [ "id", "recipient_type" ]
+		);
+
+		for( var template in templateQuery ) {
+			templates[ template.id ] = template;
+		}
+
+		return templates;
 	}
 
 	private date function _getNow() {
@@ -1304,11 +1325,10 @@ component {
 		var cfunit = _timeUnitToCfMapping[ arguments.unit ];
 
 		if ( IsDate( arguments.startDate ) ) {
-			var measureFromStart = DateDiff( cfunit, arguments.startDate, nowish ) + arguments.measure;
-			var nextDate         = DateAdd( cfunit, measureFromStart, arguments.startDate );
+			var nextDate         = arguments.startDate;
 
 			while( nextDate <= nowish ) {
-				nextDate = DateAdd( cfunit, 1, nextDate );
+				nextDate = DateAdd( cfunit, arguments.measure, nextDate );
 			}
 
 			return nextDate;

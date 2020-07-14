@@ -10,6 +10,7 @@ component {
 		, numeric applicationReloadTimeout     = 1200
 		, numeric applicationReloadLockTimeout = 0
 		, string  scriptProtect                = "none"
+		, string  cookieSameSitePolicy         = "None"  // "None", "Lax" or "Strict"
 		, string  reloadPassword               = "true"
 		, boolean showDbSyncScripts            = false
 		, boolean bufferOutput                 = true
@@ -22,6 +23,7 @@ component {
 		this.COLDBOX_RELOAD_PASSWORD                 = arguments.reloadPassword;
 		this.name                                    = arguments.name;
 		this.scriptProtect                           = arguments.scriptProtect;
+		this.cookieSameSitePolicy                    = arguments.cookieSameSitePolicy;
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
 		this.statelessRequest                        = isStatelessRequest( _getUrl() );
@@ -586,6 +588,8 @@ component {
 			return;
 		}
 
+		var sameSitePolicy    = this.cookieSameSitePolicy;
+		var sameSiteRegex     = "(^|;|\s)SameSite=#sameSitePolicy#(;|$)";
 		var httpRegex         = "(^|;|\s)HttpOnly(;|$)";
 		var secureRegex       = "(^|;|\s)Secure(;|$)";
 		var cleanedCookies    = [];
@@ -611,6 +615,11 @@ component {
 
 			if ( isSecure && !ReFindNoCase( secureRegex, cooky ) ) {
 				cooky = ListAppend( cooky, "Secure", ";" );
+				anyCookiesChanged = true;
+			}
+
+			if ( isSecure && !ReFindNoCase( sameSiteRegex, cooky ) ) {
+				cooky = ListAppend( cooky, "SameSite=#sameSitePolicy#", ";" );
 				anyCookiesChanged = true;
 			}
 
