@@ -1,6 +1,5 @@
 /**
  * @datamanagerEnabled                 true
- * @feature                            savereport
  * @versioned                          false
  * @dataManagerExportEnabled           false
  * @datamanagerDisallowedOperations    read,add,clone

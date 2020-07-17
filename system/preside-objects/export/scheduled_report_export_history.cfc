@@ -8,7 +8,7 @@
  * @datamanagerDefaultSortOrder        datecreated desc
  */
 component extends="preside.system.base.SystemPresideObject" {
-	property name="scheduled_report" relationship="many-to-one" relatedto="scheduled_report_export" required="true" indexes="exporthistory|1,reportid" autofilter=false feature="savereport";
+	property name="scheduled_report" relationship="many-to-one" relatedto="scheduled_report_export" required="true" indexes="exporthistory|1,reportid" autofilter=false;
 
 	property name="thread_id"                                  maxlength=100 required=true indexes="thread"                                            autofilter=false;
 	property name="machine_id"                                 maxlength=100 required=true indexes="machine"                                           autofilter=false;
