@@ -292,6 +292,7 @@
 					, tableName   = "pobj_obj_a__join__obj_b"
 					, tablePrefix = "pobj_"
 					, versioned   = false
+					, useDrafts   = false
 					, properties  = {
 						  obj_a = { name="obj_a", control="auto", type="numeric", dbtype="smallint", maxLength="0" , generator="none", generate="never", relationship="many-to-one", relatedTo="obj_a", required=true, onDelete="cascade", onUpdate="cascade" }
 						, obj_b = { name="obj_b", control="auto", type="string" , dbtype="varchar" , maxLength="35", generator="none", generate="never", relationship="many-to-one", relatedTo="obj_b", required=true, onDelete="cascade", onUpdate="cascade" }

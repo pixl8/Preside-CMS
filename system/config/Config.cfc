@@ -402,11 +402,13 @@ component {
 			, formbuilder                    = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual                   = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport                     = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, savereport                     = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, scheduledReportExport          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine                    = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter                    = { enabled=true , siteTemplates=[ "*" ] }
 			, emailCenterResend              = { enabled=false, siteTemplates=[ "*" ] }
+			, emailDeliveryStats             = { enabled=true , siteTemplates=[ "*" ] }
 			, emailStyleInliner              = { enabled=true , siteTemplates=[ "*" ] }
 			, emailLinkShortener             = { enabled=false, siteTemplates=[ "*" ] }
 			, emailOverwriteDomain           = { enabled=false, siteTemplates=[ "*" ] }
@@ -425,6 +427,7 @@ component {
 			, queryCachePerObject            = { enabled=false, siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls           = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls           = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
+			, presideSessionManagement       = { enabled=_usePresideSessionManagement(), siteTemplates=[ "*" ] }
 			, "devtools.reload"              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -469,7 +472,7 @@ component {
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
@@ -558,6 +561,7 @@ component {
 		settings.heartbeats.emailQueue.hostname   = settings.env.EMAILQUEUE_HEARTBEAT_HOSTNAME   ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.cacheBoxReap.hostname = settings.env.CACHEBOXREAP_HEARTBEAT_HOSTNAME ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.healthCheck.hostname  = settings.env.HEALTHCHECK_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
+		settings.heartbeats.sessionReap.hostname  = settings.env.SESSIONREAP_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
 
 		_loadConfigurationFromExtensions();
 
@@ -935,5 +939,11 @@ component {
 				types=[ "sitetreelink", "url", "email", "asset", "emailvariable" ]
 			}
 		};
+	}
+
+	private boolean function _usePresideSessionManagement() {
+		var applicationSettings = getApplicationSettings();
+
+		return IsBoolean( applicationSettings.presideSessionManagement ?: "" ) && applicationSettings.presideSessionManagement;
 	}
 }

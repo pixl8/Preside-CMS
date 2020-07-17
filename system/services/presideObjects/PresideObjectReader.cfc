@@ -82,6 +82,7 @@ component {
 		meta.propertyNames = meta.propertyNames ?: [];
 		meta.properties    = meta.properties    ?: {};
 
+		_setUseDrafts( meta );
 		_defineIdField( meta );
 		_defineCreatedField( meta );
 		_defineModifiedField( meta );
@@ -119,6 +120,7 @@ component {
 			, tableName   = LCase( sourceObject.tablePrefix & pivotObjectName )
 			, tablePrefix = sourceObject.tablePrefix
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
+			, useDrafts   = ( ( sourceObject.useDrafts ?: false ) || ( targetObject.useDrafts ?: false ) )
 			, properties  = {
 				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
 				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
@@ -539,6 +541,18 @@ component {
 	private void function _ensureAllPropertiesHaveName( required struct properties ) {
 		for( var propName in arguments.properties ) {
 			arguments.properties[ propName ].name = propName;
+		}
+	}
+
+	private void function _setUseDrafts( required struct meta ) {
+		if ( !meta.versioned ) {j
+			meta.useDrafts = false;
+		} else if ( IsBoolean( meta.datamanagerAllowDrafts ?: "" ) && meta.datamanagerAllowDrafts ) {
+			meta.useDrafts = true;
+		} else if ( IsBoolean( meta.isPageType ?: "" ) && meta.isPageType ) {
+			meta.useDrafts = meta.useDrafts ?: true;
+		} else {
+			meta.useDrafts = meta.useDrafts ?: false;
 		}
 	}
 
