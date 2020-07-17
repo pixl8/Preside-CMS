@@ -270,7 +270,7 @@ component {
 		transaction {
 			var markedAsRunning = _getScheduledReportDao().dataExists( filter = { id=arguments.reportId, is_running=true } );
 
-			if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
+			if ( markedAsRunning && !exportThreadIsRunning( arguments.taskKey ) ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
 
 				if ( logger.canError() ) {
