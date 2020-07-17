@@ -1,22 +1,23 @@
 component {
-	property name="applicationReloadService"      inject="applicationReloadService";
-	property name="databaseMigrationService"      inject="databaseMigrationService";
-	property name="applicationsService"           inject="applicationsService";
-	property name="websiteLoginService"           inject="websiteLoginService";
-	property name="adminLoginService"             inject="loginService";
-	property name="antiSamySettings"              inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"               inject="delayedInjector:antiSamyService";
-	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
-	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
-	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
-	property name="healthcheckService"            inject="healthcheckService";
-	property name="permissionService"             inject="permissionService";
-	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
-	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
-	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
-	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
-	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
-	property name="validationEngine"              inject="validationEngine";
+	property name="applicationReloadService"       inject="applicationReloadService";
+	property name="databaseMigrationService"       inject="databaseMigrationService";
+	property name="applicationsService"            inject="applicationsService";
+	property name="websiteLoginService"            inject="websiteLoginService";
+	property name="adminLoginService"              inject="loginService";
+	property name="antiSamySettings"               inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"                inject="delayedInjector:antiSamyService";
+	property name="presideTaskmanagerHeartBeat"    inject="presideTaskmanagerHeartBeat";
+	property name="cacheboxReapHeartBeat"          inject="cacheboxReapHeartBeat";
+	property name="presideAdhocTaskHeartBeat"      inject="presideAdhocTaskHeartBeat";
+	property name="scheduledReportExportHeartBeat" inject="scheduledReportExportHeartBeat";
+	property name="healthcheckService"             inject="healthcheckService";
+	property name="permissionService"              inject="permissionService";
+	property name="emailQueueConcurrency"          inject="coldbox:setting:email.queueConcurrency";
+	property name="assetQueueConcurrency"          inject="coldbox:setting:assetManager.queue.concurrency";
+	property name="presideObjectService"           inject="delayedInjector:presideObjectService";
+	property name="presideFieldRuleGenerator"      inject="delayedInjector:presideFieldRuleGenerator";
+	property name="configuredValidationProviders"  inject="coldbox:setting:validationProviders";
+	property name="validationEngine"               inject="validationEngine";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -236,6 +237,10 @@ component {
 			for( var i=1; i<=assetQueueConcurrency; i++ ) {
 				getModel( "AssetQueueHeartBeat#i#" ).start();
 			}
+		}
+
+		if ( isFeatureEnabled( "scheduledReportExportHeartBeat" ) ) {
+			ScheduledReportExportHeartBeat.start();
 		}
 
 		cacheboxReapHeartBeat.start();

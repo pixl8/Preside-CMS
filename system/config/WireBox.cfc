@@ -66,6 +66,12 @@
 			.initArg( name="trashDirectory"  , value=settings.uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"         , value="" );
 
+		map( "ScheduledReportStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+			.initArg( name="rootDirectory"   , value=settings.uploads_directory & "/scheduled-reports" )
+			.initArg( name="privateDirectory", value=settings.uploads_directory & "/scheduled-reports" )
+			.initArg( name="trashDirectory"  , value=settings.uploads_directory & "/.trash" )
+			.initArg( name="rootUrl"         , value="" );
+
 		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
 		map( "presideRenderer" ).asSingleton().to( "preside.system.coldboxModifications.services.Renderer" );
 

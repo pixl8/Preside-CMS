@@ -51,7 +51,8 @@ component {
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
+			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
+			{ class="preside.system.interceptors.ScheduledReportDownloadInterceptor"  , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -254,6 +255,7 @@ component {
 			, "auditTrail"
 			, "maintenanceMode"
 			, "taskmanager"
+			, "savedreport"
 			, "apiManager"
 			, "systemInformation"
 		];
@@ -383,48 +385,50 @@ component {
 		};
 
 		settings.features = {
-			  cms                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, sitetree                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, sites                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, assetManager            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, websiteUsers            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, websiteBenefits         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, datamanager             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, systemConfiguration     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, redirectErrorPages      = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, auditTrail              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, systemInformation       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
-			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, dataexport              = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, rulesEngine             = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
-			, emailCenter             = { enabled=true , siteTemplates=[ "*" ] }
-			, emailCenterResend       = { enabled=false, siteTemplates=[ "*" ] }
-			, emailStyleInliner       = { enabled=true , siteTemplates=[ "*" ] }
-			, emailLinkShortener      = { enabled=false, siteTemplates=[ "*" ] }
-			, emailOverwriteDomain    = { enabled=false, siteTemplates=[ "*" ] }
-			, customEmailTemplates    = { enabled=true , siteTemplates=[ "*" ] }
-			, apiManager              = { enabled=false, siteTemplates=[ "*" ] }
-			, restTokenAuth           = { enabled=false, siteTemplates=[ "*" ] }
-			, adminCsrfProtection     = { enabled=true , siteTemplates=[ "*" ] }
-			, fullPageCaching         = { enabled=false, siteTemplates=[ "*" ] }
-			, healthchecks            = { enabled=true , siteTemplates=[ "*" ] }
-			, emailQueueHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
-			, adhocTaskHeartBeat      = { enabled=true , siteTemplates=[ "*" ] }
-			, taskmanagerHeartBeat    = { enabled=true , siteTemplates=[ "*" ] }
-			, assetQueueHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
-			, assetQueue              = { enabled=false , siteTemplates=[ "*" ] }
-			, queryCachePerObject     = { enabled=false, siteTemplates=[ "*" ] }
-			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
-			, sslInternalHttpCalls    = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
-			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.extension"    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			  cms                            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sitetree                       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sites                          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, assetManager                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, websiteUsers                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, websiteBenefits                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, datamanager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, systemConfiguration            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, cmsUserManager                 = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, errorLogs                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, redirectErrorPages             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, auditTrail                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, systemInformation              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, passwordPolicyManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, formbuilder                    = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, multilingual                   = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, dataexport                     = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, scheduledReportExport          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, twoFactorAuthentication        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, rulesEngine                    = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
+			, emailCenter                    = { enabled=true , siteTemplates=[ "*" ] }
+			, emailCenterResend              = { enabled=false, siteTemplates=[ "*" ] }
+			, emailStyleInliner              = { enabled=true , siteTemplates=[ "*" ] }
+			, emailLinkShortener             = { enabled=false, siteTemplates=[ "*" ] }
+			, emailOverwriteDomain           = { enabled=false, siteTemplates=[ "*" ] }
+			, customEmailTemplates           = { enabled=true , siteTemplates=[ "*" ] }
+			, apiManager                     = { enabled=false, siteTemplates=[ "*" ] }
+			, restTokenAuth                  = { enabled=false, siteTemplates=[ "*" ] }
+			, adminCsrfProtection            = { enabled=true , siteTemplates=[ "*" ] }
+			, fullPageCaching                = { enabled=false, siteTemplates=[ "*" ] }
+			, healthchecks                   = { enabled=true , siteTemplates=[ "*" ] }
+			, emailQueueHeartBeat            = { enabled=true , siteTemplates=[ "*" ] }
+			, adhocTaskHeartBeat             = { enabled=true , siteTemplates=[ "*" ] }
+			, taskmanagerHeartBeat           = { enabled=true , siteTemplates=[ "*" ] }
+			, scheduledReportExportHeartBeat = { enabled=true , siteTemplates=[ "*" ] }
+			, assetQueueHeartBeat            = { enabled=true , siteTemplates=[ "*" ] }
+			, assetQueue                     = { enabled=false , siteTemplates=[ "*" ] }
+			, queryCachePerObject            = { enabled=false, siteTemplates=[ "*" ] }
+			, sslInternalHttpCalls           = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
+			, sslInternalHttpCalls           = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
+			, "devtools.reload"              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.cache"               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.extension"           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.new"                 = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {
@@ -846,6 +850,9 @@ component {
 			  { id="admin_link"          , required=true  }
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
+		] };
+		templates.scheduledReportExport = { feature="scheduledReportExport", recipientType="adminUser", saveContent=false, parameters=[
+			  { id="report_download_link", required=true }
 		] };
 		templates.websiteWelcome = { feature="websiteUsers", recipientType="websiteUser", parameters=[
 			  { id="reset_password_link", required=true }
