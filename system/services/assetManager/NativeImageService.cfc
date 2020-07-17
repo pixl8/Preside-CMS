@@ -89,6 +89,10 @@ component displayname="Native Image Manipulation Service" {
 			}
 		}
 
+		currentImageInfo      = ImageInfo( image );
+		fileProperties.width  = currentImageInfo.width;
+		fileProperties.height = currentImageInfo.height;
+
 		return ImageGetBlob( image );
 	}
 
@@ -136,6 +140,10 @@ component displayname="Native Image Manipulation Service" {
 		}else{
 			ImageScaleToFit( image, imageInfo.width, imageInfo.height, interpolation );
 		}
+
+		imageInfo             = ImageInfo( image );
+		fileProperties.width  = imageInfo.width;
+		fileProperties.height = imageInfo.height;
 
 		return ImageGetBlob( image );
 	}
@@ -245,9 +253,13 @@ component displayname="Native Image Manipulation Service" {
 			pdf attributeCollection=pdfAttributes;
 		}
 
+		var binary             = FileReadBinary( tmpFilePath );
+		imageInfo              = getImageInformation( binary );
+		fileProperties.width   = imageInfo.width;
+		fileProperties.height  = imageInfo.height;
 		fileProperties.fileExt = "jpg";
 
-		return FileReadBinary( tmpFilePath );
+		return binary;
 	}
 
 	public struct function getImageInformation( required binary asset ) {

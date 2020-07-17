@@ -12,15 +12,21 @@ component displayName="Email service" {
 	 * @emailTemplateDirectories.inject    presidecms:directories:handlers/emailTemplates
 	 * @emailTemplateService.inject        delayedInjector:emailTemplateService
 	 * @emailServiceProviderService.inject delayedInjector:emailServiceProviderService
+	 * @emailCenterValidators.inject       delayedInjector:emailCenterValidators
+	 * @coreValidators.inject              delayedInjector:coreValidators
 	 */
 	public any function init(
 		  required array emailTemplateDirectories
 		, required any   emailTemplateService
 		, required any   emailServiceProviderService
+		, required any   emailCenterValidators
+		, required any   coreValidators
 	) {
 		_setEmailTemplateDirectories( arguments.emailTemplateDirectories );
 		_setEmailTemplateService( arguments.emailTemplateService );
 		_setEmailServiceProviderService( arguments.emailServiceProviderService );
+		_setEmailCenterValidators( arguments.emailCenterValidators );
+		_setCoreValidators( arguments.coreValidators );
 
 		_loadTemplates();
 
@@ -231,6 +237,15 @@ component displayName="Email service" {
 			);
 		}
 
+		if ( !_getEmailCenterValidators().allowedSenderEmail( "from", sendArgs.from ) ) {
+			var allowedDomains = ArrayToList( ListToArray( $getPresideSetting( "email", "allowed_sending_domains" ), ", #Chr( 10 )##Chr( 13 )#" ), ", " );
+			throw(
+				  type   = "EmailService.invalidSender"
+				, message= "The from email address, [#sendArgs.from#], specified in the message with subject [#sendArgs.subject ?: ''#] is invalid."
+				, detail = "Ensure that a valid email address is used and that it uses one of the allowed sender domains: [#allowedDomains#]. Speak to a system administrator for further details."
+			);
+		}
+
 		if ( !( sendArgs.to ?: [] ).len() || !Len( sendArgs.to[ 1 ] ) ) {
 			throw(
 				  type   = "EmailService.missingToAddress"
@@ -252,7 +267,6 @@ component displayName="Email service" {
 			);
 		}
 	}
-
 
 // GETTERS AND SETTERS
 	private any function _getEmailTemplateDirectories() {
@@ -281,5 +295,19 @@ component displayName="Email service" {
 	}
 	private void function _setEmailServiceProviderService( required any emailServiceProviderService ) {
 		_emailServiceProviderService = arguments.emailServiceProviderService;
+	}
+
+	private any function _getEmailCenterValidators() {
+	    return _emailCenterValidators;
+	}
+	private void function _setEmailCenterValidators( required any emailCenterValidators ) {
+	    _emailCenterValidators = arguments.emailCenterValidators;
+	}
+
+	private any function _getCoreValidators() {
+	    return _coreValidators;
+	}
+	private void function _setCoreValidators( required any coreValidators ) {
+	    _coreValidators = arguments.coreValidators;
 	}
 }

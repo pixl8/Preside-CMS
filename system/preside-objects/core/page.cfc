@@ -1,9 +1,7 @@
 /**
  * The page object represents the core data that is stored for all pages in the site tree, regardless of page type.
  */
-
-
-component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true {
+component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true useDrafts=true {
 
 <!--- properties --->
 	property name="title"        type="string"  dbtype="varchar"  maxLength="200" required=true control="textinput";

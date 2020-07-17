@@ -1135,6 +1135,85 @@ component displayName="AssetManager Service" {
 		}
 	}
 
+	public struct function getAssetDimensions( required string id, string derivativeName="", string versionId="" ) {
+		var version = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.id );
+		var asset   = "";
+
+		if ( Len( Trim( arguments.derivativeName ) ) ) {
+			asset = getAssetDerivative(
+				  assetId           = arguments.id
+				, derivativeName    = arguments.derivativeName
+				, selectFields      = [ "asset_derivative.width", "asset_derivative.height" ]
+				, versionId         = version
+				, createIfNotExists = false
+			);
+			if ( asset.recordCount && isNumeric( asset.width ) && isNumeric( asset.height ) ) {
+				return { width=asset.width, height=asset.height };
+			}
+		}
+
+		if ( Len( Trim( version ) ) ) {
+			asset = getAssetVersion(
+				  assetId      = arguments.id
+				, versionId    = version
+				, selectFields = [ "asset_version.width", "asset_version.height" ]
+			);
+		} else {
+			asset = getAsset(
+				  id           = arguments.id
+				, selectFields = [ "width", "height" ]
+			);
+		}
+
+		if ( asset.recordCount && isNumeric( asset.width ) && isNumeric( asset.height ) ) {
+			if ( Len( Trim( arguments.derivativeName ) ) ) {
+				return _estimateDerivativeDimensions( asset.width, asset.height, arguments.derivativeName );
+			}
+			return { width=asset.width, height=asset.height };
+		}
+
+		return {};
+	}
+
+	private struct function _estimateDerivativeDimensions( required numeric width, required numeric height, required string derivativeName ) {
+		var transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName );
+
+		for( var transformation in transformations.reverse() ) {
+			var transformArgs = transformation.args ?: {};
+
+			if ( transformation.method == "resize" ) {
+				var targetWidth  = val( transformArgs.width  ?: "" );
+				var targetHeight = val( transformArgs.height ?: "" );
+				if ( targetWidth > 0 && targetHeight > 0 ) {
+					return { width=targetWidth, height=targetHeight };
+				} else if ( targetWidth > 0 ) {
+					return { width=targetWidth, height=round( arguments.height * ( targetWidth / arguments.width ) ) };
+				} else if ( targetHeight > 0 ) {
+					return { width=round( arguments.width * ( targetHeight / arguments.height ) ), height=targetHeight };
+				}
+			}
+			if ( transformation.method == "shrinkToFit" ) {
+				var currentAspectRatio = arguments.width / arguments.height;
+				var targetAspectRatio  = transformArgs.width / transformArgs.height;
+				var requiresShrinking  = arguments.width > transformArgs.width || arguments.height > transformArgs.height;
+
+				if ( requiresShrinking ) {
+					if ( targetAspectRatio == currentAspectRatio ) {
+						return { width=transformArgs.width, height=transformArgs.height };
+					} else if ( currentAspectRatio > targetAspectRatio ) {
+						return { width=transformArgs.width, height=round( transformArgs.height / currentAspectRatio ) };
+					} else {
+						return { width=round( transformArgs.width * currentAspectRatio ), height=transformArgs.height };
+					}
+				} else {
+					return { width=arguments.width, height=arguments.height };
+				}
+			}
+		}
+
+		return {};
+	}
+
 	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", string configHash="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var asset            = "";
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";

@@ -93,6 +93,8 @@ component {
 			$getPresideObject( "asset_derivative" ).updateData( id=arguments.derivativeId, data={
 				  asset_type    = assetType.typeName
 				, storage_path  = fileProperties.storagePath
+				, width         = fileProperties.width  ?: ""
+				, height        = fileProperties.height ?: ""
 				, config        = config
 				, config_hash   = configHash
 			} );
@@ -105,6 +107,8 @@ component {
 				, asset_version = arguments.versionId
 				, label         = arguments.derivativeName & signature
 				, storage_path  = fileProperties.storagePath
+				, width         = fileProperties.width  ?: ""
+				, height        = fileProperties.height ?: ""
 				, config        = config
 				, config_hash   = configHash
 			} );

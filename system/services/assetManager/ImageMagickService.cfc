@@ -72,6 +72,10 @@ component displayname="ImageMagick"  {
 			_deleteDir( tmpDir );
 		}
 
+		currentImageInfo      = getImageInformation( imageBinary );
+		fileProperties.width  = currentImageInfo.width;
+		fileProperties.height = currentImageInfo.height;
+
 		return imageBinary;
 	}
 
@@ -86,7 +90,7 @@ component displayname="ImageMagick"  {
 	) {
 		var imagePrefix    = CreateUUId();
 		var tmpDir         = _createTmpDir();
-		var tmpFilePathPDF = GetTempFile( tmpDir, "mgk" );
+		var tmpFilePathPDF = GetTempFile( tmpDir, "mgk" ) & ".pdf";
 		var tmpFilePathJpg = GetTempFile( tmpDir, "mgk" ) & ".jpg";
 		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB -flatten "#tmpFilePathJpg#"';
 
@@ -98,7 +102,10 @@ component displayname="ImageMagick"  {
 
 		_deleteDir( tmpDir );
 
-		arguments.fileProperties.fileExt = "jpg";
+		var imageInfo          = getImageInformation( binary );
+		fileProperties.width   = imageInfo.width;
+		fileProperties.height  = imageInfo.height;
+		fileProperties.fileExt = "jpg";
 
 		return binary;
 	}
@@ -163,6 +170,10 @@ component displayname="ImageMagick"  {
 		} finally {
 			_deleteDir( tmpDir );
 		}
+
+		currentImageInfo      = getImageInformation( imageBinary );
+		fileProperties.width  = currentImageInfo.width;
+		fileProperties.height = currentImageInfo.height;
 
 		return imageBinary;
 	}
