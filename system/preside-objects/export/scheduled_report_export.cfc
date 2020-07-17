@@ -6,7 +6,7 @@
  * @datamanagerGridFields              label,saved_report,schedule,was_last_run_success,last_ran,next_run
  */
 component extends="preside.system.base.SystemPresideObject" {
-	property name="saved_report" relationship="many-to-one"  relatedto="saved_report"  required="true";
+	property name="saved_report" relationship="many-to-one"  relatedto="saved_report"  required="true" feature="savereport";
 	property name="recipients"   relationship="many-to-many" relatedto="security_user" required="true";
 	property name="schedule"                                                           required="true" control="cronPicker" autofilter=false;
 
