@@ -7,6 +7,7 @@ component {
 	property name="emailLoggingService" inject="emailLoggingService";
 	property name="notificationService" inject="notificationService";
 	property name="workflowService"     inject="WorkflowService";
+	property name="websiteLoginService" inject="websiteLoginService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -46,5 +47,18 @@ component {
 	 */
 	private boolean function deleteExpiredWorkflows( logger ) {
 		return workflowService.deleteExpiredWorkflows( arguments.logger ?: NullValue() );
+	}
+
+	/**
+	 * Delete expired password reset tokens
+	 *
+	 * @priority     5
+	 * @schedule     0 0 3 * * *
+	 * @displayName  Delete expired password reset tokens
+	 * @displayGroup Cleanup
+	 * @feature      websiteUsers
+	 */
+	private boolean function deleteExpiredPasswordResetTokens( logger ) {
+		return websiteLoginService.deleteExpiredPasswordResetTokens( arguments.logger ?: NullValue() );
 	}
 }

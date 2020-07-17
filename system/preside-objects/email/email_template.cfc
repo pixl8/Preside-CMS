@@ -3,6 +3,7 @@
  *
  * @labelfield         name
  * @datamanagerEnabled true
+ * @useDrafts          true
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template"  {
 	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename";

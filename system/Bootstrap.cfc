@@ -583,12 +583,10 @@ component {
 		var headerValues  = [];
 
 		try{
-			if ( IsInstanceOf( obj=rawValues, type='java.util.LinkedHashSet' ) ) {
-				for ( var value in rawValues ) {
-					ArrayAppend( headerValues, value );
-				}
-				return headerValues;
+			for ( var value in rawValues ) {
+				ArrayAppend( headerValues, value );
 			}
+			return headerValues;
 		} catch( e ) {}
 
 		for( var i=1; i <= ArrayLen( rawValues ); i++ ) {
