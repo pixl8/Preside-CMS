@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="export.scheduledReport:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="saved_report" control="hidden"       required="true" />
+			<field name="label"        control="textinput"    required="true" />
+			<field name="recipients"   control="objectPicker" object="security_user" multiple="true" required="true" />
+			<field name="schedule"     control="cronPicker"                                          required="true" />
+		</fieldset>
+	</tab>
+</form>
