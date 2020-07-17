@@ -805,7 +805,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
 		var objectName     = prc.objectName ?: "";
 		var extraFilters   = [];
-		var filterByFields = ListToArray( rc.filterByFields ?: "" );
+		var filterByFields = ListToArray( rc.filterByField ?: "" );
 		var bypassTenants  = listToArray( rc.bypassTenants ?: "" );
 		var filterValue    = "";
 		var orderBy        = rc.orderBy       ?: "label";
