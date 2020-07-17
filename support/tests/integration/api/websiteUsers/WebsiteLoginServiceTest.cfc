@@ -459,7 +459,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private helpers
 	private any function _getUserService() output=false {
-		mockSessionStorage    = getMockbox().createEmptyMock( "preside.system.modules.cbstorages.models.SessionStorage" );
+		mockSessionStorage    = getMockbox().createEmptyMock( "preside.system.services.cfmlscopes.SessionStorage" );
 		mockCookieService     = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
 		mockUserDao           = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();
@@ -482,6 +482,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockActionsService.$( "promoteVisitorActionsToUserActions", 1 );
 		service.$( "$recordWebsiteUserAction" );
 		service.$( "$announceInterception" );
+		mockSessionStorage.$( "rotate" );
 
 		return service;
 	}

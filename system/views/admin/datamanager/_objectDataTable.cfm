@@ -20,6 +20,7 @@
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
 	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
+	param name="args.saveReportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveReportAction"      );
 	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
 	param name="args.objectTitlePlural"   type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 
@@ -45,6 +46,7 @@
 	}
 
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
+	allowSaveReport = isFeatureEnabled( "dataexport" ) && isFeatureEnabled( "savereport" );
 
 	if ( args.footerEnabled ) {
 		colCount = ArrayLen( args.gridFields );
@@ -66,6 +68,11 @@
 	<div class="table-responsive<cfif args.compact> table-compact</cfif>" id="#tableId#-container">
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
+				<input name="object" value="#args.objectName#" type="hidden">
+			</form>
+		</cfif>
+		<cfif allowSaveReport>
+			<form action="#args.saveReportUrl#" method="post" class="hide object-listing-table-save-report-form">
 				<input name="object" value="#args.objectName#" type="hidden">
 			</form>
 		</cfif>
@@ -152,6 +159,7 @@
 		    data-use-multi-actions="#args.useMultiActions#"
 		    data-allow-search="#args.allowSearch#"
 		    data-allow-data-export="#allowDataExport#"
+		    data-allow-save-report="#allowSaveReport#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"

@@ -260,6 +260,20 @@ component {
 		return event.buildAdminLink( linkTo = "datamanager.exportDataAction", queryString=args.queryString ?: "" );
 	}
 
+	private string function buildSaveReportActionLink( event, rc, prc, args={} ) {
+		return event.buildAdminLink( linkTo = "datamanager.saveReportAction", queryString=args.queryString ?: "" );
+	}
+
+	private string function buildSavedReportExportLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.savedReportExport"
+			, queryString = _queryString( "id=#recordId#", args )
+		);
+	}
+
 	private string function buildDataExportConfigModalLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
