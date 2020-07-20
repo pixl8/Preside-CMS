@@ -49,14 +49,14 @@
 						<fieldset>
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.placeholder' )#" name="password" data-password-policy-context="cms" />
+									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.placeholder' )#" name="password" data-password-policy-context="cms" autocomplete="new-password" />
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>
 
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.confirmation.placeholder' )#" name="passwordConfirmation" />
+									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.confirmation.placeholder' )#" name="passwordConfirmation" autocomplete="new-password" />
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>

@@ -743,6 +743,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		addBreadCrumb( title=page.title ?: "", link=getCurrentUrl(), menuTitle=page.navigation_title ?: "" );
 
 		prc.presidePage = page;
+
+		announceInterception( "postInitializeDummyPresideSiteTreePage" );
 	}
 
 	public void function checkPageAccess() {

@@ -805,7 +805,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
 		var objectName     = prc.objectName ?: "";
 		var extraFilters   = [];
-		var filterByFields = ListToArray( rc.filterByFields ?: "" );
+		var filterByFields = ListToArray( rc.filterByField ?: ( rc.filterByFields ?: "" ) );
 		var bypassTenants  = listToArray( rc.bypassTenants ?: "" );
 		var filterValue    = "";
 		var orderBy        = rc.orderBy       ?: "label";
@@ -2822,6 +2822,20 @@ component extends="preside.system.base.AdminHandler" {
 					  objectName = objectName
 					, filterId   = filter
 				) );
+			} catch( any e ){}
+		}
+
+		if( Len( Trim( rc.searchQuery ?: "" ) ) ){
+			try {
+				args.extraFilters.append({
+					  filter       = dataManagerService.buildSearchFilter(
+						  q            = rc.searchQuery
+						, objectName   = objectName
+						, gridFields   = _getObjectFieldsForGrid( objectName )
+						, searchFields = dataManagerService.listSearchFields( objectName )
+					  )
+					, filterParams = { q = { type="varchar", value="%" & rc.searchQuery & "%" } }
+				});
 			} catch( any e ){}
 		}
 
