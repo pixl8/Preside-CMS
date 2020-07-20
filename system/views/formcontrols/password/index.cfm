@@ -3,6 +3,7 @@
 	inputId      = args.id          ?: "";
 	inputClass   = args.class       ?: "";
 	placeholder  = args.placeholder ?: "";
+	newPassword  = isTrue( args.newPassword ?: false );
 
 	if ( Len( Trim( placeholder ) ) ) {
 		placeholder = translateResource( uri=placeholder, defaultValue=placeholder );
@@ -23,5 +24,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif>>
+	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif><cfif isTrue( newPassword )> autocomplete="new-password"</cfif>>
 </cfoutput>
