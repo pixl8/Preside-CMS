@@ -202,6 +202,7 @@ component {
 			, insertManyToManyRecords = false
 			, useVersioning           = false
 			, skipTrivialInterceptors = true
+			, isDraft                 = arguments.isDraft
 		);
 
 		for( var propertyName in manyToManyData ){
