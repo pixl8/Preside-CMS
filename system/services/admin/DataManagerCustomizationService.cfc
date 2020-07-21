@@ -115,6 +115,8 @@ component {
 		}
 
 		if ( Len( Trim( event ) ) ) {
+			$announceInterception( "onRunCustomization", arguments );
+
 			return $getColdbox().runEvent(
 				  event          = event
 				, private        = true

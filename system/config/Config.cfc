@@ -161,6 +161,18 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onEmailDeliver"                        );
 		interceptorSettings.customInterceptionPoints.append( "onEmailClick"                          );
 		interceptorSettings.customInterceptionPoints.append( "onEmailResend"                         );
+		interceptorSettings.customInterceptionPoints.append( "onRunCustomization"                    );
+		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForObject"     );
+		interceptorSettings.customInterceptionPoints.append( "postGetExtraQsForBuildAjaxListingLink" );
+		interceptorSettings.customInterceptionPoints.append( "postExtraRecordActionsForGridListing"  );
+		interceptorSettings.customInterceptionPoints.append( "postGetExtraListingMultiActions"       );
+		interceptorSettings.customInterceptionPoints.append( "postGetExtraAddRecordActionButtons"    );
+		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForAddRecord"  );
+		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postGetExtraEditRecordActionButtons"   );
+		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForEditRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postGetExtraCloneRecordActionButtons"  );
+		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtons"              );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
