@@ -161,7 +161,6 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onEmailDeliver"                        );
 		interceptorSettings.customInterceptionPoints.append( "onEmailClick"                          );
 		interceptorSettings.customInterceptionPoints.append( "onEmailResend"                         );
-		interceptorSettings.customInterceptionPoints.append( "onRunCustomization"                    );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForObject"     );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraQsForBuildAjaxListingLink" );
 		interceptorSettings.customInterceptionPoints.append( "postExtraRecordActionsForGridListing"  );
