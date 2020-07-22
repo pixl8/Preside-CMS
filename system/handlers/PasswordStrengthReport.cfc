@@ -19,15 +19,14 @@ component {
 
 			if ( len( trim( rc.context ?: "" ) ) ) {
 				var messages = passwordPolicyService.getDetailPolicyMessages( context=rc.context, password=rc.password );
-				outputMsg    = "<ul>";
 
 				if ( !isEmpty( messages ) ) {
+					outputMsg    = "<ul>";
 					for ( var message in messages ) {
 						outputMsg &= "<li>#translateResource( "cms:passwordpolicy.message.prefix" )# #message#</li>";
 					}
+					outputMsg &= "</ul>";
 				}
-
-				outputMsg &= "</ul>";
 			}
 
 			event.renderData( data={
