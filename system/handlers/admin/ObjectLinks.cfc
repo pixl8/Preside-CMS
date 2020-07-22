@@ -207,6 +207,8 @@ component {
 				, args       = args
 			);
 
+			announceInterception( "postGetExtraQsForBuildAjaxListingLink", { objectName=objectName, extraQs=extraQs } );
+
 			extraQs = extraQs ?: "";
 			extraQs = IsSimpleValue( extraQs ) ? extraQs : "";
 
