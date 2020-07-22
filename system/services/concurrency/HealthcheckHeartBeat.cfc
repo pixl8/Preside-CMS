@@ -40,7 +40,9 @@ component extends="AbstractHeartBeat" {
 				return;
 			}
 
-			if ( !_getHealthCheckService().checkService( _getServiceId() ) ) {
+			var serviceId = _getServiceId();
+
+			if ( !_getHealthCheckService().checkService( serviceId ) ) {
 				$systemOutput( "System healthcheck is reporting that the service, [#serviceId#], is currently DOWN." );
 			}
 		} catch( any e ) {
