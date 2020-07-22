@@ -4,6 +4,7 @@
  * @dataManagerExportEnabled           false
  * @datamanagerDisallowedOperations    add,clone
  * @datamanagerGridFields              label,saved_report,schedule,was_last_run_success,last_ran,next_run
+ * @feature                            dataExport
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="saved_report" relationship="many-to-one"  relatedto="saved_report"  required="true"                                       batchEditable=false;

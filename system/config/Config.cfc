@@ -402,8 +402,6 @@ component {
 			, formbuilder                    = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual                   = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport                     = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, savereport                     = { enabled=true, siteTemplates=[ "*" ], widgets=[] }
-			, scheduledReportExport          = { enabled=true, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine                    = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter                    = { enabled=true , siteTemplates=[ "*" ] }

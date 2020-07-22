@@ -46,7 +46,7 @@
 	}
 
 	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
-	allowSaveReport = isFeatureEnabled( "dataexport" ) && isFeatureEnabled( "savereport" );
+	allowSaveReport = allowDataExport && isFeatureEnabled( "dataexport" );
 
 	if ( args.footerEnabled ) {
 		colCount = ArrayLen( args.gridFields );
