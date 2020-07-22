@@ -179,6 +179,8 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = args
 		);
 
+		announceInterception( "postGetExtraListingMultiActions", args );
+
 		return args.actions;
 	}
 
@@ -1392,6 +1394,8 @@ component extends="preside.system.base.AdminHandler" {
 				, args           = { objectName=objectName, action=action, actions=actions }
 			);
 
+			announceInterception( "postExtraTopRightButtons", { objectName=objectName, action=action, actions=actions } );
+
 			actions = actions.reverse();
 
 			for( var actionToRender in actions ) {
@@ -1445,6 +1449,8 @@ component extends="preside.system.base.AdminHandler" {
 			, action         = "extraTopRightButtonsForObject"
 			, args           = { objectName=objectName, actions=actions }
 		);
+
+		announceInterception( "postExtraTopRightButtonsForObject", { objectName=objectName, actions=actions } );
 
 		return actions;
 	}
@@ -1517,6 +1523,8 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName, actions=actions }
 		);
 
+		announceInterception( "postExtraTopRightButtonsForViewRecord", { objectName=objectName, actions=actions } );
+
 		return actions;
 	}
 
@@ -1529,6 +1537,8 @@ component extends="preside.system.base.AdminHandler" {
 			, action         = "extraTopRightButtonsForAddRecord"
 			, args           = { objectName=objectName, actions=actions }
 		);
+
+		announceInterception( "postExtraTopRightButtonsForAddRecord", { objectName=objectName, actions=actions } );
 
 		return actions;
 	}
@@ -1570,6 +1580,8 @@ component extends="preside.system.base.AdminHandler" {
 			, action         = "extraTopRightButtonsForEditRecord"
 			, args           = { objectName=objectName, actions=actions }
 		);
+
+		announceInterception( "postExtraTopRightButtonsForEditRecord", { objectName=objectName, actions=actions } );
 
 		return actions;
 	}
@@ -1867,6 +1879,12 @@ component extends="preside.system.base.AdminHandler" {
 						, actions     = actions
 					}
 				);
+
+				announceInterception( "postExtraRecordActionsForGridListing", {
+					  record      = record
+					, objectName  = objectName
+					, actions     = actions
+				} );
 
 				ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={ actions=actions } ) );
 			}
@@ -3054,6 +3072,8 @@ component extends="preside.system.base.AdminHandler" {
 			, action     = "getExtraAddRecordActionButtons"
 		);
 
+		announceInterception( "postGetExtraAddRecordActionButtons", args );
+
 		return args.actions;
 	}
 
@@ -3167,6 +3187,8 @@ component extends="preside.system.base.AdminHandler" {
 			, action     = "getExtraEditRecordActionButtons"
 		);
 
+		announceInterception( "postGetExtraEditRecordActionButtons", args );
+
 		return args.actions;
 	}
 
@@ -3228,6 +3250,8 @@ component extends="preside.system.base.AdminHandler" {
 			, args       = args
 			, action     = "getExtraCloneRecordActionButtons"
 		);
+
+		announceInterception( "postGetExtraCloneRecordActionButtons", args );
 
 		return args.actions;
 	}
