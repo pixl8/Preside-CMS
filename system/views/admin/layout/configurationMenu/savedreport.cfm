@@ -1,4 +1,4 @@
-<cfif isFeatureEnabled( "savereport" )>
+<cfif isFeatureEnabled( "dataexport" )>
 	<cfoutput>
 		<li>
 			<a href="#event.buildAdminLink( objectName="saved_report" )#">

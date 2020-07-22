@@ -244,7 +244,7 @@ component {
 			}
 		}
 
-		if ( isFeatureEnabled( "scheduledReportExportHeartBeat" ) ) {
+		if ( isFeatureEnabled( "dataExport" ) && isFeatureEnabled( "scheduledReportExportHeartBeat" ) ) {
 			ScheduledReportExportHeartBeat.start();
 		}
 

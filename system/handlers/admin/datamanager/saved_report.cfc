@@ -6,7 +6,7 @@ component {
 
 		args.actions = args.actions ?: [];
 
-		if ( isFeatureEnabled( "scheduledReportExport" ) ) {
+		if ( isFeatureEnabled( "dataExport" ) ) {
 			args.actions.prepend( {
 				  link       = event.buildAdminLink( linkto="scheduledReport.create", queryString="reportId=#recordId#" )
 				, icon       = "fa-clock"
@@ -24,7 +24,7 @@ component {
 	private void function extraTopRightButtonsForObject( event, rc, prc, args={} ) {
 		args.actions = args.actions ?: [];
 
-		if ( isFeatureEnabled( "scheduledReportExport" ) ) {
+		if ( isFeatureEnabled( "dataExport" ) ) {
 			args.actions.append({
 				  link      = event.buildAdminLink( objectName="scheduled_report_export" )
 				, btnClass  = "btn-info"

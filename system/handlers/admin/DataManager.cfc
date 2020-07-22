@@ -1236,7 +1236,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function saveReportAction( event, rc, prc ) {
-		if ( !isFeatureEnabled( "savereport" ) ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
 			event.notFound();
 		}
 
