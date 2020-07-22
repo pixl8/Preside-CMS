@@ -30,7 +30,7 @@ component extends="AbstractHeartBeat" {
 
 	// PUBLIC API METHODS
 	public void function $run() {
-		if ( $isFeatureEnabled( "scheduledReportExport" ) ) {
+		if ( $isFeatureEnabled( "dataExport" ) && $isFeatureEnabled( "scheduledReportExport" ) ) {
 			try {
 				_getScheduledReportService().sendScheduledReports();
 			} catch( any e ) {

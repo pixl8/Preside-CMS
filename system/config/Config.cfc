@@ -402,8 +402,8 @@ component {
 			, formbuilder                    = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual                   = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport                     = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, savereport                     = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, scheduledReportExport          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, savereport                     = { enabled=true, siteTemplates=[ "*" ], widgets=[] }
+			, scheduledReportExport          = { enabled=true, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, rulesEngine                    = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
 			, emailCenter                    = { enabled=true , siteTemplates=[ "*" ] }
@@ -855,7 +855,7 @@ component {
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
 		] };
-		templates.scheduledReportExport = { feature="scheduledReportExport", recipientType="adminUser", saveContent=false, parameters=[
+		templates.scheduledReportExport = { feature="dataExport", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="report_download_link", required=true }
 		] };
 		templates.websiteWelcome = { feature="websiteUsers", recipientType="websiteUser", parameters=[
