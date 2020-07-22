@@ -63,8 +63,6 @@
 
 							<cfif Len( Trim( policyMessage ) )>
 								<div class="alert alert-info">
-									<h4><i class="fa fa-fw fa-info-circle"></i> #translateResource( "cms:passwordpolicy.title" )#</h4>
-
 									#policyMessage#
 								</div>
 							</cfif>
