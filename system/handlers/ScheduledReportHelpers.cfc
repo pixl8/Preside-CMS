@@ -37,6 +37,15 @@ component {
 						) );
 					} catch( any e ){}
 
+					for( var filter in configArgs.savedFilters ) {
+						try {
+							configArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
+								  objectName = savedReportDetail.object_name
+								, filterId   = filter
+							) );
+						} catch( any e ){}
+					}
+
 					if ( len( trim( savedReportDetail.search_query ?: "" ) ) ) {
 						try {
 							configArgs.extraFilters.append( {
