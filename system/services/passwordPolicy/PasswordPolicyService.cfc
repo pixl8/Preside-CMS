@@ -146,6 +146,18 @@ component displayName="Password Policy Service" {
 		var policy  = getPolicy( arguments.context );
 		var message = [];
 
+		if ( policy.min_strength > 0 ) {
+			if ( !isEmpty( arguments.password ) ) {
+				var strength = _getPasswordStrengthAnalyzer().calculatePasswordStrength( arguments.password );
+
+				if ( strength < policy.min_strength ) {
+					message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength ) ] ) );
+				}
+			} else {
+				message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength ) ] ) );
+			}
+		}
+
 		if ( policy.min_length > 0 ) {
 			if ( !isEmpty( arguments.password ) ) {
 				if ( arguments.password.len() < policy.min_length ) {
