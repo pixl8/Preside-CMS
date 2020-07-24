@@ -98,7 +98,7 @@
 							, showCount    = false
 						)#
 						<br><br>
-						<a href="##" data-toggle="collapse" data-target="##quick-filter-form" class="quick-filter-toggler">
+						<a href="##" data-toggle="collapse" data-target="##quick-filter-form-#instanceId#" class="quick-filter-toggler">
 							<i class="fa fa-fw fa-caret-down"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
 						</a>
 					</div>
