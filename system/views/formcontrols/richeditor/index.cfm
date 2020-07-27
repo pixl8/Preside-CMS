@@ -49,8 +49,8 @@
 	          <cfif Val( args.maxHeight ?: "" )>
 	              data-max-height="#Val( args.maxHeight )#"
 	          </cfif>
-	           <cfif Len( Trim( customDefaultConfigs ?: "" ) )>
-	              data-custom-default-configs='#customDefaultConfigs#'
+	          <cfif Len( Trim( customDefaultConfigs ?: "" ) )>
+	              data-custom-default-configs="#HtmlEditFormat( customDefaultConfigs )#"
 	          </cfif>
 	          <cfif Len( Trim( widgetCategories ) )>
 	              data-widget-categories="#Trim( widgetCategories )#"
