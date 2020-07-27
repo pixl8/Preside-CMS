@@ -18,6 +18,7 @@ PresideRichEditor = ( function( $ ){
 		  , enterMode             = $elementToReplace.data( "enterMode" )
 		  , autoParagraph         = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
 		  , defaultConfigs        = cfrequest.ckeditorDefaultConfigs || {}
+		  , customDefaultConfigs  = $elementToReplace.data( "customDefaultConfigs" ) || {}
 		  , pasteFromWordDisallow = []
 		  , editor;
 
@@ -61,6 +62,13 @@ PresideRichEditor = ( function( $ ){
 				config.stylesheetParser_validSelectors = new RegExp( defaultConfigs.stylesheetParser_validSelectors );
 			} else {
 				config[defaultConfig] = defaultConfigs[defaultConfig];
+			}
+		}
+		for( var customDefaultConfig in customDefaultConfigs ) {
+			if ( customDefaultConfig === "stylesheetParser_validSelectors" ) {
+				config.stylesheetParser_validSelectors = new RegExp( customDefaultConfigs.stylesheetParser_validSelectors );
+			} else {
+				config[customDefaultConfig] = customDefaultConfigs[customDefaultConfig];
 			}
 		}
 
