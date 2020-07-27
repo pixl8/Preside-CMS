@@ -18,7 +18,7 @@ PresideRichEditor = ( function( $ ){
 		  , enterMode             = $elementToReplace.data( "enterMode" )
 		  , autoParagraph         = $elementToReplace.data( "autoParagraph" ) !== undefined ? $elementToReplace.data( "autoParagraph" ) : cfrequest.ckeditorAutoParagraph
 		  , defaultConfigs        = cfrequest.ckeditorDefaultConfigs || {}
-		  , customDefaultConfigs  = $elementToReplace.data( "custom-default-configs" ) || {}
+		  , customDefaultConfigs  = $elementToReplace.data( "customDefaultConfigs" ) || {}
 		  , pasteFromWordDisallow = []
 		  , editor;
 
