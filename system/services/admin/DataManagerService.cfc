@@ -326,7 +326,7 @@ component {
 			return orderBy;
 		}
 
-		return getLabelField( arguments.objectName );
+		return _getPresideObjectService().getLabelField( arguments.objectName );
 	}
 
 	public query function getRecordsForSorting( required string objectName ) {
