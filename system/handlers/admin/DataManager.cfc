@@ -1211,6 +1211,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.objectName            = prc.objectName ?: "";
 		args.objectTitle           = prc.objectTitle ?: "";
+		args.defaultExporter       = getSetting( name="dataExport.defaultExporter" , defaultValue="" );
 		args.defaultExportFilename = translateresource(
 			  uri  = "cms:dataexport.config.form.field.title.default"
 			, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
