@@ -6,18 +6,18 @@ component {
 
 	public string function index( event, rc, prc, args={} ) {
 
-		var targetObject  = args.object        ?: "";
-		var targetIdField = presideObjectService.getIdField( targetObject );
-		var ajax          = args.ajax          ?: true;
-		var savedFilters  = args.objectFilters ?: "";
-		var orderBy       = args.orderBy       ?: "label";
-		var filterBy      = args.filterBy      ?: "";
-		var filterByField = args.filterByField ?: filterBy;
-		var savedData     = args.savedData     ?: {};
-		var bypassTenants = args.bypassTenants ?: "";
-		var labelRenderer = args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
-		var labelFields   = labelRendererService.getSelectFieldsForLabel( labelRenderer );
-		var useCache	  = IsTrue( args.useCache ?: "" );
+		var targetObject     = args.object        ?: "";
+		var targetIdField    = presideObjectService.getIdField( targetObject );
+		var ajax             = args.ajax          ?: true;
+		var savedFilters     = args.objectFilters ?: "";
+		var orderBy          = args.orderBy       ?: datamanagerService.getDefaultSortOrderForObjectPicker( targetObject );
+		var filterBy         = args.filterBy      ?: "";
+		var filterByField    = args.filterByField ?: filterBy;
+		var savedData        = args.savedData     ?: {};
+		var bypassTenants    = args.bypassTenants ?: "";
+		var labelRenderer    = args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
+		var labelFields      = labelRendererService.getSelectFieldsForLabel( labelRenderer );
+		var useCache         = IsTrue( args.useCache ?: "" );
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
