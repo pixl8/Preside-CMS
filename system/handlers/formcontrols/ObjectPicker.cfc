@@ -10,8 +10,7 @@ component {
 		var targetIdField    = presideObjectService.getIdField( targetObject );
 		var ajax             = args.ajax          ?: true;
 		var savedFilters     = args.objectFilters ?: "";
-		var defaultSortOrder = presideObjectService.getObjectAttribute( objectName=targetObject, attributeName="objectPickerDefaultSortOrder", defaultValue="" );
-		var orderBy          = args.orderBy       ?: ( !isEmptyString( defaultSortOrder ) ? defaultSortOrder : "label" );
+		var orderBy          = args.orderBy       ?: datamanagerService.getDefaultSortOrderForObjectPicker( targetObject );
 		var filterBy         = args.filterBy      ?: "";
 		var filterByField    = args.filterByField ?: filterBy;
 		var savedData        = args.savedData     ?: {};

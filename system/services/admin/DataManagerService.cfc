@@ -307,12 +307,26 @@ component {
 		);
 	}
 
-	public string function getDefaultSortOrderForDataGrid( required string objectName ) output=false {
+	public string function getDefaultSortOrderForDataGrid( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerDefaultSortOrder"
 			, defaultValue  = ""
 		);
+	}
+
+	public string function getDefaultSortOrderForObjectPicker( required string objectName ) {
+		var orderBy = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "objectPickerDefaultSortOrder"
+			, defaultValue  = ""
+		);
+
+		if ( Len( Trim( orderBy ) ) ) {
+			return orderBy;
+		}
+
+		return getLabelField( arguments.objectName );
 	}
 
 	public query function getRecordsForSorting( required string objectName ) {
@@ -757,9 +771,9 @@ component {
 
 		return filter;
 	}
-	
+
 	public boolean function isDataExportEnabled( required string objectName ) {
-	
+
 		if ( !$isFeatureEnabled( "dataexport" ) ) {
 			return false;
 		}
@@ -768,7 +782,7 @@ component {
 
 		return IsBoolean( exportEnabled ) && exportEnabled;
 	}
-	
+
 	public string function getDataExportPermissionKey( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportPermissionKey", defaultValue="read" );
 	}
