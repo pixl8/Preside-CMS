@@ -32,16 +32,22 @@ component displayName="Password Policy Service" {
 		];
 	}
 
-	public string function getStrengthNameForScore( required numeric score ) {
+	public string function getStrengthNameForScore( required numeric score, boolean translate=false ) {
 		var strengths = listStrengths();
+		var strength  = strengths[ 1 ].name;
 
 		for( var i=strengths.len(); i > 0; i-- ) {
 			if ( arguments.score >= strengths[ i ].minValue ) {
-				return strengths[ i ].name;
+				strength = strengths[ i ].name;
+				break;
 			}
 		}
 
-		return strengths[ 1 ].name;
+		if ( arguments.translate ) {
+			return $translateResource( uri="cms:password.strength.#strength#.title", defaultValue=strength );
+		}
+
+		return strength
 	}
 
 	public array function listContexts() {
@@ -151,10 +157,10 @@ component displayName="Password Policy Service" {
 				var strength = _getPasswordStrengthAnalyzer().calculatePasswordStrength( arguments.password );
 
 				if ( strength < policy.min_strength ) {
-					message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength ) ] ) );
+					message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength, true ) ] ) );
 				}
 			} else {
-				message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength ) ] ) );
+				message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength, true ) ] ) );
 			}
 		}
 
