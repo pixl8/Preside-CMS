@@ -10,7 +10,7 @@ component {
 		var targetIdField = presideObjectService.getIdField( targetObject );
 		var ajax          = args.ajax          ?: true;
 		var savedFilters  = args.objectFilters ?: "";
-		var orderBy       = args.orderBy       ?: "label";
+		var orderBy       = args.orderBy       ?: ( dataManagerService.getDefaultSortOrderForDataGrid( targetObject ) ?: "label" );
 		var filterBy      = args.filterBy      ?: "";
 		var filterByField = args.filterByField ?: filterBy;
 		var savedData     = args.savedData     ?: {};
