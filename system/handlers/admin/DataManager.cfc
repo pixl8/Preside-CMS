@@ -147,7 +147,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getListingMultiActions( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
+		var objectName  = args.objectName ?: "";
+		var batchDelete = presideObjectService.getObjectAttribute( objectName=objectName, attributeName="batchDelete", defaultValue=true );
 
 		args.actions             = [];
 		args.batchEditableFields = [];
@@ -162,7 +163,7 @@ component extends="preside.system.base.AdminHandler" {
 			args.actions.append( renderView( view="/admin/datamanager/_batchEditMultiActionButton", args=args ) );
 		}
 
-		if ( IsTrue( args.canDelete ?: ( prc.canDelete ?: "" ) ) ) {
+		if ( IsTrue( args.canDelete ?: ( prc.canDelete ?: "" ) ) and isTrue( batchDelete ?: true ) ) {
 			args.actions.append({
 				  class     = "btn-danger"
 				, label     = translateResource( uri="cms:datamanager.deleteSelected.title" )

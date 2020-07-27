@@ -167,7 +167,9 @@ component {
 	}
 
 	public array function listBatchEditableFields( required string objectName ) {
-		if ( !isOperationAllowed( arguments.objectName, "edit" ) ) {
+		var objectBatchEditable = _getPresideObjectService().getObjectAttribute( objectName=objectName, attributeName="batchEditable", defaultValue=true );
+
+		if ( !isOperationAllowed( arguments.objectName, "edit" ) || ( isBoolean( objectBatchEditable ) && !objectBatchEditable ) ) {
 			return [];
 		}
 
@@ -757,9 +759,9 @@ component {
 
 		return filter;
 	}
-	
+
 	public boolean function isDataExportEnabled( required string objectName ) {
-	
+
 		if ( !$isFeatureEnabled( "dataexport" ) ) {
 			return false;
 		}
@@ -768,7 +770,7 @@ component {
 
 		return IsBoolean( exportEnabled ) && exportEnabled;
 	}
-	
+
 	public string function getDataExportPermissionKey( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportPermissionKey", defaultValue="read" );
 	}
