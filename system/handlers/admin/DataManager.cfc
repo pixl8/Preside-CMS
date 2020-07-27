@@ -59,7 +59,7 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = {
 				  objectName          = objectName
 				, gridFields          = prc.gridFields          ?: _getObjectFieldsForGrid( objectName )
-				, noSortableFields    = prc.noSortableFields    ?: _getObjectNoSortableFields( objectName )
+				, sortableFields      = prc.sortableFields      ?: _getObjectSortableFields( objectName )
 				, hiddenGridFields    = prc.hiddenGridFields    ?: []
 				, batchEditableFields = prc.batchEditableFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
@@ -3264,10 +3264,10 @@ component extends="preside.system.base.AdminHandler" {
 		return dataManagerService.listGridFields( arguments.objectName );
 	}
 
-	private array function _getObjectNoSortableFields( required string objectName ) {
+	private array function _getObjectSortableFields( required string objectName ) {
 		return listToArray( presideObjectService.getObjectAttribute(
 			  objectName    = arguments.objectName
-			, attributeName = "noSortableFields"
+			, attributeName = "datamanagerSortableFields"
 			, defaultValue  = ""
 		) );
 	}

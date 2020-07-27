@@ -9,7 +9,7 @@
 	param name="args.noActions"           type="boolean" default=false;
 	param name="args.footerEnabled"       type="boolean" default=false;
 	param name="args.gridFields"          type="array";
-	param name="args.noSortableFields"    type="array"   default=[];
+	param name="args.sortableFields"      type="array"   default=[];
 	param name="args.hiddenGridFields"    type="array"   default=[];
 	param name="args.filterContextData"   type="struct"  default={};
 	param name="args.allowSearch"         type="boolean" default=true;
@@ -172,7 +172,7 @@
 						</th>
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
-						<th class="<cfif arrayContains( args.noSortableFields, fieldName)>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">#translatePropertyName( args.objectName, fieldName )#</th>
+						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">#translatePropertyName( args.objectName, fieldName )#</th>
 					</cfloop>
 					<cfif args.draftsEnabled>
 						<th>#translateResource( uri="cms:datamanager.column.draft.status" )#</th>
