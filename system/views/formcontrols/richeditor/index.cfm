@@ -8,6 +8,7 @@
 	stylesheets        = args.stylesheets        ?: "";
 	widgetCategories   = args.widgetCategories   ?: ( rc.widgetCategories ?: "" );
 	linkPickerCategory = args.linkPickerCategory ?: ( rc.linkPickerCategory ?: "" );
+	customDefaultConfigs   = !structIsEmpty( args.customDefaultConfigs ?: {} ) ? serializeJSON( args.customDefaultConfigs ) : ""
 	maxLength     = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
@@ -47,6 +48,9 @@
 	          </cfif>
 	          <cfif Val( args.maxHeight ?: "" )>
 	              data-max-height="#Val( args.maxHeight )#"
+	          </cfif>
+	           <cfif Len( Trim( customDefaultConfigs ?: "" ) )>
+	              data-custom-default-configs='#customDefaultConfigs#'
 	          </cfif>
 	          <cfif Len( Trim( widgetCategories ) )>
 	              data-widget-categories="#Trim( widgetCategories )#"
