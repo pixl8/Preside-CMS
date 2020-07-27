@@ -5,11 +5,8 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:adhoctaskmanager.breadcrumb.title" )
-			, link  = ""
-		);
-		prc.pageIcon     = "hourglass-2";
+
+		prc.pageIcon = "hourglass-2";
 	}
 
 // PUBLIC HANDLERS
