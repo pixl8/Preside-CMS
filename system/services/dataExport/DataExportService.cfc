@@ -316,7 +316,7 @@ component {
 		for( var field in arguments.fieldNames ) {
 			arguments.existingTitles[ field ] = arguments.existingTitles[ field ] ?: $translateResource(
 				  uri          = baseUri & "field.#field#.title"
-				, defaultValue = field
+				, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#field#.title", defaultValue=field )
 			);
 		}
 
