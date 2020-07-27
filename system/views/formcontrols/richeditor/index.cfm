@@ -1,15 +1,15 @@
 <cfscript>
-	inputName          = args.name               ?: "";
-	inputId            = args.id                 ?: "";
-	inputClass         = args.class              ?: "";
-	placeholder        = args.placeholder        ?: "";
-	defaultValue       = args.defaultValue       ?: "";
-	extraClasses       = args.extraClasses       ?: "";
-	stylesheets        = args.stylesheets        ?: "";
-	widgetCategories   = args.widgetCategories   ?: ( rc.widgetCategories ?: "" );
-	linkPickerCategory = args.linkPickerCategory ?: ( rc.linkPickerCategory ?: "" );
-	customDefaultConfigs   = !structIsEmpty( args.customDefaultConfigs ?: {} ) ? serializeJSON( args.customDefaultConfigs ) : ""
-	maxLength     = Val( args.maxLength ?: 0 );
+	inputName            = args.name               ?: "";
+	inputId              = args.id                 ?: "";
+	inputClass           = args.class              ?: "";
+	placeholder          = args.placeholder        ?: "";
+	defaultValue         = args.defaultValue       ?: "";
+	extraClasses         = args.extraClasses       ?: "";
+	stylesheets          = args.stylesheets        ?: "";
+	widgetCategories     = args.widgetCategories   ?: ( rc.widgetCategories ?: "" );
+	linkPickerCategory   = args.linkPickerCategory ?: ( rc.linkPickerCategory ?: "" );
+	customDefaultConfigs = !StructIsEmpty( args.customDefaultConfigs ?: {} ) ? SerializeJSON( args.customDefaultConfigs ) : ""
+	maxLength            = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
