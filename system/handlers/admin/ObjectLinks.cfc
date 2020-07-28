@@ -197,21 +197,20 @@ component {
 	private string function buildAjaxListingLink( event, rc, prc, args={} ) {
 		var objectName     = args.objectName ?: "";
 		var qs             = "id=#objectName#";
-		var extraQs        = "";
+		var interceptArgs  = { objectName=objectName, extraQs="" };
 		var additionalArgs = [ "useMultiActions", "gridFields", "isMultilingual", "draftsEnabled" ];
 
 		if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForBuildAjaxListingLink" ) ) {
-			extraQs = customizationService.runCustomization(
+			interceptArgs.extraQs = customizationService.runCustomization(
 				  objectName = objectName
 				, action     = "getAdditionalQueryStringForBuildAjaxListingLink"
 				, args       = args
 			);
+			interceptArgs.extraQs = interceptArgs.extraQs ?: "";
 
-			announceInterception( "postGetExtraQsForBuildAjaxListingLink", { objectName=objectName, extraQs=extraQs } );
+			announceInterception( "postGetExtraQsForBuildAjaxListingLink", interceptArgs );
 
-			extraQs = extraQs ?: "";
-			extraQs = IsSimpleValue( extraQs ) ? extraQs : "";
-
+			interceptArgs.extraQs = IsSimpleValue( interceptArgs.extraQs ) ? interceptArgs.extraQs : "";
 		}
 
 
@@ -221,8 +220,8 @@ component {
 			}
 		}
 
-		if ( Len( Trim( extraQs ) ) ) {
-			qs &= "&#extraQs#";
+		if ( Len( Trim( interceptArgs.extraQs ) ) ) {
+			qs &= "&#interceptArgs.extraQs#";
 		}
 
 		return event.buildAdminLink(
