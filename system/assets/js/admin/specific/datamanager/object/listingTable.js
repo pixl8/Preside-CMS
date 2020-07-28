@@ -124,6 +124,7 @@
 				datatable = $listingTable.dataTable( {
 					aoColumns     : colConfig,
 					aaSorting     : defaultSort,
+					aoColumnDefs  : [ { "bSortable": false, "aTargets": [ 'no-sorting' ] } ],
 					bServerSide   : true,
 					bProcessing   : true,
 					bStateSave    : true,
