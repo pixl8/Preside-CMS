@@ -167,9 +167,7 @@ component {
 	}
 
 	public array function listBatchEditableFields( required string objectName ) {
-		var objectBatchEditable = _getPresideObjectService().getObjectAttribute( objectName=objectName, attributeName="batchEditable", defaultValue=true );
-
-		if ( !isOperationAllowed( arguments.objectName, "edit" ) || ( isBoolean( objectBatchEditable ) && !objectBatchEditable ) ) {
+		if ( !isOperationAllowed( arguments.objectName, "edit" ) ) {
 			return [];
 		}
 
