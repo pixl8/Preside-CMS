@@ -59,6 +59,7 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = {
 				  objectName          = objectName
 				, gridFields          = prc.gridFields          ?: _getObjectFieldsForGrid( objectName )
+				, sortableFields      = prc.sortableFields      ?: _getObjectSortableFields( objectName )
 				, hiddenGridFields    = prc.hiddenGridFields    ?: []
 				, batchEditableFields = prc.batchEditableFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
@@ -87,6 +88,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.append( {
 			  gridFields          = args.gridFields          ?: _getObjectFieldsForGrid( objectName )
 			, hiddenGridFields    = args.hiddenGridFields    ?: _getObjectHiddenFieldsForGrid( objectName )
+			, sortableFields      = args.sortableFields      ?:  _getObjectSortableFields( objectName )
 			, batchEditableFields = args.batchEditableFields ?: dataManagerService.listBatchEditableFields( objectName )
 			, isMultilingual      = IsTrue( args.isMultilingual ?: multilingualPresideObjectService.isMultilingual( objectName ) )
 			, draftsEnabled       = IsTrue( args.draftsEnabled  ?: datamanagerService.areDraftsEnabledForObject( objectName ) )
@@ -3397,6 +3399,14 @@ component extends="preside.system.base.AdminHandler" {
 // private utility methods
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return dataManagerService.listGridFields( arguments.objectName );
+	}
+
+	private array function _getObjectSortableFields( required string objectName ) {
+		return listToArray( presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerSortableFields"
+			, defaultValue  = ""
+		) );
 	}
 
 	private array function _getObjectHiddenFieldsForGrid( required string objectName ) {
