@@ -519,9 +519,16 @@ component displayName="Ad-hoc Task Manager Service" {
 		return SerializeJson( converted );
 	}
 
-	private any function _isTimespan( required any input ) {
-		return SerializeJson( arguments.input ).reFindNoCase( "^createTimeSpan\(" ) > 0;
+	private boolean function _isTimespan( required any input ) {
+		try {
+			var inputClass = arguments.input.getClass().getName();
+
+			return FindNoCase( "timespan", inputClass );
+		} catch( any e ) {}
+
+		return false;
 	}
+
 	private any function _timespanToSeconds( required any input ) {
 		var secondsInADay = 86400;
 
