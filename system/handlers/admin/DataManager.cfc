@@ -88,6 +88,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.append( {
 			  gridFields          = args.gridFields          ?: _getObjectFieldsForGrid( objectName )
 			, hiddenGridFields    = args.hiddenGridFields    ?: _getObjectHiddenFieldsForGrid( objectName )
+			, sortableFields      = args.sortableFields      ?:  _getObjectSortableFields( objectName )
 			, batchEditableFields = args.batchEditableFields ?: dataManagerService.listBatchEditableFields( objectName )
 			, isMultilingual      = IsTrue( args.isMultilingual ?: multilingualPresideObjectService.isMultilingual( objectName ) )
 			, draftsEnabled       = IsTrue( args.draftsEnabled  ?: datamanagerService.areDraftsEnabledForObject( objectName ) )
