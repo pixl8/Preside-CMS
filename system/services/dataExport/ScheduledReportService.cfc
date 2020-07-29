@@ -4,18 +4,12 @@
  */
 component {
 	/**
-	 * @scheduledReportDao.inject           presidecms:object:scheduled_report_export
-	 * @scheduledReportHistoryDao.inject    presidecms:object:scheduled_report_export_history
-	 * @threadUtil.inject                   threadUtil
+	 * @threadUtil.inject    threadUtil
 	 */
 	public any function init(
-		  required any scheduledReportDao
-		, required any scheduledReportHistoryDao
-		, required any threadUtil
+		  required any threadUtil
 	) {
-		_setScheduledReportDao(        arguments.scheduledReportDao        );
-		_setScheduledReportHistoryDao( arguments.scheduledReportHistoryDao );
-		_setThreadUtil(                arguments.threadUtil                );
+		_setThreadUtil( arguments.threadUtil );
 
 		_setMachineId();
 		_setRunningExports({});
@@ -24,7 +18,7 @@ component {
 	}
 
 	public string function getHistoryExportFile( required string historyExportId ) {
-		var file = _getScheduledReportHistoryDao().selectData( id=arguments.historyExportId, selectFields=[ "filepath" ] );
+		var file = $getPresideObject( "scheduled_report_export_history" ).selectData( id=arguments.historyExportId, selectFields=[ "filepath" ] );
 
 		if ( file.recordcount ) {
 			return file.filepath ?: "";
@@ -35,7 +29,7 @@ component {
 
 	public void function saveFilePathToHistoryExport( required string filepath, required string historyExportId ) {
 		try {
-			_getScheduledReportHistoryDao().updateData( id=arguments.historyExportId, data={ filepath=arguments.filepath } );
+			$getPresideObject( "scheduled_report_export_history" ).updateData( id=arguments.historyExportId, data={ filepath=arguments.filepath } );
 		} catch (any e) {
 			$raiseError(e);
 		}
@@ -48,7 +42,7 @@ component {
 			var reportFilepath  = detail.filepath         ?: ""
 
 			if ( !isEmpty( scheduledReport ) and !isEmpty( reportFilepath ) ) {
-				var recipients = valueArray( _getScheduledReportDao().selectManyToManyData(
+				var recipients = valueArray( $getPresideObject( "scheduled_report_export" ).selectManyToManyData(
 					  id           = scheduledReport
 					, propertyName = "recipients"
 					, selectFields = [ "recipients.id" ]
@@ -68,13 +62,13 @@ component {
 	}
 
 	public struct function getReportDetail( required string reportId ) {
-		var detail = _getScheduledReportDao().selectData( id=arguments.reportId );
+		var detail = $getPresideObject( "scheduled_report_export" ).selectData( id=arguments.reportId );
 
 		return !isEmpty( detail ) ? queryGetRow( detail, 1 ) : {};
 	}
 
 	public struct function getHistoryReportDetail( required string historyReportId ) {
-		var detail = _getScheduledReportHistoryDao().selectData( id=arguments.historyReportId );
+		var detail = $getPresideObject( "scheduled_report_export_history" ).selectData( id=arguments.historyReportId );
 
 		return !isEmpty( detail ) ? queryGetRow( detail, 1 ) : {};
 	}
@@ -87,7 +81,7 @@ component {
 				arguments.data.next_run = getNextRunDate( arguments.data.schedule );
 			}
 
-			_getScheduledReportDao().insertData( data=arguments.data, insertManyToManyRecords=true );
+			$getPresideObject( "scheduled_report_export" ).insertData( data=arguments.data, insertManyToManyRecords=true );
 		} catch (any e) {
 			$raiseError( e );
 		}
@@ -95,7 +89,7 @@ component {
 
 	public void function updateScheduleReport( required string recordId, required string schedule ) {
 		try {
-			_getScheduledReportDao().updateData( id=arguments.recordId, data={ next_run=getNextRunDate( arguments.schedule ) } );
+			$getPresideObject( "scheduled_report_export" ).updateData( id=arguments.recordId, data={ next_run=getNextRunDate( arguments.schedule ) } );
 		} catch (any e) {
 			$raiseError( e );
 		}
@@ -116,7 +110,7 @@ component {
 	}
 
 	public void function sendScheduledReports() {
-		var nonRunningReports = _getScheduledReportDao().selectData(
+		var nonRunningReports = $getPresideObject( "scheduled_report_export" ).selectData(
 			  selectFields = [ "id" ]
 			, filter       = "is_running = :is_running and next_run < :next_run"
 			, filterParams = { is_running = false, next_run = now() }
@@ -190,7 +184,7 @@ component {
 
 		runningExports[ arguments.threadId ] = { status="queued", thread=NullValue() };
 
-		return _getScheduledReportDao().updateData(
+		return $getPresideObject( "scheduled_report_export" ).updateData(
 			  id   = arguments.reportId
 			, data = {
 				  is_running      = true
@@ -224,7 +218,7 @@ component {
 
 		runningTasks.delete( reportRecord.running_thread ?: "", false );
 
-		var updatedRows = _getScheduledReportDao().updateData(
+		var updatedRows = $getPresideObject( "scheduled_report_export" ).updateData(
 			  id   = arguments.reportId
 			, data = {
 				  is_running           = false
@@ -244,7 +238,7 @@ component {
 		  required string reportId
 		, required string threadId
 	) {
-		return _getScheduledReportHistoryDao().insertData( data={
+		return $getPresideObject( "scheduled_report_export_history" ).insertData( data={
 			  scheduled_report = arguments.reportId
 			, thread_id        = arguments.threadId
 			, machine_id       = _getMachineId()
@@ -256,7 +250,7 @@ component {
 		, required boolean success
 		, required numeric timeTaken
 	) {
-		return _getScheduledReportHistoryDao().updateData(
+		return $getPresideObject( "scheduled_report_export_history" ).updateData(
 			  id   = arguments.historyExportId
 			, data = {
 				  complete   = true
@@ -268,7 +262,7 @@ component {
 
 	public boolean function exportIsRunning( required string reportId ) {
 		transaction {
-			var markedAsRunning = _getScheduledReportDao().dataExists( filter = { id=arguments.reportId, is_running=true } );
+			var markedAsRunning = $getPresideObject( "scheduled_report_export" ).dataExists( filter = { id=arguments.reportId, is_running=true } );
 
 			if ( markedAsRunning && !exportThreadIsRunning( arguments.taskKey ) ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
@@ -290,7 +284,7 @@ component {
 	}
 
 	public boolean function exportThreadIsRunning( required string reportId ) {
-		var report = _getScheduledReportDao().selectData(
+		var report = $getPresideObject( "scheduled_report_export" ).selectData(
 			  selectFields = [ "running_thread", "running_machine" ]
 			, id           = arguments.reportId
 		);
@@ -341,20 +335,6 @@ component {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getScheduledReportDao() {
-		return _scheduledReportDao;
-	}
-	private void function _setScheduledReportDao( required any scheduledReportDao ) {
-		_scheduledReportDao = arguments.scheduledReportDao;
-	}
-
-	private any function _getScheduledReportHistoryDao() {
-		return _scheduledReportHistoryDao;
-	}
-	private void function _setScheduledReportHistoryDao( required any scheduledReportHistoryDao ) {
-		_scheduledReportHistoryDao = arguments.scheduledReportHistoryDao;
-	}
-
 	private string function _getMachineId() {
 		return _machineId;
 	}
