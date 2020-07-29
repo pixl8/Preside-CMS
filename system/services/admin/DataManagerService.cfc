@@ -167,7 +167,7 @@ component {
 	}
 
 	public array function listBatchEditableFields( required string objectName ) {
-		if ( !isOperationAllowed( arguments.objectName, "edit" ) ) {
+		 if ( !isOperationAllowed( arguments.objectName, "edit" ) || !isOperationAllowed( arguments.objectName, "batchedit" ) ) {
 			return [];
 		}
 
@@ -242,7 +242,7 @@ component {
 	}
 
 	public string function getDefaultOperationsForObject( required string objectName ) {
-		var defaults = [ "read", "add", "edit", "delete" ];
+		var defaults = [ "read", "add", "edit", "batchedit", "delete", "batchdelete" ];
 
 		if ( _getPresideObjectService().objectIsVersioned( arguments.objectName ) ) {
 			defaults.append( "viewversions" );
@@ -757,9 +757,9 @@ component {
 
 		return filter;
 	}
-	
+
 	public boolean function isDataExportEnabled( required string objectName ) {
-	
+
 		if ( !$isFeatureEnabled( "dataexport" ) ) {
 			return false;
 		}
@@ -768,7 +768,7 @@ component {
 
 		return IsBoolean( exportEnabled ) && exportEnabled;
 	}
-	
+
 	public string function getDataExportPermissionKey( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportPermissionKey", defaultValue="read" );
 	}
