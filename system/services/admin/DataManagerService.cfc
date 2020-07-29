@@ -451,7 +451,7 @@ component {
 		var args    = {
 			  objectName       = arguments.objectName
 			, id               = arguments.recordId
-			, selectFields     = [ "#idField# as id", "_version_is_draft as published", "#dateModifiedField# as datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
+			, selectFields     = [ "#idField# as id", "_version_is_latest as published", "#dateModifiedField# as datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy
@@ -463,11 +463,6 @@ component {
 			args.fieldName = arguments.property;
 		}
 		result.records = Duplicate( _getPresideObjectService().getRecordVersions( argumentCollection = args ) );
-
-		// odd looking, just a reversal of the _version_is_draft field that we're aliasing as 'published'
-		for( var i=1; i<=result.records.recordCount; i++ ) {
-			result.records.published[ i ] = !IsBoolean( result.records.published[ i ] ) || !result.records.published[ i ];
-		}
 
 		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
@@ -757,9 +752,9 @@ component {
 
 		return filter;
 	}
-	
+
 	public boolean function isDataExportEnabled( required string objectName ) {
-	
+
 		if ( !$isFeatureEnabled( "dataexport" ) ) {
 			return false;
 		}
@@ -768,7 +763,7 @@ component {
 
 		return IsBoolean( exportEnabled ) && exportEnabled;
 	}
-	
+
 	public string function getDataExportPermissionKey( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportPermissionKey", defaultValue="read" );
 	}
