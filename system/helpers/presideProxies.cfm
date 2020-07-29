@@ -130,6 +130,14 @@
 	</cffunction>
 
 <!--- i18n --->
+	<cffunction name="getResourceBundleUriRoot" access="public" returntype="any" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+
+		<cfscript>
+			return getSingleton( "presideObjectService" ).getResourceBundleUriRoot( arguments.objectName );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="translateResource" access="public" returntype="any" output="false">
 		<cfscript>
 			var args     = arguments;
