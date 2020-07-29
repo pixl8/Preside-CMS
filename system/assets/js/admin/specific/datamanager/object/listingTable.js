@@ -40,6 +40,7 @@
 			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
+			  , allowManageFilter   = $filterDiv.data( 'allow-manage-filter' ) === true
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult;
@@ -353,16 +354,20 @@
 				$filterDiv.on( "change", function( e ){
 					datatable.fnDraw();
 
-					$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
+					if ( allowManageFilter ) {
+						$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
+					}
 				} );
 
-				setupQuickSaveFilterIframeModal( $filterDiv );
+				if ( allowManageFilter ) {
+					setupQuickSaveFilterIframeModal( $filterDiv );
 
-				if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
-					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
-						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
-					} else if ( settings.oLoadedState.oFilter.favourites && settings.oLoadedState.oFilter.favourites.length ) {
-						setFavourites( settings.oLoadedState.oFilter.favourites );
+					if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
+						if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
+							prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
+						} else if ( settings.oLoadedState.oFilter.favourites && settings.oLoadedState.oFilter.favourites.length ) {
+							setFavourites( settings.oLoadedState.oFilter.favourites );
+						}
 					}
 				}
 			};
@@ -599,7 +604,10 @@
 				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
 
 				$filterDiv.fadeOut( 100, function(){
-					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+					if ( allowManageFilter ) {
+						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+					}
+
 					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
 					$filterDiv.find( "[name=filters]" ).val("");
 					refreshFavourites();

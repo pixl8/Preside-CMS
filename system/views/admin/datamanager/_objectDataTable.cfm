@@ -35,7 +35,8 @@
 	instanceId = LCase( Hash( CallStackGet( "string" ) ) );
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
-	args.allowFilter = args.allowFilter && isFeatureEnabled( "rulesengine" );
+	args.allowFilter  = args.allowFilter && isFeatureEnabled( "rulesengine" );
+	allowManageFilter = args.allowFilter && hasCmsPermission( "rulesEngine.add" ) && hasCmsPermission( "rulesEngine.edit" );
 
 	if ( args.allowFilter ) {
 		saveFilterFormEndpoint = event.buildAdminLink(
@@ -83,7 +84,7 @@
 		</cfif>
 
 		<cfif args.allowFilter>
-			<div class="object-listing-table-filter hide" id="#tableId#-filter">
+			<div class="object-listing-table-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#">
 				<div class="row">
 					<div class="col-md-12">
 						<a class="pull-right back-to-basic-search" href="##">
@@ -106,35 +107,40 @@
 							, showCount    = false
 						)#
 						<br><br>
-						<a href="##" data-toggle="collapse" data-target="##quick-filter-form-#instanceId#" class="quick-filter-toggler">
-							<i class="fa fa-fw fa-caret-down"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
-						</a>
+
+						<cfif allowManageFilter>
+							<a href="##" data-toggle="collapse" data-target="##quick-filter-form-#instanceId#" class="quick-filter-toggler">
+								<i class="fa fa-fw fa-caret-down"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
+							</a>
+						</cfif>
 					</div>
 				</div>
 
-				<div id="quick-filter-form-#instanceId#" class="in clearfix">
-					#renderFormControl(
-						  name        = "filter"
-						, id          = "filter-#instanceId#"
-						, type        = "rulesEngineFilterBuilder"
-						, context     = "admin"
-						, contextData = args.filterContextData
-						, object      = args.objectName
-						, label       = ""
-						, layout      = ""
-						, compact     = true
-						, showCount   = false
-					)#
+				<cfif allowManageFilter>
+					<div id="quick-filter-form-#instanceId#" class="in clearfix">
+						#renderFormControl(
+							  name        = "filter"
+							, id          = "filter-#instanceId#"
+							, type        = "rulesEngineFilterBuilder"
+							, context     = "admin"
+							, contextData = args.filterContextData
+							, object      = args.objectName
+							, label       = ""
+							, layout      = ""
+							, compact     = true
+							, showCount   = false
+						)#
 
-					<div class="form-actions">
-						<div class="pull-right">
-							<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#" data-modal-dialog-full="#IsTrue( args.filterQuickAddFullModal ?: "" )#">
-								<i class="fa fa-fw fa-save"></i>
-								#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
-							</button>
+						<div class="form-actions">
+							<div class="pull-right">
+								<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#" data-modal-dialog-full="#IsTrue( args.filterQuickAddFullModal ?: "" )#">
+									<i class="fa fa-fw fa-save"></i>
+									#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
+								</button>
+							</div>
 						</div>
 					</div>
-				</div>
+				</cfif>
 			</div>
 
 			<div class="object-listing-table-favourites hide" id="#tableId#-favourites">
