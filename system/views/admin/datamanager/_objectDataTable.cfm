@@ -76,7 +76,7 @@
 		</cfif>
 
 		<cfif args.allowFilter>
-			<div class="object-listing-table-filter hide" id="#tableId#-filter" data-filter-allow="#booleanFormat( allowManageFilter )#">
+			<div class="object-listing-table-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#">
 				<div class="row">
 					<div class="col-md-12">
 						<a class="pull-right back-to-basic-search" href="##">

@@ -39,7 +39,7 @@
 			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
-			  , allowManageFilter   = $filterDiv.data( 'filter-allow' ) === true
+			  , allowManageFilter   = $filterDiv.data( 'allow-manage-filter' ) === true
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult;
