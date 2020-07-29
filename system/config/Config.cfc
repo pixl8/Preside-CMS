@@ -334,10 +334,11 @@ component {
 		settings.adminRoles = StructNew( "linked" );
 
 		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*" ];
-		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "emailCenter.*", "!emailCenter.queue.*" ];
-		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read" ];
+		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "rulesEngine.navigate", "emailCenter.*", "!emailCenter.queue.*" ];
+		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read", "rulesEngine.navigate" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
 		settings.adminRoles.emailcentremanager = [ "cms.access", "emailCenter.*", "!emailCenter.queue.*" ];
+		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
