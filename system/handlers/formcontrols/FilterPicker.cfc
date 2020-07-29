@@ -37,6 +37,9 @@ component  {
 			);
 		}
 
+		args.hasQuickAddPermission  = booleanFormat( hasCmsPermission( "rulesEngine.add" )  );
+		args.hasQuickEditPermission = booleanFormat( hasCmsPermission( "rulesEngine.edit" ) );
+
 		return renderViewlet( event="formcontrols.objectPicker.index", args=args );
 	}
 }
