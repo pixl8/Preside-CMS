@@ -81,6 +81,7 @@ component extends="preside.system.base.adminHandler" {
 				, recordId      = recordId
 				, value         = prc.record[ propertyName ] ?: ""
 				, rendered      = renderedValue
+				, displayTitle  = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="displayPropertyTitle", defaultValue=true )
 			} );
 		}
 
