@@ -186,7 +186,15 @@
 						</th>
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
-						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">#translatePropertyName( args.objectName, fieldName )#</th>
+						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">
+							#translatePropertyName( args.objectName, fieldName, "listing" )#
+
+							<cfset help = translateResource( uri=getResourceBundleUriRoot( args.objectName ) & "field.#fieldName#.listing.help", defaultValue="" ) />
+
+							<cfif !isEmpty( help )>
+								<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="top" data-content="#htmlEditFormat( help )#" title="#translateResource( 'cms:help.popover.title' )#"></span>
+							</cfif>
+						</th>
 					</cfloop>
 					<cfif args.draftsEnabled>
 						<th>#translateResource( uri="cms:datamanager.column.draft.status" )#</th>
