@@ -118,6 +118,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, tablePrefix = "pobj_"
 					, tableName   = "pobj_mypivotobject"
 					, versioned   = true
+					, useDrafts   = false
 					, properties  = {
 						  source      = { name="source"    , control="auto", dbtype="varchar", maxLength="35", generator="none", generate="never", relationship="many-to-one", relatedTo="simple_object"            , required=true, type="string", onDelete="cascade" }
 						, target      = { name="target"    , control="auto", dbtype="varchar", maxLength="35", generator="none", generate="never", relationship="many-to-one", relatedTo="simple_object_with_prefix", required=true, type="string", onDelete="cascade" }
@@ -457,6 +458,50 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( dummyObj.meta.dbFieldList      ?: "" ).toBe( "id,label,datecreated,datemodified" );
 				expect( dummyObj.meta.formulaFieldList ?: "" ).toBe( "myformulafield" );
+			} );
+
+			it( "should ensure that non-versioned objects have drafts disabled also", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", propertyNames=[], properties={}, versioned=false }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.useDrafts ?: "" ).toBe( false );
+			} );
+
+			it( "should ensure that versioned objects default to NOT having drafts enabled", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", propertyNames=[], properties={}, versioned=true }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.useDrafts ?: "" ).toBe( false );
+			} );
+
+			it( "should ensure that versioned objects default to having drafts enabled when they have @datamanagerAllowDrafts", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", propertyNames=[], properties={}, versioned=true, datamanagerAllowDrafts=true, useDrafts=false }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.useDrafts ?: "" ).toBe( true );
+			} );
+
+			it( "should ensure that versioned objects default to having drafts enabled when they are page types", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", propertyNames=[], properties={}, versioned=true, isPageType=true }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.useDrafts ?: "" ).toBe( true );
 			} );
 
 		} );

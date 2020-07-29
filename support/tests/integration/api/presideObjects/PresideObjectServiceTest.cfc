@@ -2692,7 +2692,7 @@
 			var versions = poService.getRecordVersions( objectName="a_category_object", id=id );
 
 			super.assertEquals( 5, versions.recordCount );
-			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts,_version_is_latest,_version_is_latest_draft", versions.columnList );
+			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields,_version_is_latest", versions.columnList );
 			for( var i=1; i <= versions.recordCount; i++ ) {
 				super.assertEquals( 6-i, versions._version_number[i] );
 			}
