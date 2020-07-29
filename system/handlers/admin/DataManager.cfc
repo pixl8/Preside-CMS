@@ -3461,6 +3461,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canView               = _checkPermission( argumentCollection=arguments, key="read"              , throwOnError=false );
 			prc.canAdd                = _checkPermission( argumentCollection=arguments, key="add"               , throwOnError=false );
 			prc.canedit               = _checkPermission( argumentCollection=arguments, key="edit"              , throwOnError=false );
+			prc.canBatchEdit          = _checkPermission( argumentCollection=arguments, key="batchedit"         , throwOnError=false );
 			prc.canDelete             = _checkPermission( argumentCollection=arguments, key="delete"            , throwOnError=false );
 			prc.canBatchDelete        = _checkPermission( argumentCollection=arguments, key="batchdelete"       , throwOnError=false );
 			prc.canManagePerms        = _checkPermission( argumentCollection=arguments, key="manageContextPerms", throwOnError=false );
@@ -3469,7 +3470,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.canSort               = datamanagerService.isSortable( prc.objectName ) && prc.canEdit;
 			prc.gridFields            = _getObjectFieldsForGrid( prc.objectName );
 			prc.hiddenGridFields      = _getObjectHiddenFieldsForGrid( prc.objectName );
-			prc.batchEditableFields   = dataManagerService.listBatchEditableFields( prc.objectName );
+			prc.batchEditableFields   = isTrue( prc.canBatchEdit ) ? dataManagerService.listBatchEditableFields( prc.objectName ) : [];
 			prc.isMultilingual        = multilingualPresideObjectService.isMultilingual( prc.objectName );
 			prc.canTranslate          = prc.isMultilingual && _checkPermission( argumentCollection=arguments, key="translate", throwOnError=false );
 			prc.useVersioning         = datamanagerService.isOperationAllowed( prc.objectName, "viewversions" ) && presideObjectService.objectIsVersioned( prc.objectName );
