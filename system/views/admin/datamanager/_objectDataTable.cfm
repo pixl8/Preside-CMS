@@ -172,7 +172,7 @@
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
 						<th data-field="#ListLast( fieldName, '.' )#">
-							#translatePropertyName( args.objectName, fieldName )#
+							#translatePropertyName( args.objectName, fieldName, "listing" )#
 
 							<cfset help = translateResource( uri=getResourceBundleUriRoot( args.objectName ) & "field.#fieldName#.listing.help", defaultValue="" ) />
 
