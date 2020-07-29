@@ -22,7 +22,9 @@
  						<tbody>
 							<cfloop array="#renderedProps#" item="prop" index="i">
 								<tr>
-									<th>#prop.propertyTitle#:</th>
+									<cfif isTrue( prop.displayTitle ?: true )>
+										<th>#prop.propertyTitle#:</th>
+									</cfif>
 									<td>#prop.rendered#</td>
 								</tr>
 							</cfloop>
