@@ -3391,6 +3391,10 @@ component displayName="Preside Object Service" {
 					return Hash( valueToHash );
 				}
 			break;
+			case "nextint":
+				var existing = selectData( objectName=arguments.objectName, selectFields=[ "Max( #arguments.prop.name# ) as max_value" ] );
+				return Val( existing.max_value ?: "" ) + 1;
+			break;
 			case "slug":
 				var generateFrom = prop.generateFrom ?: getLabelField( arguments.objectName );
 				var idField      = getIdField( arguments.objectName );
