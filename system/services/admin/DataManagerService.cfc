@@ -394,7 +394,7 @@ component {
 		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled );
 		args.orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy );
 		args.autoGroupBy        = true;
-		args.allowDraftVersions = true;
+		args.allowDraftVersions = arguments.draftsEnabled;
 
 		args.delete( "gridFields"   );
 		args.delete( "searchQuery"  );

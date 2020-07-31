@@ -118,7 +118,6 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		prc.record = dao.selectData(
 			  filter             = { id=id }
 			, fromVersionTable   = true
-			, allowDraftVersions = true
 			, specificVersion    = version
 		);
 
@@ -173,10 +172,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 		var id = rc.id ?: "";
 
-		prc.record = dao.selectData(
-			  filter             = { id=id }
-			, allowDraftVersions = true
-		);
+		prc.record = dao.selectData( filter={ id=id } );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.record.not.found.error" ) );
@@ -203,10 +199,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 		var id = rc.blueprint ?: "";
 
-		prc.record = dao.selectData(
-			  filter             = { id=id }
-			, allowDraftVersions = true
-		);
+		prc.record = dao.selectData( filter={ id=id } );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.record.not.found.error" ) );
