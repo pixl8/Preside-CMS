@@ -75,15 +75,16 @@ component extends="preside.system.base.AdminHandler" {
 		var listing     = "";
 
 		args.usesTreeView = dataManagerService.usesTreeView( objectName );
+		args.treeOnly     = args.usesTreeView && IsTrue( args.treeOnly ?: "" );
 
-		if ( args.usesTreeView ) {
+		if ( args.usesTreeView && !args.treeOnly ) {
 			var defaultTab = sessionStorage.getVar( name="_datamanagerTabForObject#objectName#", default="tree" );
 			var actualTab  = rc.tab ?: defaultTab;
 
 			args.treeView = actualTab != "grid";
 			sessionStorage.setVar( "_datamanagerTabForObject#objectName#", actualTab );
 		} else {
-			args.treeView = false;
+			args.treeView = args.treeOnly;
 		}
 
 		args.append( {
@@ -126,7 +127,7 @@ component extends="preside.system.base.AdminHandler" {
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
 
-		if ( args.usesTreeView  ) {
+		if ( args.usesTreeView && !args.treeOnly ) {
 			args.content = listing;
 			listing = renderView( view="/admin/datamanager/_treeGridSwitcher", args=args );
 		}
@@ -1898,16 +1899,18 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _decorateObjectRecordsForAjaxDataTables( event, rc, prc, args={} ) {
-		var records            = args.records    ?: QueryNew( '' );
-		var objectName         = args.objectName ?: "";
-		var gridFields         = args.gridFields ?: [];
-		var useMultiActions    = IsTrue( args.useMultiActions ?: "" );
-		var isMultilingual     = IsTrue( args.isMultilingual ?: "" );
-		var draftsEnabled      = IsTrue( args.draftsEnabled ?: "" );
-		var translateUrlBase   = isMultilingual ? event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId="{id}", args={ fromDataGrid=true, language='{language}' } ) : "";
-		var checkboxCol        = [];
-		var translateStatusCol = [];
-		var statusCol          = [];
+		var records              = args.records    ?: QueryNew( '' );
+		var objectName           = args.objectName ?: "";
+		var gridFields           = args.gridFields ?: [];
+		var useMultiActions      = IsTrue( args.useMultiActions ?: "" );
+		var isMultilingual       = IsTrue( args.isMultilingual ?: "" );
+		var draftsEnabled        = IsTrue( args.draftsEnabled ?: "" );
+		var translateUrlBase     = isMultilingual ? event.buildAdminLink( objectName=objectName, operation="translateRecord", recordId="{id}", args={ fromDataGrid=true, language='{language}' } ) : "";
+		var hasLinkCustomization = customizationService.objectHasCustomization( objectName=objectName, action="getRecordLinkForGridListing" );
+		var checkboxCol          = [];
+		var translateStatusCol   = [];
+		var statusCol            = [];
+		var linkCol              = [];
 
 		for( var record in records ){
 			for( var field in gridFields ){
@@ -1934,7 +1937,19 @@ component extends="preside.system.base.AdminHandler" {
 			if ( draftsEnabled ) {
 				statusCol.append( renderView( view="/admin/datamanager/_recordStatus", args=record ) );
 			}
+
+			if ( hasLinkCustomization ) {
+				linkCol.append( customizationService.runCustomization(
+					  objectName = objectName
+					, action     = "getRecordLinkForGridListing"
+					, args       = { objectName=objectName, record=record, args=args }
+				) );
+			} else {
+				linkCol.append( "" );
+			}
 		}
+
+		QueryAddColumn( records, "_link" , linkCol );
 
 		if ( draftsEnabled ) {
 			QueryAddColumn( records, "_status" , statusCol );
