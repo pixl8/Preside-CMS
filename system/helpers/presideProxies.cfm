@@ -294,6 +294,23 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="objectTreeView" access="public" returntype="string" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+		<cfargument name="args"       type="struct" required="false" default="#StructNew()#" />
+
+		<cfscript>
+			arguments.args.objectName = arguments.objectName;
+			arguments.args.treeOnly   = true;
+
+			return getSingleton( "dataManagerCustomizationService" ).runCustomization(
+				  objectName     = arguments.objectName
+				, args           = arguments.args
+				, action         = "listingViewlet"
+				, defaultHandler = "admin.DataManager._objectListingViewlet"
+			);
+		</cfscript>
+	</cffunction>
+
 <!--- healthchecks --->
 	<cffunction name="isUp" access="public" returntype="any" output="false">
 		<cfargument name="serviceId" type="string" required="true" />
