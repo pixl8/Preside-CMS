@@ -1,5 +1,5 @@
 component {
-	property name="scheduledReportService" inject="ScheduledReportService";
+	property name="scheduledExportService" inject="ScheduledExportService";
 
 	private string function index( event, rc, prc, args={} ) {
 		var inputName    = args.name         ?: "";
@@ -32,7 +32,7 @@ component {
 		var expression = rc.expression ?: "";
 
 		if ( !isEmpty( expression ) ) {
-			return scheduledReportService.cronExpressionToHuman( expression );
+			return scheduledExportService.cronExpressionToHuman( expression );
 		}
 		return "";
 	}

@@ -36,6 +36,7 @@
 			  , noRecordMessage     = tableSettings.noRecordMessage || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , compact             = tableSettings.compact         || cfrequest.compact
+			  , defaultPageLength   = cfrequest.defaultPageLength   || 10
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
@@ -131,6 +132,7 @@
 					bFilter       : allowSearch,
 					iDeferLoading : 0,
 					bAutoWidth    : false,
+					iDisplayLength: parseInt( defaultPageLength ),
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
 					sDom          : sDom,
 					sAjaxSource   : datasourceUrl,
@@ -390,17 +392,18 @@
 							, className : "btn-default"
 						},
 						ok : {
-							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:export.btn" )
+							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:downloadnow.btn" )
 							, className : "btn-primary ok-button"
 							, callback  : function(){ return processExport(); }
 						}
 					}
 				}
-				if ( allowSaveReport ) {
+
+				if ( allowSaveExport ) {
 					modalOptions.buttons.save = {
-						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:save.btn" )
-						, className : "btn-success"
-						, callback  : function(){ return saveReport(); }
+						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:saveforlater.btn" )
+						, className : "btn-primary"
+						, callback  : function(){ return saveExport(); }
 					};
 				}
 				callbacks = {
@@ -457,9 +460,9 @@
 
 					return true;
 				};
-				saveReport = function(){
+				saveExport = function(){
 					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
-					  , $submissionForm  = $( ".object-listing-table-save-report-form", $uberContainer )
+					  , $submissionForm  = $( ".object-listing-table-save-export-form", $uberContainer )
 					  , sortColumns      = dtSettings.aaSorting
 					  , allColumns       = dtSettings.aoColumns
 					  , config           = $configForm.serializeObject()

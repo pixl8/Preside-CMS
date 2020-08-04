@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="cms:dataexport.config.form.">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="label"             control="textinput"             required="true"  sortorder="10" />
+			<field name="description"       control="textarea"              required="false" sortorder="20" maxlength="2000" />
+			<field name="filename"          control="textinput"             required="true"  sortorder="30" />
+			<field name="exporter"          control="dataExporterPicker"    required="true"  sortorder="40" />
+			<field name="recipients"        control="objectPicker"          required="false" sortorder="50" object="security_user" multiple="true" />
+			<field name="schedule"          control="cronPicker"            required="true"  sortorder="60" defaultValue="disabled" />
+
+			<field name="filterExpressions" control="hidden" />
+			<field name="object"            control="hidden" />
+			<field name="orderby"           control="hidden" />
+			<field name="savedFilters"      control="hidden" />
+			<field name="searchQuery"       control="hidden" />
+			<field name="exportFields"      control="hidden" />
+		</fieldset>
+	</tab>
+</form>
