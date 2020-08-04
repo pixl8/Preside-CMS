@@ -6,16 +6,10 @@
 
 <cfoutput>
 	<div class="row no-padding">
-		<div class="col-md-1 text-center">
-			<i class='fa-fw fa #icon#'></i>
-		</div>
+		<strong>#label#</strong>
 
-		<div class="col-md-11">
-			<strong>#label#</strong>
-
-			<cfif !isEmptyString( description )>
-				<p>#description#</p>
-			</cfif>
-		</div>
+		<cfif !isEmptyString( description )>
+			<p>#description#</p>
+		</cfif>
 	</div>
 </cfoutput>
