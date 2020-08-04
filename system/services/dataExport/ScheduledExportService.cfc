@@ -18,7 +18,7 @@ component {
 	}
 
 	public string function getHistoryExportFile( required string historyExportId ) {
-		var file = $getPresideObject( "scheduled_report_export_history" ).selectData( id=arguments.historyExportId, selectFields=[ "filepath" ] );
+		var file = $getPresideObject( "saved_export_history" ).selectData( id=arguments.historyExportId, selectFields=[ "filepath" ] );
 
 		if ( file.recordcount ) {
 			return file.filepath ?: "";
@@ -29,30 +29,33 @@ component {
 
 	public void function saveFilePathToHistoryExport( required string filepath, required string historyExportId ) {
 		try {
-			$getPresideObject( "scheduled_report_export_history" ).updateData( id=arguments.historyExportId, data={ filepath=arguments.filepath } );
+			$getPresideObject( "saved_export_history" ).updateData( id=arguments.historyExportId, data={ filepath=arguments.filepath } );
 		} catch (any e) {
 			$raiseError(e);
 		}
 	}
 
-	public void function sendExportedReportToRecipient( required string historyExportId ) {
+	public void function sendExportedFileToRecipient( required string historyExportId ) {
 		try {
-			var detail          = getHistoryReportDetail( arguments.historyExportId );
-			var scheduledReport = detail.scheduled_report ?: "";
-			var reportFilepath  = detail.filepath         ?: ""
+			var detail          = getHistoryExportDetail( arguments.historyExportId );
+			var scheduledExport = detail.saved_export ?: "";
+			var exportFilepath  = detail.filepath     ?: ""
 
-			if ( !isEmpty( scheduledReport ) and !isEmpty( reportFilepath ) ) {
-				var recipients = valueArray( $getPresideObject( "scheduled_report_export" ).selectManyToManyData(
-					  id           = scheduledReport
+			if ( !isEmpty( scheduledExport ) and !isEmpty( exportFilepath ) ) {
+				var recipients = valueArray( $getPresideObject( "saved_export" ).selectManyToManyData(
+					  id           = scheduledExport
 					, propertyName = "recipients"
 					, selectFields = [ "recipients.id" ]
 				), "id" ) ?: [];
 
 				for ( var recipient in recipients ) {
 					$sendEmail(
-						  template    = "scheduledReportExport"
+						  template    = "scheduledExport"
 						, recipientId = recipient
-						, args        = { filepath=reportFilepath }
+						, args        = {
+							  filepath        = exportFilepath
+							, savedExportName = $renderLabel( "saved_export", scheduledExport )
+						}
 					);
 				}
 			}
@@ -61,35 +64,29 @@ component {
 		}
 	}
 
-	public struct function getReportDetail( required string reportId ) {
-		var detail = $getPresideObject( "scheduled_report_export" ).selectData( id=arguments.reportId );
+	public struct function getExportDetail( required string exportId ) {
+		var detail = $getPresideObject( "saved_export" ).selectData( id=arguments.exportId );
 
 		return !isEmpty( detail ) ? queryGetRow( detail, 1 ) : {};
 	}
 
-	public struct function getHistoryReportDetail( required string historyReportId ) {
-		var detail = $getPresideObject( "scheduled_report_export_history" ).selectData( id=arguments.historyReportId );
+	public query function getSavedExportHistory( required string exportId ) {
+		return $getPresideObject( "saved_export_history" ).selectData( filter={ saved_export=arguments.exportId } );
+	}
+
+	public struct function getHistoryExportDetail( required string historyExportId ) {
+		var detail = $getPresideObject( "saved_export_history" ).selectData( id=arguments.historyExportId );
 
 		return !isEmpty( detail ) ? queryGetRow( detail, 1 ) : {};
 	}
 
-	public void function saveScheduledReport( required struct data ) {
+	public void function updateScheduleExport( required string recordId ) {
 		try {
-			arguments.data.is_running = false;
+			var detail = getExportDetail( arguments.recordId );
 
-			if ( !isEmpty( arguments.data.schedule ?: "" ) ) {
-				arguments.data.next_run = getNextRunDate( arguments.data.schedule );
+			if ( !isEmpty( detail ) and !isEmpty( detail.schedule ?: "" ) ) {
+				$getPresideObject( "saved_export" ).updateData( id=arguments.recordId, data={ next_run=getNextRunDate( detail.schedule ) } );
 			}
-
-			$getPresideObject( "scheduled_report_export" ).insertData( data=arguments.data, insertManyToManyRecords=true );
-		} catch (any e) {
-			$raiseError( e );
-		}
-	}
-
-	public void function updateScheduleReport( required string recordId, required string schedule ) {
-		try {
-			$getPresideObject( "scheduled_report_export" ).updateData( id=arguments.recordId, data={ next_run=getNextRunDate( arguments.schedule ) } );
 		} catch (any e) {
 			$raiseError( e );
 		}
@@ -104,44 +101,44 @@ component {
 
 	public string function cronExpressionToHuman( required string expression ) {
 		if ( arguments.expression == "disabled" ) {
-			return "disabled";
+			return "Disabled";
 		}
 		return CreateObject( "java", "net.redhogs.cronparser.CronExpressionDescriptor", _getLib() ).getDescription( arguments.expression );
 	}
 
-	public void function sendScheduledReports() {
-		var nonRunningReports = $getPresideObject( "scheduled_report_export" ).selectData(
+	public void function sendScheduledExports() {
+		var nonRunningExports = $getPresideObject( "saved_export" ).selectData(
 			  selectFields = [ "id" ]
-			, filter       = "is_running = :is_running and next_run < :next_run"
-			, filterParams = { is_running = false, next_run = now() }
+			, filter       = "is_running = :is_running and next_run < :next_run and schedule != :schedule"
+			, filterParams = { is_running = false, next_run = now(), schedule = "disabled" }
 			, useCache     = false
 		);
 
-		for ( var report in nonRunningReports ) {
-			runReportExport( report.id );
+		for ( var export in nonRunningExports ) {
+			runExport( export.id );
 		}
 	}
 
-	public void function runReportExport( required string scheduledReportId ) {
-		var reportDetail = getReportDetail( arguments.scheduledReportId )
-		var lockName     = "runexport-#arguments.scheduledReportId#";
+	public void function runExport( required string scheduledExportId ) {
+		var exportDetail = getExportDetail( arguments.scheduledExportId )
+		var lockName     = "runexport-#arguments.scheduledExportId#";
 
 		try {
 			lock name=lockName type="exclusive" timeout=1 {
-				var newThreadId = "PresideReportScheduledExport-" & arguments.scheduledReportId & "-" & CreateUUId();
-				var newLogId    = createReportExportHistoryLog( arguments.scheduledReportId, newThreadId );
+				var newThreadId = "PresideExportScheduledExport-" & arguments.scheduledExportId & "-" & CreateUUId();
+				var newLogId    = createExportHistoryLog( arguments.scheduledExportId, newThreadId );
 
 				transaction {
-					if ( exportIsRunning( arguments.scheduledReportId ) ) {
+					if ( exportIsRunning( arguments.scheduledExportId ) ) {
 						return;
 					}
 
-					markReportExportAsRunning( arguments.scheduledReportId, newThreadId );
+					markExportAsRunning( arguments.scheduledExportId, newThreadId );
 				}
 
-				markReportExportAsStarted( arguments.scheduledReportId );
-				runReportExportWithinThread(
-					  scheduledReportId = arguments.scheduledReportId
+				markExportAsStarted( arguments.scheduledExportId );
+				runExportWithinThread(
+					  scheduledExportId = arguments.scheduledExportId
 					, historyLogId      = newLogId
 					, threadId          = newThreadId
 				);
@@ -151,8 +148,8 @@ component {
 		}
 	}
 
-	public void function runReportExportWithinThread(
-		  required string scheduledReportId
+	public void function runExportWithinThread(
+		  required string scheduledExportId
 		, required string historyLogId
 		, required string threadId
 	) {
@@ -164,66 +161,66 @@ component {
 			$getRequestContext().setUseQueryCache( false );
 
 			success = $getColdbox().runEvent(
-				  event          = "ScheduledReportHelpers.runScheduledReportExport"
+				  event          = "ScheduledExportHelpers.runScheduledExport"
 				, private        = true
-				, eventArguments = { args={ scheduledReportId=scheduledReportId, historyExportId=historyLogId } }
+				, eventArguments = { args={ scheduledExportId=scheduledExportId, historyExportId=historyLogId } }
 			);
 		} catch (any e) {
 			$raiseError(e);
 		} finally {
-			markReportExportAsCompleted( arguments.historyLogId, arguments.scheduledReportId, success, getTickCount() - start );
+			markExportAsCompleted( arguments.historyLogId, arguments.scheduledExportId, success, getTickCount() - start );
 		}
 	}
 
-	public numeric function markReportExportAsRunning(
-		  required string reportId
+	public numeric function markExportAsRunning(
+		  required string exportId
 		, required string threadId
 	) {
-		var reportDetail   = getReportDetail( arguments.reportId )
+		var exportDetail   = getExportDetail( arguments.exportId )
 		var runningExports = _getRunningExports();
 
 		runningExports[ arguments.threadId ] = { status="queued", thread=NullValue() };
 
-		return $getPresideObject( "scheduled_report_export" ).updateData(
-			  id   = arguments.reportId
+		return $getPresideObject( "saved_export" ).updateData(
+			  id   = arguments.exportId
 			, data = {
 				  is_running      = true
-				, next_run        = getNextRunDate( reportDetail.schedule )
+				, next_run        = ( ( exportDetail.schedule ?: "" ) eq "disabled" ) ? "" : getNextRunDate( exportDetail.schedule ?: "" )
 				, running_thread  = arguments.threadId
 				, running_machine = _getMachineId()
 			  }
 		);
 	}
 
-	public void function markReportExportAsStarted( required string threadId ) {
+	public void function markExportAsStarted( required string threadId ) {
 		var runningExports = _getRunningExports();
 
 		runningExports[ arguments.threadId ] = { status="started" };
 	}
 
-	public numeric function markReportExportAsCompleted(
-		  required string  historyReportId
-		, required string  reportId
+	public numeric function markExportAsCompleted(
+		  required string  historyExportId
+		, required string  exportId
 		, required boolean success
 		, required numeric timeTaken
 	) {
-		completeReportExportHistoryLog(
-			  historyExportId = arguments.historyReportId
+		completeExportHistoryLog(
+			  historyExportId = arguments.historyExportId
 			, success         = arguments.success
 			, timeTaken       = arguments.timeTaken
 		);
 
 		var runningTasks = _getRunningExports();
-		var reportRecord = getReportDetail( arguments.reportId );
+		var exportRecord = getExportDetail( arguments.exportId );
 
-		runningTasks.delete( reportRecord.running_thread ?: "", false );
+		runningTasks.delete( exportRecord.running_thread ?: "", false );
 
-		var updatedRows = $getPresideObject( "scheduled_report_export" ).updateData(
-			  id   = arguments.reportId
+		var updatedRows = $getPresideObject( "saved_export" ).updateData(
+			  id   = arguments.exportId
 			, data = {
 				  is_running           = false
 				, last_ran             = now()
-				, next_run             = getNextRunDate( reportRecord.schedule ?: "" )
+				, next_run             = ( ( exportRecord.schedule ?: "" ) eq "disabled" ) ? "" : getNextRunDate( exportRecord.schedule ?: "" )
 				, was_last_run_success = arguments.success
 				, last_run_time_taken  = arguments.timeTaken
 				, running_thread       = ""
@@ -234,23 +231,26 @@ component {
 		return updatedRows;
 	}
 
-	public string function createReportExportHistoryLog(
-		  required string reportId
+	public string function createExportHistoryLog(
+		  required string exportId
 		, required string threadId
 	) {
-		return $getPresideObject( "scheduled_report_export_history" ).insertData( data={
-			  scheduled_report = arguments.reportId
-			, thread_id        = arguments.threadId
-			, machine_id       = _getMachineId()
+		var exporter = getExportDetail( arguments.exportId ).exporter ?: "";
+
+		return $getPresideObject( "saved_export_history" ).insertData( data={
+			  saved_export = arguments.exportId
+			, exporter     = exporter
+			, thread_id    = arguments.threadId
+			, machine_id   = _getMachineId()
 		} );
 	}
 
-	public numeric function completeReportExportHistoryLog(
+	public numeric function completeExportHistoryLog(
 		  required string  historyExportId
 		, required boolean success
 		, required numeric timeTaken
 	) {
-		return $getPresideObject( "scheduled_report_export_history" ).updateData(
+		return $getPresideObject( "saved_export_history" ).updateData(
 			  id   = arguments.historyExportId
 			, data = {
 				  complete   = true
@@ -260,9 +260,9 @@ component {
 		);
 	}
 
-	public boolean function exportIsRunning( required string reportId ) {
+	public boolean function exportIsRunning( required string exportId ) {
 		transaction {
-			var markedAsRunning = $getPresideObject( "scheduled_report_export" ).dataExists( filter = { id=arguments.reportId, is_running=true } );
+			var markedAsRunning = $getPresideObject( "saved_export" ).dataExists( filter = { id=arguments.exportId, is_running=true } );
 
 			if ( markedAsRunning && !exportThreadIsRunning( arguments.taskKey ) ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
@@ -283,21 +283,21 @@ component {
 		}
 	}
 
-	public boolean function exportThreadIsRunning( required string reportId ) {
-		var report = $getPresideObject( "scheduled_report_export" ).selectData(
+	public boolean function exportThreadIsRunning( required string exportId ) {
+		var export = $getPresideObject( "saved_export" ).selectData(
 			  selectFields = [ "running_thread", "running_machine" ]
-			, id           = arguments.reportId
+			, id           = arguments.exportId
 		);
 
-		if ( !report.recordCount || !Len( Trim( report.running_thread ?: "" ) ) ) {
+		if ( !export.recordCount || !Len( Trim( export.running_thread ?: "" ) ) ) {
 			return false;
 		}
 
-		if ( report.running_machine != _getMachineId() ) {
+		if ( export.running_machine != _getMachineId() ) {
 			return true;
 		}
 
-		return _exportIsRunningOnLocalMachine( report );
+		return _exportIsRunningOnLocalMachine( export );
 	}
 
 // PRIVATE HELPERS

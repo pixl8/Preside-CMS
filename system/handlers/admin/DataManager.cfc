@@ -14,7 +14,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";
 	property name="applicationsService"              inject="applicationsService";
-
+	property name="loginService"                     inject="loginService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -1233,6 +1233,62 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, private        = true
 		);
+	}
+
+	public void function saveExportAction( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+
+		var objectName = prc.objectName ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
+
+		runEvent(
+			  event          = "admin.DataManager._saveExportAction"
+			, prePostExempt  = true
+			, private        = true
+		);
+	}
+
+	public void function savedExportDownload( event, rc, prc ) {
+		var recordId = rc.id ?: "";
+
+		if ( !isEmpty( recordId ) ) {
+			var savedReportDetail = presideObjectService.selectData(
+				  objectName   = "saved_export"
+				, id           = recordId
+				, selectFields = [
+					  "file_name"
+					, "object_name"
+					, "fields"
+					, "exporter"
+					, "filter"
+					, "saved_filter"
+					, "order_by"
+					, "search_query"
+				]
+			);
+
+			if ( savedReportDetail.recordcount ) {
+				rc.exporter          = savedReportDetail.exporter;
+				rc.object            = savedReportDetail.object_name;
+				rc.exportFields      = savedReportDetail.fields;
+				rc.fileName          = savedReportDetail.file_name;
+				rc.filterExpressions = savedReportDetail.filter;
+				rc.savedFilters      = savedReportDetail.saved_filter;
+				rc.orderBy           = savedReportDetail.order_by;
+				rc.searchQuery       = savedReportDetail.search_query;
+
+				runEvent(
+					  event          = "admin.DataManager._exportDataAction"
+					, prePostExempt  = true
+					, private        = true
+				);
+			}
+		} else {
+			event.notFound();
+		}
 	}
 
 // VIEWLETS
@@ -2840,6 +2896,52 @@ component extends="preside.system.base.AdminHandler" {
 			  linkTo      = "adhoctaskmanager.progress"
 			, queryString = "taskId=" & taskId
 		) );
+	}
+
+	private void function _saveExportAction(
+		  required any    event
+		, required struct rc
+		, required struct prc
+		,          string exporter          = ( rc.exporter          ?: 'CSV' )
+		,          string objectName        = ( rc.object            ?: '' )
+		,          string exportFields      = ( rc.exportFields      ?: '' )
+		,          string filename          = ( rc.filename          ?: '' )
+		,          string filterExpressions = ( rc.filterExpressions ?: '' )
+		,          string savedFilters      = ( rc.savedFilters      ?: '' )
+		,          string orderBy           = ( rc.orderBy           ?: '' )
+		,          string searchQuery       = ( rc.searchQuery       ?: '' )
+	) {
+		var newSavedExportId = "";
+		var data             =  {
+			  label        = arguments.filename
+			, file_name    = arguments.filename
+			, object_name  = arguments.objectName
+			, fields       = arguments.exportFields
+			, exporter     = arguments.exporter
+			, order_by     = arguments.orderBy
+			, search_query = arguments.searchQuery
+			, schedule     = "disabled"
+			, created_by   = loginService.getLoggedInUserId()
+		};
+
+		if ( isFeatureEnabled( "rulesEngine" ) ) {
+			data.filter       = arguments.filterExpressions;
+			data.saved_filter = arguments.savedFilters;
+		}
+
+		try {
+			newSavedExportId = presideObjectService.insertData( objectName="saved_export", data=data );
+		} catch ( any e ) {
+			logError( e );
+		}
+
+		if( !isEmpty( newSavedExportId ) ) {
+			messageBox.info( translateResource( uri="cms:datamanager.saveexport.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#arguments.objectName#" ) );
+		} else {
+			messageBox.error( translateResource( uri="cms:datamanager.saveexport.error" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=arguments.objectName, operation="listing" ) );
+		}
 	}
 
 	private string function _oneToManyListingActions( event, rc, prc, args={} ) {
