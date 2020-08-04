@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
+	property name="scheduledExportService"           inject="scheduledExportService";
 	property name="formsService"                     inject="formsService";
 	property name="siteService"                      inject="siteService";
 	property name="versioningService"                inject="versioningService";
@@ -1428,6 +1429,15 @@ component extends="preside.system.base.AdminHandler" {
 		var objectTitle = prc.objectTitle ?: "";
 		var actions     = [];
 
+		if ( dataManagerService.isDataExportEnabled( objectName ) and scheduledExportService.objectHasSavedExport( objectName ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#objectName#" )
+				, btnClass  = "btn-info"
+				, iconClass = "fa-download"
+				, globalKey = "d"
+				, title     = translateResource( uri="cms:savedexport" )
+			} );
+		}
 		if ( IsTrue( prc.canManagePerms ?: "" ) ) {
 			actions.append( {
 				  link      = event.buildAdminLink( objectName=objectName, operation="manageperms" )

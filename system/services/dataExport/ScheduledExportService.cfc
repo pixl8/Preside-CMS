@@ -74,6 +74,10 @@ component {
 		return $getPresideObject( "saved_export_history" ).selectData( filter={ saved_export=arguments.exportId } );
 	}
 
+	public boolean function objectHasSavedExport( required string objectName ) {
+		return $getPresideObject( "saved_export" ).dataExists( filter={ object_name=arguments.objectName } );
+	}
+
 	public struct function getHistoryExportDetail( required string historyExportId ) {
 		var detail = $getPresideObject( "saved_export_history" ).selectData( id=arguments.historyExportId );
 
