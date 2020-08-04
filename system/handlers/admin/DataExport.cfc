@@ -47,6 +47,7 @@ component extends="preside.system.base.adminHandler" {
 		var newSavedExportId = "";
 		var data             =  {
 			  label        = formData.label        ?: ""
+			, description  = formData.description  ?: ""
 			, file_name    = formData.filename     ?: ""
 			, object_name  = formData.object       ?: ""
 			, fields       = formData.exportFields ?: ""
