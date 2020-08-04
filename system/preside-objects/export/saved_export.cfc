@@ -2,13 +2,13 @@
  * @datamanagerEnabled                 true
  * @dataManagerExportEnabled           false
  * @datamanagerDisallowedOperations    add,clone,batchedit,viewversions
- * @datamanagerGridFields              label,schedule,last_ran,next_run,created_by
+ * @datamanagerGridFields              label,object_name,schedule,last_ran,next_run,created_by
  * @feature                            dataExport
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="file_name"   required="true";
 	property name="description"                                              maxlength=2000                                    autofilter=false;
-	property name="object_name" required="true"               control="none" adminRenderer="objectName";
+	property name="object_name" required="true"               control="none" adminRenderer="objectName" renderer="objectName";
 	property name="fields"      required="true"               control="none" maxlength=5000                                    autofilter=false;
 	property name="exporter"    required="true" default="CSV" control="dataExporterPicker"                                     autofilter=false;
 	property name="filter"                                    control="none" type="string" dbtype="text" feature="rulesEngine" autofilter=false;
