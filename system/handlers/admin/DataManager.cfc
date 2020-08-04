@@ -1258,6 +1258,7 @@ component extends="preside.system.base.AdminHandler" {
 			, exportFields      = rc.exportFields      ?: ""
 			, fieldnames        = rc.fieldnames        ?: ""
 			, filename          = rc.filename          ?: ""
+			, description       = rc.description       ?: ""
 			, filterExpressions = rc.filterExpressions ?: ""
 			, object            = rc.object            ?: ""
 			, orderby           = rc.orderby           ?: ""
