@@ -32,7 +32,7 @@
 			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
 			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
 			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
-			  , allowSaveReport     = tableSettings.allowSaveReport || cfrequest.allowSaveReport
+			  , allowSaveExport     = tableSettings.allowSaveExport || cfrequest.allowSaveExport
 			  , noRecordMessage     = tableSettings.noRecordMessage || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , compact             = tableSettings.compact         || cfrequest.compact
