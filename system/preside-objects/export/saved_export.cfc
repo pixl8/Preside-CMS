@@ -2,7 +2,7 @@
  * @datamanagerEnabled                 true
  * @dataManagerExportEnabled           false
  * @datamanagerDisallowedOperations    add,clone,batchedit,viewversions
- * @datamanagerGridFields              label,object_name,schedule,last_ran,next_run,created_by
+ * @datamanagerGridFields              label,object_name,schedule,created_by
  * @feature                            dataExport
  */
 component extends="preside.system.base.SystemPresideObject" {
