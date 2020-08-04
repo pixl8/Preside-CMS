@@ -1135,6 +1135,17 @@ component displayName="AssetManager Service" {
 		}
 	}
 
+	/**
+	 * Returns the width and height of the specified asset, optionally for a particular derivative.
+	 * If the derivative has not yet been generated, the dimensions are calculated from the derivative config,
+	 * but _should_ be the same as when the derivative is created,
+	 *
+	 * @autodoc
+	 * @id.hint                  The asset ID
+	 * @deriuvativeName.hint     Derivative for which to get the dimensions
+	 * @versionId.hint           Specific version of the asset
+	 *
+	 */
 	public struct function getAssetDimensions( required string id, string derivativeName="", string versionId="" ) {
 		var version = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.id );
 		var asset   = "";
