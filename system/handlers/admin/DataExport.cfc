@@ -44,7 +44,7 @@ component extends="preside.system.base.adminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkto="dataExport.saveExport" ), persistStruct=formData );
 		}
 
-		var newSavedReportId = "";
+		var newSavedExportId = "";
 		var data             =  {
 			  label        = formData.label        ?: ""
 			, file_name    = formData.filename     ?: ""
@@ -64,7 +64,7 @@ component extends="preside.system.base.adminHandler" {
 		}
 
 		try {
-			newSavedReportId = presideObjectService.insertData(
+			newSavedExportId = presideObjectService.insertData(
 				  objectName              = "saved_export"
 				, data                    = data
 				, insertManyToManyRecords = true
@@ -73,7 +73,7 @@ component extends="preside.system.base.adminHandler" {
 			logError( e );
 		}
 
-		if( !isEmpty( newSavedReportId ) ) {
+		if( !isEmpty( newSavedExportId ) ) {
 			messageBox.info( translateResource( uri="cms:datamanager.saveexport.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#formData.object#" ) );
 		} else {
