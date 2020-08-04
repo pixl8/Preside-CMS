@@ -5,11 +5,9 @@
 </cfscript>
 
 <cfoutput>
-	<div class="row no-padding">
-		<strong>#label#</strong>
-
-		<cfif !isEmptyString( description )>
-			<p>#description#</p>
-		</cfif>
-	</div>
+	<strong>#label#</strong>
+	<cfif !isEmptyString( description )>
+		<br>
+		#description#
+	</cfif>
 </cfoutput>
