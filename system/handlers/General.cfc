@@ -9,6 +9,7 @@ component {
 	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
 	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
 	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
+	property name="presideSessionReapHeartbeat"   inject="presideSessionReapHeartbeat";
 	property name="scheduledExportHeartBeat"      inject="scheduledExportHeartBeat";
 	property name="healthcheckService"            inject="healthcheckService";
 	property name="permissionService"             inject="permissionService";
