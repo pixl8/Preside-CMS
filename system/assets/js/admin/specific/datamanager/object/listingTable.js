@@ -392,7 +392,7 @@
 							, className : "btn-default"
 						},
 						ok : {
-							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:export.btn" )
+							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:downloadnow.btn" )
 							, className : "btn-primary ok-button"
 							, callback  : function(){ return processExport(); }
 						}
@@ -400,8 +400,8 @@
 				}
 				if ( allowSaveExport ) {
 					modalOptions.buttons.save = {
-						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:save.btn" )
-						, className : "btn-success"
+						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:saveforlater.btn" )
+						, className : "btn-primary"
 						, callback  : function(){ return saveExport(); }
 					};
 				}

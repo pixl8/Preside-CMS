@@ -207,12 +207,12 @@ component {
 		return translateResource( uri="auditlog.emailresend:#action#.message", data=[ userLink, subject, recipient ] );
 	}
 
-	private string function savedexport( event, rc, prc, args={} ) {
+	private string function dataexport( event, rc, prc, args={} ) {
 		var action     = args.action            ?: "";
 		var known_as   = args.known_as          ?: "";
 		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
 		var file       = args.detail.file       ?: "";
 
-		return translateResource( uri="auditlog.savedexport:#action#.message", data=[ userLink, file ] );
+		return translateResource( uri="auditlog.dataexport:#action#.message", data=[ userLink, file ] );
 	}
 }

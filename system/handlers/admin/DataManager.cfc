@@ -1244,11 +1244,25 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
-		runEvent(
-			  event          = "admin.DataManager._saveExportAction"
-			, prePostExempt  = true
-			, private        = true
-		);
+		var formData = {
+			  exporter          = rc.exporter          ?: ""
+			, exportFields      = rc.exportFields      ?: ""
+			, fieldnames        = rc.fieldnames        ?: ""
+			, filename          = rc.filename          ?: ""
+			, filterExpressions = rc.filterExpressions ?: ""
+			, object            = rc.object            ?: ""
+			, orderby           = rc.orderby           ?: ""
+			, savedFilters      = rc.savedFilters      ?: ""
+			, searchQuery       = rc.searchQuery       ?: ""
+		};
+
+
+		if ( isEmpty( formData.exporter ) or isEmpty( formData.object ) ) {
+			messageBox.error( translateResource( uri="cms:datamanager.saveexport.error" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkto="dataExport.saveExport" ), persistStruct=formData );
 	}
 
 	public void function savedExportDownload( event, rc, prc ) {
@@ -2892,56 +2906,17 @@ component extends="preside.system.base.AdminHandler" {
 			, returnUrl         = arguments.returnUrl
 		);
 
+		event.audit(
+			  action = "export_data"
+			, type   = "dataexport"
+			, userId = loginService.getLoggedInUserId()
+			, detail = { file=fullFileName ?: "" }
+		);
+
 		setNextEvent( url=event.buildAdminLink(
 			  linkTo      = "adhoctaskmanager.progress"
 			, queryString = "taskId=" & taskId
 		) );
-	}
-
-	private void function _saveExportAction(
-		  required any    event
-		, required struct rc
-		, required struct prc
-		,          string exporter          = ( rc.exporter          ?: 'CSV' )
-		,          string objectName        = ( rc.object            ?: '' )
-		,          string exportFields      = ( rc.exportFields      ?: '' )
-		,          string filename          = ( rc.filename          ?: '' )
-		,          string filterExpressions = ( rc.filterExpressions ?: '' )
-		,          string savedFilters      = ( rc.savedFilters      ?: '' )
-		,          string orderBy           = ( rc.orderBy           ?: '' )
-		,          string searchQuery       = ( rc.searchQuery       ?: '' )
-	) {
-		var newSavedExportId = "";
-		var data             =  {
-			  label        = arguments.filename
-			, file_name    = arguments.filename
-			, object_name  = arguments.objectName
-			, fields       = arguments.exportFields
-			, exporter     = arguments.exporter
-			, order_by     = arguments.orderBy
-			, search_query = arguments.searchQuery
-			, schedule     = "disabled"
-			, created_by   = loginService.getLoggedInUserId()
-		};
-
-		if ( isFeatureEnabled( "rulesEngine" ) ) {
-			data.filter       = arguments.filterExpressions;
-			data.saved_filter = arguments.savedFilters;
-		}
-
-		try {
-			newSavedExportId = presideObjectService.insertData( objectName="saved_export", data=data );
-		} catch ( any e ) {
-			logError( e );
-		}
-
-		if( !isEmpty( newSavedExportId ) ) {
-			messageBox.info( translateResource( uri="cms:datamanager.saveexport.confirmation" ) );
-			setNextEvent( url=event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#arguments.objectName#" ) );
-		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.saveexport.error" ) );
-			setNextEvent( url=event.buildAdminLink( objectName=arguments.objectName, operation="listing" ) );
-		}
 	}
 
 	private string function _oneToManyListingActions( event, rc, prc, args={} ) {

@@ -18,7 +18,7 @@ component extends="coldbox.system.Interceptor" {
 			auditService.log(
 				  userId = loginService.getLoggedInUserId()
 				, action = "download_exported_file"
-				, type   = "savedexport"
+				, type   = "dataexport"
 				, detail = { file=filename }
 			);
 		}
