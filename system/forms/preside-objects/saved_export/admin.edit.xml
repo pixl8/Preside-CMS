@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="cms:dataexport.config.form.">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="saved_export.label"       sortorder="10" />
+			<field binding="saved_export.file_name"   sortorder="20" />
+			<field binding="saved_export.exporter"    sortorder="30" />
+			<field binding="saved_export.description" sortorder="40" maxlength="2000" />
+		</fieldset>
+		<fieldset id="schedule" sortorder="20">
+			<field binding="saved_export.recipients" sortorder="50" />
+			<field binding="saved_export.schedule"   sortorder="60" defaultValue="disabled" />
+		</fieldset>
+	</tab>
+</form>
