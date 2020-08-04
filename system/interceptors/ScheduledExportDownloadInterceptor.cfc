@@ -1,5 +1,6 @@
 component extends="coldbox.system.Interceptor" {
 	property name="loginService" inject="provider:LoginService";
+	property name="auditService" inject="provider:AuditService";
 
 	public void function configure() {}
 
@@ -9,10 +10,17 @@ component extends="coldbox.system.Interceptor" {
 		var storagePath     = rc.storagePath     ?: "";
 		var filename        = rc.filename        ?: ListLast( storagePath, "/" );
 
-		if ( storageProvider == "ScheduledReportStorageProvider" ) {
+		if ( storageProvider == "ScheduledExportStorageProvider" ) {
 			if ( !loginService.isLoggedIn() ) {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
+
+			auditService.log(
+				  userId = loginService.getLoggedInUserId()
+				, action = "download_exported_file"
+				, type   = "dataexport"
+				, detail = { file=filename }
+			);
 		}
 	}
 }

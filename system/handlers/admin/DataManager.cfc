@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
+	property name="scheduledExportService"           inject="scheduledExportService";
 	property name="formsService"                     inject="formsService";
 	property name="siteService"                      inject="siteService";
 	property name="versioningService"                inject="versioningService";
@@ -14,7 +15,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";
 	property name="applicationsService"              inject="applicationsService";
-
+	property name="loginService"                     inject="loginService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -1242,7 +1243,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function saveReportAction( event, rc, prc ) {
+	public void function saveExportAction( event, rc, prc ) {
 		if ( !isFeatureEnabled( "dataexport" ) ) {
 			event.notFound();
 		}
@@ -1251,19 +1252,33 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
-		runEvent(
-			  event          = "admin.DataManager._saveReportAction"
-			, prePostExempt  = true
-			, private        = true
-		);
+		var formData = {
+			  exporter          = rc.exporter          ?: ""
+			, exportFields      = rc.exportFields      ?: ""
+			, fieldnames        = rc.fieldnames        ?: ""
+			, filename          = rc.filename          ?: ""
+			, filterExpressions = rc.filterExpressions ?: ""
+			, object            = rc.object            ?: ""
+			, orderby           = rc.orderby           ?: ""
+			, savedFilters      = rc.savedFilters      ?: ""
+			, searchQuery       = rc.searchQuery       ?: ""
+		};
+
+
+		if ( isEmpty( formData.exporter ) or isEmpty( formData.object ) ) {
+			messageBox.error( translateResource( uri="cms:datamanager.saveexport.error" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkto="dataExport.saveExport" ), persistStruct=formData );
 	}
 
-	public void function savedReportExport( event, rc, prc ) {
+	public void function savedExportDownload( event, rc, prc ) {
 		var recordId = rc.id ?: "";
 
 		if ( !isEmpty( recordId ) ) {
-			var savedReportDetail = presideObjectService.selectData(
-				  objectName   = "saved_report"
+			var savedExportDetail = presideObjectService.selectData(
+				  objectName   = "saved_export"
 				, id           = recordId
 				, selectFields = [
 					  "file_name"
@@ -1273,17 +1288,19 @@ component extends="preside.system.base.AdminHandler" {
 					, "filter"
 					, "saved_filter"
 					, "order_by"
+					, "search_query"
 				]
 			);
 
-			if ( savedReportDetail.recordcount ) {
-				rc.exporter          = savedReportDetail.exporter;
-				rc.object            = savedReportDetail.object_name;
-				rc.exportFields      = savedReportDetail.fields;
-				rc.fileName          = savedReportDetail.file_name;
-				rc.filterExpressions = savedReportDetail.filter;
-				rc.savedFilters      = savedReportDetail.saved_filter;
-				rc.orderBy           = savedReportDetail.order_by;
+			if ( savedExportDetail.recordcount ) {
+				rc.exporter          = savedExportDetail.exporter;
+				rc.object            = savedExportDetail.object_name;
+				rc.exportFields      = savedExportDetail.fields;
+				rc.fileName          = savedExportDetail.file_name;
+				rc.filterExpressions = savedExportDetail.filter;
+				rc.savedFilters      = savedExportDetail.saved_filter;
+				rc.orderBy           = savedExportDetail.order_by;
+				rc.searchQuery       = savedExportDetail.search_query;
 
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
@@ -1421,6 +1438,15 @@ component extends="preside.system.base.AdminHandler" {
 		var objectTitle = prc.objectTitle ?: "";
 		var actions     = [];
 
+		if ( dataManagerService.isDataExportEnabled( objectName ) and scheduledExportService.objectHasSavedExport( objectName ) ) {
+			actions.append( {
+				  link      = event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#objectName#" )
+				, btnClass  = "btn-info"
+				, iconClass = "fa-download"
+				, globalKey = "d"
+				, title     = translateResource( uri="cms:savedexport" )
+			} );
+		}
 		if ( IsTrue( prc.canManagePerms ?: "" ) ) {
 			actions.append( {
 				  link      = event.buildAdminLink( objectName=objectName, operation="manageperms" )
@@ -2939,6 +2965,13 @@ component extends="preside.system.base.AdminHandler" {
 			, title             = "cms:dataexport.task.title"
 			, resultUrl         = event.buildAdminLink( linkto="datahelpers.downloadExport", querystring="taskId={taskId}" )
 			, returnUrl         = arguments.returnUrl
+		);
+
+		event.audit(
+			  action = "export_data"
+			, type   = "dataexport"
+			, userId = loginService.getLoggedInUserId()
+			, detail = { file=fullFileName ?: "" }
 		);
 
 		setNextEvent( url=event.buildAdminLink(

@@ -4,12 +4,13 @@
  * @versioned                          false
  * @dataManagerExportEnabled           false
  * @datamanagerDisallowedOperations    read,add,edit,clone
- * @datamanagerGridFields              datecreated,complete,success,time_taken
+ * @datamanagerGridFields              datecreated,exporter,complete,success,time_taken
  * @datamanagerDefaultSortOrder        datecreated desc
  * @feature                            dataExport
  */
 component extends="preside.system.base.SystemPresideObject" {
-	property name="scheduled_report" relationship="many-to-one" relatedto="scheduled_report_export" required="true" indexes="exporthistory|1,reportid" autofilter=false batchEditable=false;
+	property name="saved_export" relationship="many-to-one" relatedto="saved_export" required="true" indexes="exporthistory|1,exportid" autofilter=false batchEditable=false;
+	property name="exporter"     default="CSV"                                                                                          autofilter=false batchEditable=false;
 
 	property name="thread_id"                                  maxlength=100 required=true indexes="thread"                                            autofilter=false batchEditable=false;
 	property name="machine_id"                                 maxlength=100 required=true indexes="machine"                                           autofilter=false batchEditable=false;

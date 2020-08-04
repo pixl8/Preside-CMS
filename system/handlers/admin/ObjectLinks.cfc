@@ -261,16 +261,16 @@ component {
 		return event.buildAdminLink( linkTo = "datamanager.exportDataAction", queryString=args.queryString ?: "" );
 	}
 
-	private string function buildSaveReportActionLink( event, rc, prc, args={} ) {
-		return event.buildAdminLink( linkTo = "datamanager.saveReportAction", queryString=args.queryString ?: "" );
+	private string function buildSaveExportActionLink( event, rc, prc, args={} ) {
+		return event.buildAdminLink( linkTo = "datamanager.saveExportAction", queryString=args.queryString ?: "" );
 	}
 
-	private string function buildSavedReportExportLink( event, rc, prc, args={} ) {
+	private string function buildSavedExportDownloadLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 		var recordId   = args.recordId   ?: "";
 
 		return event.buildAdminLink(
-			  linkTo      = "datamanager.savedReportExport"
+			  linkTo      = "datamanager.savedExportDownload"
 			, queryString = _queryString( "id=#recordId#", args )
 		);
 	}

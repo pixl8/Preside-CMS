@@ -1,24 +1,23 @@
 component {
-	property name="applicationReloadService"       inject="applicationReloadService";
-	property name="databaseMigrationService"       inject="databaseMigrationService";
-	property name="applicationsService"            inject="applicationsService";
-	property name="websiteLoginService"            inject="websiteLoginService";
-	property name="adminLoginService"              inject="loginService";
-	property name="antiSamySettings"               inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"                inject="delayedInjector:antiSamyService";
-	property name="presideTaskmanagerHeartBeat"    inject="presideTaskmanagerHeartBeat";
-	property name="cacheboxReapHeartBeat"          inject="cacheboxReapHeartBeat";
-	property name="presideAdhocTaskHeartBeat"      inject="presideAdhocTaskHeartBeat";
-	property name="scheduledReportExportHeartBeat" inject="scheduledReportExportHeartBeat";
-	property name="presideSessionReapHeartbeat"    inject="presideSessionReapHeartbeat";
-	property name="healthcheckService"             inject="healthcheckService";
-	property name="permissionService"              inject="permissionService";
-	property name="emailQueueConcurrency"          inject="coldbox:setting:email.queueConcurrency";
-	property name="assetQueueConcurrency"          inject="coldbox:setting:assetManager.queue.concurrency";
-	property name="presideObjectService"           inject="delayedInjector:presideObjectService";
-	property name="presideFieldRuleGenerator"      inject="delayedInjector:presideFieldRuleGenerator";
-	property name="configuredValidationProviders"  inject="coldbox:setting:validationProviders";
-	property name="validationEngine"               inject="validationEngine";
+	property name="applicationReloadService"      inject="applicationReloadService";
+	property name="databaseMigrationService"      inject="databaseMigrationService";
+	property name="applicationsService"           inject="applicationsService";
+	property name="websiteLoginService"           inject="websiteLoginService";
+	property name="adminLoginService"             inject="loginService";
+	property name="antiSamySettings"              inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"               inject="delayedInjector:antiSamyService";
+	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
+	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
+	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
+	property name="scheduledExportHeartBeat"      inject="scheduledExportHeartBeat";
+	property name="healthcheckService"            inject="healthcheckService";
+	property name="permissionService"             inject="permissionService";
+	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
+	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
+	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
+	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
+	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
+	property name="validationEngine"              inject="validationEngine";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -244,8 +243,8 @@ component {
 			}
 		}
 
-		if ( isFeatureEnabled( "dataExport" ) && isFeatureEnabled( "scheduledReportExportHeartBeat" ) ) {
-			ScheduledReportExportHeartBeat.start();
+		if ( isFeatureEnabled( "dataExport" ) && isFeatureEnabled( "scheduledExportHeartBeat" ) ) {
+			scheduledExportHeartBeat.start();
 		}
 
 		cacheboxReapHeartBeat.start();

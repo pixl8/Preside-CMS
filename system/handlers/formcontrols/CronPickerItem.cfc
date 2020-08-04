@@ -25,6 +25,9 @@ component {
 		var outputValues = "";
 		var outputLabels = "";
 
+		outputValues = listAppend( outputValues, "disabled" );
+		outputLabels = listAppend( outputLabels, translateResource( uri="formcontrols.cronPickerItem:commonsettings.disabled.label" ) );
+
 		outputValues = listAppend( outputValues, "0 * * * * *" );
 		outputLabels = listAppend( outputLabels, translateResource( uri="formcontrols.cronPickerItem:commonsettings.onceperminute.label" ) );
 

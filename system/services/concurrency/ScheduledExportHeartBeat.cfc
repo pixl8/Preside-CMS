@@ -7,23 +7,23 @@ component extends="AbstractHeartBeat" {
 	/**
 	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
 	 * @hostname.inject                    coldbox:setting:heartbeats.taskmanager.hostname
-	 * @scheduledReportService.inject      ScheduledReportService
+	 * @scheduledExportService.inject      ScheduledExportService
 	 *
 	 */
 	public function init(
 		  required any    scheduledThreadpoolExecutor
 		, required string hostname
-		, required any    scheduledReportService
+		, required any    scheduledExportService
 	){
 		super.init(
-			  threadName                  = "Preside Heartbeat: Scheduled Report Export"
+			  threadName                  = "Preside Heartbeat: Scheduled Saved Export"
 			, intervalInMs                = 1000
 			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
-			, feature                     = "scheduledReportExportHeartBeat"
+			, feature                     = "scheduledExportHeartBeat"
 			, hostname                    = arguments.hostname
 		);
 
-		_setScheduledReportService( arguments.scheduledReportService );
+		_setScheduledExportService( arguments.scheduledExportService );
 
 		return this;
 	}
@@ -32,7 +32,7 @@ component extends="AbstractHeartBeat" {
 	public void function $run() {
 		if ( $isFeatureEnabled( "dataExport" ) ) {
 			try {
-				_getScheduledReportService().sendScheduledReports();
+				_getScheduledExportService().sendScheduledExports();
 			} catch( any e ) {
 				$raiseError( e );
 			}
@@ -40,10 +40,10 @@ component extends="AbstractHeartBeat" {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getScheduledReportService() {
-		return _scheduledReportService;
+	private any function _getScheduledExportService() {
+		return _scheduledExportService;
 	}
-	private void function _setScheduledReportService( required any scheduledReportService ) {
-		_scheduledReportService = arguments.scheduledReportService;
+	private void function _setScheduledExportService( required any scheduledExportService ) {
+		_scheduledExportService = arguments.scheduledExportService;
 	}
 }
