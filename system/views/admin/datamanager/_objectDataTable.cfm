@@ -47,8 +47,10 @@
 		favourites = renderViewlet( event="admin.rulesEngine.dataGridFavourites", args={ objectName=args.objectName } );
 	}
 
-	allowDataExport = args.allowDataExport && isFeatureEnabled( "dataexport" );
-	allowSaveExport = allowDataExport && isFeatureEnabled( "dataexport" );
+	allowDataExport  = args.allowDataExport && isFeatureEnabled( "dataexport" );
+	allowSaveExport  = allowDataExport && isFeatureEnabled( "dataexport" );
+	savedExportCount = Val( args.savedExportCount ?: "" );
+	savedExportsLink = args.savedExportsLink ?: "";
 
 	if ( args.footerEnabled ) {
 		colCount = ArrayLen( args.gridFields );
@@ -151,6 +153,13 @@
 		<cfif allowDataExport>
 			<div class="object-listing-table-export hide">
 				<div class="pull-left">
+					<cfif savedExportCount>
+						<a href="#savedExportsLink#">
+							<i class="fa fa-fw fa-save"></i>
+							#translateResource( uri="cms:savedexports.for.object.link", data=[ NumberFormat( savedExportCount ) ] )#
+						</a>
+					</cfif>
+					&nbsp;
 					<a class="btn btn-info btn-sm object-listing-data-export-button" href="#args.dataExportConfigUrl#">
 						<i class="fa fa-fw fa-download"></i>
 						#translateResource( "cms:datatable.export.btn" )#

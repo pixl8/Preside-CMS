@@ -111,18 +111,19 @@ component extends="preside.system.base.AdminHandler" {
 					, args           = args
 				);
 
-				var allowDataExport = false;
-
-				if ( dataManagerService.isDataExportEnabled( objectName ) ) {
-					var permissionKey = dataManagerService.getDataExportPermissionKey( objectName );
-					allowDataExport   = _checkPermission( argumentCollection=arguments, object=objectName, key=permissionKey, throwOnError=false );
-				}
-
 				args.append( {
 					  useMultiActions = args.multiActions.len()
 					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
-					, allowDataExport = allowDataExport
 				} );
+			}
+
+			var dataExportPermKey = dataManagerService.getDataExportPermissionKey( objectName );
+			args.allowDataExport = IsTrue( args.allowDataExport ?: true ) && dataManagerService.isDataExportEnabled( objectName ) && _checkPermission( argumentCollection=arguments, object=objectName, key=dataExportPermKey, throwOnError=false );
+			if ( args.allowDataExport ) {
+				args.savedExportCount = dataExportService.getSavedExportCountForObject( objectName );
+				if ( args.savedExportCount ) {
+					args.savedExportsLink = event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#args.objectName#" );
+				}
 			}
 
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
@@ -1438,15 +1439,6 @@ component extends="preside.system.base.AdminHandler" {
 		var objectTitle = prc.objectTitle ?: "";
 		var actions     = [];
 
-		if ( dataManagerService.isDataExportEnabled( objectName ) and scheduledExportService.objectHasSavedExport( objectName ) ) {
-			actions.append( {
-				  link      = event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#objectName#" )
-				, btnClass  = "btn-info"
-				, iconClass = "fa-download"
-				, globalKey = "d"
-				, title     = translateResource( uri="cms:savedexport" )
-			} );
-		}
 		if ( IsTrue( prc.canManagePerms ?: "" ) ) {
 			actions.append( {
 				  link      = event.buildAdminLink( objectName=objectName, operation="manageperms" )
