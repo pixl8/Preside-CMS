@@ -402,7 +402,7 @@
 				if ( allowSaveExport ) {
 					modalOptions.buttons.save = {
 						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:saveforlater.btn" )
-						, className : "btn-primary"
+						, className : "btn-success"
 						, callback  : function(){ return saveExport(); }
 					};
 				}
