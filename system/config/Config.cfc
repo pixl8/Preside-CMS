@@ -439,6 +439,7 @@ component {
 			, queryCachePerObject      = { enabled=false, siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls     = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls     = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
+			, presideSessionManagement = { enabled=_usePresideSessionManagement(), siteTemplates=[ "*" ] }
 			, "devtools.reload"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
