@@ -6,61 +6,55 @@
 </cfscript>
 
 <cfoutput>
-	<div class="row">
-		<div class="col-md-12">
-			<cfif !isEmpty( record.description ?: "" )>
-				<p>#record.description#</p>
-			</cfif>
+	<cfif !isEmpty( record.description ?: "" )>
+		<p>#record.description#</p>
+	</cfif>
 
-			<cfif !isEmpty( exportSchedule )>
-				<h4>#translateResource( uri=objI18nBase & "recordview.exportschedule.title", defaultValue="" )#</h4>
-				<p>#( translateResource( uri=objI18nBase & "recordview.exportschedule.text", defaultValue="", data=[ exportSchedule.readable ?: "" ] ) )#</p>
-			</cfif>
-		</div>
-	</div>
-
-	<div class="row">
+	<dl class="dl-horizontal">
+		<cfif !isEmpty( exportSchedule )>
+			<dt>#translateResource( uri=objI18nBase & "recordview.exportschedule.title", defaultValue="" )#</dt>
+			<dd>#( translateResource( uri=objI18nBase & "recordview.exportschedule.text", defaultValue="", data=[ exportSchedule.readable ?: "" ] ) )#</dd>
+		</cfif>
 		<cfif !isEmpty( record.saved_filter ?: "" )>
-			<div class="col-md-6">
-				<h4>#translateResource( uri=objI18nBase & "recordview.exportFilter.title", defaultValue="" )#</h4>
-				<div class="well">
-					<p class="no-margin-bottom">
-						<cfloop list="#record.saved_filter#" item="filter" index="curIndex">
-							#renderLabel( "rules_engine_condition", filter )##( curIndex neq listLen( record.saved_filter ) ? ", " : "" )#
-						</cfloop>
-					</p>
-				</div>
-			</div>
+			<dt>#translateResource( uri=objI18nBase & "recordview.exportFilter.title", defaultValue="" )#</dt>
+			<dd class="no-margin-bottom">
+				<cfloop list="#record.saved_filter#" item="filter" index="curIndex">
+					#renderLabel( "rules_engine_condition", filter )##( curIndex neq listLen( record.saved_filter ) ? ", " : "" )#
+				</cfloop>
+			</dd>
 		</cfif>
-
 		<cfif !isEmpty( record.fields ?: "" ) and !isEmpty( record.object_name ?: "" )>
-			<div class="col-md-6">
-				<h4>#translateResource( uri=objI18nBase & "recordview.exportField.title", defaultValue="" )#</h4>
-				<div class="well">
-					<p class="no-margin-bottom">
-						<cfloop list="#record.fields#" item="field" index="fieldIndex">
-							#translatePropertyName( objectName=record.object_name, propertyName=field )##( fieldIndex neq listLen( record.fields ) ? ", " : "" )#
-						</cfloop>
-					</p>
-				</div>
-			</div>
+			<dt>#translateResource( uri=objI18nBase & "recordview.exportField.title", defaultValue="" )#</dt>
+			<dd>
+				<cfloop list="#record.fields#" item="field" index="fieldIndex">
+					#translatePropertyName( objectName=record.object_name, propertyName=field )##( fieldIndex neq listLen( record.fields ) ? ", " : "" )#
+				</cfloop>
+			</dd>
 		</cfif>
-	</div>
+	</dl>
 
-	<div class="row">
-		<div class="col-md-12">
-			<h4 class="block">#translateResource( uri=objI18nBase & "recordview.exportHistory.title", defaultValue="" )#</h4>
+
+	<div class="tabbable">
+		<ul class="nav nav-tabs" role="tablist">
+			<li role="presentation" class="active">
+				<a data-toggle="tab" href="##tab-history">
+					<i class="fa fa-fw fa-clock blue"></i>
+					#translateResource( uri=objI18nBase & "recordview.exportHistory.title", defaultValue="" )#
+				</a>
+			</li>
+		</ul>
+		<div class="tab-content">
+			<div id="tab-history" class="tab-pane active">
+				<cfif isTrue( hasHistory )>
+					#objectDataTable( objectName="saved_export_history", args={
+						  allowSearch       = false
+						, allowFilter       = false
+						, defaultPageLength = 5
+					} )#
+				<cfelse>
+					<p>#translateResource( uri=objI18nBase & "recordview.noExportHistory.message", defaultValue="" )#</p>
+				</cfif>
+			</div>
 		</div>
-		<div class="col-md-12">
-			<cfif isTrue( hasHistory )>
-				#objectDataTable( objectName="saved_export_history", args={
-					  allowSearch       = false
-					, allowFilter       = false
-					, defaultPageLength = 5
-				} )#
-			<cfelse>
-				<p>#translateResource( uri=objI18nBase & "recordview.noExportHistory.message", defaultValue="" )#</p>
-			</cfif>
-		</div>
-	</div>
+	</ul>
 </cfoutput>
