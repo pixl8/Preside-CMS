@@ -9,7 +9,7 @@
  * @feature                            dataExport
  */
 component extends="preside.system.base.SystemPresideObject" {
-	property name="saved_export" relationship="many-to-one" relatedto="saved_export" required="true" indexes="exporthistory|1,reportid" autofilter=false batchEditable=false;
+	property name="saved_export" relationship="many-to-one" relatedto="saved_export" required="true" indexes="exporthistory|1,exportid" autofilter=false batchEditable=false;
 	property name="exporter"     default="CSV"                                                                                          autofilter=false batchEditable=false;
 
 	property name="thread_id"                                  maxlength=100 required=true indexes="thread"                                            autofilter=false batchEditable=false;

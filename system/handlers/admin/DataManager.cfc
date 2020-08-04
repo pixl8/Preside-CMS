@@ -1255,7 +1255,7 @@ component extends="preside.system.base.AdminHandler" {
 		var recordId = rc.id ?: "";
 
 		if ( !isEmpty( recordId ) ) {
-			var savedReportDetail = presideObjectService.selectData(
+			var savedExportDetail = presideObjectService.selectData(
 				  objectName   = "saved_export"
 				, id           = recordId
 				, selectFields = [
@@ -1270,15 +1270,15 @@ component extends="preside.system.base.AdminHandler" {
 				]
 			);
 
-			if ( savedReportDetail.recordcount ) {
-				rc.exporter          = savedReportDetail.exporter;
-				rc.object            = savedReportDetail.object_name;
-				rc.exportFields      = savedReportDetail.fields;
-				rc.fileName          = savedReportDetail.file_name;
-				rc.filterExpressions = savedReportDetail.filter;
-				rc.savedFilters      = savedReportDetail.saved_filter;
-				rc.orderBy           = savedReportDetail.order_by;
-				rc.searchQuery       = savedReportDetail.search_query;
+			if ( savedExportDetail.recordcount ) {
+				rc.exporter          = savedExportDetail.exporter;
+				rc.object            = savedExportDetail.object_name;
+				rc.exportFields      = savedExportDetail.fields;
+				rc.fileName          = savedExportDetail.file_name;
+				rc.filterExpressions = savedExportDetail.filter;
+				rc.savedFilters      = savedExportDetail.saved_filter;
+				rc.orderBy           = savedExportDetail.order_by;
+				rc.searchQuery       = savedExportDetail.search_query;
 
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
