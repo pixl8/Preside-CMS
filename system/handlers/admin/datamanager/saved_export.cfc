@@ -1,6 +1,7 @@
 component {
-	property name="presideObjectService"   inject="PresideObjectService";
-	property name="scheduledExportService" inject="ScheduledExportService";
+	property name="presideObjectService"   inject="presideObjectService";
+	property name="scheduledExportService" inject="scheduledExportService";
+	property name="customizationService"   inject="dataManagerCustomizationService";
 	property name="messageBox"             inject="messagebox@cbmessagebox";
 
 	private void function postFetchRecordsForGridListing( event, rc, prc, args={} ) {
@@ -119,6 +120,24 @@ component {
 			messageBox.error( translateResource( uri="cms:datamanager.runsavedexport.error" ) );
 			setNextEvent( url=event.buildAdminLink( objectName="saved_export" ) );
 		}
+	}
+
+	private string function objectBreadcrumb() {
+		var objectName = rc.object_name ?: "";
+
+		if ( Len( Trim( objectName ) ) ) {
+			customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "objectBreadcrumb"
+				, defaultHandler = "admin.datamanager._objectBreadcrumb"
+				, args           = { objectName=objectName, objectTitle=translateResource( "preside-objects.#objectName#:title" ) }
+			);
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="preside-objects.saved_export:title" )
+			, link  = event.buildAdminLink( objectName="saved_export" )
+		);
 	}
 
 // HELPERS
