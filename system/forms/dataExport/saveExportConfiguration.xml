@@ -3,12 +3,15 @@
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
 			<field name="label"             control="textinput"             required="true"  sortorder="10" />
-			<field name="description"       control="textarea"              required="false" sortorder="20" maxlength="2000" />
-			<field name="filename"          control="textinput"             required="true"  sortorder="30" />
-			<field name="exporter"          control="dataExporterPicker"    required="true"  sortorder="40" />
+			<field name="filename"          control="textinput"             required="true"  sortorder="20" />
+			<field name="exporter"          control="dataExporterPicker"    required="true"  sortorder="30" />
+			<field name="description"       control="textarea"              required="false" sortorder="40" maxlength="2000" />
+		</fieldset>
+		<fieldset id="schedule" sortorder="20">
 			<field name="recipients"        control="objectPicker"          required="false" sortorder="50" object="security_user" multiple="true" />
-			<field name="schedule"          control="cronPicker"            required="true"  sortorder="60" defaultValue="disabled" />
-
+			<field name="schedule"          control="cronPicker"            required="false" sortorder="60" defaultValue="disabled" />
+		</fieldset>
+		<fieldset id="hidden" sortorder="30">
 			<field name="filterExpressions" control="hidden" />
 			<field name="object"            control="hidden" />
 			<field name="orderby"           control="hidden" />
