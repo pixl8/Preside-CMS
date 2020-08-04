@@ -279,6 +279,21 @@ component {
 		return exporters[ arguments.exporterid ] ?: {};
 	}
 
+	/**
+	 * Returns the number of saved exports there are for a given
+	 * object.
+	 *
+	 * @autodoc true
+	 * @objectName.hint The name of the object whose saved export count you wish to get.
+	 */
+	public numeric function getSavedExportCountForObject( required string objectName ) {
+		return $getPresideObject( "saved_export" ).selectData(
+			  filter          = { object_name = arguments.objectName }
+			, selectFields    = [ "1" ]
+			, recordCountOnly = true
+		);
+	}
+
 // PRIVATE HELPERS
 	private array function _expandRelationshipFields(
 		  required string objectName
