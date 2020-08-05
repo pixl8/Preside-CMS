@@ -84,8 +84,8 @@ component {
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
 		selectDataArgs.distinct     = true;
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
-		selectDataArgs.extraFilters = [];
-		selectDataArgs.gridFields   = [];
+		selectDataArgs.extraFilters = selectDataArgs.extraFilters ?: [];
+		selectDataArgs.gridFields   = selectDataArgs.gridFields   ?: [];
 
 		if ( len( arguments.exportFilterString ) ) {
 			var rc = $getRequestContext().getCollection();

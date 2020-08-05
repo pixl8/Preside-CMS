@@ -33,6 +33,8 @@ component extends="preside.system.base.adminHandler" {
 			if ( !Len( Trim( rc.filename ?: "" ) ) ) {
 				rc.filename = slugify( translateResource( uri=i18nBase & "title", defaultValue="" ) );
 			}
+
+			rc.filterObject = rc.object;
 		}
 	}
 
