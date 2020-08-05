@@ -1252,38 +1252,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function saveExportAction( event, rc, prc ) {
-		if ( !isFeatureEnabled( "dataexport" ) ) {
-			event.notFound();
-		}
-
-		var objectName = prc.objectName ?: "";
-
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
-
-		var formData = {
-			  exporter           = rc.exporter           ?: ""
-			, exportFields       = rc.exportFields       ?: ""
-			, fieldnames         = rc.fieldnames         ?: ""
-			, filename           = rc.filename           ?: ""
-			, description        = rc.description        ?: ""
-			, filterExpressions  = rc.filterExpressions  ?: ""
-			, exportFilterString = rc.exportFilterString ?: ""
-			, object             = rc.object             ?: ""
-			, orderby            = rc.orderby            ?: ""
-			, savedFilters       = rc.savedFilters       ?: ""
-			, searchQuery        = rc.searchQuery        ?: ""
-		};
-
-
-		if ( isEmpty( formData.exporter ) or isEmpty( formData.object ) ) {
-			messageBox.error( translateResource( uri="cms:datamanager.saveexport.error" ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
-		}
-
-		setNextEvent( url=event.buildAdminLink( linkto="dataExport.saveExport" ), persistStruct=formData );
-	}
-
 	public void function savedExportDownload( event, rc, prc ) {
 		var recordId = rc.id ?: "";
 
