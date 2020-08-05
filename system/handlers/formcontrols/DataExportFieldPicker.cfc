@@ -3,7 +3,7 @@ component {
 	property name="presideObjectService" inject="presideObjectService";
 
 	public string function index( event, rc, prc, args={} ) {
-		var objectName = args.exportObject ?: "";
+		var objectName = args.exportObject ?: ( prc.record.object_name ?: ( rc.object ?: "" ) );
 
 		if ( !objectName.len() ) {
 			return "";

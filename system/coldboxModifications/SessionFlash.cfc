@@ -1,38 +1,48 @@
 component extends="coldbox.system.web.flash.SessionFlash" {
 
-
 	public function saveFlash() {
-		if ( _sessionsEnabled() ) {
-			return super.saveFlash( argumentCollection=arguments );
-		}
+		_getSessionStorage().setVar( variables.flashKey, getScope() );
+
 		return this;
 	}
+
 	public function flashExists() {
-		if ( _sessionsEnabled() ) {
-			return super.flashExists( argumentCollection=arguments );
-		}
-		return false;
+		return _getSessionStorage().exists( variables.flashKey );
 	}
+
 	public function getFlash() {
-		if ( _sessionsEnabled() ) {
-			return super.getFlash( argumentCollection=arguments );
+		var flash = _getSessionStorage().getVar( variables.flashKey );
+
+		if ( IsStruct( flash ) ) {
+			// restore validationResult to cfc instance
+			if ( StructKeyExists( flash, "validationResult" ) ) {
+				if ( !isInstanceOf( flash.validationResult.content, "ValidationResult" ) && IsStruct( flash.validationResult.content ) && StructKeyExists( flash.validationResult.content, "generalMessage" ) ) {
+					var message  = flash.validationResult.content.generalMessage ?: "";
+					var messages = StructCopy( flash.validationResult.content.messages ?: {} );
+
+					flash.validationResult.content = new preside.system.services.validation.ValidationResult();
+					flash.validationResult.content.setGeneralMessage( message );
+					flash.validationResult.content.setMessages( messages );
+				}
+			}
+
+			return flash;
 		}
+
 		return {};
 	}
-	public function removeFlash() {
-		if ( _sessionsEnabled() ) {
-			return super.removeFlash( argumentCollection=arguments );
-		}
 
-		return this;
+	public function removeFlash() {
+		_getSessionStorage().deleteVar( variables.flashKey );
 	}
 
 // PRIVATE HELPER
-	private boolean function _sessionsEnabled() {
-		var am = getApplicationMetadata();
-		var sm = am.sessionManagement ?: "";
+	private any function _getSessionStorage() {
+		if ( !StructKeyExists( variables, "_sessionStorage" ) ) {
+			variables._sessionStorage = getController().getWirebox().getInstance( "sessionStorage" );
+		}
 
-		return IsBoolean( sm ) && sm;
+		return variables._sessionStorage;
 	}
 
 }

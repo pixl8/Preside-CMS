@@ -9,6 +9,8 @@ component {
 	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
 	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
 	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
+	property name="presideSessionReapHeartbeat"   inject="presideSessionReapHeartbeat";
+	property name="scheduledExportHeartBeat"      inject="scheduledExportHeartBeat";
 	property name="healthcheckService"            inject="healthcheckService";
 	property name="permissionService"             inject="permissionService";
 	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
@@ -232,10 +234,18 @@ component {
 			presideTaskmanagerHeartBeat.start();
 		}
 
+		if ( isFeatureEnabled( "presideSessionManagement" ) ) {
+			presideSessionReapHeartbeat.start();
+		}
+
 		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
 			for( var i=1; i<=assetQueueConcurrency; i++ ) {
 				getModel( "AssetQueueHeartBeat#i#" ).start();
 			}
+		}
+
+		if ( isFeatureEnabled( "dataExport" ) && isFeatureEnabled( "scheduledExportHeartBeat" ) ) {
+			scheduledExportHeartBeat.start();
 		}
 
 		cacheboxReapHeartBeat.start();

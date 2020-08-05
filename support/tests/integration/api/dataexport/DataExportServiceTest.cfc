@@ -265,11 +265,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockDataExporterReader = createEmptyMock( "preside.system.services.dataExport.DataExporterReader" );
 		mockDataExporterReader.$( "readExportersFromDirectories", arguments.exporters );
 
+		mockCustomizationService = createEmptyMock( "preside.system.services.admin.DataManagerCustomizationService" );
+		mockCustomizationService.$( "runCustomization" );
+
 		mockPresideObjectService = createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockColdbox              = createStub();
 
 		var service = createMock( object=new preside.system.services.dataExport.DataExportService(
-			  dataExporterReader = mockDataExporterReader
+			    dataExporterReader              = mockDataExporterReader
+			  , dataManagerCustomizationService = mockCustomizationService
 		) );
 
 		service.$( "$getPresideObjectService", mockPresideObjectService );

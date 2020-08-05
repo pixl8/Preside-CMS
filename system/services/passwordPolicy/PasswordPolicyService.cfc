@@ -32,16 +32,22 @@ component displayName="Password Policy Service" {
 		];
 	}
 
-	public string function getStrengthNameForScore( required numeric score ) {
+	public string function getStrengthNameForScore( required numeric score, boolean translate=false ) {
 		var strengths = listStrengths();
+		var strength  = strengths[ 1 ].name;
 
 		for( var i=strengths.len(); i > 0; i-- ) {
 			if ( arguments.score >= strengths[ i ].minValue ) {
-				return strengths[ i ].name;
+				strength = strengths[ i ].name;
+				break;
 			}
 		}
 
-		return strengths[ 1 ].name;
+		if ( arguments.translate ) {
+			return $translateResource( uri="cms:password.strength.#strength#.title", defaultValue=strength );
+		}
+
+		return strength
 	}
 
 	public array function listContexts() {
@@ -137,6 +143,71 @@ component displayName="Password Policy Service" {
 		}
 
 		return true;
+	}
+
+	public array function getDetailPolicyMessages(
+		  required string context
+		,          string password = ""
+	) {
+		var policy  = getPolicy( arguments.context );
+		var message = [];
+
+		if ( policy.min_strength > 0 ) {
+			if ( !isEmpty( arguments.password ) ) {
+				var strength = _getPasswordStrengthAnalyzer().calculatePasswordStrength( arguments.password );
+
+				if ( strength < policy.min_strength ) {
+					message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength, true ) ] ) );
+				}
+			} else {
+				message.append( $translateResource( uri="cms:passwordpolicy.strengthRequired.message", data=[ getStrengthNameForScore( policy.min_strength, true ) ] ) );
+			}
+		}
+
+		if ( policy.min_length > 0 ) {
+			if ( !isEmpty( arguments.password ) ) {
+				if ( arguments.password.len() < policy.min_length ) {
+					message.append( $translateResource( uri="cms:passwordpolicy.lengthRequired.message", data=[ policy.min_length ] ) );
+				}
+			} else {
+				message.append( $translateResource( uri="cms:passwordpolicy.lengthRequired.message", data=[ policy.min_length ] ) );
+			}
+		}
+
+		if ( policy.min_uppercase > 0 ) {
+			if ( !isEmpty( arguments.password ) ) {
+				var upperCaseChars = ReReplace( arguments.password, "[^A-Z]", "", "all" );
+				if ( upperCaseChars.len() < policy.min_uppercase ) {
+					message.append( $translateResource( uri="cms:passwordpolicy.uppercaseLengthRequired.message", data=[ policy.min_uppercase ] ) );
+				}
+			} else {
+				message.append( $translateResource( uri="cms:passwordpolicy.uppercaseLengthRequired.message", data=[ policy.min_uppercase ] ) );
+			}
+		}
+
+		if ( policy.min_numeric > 0 ) {
+			if ( !isEmpty( arguments.password ) ) {
+				var numericChars = ReReplace( arguments.password, "[^0-9]", "", "all" );
+				if ( numericChars.len() < policy.min_numeric ) {
+					message.append( $translateResource( uri="cms:passwordpolicy.numberLengthRequired.message", data=[ policy.min_numeric ] ) );
+				}
+			} else {
+				message.append( $translateResource( uri="cms:passwordpolicy.numberLengthRequired.message", data=[ policy.min_numeric ] ) );
+			}
+		}
+
+		if ( policy.min_symbols > 0 ) {
+			if ( !isEmpty( arguments.password ) ) {
+				var specialChars = ReReplace( arguments.password, "[0-9A-Za-z]", "", "all" );
+				if ( specialChars.len() < policy.min_symbols ) {
+					message.append( $translateResource( uri="cms:passwordpolicy.specialCharactersLengthRequired.message", data=[ policy.min_symbols ] ) );
+				}
+			} else {
+				message.append( $translateResource( uri="cms:passwordpolicy.specialCharactersLengthRequired.message", data=[ policy.min_symbols ] ) );
+			}
+		}
+
+		return message;
 	}
 
 // GET SET

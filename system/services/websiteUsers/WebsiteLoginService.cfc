@@ -225,21 +225,12 @@ component displayName="Website login service" {
 		var userRecord = _getUserDao().selectData( id=arguments.userId );
 
 		if ( userRecord.recordCount ) {
-			var resetToken       = _createTemporaryResetToken();
-			var resetKey         = _createTemporaryResetKey();
-			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
-			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
-
-			_getUserDao().updateData( id=userRecord.id, data={
-				  reset_password_token        = resetToken
-				, reset_password_key          = hashedResetKey
-				, reset_password_token_expiry = resetTokenExpiry
-			} );
+			var token = createPasswordResetToken( userId=arguments.userId );
 
 			_getEmailService().send(
 				  template    = "websiteWelcome"
 				, recipientId = arguments.userId
-				, args        = { resetToken = "#resetToken#-#resetKey#" }
+				, args        = { resetToken = "#token.resetToken#-#token.resetKey#" }
 			);
 
 			return true;
@@ -257,13 +248,7 @@ component displayName="Website login service" {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.count() ) {
-			var token = createPasswordResetToken();
-
-			_getUserDao().updateData( id=userRecord.id, data={
-				  reset_password_token        = token.resetToken
-				, reset_password_key          = token.hashedResetKey
-				, reset_password_token_expiry = token.resetTokenExpiry
-			} );
+			var token = createPasswordResetToken( userRecord.id );
 
 			_getEmailService().send(
 				  template    = "resetWebsitePassword"
@@ -287,7 +272,7 @@ component displayName="Website login service" {
 	 * Resends new token to expired token and reminds them the token is expired
 	 */
 	public boolean function resendPasswordResetInstructions( required string userId ) autodoc=true {
-		var token      = createPasswordResetToken();
+		var token = createPasswordResetToken( arguments.userId );
 
 		_getUserDao().updateData( id=arguments.userId, data={
 			  reset_password_token        = token.resetToken
@@ -311,14 +296,26 @@ component displayName="Website login service" {
 	}
 
 	/**
-	 * Creates a password reset token.
+	 * Creates a password reset token. Registers the token
+	 * in the database and returns a struct with detailed
+	 * information about the token.
+	 *
+	 * @userId.hint ID of the user to create the token for
 	 */
-	public struct function createPasswordResetToken() autodoc=true {
-		var token              = {};
+	public struct function createPasswordResetToken( required string userId ) autodoc=true {
+		var token = {};
+
 		token.resetToken       = _createTemporaryResetToken();
 		token.resetKey         = _createTemporaryResetKey();
 		token.hashedResetKey   = _getBCryptService().hashPw( token.resetKey );
 		token.resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		$getPresideObject( "website_user_reset_token" ).insertData( {
+			  user   = arguments.userId
+			, token  = token.resetToken
+			, key    = token.hashedResetKey
+			, expiry = token.resetTokenExpiry
+		} );
 
 		return token;
 	}
@@ -346,13 +343,13 @@ component displayName="Website login service" {
 
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
-
 			var result = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
 
 			if ( result ) {
+				$getPresideObject( "website_user_reset_token" ).deleteData( filter = { user=record.id } );
 				$recordWebsiteUserAction(
 					  userId = record.id
 					, action = "changepassword"
@@ -364,6 +361,30 @@ component displayName="Website login service" {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Removes expired password reset tokens from the system
+	 *
+	 * @autodoc true
+	 */
+	public boolean function deleteExpiredPasswordResetTokens( any logger ) {
+		var canLog = StructKeyExists( arguments, "logger" );
+		var canInfo = canLog && arguments.logger.canInfo();
+		var deleted = $getPresideObject( "website_user_reset_token" ).deleteData(
+			  filter       = "expiry < :expiry"
+			, filterParams = { expiry = DateAdd( "d", -1, Now() ) }
+		);
+
+		if ( canInfo ) {
+			if ( deleted ) {
+				arguments.logger.info( "Deleted [#NumberFormat( deleted )#] password reset tokens that were over 1 day past their expiry." );
+			} else {
+				arguments.logger.info( "No expired password reset tokens were found ready for deletion." );
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -728,7 +749,7 @@ component displayName="Website login service" {
 		var k = ListLast( arguments.token, "-" );
 
 		if( isEmpty( t ) || isEmpty( k ) ){
-			return QueryNew('');
+			return QueryNew( "" );
 		}
 
 		var record = _getUserDao().selectData(
@@ -737,7 +758,14 @@ component displayName="Website login service" {
 		);
 
 		if ( !record.recordCount ) {
-			return record;
+			record = $getPresideObject( "website_user_reset_token" ).selectData(
+				  selectFields = [ "user as id", "key as reset_password_key", "expiry as reset_password_token_expiry" ]
+				, filter = { token = t }
+			);
+
+			if ( !record.recordCount ) {
+				return record;
+			}
 		}
 
 		if ( Now() > record.reset_password_token_expiry || !_getBCryptService().checkPw( k, record.reset_password_key ) ) {
@@ -751,18 +779,14 @@ component displayName="Website login service" {
 				resendPasswordResetInstructions( record.id );
 			}
 
-			return QueryNew('');
+			return QueryNew( "" );
 		}
 
 		return record;
 	}
 
 	private void function _preventSessionFixation() {
-		var appSettings = getApplicationSettings();
-
-		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
-			SessionRotate();
-		}
+		_getSessionStorage().rotate();
 	}
 
 // private accessors

@@ -21,7 +21,7 @@
 		} )#
 
 		<div class="row">
-			<div class="col-md-8 col-lg-7 col-sm-12">
+			<div class="col-md-10 col-lg-9 col-sm-12">
 				<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#editTemplateAction#">
 					<input type="hidden" name="template" value="#templateId#" />
 
@@ -54,7 +54,7 @@
 					</div>
 				</form>
 			</div>
-			<div class="col-md-4 col-lg-5 col-sm-12">
+			<div class="col-md-2 col-lg-3 col-sm-12">
 				#renderViewlet( event="admin.emailcenter.emailParamsHelper", args={
 					  systemTemplate = templateId
 					, recipientType  = ( savedTemplate.recipient_type ?: "" )

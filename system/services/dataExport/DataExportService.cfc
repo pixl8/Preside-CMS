@@ -9,11 +9,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @dataExporterReader.inject dataExporterReader
+	 * @dataExporterReader.inject              dataExporterReader
+	 * @dataManagerCustomizationService.inject dataManagerCustomizationService
 	 *
 	 */
-	public any function init( required any dataExporterReader ) {
+	public any function init( required any dataExporterReader, required any dataManagerCustomizationService ) {
 		_setExporters( arguments.dataExporterReader.readExportersFromDirectories() );
+		_setDataManagerCustomizationService( arguments.dataManagerCustomizationService );
 		_setupExporterMap();
 
 		return this;
@@ -41,6 +43,7 @@ component {
 		,          array   selectFields       = []
 		,          numeric exportPagingSize   = 1000
 		,          any     recordsetDecorator = ""
+		,          string  exportFilterString = ""
 		,          string  exportFileName     = ""
 		,          string  orderBy            = ""
 		,          string  mimetype           = ""
@@ -73,13 +76,30 @@ component {
 		selectDataArgs.delete( "meta" );
 		selectDataArgs.delete( "fieldTitles" );
 		selectDataArgs.delete( "exportPagingSize" );
-		selectDataArgs.maxRows     = arguments.exportPagingSize;
-		selectDataArgs.startRow    = 1;
-		selectDataArgs.autoGroupBy = true;
-		selectDataArgs.useCache    = false;
+		selectDataArgs.delete( "exportFilterString" );
+		selectDataArgs.maxRows      = arguments.exportPagingSize;
+		selectDataArgs.startRow     = 1;
+		selectDataArgs.autoGroupBy  = true;
+		selectDataArgs.useCache     = false;
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
 		selectDataArgs.distinct     = true;
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
+		selectDataArgs.extraFilters = selectDataArgs.extraFilters ?: [];
+		selectDataArgs.gridFields   = selectDataArgs.gridFields   ?: [];
+
+		if ( len( arguments.exportFilterString ) ) {
+			var rc = $getRequestContext().getCollection();
+			var keyValues = listToArray( arguments.exportFilterString, "&" );
+			for( var keyValue in keyValues ) {
+				rc[ listFirst( keyValue, "=" ) ] = listRest( keyValue, "=" );
+			}
+		}
+
+		_getDataManagerCustomizationService().runCustomization(
+			  objectName = arguments.objectName
+			, action     = "preFetchRecordsForGridListing"
+			, args       = selectDataArgs
+		);
 
 		if ( canReportProgress || canLog ) {
 			var totalRecordsToExport = presideObjectService.selectData(
@@ -279,6 +299,21 @@ component {
 		return exporters[ arguments.exporterid ] ?: {};
 	}
 
+	/**
+	 * Returns the number of saved exports there are for a given
+	 * object.
+	 *
+	 * @autodoc true
+	 * @objectName.hint The name of the object whose saved export count you wish to get.
+	 */
+	public numeric function getSavedExportCountForObject( required string objectName ) {
+		return $getPresideObject( "saved_export" ).selectData(
+			  filter          = { object_name = arguments.objectName }
+			, selectFields    = [ "1" ]
+			, recordCountOnly = true
+		);
+	}
+
 // PRIVATE HELPERS
 	private array function _expandRelationshipFields(
 		  required string objectName
@@ -316,7 +351,7 @@ component {
 		for( var field in arguments.fieldNames ) {
 			arguments.existingTitles[ field ] = arguments.existingTitles[ field ] ?: $translateResource(
 				  uri          = baseUri & "field.#field#.title"
-				, defaultValue = field
+				, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#field#.title", defaultValue=field )
 			);
 		}
 
@@ -372,6 +407,13 @@ component {
 	}
 	private void function _setExporters( required array exporters ) {
 		_exporters = arguments.exporters;
+	}
+
+	private any function _getDataManagerCustomizationService() {
+		return _dataManagerCustomizationService;
+	}
+	private void function _setDataManagerCustomizationService( required any dataManagerCustomizationService ) {
+		_dataManagerCustomizationService = arguments.dataManagerCustomizationService;
 	}
 
 	private struct function _getExporterMap() {

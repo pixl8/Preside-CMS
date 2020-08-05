@@ -198,7 +198,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var passwordPolicy = passwordPolicyService.getPolicy( "cms" );
 		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
-			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
+			prc.policyMessage = renderPasswordPolicyMessage( context="cms" );
 		}
 
 		event.setView( "/admin/login/resetPassword" );

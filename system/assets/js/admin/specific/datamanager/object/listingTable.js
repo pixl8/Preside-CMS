@@ -32,13 +32,16 @@
 			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
 			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
 			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
+			  , allowSaveExport     = tableSettings.allowSaveExport || cfrequest.allowSaveExport
 			  , noRecordMessage     = tableSettings.noRecordMessage || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , compact             = tableSettings.compact         || cfrequest.compact
+			  , defaultPageLength   = cfrequest.defaultPageLength   || 10
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
+			  , allowManageFilter   = $filterDiv.data( 'allow-manage-filter' ) === true
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult;
@@ -124,12 +127,14 @@
 				datatable = $listingTable.dataTable( {
 					aoColumns     : colConfig,
 					aaSorting     : defaultSort,
+					aoColumnDefs  : [ { "bSortable": false, "aTargets": [ 'no-sorting' ] } ],
 					bServerSide   : true,
 					bProcessing   : true,
 					bStateSave    : true,
 					bFilter       : allowSearch,
 					iDeferLoading : 0,
 					bAutoWidth    : false,
+					iDisplayLength: parseInt( defaultPageLength ),
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
 					sDom          : sDom,
 					sAjaxSource   : datasourceUrl,
@@ -351,16 +356,20 @@
 				$filterDiv.on( "change", function( e ){
 					datatable.fnDraw();
 
-					$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
+					if ( allowManageFilter ) {
+						$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
+					}
 				} );
 
-				setupQuickSaveFilterIframeModal( $filterDiv );
+				if ( allowManageFilter ) {
+					setupQuickSaveFilterIframeModal( $filterDiv );
 
-				if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
-					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
-						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
-					} else if ( settings.oLoadedState.oFilter.favourites && settings.oLoadedState.oFilter.favourites.length ) {
-						setFavourites( settings.oLoadedState.oFilter.favourites );
+					if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
+						if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
+							prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
+						} else if ( settings.oLoadedState.oFilter.favourites && settings.oLoadedState.oFilter.favourites.length ) {
+							setFavourites( settings.oLoadedState.oFilter.favourites );
+						}
 					}
 				}
 			};
@@ -373,7 +382,7 @@
 				  , $configForm          = $( ".object-listing-data-export-config-form", $uberContainer )
 				  , $exportBtn           = $( ".object-listing-data-export-button", $uberContainer )
 				  , iframeSrc            = $exportBtn.attr( "href" )
-				  , i, $container, modalOptions, callbacks, processExport, exportConfigModal, configIframe;
+				  , i, $container, modalOptions, callbacks, processExport, saveExport, exportConfigModal, configIframe;
 
 				for( i=0; i<paginationContainers.length; i++ ) {
 					$container = $( paginationContainers[i] );
@@ -389,11 +398,19 @@
 							, className : "btn-default"
 						},
 						ok : {
-							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:export.btn" )
+							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:downloadnow.btn" )
 							, className : "btn-primary ok-button"
 							, callback  : function(){ return processExport(); }
 						}
 					}
+				}
+
+				if ( allowSaveExport ) {
+					modalOptions.buttons.save = {
+						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:saveforlater.btn" )
+						, className : "btn-success"
+						, callback  : function(){ return saveExport(); }
+					};
 				}
 				callbacks = {
 					onLoad : function( iframe ) {
@@ -449,6 +466,55 @@
 
 					return true;
 				};
+				saveExport = function(){
+					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
+					  , $submissionForm  = $( ".object-listing-table-save-export-form", $uberContainer )
+					  , sortColumns      = dtSettings.aaSorting
+					  , allColumns       = dtSettings.aoColumns
+					  , config           = $configForm.serializeObject()
+					  , sortOrder        = []
+					  , favourites, key, $hiddenInput, i, $searchContainer;
+
+					if ( allowFilter ) {
+						config.filterExpressions = $filterDiv.find( "[name=filter]" ).val();
+
+						favourites = getFavourites();
+						if ( favourites && favourites.length ) {
+							config.savedFilters = favourites;
+						} else {
+							config.savedFilters = $filterDiv.find( "[name=filters]" ).val();
+						}
+					}
+
+					if ( allowSearch ) {
+						$searchContainer = $( dtSettings.aanFeatures.f[0] );
+						config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+					}
+
+					for( key in config ) {
+						$hiddenInput = $submissionForm.find( "[name=" + key + "]" );
+
+						if ( !$hiddenInput.length ) {
+							$hiddenInput = $( '<input type="hidden" name="' + key + '">' );
+							$submissionForm.append( $hiddenInput );
+						}
+
+						$hiddenInput.val( config[ key ] );
+					}
+
+					for( i=0; i<sortColumns.length; i++ ) {
+						sortOrder.push( allColumns[ sortColumns[ i ][ 0 ] ].mData + " " + sortColumns[ i ][ 1 ] );
+					}
+					if ( sortOrder.length ) {
+						$hiddenInput = $( '<input type="hidden" name="orderby">' );
+						$hiddenInput.val( sortOrder.join( "," ) );
+						$submissionForm.append( $hiddenInput );
+					}
+
+					$submissionForm.submit();
+
+					return true;
+				}
 
 				exportConfigModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
 
@@ -541,7 +607,10 @@
 				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
 
 				$filterDiv.fadeOut( 100, function(){
-					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+					if ( allowManageFilter ) {
+						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+					}
+
 					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
 					$filterDiv.find( "[name=filters]" ).val("");
 					refreshFavourites();

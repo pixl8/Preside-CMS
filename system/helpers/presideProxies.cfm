@@ -56,6 +56,10 @@
 		<cfreturn getSingleton( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="getAssetDimensions" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "assetManagerService" ).getAssetDimensions( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderNotification" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "notificationService" ).renderNotification( argumentCollection = arguments ) />
 	</cffunction>
@@ -130,6 +134,14 @@
 	</cffunction>
 
 <!--- i18n --->
+	<cffunction name="getResourceBundleUriRoot" access="public" returntype="any" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+
+		<cfscript>
+			return getSingleton( "presideObjectService" ).getResourceBundleUriRoot( arguments.objectName );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="translateResource" access="public" returntype="any" output="false">
 		<cfscript>
 			var args     = arguments;
@@ -272,6 +284,23 @@
 
 		<cfscript>
 			arguments.args.objectName = arguments.objectName;
+
+			return getSingleton( "dataManagerCustomizationService" ).runCustomization(
+				  objectName     = arguments.objectName
+				, args           = arguments.args
+				, action         = "listingViewlet"
+				, defaultHandler = "admin.DataManager._objectListingViewlet"
+			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="objectTreeView" access="public" returntype="string" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+		<cfargument name="args"       type="struct" required="false" default="#StructNew()#" />
+
+		<cfscript>
+			arguments.args.objectName = arguments.objectName;
+			arguments.args.treeOnly   = true;
 
 			return getSingleton( "dataManagerCustomizationService" ).runCustomization(
 				  objectName     = arguments.objectName

@@ -64,9 +64,12 @@ component displayName="Website visitor service" {
 
 // PRIVATE HELPERS
 	private boolean function _sessionsAreEnabled() {
-		var appSettings = getApplicationSettings( true );
+		var appSettings              = getApplicationSettings( true );
+		var sessionManagement        = IsBoolean( appSettings.sessionManagement        ?: "" ) && appSettings.sessionManagement;
+		var presideSessionManagement = IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
+		var statelessRequest         = IsBoolean( appSettings.statelessRequest         ?: "" ) && appSettings.statelessRequest;
 
-		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
+		return sessionManagement || ( presideSessionManagement && !statelessRequest );
 	}
 
 	private string function _getVIDCookieExpiry() {

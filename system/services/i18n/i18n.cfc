@@ -62,10 +62,15 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		return translateResource( uri=uri, defaultValue=arguments.objectName );
 	}
 
-	public string function translatePropertyName( required string objectName, required string propertyName ) {
-		var baseUri = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
+	public string function translatePropertyName( required string objectName, required string propertyName, string context="" ) {
+		var baseUri          = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
+		var contextTranslate = "";
 
-		return translateResource(
+		if ( !isEmpty( arguments.context ) ) {
+			contextTranslate = translateResource( uri=baseUri & "field.#arguments.propertyName#.#arguments.context#.title", defaultValue="" );
+		}
+
+		return !isEmpty( contextTranslate ) ? contextTranslate : translateResource(
 			  uri          = baseUri & "field.#arguments.propertyName#.title"
 			, defaultValue = translateResource( uri="cms:preside-objects.default.field.#arguments.propertyName#.title", defaultValue=arguments.propertyName )
 		);

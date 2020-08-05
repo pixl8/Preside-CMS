@@ -5,10 +5,20 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
+
+		var taskId    = rc.taskId ?: "";
+		var resultUrl = event.buildAdminLink();
+
+		if ( len( trim( taskId ) ) ) {
+			var task  = adHocTaskManagerService.getTask( taskId );
+			resultUrl = task.return_url.len() ? task.return_url : event.buildAdminLink();
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:adhoctaskmanager.breadcrumb.title" )
-			, link  = ""
+			, link  = resultUrl
 		);
+
 		prc.pageIcon     = "hourglass-2";
 	}
 

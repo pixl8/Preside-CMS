@@ -187,7 +187,7 @@ component displayName="Preside Object Service" {
 		,          boolean useCache                = _getUseCacheDefault( arguments.objectName )
 		,          boolean fromVersionTable        = false
 		,          numeric specificVersion         = 0
-		,          boolean allowDraftVersions      = _getDefaultAllowDraftVersions()
+		,          boolean allowDraftVersions      = objectUsesDrafts( arguments.objectName ) && _getDefaultAllowDraftVersions()
 		,          string  forceJoins              = ""
 		,          array   extraJoins              = []
 		,          boolean recordCountOnly         = false
@@ -204,7 +204,7 @@ component displayName="Preside Object Service" {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
 		}
 
-		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
+		if ( !args.allowDraftVersions && !args.fromVersionTable && objectUsesDrafts( args.objectName ) ) {
 			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
 			if ( ( arguments.selectManyToMany ?: false ) && !isEmpty( arguments.relationshipTable ?: "" ) && objectIsVersioned( arguments.relationshipTable ) ) {
 				args.extraFilters.append( _getDraftExclusionFilter( arguments.relationshipTable ) );
@@ -405,7 +405,7 @@ component displayName="Preside Object Service" {
 				newId = cleanedData[idField];
 			}
 		}
-		if ( objectIsVersioned( args.objectName ) ) {
+		if ( objectUsesDrafts( args.objectName ) ) {
 			cleanedData._version_is_draft = cleanedData._version_has_drafts = args.isDraft;
 		}
 
@@ -720,7 +720,7 @@ component displayName="Preside Object Service" {
 				);
 			}
 
-			if ( arguments.useVersioning ) {
+			if ( arguments.useVersioning && objectUsesDrafts( arguments.objectName ) ) {
 				if ( arguments.isDraft ) {
 					if ( !_isDraft( argumentCollection=arguments ) ) {
 						cleanedData = { _version_has_drafts = true };
@@ -1675,6 +1675,17 @@ component displayName="Preside Object Service" {
 		var obj = _getObject( objectName );
 
 		return IsBoolean( obj.meta.versioned ?: "" ) && obj.meta.versioned;
+	}
+
+	/**
+	 * Returns whether or not the given object is using the drafts system
+	 *
+	 * @objectName.hint Name of the object you wish to check
+	 */
+	public boolean function objectUsesDrafts( required string objectName ) autodoc=true {
+		var obj = _getObject( objectName );
+
+		return IsBoolean( obj.meta.useDrafts ?: "" ) && obj.meta.useDrafts;
 	}
 
 	/**
@@ -2915,7 +2926,7 @@ component displayName="Preside Object Service" {
 			versionFilter = "#arguments.objectName#._version_number = :#arguments.objectName#._version_number";
 			params.append( { name="#arguments.objectName#___version_number", value=arguments.specificVersion, type="cf_sql_int" } );
 
-			if ( !arguments.allowDraftVersions ) {
+			if ( !arguments.allowDraftVersions && objectUsesDrafts( arguments.objectName ) ) {
 				versionFilter &= " and ( #arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft )";
 				params.append( { name="#arguments.objectName#___version_is_draft", value=false, type="cf_sql_bit" } );
 			}
@@ -3379,6 +3390,10 @@ component displayName="Preside Object Service" {
 
 					return Hash( valueToHash );
 				}
+			break;
+			case "nextint":
+				var existing = selectData( objectName=arguments.objectName, selectFields=[ "Max( #arguments.prop.name# ) as max_value" ] );
+				return Val( existing.max_value ?: "" ) + 1;
 			break;
 			case "slug":
 				var generateFrom = prop.generateFrom ?: getLabelField( arguments.objectName );
