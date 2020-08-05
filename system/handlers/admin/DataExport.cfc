@@ -46,17 +46,18 @@ component extends="preside.system.base.adminHandler" {
 
 		var newSavedExportId = "";
 		var data             =  {
-			  label        = formData.label        ?: ""
-			, description  = formData.description  ?: ""
-			, file_name    = formData.filename     ?: ""
-			, object_name  = formData.object       ?: ""
-			, fields       = formData.exportFields ?: ""
-			, exporter     = formData.exporter     ?: ""
-			, order_by     = formData.orderBy      ?: ""
-			, search_query = formData.searchQuery  ?: ""
-			, created_by   = loginService.getLoggedInUserId()
-			, recipients   = formData.recipients   ?: ""
-			, schedule     = formData.schedule     ?: "disabled"
+			  label         = formData.label              ?: ""
+			, description   = formData.description        ?: ""
+			, file_name     = formData.filename           ?: ""
+			, object_name   = formData.object             ?: ""
+			, filter_string = formData.exportFilterString ?: ""
+			, fields        = formData.exportFields       ?: ""
+			, exporter      = formData.exporter           ?: ""
+			, order_by      = formData.orderBy            ?: ""
+			, search_query  = formData.searchQuery        ?: ""
+			, created_by    = loginService.getLoggedInUserId()
+			, recipients    = formData.recipients         ?: ""
+			, schedule      = formData.schedule           ?: "disabled"
 		};
 
 		if ( isFeatureEnabled( "rulesEngine" ) ) {

@@ -1262,16 +1262,17 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
 		var formData = {
-			  exporter          = rc.exporter          ?: ""
-			, exportFields      = rc.exportFields      ?: ""
-			, fieldnames        = rc.fieldnames        ?: ""
-			, filename          = rc.filename          ?: ""
-			, description       = rc.description       ?: ""
-			, filterExpressions = rc.filterExpressions ?: ""
-			, object            = rc.object            ?: ""
-			, orderby           = rc.orderby           ?: ""
-			, savedFilters      = rc.savedFilters      ?: ""
-			, searchQuery       = rc.searchQuery       ?: ""
+			  exporter           = rc.exporter           ?: ""
+			, exportFields       = rc.exportFields       ?: ""
+			, fieldnames         = rc.fieldnames         ?: ""
+			, filename           = rc.filename           ?: ""
+			, description        = rc.description        ?: ""
+			, filterExpressions  = rc.filterExpressions  ?: ""
+			, exportFilterString = rc.exportFilterString ?: ""
+			, object             = rc.object             ?: ""
+			, orderby            = rc.orderby            ?: ""
+			, savedFilters       = rc.savedFilters       ?: ""
+			, searchQuery        = rc.searchQuery        ?: ""
 		};
 
 
@@ -1295,6 +1296,7 @@ component extends="preside.system.base.AdminHandler" {
 					, "object_name"
 					, "fields"
 					, "exporter"
+					, "filter_string"
 					, "filter"
 					, "saved_filter"
 					, "order_by"
@@ -1303,14 +1305,15 @@ component extends="preside.system.base.AdminHandler" {
 			);
 
 			if ( savedExportDetail.recordcount ) {
-				rc.exporter          = savedExportDetail.exporter;
-				rc.object            = savedExportDetail.object_name;
-				rc.exportFields      = savedExportDetail.fields;
-				rc.fileName          = savedExportDetail.file_name;
-				rc.filterExpressions = savedExportDetail.filter;
-				rc.savedFilters      = savedExportDetail.saved_filter;
-				rc.orderBy           = savedExportDetail.order_by;
-				rc.searchQuery       = savedExportDetail.search_query;
+				rc.exporter           = savedExportDetail.exporter;
+				rc.object             = savedExportDetail.object_name;
+				rc.exportFields       = savedExportDetail.fields;
+				rc.fileName           = savedExportDetail.file_name;
+				rc.exportFilterString = savedExportDetail.filter_string;
+				rc.filterExpressions  = savedExportDetail.filter;
+				rc.savedFilters       = savedExportDetail.saved_filter;
+				rc.orderBy            = savedExportDetail.order_by;
+				rc.searchQuery        = savedExportDetail.search_query;
 
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
@@ -2987,23 +2990,25 @@ component extends="preside.system.base.AdminHandler" {
 		  required any    event
 		, required struct rc
 		, required struct prc
-		,          string exporter          = ( rc.exporter          ?: 'CSV' )
-		,          string objectName        = ( rc.object            ?: '' )
-		,          string exportFields      = ( rc.exportFields      ?: '' )
-		,          string filename          = ( rc.filename          ?: '' )
-		,          string filterExpressions = ( rc.filterExpressions ?: '' )
-		,          string savedFilters      = ( rc.savedFilters      ?: '' )
-		,          string orderBy           = ( rc.orderBy           ?: '' )
+		,          string exporter           = ( rc.exporter           ?: 'CSV' )
+		,          string objectName         = ( rc.object             ?: '' )
+		,          string exportFields       = ( rc.exportFields       ?: '' )
+		,          string filename           = ( rc.filename           ?: '' )
+		,          string filterExpressions  = ( rc.filterExpressions  ?: '' )
+		,          string exportFilterString = ( rc.exportFilterString ?: '' )
+		,          string savedFilters       = ( rc.savedFilters       ?: '' )
+		,          string orderBy            = ( rc.orderBy            ?: '' )
 
 	) {
 		var newSavedReportId = "";
 		var data             =  {
-			  label       = arguments.filename
-			, file_name   = arguments.filename
-			, object_name = arguments.objectName
-			, fields      = arguments.exportFields
-			, exporter    = arguments.exporter
-			, order_by    = arguments.orderBy
+			  label         = arguments.filename
+			, file_name     = arguments.filename
+			, object_name   = arguments.objectName
+			, fields        = arguments.exportFields
+			, exporter      = arguments.exporter
+			, order_by      = arguments.orderBy
+			, filter_string = arguments.exportFilterString
 		};
 
 		if ( isFeatureEnabled( "rulesEngine" ) ) {
@@ -3012,7 +3017,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		try {
-			newSavedReportId = presideObjectService.insertData( objectName="saved_report", data=data );
+			newSavedReportId = presideObjectService.insertData( objectName="saved_export", data=data );
 		} catch ( any e ) {
 			logError( e );
 		}
