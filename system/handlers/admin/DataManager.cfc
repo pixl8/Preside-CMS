@@ -1265,7 +1265,6 @@ component extends="preside.system.base.AdminHandler" {
 			  exporter           = rc.exporter          ?: ""
 			, exportFields       = rc.exportFields      ?: ""
 			, fieldnames         = rc.fieldnames        ?: ""
-			, filename           = rc.filename          ?: ""
 			, exportFilterString = rc.exportFilterString ?: ""
 			, description        = rc.description       ?: ""
 			, filterExpressions  = rc.filterExpressions ?: ""
