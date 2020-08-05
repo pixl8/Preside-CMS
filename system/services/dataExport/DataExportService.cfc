@@ -85,6 +85,7 @@ component {
 		selectDataArgs.distinct     = true;
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 		selectDataArgs.extraFilters = [];
+		selectDataArgs.gridFields   = [];
 
 		if ( len( arguments.exportFilterString ) ) {
 			var rc = $getRequestContext().getCollection();
