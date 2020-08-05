@@ -314,7 +314,7 @@ component {
 			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
-			, savedExport            = [ "navigate" ]
+			, savedExport            = [ "navigate", "read", "add", "edit", "delete" ]
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
 			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
@@ -354,6 +354,7 @@ component {
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
 		settings.adminRoles.emailcentremanager = [ "cms.access", "emailCenter.*", "!emailCenter.queue.*" ];
 		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
+		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
 		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate" ];
 
 		settings.websitePermissions = {

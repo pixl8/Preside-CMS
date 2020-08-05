@@ -2,7 +2,26 @@ component {
 	property name="presideObjectService"   inject="presideObjectService";
 	property name="scheduledExportService" inject="scheduledExportService";
 	property name="customizationService"   inject="dataManagerCustomizationService";
+	property name="datamanagerService"     inject="datamanagerService";
 	property name="messageBox"             inject="messagebox@cbmessagebox";
+
+	private boolean function checkPermission( event, rc, prc, args={} ) {
+		var objectName       = "saved_export";
+		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );
+		var permissionsBase  = "savedExport"
+		var alwaysDisallowed = [ "manageContextPerms" ];
+		var operationMapped  = [ "read", "add", "edit", "delete", "batchdelete" ];
+		var permissionKey    = "#permissionsBase#.#( args.key ?: "" )#";
+		var hasPermission    = !alwaysDisallowed.find( args.key )
+		                    && ( !operationMapped.find( args.key ) || allowedOps.find( args.key ) )
+		                    && hasCmsPermission( permissionKey );
+
+		if ( !hasPermission && IsTrue( args.throwOnError ?: "" ) ) {
+			event.adminAccessDenied();
+		}
+
+		return hasPermission;
+	}
 
 	private void function postFetchRecordsForGridListing( event, rc, prc, args={} ) {
 		var records = args.records ?: QueryNew('');
