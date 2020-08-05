@@ -126,6 +126,14 @@ component extends="preside.system.base.AdminHandler" {
 				}
 			}
 
+			if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForBuildAjaxListingLink" ) ) {
+				args.exportFilterString = customizationService.runCustomization(
+					  objectName = objectName
+					, action     = "getAdditionalQueryStringForBuildAjaxListingLink"
+					, args       = args
+				);
+			}
+
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
 
@@ -2892,31 +2900,33 @@ component extends="preside.system.base.AdminHandler" {
 		  required any    event
 		, required struct rc
 		, required struct prc
-		,          string exporter          = ( rc.exporter          ?: 'CSV' )
-		,          string objectName        = ( rc.object            ?: '' )
-		,          string exportFields      = ( rc.exportFields      ?: '' )
-		,          string filename          = ( rc.fileName          ?: '' )
-		,          string filterExpressions = ( rc.filterExpressions ?: '' )
-		,          string savedFilters      = ( rc.savedFilters      ?: '' )
-		,          string orderBy           = ( rc.orderBy           ?: '' )
-		,          array  extraFilters      = []
-		,          string returnUrl         = cgi.http_referer
-		,          struct additionalArgs    = {}
+		,          string exporter           = ( rc.exporter           ?: 'CSV' )
+		,          string objectName         = ( rc.object             ?: '' )
+		,          string exportFields       = ( rc.exportFields       ?: '' )
+		,          string filename           = ( rc.fileName           ?: '' )
+		,          string filterExpressions  = ( rc.filterExpressions  ?: '' )
+		,          string exportFilterString = ( rc.exportFilterString ?: '' )
+		,          string savedFilters       = ( rc.savedFilters       ?: '' )
+		,          string orderBy            = ( rc.orderBy            ?: '' )
+		,          array  extraFilters       = []
+		,          string returnUrl          = cgi.http_referer
+		,          struct additionalArgs     = {}
 
 	) {
 		var exporterDetail = dataExportService.getExporterDetails( arguments.exporter );
 		var selectFields   = arguments.exportFields.listToArray();
 		var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
 		var args           = {
-			  exporter       = exporter
-			, objectName     = objectName
-			, selectFields   = selectFields
-			, extraFilters   = arguments.extraFilters
-			, autoGroupBy    = true
-			, orderBy        = arguments.orderBy
-			, exportFileName = fullFileName
-			, mimetype       = exporterDetail.mimeType
-			, additionalArgs = arguments.additionalArgs
+			  exporter           = exporter
+			, objectName         = objectName
+			, selectFields       = selectFields
+			, extraFilters       = arguments.extraFilters
+			, autoGroupBy        = true
+			, orderBy            = arguments.orderBy
+			, exportFilterString = arguments.exportFilterString
+			, exportFileName     = fullFileName
+			, mimetype           = exporterDetail.mimeType
+			, additionalArgs     = arguments.additionalArgs
 		};
 
 		try {
