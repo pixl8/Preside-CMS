@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form i18nBaseUri="cms:dataexport.config.form.">
 	<tab id="default">
-		<fieldset id="default" sortorder="10">
+		<fieldset id="basics" sortorder="10">
 			<field binding="saved_export.label"       sortorder="10" />
 			<field binding="saved_export.file_name"   sortorder="20" />
 			<field binding="saved_export.exporter"    sortorder="30" />
