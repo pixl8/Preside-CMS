@@ -355,7 +355,7 @@ component {
 		settings.adminRoles.emailcentremanager = [ "cms.access", "emailCenter.*", "!emailCenter.queue.*" ];
 		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
-		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate" ];
+		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate", "savedExport.read" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
