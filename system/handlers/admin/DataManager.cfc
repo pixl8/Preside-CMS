@@ -126,6 +126,14 @@ component extends="preside.system.base.AdminHandler" {
 				}
 			}
 
+			if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForBuildAjaxListingLink" ) ) {
+				args.exportFilterString = customizationService.runCustomization(
+					  objectName = objectName
+					, action     = "getAdditionalQueryStringForBuildAjaxListingLink"
+					, args       = args
+				);
+			}
+
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
 
@@ -1244,37 +1252,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function saveExportAction( event, rc, prc ) {
-		if ( !isFeatureEnabled( "dataexport" ) ) {
-			event.notFound();
-		}
-
-		var objectName = prc.objectName ?: "";
-
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
-
-		var formData = {
-			  exporter          = rc.exporter          ?: ""
-			, exportFields      = rc.exportFields      ?: ""
-			, fieldnames        = rc.fieldnames        ?: ""
-			, filename          = rc.filename          ?: ""
-			, description       = rc.description       ?: ""
-			, filterExpressions = rc.filterExpressions ?: ""
-			, object            = rc.object            ?: ""
-			, orderby           = rc.orderby           ?: ""
-			, savedFilters      = rc.savedFilters      ?: ""
-			, searchQuery       = rc.searchQuery       ?: ""
-		};
-
-
-		if ( isEmpty( formData.exporter ) or isEmpty( formData.object ) ) {
-			messageBox.error( translateResource( uri="cms:datamanager.saveexport.error" ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
-		}
-
-		setNextEvent( url=event.buildAdminLink( linkto="dataExport.saveExport" ), persistStruct=formData );
-	}
-
 	public void function savedExportDownload( event, rc, prc ) {
 		var recordId = rc.id ?: "";
 
@@ -1287,6 +1264,7 @@ component extends="preside.system.base.AdminHandler" {
 					, "object_name"
 					, "fields"
 					, "exporter"
+					, "filter_string"
 					, "filter"
 					, "saved_filter"
 					, "order_by"
@@ -1295,14 +1273,15 @@ component extends="preside.system.base.AdminHandler" {
 			);
 
 			if ( savedExportDetail.recordcount ) {
-				rc.exporter          = savedExportDetail.exporter;
-				rc.object            = savedExportDetail.object_name;
-				rc.exportFields      = savedExportDetail.fields;
-				rc.fileName          = savedExportDetail.file_name;
-				rc.filterExpressions = savedExportDetail.filter;
-				rc.savedFilters      = savedExportDetail.saved_filter;
-				rc.orderBy           = savedExportDetail.order_by;
-				rc.searchQuery       = savedExportDetail.search_query;
+				rc.exporter           = savedExportDetail.exporter;
+				rc.object             = savedExportDetail.object_name;
+				rc.exportFields       = savedExportDetail.fields;
+				rc.fileName           = savedExportDetail.file_name;
+				rc.exportFilterString = savedExportDetail.filter_string;
+				rc.filterExpressions  = savedExportDetail.filter;
+				rc.savedFilters       = savedExportDetail.saved_filter;
+				rc.orderBy            = savedExportDetail.order_by;
+				rc.searchQuery        = savedExportDetail.search_query;
 
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
@@ -2892,31 +2871,33 @@ component extends="preside.system.base.AdminHandler" {
 		  required any    event
 		, required struct rc
 		, required struct prc
-		,          string exporter          = ( rc.exporter          ?: 'CSV' )
-		,          string objectName        = ( rc.object            ?: '' )
-		,          string exportFields      = ( rc.exportFields      ?: '' )
-		,          string filename          = ( rc.fileName          ?: '' )
-		,          string filterExpressions = ( rc.filterExpressions ?: '' )
-		,          string savedFilters      = ( rc.savedFilters      ?: '' )
-		,          string orderBy           = ( rc.orderBy           ?: '' )
-		,          array  extraFilters      = []
-		,          string returnUrl         = cgi.http_referer
-		,          struct additionalArgs    = {}
+		,          string exporter           = ( rc.exporter           ?: 'CSV' )
+		,          string objectName         = ( rc.object             ?: '' )
+		,          string exportFields       = ( rc.exportFields       ?: '' )
+		,          string filename           = ( rc.fileName           ?: '' )
+		,          string filterExpressions  = ( rc.filterExpressions  ?: '' )
+		,          string exportFilterString = ( rc.exportFilterString ?: '' )
+		,          string savedFilters       = ( rc.savedFilters       ?: '' )
+		,          string orderBy            = ( rc.orderBy            ?: '' )
+		,          array  extraFilters       = []
+		,          string returnUrl          = cgi.http_referer
+		,          struct additionalArgs     = {}
 
 	) {
 		var exporterDetail = dataExportService.getExporterDetails( arguments.exporter );
 		var selectFields   = arguments.exportFields.listToArray();
 		var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
 		var args           = {
-			  exporter       = exporter
-			, objectName     = objectName
-			, selectFields   = selectFields
-			, extraFilters   = arguments.extraFilters
-			, autoGroupBy    = true
-			, orderBy        = arguments.orderBy
-			, exportFileName = fullFileName
-			, mimetype       = exporterDetail.mimeType
-			, additionalArgs = arguments.additionalArgs
+			  exporter           = exporter
+			, objectName         = objectName
+			, selectFields       = selectFields
+			, extraFilters       = arguments.extraFilters
+			, autoGroupBy        = true
+			, orderBy            = arguments.orderBy
+			, exportFilterString = arguments.exportFilterString
+			, exportFileName     = fullFileName
+			, mimetype           = exporterDetail.mimeType
+			, additionalArgs     = arguments.additionalArgs
 		};
 
 		try {
@@ -2977,23 +2958,25 @@ component extends="preside.system.base.AdminHandler" {
 		  required any    event
 		, required struct rc
 		, required struct prc
-		,          string exporter          = ( rc.exporter          ?: 'CSV' )
-		,          string objectName        = ( rc.object            ?: '' )
-		,          string exportFields      = ( rc.exportFields      ?: '' )
-		,          string filename          = ( rc.filename          ?: '' )
-		,          string filterExpressions = ( rc.filterExpressions ?: '' )
-		,          string savedFilters      = ( rc.savedFilters      ?: '' )
-		,          string orderBy           = ( rc.orderBy           ?: '' )
+		,          string exporter           = ( rc.exporter           ?: 'CSV' )
+		,          string objectName         = ( rc.object             ?: '' )
+		,          string exportFields       = ( rc.exportFields       ?: '' )
+		,          string filename           = ( rc.filename           ?: '' )
+		,          string filterExpressions  = ( rc.filterExpressions  ?: '' )
+		,          string exportFilterString = ( rc.exportFilterString ?: '' )
+		,          string savedFilters       = ( rc.savedFilters       ?: '' )
+		,          string orderBy            = ( rc.orderBy            ?: '' )
 
 	) {
 		var newSavedReportId = "";
 		var data             =  {
-			  label       = arguments.filename
-			, file_name   = arguments.filename
-			, object_name = arguments.objectName
-			, fields      = arguments.exportFields
-			, exporter    = arguments.exporter
-			, order_by    = arguments.orderBy
+			  label         = arguments.filename
+			, file_name     = arguments.filename
+			, object_name   = arguments.objectName
+			, fields        = arguments.exportFields
+			, exporter      = arguments.exporter
+			, order_by      = arguments.orderBy
+			, filter_string = arguments.exportFilterString
 		};
 
 		if ( isFeatureEnabled( "rulesEngine" ) ) {
@@ -3002,7 +2985,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		try {
-			newSavedReportId = presideObjectService.insertData( objectName="saved_report", data=data );
+			newSavedReportId = presideObjectService.insertData( objectName="saved_export", data=data );
 		} catch ( any e ) {
 			logError( e );
 		}

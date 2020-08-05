@@ -262,7 +262,7 @@ component {
 	}
 
 	private string function buildSaveExportActionLink( event, rc, prc, args={} ) {
-		return event.buildAdminLink( linkTo = "datamanager.saveExportAction", queryString=args.queryString ?: "" );
+		return event.buildAdminLink( linkTo = "dataexport.saveExportAction", queryString=args.queryString ?: "" );
 	}
 
 	private string function buildSavedExportDownloadLink( event, rc, prc, args={} ) {

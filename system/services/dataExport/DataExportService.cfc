@@ -9,11 +9,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @dataExporterReader.inject dataExporterReader
+	 * @dataExporterReader.inject              dataExporterReader
+	 * @dataManagerCustomizationService.inject dataManagerCustomizationService
 	 *
 	 */
-	public any function init( required any dataExporterReader ) {
+	public any function init( required any dataExporterReader, required any dataManagerCustomizationService ) {
 		_setExporters( arguments.dataExporterReader.readExportersFromDirectories() );
+		_setDataManagerCustomizationService( arguments.dataManagerCustomizationService );
 		_setupExporterMap();
 
 		return this;
@@ -41,6 +43,7 @@ component {
 		,          array   selectFields       = []
 		,          numeric exportPagingSize   = 1000
 		,          any     recordsetDecorator = ""
+		,          string  exportFilterString = ""
 		,          string  exportFileName     = ""
 		,          string  orderBy            = ""
 		,          string  mimetype           = ""
@@ -73,13 +76,29 @@ component {
 		selectDataArgs.delete( "meta" );
 		selectDataArgs.delete( "fieldTitles" );
 		selectDataArgs.delete( "exportPagingSize" );
-		selectDataArgs.maxRows     = arguments.exportPagingSize;
-		selectDataArgs.startRow    = 1;
-		selectDataArgs.autoGroupBy = true;
-		selectDataArgs.useCache    = false;
+		selectDataArgs.delete( "exportFilterString" );
+		selectDataArgs.maxRows      = arguments.exportPagingSize;
+		selectDataArgs.startRow     = 1;
+		selectDataArgs.autoGroupBy  = true;
+		selectDataArgs.useCache     = false;
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
 		selectDataArgs.distinct     = true;
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
+		selectDataArgs.extraFilters = [];
+
+		if ( len( arguments.exportFilterString ) ) {
+			var rc = $getRequestContext().getCollection();
+			var keyValues = listToArray( arguments.exportFilterString, "&" );
+			for( var keyValue in keyValues ) {
+				rc[ listFirst( keyValue, "=" ) ] = listRest( keyValue, "=" );
+			}
+		}
+
+		_getDataManagerCustomizationService().runCustomization(
+			  objectName = arguments.objectName
+			, action     = "preFetchRecordsForGridListing"
+			, args       = selectDataArgs
+		);
 
 		if ( canReportProgress || canLog ) {
 			var totalRecordsToExport = presideObjectService.selectData(
@@ -387,6 +406,13 @@ component {
 	}
 	private void function _setExporters( required array exporters ) {
 		_exporters = arguments.exporters;
+	}
+
+	private any function _getDataManagerCustomizationService() {
+		return _dataManagerCustomizationService;
+	}
+	private void function _setDataManagerCustomizationService( required any dataManagerCustomizationService ) {
+		_dataManagerCustomizationService = arguments.dataManagerCustomizationService;
 	}
 
 	private struct function _getExporterMap() {

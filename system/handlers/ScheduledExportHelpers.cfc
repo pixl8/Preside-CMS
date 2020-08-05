@@ -15,15 +15,16 @@ component {
 			if ( !isEmpty( savedExportDetail ) ) {
 				var exporterDetail    = dataExportService.getExporterDetails( savedExportDetail.exporter ?: "CSV" );
 				var configArgs        = {
-					  exporter       = savedExportDetail.exporter ?: "CSV"
-					, objectName     = savedExportDetail.object_name
-					, selectFields   = listToArray( savedExportDetail.fields       ?: "" )
-					, savedFilters   = listToArray( savedExportDetail.saved_filter ?: "" )
-					, autoGroupBy    = true
-					, orderBy        = savedExportDetail.order_by
-					, exportFileName = savedExportDetail.file_name
-					, mimetype       = exporterDetail.mimeType
-					, extraFilters   = []
+					  exporter           = savedExportDetail.exporter ?: "CSV"
+					, objectName         = savedExportDetail.object_name
+					, selectFields       = listToArray( savedExportDetail.fields       ?: "" )
+					, savedFilters       = listToArray( savedExportDetail.saved_filter ?: "" )
+					, exportFilterString = savedExportDetail.filter_string ?: ""
+					, autoGroupBy        = true
+					, orderBy            = savedExportDetail.order_by
+					, exportFileName     = savedExportDetail.file_name
+					, mimetype           = exporterDetail.mimeType
+					, extraFilters       = []
 				};
 
 				try {

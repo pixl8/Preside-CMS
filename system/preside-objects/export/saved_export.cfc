@@ -11,6 +11,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="object_name" required="true"               control="none" adminRenderer="objectName" renderer="objectName";
 	property name="fields"      required="true"               control="none" maxlength=5000                                    autofilter=false;
 	property name="exporter"    required="true" default="CSV" control="dataExporterPicker"                                     autofilter=false;
+	property name="filter_string"                             control="none" type="string" dbtype="varchar" maxlength=1000     autofilter=false;
 	property name="filter"                                    control="none" type="string" dbtype="text" feature="rulesEngine" autofilter=false;
 	property name="saved_filter"                              control="none" type="string" dbtype="text" feature="rulesEngine" autofilter=false;
 	property name="order_by"                                  control="none"                                                   autofilter=false;
