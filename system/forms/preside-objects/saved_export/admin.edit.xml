@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form i18nBaseUri="cms:dataexport.config.form.">
-	<tab id="default">
+	<tab id="basics">
 		<fieldset id="basics" sortorder="10">
 			<field binding="saved_export.label"       sortorder="10" />
 			<field binding="saved_export.file_name"   sortorder="20" />
 			<field binding="saved_export.exporter"    sortorder="30" />
 			<field binding="saved_export.description" sortorder="40" maxlength="2000" />
 		</fieldset>
-		<fieldset id="schedule" sortorder="20">
-			<field binding="saved_export.recipients" sortorder="50" />
-			<field binding="saved_export.schedule"   sortorder="60" defaultValue="disabled" />
+	</tab>
+	<tab id="filters" sortorder="20">
+		<fieldset id="fields" sortorder="10">
+			<field binding="saved_export.fields" control="dataExportFieldPicker" required="true" sortorder="10" />
+		</fieldset>
+		<fieldset id="filters" sortorder="20">
+			<field binding="saved_export.saved_filter" control="filterPicker" required="false" sortorder="10" multiple="true" />
+		</fieldset>
+	</tab>
+	<tab id="schedule" sortorder="30">
+		<fieldset id="schedule" sortorder="10">
+			<field binding="saved_export.recipients" sortorder="10" />
+			<field binding="saved_export.schedule"   sortorder="20" defaultValue="disabled" required="false" />
 		</fieldset>
 	</tab>
 </form>

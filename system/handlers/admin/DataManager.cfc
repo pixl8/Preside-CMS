@@ -1262,16 +1262,16 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, checkOperations=false );
 
 		var formData = {
-			  exporter          = rc.exporter          ?: ""
-			, exportFields      = rc.exportFields      ?: ""
-			, fieldnames        = rc.fieldnames        ?: ""
-			, filename          = rc.filename          ?: ""
-			, description       = rc.description       ?: ""
-			, filterExpressions = rc.filterExpressions ?: ""
-			, object            = rc.object            ?: ""
-			, orderby           = rc.orderby           ?: ""
-			, savedFilters      = rc.savedFilters      ?: ""
-			, searchQuery       = rc.searchQuery       ?: ""
+			  exporter           = rc.exporter          ?: ""
+			, exportFields       = rc.exportFields      ?: ""
+			, fieldnames         = rc.fieldnames        ?: ""
+			, exportFilterString = rc.exportFilterString ?: ""
+			, description        = rc.description       ?: ""
+			, filterExpressions  = rc.filterExpressions ?: ""
+			, object             = rc.object            ?: ""
+			, orderby            = rc.orderby           ?: ""
+			, savedFilters       = rc.savedFilters      ?: ""
+			, searchQuery        = rc.searchQuery       ?: ""
 		};
 
 

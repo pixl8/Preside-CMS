@@ -30,8 +30,11 @@ component extends="preside.system.base.adminHandler" {
 			var i18nBase = presideObjectService.getResourceBundleUriRoot( rc.object );
 			prc.pageSubtitle = translateResource( uri="cms:savedexport.saveexport.subtitle",  data=[ translateResource( uri=i18nBase & "title.singular", defaultValue="" ) ] );
 
-			rc.filename = translateResource( uri=i18nBase & "title.singular", defaultValue=rc.filename ?: "" );
-			rc.label    = ( rc.filename ?: "" ) & " saved export";
+			if ( !Len( Trim( rc.filename ?: "" ) ) ) {
+				rc.filename = slugify( translateResource( uri=i18nBase & "title", defaultValue="" ) );
+			}
+
+			rc.filterObject = rc.object;
 		}
 	}
 
