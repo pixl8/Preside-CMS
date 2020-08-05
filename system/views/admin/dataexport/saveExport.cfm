@@ -1,5 +1,5 @@
 <cfoutput>
-	<form class="form-horizontal save-export-config-form" data-auto-focus-form="true" method="post" action="#event.buildAdminLink( objectName=rc.object, operation="saveExportAction" )#" id="save-export-config-form">
+	<form class="form-horizontal save-export-config-form" data-auto-focus-form="true" method="post" action="#event.buildAdminLink( linkto="dataexport.saveExportAction" )#" id="save-export-config-form">
 		#renderForm(
 			  formName = "dataExport.saveExportConfiguration"
 			, context  = "admin"
