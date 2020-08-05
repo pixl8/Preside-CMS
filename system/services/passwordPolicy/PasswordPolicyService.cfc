@@ -178,10 +178,10 @@ component displayName="Password Policy Service" {
 			if ( !isEmpty( arguments.password ) ) {
 				var upperCaseChars = ReReplace( arguments.password, "[^A-Z]", "", "all" );
 				if ( upperCaseChars.len() < policy.min_uppercase ) {
-					message.append( $translateResource( uri="cms:passwordpolicy.uppercaseLenghtRequired.message", data=[ policy.min_uppercase ] ) );
+					message.append( $translateResource( uri="cms:passwordpolicy.uppercaseLengthRequired.message", data=[ policy.min_uppercase ] ) );
 				}
 			} else {
-				message.append( $translateResource( uri="cms:passwordpolicy.uppercaseLenghtRequired.message", data=[ policy.min_uppercase ] ) );
+				message.append( $translateResource( uri="cms:passwordpolicy.uppercaseLengthRequired.message", data=[ policy.min_uppercase ] ) );
 			}
 		}
 
