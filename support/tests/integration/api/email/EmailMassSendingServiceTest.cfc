@@ -563,7 +563,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockQueueDao.$( "selectData" ).$args(
 			  selectFields        = [ "recipient", "template" ]
 			, getSqlAndParamsOnly = true
-		).$results( { sql=dummySubQuery } );
+		).$results( { sql=dummySubQuery, params=[] } );
 
 		filter.extraJoins = [{
 			  type              = "left"
