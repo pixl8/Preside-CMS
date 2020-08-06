@@ -949,9 +949,7 @@ component displayName="Preside Object Service" {
 		args.selectFields    = [ "1" ];
 		args.recordCountOnly = true;
 
-		var check = selectData( argumentCollection=args );
-
-		return ( isBoolean( check ) && booleanFormat( check ) );
+		return selectData( argumentCollection=args ) > 0;
 	}
 
 	/**
