@@ -253,6 +253,9 @@ component displayName="Preside Object Service" {
 				, originalTableName  = args.objMeta.tableName
 				, distinct           = args.distinct
 			);
+			if ( arguments.recordCountOnly ) {
+				args.result = Val( args.result.record_count ?: "" );
+			}
 		} else {
 			var sql = args.adapter.getSelectSql(
 				  argumentCollection = args
@@ -944,11 +947,12 @@ component displayName="Preside Object Service" {
 	 * @objectName.hint Name of the object in which the records may or may not exist
 	 */
 	public boolean function dataExists( required string  objectName ) autodoc=true {
-		var args = arguments;
-		args.useCache     = false;
-		args.selectFields = [ "1" ];
-
-		return selectData( argumentCollection=args ).recordCount;
+		return selectData(
+			  argumentCollection = arguments
+			, useCache           = false
+			, selectFields       = [ "1" ]
+			, recordCountOnly    = true
+		) > 0;
 	}
 
 	/**
@@ -2903,6 +2907,7 @@ component displayName="Preside Object Service" {
 		, required numeric maxRows
 		, required numeric startRow
 		,          boolean distinct = false
+		,          boolean recordCountOnly = false
 	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
@@ -2955,6 +2960,10 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postPrepareVersionSelect", args );
 
 		sql = adapter.getSelectSql( argumentCollection=args );
+
+		if ( arguments.recordCountOnly ) {
+			sql = adapter.getCountSql( sql );
+		}
 
 		return _runSql( sql=sql, dsn=versionObj.dsn, params=arguments.params );
 	}
