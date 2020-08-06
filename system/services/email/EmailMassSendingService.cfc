@@ -367,15 +367,19 @@ component {
 	}
 
 	private struct function _getDuplicateCheckFilter( required string recipientObject, required string templateId ) {
-		var filter = { filter="already_queued_check.recipient is null", filterParams={ template={ type="cf_sql_varchar", value=templateId } } };
-		var subQuery = $getPresideObject( "email_mass_send_queue" ).selectData(
+		var filter       = { filter="already_queued_check.recipient is null", filterParams={ template={ type="cf_sql_varchar", value=templateId } } };
+		var sqlAndParams = $getPresideObject( "email_mass_send_queue" ).selectData(
 			  selectFields        = [ "recipient", "template" ]
 			, getSqlAndParamsOnly = true
-		).sql;
+		);
+
+		for ( var _param in sqlAndParams.params ) {
+			filter.filterParams[ _param.name ] = _param;
+		}
 
 		filter.extraJoins = [{
 			  type              = "left"
-			, subQuery          = subQuery
+			, subQuery          = sqlAndParams.sql
 			, subQueryAlias     = "already_queued_check"
 			, subQueryColumn    = "recipient"
 			, joinToTable       = arguments.recipientObject
