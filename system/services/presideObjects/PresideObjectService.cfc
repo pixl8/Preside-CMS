@@ -945,10 +945,13 @@ component displayName="Preside Object Service" {
 	 */
 	public boolean function dataExists( required string  objectName ) autodoc=true {
 		var args = arguments;
-		args.useCache     = false;
-		args.selectFields = [ "1" ];
+		args.useCache        = false;
+		args.selectFields    = [ "1" ];
+		args.recordCountOnly = true;
 
-		return selectData( argumentCollection=args ).recordCount;
+		var check = selectData( argumentCollection=args );
+
+		return ( isBoolean( check ) && booleanFormat( check ) );
 	}
 
 	/**
