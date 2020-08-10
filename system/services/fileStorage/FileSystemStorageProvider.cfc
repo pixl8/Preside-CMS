@@ -225,7 +225,6 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 		if ( arguments.detectLegacyLowerCase && !FileExists( _getRootPath( argumentCollection=arguments ) & cleaned ) ) {
 			cleaned = LCase( cleaned );
-			systemoutput( cleaned );
 		}
 
 		return cleaned;
