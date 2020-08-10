@@ -2949,15 +2949,15 @@ component extends="preside.system.base.AdminHandler" {
 
 		if( Len( Trim( rc.searchQuery ?: "" ) ) ){
 			try {
-				args.extraFilters.append({
-					  filter       = dataManagerService.buildSearchFilter(
+				args.extraFilters.append(
+					dataManagerService.buildSearchFilter(
 						  q            = rc.searchQuery
 						, objectName   = objectName
 						, gridFields   = _getObjectFieldsForGrid( objectName )
 						, searchFields = dataManagerService.listSearchFields( objectName )
-					  )
-					, filterParams = { q = { type="varchar", value="%" & rc.searchQuery & "%" } }
-				});
+						, expandTerms  = true
+					)
+				);
 			} catch( any e ){}
 		}
 

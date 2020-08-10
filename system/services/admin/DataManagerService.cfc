@@ -401,15 +401,15 @@ component {
 		args.delete( "searchFields" );
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.extraFilters.append({
-				  filter       = buildSearchFilter(
+			args.extraFilters.append(
+				buildSearchFilter(
 					  q            = arguments.searchQuery
 					, objectName   = arguments.objectName
 					, gridFields   = arguments.gridFields
 					, searchFields = arguments.searchFields
-				  )
-				, filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } }
-			});
+					, expandTerms  = true
+				)
+			);
 		}
 
 		if ( arguments.treeView ) {
@@ -626,14 +626,16 @@ component {
 			if ( len( arguments.labelRenderer ) ) {
 				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
-			args.filter       = buildSearchFilter(
-				  q            = arguments.searchQuery
-				, objectName   = arguments.objectName
-				, gridFields   = args.selectFields
-				, labelfield   = labelfield
-				, searchFields = searchFields
+			args.extraFilters.append(
+				buildSearchFilter(
+					  q            = arguments.searchQuery
+					, objectName   = arguments.objectName
+					, gridFields   = args.selectFields
+					, labelfield   = labelfield
+					, searchFields = searchFields
+					, expandTerms  = true
+				)
 			);
-			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
 
 		records = _getPresideObjectService().selectData( argumentCollection = args );
