@@ -736,10 +736,6 @@ component {
 		,          array   searchFields = []
 		,          boolean expandTerms  = false
 	) {
-		if ( !$isFeatureEnabled( "expandSearchTerms" ) ) {
-			arguments.expandTerms = false;
-		}
-
 		var field                = "";
 		var fullFieldName        = "";
 		var objName              = "";
