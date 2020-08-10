@@ -930,7 +930,7 @@ component displayName="Preside Super Class" {
 	 * @autodoc true
 	 *
 	 */
-	public void function $getHealthcheckService() {
+	public any function $getHealthcheckService() {
 		return $healthcheckService;
 	}
 
