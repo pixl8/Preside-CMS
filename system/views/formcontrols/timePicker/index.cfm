@@ -16,7 +16,7 @@
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="form-control timepicker" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" />
+		<input name="#inputName#" placeholder="#placeholder#" class="form-control timepicker" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" autocomplete="off" tabindex="#getNextTabIndex()#" />
 		<i class="fa fa-clock-o"></i>
 	</span>
 </cfoutput>
