@@ -44,6 +44,7 @@
                 clear:    'fa fa-trash'
             },
             format: 'HH:mm',
+            useCurrent: false,
             sideBySide:true,
             locale: ( $(this).data( "language" ) || "en" )
         });
