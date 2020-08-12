@@ -817,12 +817,13 @@
 
             fillTime = function () {
                 var toggle, newDate, timeComponents = widget.find('.timepicker span[data-time-component]');
+                newDate = unset ? date.clone().hours(0).minutes(0).seconds(0).milliseconds(0) : date.clone();
 
                 if (!use24Hours) {
                     toggle = widget.find('.timepicker [data-action=togglePeriod]');
-                    newDate = date.clone().add((date.hours() >= 12) ? -12 : 12, 'h');
+                    newDate.add((newDate.hours() >= 12) ? -12 : 12, 'h');
 
-                    toggle.text(date.format('A'));
+                    toggle.text(newDate.format('A'));
 
                     if (isValid(newDate, 'h')) {
                         toggle.removeClass('disabled');
@@ -830,9 +831,9 @@
                         toggle.addClass('disabled');
                     }
                 }
-                timeComponents.filter('[data-time-component=hours]').text(date.format(use24Hours ? 'HH' : 'hh'));
-                timeComponents.filter('[data-time-component=minutes]').text(date.format('mm'));
-                timeComponents.filter('[data-time-component=seconds]').text(date.format('ss'));
+                timeComponents.filter('[data-time-component=hours]').text(newDate.format(use24Hours ? 'HH' : 'hh'));
+                timeComponents.filter('[data-time-component=minutes]').text(newDate.format('mm'));
+                timeComponents.filter('[data-time-component=seconds]').text(newDate.format('ss'));
 
                 fillHours();
                 fillMinutes();
