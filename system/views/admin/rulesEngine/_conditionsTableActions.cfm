@@ -9,6 +9,12 @@
 			</a>
 		</cfif>
 
+		<cfif hasCmsPermission( "rulesEngine.clone" )>
+			<a class="blue" href="#event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=#args.id#")#" data-context-key="e">
+				<i class="fa fa-copy bigger-130"></i>
+			</a>
+		</cfif>
+
 		<cfif hasCmsPermission( "rulesEngine.delete" )>
 			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="rulesEngine.deleteConditionAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:rulesengine.deleteCondition.prompt', data=[args.condition_name] )#">
 				<i class="fa fa-trash-o bigger-130"></i>

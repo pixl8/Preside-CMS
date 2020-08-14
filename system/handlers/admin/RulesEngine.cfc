@@ -173,6 +173,73 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function cloneCondition( event, rc, prc, args={} ) {
+		_checkPermissions( argumentCollection=arguments, key="clone" );
+
+		var id = rc.id ?: "";
+
+
+		prc.record = rulesEngineConditionService.getConditionRecord( id );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:rulesEngine.condition.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+		rc.context = prc.record.context;
+		rc.filter_object = prc.record.filter_object;
+
+		if ( Len( Trim( rc.filter_object ) ) ) {
+			prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.filter.page.title", data=[ prc.record.condition_name ] );
+			prc.pageSubTitle = translateResource( uri="cms:rulesEngine.clone.filter.page.subtitle", data=[ prc.record.condition_name ] );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:rulesEngine.clone.filter.breadcrumb.title", data=[ prc.record.condition_name ] )
+				, link  = event.buildAdminLink( linkTo="rulesengine.cloneCondition", queryString="id=" & id )
+			);
+
+		} else {
+			prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.condition.page.title", data=[ prc.record.condition_name ] );
+			prc.pageSubTitle = translateResource( uri="cms:rulesEngine.clone.condition.page.subtitle", data=[ prc.record.condition_name ] );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:rulesEngine.clone.condition.breadcrumb.title", data=[ prc.record.condition_name ] )
+				, link  = event.buildAdminLink( linkTo="rulesengine.cloneCondition", queryString="id=" & id )
+			);
+		}
+	}
+
+	public void function cloneConditionAction( event, rc, prc ) {
+		var conditionId = rc.id ?: "";
+		var object      = "rules_engine_condition";
+		var formName    = "preside-objects.#object#.admin.clone";
+		var formData    = event.getCollectionForForm( formName );
+
+		_checkPermissions( argumentCollection=arguments, key="clone" );
+
+		_conditionToFilterCheck( argumentCollection=arguments, action="clone", formData=formData );
+		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+			rc.context = "";
+
+			formName = "preside-objects.#object#.admin.clone.filter";
+		} else if ( Len( Trim( rc.context ?: "" ) ) ) {
+			rc.filter_object = "";
+		}
+
+		runEvent(
+			  event          = "admin.DataManager._cloneRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object        = "rules_engine_condition"
+				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=" & conditionId )
+				, successAction = "rulesEngine"
+				, formName      = formName
+				, audit         = true
+				, auditType     = "rulesEngine"
+				, auditAction   = "clone_rules_engine_condition"
+			}
+		);
+	}
+
 	public void function convertConditionToFilter( event, rc, prc ) {
 		var action        = rc.saveAction ?: "";
 		var permissionKey = "";
