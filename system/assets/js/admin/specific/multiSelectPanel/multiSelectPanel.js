@@ -13,13 +13,13 @@
 	};
 
 	$mutliSelectPanel.each( function(event) {
-		var curPanelId     = $(this).attr('id') ;
-		var selectAllBtn   = $(this).find( '#select-all-btn' );
-		var selectBtn      = $(this).find( '#select-btn' );
-		var deselectAllBtn = $(this).find( '#deselect-all-btn' );
-		var deselectBtn    = $(this).find( '#deselect-btn' );
-		var sortUpBtn      = $(this).find( 'a#sort-up' );
-		var sortDownBtn    = $(this).find( 'a#sort-down' );
+		var curPanelId     = $(this).attr('id')
+		  , selectAllBtn   = $(this).find( '#select-all-btn' )
+		  , selectBtn      = $(this).find( '#select-btn' )
+		  , deselectAllBtn = $(this).find( '#deselect-all-btn' )
+		  , deselectBtn    = $(this).find( '#deselect-btn' )
+		  , sortUpBtn      = $(this).find( 'a#sort-up' )
+		  , sortDownBtn    = $(this).find( 'a#sort-down' );
 
 		// SORTING ACTIONS
 		sortUpBtn.on( 'click', function(event) {
