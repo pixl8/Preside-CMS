@@ -675,6 +675,7 @@ component displayName="AssetManager Service" {
 		, required string  folder
 		,          struct  assetData         = {}
 		,          boolean ensureUniqueTitle = false
+		,          boolean ignoreAudit       = false
 	) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var asset        = Duplicate( arguments.assetData );
@@ -682,7 +683,7 @@ component displayName="AssetManager Service" {
 		var fileWidth    = fileMetaInfo.width  ?: 0;
 		var fileHeight   = fileMetaInfo.height ?: 0;
 
-		asset.id               = CreateUUId();
+		asset.id               = asset.id ?: CreateUUId();
 		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
 		asset.size             = asset.size  ?: Len( arguments.fileBinary );
@@ -733,12 +734,14 @@ component displayName="AssetManager Service" {
 
 		_autoQueueDerivatives( asset.id, fileTypeInfo.typeName, fileTypeInfo.groupName );
 
-		$audit(
-			  action   = "add_asset"
-			, type     = "assetmanager"
-			, detail   = asset
-			, recordId = asset.id
-		);
+		if( !( isBoolean( arguments.ignoreAudit ?: "" ) && arguments.ignoreAudit )  ){
+			$audit(
+				  action   = "add_asset"
+				, type     = "assetmanager"
+				, detail   = asset
+				, recordId = asset.id
+			);
+		}
 
 		return asset.id;
 	}
