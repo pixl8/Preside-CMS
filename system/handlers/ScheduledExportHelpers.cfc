@@ -35,13 +35,13 @@ component {
 				} catch( any e ){}
 
 				for( var filter in configArgs.savedFilters ) {
-						try {
-							configArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
-								  objectName = savedExportDetail.object_name
-								, filterId   = filter
-							) );
-						} catch( any e ){}
-					}
+					try {
+						configArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
+							  objectName = savedExportDetail.object_name
+							, filterId   = filter
+						) );
+					} catch( any e ){}
+				}
 
 				if ( len( trim( savedExportDetail.search_query ?: "" ) ) ) {
 					try {
