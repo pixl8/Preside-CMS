@@ -734,7 +734,7 @@ component displayName="AssetManager Service" {
 
 		_autoQueueDerivatives( asset.id, fileTypeInfo.typeName, fileTypeInfo.groupName );
 
-		if( !( isBoolean( arguments.ignoreAudit ?: "" ) && arguments.ignoreAudit )  ){
+		if ( !arguments.ignoreAudit ){
 			$audit(
 				  action   = "add_asset"
 				, type     = "assetmanager"
