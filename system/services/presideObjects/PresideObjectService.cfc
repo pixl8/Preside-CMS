@@ -1693,6 +1693,29 @@ component displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Returns whether or not the given record has draft
+	 *
+	 * @objectName.hint Name of the object you wish to check
+	 * @recordId.hint   ID of the object record you wish to check
+	 */
+	public boolean function objectRecordHasDraft(
+		  required string objectName
+		, required string recordId
+	) autodoc=true {
+		if ( objectUsesDrafts( objectName=arguments.objectName ) ) {
+			return dataExists(
+				  objectName = arguments.objectName
+				, filter     = {
+					  id                  = arguments.recordId
+					, _version_has_drafts = true
+				}
+			);
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns whether or not the given object is configured to create
 	 * versions on insert
 	 *
