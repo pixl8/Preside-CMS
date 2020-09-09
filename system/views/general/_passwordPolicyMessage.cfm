@@ -1,6 +1,7 @@
 <cfscript>
 	detailMessages = args.detailMessages ?: [];
 	customMessage  = args.customMessage  ?: "";
+	renderTitle    = args.renderTitle    ?: true;
 </cfscript>
 
 <cfoutput>
@@ -9,7 +10,9 @@
 	</cfif>
 
 		<cfif !isEmpty( detailMessages )>
-			<h4>#translateResource( "cms:passwordpolicy.title" )#</h4>
+			<cfif renderTitle>
+				<h4>#translateResource( "cms:passwordpolicy.title" )#</h4>
+			</cfif>
 
 			<ul>
 				<cfloop array="#detailMessages#" item="message">
