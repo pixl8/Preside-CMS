@@ -107,7 +107,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  selectFields       = [ "_translation_language" ]
 					, objectName         = "_translation_" & objectName
 					, filter             = { _translation_source_record=recordId }
-					, allowDraftVersions = true
+					, allowDraftVersions = false
 				).$results( mockDbResult );
 
 				expect( svc.getTranslationStatus( objectName, recordId ) ).toBe( expectedResult );
