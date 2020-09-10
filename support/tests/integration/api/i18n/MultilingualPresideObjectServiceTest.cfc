@@ -73,7 +73,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				];
 
 				svc.$( "listLanguages" ).$args( includeDefault=false ).$results( mockLanguages );
-				mockPresideObjectService.$( "objectIsVersioned" ).$args( objectName ).$results( true )
+				mockPresideObjectService.$( "objectUsesDrafts" ).$args( objectName ).$results( true )
 				mockPresideObjectService.$( "selectData" ).$args(
 					  selectFields       = [ "_translation_language", "_version_is_draft", "_version_has_drafts" ]
 					, objectName         = "_translation_" & objectName
@@ -102,7 +102,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				];
 
 				svc.$( "listLanguages" ).$args( includeDefault=false ).$results( mockLanguages );
-				mockPresideObjectService.$( "objectIsVersioned" ).$args( objectName ).$results( false )
+				mockPresideObjectService.$( "objectUsesDrafts" ).$args( objectName ).$results( false )
 				mockPresideObjectService.$( "selectData" ).$args(
 					  selectFields       = [ "_translation_language" ]
 					, objectName         = "_translation_" & objectName
