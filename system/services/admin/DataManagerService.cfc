@@ -669,7 +669,7 @@ component {
 			}
 		}
 
-		return Hash( max( lastModified, rendererCacheDate ) );
+		return Hash( max( parseDateTime(lastModified), rendererCacheDate ) );
 	}
 
 	public boolean function areDraftsEnabledForObject( required string objectName ) {
