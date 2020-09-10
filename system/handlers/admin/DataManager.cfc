@@ -161,7 +161,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getListingMultiActions( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
+		var objectName  = args.objectName ?: "";
+		var objectTitle = prc.objectTitle ?: "";
 
 		args.actions             = [];
 		args.batchEditableFields = [];
@@ -170,6 +171,8 @@ component extends="preside.system.base.AdminHandler" {
 			args.batchEditableFields = prc.batchEditableFields ?: [];
 		} else {
 			args.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
+
+			objectTitle = translateResource( uri="preside-objects.#objectName#:title" );
 		}
 
 		if ( ArrayLen( args.batchEditableFields ) ) {
@@ -180,7 +183,7 @@ component extends="preside.system.base.AdminHandler" {
 			args.actions.append({
 				  class     = "btn-danger"
 				, label     = translateResource( uri="cms:datamanager.deleteSelected.title" )
-				, prompt    = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ prc.objectTitle ?: "" ] )
+				, prompt    = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ objectTitle ] )
 				, iconClass = "fa-trash-o"
 				, name      = "delete"
 				, globalKey = "d"
@@ -188,7 +191,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		customizationService.runCustomization(
-			  objectName     = args.objectName ?: ""
+			  objectName     = objectName
 			, action         = "getExtraListingMultiActions"
 			, args           = args
 		);
