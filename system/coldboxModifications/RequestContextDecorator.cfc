@@ -1089,8 +1089,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		writeOutput( contentOutput );
 		abort;
 	}
@@ -1101,8 +1101,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		writeOutput( contentOutput );
 		abort;
 	}
