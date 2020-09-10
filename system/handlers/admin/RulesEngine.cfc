@@ -65,9 +65,10 @@ component extends="preside.system.base.AdminHandler" {
 		var object   = "rules_engine_condition";
 		var formName = "preside-objects.#object#.admin.add";
 		var formData = event.getCollectionForForm( formName );
+		var context  = rc.context ?: "";
 
 		formData._addAnother = rc._addAnother ?: 0;
-		formData.context     = rc.context     ?: "";
+		formData.context     = context;
 
 		_conditionToFilterCheck( argumentCollection=arguments, action="add", formData=formData );
 
@@ -85,7 +86,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object            = object
-				, errorUrl          = event.buildAdminLink( "rulesEngine.addCondition" )
+				, errorUrl          = event.buildAdminLink( linkTo="rulesEngine.addCondition", queryString="context=#context#" )
 				, formName          = formName
 				, redirectOnSuccess = false
 				, audit             = true
