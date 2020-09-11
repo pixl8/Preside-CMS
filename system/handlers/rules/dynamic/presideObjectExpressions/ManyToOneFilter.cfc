@@ -51,12 +51,13 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
+		var adapter = presideObjectService.getDbAdapterForObject( arguments.objectName );
 
 		return [ {
-			  filter = "1=1"
+			  filter = "#adapter.escapeEntity( '#subQueryAlias#.id' )# is not null"
 			, filterParams = subquery.params
 			, extraJoins = [{
-				  type           = "inner"
+				  type           = "left"
 				, subQuery       = subQuery.sql
 				, subQueryAlias  = subQueryAlias
 				, subQueryColumn = "id"
