@@ -37,12 +37,13 @@ component {
 		args.rootPageId=rootPageId;
 
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
-			  rootPage          = rootPageId
-			, depth             = args.depth ?: 3
-			, includeInactive   = event.showNonLiveContent()
-			, activeTree        = activeTree
-			, expandAllSiblings = false
-			, isSubMenu         = true
+			  rootPage            = rootPageId
+			, depth               = args.depth ?: 3
+			, includeInactive     = event.showNonLiveContent()
+			, activeTree          = activeTree
+			, expandAllSiblings   = false
+			, isSubMenu           = true
+			, topLevelSubMenuPage = isBoolean( args.hideTopSibilings ?: "" ) && args.hideTopSibilings ? activeTree[2] : ""
 		);
 
 		return renderView( view="/core/navigation/subNavigation", args=args );
