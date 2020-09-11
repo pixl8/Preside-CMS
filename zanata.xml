@@ -6,5 +6,4 @@
   <project-type>properties</project-type>
   <src-dir>system/i18n</src-dir>
   <trans-dir>system/i18n</trans-dir>
-
 </config>
