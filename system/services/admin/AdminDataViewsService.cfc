@@ -112,6 +112,15 @@ component {
 				case "date":
 					return "date";
 
+				case "int":
+				case "integer":
+				case "smallint":
+				case "bigint":
+					return "integer";
+
+				case "float":
+					return "float";
+
 				case "datetime":
 				case "timestamp":
 					return "datetime";

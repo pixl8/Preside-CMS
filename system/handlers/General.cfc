@@ -43,6 +43,7 @@ component {
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
+		_setLocale( argumentCollection = arguments );
 	}
 
 	public void function notFound( event, rc, prc ) {
@@ -191,6 +192,10 @@ component {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
 		}
+	}
+
+	private void function _setLocale( event, rc, prc ) {
+		SetLocale( getModel( "i18n" ).getFwLocale() );
 	}
 
 	private void function _performDbMigrations() {

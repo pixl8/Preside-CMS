@@ -242,6 +242,12 @@ component {
 						return "date";
 					}
 				break;
+				case "numeric":
+					if ( ( fieldAttributes.dbType ?: "" ) contains "int" ) {
+						return "integer";
+					}
+					return "float";
+				break;
 			}
 		}
 
