@@ -23,8 +23,8 @@
 		  , match    = ""
 		;
 
-		if( typeof $link.data( "confirmationMatch" ) !== "undefined" ) {
-			match =  $link.data( "confirmationMatch" );
+		if( typeof $link.data( "confirmation-match" ) !== "undefined" ) {
+			match =  $link.data( "confirmation-match" );
 
 			$message
 				.append( "<p class=\"help-block\">Please type <code>" + match + "</code> to proceed.</p>" )
