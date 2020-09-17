@@ -1,6 +1,6 @@
 ( function( $ ){
 
-	$("body").on( "click", ".confirmation-prompt", function( e ) {
+	$( "body" ).on( "click", ".confirmation-prompt", function( e ) {
 		e.preventDefault();
 
 		var $link = $( this )
@@ -8,13 +8,13 @@
 		;
 
 		if( !$link.data( "confirmationPrompt" ) ) {
-			title = $link.data( "title" ) || $link.attr("title");
-			title = title.charAt(0).toLowerCase() + title.slice(1);
+			title = $link.data( "title" ) || $link.attr( "title" );
+			title = title.charAt( 0 ).toLowerCase() + title.slice( 1 );
 			var hasChildren = $link.attr( "data-has-children" );
 			if( hasChildren > 0 ) {
-				$link.data( "confirmationPrompt",  i18n.translateResource( "cms:child.confirmation.prompt", { data:[hasChildren,title] } ) );
+				$link.data( "confirmationPrompt",  i18n.translateResource( "cms:child.confirmation.prompt", { data:[ hasChildren, title ] } ) );
 			} else {
-				$link.data( "confirmationPrompt",  i18n.translateResource( "cms:confirmation.prompt", { data:[title] } ) );
+				$link.data( "confirmationPrompt",  i18n.translateResource( "cms:confirmation.prompt", { data:[ title ] } ) );
 			}
 		}
 
@@ -27,7 +27,7 @@
 			match =  $link.data( "confirmation-match" );
 
 			$message
-				.append( "<p class=\"help-block\">Please type <code>" + match + "</code> to proceed.</p>" )
+				.append( "<p class=\"help-block\">" + i18n.translateResource( "cms:confirmation.prompt.please.type.message", { data:[ "<code>" + match + "</code>" ] } ) + "</p>" )
 				.append( $input )
 			;
 		}
@@ -37,10 +37,10 @@
 			, message : $message
 			, buttons : {
 				  cancel  : {
-				  	label: 'Cancel'
+				  	label: i18n.translateResource( "cms:confirmation.prompt.cancel.button" )
 				  }
 				, confirm : {
-					  label: 'Confirm'
+					  label: i18n.translateResource( "cms:confirmation.prompt.confirm.button" )
 					, callback: function() {
 						var confirmed = false;
 
@@ -71,7 +71,6 @@
 				}
 			}
 		} );
-
 	});
 
 } )( presideJQuery );
