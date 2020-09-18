@@ -19,6 +19,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageIcon  = "plus";
 		prc.pageTitle = addRecordTitle;
+		prc.pageSubtitle = translateResource( uri="preside-objects.formbuilder_question:add.question.step1.page.subtitle" );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.addrecord.breadcrumb.title", data=[ objectTitleSingular ] )
