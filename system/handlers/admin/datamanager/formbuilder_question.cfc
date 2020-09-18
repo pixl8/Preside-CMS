@@ -90,6 +90,29 @@ component extends="preside.system.base.AdminHandler" {
 		return baseFormName;
 	}
 
+	private string function getEditRecordFormName( event, rc, prc, args={} ) {
+		var baseFormName = "preside-objects.formbuilder_question.admin.edit";
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			return formsService.getMergedFormName( baseFormName, itemTypeFormName );
+		}
+
+		return baseFormName;
+	}
+
+	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
+		args.record = args.record ?: {};
+
+		if ( IsJson( args.record.item_type_config ?: "" ) ) {
+			try {
+				StructAppend( args.record, DeserializeJson( args.record.item_type_config ) );
+			} catch( any e ) {
+				logError( e );
+			}
+		}
+	}
+
 	private void function preAddRecordAction( event, rc, prc, args={} ) {
 		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
 
@@ -100,9 +123,20 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	private void function preEditRecordAction( event, rc, prc, args={} ) {
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			var itemFields = event.getCollectionForForm( itemTypeFormName );
+
+			args.formData.item_type_config = SerializeJson( itemFields );
+		}
+	}
+
+
 // helpers
 	private string function _getItemTypeFormAndErrorIfNoItemType( event, rc, prc, args={} ) {
-		var itemType = rc.item_type ?: "";
+		var itemType = rc.item_type ?: ( prc.record.item_type ?: "" );
 
 		if ( !Len( Trim( itemType ) ) ) {
 			var persist = event.getCollectionWithoutSystemVars();
