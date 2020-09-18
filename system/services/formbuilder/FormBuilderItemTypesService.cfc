@@ -59,6 +59,8 @@ component {
 								);
 							} else if ( type.isFormField ) {
 								type.configFormName = standardFormFieldFormName;
+							} else {
+								type.configFormName = type.baseConfigFormName;
 							}
 						} else {
 							type.baseConfigFormName = "";
