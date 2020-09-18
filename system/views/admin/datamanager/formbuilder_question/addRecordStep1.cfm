@@ -11,7 +11,7 @@
 		#translateResource( "preside-objects.formbuilder_question:add.question.step1.intro" )#
 	</p>
 
-	<form class="form form-horizontal" action="#addRecordLink#" method="GET" id="#formId#">
+	<form class="form form-horizontal" action="#addRecordLink#" method="POST" id="#formId#">
 		#renderForm(
 			  formName         = formName
 			, context          = "admin"
