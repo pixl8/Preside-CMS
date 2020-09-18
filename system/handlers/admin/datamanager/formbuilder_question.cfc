@@ -1,6 +1,10 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="datamanagerService" inject="datamanagerService";
+	property name="datamanagerService"          inject="datamanagerService";
+	property name="formBuilderItemTypesService" inject="formBuilderItemTypesService";
+	property name="validationEngine"            inject="validationEngine";
+	property name="formsService"                inject="formsService";
+	property name="messageBox"                  inject="messagebox@cbmessagebox";
 
 // CUSTOM PUBLIC PAGES
 	public void function addRecordStep1( event, rc, prc ) {
@@ -46,6 +50,32 @@ component extends="preside.system.base.AdminHandler" {
 			  linkTo      = "datamanager.formbuilder_question.addRecordStep1"
 			, queryString = args.queryString ?: ""
 		);
+	}
+
+	private string function getAddRecordFormName( event, rc, prc, args={} ) {
+		var itemType = rc.item_type ?: "";
+
+		if ( !Len( Trim( itemType ) ) ) {
+			var persist = event.getCollectionWithoutSystemVars();
+			persist.validationResult = validationEngine.newValidationResult();
+			persist.validationResult.addError( fieldName="item_type", message="cms:validation.required.default" );
+
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+
+			setNextEvent(
+				  url           = event.buildAdminLink( objectName="formbuilder_question", operation="addRecord" )
+				, persistStruct = persist
+			);
+		}
+
+		var baseFormName = "preside-objects.formbuilder_question.admin.add";
+		var itemType     = formBuilderItemTypesService.getItemTypeConfig( itemType );
+
+		if ( isTrue( itemType.configFormExists ?: "" ) && Len( itemType.baseConfigFormName ?: "" ) ) {
+			return formsService.getMergedFormName( baseFormName, itemType.baseConfigFormName );
+		}
+
+		return baseFormName;
 	}
 }
 
