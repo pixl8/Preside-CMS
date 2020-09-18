@@ -8,6 +8,10 @@ component extends="preside.system.base.AdminHandler" {
 
 // CUSTOM PUBLIC PAGES
 	public void function addRecordStep1( event, rc, prc ) {
+		if ( !hasCmsPermission( "formquestions.add" ) ) {
+			event.adminAccessDenied();
+		}
+
 		event.initializeDatamanagerPage( objectName="formbuilder_question" );
 
 		var objectTitleSingular = prc.objectTitle ?: "";
@@ -27,6 +31,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addrecordStep1Action( event, rc, prc ) {
+		if ( !hasCmsPermission( "formquestions.add" ) ) {
+			event.adminAccessDenied();
+		}
+
 		var persist = event.getCollectionForForm();
 		persist.validationResult = validateForms();
 
