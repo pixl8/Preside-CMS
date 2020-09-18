@@ -1,7 +1,9 @@
 /**
- * @feature            formbuilder2
- * @datamanagerEnabled true
- * @labelfield         field_id
+ * @feature                 formbuilder2
+ * @labelfield              field_id
+ * @datamanagerEnabled      true
+ * @datamanagerGridFields   field_id,field_label,item_type,datemodified
+ * @datamanagerSearchFields field_id,field_label,item_type,full_question_text
  */
 component displayname="Form builder: global question" extends="preside.system.base.SystemPresideObject" {
 	property name="field_id"           type="string"  dbtype="varchar" required=true  maxlength=30 uniqueindexes="fieldid";
