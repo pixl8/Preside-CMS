@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.formbuilder_question:">
+	<tab id="default">
+		<fieldset id="core" sortorder="0">
+			<field binding="formbuilder_question.field_id"           sortorder="10" />
+			<field binding="formbuilder_question.field_label"        sortorder="20" />
+			<field binding="formbuilder_question.full_question_text" sortorder="30" control="textarea" />
+			<field binding="formbuilder_question.help_text"          sortorder="40" />
+		</fieldset>
+	</tab>
+</form>
