@@ -113,6 +113,29 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	private string function getCloneRecordFormName( event, rc, prc, args={} ) {
+		var baseFormName = "preside-objects.formbuilder_question.admin.clone";
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			return formsService.getMergedFormName( baseFormName, itemTypeFormName );
+		}
+
+		return baseFormName;
+	}
+
+	private string function preRenderCloneRecordForm( event, rc, prc, args={} ) {
+		args.cloneableData = args.cloneableData ?: {};
+
+		if ( IsJson( args.cloneableData.item_type_config ?: "" ) ) {
+			try {
+				StructAppend( args.cloneableData, DeserializeJson( args.cloneableData.item_type_config ) );
+			} catch( any e ) {
+				logError( e );
+			}
+		}
+	}
+
 	private void function preAddRecordAction( event, rc, prc, args={} ) {
 		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
 
@@ -124,6 +147,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function preEditRecordAction( event, rc, prc, args={} ) {
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			var itemFields = event.getCollectionForForm( itemTypeFormName );
+
+			args.formData.item_type_config = SerializeJson( itemFields );
+		}
+	}
+
+	private void function preCloneRecordAction( event, rc, prc, args={} ) {
 		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
 
 		if ( Len( itemTypeFormName ) ) {
