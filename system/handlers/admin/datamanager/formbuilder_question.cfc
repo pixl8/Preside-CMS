@@ -22,8 +22,27 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		prc.cancelLink    = event.buildAdminLink( objectName="formbuilder_question" );
-		prc.addRecordLink = event.buildAdminLink( linkto="datamanager.addrecord", queryString="object=formbuilder_question" );
+		prc.addRecordLink = event.buildAdminLink( linkto="datamanager.formbuilder_question.addrecordStep1Action" );
 		prc.formName      = "preside-objects.formbuilder_question.admin.add.step1";
+	}
+
+	public void function addrecordStep1Action( event, rc, prc ) {
+		var persist = event.getCollectionForForm();
+		persist.validationResult = validateForms();
+
+		if ( !persist.validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+
+			setNextEvent(
+				  url           = event.buildAdminLink( objectName="formbuilder_question", operation="addRecord" )
+				, persistStruct = persist
+			);
+		}
+
+		setNextEvent( url=event.buildAdminLink(
+			  linkto      = "datamanager.addRecord"
+			, queryString = "object=formbuilder_question&item_type=#( persist.item_type ?: '' )#"
+		) );
 	}
 
 // DATA MANAGER CUSTOMIZATIONS
