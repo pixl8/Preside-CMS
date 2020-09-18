@@ -80,6 +80,28 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function getAddRecordFormName( event, rc, prc, args={} ) {
+		var baseFormName = "preside-objects.formbuilder_question.admin.add";
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			return formsService.getMergedFormName( baseFormName, itemTypeFormName );
+		}
+
+		return baseFormName;
+	}
+
+	private void function preAddRecordAction( event, rc, prc, args={} ) {
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			var itemFields = event.getCollectionForForm( itemTypeFormName );
+
+			args.formData.item_type_config = SerializeJson( itemFields );
+		}
+	}
+
+// helpers
+	private string function _getItemTypeFormAndErrorIfNoItemType( event, rc, prc, args={} ) {
 		var itemType = rc.item_type ?: "";
 
 		if ( !Len( Trim( itemType ) ) ) {
@@ -95,14 +117,12 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
-		var baseFormName = "preside-objects.formbuilder_question.admin.add";
-		var itemType     = formBuilderItemTypesService.getItemTypeConfig( itemType );
-
-		if ( isTrue( itemType.configFormExists ?: "" ) && Len( itemType.baseConfigFormName ?: "" ) ) {
-			return formsService.getMergedFormName( baseFormName, itemType.baseConfigFormName );
+		itemType = formBuilderItemTypesService.getItemTypeConfig( itemType );
+		if ( isTrue( itemType.configFormExists ?: "" ) ) {
+			return itemType.baseConfigFormName ?: "";
 		}
 
-		return baseFormName;
+		return "";
 	}
 }
 
