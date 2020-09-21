@@ -123,10 +123,10 @@ component extends="preside.system.base.AdminHandler" {
 		var formName       = "";
 		var itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
 
-		if ( isTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+		if ( isTrue( itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
 			formName = "formbuilder.item-types.formfieldv2";
 		} else {
-			formName = prc.itemTypeConfig.configFormName ?: "";
+			formName = itemTypeConfig.configFormName ?: "";
 		}
 
 		var validationResult = validateForm( formName, event.getCollectionForForm( formName ) );
@@ -419,11 +419,14 @@ component extends="preside.system.base.AdminHandler" {
 
 		configuration.delete( "formId"   );
 		configuration.delete( "itemType" );
+		configuration.delete( "question" );
+		configuration.delete( "_sid" );
 
 		var newId = formBuilderService.addItem(
 			  formId        = rc.formId   ?: ""
 			, itemType      = rc.itemType ?: ""
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={

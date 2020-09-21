@@ -151,6 +151,7 @@ component {
 		  required string formId
 		, required string itemType
 		, required struct configuration
+		,          string question = ""
 	) {
 		if ( isFormLocked( formId=arguments.formId ) ) {
 			return "";
@@ -162,8 +163,9 @@ component {
 		return formItemDao.insertData( data={
 			  form          = arguments.formId
 			, item_type     = arguments.itemType
-			, configuration = SerializeJson( arguments.configuration )
+			, question      = arguments.question
 			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
+			, configuration = SerializeJson( arguments.configuration )
 		} );
 	}
 
