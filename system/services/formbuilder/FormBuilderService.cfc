@@ -82,13 +82,19 @@ component {
 
 		for( var item in items ) {
 			if ( !itemTypes.len() || itemTypes.findNoCase( item.item_type ) ) {
-				result.append( {
+				var preparedItem = {
 					  id            = item.id
 					, formId        = item.form
 					, questionId    = item.question
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
-				} );
+				};
+
+				if ( Len( item.question ) ) {
+					StructAppend( preparedItem.configuration, _getItemConfigurationForV2Question( item.question ) );
+				}
+
+				ArrayAppend( result, preparedItem );
 			}
 		}
 
@@ -1146,6 +1152,29 @@ component {
 
 	private string function _createIdPrefix() {
 		return "formbuilder_" & LCase( Hash( Now() ) );
+	}
+
+	private struct function _getItemConfigurationForV2Question( required string questionId ) {
+		var question = $getPresideObject( "formbuilder_question" ).selectdata( id=arguments.questionId );
+
+		for( var q in question ) {
+			var config = {
+				  label = ( len( q.full_question_text ) ? q.full_question_text : q.field_label )
+				, name  = q.field_id
+				, help  = q.help_text
+			};
+			try {
+				if ( IsJson( q.item_type_config ) ) {
+					StructAppend( config, DeserializeJson( q.item_type_config ) );
+				}
+			} catch( any e ) {
+				$raiseError( e );
+			}
+
+			return config;
+		}
+
+		return {};
 	}
 
 // GETTERS AND SETTERS
