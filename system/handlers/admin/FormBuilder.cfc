@@ -779,6 +779,7 @@ component extends="preside.system.base.AdminHandler" {
 			  event = formBuilderRenderingService.getItemTypeViewlet( itemType=( args.type.id ?: "" ), context="adminPlaceholder" )
 			, args  = args
 		);
+		args.isV2 = formbuilderService.isV2Form( args.formId ?: "" );
 		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
 

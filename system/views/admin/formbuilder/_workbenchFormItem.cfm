@@ -3,6 +3,7 @@
 <cfparam name="args.formId"        type="string" />
 <cfparam name="args.configuration" type="struct" />
 <cfparam name="args.placeholder"   type="string" />
+<cfparam name="args.isV2"          type="boolean" default="false" />
 
 <cfoutput>
 	<li class="item-type ui-draggable form-item"
@@ -25,9 +26,11 @@
 					<a href="##" class="edit-link">
 						<i class="fa fa-pencil"></i>
 					</a>
-					<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
-						<i class="fa fa-fw fa-clone"></i>
-					</a>
+					<cfif not args.isV2>
+						<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
+							<i class="fa fa-fw fa-clone"></i>
+						</a>
+					</cfif>
 				<cfelse>
 					<a class="grey disabled"><i class="fa fa-fw"></i></a>
 					<a class="grey disabled"><i class="fa fa-fw"></i></a>
