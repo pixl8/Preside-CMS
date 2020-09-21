@@ -110,7 +110,9 @@ component extends="preside.system.base.AdminHandler" {
 		} );
 
 		if ( IsTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
-			event.setView( "/admin/formbuilder/itemConfigDialogV2" );
+			prc.formName = "formbuilder.item-types.formfieldv2";
+		} else {
+			prc.formName = prc.itemTypeConfig.configFormName ?: "";
 		}
 	}
 
