@@ -9,7 +9,7 @@
 component displayname="Form builder: global question" extends="preside.system.base.SystemPresideObject" {
 	property name="item_type"          type="string"  dbtype="varchar" required=true  maxlength=100 batcheditable=false indexes="itemtype" renderer="formbuilderItemType";
 
-	property name="field_id"           type="string"  dbtype="varchar" required=true  maxlength=30 uniqueindexes="fieldid" renderer="code";
+	property name="field_id"           type="string"  dbtype="varchar" required=true  maxlength=30 uniqueindexes="fieldid" renderer="code" format="regex:^[a-z0-9_]+$";
 	property name="field_label"        type="string"  dbtype="varchar" required=true  maxlength=50  batcheditable=false indexes="label";
 
 	property name="full_question_text" type="string"  dbtype="varchar" required=false maxlength=800 batcheditable=false;
