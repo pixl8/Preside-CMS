@@ -75,6 +75,7 @@ component {
 				  "id"
 				, "item_type"
 				, "configuration"
+				, "form"
 			  ]
 		);
 
@@ -82,6 +83,7 @@ component {
 			if ( !itemTypes.len() || itemTypes.findNoCase( item.item_type ) ) {
 				result.append( {
 					  id            = item.id
+					, formId        = item.form
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
 				} );
@@ -107,6 +109,8 @@ component {
 				  "id"
 				, "item_type"
 				, "configuration"
+				, "question"
+				, "form"
 			  ]
 		);
 
@@ -115,6 +119,8 @@ component {
 				  id            = item.id
 				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 				, configuration = DeSerializeJson( item.configuration )
+				, formId        = item.form
+				, questionId    = item.question
 			};
 		}
 
@@ -177,13 +183,18 @@ component {
 	 * @configuration.hint Configuration to save against the item
 	 *
 	 */
-	public any function saveItem( required string id, required struct configuration ) {
+	public any function saveItem(
+		  required string id
+		, required struct configuration
+		,          string question = ""
+	) {
 		if ( !arguments.id.len() || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
 		return $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data={
-			configuration = SerializeJson( arguments.configuration )
+			  configuration = SerializeJson( arguments.configuration )
+			, question      = arguments.question
 		} );
 	}
 

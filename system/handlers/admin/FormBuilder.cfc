@@ -90,6 +90,7 @@ component extends="preside.system.base.AdminHandler" {
 			item.configuration.label = clone ? "" : ( item.configuration.label ?: "" );
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
+				prc.savedData.question = item.questionId ?: "";
 			}
 		}
 
@@ -442,10 +443,12 @@ component extends="preside.system.base.AdminHandler" {
 		var itemId        = rc.id ?: "";
 
 		configuration.delete( "id" );
+		configuration.delete( "question" );
 
 		formBuilderService.saveItem(
 			  id            = itemId
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={
