@@ -119,18 +119,17 @@ component extends="preside.system.base.AdminHandler" {
 	public void function validateItemConfig( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 
-		var config = event.getCollectionWithoutSystemVars();
+		var formId         = rc.formId ?: "";
+		var formName       = "";
+		var itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
 
-		config.delete( "formId"   );
-		config.delete( "itemId"   );
-		config.delete( "itemType" );
+		if ( isTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+			formName = "formbuilder.item-types.formfieldv2";
+		} else {
+			formName = prc.itemTypeConfig.configFormName ?: "";
+		}
 
-		var validationResult = formBuilderService.validateItemConfig(
-			  formId    = rc.formId   ?: ""
-			, itemId    = rc.itemId   ?: ""
-			, itemType  = rc.itemType ?: ""
-			, config    = config
-		);
+		var validationResult = validateForm( formName, event.getCollectionForForm( formName ) );
 
 		if ( validationResult.validated() ) {
 			event.renderData( data=true, type="json" );
