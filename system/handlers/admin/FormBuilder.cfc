@@ -112,6 +112,9 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( IsTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
 			prc.formName = "formbuilder.item-types.formfieldv2";
+			prc.additionalFormArgs = { fields={ question={
+				placeholder = translateResource( uri="preside-objects.formbuilder_formitem:field.question.placeholder.custom", data=[ prc.itemTypeConfig.title ] )
+			} } };
 		} else {
 			prc.formName = prc.itemTypeConfig.configFormName ?: "";
 		}
