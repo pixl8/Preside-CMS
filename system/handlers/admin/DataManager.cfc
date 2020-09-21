@@ -954,6 +954,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		var object = prc.objectName ?: "";
 
+		prc.formName = _getDefaultQuickAddFormName( argumentCollection=arguments, objectName=object );
+
 		if ( customizationService.objectHasCustomization( object, "preQuickAddRecordForm" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
@@ -1003,6 +1005,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.record = queryRowToStruct( prc.record );
 
 		var object = prc.objectName ?: "";
+
+		prc.formName = _getDefaultQuickEditFormName( argumentCollection=arguments, objectName=object );
 
 		if ( customizationService.objectHasCustomization( object, "preQuickEditRecordForm" ) ) {
 			customizationService.runCustomization(
@@ -2336,7 +2340,7 @@ component extends="preside.system.base.AdminHandler" {
 		, required struct  rc
 		, required struct  prc
 		,          string  object                  = ( rc.object ?: '' )
-		,          string  formName                = "preside-objects.#arguments.object#.admin.quickadd"
+		,          string  formName                = _getDefaultQuickAddFormName( argumentCollection=arguments, objectName=arguments.object )
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = arguments.object
 		,          array   permissionContextKeys   = []
@@ -2753,7 +2757,7 @@ component extends="preside.system.base.AdminHandler" {
 		, required struct  rc
 		, required struct  prc
 		,          string  object                  = ( rc.object ?: '' )
-		,          string  formName                = "preside-objects.#arguments.object#.admin.quickedit"
+		,          string  formName                = _getDefaultQuickEditFormName( argumentCollection=arguments, objectName=arguments.object )
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = arguments.object
 		,          array   permissionContextKeys   = []
@@ -3555,6 +3559,40 @@ component extends="preside.system.base.AdminHandler" {
 		return rootForm;
 	}
 
+	private string function _getQuickAddRecordFormName( event, rc, prc, args={} ) {
+		var objectName   = args.objectName ?: "";
+		var rootForm     = "preside-objects.#objectName#";
+		var addForm      = "preside-objects.#objectName#.admin.add";
+		var quickAddForm = "preside-objects.#objectName#.admin.quickadd";
+
+		if ( formsService.formExists( quickAddForm ) ) {
+			return quickAddForm;
+		}
+
+		if ( formsService.formExists( addForm ) ) {
+			return addForm;
+		}
+
+		return rootForm;
+	}
+
+	private string function _getQuickEditRecordFormName( event, rc, prc, args={} ) {
+		var objectName    = args.objectName ?: "";
+		var rootForm      = "preside-objects.#objectName#";
+		var editForm      = "preside-objects.#objectName#.admin.edit";
+		var quickEditForm = "preside-objects.#objectName#.admin.quickedit";
+
+		if ( formsService.formExists( quickEditForm ) ) {
+			return quickEditForm;
+		}
+
+		if ( formsService.formExists( editForm ) ) {
+			return editForm;
+		}
+
+		return rootForm;
+	}
+
 	private string function _getEditRecordFormName( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 		var rootForm   = "preside-objects.#objectName#";
@@ -3834,6 +3872,24 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName     = objectName
 			, action         = "getAddRecordFormName"
 			, defaultHandler = "admin.datamanager._getAddRecordFormName"
+			, args           = { objectName=objectName }
+		);
+	}
+
+	private string function _getDefaultQuickAddFormName( required string objectName ) {
+		return customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getQuickAddRecordFormName"
+			, defaultHandler = "admin.datamanager._getQuickAddRecordFormName"
+			, args           = { objectName=objectName }
+		);
+	}
+
+	private string function _getDefaultQuickEditFormName( required string objectName ) {
+		return customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "getQuickEditRecordFormName"
+			, defaultHandler = "admin.datamanager._getQuickEditRecordFormName"
 			, args           = { objectName=objectName }
 		);
 	}
