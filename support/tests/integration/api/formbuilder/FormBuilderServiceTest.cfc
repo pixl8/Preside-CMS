@@ -36,6 +36,8 @@ component extends="testbox.system.BaseSpec"{
 						  "id"
 						, "item_type"
 						, "configuration"
+						, "form"
+						, "question"
 					  ]
 				).$results( QueryNew( '' ) );
 
@@ -45,27 +47,28 @@ component extends="testbox.system.BaseSpec"{
 			it( "should return a nested array representation of returned database query", function(){
 				var service        = getService();
 				var formId         = CreateUUId();
-				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
-					  [ "item1", "typea", "{}" ]
-					, [ "item2", "typeb", "{}" ]
-					, [ "item3", "typeb", "{}" ]
-					, [ "item4", "typeb", "{}" ]
-					, [ "item5", "typea", "{}" ]
-					, [ "item6", "typea", "{}" ]
-					, [ "item7", "typeb", "{}" ]
+				var questionId     = CreateUUId();
+				var dummyData      = QueryNew( 'id,item_type,form,question,configuration', 'varchar,varchar,varchar,varchar,varchar', [
+					  [ "item1", "typea", formId, questionId, "{}" ]
+					, [ "item2", "typeb", formId, questionId, "{}" ]
+					, [ "item3", "typeb", formId, questionId, "{}" ]
+					, [ "item4", "typeb", formId, questionId, "{}" ]
+					, [ "item5", "typea", formId, questionId, "{}" ]
+					, [ "item6", "typea", formId, questionId, "{}" ]
+					, [ "item7", "typeb", formId, questionId, "{}" ]
 				] );
 				var types = {
 					  a = { test=true, something=CreateUUId() }
 					, b = { test=true, something=CreateUUId() }
 				};
 				var expectedResult = [
-					  { id="item1", type=types.a, configuration={} }
-					, { id="item2", type=types.b, configuration={} }
-					, { id="item3", type=types.b, configuration={} }
-					, { id="item4", type=types.b, configuration={} }
-					, { id="item5", type=types.a, configuration={} }
-					, { id="item6", type=types.a, configuration={} }
-					, { id="item7", type=types.b, configuration={} }
+					  { id="item1", type=types.a, formId=formId, questionId=questionId, configuration={} }
+					, { id="item2", type=types.b, formId=formId, questionId=questionId, configuration={} }
+					, { id="item3", type=types.b, formId=formId, questionId=questionId, configuration={} }
+					, { id="item4", type=types.b, formId=formId, questionId=questionId, configuration={} }
+					, { id="item5", type=types.a, formId=formId, questionId=questionId, configuration={} }
+					, { id="item6", type=types.a, formId=formId, questionId=questionId, configuration={} }
+					, { id="item7", type=types.b, formId=formId, questionId=questionId, configuration={} }
 				];
 
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
@@ -78,6 +81,8 @@ component extends="testbox.system.BaseSpec"{
 						  "id"
 						, "item_type"
 						, "configuration"
+						, "form"
+						, "question"
 					  ]
 				).$results( dummyData );
 
@@ -87,8 +92,8 @@ component extends="testbox.system.BaseSpec"{
 			it( "should deserialize configuration that has een saved in the database", function(){
 				var service        = getService();
 				var formId         = CreateUUId();
-				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
-					  [ "item1", "typea", '{ "cat":"dog", "test":true }' ]
+				var dummyData      = QueryNew( 'id,item_type,form,question,configuration', 'varchar,varchar,varchar,varchar,varchar', [
+					  [ "item1", "typea", formId, "", '{ "cat":"dog", "test":true }' ]
 				] );
 				var expectedResult = { cat="dog", test=true };
 
@@ -100,6 +105,8 @@ component extends="testbox.system.BaseSpec"{
 						  "id"
 						, "item_type"
 						, "configuration"
+						, "form"
+						, "question"
 					  ]
 				).$results( dummyData );
 
@@ -111,14 +118,14 @@ component extends="testbox.system.BaseSpec"{
 			it( "should filter by item types when item types configuration supplied", function(){
 				var service        = getService();
 				var formId         = CreateUUId();
-				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
-					  [ "item1", "typea", "{}" ]
-					, [ "item2", "typeb", "{}" ]
-					, [ "item3", "typeb", "{}" ]
-					, [ "item4", "typeb", "{}" ]
-					, [ "item5", "typea", "{}" ]
-					, [ "item6", "typea", "{}" ]
-					, [ "item7", "typec", "{}" ]
+				var dummyData      = QueryNew( 'id,item_type,form,question,configuration', 'varchar,varchar,varchar,varchar,varchar', [
+					  [ "item1", "typea", formId, "", "{}" ]
+					, [ "item2", "typeb", formId, "", "{}" ]
+					, [ "item3", "typeb", formId, "", "{}" ]
+					, [ "item4", "typeb", formId, "", "{}" ]
+					, [ "item5", "typea", formId, "", "{}" ]
+					, [ "item6", "typea", formId, "", "{}" ]
+					, [ "item7", "typec", formId, "", "{}" ]
 				] );
 				var types = {
 					  a = { test=true, something=CreateUUId() }
@@ -126,10 +133,10 @@ component extends="testbox.system.BaseSpec"{
 					, c = { test=true, something=CreateUUId() }
 				};
 				var expectedResult = [
-					  { id="item1", type=types.a, configuration={} }
-					, { id="item5", type=types.a, configuration={} }
-					, { id="item6", type=types.a, configuration={} }
-					, { id="item7", type=types.c, configuration={} }
+					  { id="item1", type=types.a, formId=formId, questionId="", configuration={} }
+					, { id="item5", type=types.a, formId=formId, questionId="", configuration={} }
+					, { id="item6", type=types.a, formId=formId, questionId="", configuration={} }
+					, { id="item7", type=types.c, formId=formId, questionId="", configuration={} }
 				];
 
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
@@ -143,6 +150,8 @@ component extends="testbox.system.BaseSpec"{
 						  "id"
 						, "item_type"
 						, "configuration"
+						, "form"
+						, "question"
 					  ]
 				).$results( dummyData );
 
@@ -167,6 +176,7 @@ component extends="testbox.system.BaseSpec"{
 					, item_type     = itemType
 					, configuration = SerializeJson( configuration )
 					, sort_order    = topSortOrder+1
+					, question      = ""
 				} ).$results( newId );
 				service.$( "isFormLocked", false );
 
