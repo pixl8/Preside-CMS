@@ -76,6 +76,7 @@ component {
 				, "item_type"
 				, "configuration"
 				, "form"
+				, "question"
 			  ]
 		);
 
@@ -84,6 +85,7 @@ component {
 				result.append( {
 					  id            = item.id
 					, formId        = item.form
+					, questionId    = item.question
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
 				} );
