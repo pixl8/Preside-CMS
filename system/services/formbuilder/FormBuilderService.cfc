@@ -1044,6 +1044,22 @@ component {
 		);
 	}
 
+	/**
+	 * Returns whether or not the given form is a "V2" form.
+	 * V2 of the forms data model was introduced in Preside 10.13.0
+	 * and uses a shared set of questions. When the v2 forms feature
+	 * is enabled, all newly created forms will be a "V2" form while old
+	 * forms will remain V1.
+	 *
+	 * @autodoc     true
+	 * @formId.hint The ID of the form to check
+	 */
+	public boolean function isV2Form( required string formid ) {
+		return $isFeatureEnabled( "formbuilder2" ) && $getPresideObject( "formbuilder_form" ).dataExists(
+			  filter = { id=arguments.formId, uses_global_questions=true }
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId

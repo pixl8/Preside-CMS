@@ -78,13 +78,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
-		var clone = rc.clone ?: false;
 		_permissionsCheck( "editform", event );
+
+		var formId = rc.formId ?: "";
+		var clone  = isTrue( rc.clone ?: "" );
 
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
-			item.configuration.name  = isTrue( clone ) ? "" : ( item.configuration.name  ?: "" );
-			item.configuration.label = isTrue( clone ) ? "" : ( item.configuration.label ?: "" );
+
+			item.configuration.name  = clone ? "" : ( item.configuration.name  ?: "" );
+			item.configuration.label = clone ? "" : ( item.configuration.label ?: "" );
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
 			}
@@ -105,6 +108,10 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
 		} );
+
+		if ( formBuilderService.isV2Form( formId ) ) {
+			event.setView( "/admin/formbuilder/itemConfigDialogV2" );
+		}
 	}
 
 	public void function validateItemConfig( event, rc, prc ) {
