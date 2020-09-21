@@ -109,7 +109,7 @@ component extends="preside.system.base.AdminHandler" {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
 		} );
 
-		if ( formBuilderService.isV2Form( formId ) ) {
+		if ( IsTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
 			event.setView( "/admin/formbuilder/itemConfigDialogV2" );
 		}
 	}
