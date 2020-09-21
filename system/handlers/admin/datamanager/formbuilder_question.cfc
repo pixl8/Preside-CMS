@@ -91,6 +91,17 @@ component extends="preside.system.base.AdminHandler" {
 		return baseFormName;
 	}
 
+	private string function getQuickAddRecordFormName( event, rc, prc, args={} ) {
+		var baseFormName = "preside-objects.formbuilder_question.admin.add";
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			return formsService.getMergedFormName( baseFormName, itemTypeFormName );
+		}
+
+		return baseFormName;
+	}
+
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
 		var baseFormName = "preside-objects.formbuilder_question.admin.edit";
 		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
@@ -138,6 +149,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function preAddRecordAction( event, rc, prc, args={} ) {
+		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
+
+		if ( Len( itemTypeFormName ) ) {
+			var itemFields = event.getCollectionForForm( itemTypeFormName );
+
+			args.formData.item_type_config = SerializeJson( itemFields );
+		}
+	}
+
+	private void function preQuickAddRecordAction( event, rc, prc, args={} ) {
 		var itemTypeFormName = _getItemTypeFormAndErrorIfNoItemType( argumentCollection=arguments );
 
 		if ( Len( itemTypeFormName ) ) {

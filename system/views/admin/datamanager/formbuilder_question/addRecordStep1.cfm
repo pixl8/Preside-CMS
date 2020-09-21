@@ -29,7 +29,7 @@
 				<button type="submit" class="btn btn-success" tabindex="1">
 					<i class="fa fa-fw fa-angle-double-right bigger-110"></i>
 
-					#translateResource( "cms:next.with.elsipses.btn" )#
+					#translateResource( "cms:next.with.ellipses.btn" )#
 				</button>
 			</div>
 		</div>

@@ -78,15 +78,19 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
-		var clone = rc.clone ?: false;
 		_permissionsCheck( "editform", event );
+
+		var formId = rc.formId ?: "";
+		var clone  = isTrue( rc.clone ?: "" );
 
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
-			item.configuration.name  = isTrue( clone ) ? "" : ( item.configuration.name  ?: "" );
-			item.configuration.label = isTrue( clone ) ? "" : ( item.configuration.label ?: "" );
+
+			item.configuration.name  = clone ? "" : ( item.configuration.name  ?: "" );
+			item.configuration.label = clone ? "" : ( item.configuration.label ?: "" );
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
+				prc.savedData.question = item.questionId ?: "";
 			}
 		}
 
@@ -105,23 +109,31 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
 		} );
+
+		if ( IsTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+			prc.formName = "formbuilder.item-types.formfieldv2";
+			prc.additionalFormArgs = { fields={ question={
+				placeholder = translateResource( uri="preside-objects.formbuilder_formitem:field.question.placeholder.custom", data=[ prc.itemTypeConfig.title ] )
+			} } };
+		} else {
+			prc.formName = prc.itemTypeConfig.configFormName ?: "";
+		}
 	}
 
 	public void function validateItemConfig( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 
-		var config = event.getCollectionWithoutSystemVars();
+		var formId         = rc.formId ?: "";
+		var formName       = "";
+		var itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
 
-		config.delete( "formId"   );
-		config.delete( "itemId"   );
-		config.delete( "itemType" );
+		if ( isTrue( itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+			formName = "formbuilder.item-types.formfieldv2";
+		} else {
+			formName = itemTypeConfig.configFormName ?: "";
+		}
 
-		var validationResult = formBuilderService.validateItemConfig(
-			  formId    = rc.formId   ?: ""
-			, itemId    = rc.itemId   ?: ""
-			, itemType  = rc.itemType ?: ""
-			, config    = config
-		);
+		var validationResult = validateForm( formName, event.getCollectionForForm( formName ) );
 
 		if ( validationResult.validated() ) {
 			event.renderData( data=true, type="json" );
@@ -411,11 +423,14 @@ component extends="preside.system.base.AdminHandler" {
 
 		configuration.delete( "formId"   );
 		configuration.delete( "itemType" );
+		configuration.delete( "question" );
+		configuration.delete( "_sid" );
 
 		var newId = formBuilderService.addItem(
 			  formId        = rc.formId   ?: ""
 			, itemType      = rc.itemType ?: ""
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={
@@ -431,10 +446,12 @@ component extends="preside.system.base.AdminHandler" {
 		var itemId        = rc.id ?: "";
 
 		configuration.delete( "id" );
+		configuration.delete( "question" );
 
 		formBuilderService.saveItem(
 			  id            = itemId
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={
@@ -765,6 +782,7 @@ component extends="preside.system.base.AdminHandler" {
 			  event = formBuilderRenderingService.getItemTypeViewlet( itemType=( args.type.id ?: "" ), context="adminPlaceholder" )
 			, args  = args
 		);
+		args.isV2 = formbuilderService.isV2Form( args.formId ?: "" );
 		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
 

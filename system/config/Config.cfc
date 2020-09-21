@@ -417,7 +417,7 @@ component {
 			, systemInformation        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder              = { enabled=true , siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
-			, formbuilder2             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, formbuilder2             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, multilingual             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport               = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication  = { enabled=true , siteTemplates=[ "*" ], widgets=[] }

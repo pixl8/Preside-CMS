@@ -75,6 +75,8 @@ component {
 				  "id"
 				, "item_type"
 				, "configuration"
+				, "form"
+				, "question"
 			  ]
 		);
 
@@ -82,6 +84,8 @@ component {
 			if ( !itemTypes.len() || itemTypes.findNoCase( item.item_type ) ) {
 				result.append( {
 					  id            = item.id
+					, formId        = item.form
+					, questionId    = item.question
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
 				} );
@@ -107,6 +111,8 @@ component {
 				  "id"
 				, "item_type"
 				, "configuration"
+				, "question"
+				, "form"
 			  ]
 		);
 
@@ -115,6 +121,8 @@ component {
 				  id            = item.id
 				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 				, configuration = DeSerializeJson( item.configuration )
+				, formId        = item.form
+				, questionId    = item.question
 			};
 		}
 
@@ -151,6 +159,7 @@ component {
 		  required string formId
 		, required string itemType
 		, required struct configuration
+		,          string question = ""
 	) {
 		if ( isFormLocked( formId=arguments.formId ) ) {
 			return "";
@@ -162,8 +171,9 @@ component {
 		return formItemDao.insertData( data={
 			  form          = arguments.formId
 			, item_type     = arguments.itemType
-			, configuration = SerializeJson( arguments.configuration )
+			, question      = arguments.question
 			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
+			, configuration = SerializeJson( arguments.configuration )
 		} );
 	}
 
@@ -175,13 +185,18 @@ component {
 	 * @configuration.hint Configuration to save against the item
 	 *
 	 */
-	public any function saveItem( required string id, required struct configuration ) {
+	public any function saveItem(
+		  required string id
+		, required struct configuration
+		,          string question = ""
+	) {
 		if ( !arguments.id.len() || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
 		return $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data={
-			configuration = SerializeJson( arguments.configuration )
+			  configuration = SerializeJson( arguments.configuration )
+			, question      = arguments.question
 		} );
 	}
 
@@ -1041,6 +1056,22 @@ component {
 			  name    = "_formBuilderContext"
 			, value   = { id=arguments.formId, data=arguments.data }
 			, private = true
+		);
+	}
+
+	/**
+	 * Returns whether or not the given form is a "V2" form.
+	 * V2 of the forms data model was introduced in Preside 10.13.0
+	 * and uses a shared set of questions. When the v2 forms feature
+	 * is enabled, all newly created forms will be a "V2" form while old
+	 * forms will remain V1.
+	 *
+	 * @autodoc     true
+	 * @formId.hint The ID of the form to check
+	 */
+	public boolean function isV2Form( required string formid ) {
+		return $isFeatureEnabled( "formbuilder2" ) && $getPresideObject( "formbuilder_form" ).dataExists(
+			  filter = { id=arguments.formId, uses_global_questions=true }
 		);
 	}
 
