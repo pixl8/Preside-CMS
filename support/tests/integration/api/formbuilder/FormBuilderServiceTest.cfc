@@ -815,6 +815,7 @@ component extends="testbox.system.BaseSpec"{
 				var formConfiguration  = QueryNew( 'use_captcha', "boolean", [ [ true ] ] );
 				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
 
+				service.$( "isV2Form", false );
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData
@@ -852,6 +853,7 @@ component extends="testbox.system.BaseSpec"{
 				var userid             = CreateUUId();
 
 				service.$( "renderResponsesForSaving", formSubmissionData );
+				service.$( "isV2Form", false );
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData
@@ -902,6 +904,7 @@ component extends="testbox.system.BaseSpec"{
 				var newSubmissionId    = CreateUUId();
 				var savedSubmission    = QueryNew( 'test,me', 'varchar,varchar', [[CreateUUId(),CreateUUId()]] );
 
+				service.$( "isV2Form", false );
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData

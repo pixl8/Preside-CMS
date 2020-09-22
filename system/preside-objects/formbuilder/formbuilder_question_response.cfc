@@ -1,6 +1,7 @@
 /**
  * @feature   formbuilder2
  * @versioned false
+ * @nolabel   true
  */
 component displayname="Form builder: global question response" extends="preside.system.base.SystemPresideObject" {
 	property name="question" relationship="many-to-one" relatedto="formbuilder_question" required=true ondelete="cascade";

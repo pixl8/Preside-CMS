@@ -686,6 +686,7 @@ component {
 	) {
 		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
 
+		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
@@ -710,15 +711,27 @@ component {
 		} );
 
 		if ( validationResult.validated() ) {
-			formItems = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
-			var submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
-				  form           = arguments.formId
-				, submitted_by   = $getWebsiteLoggedInUserId()
-				, submitted_data = SerializeJson( formData )
-				, form_instance  = arguments.instanceId
-				, ip_address     = arguments.ipAddress
-				, user_agent     = arguments.userAgent
-			} );
+			if ( isV2Form( arguments.formid ) ) {
+				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
+					  form           = arguments.formId
+					, submitted_by   = $getWebsiteLoggedInUserId()
+					, form_instance  = arguments.instanceId
+					, ip_address     = arguments.ipAddress
+					, user_agent     = arguments.userAgent
+				} );
+				saveV2Responses( formId=arguments.formId, formData=formData, formItems=formItems, submissionId=submissionId );
+			} else {
+				formData = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
+				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
+					  form           = arguments.formId
+					, submitted_by   = $getWebsiteLoggedInUserId()
+					, submitted_data = SerializeJson( formData )
+					, form_instance  = arguments.instanceId
+					, ip_address     = arguments.ipAddress
+					, user_agent     = arguments.userAgent
+				} );
+
+			}
 			var submission = getSubmission( submissionId );
 			for( var s in submission ) { submission = s; }
 
@@ -1054,6 +1067,63 @@ component {
 		return arguments.formData;
 	}
 
+	public void function saveV2Responses(
+		  required string formId
+		, required struct formData
+		, required array  formItems
+		, required string submissionId
+	) {
+		var rendererService = _getFormBuilderRenderingService();
+		var coldbox         = $getColdbox();
+		var responses       = "";
+
+		for( var i=1; i <= arguments.formItems.len(); i++ ) {
+			var formItem = formItems[i];
+			var itemName = formItem.configuration.name ?: "";
+			var dataType = "";
+
+			if ( formItem.type.isFormField && StructKeyExists( arguments.formData, itemName ) ) {
+				var rendererViewlet = rendererService.getItemTypeViewlet(
+					  itemType = formItem.type.id
+					, context  = "renderV2ResponsesForDb"
+				);
+				var dataTypeViewlet = rendererService.getItemTypeViewlet(
+					  itemType = formItem.type.id
+					, context  = "getQuestionDataType"
+				);
+
+				if ( coldbox.viewletExists( rendererViewlet ) ) {
+					responses = $renderViewlet( event=rendererViewlet, args={
+						  response      = arguments.formData[ itemName ]
+						, question      = formItem.questionId
+						, configuration = formItem.configuration
+						, formId        = arguments.formId
+					} );
+				} else {
+					responses = arguments.formData[ itemName ];
+				}
+
+				if ( coldbox.viewletExists( dataTypeViewlet ) ) {
+					dataType = $renderViewlet( event=rendererViewlet, args={
+						  question      = formItem.questionId
+						, configuration = formItem.configuration
+					} );
+					if ( !IsSimpleValue( local.dataType ?: {} ) ) {
+						dataType = "";
+					}
+				}
+
+				_saveV2Response(
+					  response             = responses
+					, questionId           = formItem.questionId
+					, formId               = arguments.formId
+					, submissionId         = arguments.submissionId
+					, dataType             = dataType
+				);
+			}
+		}
+	}
+
 	public struct function getFormBuilderSubmissionContextData() {
 		return $getRequestContext().getValue( name="_formBuilderContext", private=true, defaultValue={} );
 	}
@@ -1175,6 +1245,81 @@ component {
 		}
 
 		return {};
+	}
+
+	private void function _saveV2Response(
+		  required any    response
+		, required string questionId
+		, required string formId
+		, required string submissionId
+		, required string dataType
+		,          string sortOrder = ""
+		,          string questionSubReference = ""
+	) {
+		if ( IsArray( arguments.response ) ) {
+			for( var i=1; i<=ArrayLen( arguments.response ); i++ ) {
+				_saveV2Response(
+					  argumentCollection = arguments
+					, response           = arguments.response[ i ]
+					, sortOrder          = i
+				);
+			}
+			return;
+		}
+
+		if ( IsStruct( arguments.response ) ) {
+			for( var fieldName in arguments.response ) {
+				_saveV2Response(
+					  argumentCollection   = arguments
+					, response             = arguments.response[ fieldName ]
+					, questionSubReference = fieldName
+				);
+			}
+			return;
+		}
+
+		if ( IsSimpleValue( arguments.response ) ) {
+			var responseData = {
+				  question              = arguments.questionId
+				, submission_type       = "formbuilder"
+				, submission_reference  = arguments.formid
+				, question_subreference = arguments.questionSubReference
+				, response              = arguments.response
+				, sort_order            = arguments.sortOrder
+				, submission            = arguments.submissionId
+				, website_user          = $getWebsiteLoggedInUserId()
+				, admin_user            = $getAdminLoggedInUserId()
+				, submitted_by          = _getSubmitterNamePlainText()
+			};
+
+			switch( arguments.dataType ) {
+				case "shorttext":
+				case "date":
+				case "bool":
+				case "int":
+				case "float":
+					responseData[ "#arguments.dataType#_response" ] = arguments.response;
+			}
+
+			$announceInterception( "preSaveFormbuilderQuestionResponse", responseData );
+
+			$getPresideObject( "formbuilder_question_response" ).insertData( responseData );
+		}
+
+	}
+
+	private string function _getSubmitterNamePlainText() {
+		var userId = $getWebsiteLoggedInUserId();
+		if ( Len( Trim( userId ) ) ) {
+			return $renderLabel( "website_user", userId );
+		}
+
+		userId = $getAdminLoggedInUserId();
+		if ( Len( Trim( userId ) ) ) {
+			return $renderLabel( "security_user", userId );
+		}
+
+		return "";
 	}
 
 // GETTERS AND SETTERS
