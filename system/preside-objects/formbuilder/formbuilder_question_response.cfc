@@ -11,6 +11,10 @@ component displayname="Form builder: global question response" extends="preside.
 	property name="submission_type"      type="string" dbtype="varchar" maxlength=20 required=true indexes="type";
 	property name="submission_reference" type="string" dbtype="varchar" maxlength=50 required=true indexes="ref";
 
+	// for some question types, dynamic sub-references are required for a response
+	// e.g. the matrix type or an 'Address' question with multiple fields
+	property name="question_subreference" type="string" dbtype="varchar" maxlength=100 required=false indexes="questionsubref";
+
 	// 'response' will always be populated with the response. It will then potentially be
 	//  duplicated in one of the indexed columns should the question data type be indexable
 	property name="response"           type="string"  dbtype="text";
