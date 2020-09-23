@@ -163,10 +163,10 @@ component extends="preside.system.base.adminHandler" {
 	 *
 	 */
 	public void function getRecordsForRelatedRecordsDatatable( event, rc, prc ) {
-		var objectName       = rc.objectName       ?: "";
-		var propertyName     = rc.propertyName     ?: "";
-		var recordId         = rc.recordId         ?: "";
-		var fromVersionTable = rc.fromVersionTable ?: false;
+		var objectName       = rc.objectName   ?: "";
+		var propertyName     = rc.propertyName ?: "";
+		var recordId         = rc.recordId     ?: "";
+		var fromVersionTable = isTrue( rc.fromVersionTable ?: "" );
 		var gridFields       = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName ).toList();
 		var relatedObject    = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
 		var relatedIdField   = presideObjectService.getIdField( objectName=relatedObject );
@@ -176,7 +176,7 @@ component extends="preside.system.base.adminHandler" {
 			, id                  = recordId
 			, selectFields        = [ "#propertyName#.#relatedIdField# as id" ]
 			, getSqlAndParamsOnly = true
-			, fromVersionTable    = booleanFormat( fromVersionTable )
+			, fromVersionTable    = fromVersionTable
 		);
 		var subQueryAlias = "relatedRecordsFilter";
 		var params        = {};
