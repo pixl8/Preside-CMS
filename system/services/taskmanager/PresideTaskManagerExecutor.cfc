@@ -6,17 +6,22 @@
 component extends="cfconcurrent.ExecutorService" {
 
 	/**
-	 * @hostname.inject coldbox:setting:heartbeats.taskmanager.hostname
+	 * @hostname.inject      coldbox:setting:heartbeats.taskmanager.hostname
+	 * @maxConcurrent.inject coldbox:setting:heartbeats.taskmanager.poolSize
 	 *
 	 */
-	public any function init( required string hostname, string serviceName="PresideTaskManagerThreadPool" ) {
+	public any function init(
+		  required string  hostname
+		,          string  serviceName   = "PresideTaskManagerThreadPool"
+		,          numeric maxConcurrent = 0
+	) {
 		var appName = _getAppName();
 
 		_setHostname( arguments.hostName );
 
 		return super.init(
 			  serviceName       = "#arguments.serviceName#-#appName#"
-			, maxConcurrent     = 0
+			, maxConcurrent     = arguments.maxConcurrent
 			, threadNamePattern = "#arguments.serviceName#-#appName#-${poolno}-Thread-${threadno}"
 		);
 	}
