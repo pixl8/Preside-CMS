@@ -93,4 +93,12 @@ component {
 		}
 		return rules;
 	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return IsDate( args.response ?: "" ) ? args.response : "";
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "date";
+	}
 }

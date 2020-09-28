@@ -102,4 +102,12 @@ component {
 
 		return SerializeJson( response );
 	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return renderResponseToPersist( argumentCollection=arguments );
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "text";
+	}
 }

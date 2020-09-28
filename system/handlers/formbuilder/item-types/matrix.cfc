@@ -87,6 +87,18 @@ component {
 		return fields;
 	}
 
+	private struct function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		if ( Len( args.response ?: "" ) && IsJson( args.response ?: "" ) ) {
+			return DeserializeJson( args.response );
+		}
+
+		return {};
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "shorttext";
+	}
+
 // private helpers
 	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
 		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};

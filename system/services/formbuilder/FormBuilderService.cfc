@@ -1083,13 +1083,10 @@ component {
 			var dataType = "";
 
 			if ( formItem.type.isFormField && StructKeyExists( arguments.formData, itemName ) ) {
+				var dataTypeViewlet = "formbuilder.item-types.#formItem.type.id#.getQuestionDataType";
 				var rendererViewlet = rendererService.getItemTypeViewlet(
 					  itemType = formItem.type.id
-					, context  = "renderV2ResponsesForDb"
-				);
-				var dataTypeViewlet = rendererService.getItemTypeViewlet(
-					  itemType = formItem.type.id
-					, context  = "getQuestionDataType"
+					, context  = "v2ResponsesForDb"
 				);
 
 				if ( coldbox.viewletExists( rendererViewlet ) ) {
@@ -1104,7 +1101,7 @@ component {
 				}
 
 				if ( coldbox.viewletExists( dataTypeViewlet ) ) {
-					dataType = $renderViewlet( event=rendererViewlet, args={
+					dataType = $renderViewlet( event=dataTypeViewlet, args={
 						  question      = formItem.questionId
 						, configuration = formItem.configuration
 					} );

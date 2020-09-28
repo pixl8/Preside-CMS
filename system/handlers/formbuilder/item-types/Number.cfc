@@ -35,4 +35,22 @@ component {
 
 		return rules;
 	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		if ( Len( args.response ?: "" ) ) {
+			return Val( args.response );
+		}
+
+		return "";
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		var format = args.configuration.format ?: "";
+
+		if ( format == "integer" ) {
+			return "int";
+		}
+
+		return "float";
+	}
 }
