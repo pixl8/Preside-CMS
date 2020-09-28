@@ -104,7 +104,7 @@ component {
 			, host     = _getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost" )
 			, database = _getEnvironmentVariable( "PRESIDETEST_DB_NAME"    , "preside_test" )
 			, username = _getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "root" )
-			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "password" )
+			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "" )
 		};
 
 		try {
