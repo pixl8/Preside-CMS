@@ -119,6 +119,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError" );
 		interceptorSettings.customInterceptionPoints.append( "preFormBuilderFormSubmission"          );
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
+		interceptorSettings.customInterceptionPoints.append( "preSaveFormbuilderQuestionResponse"    );
 		interceptorSettings.customInterceptionPoints.append( "onReloadConfigCategories"              );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );

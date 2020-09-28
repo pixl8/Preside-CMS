@@ -61,19 +61,22 @@ component extends="testbox.system.BaseSpec"{
 					  a = { test=true, something=CreateUUId() }
 					, b = { test=true, something=CreateUUId() }
 				};
+				var mockQuestionQuery = QueryNew( "item_type,field_id,field_label,full_question_text,help_text,item_type_config", "varchar,varchar,varchar,varchar,varchar,varchar", [
+					[ "textarea", "some_field", "Some field", "A long question", "some help", "{}" ]
+				]);
 				var expectedResult = [
-					  { id="item1", type=types.a, formId=formId, questionId=questionId, configuration={} }
-					, { id="item2", type=types.b, formId=formId, questionId=questionId, configuration={} }
-					, { id="item3", type=types.b, formId=formId, questionId=questionId, configuration={} }
-					, { id="item4", type=types.b, formId=formId, questionId=questionId, configuration={} }
-					, { id="item5", type=types.a, formId=formId, questionId=questionId, configuration={} }
-					, { id="item6", type=types.a, formId=formId, questionId=questionId, configuration={} }
-					, { id="item7", type=types.b, formId=formId, questionId=questionId, configuration={} }
+					  { id="item1", type=types.a, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item2", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item3", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item4", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item5", type=types.a, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item6", type=types.a, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item7", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
 				];
 
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typeb" ).$results( types.b );
-
+				mockQuestionDao.$( "selectData" ).$args( id=questionId ).$results( mockQuestionQuery );
 				mockFormItemDao.$( "selectData" ).$args(
 					  filter       = { form=formId }
 					, orderBy      = "sort_order"
@@ -812,6 +815,7 @@ component extends="testbox.system.BaseSpec"{
 				var formConfiguration  = QueryNew( 'use_captcha', "boolean", [ [ true ] ] );
 				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
 
+				service.$( "isV2Form", false );
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData
@@ -849,6 +853,7 @@ component extends="testbox.system.BaseSpec"{
 				var userid             = CreateUUId();
 
 				service.$( "renderResponsesForSaving", formSubmissionData );
+				service.$( "isV2Form", false );
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData
@@ -899,6 +904,7 @@ component extends="testbox.system.BaseSpec"{
 				var newSubmissionId    = CreateUUId();
 				var savedSubmission    = QueryNew( 'test,me', 'varchar,varchar', [[CreateUUId(),CreateUUId()]] );
 
+				service.$( "isV2Form", false );
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData
@@ -1167,6 +1173,7 @@ component extends="testbox.system.BaseSpec"{
 	private function getService() {
 		variables.mockFormDao                      = CreateStub();
 		variables.mockFormItemDao                  = CreateStub();
+		variables.mockQuestionDao                  = CreateStub();
 		variables.mockFormSubmissionDao            = CreateStub();
 		variables.mockColdbox                      = CreateStub();
 		variables.mockSpreadsheetLib               = CreateStub();
@@ -1197,6 +1204,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
+		service.$( "$getPresideObject" ).$args( "formbuilder_question" ).$results( mockQuestionDao );
 		service.$( "$recordWebsiteUserAction", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
