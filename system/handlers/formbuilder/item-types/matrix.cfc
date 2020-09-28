@@ -88,11 +88,14 @@ component {
 	}
 
 	private struct function renderV2ResponsesForDb( event, rc, prc, args={} ) {
-		if ( Len( args.response ?: "" ) && IsJson( args.response ?: "" ) ) {
-			return DeserializeJson( args.response );
+		var response = {};
+		var qAndAs = _getQuestionsAndAnswers( argumentCollection=arguments );
+
+		for( var qAndA in qAndAs ) {
+			response[ qAndA.question ] = qAndA.answer;
 		}
 
-		return {};
+		return response;
 	}
 
 	private string function getQuestionDataType( event, rc, prc, args={} ) {
@@ -102,7 +105,7 @@ component {
 // private helpers
 	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
 		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
-		var itemConfig = args.itemConfiguration ?: {};
+		var itemConfig = args.itemConfiguration ?: ( args.configuration ?: {} );
 		var rows       = ListToArray( Trim( itemConfig.rows ?: "" ), Chr(10) & Chr(13) );
 		var answers    = [];
 
