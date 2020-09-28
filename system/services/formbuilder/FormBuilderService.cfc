@@ -580,6 +580,55 @@ component {
 	}
 
 	/**
+	 * Gets responses to v2 forms in a format ready close to that
+	 * of the original v1 raw responses format
+	 *
+	 * @autodoc      true
+	 * @formId       The ID of the form
+	 * @submissionId The ID of the submission that has responses
+	 */
+	public struct function getV2Responses( required string formId, required string submissionId ) {
+		var itemTypes = getFormItems( arguments.formId );
+		var responses = $getPresideObject( "formbuilder_question_response" ).selectData(
+			  filter  = { submission=arguments.submissionId }
+			, orderBy = "question,sort_order"
+		);
+		var responsesByQuestion = {};
+
+		for( var response in responses ) {
+			if ( Len( response.question_subreference ) ) {
+				if ( !IsStruct( responsesByQuestion[ response.question ] ?: "" ) ) {
+					responsesByQuestion[ response.question ] = {};
+				}
+
+				responsesByQuestion[ response.question ][ response.question_subreference ] = response.response;
+			} else {
+				if ( !IsSimpleValue( responsesByQuestion[ response.question ] ?: {} ) ) {
+					responsesByQuestion[ response.question ] = "";
+				}
+				responsesByQuestion[ response.question ] = ListAppend( responsesByQuestion[ response.question ], response.response );
+			}
+		}
+
+		responses = {};
+		for( var item in itemTypes ) {
+			if ( Len( item.questionId ) ) {
+				if ( StructKeyExists( responsesByQuestion, item.questionId ) ) {
+					responses[ item.questionId ] = responsesByQuestion[ item.questionId ];
+				} else {
+					responses[ item.questionId ] = "";
+				}
+
+				if ( !IsSimpleValue( responses[ item.questionId ] ) ) {
+					responses[ item.questionId ] = SerializeJson( responses[ item.questionId ] );
+				}
+			}
+		}
+
+		return responses;
+	}
+
+	/**
 	 * Returns the submission success message saved
 	 * against the form for the given form ID
 	 *

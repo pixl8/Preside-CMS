@@ -111,7 +111,12 @@ component {
 
 		for( var question in rows ) {
 			if ( Len( Trim( question ) ) ) {
-				var inputId = _getQuestionInputId( itemConfig.name ?: "", question );
+				var inputId = "";
+				if ( StructKeyExists( response, question ?: "" ) ) {
+					inputId = question;
+				} else {
+					inputId = _getQuestionInputId( itemConfig.name ?: "", question );
+				}
 
 				answers.append( {
 					  question = question
