@@ -965,6 +965,7 @@ component {
 		,          any     progress
 	) {
 		var formDefinition = getForm( arguments.formId );
+		var isV2           = isV2Form( arguments.formId );
 
 		if ( !formDefinition.recordCount ) {
 			if ( canReportProgress ) {
@@ -1024,14 +1025,15 @@ component {
 			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4, "string" );
 
 			if ( itemsToRender.len() ) {
-				var data   = DeSerializeJson( submission.submitted_data );
+				var data = isV2 ? getV2Responses( arguments.formId, submission.id ) : DeSerializeJson( submission.submitted_data );
 				for( item in itemsToRender ) {
+					var itemKey = isV2 ? item.questionId : ( item.configuration.name ?: "" );
 					var viewlet = _getFormBuilderRenderingService().getItemTypeViewlet(
 						  itemType = item.type.id
 						, context  = "responseForExport"
 					);
 					var itemColumns = $renderViewlet( event=viewlet, args={
-						  response          = data[ item.configuration.name ?: "" ] ?: ""
+						  response          = data[ itemKey ] ?: ""
 						, itemConfiguration = item.configuration
 					} );
 					var mappedColumns = itemColumnMap[ item.id ];
