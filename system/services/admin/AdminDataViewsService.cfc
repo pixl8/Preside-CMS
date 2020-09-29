@@ -126,6 +126,11 @@ component {
 					return "datetime";
 			}
 
+			switch( type ) {
+				case "numeric":
+					return "integer";
+			}
+
 
 			return "plaintext";
 		} );
