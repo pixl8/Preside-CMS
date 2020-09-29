@@ -243,6 +243,9 @@ component {
 					}
 				break;
 				case "numeric":
+					if ( StructKeyExists( fieldAttributes, "formula" ) ) {
+						break;
+					}
 					if ( ( fieldAttributes.dbType ?: "" ) contains "int" ) {
 						return "integer";
 					}
