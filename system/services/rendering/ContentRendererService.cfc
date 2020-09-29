@@ -243,10 +243,8 @@ component {
 					}
 				break;
 				case "numeric":
-					if ( StructKeyExists( fieldAttributes, "formula" ) ) {
-						break;
-					}
-					if ( ( fieldAttributes.dbType ?: "" ) contains "int" ) {
+					var dbType = fieldAttributes.dbType ?: "";
+					if ( not Len( Trim( dbType ) ) or dbType == "none" or dbType contains "int" ) {
 						return "integer";
 					}
 					return "float";
