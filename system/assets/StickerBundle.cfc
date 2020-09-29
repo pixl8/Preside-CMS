@@ -54,6 +54,7 @@ component output=false {
 		bundle.asset( "/js/admin/specific/assetmanager/editasset/" ).dependsOn( "/js/admin/specific/owlcarousel/" );
 		bundle.asset( "/js/frontend/formbuilder/" ).after( "*jquery*" );
 		bundle.asset( "/js/admin/specific/passwordscore/" ).after( "*jquery*" );
+		bundle.asset( "/js/admin/specific/datamanager/object/" ).dependsOn( "/js/admin/specific/datamanager/quickForm/" );
 		bundle.asset( "highlightjs" ).dependsOn( "highlightjs-js" ).dependsOn( "highlightjs-css" );
 	}
 

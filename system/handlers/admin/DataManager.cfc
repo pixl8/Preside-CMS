@@ -1452,6 +1452,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = args.objectName ?: "";
 		var objectTitle = prc.objectTitle ?: "";
 		var actions     = [];
+		var useQuickForm = presideObjectService.getObjectAttribute( attributeName="quickForm", objectName=objectName, defaultValue=false);
 
 		if ( IsTrue( prc.canManagePerms ?: "" ) ) {
 			actions.append( {
@@ -1472,13 +1473,24 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 		if ( IsTrue( prc.canAdd ?: "" ) ) {
-			actions.append( {
-				  link      = event.buildAdminLink( objectName=objectName, operation="addRecord" )
-				, btnClass  = "btn-success"
-				, iconClass = "fa-plus"
-				, globalKey = "a"
-				, title     = translateResource( uri="cms:datamanager.addrecord.title" , data = [ objectTitle ] )
-			} );
+			if (useQuickForm) {
+				actions.append( {
+					link      = event.buildAdminLink( linkto="datamanager.quickAddForm",queryString="object=#objectName#&multiple=1")
+					, btnClass  = "btn-success"
+					, quickForm     = true
+					, iconClass = "fa-plus"
+					, globalKey = "a"
+					, title     = translateResource( uri="cms:datamanager.addrecord.title" , data = [ objectTitle ] )
+				} );
+			}else{
+				actions.append( {
+					link      = event.buildAdminLink( objectName=objectName, operation="addRecord" )
+					, btnClass  = "btn-success"
+					, iconClass = "fa-plus"
+					, globalKey = "a"
+					, title     = translateResource( uri="cms:datamanager.addrecord.title" , data = [ objectTitle ] )
+				} );
+			}
 		}
 
 		customizationService.runCustomization(
@@ -1830,6 +1842,8 @@ component extends="preside.system.base.AdminHandler" {
 			var deleteRecordLink       = canDelete            ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
 			var viewHistoryLink        = canViewVersions      ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
 			var deleteRecordTitle      = canDelete            ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
+			var useQuickForm      = presideObjectService.getObjectAttribute( attributeName="quickForm", objectName=objectName, defaultValue=false);
+			var quickEditRecordLink = event.buildAdminLink( linkto="datamanager.quickEditForm",queryString="object=#objectName#&id={id}");
 		}
 
 		for( var record in records ){
@@ -1868,12 +1882,23 @@ component extends="preside.system.base.AdminHandler" {
 						} );
 					}
 					if ( canEdit ) {
-						actions.append( {
-							  link       = editRecordLink.replace( "{id}", record.id )
-							, icon       = "fa-pencil"
-							, contextKey = "e"
-						} );
-
+						if ( canEdit ) {
+							if (useQuickForm) {
+								actions.append( {
+									  link       = quickEditRecordLink.replace( "{id}", record.id )
+									, icon       = "fa-pencil"
+									, contextKey = "e"
+									, type 	 = "quickForm"
+		
+								} );
+							}else{
+								actions.append( {
+									link       = editRecordLink.replace( "{id}", record.id )
+									, icon       = "fa-pencil"
+									, contextKey = "e"
+								} );
+							}
+						}
 					}
 					if ( canSort && isTreeView ) {
 						actions.append( {

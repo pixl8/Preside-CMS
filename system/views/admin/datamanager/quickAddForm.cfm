@@ -34,7 +34,7 @@
 					, name         = "_addAnother"
 					, id           = "_addAnother"
 					, savedValue   = true
-					, defaultValue = true
+					, defaultValue = false
 					, label        = translateResource( uri="cms:datamanager.quick.add.another", data=[ objectTitleSingular ] )
 				)#
 			</div>
