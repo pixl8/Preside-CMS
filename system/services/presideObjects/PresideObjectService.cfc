@@ -681,9 +681,10 @@ component displayName="Preside Object Service" {
 
 				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
 				var oldManyToManyData = versionedManyToManyFields.len() ? getDeNormalizedManyToManyData(
-					objectName         = arguments.objectName
+					  objectName       = arguments.objectName
 					, id               = record[ idField ]
 					, selectFields     = versionedManyToManyFields
+					, fromVersionTable = arguments.isDraft
 				) : {};
 
 				var newDataForChangedFieldsCheck = Duplicate( cleanedData );
@@ -714,6 +715,7 @@ component displayName="Preside Object Service" {
 					, manyToManyData       = manyToManyData
 					, existingRecords      = arguments.oldData
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					, isDraft              = arguments.isDraft
 				);
 			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
 				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
