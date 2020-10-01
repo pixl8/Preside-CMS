@@ -7,11 +7,12 @@
 	prompt    = args.prompt    ?: "";
 	children  = args.children  ?: [];
 	target    = args.target    ?: "";
+	match     = args.match     ?: "";
 </cfscript>
 
 <cfoutput>
 	<cfif !children.len()>
-		<a class="pull-right inline<cfif prompt.len()> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif>>
+		<a class="pull-right inline<cfif prompt.len()> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif><cfif match.len()> data-confirmation-match="#match#"</cfif>>
 			<button class="btn #btnClass# btn-sm">
 				<i class="fa fa-fw #iconClass#"></i>
 				#title#
