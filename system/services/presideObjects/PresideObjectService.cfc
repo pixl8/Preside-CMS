@@ -1059,7 +1059,7 @@ component displayName="Preside Object Service" {
 			) > 0;
 		}
 
-		var prop = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var prop         = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObject = prop.relatedTo ?: "";
 		var pivotTable   = prop.relatedVia ?: "";
 		var sourceFk     = prop.relationshipIsSource ? prop.relatedViaSourceFk : prop.relatedViaTargetFk;
@@ -1097,7 +1097,7 @@ component displayName="Preside Object Service" {
 
 				anythingChanged = anythingChanged || newAddedRecords.len();
 
-				if ( anythingChanged && !arguments.isDraft ) {
+				if ( anythingChanged ) {
 					deleteData(
 						  objectName = pivotTable
 						, filter     = { "#sourceFk#" = arguments.sourceId }
@@ -1108,7 +1108,12 @@ component displayName="Preside Object Service" {
 						insertData(
 							  objectName    = pivotTable
 							, useVersioning = false
-							, data          = { "#sourceFk#"=arguments.sourceId, "#targetFk#"=newRecords[i], sort_order=i, _version_has_drafts=arguments.isDraft }
+							, isDraft       = arguments.isDraft
+							, data          = {
+								  "#sourceFk#" = arguments.sourceId
+								, "#targetFk#" = newRecords[i]
+								, sort_order   = i
+							}
 						);
 					}
 				}
