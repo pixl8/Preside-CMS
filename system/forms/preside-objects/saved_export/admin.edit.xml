@@ -10,7 +10,7 @@
 	</tab>
 	<tab id="filters" sortorder="20">
 		<fieldset id="fields" sortorder="10">
-			<field binding="saved_export.fields" control="dataExportFieldPicker" required="true" sortorder="10" />
+			<field binding="saved_export.fields" control="dataExportPanelPicker" required="true" sortorder="10" />
 		</fieldset>
 		<fieldset id="filters" sortorder="20">
 			<field binding="saved_export.saved_filter" control="filterPicker" required="false" sortorder="10" multiple="true" />

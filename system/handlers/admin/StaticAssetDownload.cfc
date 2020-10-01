@@ -6,7 +6,7 @@ component {
 		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
 		var assetFile       = ExpandPath( staticAssetPath );
 
-		if ( rc.staticAssetPath.reFindNoCase( "^/preside/system/assets/_dynamic/i18nBundle\.js" ) ) {
+		if ( rc.staticAssetPath.reFindNoCase( "^/preside/system/assets/_dynamic/i18nBundle\.([a-z\-_])+\.([0-9a-f]+)\.js" ) ) {
 			_serveI18nBundle( argumentCollection = arguments );
 		}
 
@@ -64,11 +64,16 @@ component {
 	}
 
 	private void function _serveI18nBundle( event, rc, prc ) {
-		var locale = getFwLocale();
-		var js     = i18n.getI18nJsForAdmin();
-		var etag   = Left( LCase( Hash( js ) ), 8 );
+		var locale = ReReplace( rc.staticAssetPath, "^.*\.([a-zA-Z_-]+)\.[a-z0-9]+\.js$", "\1" );
 
+		if ( !Len( locale ) || locale == rc.staticAssetPath ) {
+			locale = getFwLocale();
+		}
+
+		var etag = i18n.getI18nJsCachebusterForAdmin( locale );
 		_doBrowserEtagLookup( etag );
+
+		var js   = i18n.getI18nJsForAdmin( locale );
 
 		setting showdebugoutput=false;
 
