@@ -2,6 +2,7 @@
  * The formbuilder_form object represents a single form within the form builder system
  *
  * @labelfield name
+ * @datamanagerEnabled true
  */
 component displayname="Form builder: form" extends="preside.system.base.SystemPresideObject" {
 	property name="name"                   type="string"  dbtype="varchar" maxlength=255 required=true uniqueindexes="formname";

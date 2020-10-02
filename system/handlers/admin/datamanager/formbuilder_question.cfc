@@ -188,7 +188,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-
 // helpers
 	private string function _getItemTypeFormAndErrorIfNoItemType( event, rc, prc, args={} ) {
 		var itemType = rc.item_type ?: ( prc.record.item_type ?: "" );
