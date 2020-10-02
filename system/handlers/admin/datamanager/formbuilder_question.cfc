@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="validationEngine"            inject="validationEngine";
 	property name="formsService"                inject="formsService";
 	property name="messageBox"                  inject="messagebox@cbmessagebox";
+	property name="presideObjectService"        inject="presideObjectService";
 
 // CUSTOM PUBLIC PAGES
 	public void function addRecordStep1( event, rc, prc ) {
@@ -52,6 +53,50 @@ component extends="preside.system.base.AdminHandler" {
 			  linkto      = "datamanager.addRecord"
 			, queryString = "object=formbuilder_question&item_type=#( persist.item_type ?: '' )#"
 		) );
+	}
+
+	public string function getRelatedFormRecordsForAjaxDatatable( event, rc, prc, args={} ) {
+		var recordId       = rc.recordId     ?: "";
+		var objectName     = rc.objectName   ?: "formbuilder_question";
+		var propertyName   = rc.propertyName ?: "forms";
+		var extraFilters   = [];
+		var subquerySelect = presideObjectService.selectData(
+			  objectName          = objectName
+			, id                  = recordId
+			, selectFields        = [ "#propertyName#.id as id" ]
+			, getSqlAndParamsOnly = true
+		);
+		var subQueryAlias = "relatedRecordsFilter";
+		var params        = {};
+
+		for( var param in subquerySelect.params ) { params[ param.name ] = param; }
+
+		extraFilters.append( {
+			filter="1=1", filterParams=params, extraJoins=[ {
+				  type           = "inner"
+				, subQuery       = subquerySelect.sql
+				, subQueryAlias  = subQueryAlias
+				, subQueryColumn = "id"
+				, joinToTable    = "formbuilder_form"
+				, joinToColumn   = "id"
+			} ]
+		} );
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object          = "formbuilder_form"
+				, gridFields      = "name"
+				, extraFilters    = extraFilters
+				, useMultiActions = false
+				, isMultilingual  = false
+				, draftsEnabled   = false
+				, useCache        = false
+				, actionsView     = "admin.datamanager.formbuilder_question.formGridActions"
+			}
+		);
 	}
 
 // DATA MANAGER CUSTOMIZATIONS
@@ -188,6 +233,11 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+// VIEWLETS
+	private string function formGridActions( event, rc, prc, args ) {
+		args.editRecordLink = event.buildAdminLink( linkTo="formbuilder.manageForm" , queryString="id=" & args.id );
+		return renderView( view="/admin/datamanager/formbuilder_question/_formGridActions", args=args );
+	}
 
 // helpers
 	private string function _getItemTypeFormAndErrorIfNoItemType( event, rc, prc, args={} ) {

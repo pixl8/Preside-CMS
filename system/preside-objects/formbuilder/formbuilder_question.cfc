@@ -16,4 +16,6 @@ component displayname="Form builder: global question" extends="preside.system.ba
 	property name="help_text"          type="string"  dbtype="text"    required=false               batcheditable=false;
 
 	property name="item_type_config"   type="string"  dbtype="text"    required=false               batcheditable=false autofilter=false adminRenderer="none";
+
+	property name="forms" relationship="many-to-many" relatedTo="formbuilder_form" relatedVia="formbuilder_formitem" relatedViaSourceFk="question" relatedViaTargetFk="form" adminRenderer="formbuilderQuestionForms" adminViewGroup="forms";
 }
