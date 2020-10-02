@@ -89,9 +89,10 @@ component {
 		for( var oldData in existingRecords ) {
 			var versionedManyToManyFields = getVersionedManyToManyFieldsForObject( arguments.objectName );
 			var oldManyToManyData = versionedManyToManyFields.len() ? poService.getDeNormalizedManyToManyData(
-				  objectName   = arguments.objectName
-				, id           = oldData[ idField ]
-				, selectFields = versionedManyToManyFields
+				  objectName       = arguments.objectName
+				, id               = oldData[ idField ]
+				, selectFields     = versionedManyToManyFields
+				, fromVersionTable = arguments.isDraft
 			) : {};
 			var prevVersionsExist = poService.dataExists(
 				  objectName         = arguments.objectName
@@ -772,6 +773,7 @@ component {
 					poService.insertData(
 						  objectName = versionedPivot
 						, data       = data
+						, isDraft    = arguments.isDraft
 					);
 				}
 			}
