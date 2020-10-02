@@ -17,6 +17,6 @@
 		, allowSearch       = true
 		, allowFilter       = false
 		, allowDataExport   = false
-		, noRecordMessage   = translateResource( "preside-objects.formbuilder_question:field.forms.datatables.emptyTable" )
+		, noRecordMessage   = translateResource( uri="preside-objects.formbuilder_question:viewgroup.forms.datatables.emptyTable" )
 	} )#
 </cfoutput>
