@@ -1130,7 +1130,7 @@ component displayName="Preside Object Service" {
 							}
 						);
 					}
-				} else if ( !arguments.isDraft && objectIsVersioned( pivotTable ) ) {
+				} else if ( !arguments.isDraft && objectIsVersioned( pivotTable ) && objectUsesDrafts( pivotTable ) ) {
 					updateData(
 						  objectName    = pivotTable
 						, filter        = { "#sourceFk#" = arguments.sourceId }
