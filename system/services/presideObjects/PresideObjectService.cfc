@@ -966,7 +966,7 @@ component displayName="Preside Object Service" {
 		return selectData(
 			  argumentCollection = arguments
 			, useCache           = false
-			, selectFields       = [ "1" ]
+			, selectFields       = [ "1 as record" ]
 			, recordCountOnly    = true
 		) > 0;
 	}
