@@ -232,7 +232,9 @@ component extends="preside.system.base.AdminHandler" {
 
 			for ( var action in args.actions ) {
 				if ( find( "deleteRecordAction", action.link ?: "" ) ) {
-					arrayDelete( args.actions, action );
+					action.link  = "##";
+					action.class = "disabled";
+					action.title = "";
 					break;
 				}
 			}
