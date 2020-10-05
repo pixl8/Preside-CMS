@@ -4,6 +4,7 @@ component {
 	private function index( event, rc, prc, args={} ) {
 		var pageCachingEnabled = isFeatureEnabled( "fullPageCaching" );
 
+		event.include( assetId="/js/frontend/formbuilder/" );
 		if ( pageCachingEnabled ) {
 			event.include( "recaptcha-js" );
 			event.cachePage( false );
