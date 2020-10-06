@@ -309,7 +309,7 @@ component {
 	public numeric function getSavedExportCountForObject( required string objectName ) {
 		return $getPresideObject( "saved_export" ).selectData(
 			  filter          = { object_name = arguments.objectName }
-			, selectFields    = [ "1" ]
+			, selectFields    = [ "1 as record" ]
 			, recordCountOnly = true
 		);
 	}

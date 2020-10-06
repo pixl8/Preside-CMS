@@ -27,7 +27,7 @@ component {
 		return $getPresideObject( "session_storage" ).selectData(
 			  filter          = "expiry >= :expiry"
 			, filterParams    = { expiry=_getUnixTimeStamp() }
-			, selectFields    = [ "1" ]
+			, selectFields    = [ "1 as record" ]
 			, recordCountOnly = true
 		);
 	}
