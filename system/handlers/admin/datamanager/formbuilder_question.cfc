@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="datamanagerService"          inject="datamanagerService";
 	property name="formBuilderItemTypesService" inject="formBuilderItemTypesService";
+	property name="formBuilderQuestionService"  inject="formBuilderQuestionService";
 	property name="validationEngine"            inject="validationEngine";
 	property name="formsService"                inject="formsService";
 	property name="messageBox"                  inject="messagebox@cbmessagebox";
@@ -68,6 +69,16 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !hasPermission && IsTrue( args.throwOnError ?: "" ) ) {
 			event.adminAccessDenied();
+		}
+
+		switch( args.key ?: "" ) {
+			case "delete":
+				var recordId  = prc.recordId ?: ( args.recordId ?: ( rc.id ?: "" ) );
+
+				if ( !isEmptyString( recordId ) ) {
+					hasPermission = hasPermission && !formBuilderQuestionService.questionIsInUse( questionId=recordId );
+				}
+				break;
 		}
 
 		return hasPermission;
@@ -185,6 +196,48 @@ component extends="preside.system.base.AdminHandler" {
 			var itemFields = event.getCollectionForForm( itemTypeFormName );
 
 			args.formData.item_type_config = SerializeJson( itemFields );
+		}
+	}
+
+	private string function preRenderRecord( event, rc, prc, args={} ) {
+		var recordId = prc.recordId ?: ( rc.recordId ?: "" );
+		var isInUse  = formBuilderQuestionService.questionIsInUse( questionId=recordId );
+
+		if ( isTrue( isInUse ) ) {
+			return renderView( view="/admin/formbuilder/_questionInUseWarning", args=args );
+		}
+
+		return "";
+	}
+
+	private void function preDeleteRecordAction( event, rc, prc, args={} ) {
+		var records = args.records ?: QueryNew('');
+
+		for ( var record in records ) {
+			if ( formBuilderQuestionService.questionIsInUse( questionId=record.id ) ) {
+				messageBox.error( translateResource( uri="preside-objects.formbuilder_question:multiAction.question.in.use.warning" ) );
+				setNextEvent( url=event.buildAdminLink( objectName="formbuilder_question" ) );
+			}
+		}
+	}
+
+	private void function extraRecordActionsForGridListing( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var record     = args.record     ?: {};
+		var recordId   = record.id       ?: "";
+		var isInUse    = formBuilderQuestionService.questionIsInUse( questionId=recordId );
+
+		if ( isTrue( isInUse ) ) {
+			args.actions = args.actions ?: [];
+
+			for ( var action in args.actions ) {
+				if ( find( "deleteRecordAction", action.link ?: "" ) ) {
+					action.link  = "##";
+					action.class = "disabled";
+					action.title = "";
+					break;
+				}
+			}
 		}
 	}
 
