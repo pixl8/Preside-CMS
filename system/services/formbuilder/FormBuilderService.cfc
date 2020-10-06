@@ -1026,7 +1026,6 @@ component {
 				, "formbuilder_question_response.submission_reference"
 				, "question.full_question_text"
 				, "submission$form.name as form_name"
-				//, "submission_context.context_name"
 			]
 
 		);
@@ -1094,7 +1093,6 @@ component {
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			extraFilters.append({
-				  //filter       = "submitted_by.display_name like :q or formbuilder_formsubmission.form_instance like :q or formbuilder_formsubmission.submitted_data like :q"
 				  filter       = "submitted_by like :q or formbuilder_question_response.response like :q"
 				, filterParams = { q = { type="cf_sql_varchar", value="%#arguments.searchQuery#%" } }
 			});

@@ -678,8 +678,7 @@ component extends="preside.system.base.AdminHandler" {
 			, savedFilterExpIdLists = savedFilterExpIdLists
 		);
 		var records = Duplicate( results.records );
-		var viewQuestionResponseTitle   = "Make this i18n";//translateResource( "formbuilder:view.submission.modal.title" );
-
+		var viewQuestionResponseTitle   = translateResource( "formbuilder:view.questionresponse.modal.title" );
 
 		for( var record in records ){
 			for( var field in gridFields ){
