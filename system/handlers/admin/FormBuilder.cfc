@@ -264,6 +264,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	}
 
+	public void function viewQuestionResponse( event, rc, prc, args={} ) {
+		prc.response = formBuilderService.getQuestionResponse( rc.id ?: "" );
+	}
+
 	public void function editForm( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 
@@ -339,6 +343,44 @@ component extends="preside.system.base.AdminHandler" {
 			, progress    = arguments.progress ?: NullValue()
 		);
 	}
+
+	public void function exportQuestionResponsesToExcel( event, rc, prc ) {
+		var questionId   = rc.questionId ?: "";
+		var theQuestion  = formBuilderService.getQuestion( questionId );
+
+		if ( !theQuestion.recordCount ) {
+			event.adminNotFound();
+		}
+
+		var taskId = createTask(
+			  event             = "admin.formbuilder.exportQuestionResponsesInBackgroundThread"
+			, args              = { questionId=questionId }
+			, runNow            = true
+			, adminOwner        = event.getAdminUserId()
+			, discardOnComplete = false
+			, title             = "cms:formbuilder.export.task.title"
+			, resultUrl         = event.buildAdminLink( linkto="formbuilder.downloadExport", querystring="taskId={taskId}" )
+			, returnUrl         = event.buildAdminLink( linkto="datamanager.formbuilder.viewRecord", querystring="id=" & questionId )
+		);
+
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
+	}
+
+	private void function exportQuestionResponsesInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var questionId = args.questionId ?: "";
+
+		formBuilderService.exportQuestionResponsesToExcel(
+			  questionId      = questionId
+			, writeToFile = true
+			, logger      = arguments.logger   ?: NullValue()
+			, progress    = arguments.progress ?: NullValue()
+		);
+	}
+
+
 
 	public void function downloadExport( event, rc, prc ) {
 		var taskId          = rc.taskId ?: "";
@@ -611,6 +653,82 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function listQuestionResponsesForAjaxDataTables( event, rc, prc ) {
+		var questionId                = ( rc.questionId ?: "" );
+
+		var sFilterExpression     = ( structKeyExists( rc, 'sFilterExpression' ) && Len( Trim( rc.sFilterExpression ) ) ) ? rc.sFilterExpression : "";
+		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
+
+		if ( !Len( Trim( questionId ) ) ) {
+			event.adminNotFound();
+		}
+		var canDelete       = false;
+		var useMultiActions = false;
+		var checkboxCol     = [];
+		var optionsCol      = [];
+		var gridFields      = [ "submission", "question", "submitted_by", "datecreated", "response", "is_website_user", "is_admin_user", "datecreated", "form_name" ];
+		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
+		var results         = formbuilderService.getQuestionResponsesForGridListing(
+			  questionId                = questionId
+			, startRow              = dtHelper.getStartRow()
+			, maxRows               = dtHelper.getMaxRows()
+			, orderBy               = dtHelper.getSortOrder()
+			, searchQuery           = dtHelper.getSearchQuery()
+			, sFilterExpression     = sFilterExpression
+			, savedFilterExpIdLists = savedFilterExpIdLists
+		);
+		var records = Duplicate( results.records );
+		var viewQuestionResponseTitle   = translateResource( "formbuilder:view.questionresponse.modal.title" );
+
+		for( var record in records ){
+			for( var field in gridFields ){
+
+				if ( field == "form_name" ) {
+					records[ field ][ records.currentRow ] = records[ field ];
+				} else if ( field == "response" ) {
+					records[ field ][ records.currentRow ] =  formbuilderService.renderV2QuestionResponses(
+						  records[ "submission_reference" ][ records.currentRow ]
+						, records[ "submission" ][ records.currentRow ]
+						, records[ "question" ][ records.currentRow ]
+						, records[ "item_type" ][ records.currentRow ]
+						);
+
+
+				} else {
+					records[ field ][ records.currentRow ] = renderField(
+						  object   = "formbuilder_question_response"
+						, property = field
+						, data     = record[ field ]
+						, context  = [ "adminDataTable", "admin" ]
+						, editable = false
+						, recordId = record.id
+						, record   = record
+					);
+				}
+
+			}
+
+
+
+			optionsCol.append( renderView( view="/admin/formbuilder/_questionResponseActions", args={
+				  canDelete             = false
+				, viewQuestionResponseLink    = event.buildAdminLink( linkto="formbuilder.viewQuestionResponse"         , queryString="id=#record.id#" )
+				, viewQuestionResponseTitle   = viewQuestionResponseTitle
+
+ 			} ) );
+		}
+
+
+
+		QueryAddColumn( records, "_options" , optionsCol );
+		ArrayAppend( gridFields, "_options" );
+
+		event.renderData(
+			  type = "json"
+			, data = dtHelper.queryToResult( records, gridFields, results.totalRecords )
+		);
+	}
+
 	public void function listSubmissionsForAjaxDataTable( event, rc, prc ) {
 		var formId                = ( rc.formId ?: "" );
 		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
@@ -752,6 +870,10 @@ component extends="preside.system.base.AdminHandler" {
 		args.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 
 		return renderView( view="/admin/formbuilder/_formGridFields", args=args );
+	}
+
+	private string function questionResponseDataTableGridFields( event, rc, prc, args ) {
+		return renderView( view="/admin/formbuilder/_questionResponseGridFields", args=args );
 	}
 
 	private string function itemTypePicker( event, rc, prc, args ) {
