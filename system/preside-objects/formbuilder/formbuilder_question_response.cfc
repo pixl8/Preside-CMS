@@ -1,5 +1,5 @@
 /**
- * @feature   formbuilder2
+ * @feature   formbuilder
  * @versioned false
  * @nolabel   true
  */
