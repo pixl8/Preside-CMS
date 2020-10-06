@@ -35,4 +35,8 @@ component displayname="Form builder: global question response" extends="preside.
 	property name="submission"   relationship="many-to-one" relatedto="formbuilder_formsubmission" required=false;
 	property name="website_user" relationship="many-to-one" relatedto="website_user"               required=false;
 	property name="admin_user"   relationship="many-to-one" relatedto="security_user"              required=false;
+
+	property name="is_website_user" type="boolean" dbtype="boolean" formula="case when website_user is not null then 1 else 0 end";
+	property name="is_admin_user"   type="boolean" dbtype="boolean" formula="case when admin_user is not null then 1 else 0 end";
+
 }

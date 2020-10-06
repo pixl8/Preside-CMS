@@ -6,8 +6,43 @@ component extends="preside.system.base.AdminHandler" {
 	property name="validationEngine"            inject="validationEngine";
 	property name="formsService"                inject="formsService";
 	property name="messageBox"                  inject="messagebox@cbmessagebox";
+	property name="adminDataViewsService"       inject="adminDataViewsService";
+	property name="customizationService"        inject="dataManagerCustomizationService";
+
 
 // CUSTOM PUBLIC PAGES
+	private string function renderRecord( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		args.viewGroups = adminDataViewsService.listViewGroupsForObject( objectName );
+
+		args.preRenderRecord         = ( customizationService.objectHasCustomization( objectName, "preRenderRecord"          ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecord"         , args=args ) : "" );
+		args.preRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "preRenderRecordLeftCol"   ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordLeftCol"  , args=args ) : "" );
+		args.preRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "preRenderRecordRightCol"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordRightCol" , args=args ) : "" );
+
+		args.leftCol  = "";
+		args.rightCol = "";
+
+		for( var col in [ "left", "right" ] ) {
+			for( var group in args.viewGroups[ col ] ) {
+				var groupArgs = args.copy();
+				groupArgs.append( group );
+
+				args[ col & "Col" ] &= renderViewlet(
+					  event = "admin.datahelpers.displayGroup"
+					, args  = groupArgs
+				);
+			}
+		}
+
+		args.postRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "postRenderRecordLeftCol"  ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordLeftCol" , args=args ) : "" );
+		args.postRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "postRenderRecordRightCol" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordRightCol", args=args ) : "" );
+		args.postRenderRecord         = ( customizationService.objectHasCustomization( objectName, "postRenderRecord"         ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecord"        , args=args ) : "" );
+
+
+		return renderView( view="/admin/datamanager/formbuilder_question/viewRecord", args=args );
+	}
+
+
 	public void function addRecordStep1( event, rc, prc ) {
 		if ( !hasCmsPermission( "formquestions.add" ) ) {
 			event.adminAccessDenied();
