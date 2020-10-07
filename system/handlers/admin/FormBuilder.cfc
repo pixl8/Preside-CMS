@@ -30,8 +30,19 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "formbuilder:page.title" );
 		prc.pageSubtitle = translateResource( "formbuilder:page.subtitle" );
 
-		prc.canAdd    = hasCmsPermission( permissionKey="formbuilder.addform" );
-		prc.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
+		prc.canAdd     = hasCmsPermission( permissionKey="formbuilder.addform" );
+		prc.canDelete  = hasCmsPermission( permissionKey="formbuilder.deleteform" );
+		prc.avlButtons = [];
+
+		if ( isTrue( prc.canAdd ) ) {
+			prc.avlButtons.append( {
+				  link      = event.buildAdminLink( linkTo="formbuilder.addForm" )
+				, globalKey = "a"
+				, btnClass  = "btn-success btn-sm"
+				, iconClass = "fa-plus"
+				, btnLabel  = translateResource( "formbuilder:add.form.btn" )
+			} );
+		}
 	}
 
 	public void function addForm( event, rc, prc ) {

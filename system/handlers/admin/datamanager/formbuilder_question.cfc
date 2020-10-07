@@ -55,6 +55,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // DATA MANAGER CUSTOMIZATIONS
+	private void function rootBreadcrumb( event, rc, prc, args={} ) {
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="formBuilder:breadcrumb.title" )
+			, link  = event.buildAdminLink( linkTo="formbuilder.index" )
+		);
+	}
+
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName       = "formbuilder_question";
 		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );

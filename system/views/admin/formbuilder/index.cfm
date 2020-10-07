@@ -1,21 +1,19 @@
 <cfscript>
-	canAdd    = IsTrue( prc.canAdd ?: "" );
-	canDelete = IsTrue( prc.canDelete ?: "" );
-
-	showButtonGroup = canAdd;
+	canDelete  = IsTrue( prc.canDelete ?: "" );
+	avlButtons = prc.avlButtons ?: [];
 </cfscript>
 
 <cfoutput>
-	<cfif showButtonGroup>
+	<cfif isArray( avlButtons ) && !arrayIsEmpty( avlButtons )>
 		<div class="top-right-button-group">
-			<cfif canAdd>
-				<a class="pull-right inline" href="#event.buildAdminLink( linkTo="formbuilder.addForm" )#" data-global-key="a">
-					<button class="btn btn-success btn-sm">
-						<i class="fa fa-plus"></i>
-						#translateResource( "formbuilder:add.form.btn" )#
+			<cfloop array="#avlButtons#" item="btn">
+				<a class="pull-right inline" href="#btn.link#" data-global-key="#btn.globalKey ?: ""#">
+					<button class="btn #btn.btnClass#">
+						<i class="fa #btn.iconClass#"></i>
+						#btn.btnLabel#
 					</button>
 				</a>
-			</cfif>
+			</cfloop>
 		</div>
 	</cfif>
 
