@@ -2263,7 +2263,8 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		} else {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotAdded.unknown.error" ) );
-			setNextEvent( url=errorUrl );
+			persist = formData;
+			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 	}
 
@@ -2629,7 +2630,8 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		} else {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotUpdated.unknown.error" ) );
-			setNextEvent( url=errorUrl );
+			persist = formData;
+			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 	}
 
