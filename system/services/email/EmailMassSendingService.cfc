@@ -287,7 +287,9 @@ component {
 			);
 
 			if ( !takenByOtherProcess ) {
-				return $helpers.queryRowToStruct( queuedEmail );
+				for( var q in queuedEmail ) {
+					return q;
+				}
 			}
 		} while( takenByOtherProcess && ++attempts<=10 );
 
