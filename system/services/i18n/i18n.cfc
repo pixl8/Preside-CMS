@@ -7,6 +7,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	property name="controller"            inject="delayedInjector:coldbox";
 	property name="sessionStorage"        inject="delayedInjector:sessionStorage";
 	property name="adminLanguages"        inject="coldbox:setting:adminLanguages";
+	property name="unknownTranslation"    inject="coldbox:setting:unknownTranslation";
 
 	variables._localeCache = {};
 
@@ -22,7 +23,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 	public string function translateResource(
 		  required string uri
-		,          string defaultValue = variables.controller.getSetting( "UnknownTranslation" )
+		,          string defaultValue = unknownTranslation
 		,          string language     = getFWLanguageCode()
 		,          string country      = getFWCountryCode()
 		,          array  data         = []
@@ -32,13 +33,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			return arguments.uri;
 		}
 
-		var translated = "";
-
-		try {
-			translated = resourceBundleService.getResource( argumentCollection = arguments );
-		} catch ( "ResourceBundleService.MalformedResourceUri" e ) {
-			translated = arguments.defaultValue;
-		}
+		var translated = resourceBundleService.getResource( argumentCollection = arguments );
 
 		if ( ArrayLen( arguments.data ) ) {
 			translated = resourceservice.formatRBString(
