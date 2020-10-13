@@ -1145,7 +1145,7 @@ component displayName="AssetManager Service" {
 	 *
 	 * @autodoc
 	 * @id.hint                  The asset ID
-	 * @deriuvativeName.hint     Derivative for which to get the dimensions
+	 * @derivativeName.hint      Derivative for which to get the dimensions
 	 * @versionId.hint           Specific version of the asset
 	 *
 	 */
