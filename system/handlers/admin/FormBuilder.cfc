@@ -732,6 +732,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function listSubmissionsForAjaxDataTable( event, rc, prc ) {
 		var formId                = ( rc.formId ?: "" );
 		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
+		var sFilterExpression     = ( structKeyExists( rc, 'sFilterExpression' ) && Len( Trim( rc.sFilterExpression ) ) ) ? rc.sFilterExpression : "";
 
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
@@ -748,6 +749,7 @@ component extends="preside.system.base.AdminHandler" {
 			, maxRows               = dtHelper.getMaxRows()
 			, orderBy               = dtHelper.getSortOrder()
 			, searchQuery           = dtHelper.getSearchQuery()
+			, sFilterExpression     = sFilterExpression
 			, savedFilterExpIdLists = savedFilterExpIdLists
 		);
 		var records = Duplicate( results.records );
