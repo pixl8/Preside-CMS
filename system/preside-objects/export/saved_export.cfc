@@ -17,7 +17,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="order_by"                                  control="none"                                                   autofilter=false;
 	property name="search_query"                              control="none"                                                   autofilter=false;
 
-	property name="created_by"   relationship="many-to-one"  relatedto="security_user" control="none";
+	property name="created_by"   relationship="many-to-one"  relatedto="security_user" control="none" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 	property name="recipients"   relationship="many-to-many" relatedto="security_user";
 	property name="schedule"                                                          required="true" control="cronPicker" autofilter=false;
 

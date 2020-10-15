@@ -259,10 +259,16 @@ component {
 	 * @autodoc true
 	 */
 	public struct function getNextQueuedEmail() {
-		transaction {
-			var takenByOtherProcess = false;
-			var queueDao            = $getPresideObject( "email_mass_send_queue" );
-			var queuedEmail         = queueDao.selectData(
+		var takenByOtherProcess = false;
+		var attempts            = 0;
+
+		do {
+			// sleep random ms to help with multithreads
+			// not selecting at the same time
+			sleep( randRange( 1, 10 ) );
+
+			var queueDao    = $getPresideObject( "email_mass_send_queue" );
+			var queuedEmail = queueDao.selectData(
 				  selectFields = [ "id", "recipient", "template" ]
 				, filter       = "status is null or status = :status"
 				, filterParams = { status="queued" }
@@ -270,25 +276,22 @@ component {
 				, maxRows      = 1
 			);
 
-			for( var q in queuedEmail ) {
-				var updated = queueDao.updateData(
-					  filter       = "id = :id and ( status is null or status = :status )"
-					, filterParams = { id=q.id, status="queued" }
-					, data         = { status = "sending" }
-				);
+			if ( !queuedEmail.recordCount ) {
+				return {};
+			}
 
-				if ( updated ) {
+			takenByOtherProcess = !queueDao.updateData(
+				  filter       = "id = :id and ( status is null or status = :status )"
+				, filterParams = { id=queuedEmail.id, status="queued" }
+				, data         = { status = "sending" }
+			);
+
+			if ( !takenByOtherProcess ) {
+				for( var q in queuedEmail ) {
 					return q;
 				}
-
-				takenByOtherProcess = true;
-				break;
 			}
-		}
-
-		if ( takenByOtherProcess ) {
-			return getNextQueuedEmail();
-		}
+		} while( takenByOtherProcess && ++attempts<=10 );
 
 		return {};
 	}
