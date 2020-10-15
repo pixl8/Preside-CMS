@@ -197,6 +197,7 @@ component displayName="Preside Object Service" {
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
+		,          string  mergeFilterOperator     = "and"
 	) autodoc=true {
 		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
@@ -232,6 +233,7 @@ component displayName="Preside Object Service" {
 			  argumentCollection = args
 			, adapter            = adapter
 			, columnDefinitions  = objMeta.properties
+			, mergeFilterOperator = arguments.mergeFilterOperator
 		);
 
 		args.adapter     = adapter;
@@ -1938,15 +1940,18 @@ component displayName="Preside Object Service" {
 		return "textinput";
 	}
 
-	public string function mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias ) {
+	public string function mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias, string mergeFilterOperator='and' ) {
 		var parsed1 = arguments.dbAdapter.getClauseSql( arguments.filter1, arguments.tableAlias );
 		var parsed2 = arguments.dbAdapter.getClauseSql( arguments.filter2, arguments.tableAlias );
 
 		parsed1 = ReReplace( parsed1, "^\s*where ", "" );
 		parsed2 = ReReplace( parsed2, "^\s*where ", "" );
 
+		if( !isEmpty( arguments.mergeFilterOperator ?: "" ) && !listFindNoCase( 'and,or', arguments.mergeFilterOperator ) ){
+			arguments.mergeFilterOperator = "and";
+		}
 		if ( Len( Trim( parsed1 ) ) && Len( Trim( parsed2 ) ) ) {
-			return "(" & parsed1 & ") and (" & parsed2 & ")";
+			return "(" & parsed1 & ") #arguments.mergeFilterOperator# (" & parsed2 & ")";
 		}
 
 		return Len( Trim( parsed1 ) ) ? parsed1 : parsed2;
@@ -3278,6 +3283,7 @@ component displayName="Preside Object Service" {
 		, required struct columnDefinitions
 		,          string having = ""
 		,          string id
+		,          string mergeFilterOperator
 	) {
 		_announceInterception( "prePrepareObjectFilter", arguments );
 
@@ -3309,6 +3315,7 @@ component displayName="Preside Object Service" {
 				, filter2    = extraFilter.filter
 				, dbAdapter  = arguments.adapter
 				, tableAlias = arguments.objectName
+				, mergeFilterOperator = arguments.mergeFilterOperator
 			);
 			if ( Len( Trim( extraFilter.having ) ) ) {
 				result.having = mergeFilters(
