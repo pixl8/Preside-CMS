@@ -1140,7 +1140,7 @@ component {
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
-			result.totalRecords = questionResponseDao.selectData(
+			result.totalRecords = questionResponsesDao.selectData(
 				  selectFields = [ "count( * ) as nRows" ]
 				, filter       = { question = arguments.questionId }
 			).nRows;
