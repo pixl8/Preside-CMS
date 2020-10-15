@@ -147,7 +147,57 @@ component {
 	}
 
 	/**
-	 * Retuns a form's item that matches the given input name.
+	 * Returns the matching database record for the given question ID
+	 *
+	 * @autodoc
+	 * @id.hint ID of the question you wish to get
+	 *
+	 */
+	public query function getQuestion( required string id ) {
+		return Len( Trim( arguments.id ) ) ? $getPresideObject( "formbuilder_question" ).selectData( id=arguments.id ) : QueryNew('');
+	}
+
+	/**
+	 * Returns formbuilder questions which allow multiple selections
+	 *
+	 */
+	public query function getMultiValueQuestions() {
+		var filter = "( item_type = 'checkboxList' or ( item_type = 'select' and item_type_config like '%""multiple"":""1""%' ) )"
+
+		return $getPresideObject( "formbuilder_question" ).selectData(
+			  filter       = filter
+			, selectFields = [ "id", "field_label" ]
+		) ;
+	}
+
+	/**
+	 * Returns formbuilder questions which allow single selections
+	 *
+	 */
+	public query function getSingleValueQuestions() {
+		var filter = "( item_type = 'radio' or ( item_type = 'select' and item_type_config not like '%""multiple"":""1""%' ) )"
+
+		return $getPresideObject( "formbuilder_question" ).selectData(
+			  filter       = filter
+			, selectFields = [ "id", "field_label" ]
+		) ;
+	}
+
+	/**
+	 * Returns formbuilder questions which are text
+	 *
+	 */
+	public query function getTextValueQuestions() {
+		var filter = " item_type in ('textinput', 'textarea', 'email') "
+
+		return $getPresideObject( "formbuilder_question" ).selectData(
+			  filter       = filter
+			, selectFields = [ "id", "field_label" ]
+		) ;
+	}
+
+	/**
+	 * Returns a form's item that matches the given input name.
 	 *
 	 * @autodoc
 	 * @formId.hint    ID of the form whose item you wish to get
@@ -952,6 +1002,15 @@ component {
 				, filterParams = { q = { type="cf_sql_varchar", value="%#arguments.searchQuery#%" } }
 			});
 		}
+		if ( Len( Trim( sFilterExpression ?: "" ) ) ) {
+
+			try {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName = "formbuilder_formsubmission"
+					, expressionArray = DeSerializeJson( sFilterExpression ?: "" )
+				) );
+			} catch( any e ){}
+		}
 
 		if ( Len( Trim( arguments.savedFilterExpIdLists ?: "" ) ) ) {
 			var savedFilters = _getPresideObjectService().selectData(
@@ -1140,7 +1199,7 @@ component {
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
-			result.totalRecords = questionResponseDao.selectData(
+			result.totalRecords = questionResponsesDao.selectData(
 				  selectFields = [ "count( * ) as nRows" ]
 				, filter       = { question = arguments.questionId }
 			).nRows;
