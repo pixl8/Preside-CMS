@@ -20,11 +20,17 @@ component {
 		  required string question
 		,          boolean _has = true
 	) {
+		var userId = payload.user.id ?: "";
+
+		if ( !userId.len() ) {
+			return !arguments._has;
+		}
+
 		var filter = prepareFilters( argumentCollection = arguments	) ;
 
 		return formBuilderFilterService.evaluateQuestionUserHasResponse(
 			  argumentCollection = arguments
-			, userId             = payload.user.id
+			, userId             = userId
 			, formId             = payload.formId ?: ""
 			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = filter

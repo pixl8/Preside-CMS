@@ -38,16 +38,14 @@ component {
 		}
 
 
-		var match = _getRulesEngineConditionService().evaluateCondition(
+		return _getRulesEngineConditionService().evaluateCondition(
 				  conditionId      = arguments.conditionId
 				, context          = "webrequest"
 				, payload          = {
 					  formId       = arguments.formId
 					, submissionId = arguments.submissionId
 				}
- 			);
-
-		return match;
+ 		);
 	}
 
 
@@ -115,9 +113,9 @@ component {
 		var responseQueryAlias  = "responseCount" & paramSuffix;
 		var overallFilter       = "#responseQueryAlias#.response_count >= 1 ";
 		var params              = {
-								  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
-								, "row#paramSuffix#"      = { value=arguments.row, type="cf_sql_varchar" }
-							};
+			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
+			, "row#paramSuffix#"      = { value=arguments.row, type="cf_sql_varchar" }
+		};
 
 		return _prepareFilterForLatestResponseMatrixMatches(
 			  value              = arguments.value

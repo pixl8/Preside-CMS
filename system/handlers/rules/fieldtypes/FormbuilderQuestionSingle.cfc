@@ -38,20 +38,21 @@ component {
 			arrayAppend( values, question.id );
 			arrayAppend( labels, question.field_label );
 		}
-			if ( values.len() ) {
-				return renderFormControl(
-					  argumentCollection = arguments.config
-					, name               = "value"
-					, type               = "select"
-					, values             = values
-					, labels             = labels
-					, multiple           = true
-					, label              = label
-					, savedValue         = arguments.value
-					, defaultValue       = arguments.value
-					, required           = true
-				);
-			}
+
+		if ( values.len() ) {
+			return renderFormControl(
+				  argumentCollection = arguments.config
+				, name               = "value"
+				, type               = "select"
+				, values             = values
+				, labels             = labels
+				, multiple           = true
+				, label              = label
+				, savedValue         = arguments.value
+				, defaultValue       = arguments.value
+				, required           = true
+			);
+		}
 
 
 		return '<p class="alert alert-warning"><i class="fa fa-fw fa-exclamation-triangle"></i> #translateResource( "cms:rulesEngine.fieldtype.formbuilderQuestionSingleChoiceValue.no.choices.warning" )#</p>'

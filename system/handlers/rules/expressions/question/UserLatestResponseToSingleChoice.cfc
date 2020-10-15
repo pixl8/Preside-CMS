@@ -22,11 +22,17 @@ component {
 		  required string question
 		, required string value
 	) {
+		var userId = payload.user.id ?: "";
+
+		if ( !userId.len() ) {
+			return false;
+		}
+
 		var filter = prepareFilters( argumentCollection = arguments	) ;
 
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
-			, userId             = payload.user.id
+			, userId             = userId
 			, formId             = payload.formId ?: ""
 			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = filter
