@@ -17,5 +17,5 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 	property name="owner"       relatedTo="security_user"  relationship="many-to-one";
 	property name="user_groups" relatedTo="security_group" relationship="many-to-many" relatedVia="rules_filter_user_group";
 
-	property name="group_filter" formula="case when Length( group_concat( rules_filter_user_group.security_group ) ) then 1 else 0 end" batchEditable=false type="boolean" dbtype="boolean;
+	property name="group_filter" formula="case when Length( group_concat( rules_filter_user_group.security_group ) ) then 1 else 0 end" batchEditable=false type="boolean" dbtype="boolean";
 }

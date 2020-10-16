@@ -468,7 +468,7 @@ component {
 				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
 				, filterParams = { "email_template.recipient_type" = "websiteUser" }
 			  }
-			, globalRulesOnly = { filter = "owner is null" };
+			, globalRulesOnly = { filter = "owner is null" }
 		};
 
 		settings.enum = {};
