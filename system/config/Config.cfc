@@ -11,6 +11,11 @@ component {
 		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
+		settings.legacyExtensionsNowInCore = [
+			  "preside-ext-taskmanager"
+			, "preside-ext-formbuilder"
+			, "preside-ext-redirects"
+		];
 
 		settings.activeExtensions = _loadExtensions();
 
@@ -656,7 +661,8 @@ component {
 
 	private array function _loadExtensions() {
 		return new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping = settings.appMapping
+			  appMapping       = settings.appMapping
+			, ignoreExtensions = settings.legacyExtensionsNowInCore
 		).listExtensions();
 	}
 
