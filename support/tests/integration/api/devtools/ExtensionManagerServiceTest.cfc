@@ -3,9 +3,9 @@ component extends="testbox.system.BaseSpec"{
 	function run(){
 
 		describe( "listExtensions()", function(){
-			beforeEach( function() { _setup(); } );
-
 			it( "should return an array of structs of extensions in dependency order based on auto discovery within directories", function(){
+				_setup();
+
 				var extensions = manager.listExtensions();
 				var basePath   = "/tests/resources/extensionManager/application";
 
@@ -19,6 +19,24 @@ component extends="testbox.system.BaseSpec"{
 					, directory = "#basePath#/extensions/anotherExtension"
 					, dependsOn	= []
 				}, {
+					  id        = "someExtension"
+					, name      = "someExtension"
+					, title     = "Some extension"
+					, author    = "Test author"
+					, version   = "2.5.5524"
+					, changelog = "Things change man"
+					, dependson = [ "anotherExtension", "moduleExtension" ]
+					, directory = "#basePath#/extensions/someExtension"
+				} ] );
+			} );
+
+			it( "should exclude any extensions that it has been told to ignore", function(){
+				_setup( [ "anotherExtension" ] );
+
+				var extensions = manager.listExtensions();
+				var basePath   = "/tests/resources/extensionManager/application";
+
+				expect( extensions ).toBe( [ {
 					  id        = "someExtension"
 					, name      = "someExtension"
 					, title     = "Some extension"
@@ -84,9 +102,10 @@ component extends="testbox.system.BaseSpec"{
 	}
 
 // private helpers
-	private void function _setup() {
+	private void function _setup( array ignore=[] ) {
 		manager = new preside.system.services.devtools.ExtensionManagerService(
-			appMapping = "/tests/resources/extensionManager/application"
+			  appMapping       = "/tests/resources/extensionManager/application"
+			, ignoreExtensions = arguments.ignore
 		);
 	}
 	private void function _resetTestResources() {
