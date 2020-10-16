@@ -196,6 +196,45 @@ component displayName="Rules Engine Filter Service" {
 		);
 	}
 
+	public query function getNonGlobalFilters( required string objectName ) {
+		var adminUserId = $getAdminLoggedInUserId();
+
+		return $getPresideObject( "rules_engine_condition" ).selectData(
+			  selectFields = [ "id", "condition_name", "owner", "security_group.id as group_id" ]
+			, filter       = "filter_object = :filter_object and ( owner=:owner or security_group.id in (:security_group.id) )"
+			, filterParams = {
+				  filter_object       = objectName
+				, owner               = adminUserId
+				, "security_group.id" = $getAdminPermissionService().listUserGroups( adminUserId )
+			}
+			, forceJoins = "left"
+			, orderBy    = "group_id desc,condition_name"
+			, groupBy    = "id"
+		);
+	}
+
+	public void function getRulesEngineSelectArgsForEdit( required struct args, string rulesEngineId = "" ) {
+		var adminUserId = $getAdminLoggedInUserId();
+
+		args.extraFilters = args.extraFilters ?: [];
+
+		args.forceJoins = "left";
+
+		if ( Len( rulesEngineId ) ) {
+			args.extraFilters.append( {
+				filter = { "rules_engine_condition.id" = arguments.rulesEngineId }
+			} );
+		}
+
+		args.extraFilters.append( {
+			  filter       = "( owner is null or owner=:owner or ( security_group.id in (:security_group.id) and allow_group_edit = 1 ) )"
+			, filterParams = {
+				  owner               = adminUserId
+				, "security_group.id" = $getAdminPermissionService().listUserGroups( adminUserId )
+			}
+		} );
+	}
+
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS
