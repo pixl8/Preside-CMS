@@ -24,8 +24,8 @@ component {
 
 		for( var i=1; i<=values.len(); i++ ) {
 			if ( values[ i ] == response ) {
-				if ( labels.len() >= i && labels[ i ] != values[ i ] ) {
-					return labels[ i ] & " (#values[i]#)";
+				if ( labels.len() >= i ) {
+					return labels[ i ];
 				}
 				return response;
 			}
