@@ -174,6 +174,30 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function editNonGlobalFilterAction( event, rc, prc ) {
+		var conditionId = rc.id ?: "";
+		var object      = "rules_engine_condition";
+		var formName    = rc[ "$presideform" ];
+		var formData    = event.getCollectionForForm( formName );
+
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+
+		runEvent(
+			  event          = "admin.DataManager._editRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object        = "rules_engine_condition"
+				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.editCondition", queryString="id=" & conditionId )
+				, successAction = "rulesEngine"
+				, formName      = formName
+				, audit         = true
+				, auditType     = "rulesEngine"
+				, auditAction   = "edit_rules_engine_condition"
+			}
+		);
+	}
+
 	public void function convertConditionToFilter( event, rc, prc ) {
 		var action        = rc.saveAction ?: "";
 		var permissionKey = "";
@@ -341,6 +365,7 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName   = "rules_engine_condition"
 			, maxRows      = rc.maxRows ?: 1000
 			, searchQuery  = rc.q       ?: ""
+			, savedFilters = [ "globalRulesOnly" ]
 			, extraFilters = [ { filter={ "rules_engine_condition.filter_object" = filterObject } } ]
 			, ids          = ListToArray( rc.values ?: "" )
 		);
@@ -521,7 +546,8 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function superQuickAddFilterForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
-		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.include( "/js/admin/specific/datamanager/quickAddForm/" )
+		     .include( "/js/admin/specific/saveFilterForm/" );
 		event.setView( view="/admin/rulesEngine/superQuickAddFilterForm", layout="adminModalDialog" );
 	}
 
@@ -571,7 +597,8 @@ component extends="preside.system.base.AdminHandler" {
 	private string function dataGridFavourites( event, rc, prc, args ) {
 		var objectName = args.objectName ?: "";
 
-		args.favourites = rulesEngineFilterService.getFavourites( objectName );
+		args.favourites       = rulesEngineFilterService.getFavourites( objectName );
+		args.nonGlobalFilters = rulesEngineFilterService.getNonGlobalFilters( objectName=objectName );
 
 		return renderView( view="/admin/rulesEngine/_dataGridFavourites", args=args );
 	}
@@ -583,6 +610,21 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !hasCmsPermission( permissionKey=permKey ) ) {
 			event.adminAccessDenied();
+		}
+
+		if ( arrayFindNoCase( [ "edit","delete" ], key ) && Len( rc.id ?: "" ) ) {
+			var args = { objectName="rules_engine_condition"
+				, recordCountOnly = true
+				, selectFields    = [ "rules_engine_condition.id" ]
+			};
+
+			rulesEngineFilterService.getRulesEngineSelectArgsForEdit( args=args, rulesEngineId=rc.id );
+
+			if ( !presideObjectService.selectData( argumentCollection=args ) ) {
+				event.adminAccessDenied();
+			}
+
+			_checkRuleScope( rc, prc, key );
 		}
 	}
 
@@ -629,5 +671,15 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		return false;
+	}
+
+	private void function _checkRuleScope( rc, prc, required string key ) {
+		if ( key == 'edit' ) {
+			var rulesGroup = presideObjectService.selectData( objectName="rules_engine_condition", id=rc.id, selectFields=[ "security_group.id as group_id", "owner" ], forcejoins="left" );
+
+			if ( rulesGroup.recordCount ) {
+				prc.filterScope = Len( rulesGroup.group_id ) && Len( rulesGroup.owner ) ? "group" : ( Len( rulesGroup.owner ) ? "individual" : "global" );
+			}
+		}
 	}
 }
