@@ -75,8 +75,9 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = args.objectName ?: "";
 		var listing     = "";
 
-		args.usesTreeView = dataManagerService.usesTreeView( objectName );
-		args.treeOnly     = args.usesTreeView && IsTrue( args.treeOnly ?: "" );
+		args.usesTreeView            = dataManagerService.usesTreeView( objectName );
+		args.treeOnly                = args.usesTreeView && IsTrue( args.treeOnly ?: "" );
+		args.filterQuickAddFullModal = IsTrue( args.filterQuickAddFullModal ?: true );
 
 		if ( args.usesTreeView && !args.treeOnly ) {
 			var defaultTab = sessionStorage.getVar( name="_datamanagerTabForObject#objectName#", default="tree" );
