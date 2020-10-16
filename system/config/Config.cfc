@@ -15,6 +15,7 @@ component {
 			  "preside-ext-taskmanager"
 			, "preside-ext-formbuilder"
 			, "preside-ext-redirects"
+			, "preside-ext-individual-filter"
 		];
 
 		settings.activeExtensions = _loadExtensions();
@@ -57,7 +58,8 @@ component {
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
-			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} }
+			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
+			{ class="preside.system.interceptors.IndividualFilterInterceptor"         , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -466,6 +468,7 @@ component {
 				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
 				, filterParams = { "email_template.recipient_type" = "websiteUser" }
 			  }
+			, globalRulesOnly = { filter = "owner is null" };
 		};
 
 		settings.enum = {};
@@ -489,6 +492,8 @@ component {
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
+		settings.enum.rulesfilterScopeAll         = [ "global", "group", "individual" ];
+		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
 
