@@ -7,21 +7,18 @@ This form is used for creating a new rules engine filter conditions through the 
 <form>
 	<tab id="default" sortorder="10">
 		<fieldset id="superquickbasic" sortorder="10">
-			<field binding="rules_engine_condition.filter_object"  control="hidden"        sortorder="10"                                                                                     />
-			<field binding="rules_engine_condition.expressions"    control="hidden"        sortorder="20"                                                                                     />
-			<field binding="rules_engine_condition.condition_name" control="textinput"     sortorder="30" label="preside-objects.rules_engine_condition:field.condition_name.filter.title" />
+			<field binding="rules_engine_condition.filter_object"  control="hidden"    sortorder="10"                                                                                     />
+			<field binding="rules_engine_condition.expressions"    control="hidden"    sortorder="20"                                                                                     />
+			<field binding="rules_engine_condition.condition_name" control="textinput" sortorder="30" label="preside-objects.rules_engine_condition:field.condition_name.filter.title" />
+			<field binding="rules_engine_condition.is_favourite"                       sortorder="40" />
+			<field binding="rules_engine_condition.filter_folder"                      sortorder="50" superquickadd="true" filterby="filter_object" filterbyfield="object_name" />
 		</fieldset>
-
 		<fieldset id="sharing" sortorder="20">
-			<field name="rule_scope" control="enumRadioList" sortorder="40" enum="rulesfilterScopeAll" defaultValue="global"                                                           />
-		</fieldset>
-		<fieldset id="global-filter" sortorder="20">
-			<field binding="rules_engine_condition.is_favourite" />
-			<field binding="rules_engine_condition.filter_folder" superquickadd="true" filterby="filter_object" filterbyfield="object_name" />
+			<field name="rule_scope" control="enumRadioList" sortorder="10" enum="rulesfilterScopeAll" defaultValue="global"                                                           />
 		</fieldset>
 		<fieldset id="group-filter" sortorder="30">
-			<field binding="rules_engine_condition.user_groups" />
-			<field binding="rules_engine_condition.allow_group_edit" />
+			<field binding="rules_engine_condition.user_groups" sortorder="10" />
+			<field binding="rules_engine_condition.allow_group_edit" sortorder="20" />
 		</fieldset>
 	</tab>
 </form>

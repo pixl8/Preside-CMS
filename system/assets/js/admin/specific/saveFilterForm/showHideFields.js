@@ -4,11 +4,13 @@
 	var $form           = $( activeFormClass );
 
 	if ( $form.length ) {
-		var $groupFilterFieldset  = $form.find( "#fieldset-group-filter" )
-		  , $globalFilterFieldset = $form.find( "#fieldset-global-filter" )
+		var $groupFilterFieldset   = $form.find( "#fieldset-group-filter" )
+		  , $folderPickerContainer = $form.find( "#filter_folder" ).closest( ".form-group" )
+		  , $favouriteInput        = $form.find( "[name=is_favourite]" )
 		  , getRadioValue
 		  , getFilterScope
-		  , enableFieldsetsBasedOnFilterScope;
+		  , enableFieldsetsBasedOnFilterScope
+		  , toggleFolderPicker;
 
 		getRadioValue = function( name ) {
 			var $selectedRadio = $form.find( "[name=" + name + "]:checked" );
@@ -25,25 +27,28 @@
 			var filterScope = getFilterScope();
 
 			switch( filterScope ) {
-				case "individual":
-					$groupFilterFieldset.hide();
-					$globalFilterFieldset.hide();
-				break;
-
 				case "group":
 					$groupFilterFieldset.show();
-					$globalFilterFieldset.hide();
 				break;
 
 				default:
 					$groupFilterFieldset.hide();
-					$globalFilterFieldset.show();
 			}
 		};
 
-		$form.on( "click", "[name=rule_scope]", enableFieldsetsBasedOnFilterScope );
+		toggleFolderPicker = function(){
+			if ( $favouriteInput.is( ":checked" ) ) {
+				$folderPickerContainer.hide();
+			} else {
+				$folderPickerContainer.show();
+			}
+		};
+
+		$form.on( "click change", "[name=rule_scope]", enableFieldsetsBasedOnFilterScope );
+		$form.on( "click change", "[name=is_favourite]", toggleFolderPicker );
 
 		enableFieldsetsBasedOnFilterScope();
+		toggleFolderPicker();
 	}
 
 } )( presideJQuery );

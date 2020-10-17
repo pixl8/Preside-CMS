@@ -491,7 +491,7 @@ component {
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
-		settings.enum.rulesfilterScopeAll         = [ "global", "group", "individual" ];
+		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
