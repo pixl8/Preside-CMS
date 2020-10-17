@@ -21,7 +21,7 @@
 
 			return "";
 		}
-		getFilterScope = function(){ return getRadioValue( "rule_scope" ) };
+		getFilterScope = function(){ return getRadioValue( "filter_sharing_scope" ) };
 
 		enableFieldsetsBasedOnFilterScope = function(){
 			var filterScope = getFilterScope();
@@ -44,7 +44,7 @@
 			}
 		};
 
-		$form.on( "click change", "[name=rule_scope]", enableFieldsetsBasedOnFilterScope );
+		$form.on( "click change", "[name=filter_sharing_scope]", enableFieldsetsBasedOnFilterScope );
 		$form.on( "click change", "[name=is_favourite]", toggleFolderPicker );
 
 		enableFieldsetsBasedOnFilterScope();

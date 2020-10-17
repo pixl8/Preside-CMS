@@ -597,8 +597,8 @@ component extends="preside.system.base.AdminHandler" {
 	private string function dataGridFavourites( event, rc, prc, args ) {
 		var objectName = args.objectName ?: "";
 
-		args.favourites       = rulesEngineFilterService.getFavourites( objectName );
-		args.nonGlobalFilters = rulesEngineFilterService.getNonGlobalFilters( objectName=objectName );
+		args.favourites          = rulesEngineFilterService.getFavourites( objectName );
+		args.nonFavouriteFilters = rulesEngineFilterService.getNonFavouriteFilters( objectName );
 
 		return renderView( view="/admin/rulesEngine/_dataGridFavourites", args=args );
 	}

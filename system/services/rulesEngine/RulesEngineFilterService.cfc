@@ -191,25 +191,31 @@ component displayName="Rules Engine Filter Service" {
 	public query function getFavourites( required string objectName ) {
 		return $getPresideObject( "rules_engine_condition" ).selectData(
 			  selectFields = [ "id", "condition_name" ]
-			, filter       = { filter_object=arguments.objectName, is_favourite=true }
-			, orderBy      = "condition_name"
+			, filter       = "filter_object = :filter_object and is_favourite = :is_favourite"
+			, filterParams = {
+				  filter_object       = arguments.objectName
+				, is_favourite        = true
+			  }
+			, extraFilters = [ _getFilterPermissionFilter() ]
+			, forceJoins = "left"
+			, orderBy = "condition_name"
+			, autoGroupBy = true
 		);
 	}
 
-	public query function getNonGlobalFilters( required string objectName ) {
-		var adminUserId = $getAdminLoggedInUserId();
+	public query function getNonFavouriteFilters( required string objectName ) {
 
 		return $getPresideObject( "rules_engine_condition" ).selectData(
-			  selectFields = [ "id", "condition_name", "owner", "security_group.id as group_id" ]
-			, filter       = "filter_object = :filter_object and ( owner=:owner or security_group.id in (:security_group.id) )"
+			  selectFields = [ "rules_engine_condition.id", "rules_engine_condition.condition_name", "filter_folder.label as folder" ]
+			, filter       = "filter_object = :filter_object and ( is_favourite = :is_favourite or is_favourite is null )"
 			, filterParams = {
 				  filter_object       = objectName
-				, owner               = adminUserId
-				, "security_group.id" = $getAdminPermissionService().listUserGroups( adminUserId )
+				, is_favourite        = false
 			}
-			, forceJoins = "left"
-			, orderBy    = "group_id desc,condition_name"
-			, groupBy    = "id"
+			, extraFilters = [ _getFilterPermissionFilter() ]
+			, forceJoins  = "left"
+			, orderBy     = "filter_folder.label,condition_name"
+			, autoGroupBy = true
 		);
 	}
 
@@ -236,6 +242,20 @@ component displayName="Rules Engine Filter Service" {
 	}
 
 // PRIVATE HELPERS
+	private struct function _getFilterPermissionFilter() {
+		var adminUserId = $getAdminLoggedInUserId();
+		var userGroups  = $getAdminPermissionService().listUserGroups( adminUserId );
+
+		var params = {
+			  owner            = adminUserId
+			, "user_groups.id" = userGroups
+		};
+		var filter = "   ( filter_sharing_scope is null or filter_sharing_scope = 'global' )
+		              or ( filter_sharing_scope = 'individual' and owner = :owner )
+		              or ( filter_sharing_scope = 'group' and user_groups.id in (:user_groups.id) )";
+
+		return { filter=filter, filterParams=params };
+	}
 
 // GETTERS AND SETTERS
 	private any function _getExpressionService() {

@@ -5,7 +5,7 @@
 component {
 
 	private string function owner( event, rc, prc, args={} ) {
-		var scope  = Trim( args.data.rule_scope  ?: "" );
+		var scope  = Trim( args.data.filter_sharing_scope ?: "" );
 		var groups = Trim( args.data.user_groups ?: "" );
 
 		if ( !Len( scope ) ) {
@@ -21,8 +21,8 @@ component {
 		return "";
 	}
 
-	private boolean function allowGroupEdit( event, rc, prc, args={} ) {
-		var scope  = Trim( args.data.rule_scope  ?: "" );
+	private any function allowGroupEdit( event, rc, prc, args={} ) {
+		var scope  = Trim( args.data.filter_sharing_scope ?: "" );
 		var groups = Trim( args.data.user_groups ?: "" );
 
 		if ( !Len( scope ) ) {
