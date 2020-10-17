@@ -136,7 +136,9 @@
 				request[ key ].$( "$isAdminUserLoggedIn", false );
 				request[ key ].$( "$getRequestContext", mockRequestContext );
 				request[ key ].$( "$isFeatureEnabled" ).$args( "queryCachePerObject" ).$results( false );
+				request[ key ].$( "$getColdbox", coldbox );
 				mockRequestContext.$( "showNonLiveContent", false );
+				coldbox.$( "handlerExists", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];
