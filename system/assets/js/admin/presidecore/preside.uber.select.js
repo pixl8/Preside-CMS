@@ -1444,7 +1444,12 @@
 				}
 			};
 
-			$.ajax( this.options.superQuickAddUrl, {
+			var quickAddUrl = this.options.superQuickAddUrl;
+			if( this.filter && this.filter.length ){
+				quickAddUrl += this.filter;
+			}
+
+			$.ajax( quickAddUrl, {
 				  data    : { value : newValue }
 				, cache   : false
 				, method  : "post"
