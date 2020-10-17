@@ -14,8 +14,9 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 	property name="is_favourite"     type="boolean" dbtype="boolean"  required=false default=false;
 	property name="allow_group_edit" type="boolean" dbtype="boolean"  required=false default=false generator="rulesfilter.allowGroupEdit" generate="always";
 
-	property name="owner"       relatedTo="security_user"  relationship="many-to-one" generator="rulesfilter.owner" generate="always";
-	property name="user_groups" relatedTo="security_group" relationship="many-to-many" relatedVia="rules_filter_user_group";
+	property name="owner"         relatedTo="security_user"              relationship="many-to-one" generator="rulesfilter.owner" generate="always";
+	property name="user_groups"   relatedTo="security_group"             relationship="many-to-many" relatedVia="rules_filter_user_group";
+	property name="filter_folder" relatedTo="rules_engine_filter_folder" relationship="many-to-one";
 
 	property name="group_filter" formula="case when Length( group_concat( rules_filter_user_group.security_group ) ) then 1 else 0 end" batchEditable=false type="boolean" dbtype="boolean";
 }
