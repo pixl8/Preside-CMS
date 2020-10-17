@@ -2391,9 +2391,17 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  object = ( rc.object ?: '' )
 
 	) {
+		var filterData = {};
+		for( var field in ListToArray( rc.filterByFields ?: "" ) ) {
+			if ( Len( Trim( rc[ field ] ?: "" ) ) ) {
+				filterData[ field ] = ListLen( rc[ field ] ) > 1 ? ListToArray( rc[ field ] ) : rc[ field ];
+			}
+		}
+
 		event.renderData( type="json", data=dataManagerService.superQuickAdd(
-			  objectName = arguments.object
-			, value      = ( rc.value ?: "" )
+			  objectName        = arguments.object
+			, value             = ( rc.value ?: "" )
+			, additionalFilters = filterData
 		) );
 	}
 

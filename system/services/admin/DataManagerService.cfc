@@ -693,13 +693,24 @@ component {
 		return IsBoolean( draftsEnabled ) && draftsEnabled;
 	}
 
-	public struct function superQuickAdd( required string objectName, required string value ) {
+	public struct function superQuickAdd(
+		  required string objectName
+		, required string value
+		,          struct additionalFilters = {}
+	) {
 		var dao        = _getPresideObjectService().getObject( arguments.objectName );
 		var labelField = _getPresideObjectService().getLabelField( arguments.objectName );
 		var labelValue = Trim( arguments.value );
+		var extraFilters = [];
+
+		if ( StructCount( arguments.additionalFilters ) ) {
+			ArrayAppend( extraFilters, { filter=arguments.additionalFilters } );
+		}
+
 		var existing   = dao.selectData(
 			  selectFields = [ "id", labelField ]
 			, filter       = { "#labelField#"=labelValue }
+			, extraFilters = extraFilters
 		);
 
 		if ( existing.recordCount ) {
@@ -709,8 +720,13 @@ component {
 			};
 		}
 
+		var dataToInsert = { "#labelField#"=labelValue };
+		for( var field in arguments.additionalFilters ) {
+			dataToInsert[ field ] = IsArray( arguments.additionalFilters[ field ] ) ? ArrayToList( arguments.additionalFilters[ field ] ) : arguments.additionalFilters[ field ]
+		}
+
 		return {
-			  value = dao.insertData( { "#labelField#"=labelValue } )
+			  value = dao.insertData( data=dataToInsert, insertManyToManyRecords=true )
 			, text  = labelValue
 		};
 	}
