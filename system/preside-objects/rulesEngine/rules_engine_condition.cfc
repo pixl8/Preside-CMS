@@ -12,9 +12,9 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 	property name="filter_object"    type="string"  dbtype="varchar"  required=false maxlength=100  uniqueindexes="filterobjectname|1" renderer="objectName";
 	property name="expressions"      type="string"  dbtype="longtext" required=true;
 	property name="is_favourite"     type="boolean" dbtype="boolean"  required=false default=false;
-	property name="allow_group_edit" type="boolean" dbtype="boolean"  required=false default=false;
+	property name="allow_group_edit" type="boolean" dbtype="boolean"  required=false default=false generator="rulesfilter.allowGroupEdit" generate="always";
 
-	property name="owner"       relatedTo="security_user"  relationship="many-to-one";
+	property name="owner"       relatedTo="security_user"  relationship="many-to-one" generator="rulesfilter.owner" generate="always";
 	property name="user_groups" relatedTo="security_group" relationship="many-to-many" relatedVia="rules_filter_user_group";
 
 	property name="group_filter" formula="case when Length( group_concat( rules_filter_user_group.security_group ) ) then 1 else 0 end" batchEditable=false type="boolean" dbtype="boolean";
