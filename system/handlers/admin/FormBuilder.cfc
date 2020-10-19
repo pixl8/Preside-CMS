@@ -353,10 +353,6 @@ component extends="preside.system.base.AdminHandler" {
 		args.objectName            = "formbuilder_question_response";
 		args.objectTitle           = "";
 		args.defaultExporter       = getSetting( name="dataExport.defaultExporter" , defaultValue="" );
-		/*args.defaultExportFilename = translateresource(
-			  uri  = "cms:dataexport.config.form.field.title.default"
-			, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
-		);*/
 
 		event.setView( view="/admin/datamanager/formbuilder_question/dataExportConfigModal", layout="adminModalDialog", args=args );
 	}

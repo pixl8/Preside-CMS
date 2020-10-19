@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--#!autodoc
-Data export: configuration form
+Data export: formbuilder export configuration form
 
-This form is used for configuring fields, title and format of an object data export
+This form is used for configuring the fields and format of an export of formbuilder data
 -->
 <form i18nBaseUri="cms:dataexport.config.form.">
 	<tab id="default">
