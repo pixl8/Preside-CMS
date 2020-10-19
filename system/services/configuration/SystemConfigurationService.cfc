@@ -273,6 +273,16 @@ component displayName="System configuration service" {
 		);
 	}
 
+	public string function getConfigCategoryTenancy( required string id ) {
+		var cat = getConfigCategory( arguments.id );
+
+		if ( cat.getNoTenancy() ) {
+			return "";
+		}
+
+		return cat.getTenancy();
+	}
+
 	public void function reload() {
 		_setConfigCategories({});
 		_autoDiscoverCategories();
@@ -314,14 +324,19 @@ component displayName="System configuration service" {
 	}
 
 	private void function _registerCategory( required string id ) {
-		var categories = _getConfigCategories();
+		var categories     = _getConfigCategories();
+		var formName       = _getConventionsBaseCategoryForm( arguments.id );
+		var formAttributes = _getFormsService().getForm( formName );
 
 		categories[ arguments.id ] = new ConfigCategory(
 			  id               = arguments.id
 			, name             = _getConventionsBaseCategoryName( arguments.id )
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
 			, icon             = _getConventionsBaseCategoryIcon( arguments.id )
-			, form             = _getConventionsBaseCategoryForm( arguments.id )
+			, form             = formName
+			, siteForm         = _getConventionsBaseSiteCategoryForm( arguments.id )
+			, tenancy          = formAttributes.tenancy ?: "site"
+			, noTenancy        = $helpers.isTrue( formAttributes.notenancy ?: "" )
 			, siteForm         = _getConventionsBaseSiteCategoryForm( arguments.id )
 		);
 	}

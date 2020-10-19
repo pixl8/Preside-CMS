@@ -47,6 +47,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 		} );
 
+		describe( "getConfigCategoryTenancy", function(){
+			it( "should return 'site' for default configurations", function(){
+				var tenant = _getConfigSvc( testDirs ).getConfigCategoryTenancy( id="blog_settings" );
+				expect( tenant ).toBe( "site" );
+			} );
+			it( "should return an empty string for categories with noTenancy=true specified in their form", function(){
+				var tenant = _getConfigSvc( testDirs ).getConfigCategoryTenancy( id="security_settings" );
+				expect( tenant ).toBe( "" );
+			} );
+			it( "should return a specified custom tenant when tenancy='x' is set on the form", function(){
+				var tenant = _getConfigSvc( testDirs ).getConfigCategoryTenancy( id="mail_settings" );
+				expect( tenant ).toBe( "custom" );
+			} );
+		} );
+
 		describe( "saveSetting", function(){
 			it( "should insert a new db record when no existing record exists for the given config key", function(){
 				var configService = _getConfigSvc( testDirs );
@@ -312,10 +327,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockFormsService = createEmptyMock( "preside.system.services.forms.FormsService" );
 		mockSiteService  = createEmptyMock( "preside.system.services.siteTree.SiteService" );
 		mockCache        = createStub();
+		helpers          = createStub();
 
 		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
 		mockFormsService.$( "formExists", true );
 		mockFormsService.$( "createForm", CreateUUId() );
+		mockFormsService.$( "getForm" ).$args( "system-config.security_settings" ).$results( { notenancy=true } );
+		mockFormsService.$( "getForm" ).$args( "system-config.mail_settings" ).$results( { tenancy="custom" } );
+		mockFormsService.$( "getForm", {} );
 
 		activeSite = CreateUUId();
 		mockSiteService.$( "getActiveSiteId", activeSite );
@@ -323,6 +342,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockCache.$( "get" );
 		mockCache.$( "set" );
 		mockCache.$( "clearByKeySnippet" );
+
 
 		var svc = CreateMock( object=new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
@@ -334,6 +354,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		) );
 
 		svc.$( "$announceInterception" );
+		svc.$property( propertyName="$helpers", mock=helpers );
+		helpers.$( method="isTrue", callback=function( val ){
+			return IsBoolean( arguments.val ?: "" ) && arguments.val;
+		} );
 
 		return svc;
 	}
