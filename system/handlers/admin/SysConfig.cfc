@@ -33,24 +33,34 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public any function category( event, rc, prc ) {
-		var categoryId = Trim( rc.id   ?: "" );
-		var siteId     = Trim( rc.site ?: "" );
+		var categoryId   = Trim( rc.id   ?: "" );
+		var dataLoaded   = false;
+		var isSiteConfig = false;
+		var siteId       = "";
 
 		try {
-			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
+			prc.category = systemConfigurationService.getConfigCategory( id=categoryId );
 		} catch( "SystemConfigurationService.category.notFound" e ) {
 			event.notFound();
 		}
-		prc.sites = siteService.listSites();
 
-		var isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
-		if ( isSiteConfig ) {
-			prc.savedData = systemConfigurationService.getCategorySettings(
-				  category        = categoryId
-				, includeDefaults = false
-				, siteId          = siteId
-			);
-		} else {
+		prc.tenancy = systemConfigurationService.getConfigCategoryTenancy( id=categoryId );
+
+		if ( prc.tenancy == "site" ) {
+			prc.sites = siteService.listSites();
+			siteId       = Trim( rc.site ?: "" );
+			isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
+			if ( isSiteConfig ) {
+				prc.savedData = systemConfigurationService.getCategorySettings(
+					  category        = categoryId
+					, includeDefaults = false
+					, siteId          = siteId
+				);
+				dataLoaded = true;
+			}
+		}
+
+		if ( !dataLoaded ) {
 			prc.savedData = systemConfigurationService.getCategorySettings(
 				  category           = categoryId
 				, globalDefaultsOnly = true
