@@ -1537,7 +1537,7 @@ component extends="preside.system.base.AdminHandler" {
 				, iconClass = "fa-trash"
 				, globalKey = "d"
 				, title     = translateResource( uri="cms:datamanager.deleteRecord.btn" )
-				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, recordLabel ] )
+				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
 			} );
 		}
 
