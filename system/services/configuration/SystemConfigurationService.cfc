@@ -318,14 +318,25 @@ component displayName="System configuration service" {
 		);
 	}
 
-	public string function getConfigCategoryTenancy( required string id ) {
-		var cat = getConfigCategory( arguments.id );
+	public boolean function configCategoryExists( required string id ) {
+		_reloadCheck();
 
-		if ( cat.getNoTenancy() ) {
-			return "";
+		var categories = _getConfigCategories();
+
+		return StructKeyExists( categories, arguments.id );
+	}
+
+	public string function getConfigCategoryTenancy( required string id ) {
+		if ( configCategoryExists( arguments.id ) ) {
+			var cat = getConfigCategory( arguments.id );
+			if ( cat.getNoTenancy() ) {
+				return "";
+			}
+
+			return cat.getTenancy();
 		}
 
-		return cat.getTenancy();
+		return "site";
 	}
 
 	public string function getCurrentTenantIdForCategory( required string id ) {
