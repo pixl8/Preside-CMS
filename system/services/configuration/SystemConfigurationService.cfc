@@ -52,30 +52,49 @@ component displayName="System configuration service" {
 	 */
 	public string function getSetting( required string category, required string setting, string default="" ) {
 		_reloadCheck();
-		var activeSite = _getSiteService().getActiveSiteId();
+
+		var tenantId   = getCurrentTenantIdForCategory( arguments.category );
 		var cache      = _getSettingsCache();
-		var cacheKey   = "setting.#arguments.category#.#arguments.setting#.#arguments.default#.#activeSite#";
+		var cacheKey   = "setting.#arguments.category#.#arguments.setting#.#arguments.default#.#tenantId#";
 		var fromCache  = cache.get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
 			return fromCache;
 		}
 
-		var injected   = _getEnv();
-		var result     = _getDao().selectData(
-			  selectFields = [ "value" ]
-			, filter       = { category = arguments.category, setting = arguments.setting, site=activeSite }
-		);
+		var injected = _getEnv();
+		var tenancy  = getConfigCategoryTenancy( arguments.category );
 
-		if ( result.recordCount ) {
-			cache.set( cacheKey, result.value );
-			return result.value;
+		if ( Len( tenancy ) && Len( tenantId ) ) {
+			var filter = {
+				  category = arguments.category
+				, setting  = arguments.setting
+			};
+
+			if ( tenancy == "site" ) {
+				filter.site = tenantId;
+			} else {
+				filter.tenant_id = tenantId;
+			}
+
+			var result = _getDao().selectData(
+				  selectFields = [ "value" ]
+				, filter       = filter
+			);
+
+			if ( result.recordCount ) {
+				cache.set( cacheKey, result.value );
+				return result.value;
+			}
 		}
 
-		result = _getDao().selectData(
+		var result = _getDao().selectData(
 			  selectFields = [ "value" ]
-			, filter       = "category = :category and setting = :setting and site is null"
-			, filterParams = { category = arguments.category, setting = arguments.setting }
+			, filter       = "category = :category and setting = :setting and site is null and tenant_id is null"
+			, filterParams = {
+				  category = arguments.category
+				, setting  = arguments.setting
+			  }
 		);
 
 		if ( result.recordCount ) {

@@ -203,6 +203,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 			it( "should return values as saved in the database for given category and setting that are saved against the currently active site", function(){
 				var configService = _getConfigSvc( testDirs );
+				configService.$( "getConfigCategoryTenancy" ).$args( "somecategory" ).$results( "site" );
 
 				mockDao.$( "selectData" )
 					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
@@ -217,12 +218,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			it( "should return global default values as saved in the database for given category and setting when no setting found for active site", function(){
 				var configService = _getConfigSvc( testDirs );
 
+				configService.$( "getConfigCategoryTenancy" ).$args( "somecategory" ).$results( "site" );
+
 				mockDao.$( "selectData" )
 					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
 					.$results( QueryNew( 'value' ) );
 
 				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 					.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
 
 				expect( configService.getSetting(
@@ -234,12 +237,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			it( "should return passed default when no record exists for either site or global default", function(){
 				var configService = _getConfigSvc( testDirs );
 
+				configService.$( "getConfigCategoryTenancy" ).$args( "somecategory" ).$results( "site" );
+
 				mockDao.$( "selectData" )
 					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				expect( configService.getSetting(
@@ -251,16 +256,34 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 			it( "should fall back to injected setting when setting does not exist", function(){
 				var configService = _getConfigSvc( injectedConfig = { "injectedCat.injectedSetting" = "test value for injected settings" } );
+				configService.$( "getConfigCategoryTenancy" ).$args( "injectedCat" ).$results( "site" );
 
 				mockDao.$( "selectData" )
 					.$args( filter={ category="injectedCat", setting="injectedSetting", site=activeSite }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
+					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				expect( configService.getSetting( category="injectedCat", setting="injectedSetting" ) ).toBe( "test value for injected settings" );
+			} );
+
+			it( "should filter on tenant_id when category has custom tenancy", function(){
+				var configService  = _getConfigSvc( testDirs );
+				var customTenantId = CreateUUId();
+
+				configService.$( "getConfigCategoryTenancy" ).$args( "somecategory" ).$results( "custom" );
+				mockTenancyService.$( "getTenantId" ).$args( "custom" ).$results( customTenantId );
+
+				mockDao.$( "selectData" )
+					.$args( filter={ category="somecategory", setting="asetting", tenant_id=customTenantId }, selectFields=["value"] )
+					.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
+
+				expect( configService.getSetting(
+					  category = "somecategory"
+					, setting  = "asetting"
+				) ).toBe( "this is the correct result" );
 			} );
 
 		} );
