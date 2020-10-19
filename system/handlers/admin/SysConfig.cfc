@@ -2,7 +2,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="siteService"                inject="siteService";
+	property name="presideObjectService"       inject="presideObjectService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
+	property name="tenancyConfig"              inject="coldbox:setting:tenancy";
 
 
 // LIFECYCLE EVENTS
@@ -33,10 +35,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public any function category( event, rc, prc ) {
-		var categoryId   = Trim( rc.id   ?: "" );
-		var dataLoaded   = false;
-		var isSiteConfig = false;
-		var siteId       = "";
+		var categoryId      = Trim( rc.id   ?: "" );
+		var tenantId        = Trim( rc.tenantId ?: "" );
+		var dataLoaded      = false;
+		var isTenancyConfig = false;
 
 		try {
 			prc.category = systemConfigurationService.getConfigCategory( id=categoryId );
@@ -46,15 +48,19 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.tenancy = systemConfigurationService.getConfigCategoryTenancy( id=categoryId );
 
-		if ( prc.tenancy == "site" ) {
-			prc.sites = siteService.listSites();
-			siteId       = Trim( rc.site ?: "" );
-			isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
-			if ( isSiteConfig ) {
+		if ( Len( prc.tenancy ) ) {
+			prc.tenancyObject = tenancyConfig[ prc.tenancy ].object ?: prc.tenancy;
+			prc.tenancyRecords = presideObjectService.selectData(
+				  objectName   = prc.tenancyObject
+				, selectFields = [ "id" ]
+			);
+
+			isTenancyConfig = prc.tenancyRecords.recordCount > 1 && tenantId.len();
+			if ( isTenancyConfig ) {
 				prc.savedData = systemConfigurationService.getCategorySettings(
 					  category        = categoryId
 					, includeDefaults = false
-					, siteId          = siteId
+					, tenantId        = tenantId
 				);
 				dataLoaded = true;
 			}
@@ -69,7 +75,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.categoryName        = translateResource( uri=prc.category.getName(), defaultValue=prc.category.getId() );
 		prc.categoryDescription = translateResource( uri=prc.category.getDescription(), defaultValue="" );
-		prc.formName            = isSiteConfig ? prc.category.getSiteForm() : prc.category.getForm();
+		prc.formName            = isTenancyConfig ? prc.category.getSiteForm() : prc.category.getForm();
 
 		event.addAdminBreadCrumb(
 			  title = prc.categoryName

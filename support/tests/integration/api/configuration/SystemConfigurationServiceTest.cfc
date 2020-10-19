@@ -231,16 +231,19 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 			it( "should return a struct of all saved setting for a given category for the currently active site merged with those from global settings", function(){
 				var configService = _getConfigSvc();
+				var category      = "mycategory";
+
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category=category, site=activeSite } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
-				expect( configService.getCategorySettings( category="mycategory" ) ).toBe( {
+				expect( configService.getCategorySettings( category=category ) ).toBe( {
 					  setting1 = "value1"
 					, setting2 = "value2"
 					, setting3 = "value3global"
@@ -248,22 +251,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			} );
 
 			it( "should return a structure of all saved settings mixed in with injected settings", function(){
+				var category      = "mycategory";
 				var configService = _getConfigSvc( injectedConfig = {
 					  "injectedCat.injectedSetting" = "test value for injected settings"
-					, "mycategory.setting1"         = "valuex"
-					, "mycategory.setting4"         = "another value"
+					, "#category#.setting1"         = "valuex"
+					, "#category#.setting4"         = "another value"
 				} );
 
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
+
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category=category, site=activeSite } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
-				expect( configService.getCategorySettings( category="mycategory" ) ).toBe( {
+				expect( configService.getCategorySettings( category=category ) ).toBe( {
 					  setting1 = "value1"
 					, setting2 = "value2global"
 					, setting3 = "value3"
@@ -272,48 +278,80 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			} );
 
 			it( "should not mixin global or injected settings when explicitly asked not to do so with the includeDefaults argument", function(){
+				var category      = "mycategory";
 				var configService = _getConfigSvc( injectedConfig = {
 					  "injectedCat.injectedSetting" = "test value for injected settings"
-					, "mycategory.setting1"         = "valuex"
-					, "mycategory.setting4"         = "another value"
+					, "#category#.setting1"         = "valuex"
+					, "#category#.setting4"         = "another value"
 				} );
 
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
+
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category=category, site=activeSite } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
-				expect( configService.getCategorySettings( category="mycategory", includeDefaults=false ) ).toBe( {
+				expect( configService.getCategorySettings( category=category, includeDefaults=false ) ).toBe( {
 					  setting1 = "value1"
 					, setting3 = "value3"
 				} );
 			} );
 
 			it( "should only retreive global and injected when explicitly asked to do so with the globalDefaultsOnly argument", function(){
+				var category      = "mycategory";
 				var configService = _getConfigSvc( injectedConfig = {
 					  "injectedCat.injectedSetting" = "test value for injected settings"
-					, "mycategory.setting1"         = "valuex"
-					, "mycategory.setting4"         = "another value"
+					, "#category#.setting1"         = "valuex"
+					, "#category#.setting4"         = "another value"
 				} );
 
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$args( selectFields=[ "setting", "value" ], filter={ category=category, site=activeSite } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ], [ "setting5", "value5" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
-				expect( configService.getCategorySettings( category="mycategory", globalDefaultsOnly=true ) ).toBe( {
+				expect( configService.getCategorySettings( category=category, globalDefaultsOnly=true ) ).toBe( {
 					  setting1 = "value1global"
 					, setting2 = "value2global"
 					, setting3 = "value3global"
 					, setting4 = "another value"
+				} );
+			} );
+
+			it( "should filter on tenant_id when using a category with custom tenancy", function(){
+				var category      = "mycategory";
+				var configService = _getConfigSvc();
+				var customTenantId = CreateUUId();
+
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "custom" );
+				mockTenancyService.$( "getTenantId" ).$args( "custom" ).$results( customTenantId );
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter={ category=category, tenant_id=customTenantId } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [
+						  [ "setting1", "value1" ]
+						, [ "setting3", "value3" ]
+						, [ "setting5", "value5" ]
+					] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar' ) );
+
+
+				expect( configService.getCategorySettings( category=category ) ).toBe( {
+					  setting1 = "value1"
+					, setting3 = "value3"
+					, setting5 = "value5"
 				} );
 			} );
 
@@ -322,12 +360,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[], struct injectedConfig={} ) ouput=false {
-		mockDao          = createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
-		testDirs         = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
-		mockFormsService = createEmptyMock( "preside.system.services.forms.FormsService" );
-		mockSiteService  = createEmptyMock( "preside.system.services.siteTree.SiteService" );
-		mockCache        = createStub();
-		helpers          = createStub();
+		mockDao            = createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
+		testDirs           = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
+		mockFormsService   = createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockTenancyService = createEmptyMock( "preside.system.services.tenancy.TenancyService" );
+		mockSiteService    = createEmptyMock( "preside.system.services.siteTree.SiteService" );
+		mockCache          = createStub();
+		helpers            = createStub();
 
 		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
 		mockFormsService.$( "formExists", true );
@@ -336,13 +375,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockFormsService.$( "getForm" ).$args( "system-config.mail_settings" ).$results( { tenancy="custom" } );
 		mockFormsService.$( "getForm", {} );
 
+
 		activeSite = CreateUUId();
 		mockSiteService.$( "getActiveSiteId", activeSite );
+		mockTenancyService.$( "getTenantId" ).$args( "site" ).$results( activeSite );
 
 		mockCache.$( "get" );
 		mockCache.$( "set" );
 		mockCache.$( "clearByKeySnippet" );
-
 
 		var svc = CreateMock( object=new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
@@ -350,6 +390,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			, env                     = arguments.injectedConfig
 			, formsService            = mockFormsService
 			, siteService             = mockSiteService
+			, tenancyService          = mockTenancyService
 			, settingsCache           = mockCache
 		) );
 

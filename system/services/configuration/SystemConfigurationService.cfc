@@ -15,6 +15,7 @@ component displayName="System configuration service" {
 	 * @env.inject                     coldbox:setting:env
 	 * @formsService.inject            delayedInjector:formsService
 	 * @siteService.inject             delayedInjector:siteService
+	 * @tenancyService.inject          delayedInjector:tenancyService
 	 * @settingsCache.inject           cachebox:PresideSystemSettingsCache
 	 */
 	public any function init(
@@ -23,6 +24,7 @@ component displayName="System configuration service" {
 		, required struct env
 		, required any    formsService
 		, required any    siteService
+		, required any    tenancyService
 		, required any    settingsCache
 	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
@@ -30,6 +32,7 @@ component displayName="System configuration service" {
 		_setEnv( arguments.env );
 		_setFormsService( arguments.formsService );
 		_setSiteService( arguments.siteService );
+		_setTenancyService( arguments.tenancyService );
 		_setSettingsCache( arguments.settingsCache );
 		_setLoaded( false );
 
@@ -94,17 +97,19 @@ component displayName="System configuration service" {
 	 * @category.hint           The name of the category whose settings you wish to get
 	 * @includeDefaults.hint    Whether to include default global and injected settings or whether to just return the settings for the current site
 	 * @globalDefaultsOnly.hint Whether to only include default global and injected settings or whether to include all amalgamated settings
-	 *
+	 * @siteId.hint             Deprecated (use tenantId from now on) - indicates the site for which you'd like to get settings
+	 * @tenantId.hint           ID of the tenant for which you'd like to get settings (tenancy object source can be different per category)
 	 */
 	public struct function getCategorySettings(
 		  required string  category
 		,          boolean includeDefaults    = true
 		,          boolean globalDefaultsOnly = false
-		,          string  siteId             = _getSiteService().getActiveSiteId()
+		,          string  siteId             = getCurrentTenantIdForCategory( arguments.category )
+		,          string  tenantId           = arguments.siteId
 	) {
 		_reloadCheck();
 		var cache      = _getSettingsCache();
-		var cacheKey   = "setting.#arguments.category#.category.#arguments.includeDefaults#.#arguments.globalDefaultsOnly#.#arguments.siteId#";
+		var cacheKey   = "setting.#arguments.category#.category.#arguments.includeDefaults#.#arguments.globalDefaultsOnly#.#arguments.tenantId#";
 		var fromCache  = cache.get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
@@ -112,11 +117,19 @@ component displayName="System configuration service" {
 		}
 
 		var result = {};
+		var tenancy = getConfigCategoryTenancy( arguments.category );
+		var globalOnly = !Len( tenancy ) || !Len( arguments.tenantId ) || arguments.globalDefaultsOnly;
 
-		if ( !arguments.globalDefaultsOnly ) {
+		if ( !globalOnly ) {
+			var filter = { category=arguments.category };
+			if ( tenancy == "site" ) {
+				filter.site = arguments.tenantId;
+			} else {
+				filter.tenant_id = arguments.tenantId;
+			}
 			var rawSiteResult = _getDao().selectData(
 				  selectFields = [ "setting", "value" ]
-				, filter       = { category = arguments.category, site=arguments.siteId }
+				, filter       = filter
 			);
 
 			for( var record in rawSiteResult ){
@@ -124,11 +137,10 @@ component displayName="System configuration service" {
 			}
 		}
 
-		if ( arguments.includeDefaults ) {
-			var injectedStartsWith = "^#arguments.category#\.";
-			var rawGlobalResult    = _getDao().selectData(
+		if ( globalOnly || arguments.includeDefaults ) {
+			var rawGlobalResult = _getDao().selectData(
 				  selectFields = [ "setting", "value" ]
-				, filter       = "category = :category and site is null"
+				, filter       = "category = :category and site is null and tenant_id is null"
 				, filterParams = { category = arguments.category }
 			);
 
@@ -138,6 +150,7 @@ component displayName="System configuration service" {
 				}
 			}
 
+			var injectedStartsWith = "^#arguments.category#\.";
 			var injected = _getEnv().filter( function( key ){ return key.reFindNoCase( injectedStartsWith ) } );
 			for( var key in injected ) {
 				var setting = ListRest( key, "." );
@@ -281,6 +294,16 @@ component displayName="System configuration service" {
 		}
 
 		return cat.getTenancy();
+	}
+
+	public string function getCurrentTenantIdForCategory( required string id ) {
+		var tenancy = getConfigCategoryTenancy( arguments.id );
+
+		if ( Len( tenancy ) ) {
+			return _getTenancyService().getTenantId( tenancy );
+		}
+
+		return "";
 	}
 
 	public void function reload() {
@@ -436,5 +459,12 @@ component displayName="System configuration service" {
 	}
 	private void function _setSettingsCache( required any settingsCache ) {
 	    _settingsCache = arguments.settingsCache;
+	}
+
+	private any function _getTenancyService() {
+	    return _tenancyService;
+	}
+	private void function _setTenancyService( required any tenancyService ) {
+	    _tenancyService = arguments.tenancyService;
 	}
 }
