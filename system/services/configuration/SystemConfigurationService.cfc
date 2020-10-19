@@ -174,7 +174,8 @@ component displayName="System configuration service" {
 	 * @category.hint  Category name of the setting to save
 	 * @setting.hint   Name of the setting to save
 	 * @value.hint     Value to save
-	 * @siteId.hint    ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @siteId.hint    Deprecated (use tenantId): ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @tenantId.hint  ID of the tenant to which the setting applies (optional, if empty setting is treated as system wide default)
 	 *
 	 */
 	public any function saveSetting(
@@ -182,48 +183,52 @@ component displayName="System configuration service" {
 		, required string setting
 		, required string value
 		,          string siteId = ""
+		,          string tenantId = arguments.siteId
 	)  {
 		_reloadCheck();
 
 		var dao    = _getDao();
 		var result = "";
+		var tenancy = getConfigCategoryTenancy( arguments.category );
 
 		transaction {
-			var filter = "category = :category and setting = :setting and site ";
+			var filter = "category = :category and setting = :setting";
 			var params = { category = arguments.category, setting = arguments.setting };
+			var data   = {
+				  category  = arguments.category
+				, setting   = arguments.setting
+				, value     = arguments.value
+				, site      = ""
+				, tenant_id = ""
+			};
 
-			if ( Len( Trim( arguments.siteId ) ) ) {
-				filter &= "= :site";
-				params.site = arguments.siteId;
+			if ( Len( tenancy ) && Len( Trim( arguments.tenantId ) ) ) {
+				if ( tenancy == "site" ) {
+					filter &= " and site = :site";
+					params.site = arguments.tenantId;
+
+					data.site = arguments.tenantId;
+				} else {
+					filter &= " and tenant_id = :tenant_id";
+					params.tenant_id = arguments.tenantId;
+					data.tenant_id = arguments.tenantId;
+				}
 			} else {
-				filter &= "is null";
+				filter &= " and site is null and tenant_id is null";
 			}
 
-			var currentRecord = dao.selectData(
-				  selectFields = [ "id" ]
+			result = dao.updateData(
+				  data         = { value = arguments.value }
 				, filter       = filter
 				, filterParams = params
 			);
 
-			if ( currentRecord.recordCount ) {
-				result = dao.updateData(
-					  data = { value = arguments.value }
-					, id   = currentRecord.id
-				);
-			} else {
-				result = dao.insertData(
-					data = {
-						  category = arguments.category
-						, setting  = arguments.setting
-						, value    = arguments.value
-						, site     = arguments.siteId
-					}
-				);
+			if ( !result ) {
+				result = dao.insertData( data );
 			}
 		}
 
 		clearSettingsCache( arguments.category );
-
 
 		return result;
 	}
@@ -231,17 +236,25 @@ component displayName="System configuration service" {
 	public any function deleteSetting(
 		  required string category
 		, required string setting
-		,          string siteId = ""
+		,          string siteId   = ""
+		,          string tenantId = arguments.siteId
 	)  {
 		_reloadCheck();
 
 		var dao    = _getDao();
-		var filter = "category = :category and setting = :setting and site ";
+		var filter = "category = :category and setting = :setting";
 		var params = { category = arguments.category, setting = arguments.setting };
 
-		if ( Len( Trim( arguments.siteId ) ) ) {
-			filter &= "= :site";
-			params.site = arguments.siteId;
+		if ( Len( Trim( arguments.tenantId ) ) ) {
+			var tenancy = getConfigCategoryTenancy( arguments.category );
+
+			if ( tenancy == "site" ) {
+				filter &= " and site = :site";
+				params.site = arguments.tenantId;
+			} else {
+				filter &= " and tenant_id = :tenant_id";
+				params.tenant_id = arguments.tenantId;
+			}
 		}
 
 		var result = dao.deleteData(

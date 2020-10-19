@@ -93,25 +93,25 @@ component extends="preside.system.base.AdminHandler" {
 
 	public any function saveCategoryAction( event, rc, prc ) {
 		var categoryId = rc.id ?: "";
-		var siteId     = rc.site ?: "";
+		var tenantId   = rc.tenantId ?: "";
 
 		try {
-			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
+			prc.category = systemConfigurationService.getConfigCategory( id=categoryId );
 		} catch( "SystemConfigurationService.category.notFound" e ) {
 			event.notFound();
 		}
 
-		var formName = Len( Trim( siteId ) ) ? prc.category.getSiteForm() : prc.category.getForm();
+		var formName = Len( Trim( tenantId ) ) ? prc.category.getSiteForm() : prc.category.getForm();
 		var formData = event.getCollectionForForm( formName );
 
-		if ( Len( Trim( siteId ) ) ) {
+		if ( Len( Trim( tenantId ) ) ) {
 			for( var setting in formData ){
 				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
 					formData.delete( setting );
 					systemConfigurationService.deleteSetting(
 						  category = categoryId
 						, setting  = setting
-						, siteId   = siteId
+						, tenantId = tenantId
 					);
 				}
 			}
@@ -120,7 +120,7 @@ component extends="preside.system.base.AdminHandler" {
 		var validationResult = validateForm(
 			  formName      = formName
 			, formData      = formData
-			, ignoreMissing = Len( Trim( siteId ) )
+			, ignoreMissing = Len( Trim( tenantId ) )
 		);
 
 		announceInterception( "preSaveSystemConfig", {
@@ -135,7 +135,7 @@ component extends="preside.system.base.AdminHandler" {
 			persist.validationResult = validationResult;
 
 			setNextEvent(
-				  url           = event.buildAdminLink(linkTo="sysconfig.category", queryString="id=#categoryId#" )
+				  url           = event.buildAdminLink(linkTo="sysconfig.category", queryString="id=#categoryId#&tenantId=#tenantId#" )
 				, persistStruct = persist
 			);
 		}
@@ -145,7 +145,7 @@ component extends="preside.system.base.AdminHandler" {
 				  category = categoryId
 				, setting  = setting
 				, value    = formData[ setting ]
-				, siteId   = siteId
+				, tenantId = tenantId
 			);
 		}
 

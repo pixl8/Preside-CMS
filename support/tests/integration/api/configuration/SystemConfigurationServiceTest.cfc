@@ -65,15 +65,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		describe( "saveSetting", function(){
 			it( "should insert a new db record when no existing record exists for the given config key", function(){
 				var configService = _getConfigSvc( testDirs );
+				var category = "mycategory";
 
-				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
-					.$results( QueryNew('id') );
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
+
+				mockDao.$( "updateData" )
+					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
+					.$results( 0 );
 
 				mockDao.$( "insertData", CreateUUId() );
 
 				configService.saveSetting(
-					  category = "mycategory"
+					  category = category
 					, setting  = "mysetting"
 					, value    = "this is the value of my setting"
 				);
@@ -81,21 +84,24 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var log = mockDao.$callLog().insertData;
 
 				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site="" } } );
+				expect( log[1] ).toBe( [ { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" } ] );
 			} );
 
 			it( "should update existing db record when record already exists in db", function(){
 				var configService = _getConfigSvc( testDirs );
+				var category = "mycategory";
 
-				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
-					.$results( QueryNew('id', "varchar", ["someid"] ) );
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
+
+
+				mockDao.$( "updateData" )
+					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
+					.$results( 1 );
 
 				mockDao.$( "insertData", CreateUUId() );
-				mockDao.$( "updateData", 1 );
 
 				configService.saveSetting(
-					  category = "mycategory"
+					  category = category
 					, setting  = "mysetting"
 					, value    = "this is the value of my setting"
 				);
@@ -105,58 +111,90 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 				log = mockDao.$callLog().updateData;
 				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( { data = {  value="this is the value of my setting" }, id = "someid" } );
 			} );
 
 			it( "should insert a new db record with site ID when site id passed", function(){
 				var configService = _getConfigSvc( testDirs );
 				var siteId        = CreateUUId();
+				var category      = "mycategory";
 
-				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category="mycategory", setting="mysetting", site=siteId }, selectFields=["id"] )
-					.$results( QueryNew('id') );
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
+
+				mockDao.$( "updateData" )
+					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category=category, setting="mysetting", site=siteId }, data={ value="this is the value of my setting" } )
+					.$results( 0 );
 
 				mockDao.$( "insertData", CreateUUId() );
 
 				configService.saveSetting(
-					  category = "mycategory"
+					  category = category
 					, setting  = "mysetting"
 					, value    = "this is the value of my setting"
-					, siteId   = siteId
+					, tenantId = siteId
 				);
 
 				var log = mockDao.$callLog().insertData;
 
 				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site=siteId } } );
+				expect( log[1] ).toBe( [ { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" } ] );
 			} );
 
 			it( "should clear related caches", function(){
 				var configService = _getConfigSvc( testDirs );
 				var siteId        = CreateUUId();
+				var category      = "mycategory";
 
-				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category="mycategory", setting="mysetting", site=siteId }, selectFields=["id"] )
-					.$results( QueryNew('id') );
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
+
+				mockDao.$( "updateData" )
+					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category=category, setting="mysetting", site=siteId }, data={ value="this is the value of my setting" } )
+					.$results( 1 );
 
 				mockDao.$( "insertData", CreateUUId() );
 
 
 				configService.saveSetting(
-					  category = "mycategory"
+					  category = category
 					, setting  = "mysetting"
 					, value    = "this is the value of my setting"
-					, siteId   = siteId
+					, tenantId = siteId
 				);
 
 				var log = mockCache.$callLog().clearByKeySnippet;
 
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
-					  keySnippet = "^setting\.mycategory\."
+					  keySnippet = "^setting\.#category#\."
 					, regex      = true
 					, async      = false
 				} );
+			} );
+
+			it( "should insert a new db record with temamt ID when category uses custom tenancy", function(){
+				var configService  = _getConfigSvc( testDirs );
+				var customTenantId = CreateUUId();
+				var category       = "mycategory";
+
+				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "custom" );
+				mockTenancyService.$( "getTenantId" ).$args( "custom" ).$results( customTenantId );
+
+				mockDao.$( "updateData" )
+					.$args( filter="category = :category and setting = :setting and tenant_id = :tenant_id", filterParams={ category=category, setting="mysetting", tenant_id=customTenantId }, data={ value="this is the value of my setting" } )
+					.$results( 0 );
+
+				mockDao.$( "insertData", CreateUUId() );
+
+				configService.saveSetting(
+					  category = category
+					, setting  = "mysetting"
+					, value    = "this is the value of my setting"
+					, tenantId = customTenantId
+				);
+
+				var log = mockDao.$callLog().insertData;
+
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( [ { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId } ] );
 			} );
 
 		} );
