@@ -2,6 +2,7 @@
  * @feature   formbuilder
  * @versioned false
  * @nolabel   true
+ * @dataExportFields id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name
  */
 component displayname="Form builder: global question response" extends="preside.system.base.SystemPresideObject" {
 	property name="question" relationship="many-to-one" relatedto="formbuilder_question" required=true ondelete="cascade";
@@ -38,5 +39,7 @@ component displayname="Form builder: global question response" extends="preside.
 
 	property name="is_website_user" type="boolean" dbtype="boolean" formula="case when website_user is not null then 1 else 0 end";
 	property name="is_admin_user"   type="boolean" dbtype="boolean" formula="case when admin_user is not null then 1 else 0 end";
+
+	property name="parent_name"     type="string"  dbtype="varchar" formula="case when submission_type='formbuilder' then submission$form.name else '' end ";
 
 }
