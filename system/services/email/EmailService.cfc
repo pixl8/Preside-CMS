@@ -75,6 +75,8 @@ component displayName="Email service" {
 		, boolean overwriteTemplateArgs = false
 		, boolean isTest                = false
 	) autodoc=true {
+		var initialCacheState = $getRequestContext().cachePage();
+		$getRequestContext().cachePage( false );
 
 		var hasTemplate = Len( Trim( arguments.template ) );
 
@@ -102,6 +104,8 @@ component displayName="Email service" {
 		if ( hasTemplate ) {
 			_getEmailTemplateService().disableDomainOverwriteForBuildLink();
 		}
+
+		$getRequestContext().cachePage( initialCacheState );
 
 		return result;
 	}

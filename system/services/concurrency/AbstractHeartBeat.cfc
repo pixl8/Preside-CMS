@@ -27,6 +27,7 @@ component {
 
 	public void function run() {
 		$getRequestContext().autoSetSiteByHost();
+		$getRequestContext().isBackgroundThread( true );
 		$run();
 		setLastRun();
 	}
