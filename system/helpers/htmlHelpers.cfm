@@ -8,3 +8,8 @@
 		return currentTabIndex;
 	</cfscript>
 </cffunction>
+
+<cffunction name="stripTags" access="public" returntype="string" output="false">
+	<cfargument name="stringValue" type="string" required="true" />
+	<cfreturn ReReplaceNoCase( stringValue , "<[^>]*>","", "all" ) />
+</cffunction>
