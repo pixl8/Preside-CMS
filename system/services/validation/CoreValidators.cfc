@@ -50,7 +50,7 @@ component validationProvider=true {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
-		return IsNumeric( arguments.value );
+		return IsNumeric( Replace( arguments.value, ",", "" ) );
 	}
 
 	public boolean function digits( required string value ) validatorMessage="cms:validation.digits.default" {
