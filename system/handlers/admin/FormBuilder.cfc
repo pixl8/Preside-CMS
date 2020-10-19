@@ -344,9 +344,25 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function exportQuestionResponsesToExcel( event, rc, prc ) {
-		var questionId   = rc.questionId ?: "";
-		var theQuestion  = formBuilderService.getQuestion( questionId );
+	public void function exportQuestionResponsesConfig( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+		var args   = {};
+
+		args.objectName            = "formbuilder_question_response";
+		args.objectTitle           = "";
+		args.defaultExporter       = getSetting( name="dataExport.defaultExporter" , defaultValue="" );
+
+		event.setView( view="/admin/datamanager/formbuilder_question/dataExportConfigModal", layout="adminModalDialog", args=args );
+	}
+
+	public void function exportQuestionResponses( event, rc, prc ) {
+		var questionId         =  rc.questionId        ?: "";
+		var exportFields       =  rc.exportFields      ?: "id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name";
+		var exporter           =  rc.exporter          ?: "Excel";
+
+		var theQuestion        =      formBuilderService.getQuestion( questionId );
 
 		if ( !theQuestion.recordCount ) {
 			event.adminNotFound();
@@ -354,7 +370,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		var taskId = createTask(
 			  event             = "admin.formbuilder.exportQuestionResponsesInBackgroundThread"
-			, args              = { questionId=questionId }
+			, args              = {
+									  questionId        = questionId
+									, exportFields      = exportFields
+									, exporter          = exporter
+									, filterExpressions = rc.filterExpressions ?: ""
+									, savedFilters      = rc.savedFilters      ?: ""
+								  }
 			, runNow            = true
 			, adminOwner        = event.getAdminUserId()
 			, discardOnComplete = false
@@ -370,13 +392,19 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function exportQuestionResponsesInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
-		var questionId = args.questionId ?: "";
+		var questionId   = args.questionId   ?: "";
+		var exportFields = args.exportFields ?: "id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name";
+		var exporter     = args.exporter     ?: "Excel"
 
-		formBuilderService.exportQuestionResponsesToExcel(
-			  questionId      = questionId
-			, writeToFile = true
-			, logger      = arguments.logger   ?: NullValue()
-			, progress    = arguments.progress ?: NullValue()
+		formBuilderService.exportQuestionResponses(
+			  questionId        = questionId
+			, exportFields      = exportFields
+			, exporter          = exporter
+			, filterExpressions = args.filterExpressions
+			, savedFilters      = args.savedFilters
+			, writeToFile       = true
+			, logger            = arguments.logger   ?: NullValue()
+			, progress          = arguments.progress ?: NullValue()
 		);
 	}
 
