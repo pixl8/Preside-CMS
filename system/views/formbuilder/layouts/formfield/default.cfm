@@ -6,8 +6,8 @@
 <cfparam name="args.help"    type="string" default="" />
 
 <cfscript>
-	var hasError = len( trim( args.error ) );
-	var hasHelp  = len( trim( args.help ) );
+	hasError = Len( Trim( args.error ) );
+	hasHelp  = Len( Trim( args.help ) );
 </cfscript>
 
 <cfoutput>
