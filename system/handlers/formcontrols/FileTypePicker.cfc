@@ -16,7 +16,7 @@ component {
 			for( var type in assetTypes[ assetTypeGroup ] ){
 				types.append( {
 					  value = type
-					, label = translateResource( "filetypes:#type#.picker.label" )
+					, label = translateResource( "filetypes:#type#.picker.label", translateResource( "filetypes:#assetTypeGroup#.picker.text", "Unknown" ) & ": #type#" )
 				} );
 			}
 		}
