@@ -119,6 +119,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError" );
 		interceptorSettings.customInterceptionPoints.append( "preFormBuilderFormSubmission"          );
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
+		interceptorSettings.customInterceptionPoints.append( "preSaveFormbuilderQuestionResponse"    );
 		interceptorSettings.customInterceptionPoints.append( "onReloadConfigCategories"              );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
@@ -312,6 +313,7 @@ component {
 			, systemInformation      = [ "navigate" ]
 			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, formquestions          = [ "navigate", "read", "add", "edit", "delete", "batchdelete", "batchedit", "clone" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
 			, savedExport            = [ "navigate", "read", "add", "edit", "delete" ]
@@ -348,10 +350,10 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*" ];
-		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "rulesEngine.navigate", "emailCenter.*", "!emailCenter.queue.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*" ];
+		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "formquestions.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "rulesEngine.navigate", "emailCenter.*", "!emailCenter.queue.*" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read", "rulesEngine.navigate" ];
-		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
+		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*", "formquestions.*" ];
 		settings.adminRoles.emailcentremanager = [ "cms.access", "emailCenter.*", "!emailCenter.queue.*" ];
 		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
@@ -415,7 +417,8 @@ component {
 			, auditTrail               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemInformation        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, formbuilder              = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, formbuilder              = { enabled=true , siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, formbuilder2             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, multilingual             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport               = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication  = { enabled=true , siteTemplates=[ "*" ], widgets=[] }

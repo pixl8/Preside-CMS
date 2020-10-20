@@ -1,5 +1,6 @@
 <cfscript>
 	param name="args.objectName"              type="string"  default=(rc.object ?: '' );
+	param name="args.formName"                type="string"  default=(prc.formName ?: '' );
 	param name="args.editRecordAction"        type="string"  default=event.buildAdminLink( linkTo='datamanager.quickEditRecordAction', queryString="object=#args.objectName#" );
 	param name="args.validationResult"        type="any"     default=( rc.validationResult ?: '' );
 	param name="args.record"                  type="struct"  default=( prc.record ?: {} );
@@ -19,7 +20,7 @@
 		<input name="id" type="hidden" value="#( rc.id ?: '' )#" />
 
 		#renderForm(
-			  formName                = "preside-objects.#args.objectName#.admin.quickedit"
+			  formName                = args.formName
 			, context                 = "admin"
 			, formId                  = formId
 			, validationResult        = args.validationResult

@@ -16,4 +16,12 @@ component {
 			, required           = IsTrue( args.mandatory      ?: "" )
 		);
 	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return args.response ?: "";
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "shorttext";
+	}
 }

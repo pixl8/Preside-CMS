@@ -15,4 +15,12 @@ component {
 			, labels             = ListToArray( args.labels ?: "", Chr(10) & Chr(13) )
 		);
 	}
+
+	private array function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return ListToArray( args.response ?: "" );
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "shorttext";
+	}
 }
