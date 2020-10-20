@@ -10,6 +10,7 @@ component {
 	/**
 	 * @fbform.fieldtype      object
 	 * @fbform.object         formbuilder_form
+	 * @fbform.objectFilters  formbuilderV1Form
 	 * @fbform.multiple       false
 	 * @fbformfield.fieldtype formbuilderField
 	 *

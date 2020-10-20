@@ -464,6 +464,7 @@ component {
 				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
 				, filterParams = { "email_template.recipient_type" = "websiteUser" }
 			  }
+			, formbuilderV1Form = { filter="formbuilder_form.uses_global_questions is null or formbuilder_form.uses_global_questions = :formbuilder_form.uses_global_questions", filterParams={ "formbuilder_form.uses_global_questions"=false } }
 		};
 
 		settings.enum = {};
