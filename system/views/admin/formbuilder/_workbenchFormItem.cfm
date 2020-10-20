@@ -26,6 +26,7 @@
 					<a href="##" class="edit-link">
 						<i class="fa fa-pencil"></i>
 					</a>
+
 					<cfif not args.isV2>
 						<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
 							<i class="fa fa-fw fa-clone"></i>
@@ -33,8 +34,12 @@
 					</cfif>
 				<cfelse>
 					<a class="grey disabled"><i class="fa fa-fw"></i></a>
-					<a class="grey disabled"><i class="fa fa-fw"></i></a>
+
+					<cfif not args.isV2>
+						<a class="grey disabled"><i class="fa fa-fw"></i></a>
+					</cfif>
 				</cfif>
+
 				<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
 					<i class="fa fa-trash"></i>
 				</a>
