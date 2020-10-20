@@ -12,24 +12,29 @@
 
 <cfoutput>
 	<div class="form-group<cfif hasError> has-error</cfif>">
-		<label class="col-sm-3 control-label no-padding-right" for="#args.id#">
-			#args.label#
-			<cfif isTrue( args.mandatory )>
-				<em class="required" role="presentation">
-					<sup>*</sup>
-					<span>#translateResource( "cms:form.control.required.label" )#</span>
-				</em>
-			</cfif>
-		</label>
+		<div class="col-xs-12 col-sm-3">
+			<label class="control-label" for="#args.id#">
+				#args.label#
 
-		<div class="col-sm-9">
-			<div class="clearfix">
+				<cfif isTrue( args.mandatory )>
+					<em class="required" role="presentation">
+						<sup>*</sup>
+						<span>#translateResource( "cms:form.control.required.label" )#</span>
+					</em>
+				</cfif>
+
+				<cfif hasHelp>
+					<a class="font-icon-info tooltip-icon" data-toggle="tooltip" title="" data-placement="top" data-original-title="#args.help#"></a>
+				</cfif>
+			</label>
+		</div>
+
+		<div class="col-xs-12 col-sm-9">
+			<div class="form-field">
 				#args.renderedItem#
+
 				<cfif hasError>
 					<label for="#args.id#" class="error">#args.error#</label>
-				</cfif>
-				<cfif hasHelp>
-					<span class="help-block">#args.help#</span>
 				</cfif>
 			</div>
 		</div>
