@@ -56,7 +56,7 @@ component {
 					, type               = "select"
 					, values             = rows
 					, labels             = rows
-					, multiple           = true
+					, multiple           = false
 					, label              = label
 					, savedValue         = arguments.value
 					, defaultValue       = arguments.value

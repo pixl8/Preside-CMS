@@ -13,7 +13,7 @@ component {
 	/**
 	 * @question.fieldtype      formbuilderQuestionText
 	 * @question.object         formbuilder_question
-	 * @question.item_type      ""
+	 * @question.item_type      textinput,textarea,email
 	 *
 	 */
 	private boolean function evaluateExpression(

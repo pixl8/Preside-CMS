@@ -4,6 +4,7 @@
 	inputClass              = args.class                   ?: "";
 	placeholder             = args.placeholder             ?: "";
 	defaultValue            = args.defaultValue            ?: "";
+	savedValue              = args.savedValue              ?: "";
 	multiple                = args.multiple                ?: false;
 	sortable                = args.sortable                ?: "";
 	deselectable            = args.deselectable            ?: true;
@@ -21,6 +22,10 @@
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
+	}
+
+	if ( !len( value ) ) {
+		value = savedValue;
 	}
 
 	if ( !deselectable ) {

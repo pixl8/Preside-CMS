@@ -28,7 +28,8 @@ component {
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
-		var singleQuestions = formBuilderService.getSingleValueQuestions( );
+		var singleQuestions = formBuilderService.getSingleValueQuestions( config.formId?:"" );
+
 		var values = [];
 		var labels = [];
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( "formbuilder_question" );
@@ -46,7 +47,7 @@ component {
 				, type               = "select"
 				, values             = values
 				, labels             = labels
-				, multiple           = true
+				, multiple           = false
 				, label              = label
 				, savedValue         = arguments.value
 				, defaultValue       = arguments.value

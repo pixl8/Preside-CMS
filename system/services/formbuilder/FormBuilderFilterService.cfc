@@ -431,6 +431,52 @@ component {
 		return response;
 	}
 
+	public array function prepareFilterForSubmissionQuestionFileUploadTypeMatches(
+		  required string  question
+		, required string  filetype
+		,          boolean _is = true
+		,          string  parentPropertyName = ""
+		,          string  filterPrefix       = ""
+	) {
+		var paramSuffix       = _getRandomFilterParamSuffix();
+		var subqueryAlias     = "responseCount" & paramSuffix;
+		var values            = listToArray( filetype );
+		var overallFilter     = "#subqueryAlias#.response_count >= 1";
+		var endsWithSubQuery  = "";
+		var params            = {
+			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
+		};
+		var i=0;
+		for (var val in values) {
+			i++;
+			endsWithSubQuery &=  " #( i>1 ? " or " : "" )# response like  :response#paramSuffix#_#i# "
+			params["response#paramSuffix#_#i#"] = { value="%#val#", type="cf_sql_varchar" }
+		}
+
+		var subqueryFilter = "question = :question#paramSuffix# and  #( _is ? "" : " not ")# (#endsWithSubQuery#) ";
+		var subquery = $getPresideObject( "formbuilder_question_response" ).selectData(
+			  selectFields        = [ "Count( distinct id ) as response_count", "id", "submission", "submission_reference" ]
+			, filter              = subqueryFilter
+			, groupBy             = "submission"
+			, getSqlAndParamsOnly = true
+			, forceJoins          = "inner"
+		);
+		for( var param in subquery.params ) {
+			params[ param.name ] = { value=param.value, type=param.type };
+		}
+
+		var response = [ { filter=overallFilter, filterParams=params, extraJoins=[ {
+			  type           = "left"
+			, subQuery       = subquery.sql
+			, subQueryAlias  = subqueryAlias
+			, subQueryColumn = "submission"
+			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToColumn   = "id"
+		} ] } ];
+
+		return response;
+	}
+
 	public array function prepareFilterForSubmissionQuestionResponseMatchesText(
 		  required string question
 		, required string value
@@ -631,7 +677,9 @@ component {
 
 	public array function prepareFilterForUserLatestResponseToDateField(
 		  required string question
-		, required struct _time
+		, required string  dateFrom
+		, required string  dateTo
+		,          boolean _is               = true
 		,          string parentPropertyName = ""
 		,          string filterPrefix       = ""
 	) {
@@ -656,14 +704,10 @@ component {
 		}
 
 		var overallFilter  = "";//#subqueryAlias#.response_count > 0";
-
-		if ( IsDate( arguments._time.from ?: "" ) ) {
-			overallFilter &= " #len( trim( overallFilter ) )?"and":""# date( date_response ) >= :from#paramSuffix#";
-			params[ "from#paramSuffix#" ] = { value=arguments._time.from, type="cf_sql_timestamp" };
-		}
-		if ( IsDate( arguments._time.to ?: "" ) ) {
-			overallFilter &= " #len( trim( overallFilter ) )?"and":""# date( date_response ) <= :to#paramSuffix#";
-			params[ "to#paramSuffix#" ] = { value=arguments._time.to, type="cf_sql_timestamp" };
+		if ( IsDate( arguments.dateFrom ?: "" ) && IsDate( arguments.dateTo ?: "" ) ) {
+			overallFilter &= " #(_is?"":" not ")# ( date( date_response ) >= :from#paramSuffix# and date( date_response ) <= :to#paramSuffix# ) ";
+			params[ "from#paramSuffix#" ] = { value=arguments.dateFrom, type="cf_sql_timestamp" };
+			params[ "to#paramSuffix#" ] = { value=arguments.dateTo, type="cf_sql_timestamp" };
 		}
 
 		var response = [ {
@@ -685,6 +729,51 @@ component {
 
 
 	public array function prepareFilterForSubmissionQuestionResponseDateComparison (
+		  required string  question
+		, required string  dateFrom
+		, required string  dateTo
+		,          boolean _is               = true
+		,          string  parentPropertyName = ""
+		,          string  filterPrefix       = ""
+	) {
+		var paramSuffix    = _getRandomFilterParamSuffix();
+		var subqueryAlias  = "responseCount" & paramSuffix;
+		var overallFilter  = "#subqueryAlias#.response_count > 0";
+		var subqueryFilter = "question = :question#paramSuffix#";
+		var params         = {
+			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
+		};
+
+		if ( IsDate( arguments.dateFrom ?: "" ) && IsDate( arguments.dateTo ?: "" ) ) {
+			subqueryFilter &= " and #(_is?"":" not ")# ( date( date_response ) >= :from#paramSuffix# and date( date_response ) <= :to#paramSuffix# ) ";
+			params[ "from#paramSuffix#" ] = { value=arguments.dateFrom, type="cf_sql_timestamp" };
+			params[ "to#paramSuffix#" ] = { value=arguments.dateTo, type="cf_sql_timestamp" };
+		}
+
+		var subquery = $getPresideObject( "formbuilder_question_response" ).selectData(
+			  selectFields        = [ "Count( distinct id ) as response_count", "id", "submission", "submission_reference" ]
+			, filter              = subqueryFilter
+			, groupBy             = "submission"
+			, getSqlAndParamsOnly = true
+			, forceJoins          = "inner"
+		);
+		for( var param in subquery.params ) {
+			params[ param.name ] = { value=param.value, type=param.type };
+		}
+
+		var response = [ { filter=overallFilter, filterParams=params, extraJoins=[ {
+			  type           = "left"
+			, subQuery       = subquery.sql
+			, subQueryAlias  = subqueryAlias
+			, subQueryColumn = "submission"
+			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToColumn   = "id"
+		} ] } ];
+
+		return response;
+	}
+
+	public array function prepareFilterForSubmissionQuestionResponseDateTimeComparison (
 		  required string question
 		, required struct _time
 		,          string parentPropertyName = ""
