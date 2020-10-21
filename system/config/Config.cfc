@@ -665,9 +665,10 @@ component {
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
-			, svg = { serveAsAttachmemnt=false, mimeType="image/svg+xml" }
+			, svg  = { serveAsAttachment=false, mimeType="image/svg+xml" }
 			, tiff = { serveAsAttachment=false, mimeType="image/tiff" }
 			, tif  = { serveAsAttachment=false, mimeType="image/tiff" }
+			, webp = { serveAsAttachment=false, mimeType="image/webp" }
 		};
 
 		types.video = {
