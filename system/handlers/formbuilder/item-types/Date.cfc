@@ -4,8 +4,6 @@ component {
 		var controlName = args.name ?: "";
 
 		event.include( assetId="/css/frontend/formbuilder/" );
-		event.include( assetId="/css/frontend/formbuilder/datePicker/" );
-		event.include( assetId="/js/frontend/formbuilder/datePicker/" );
 
 		if ( Len( Trim( args.relativeOperator ?: "" ) ) && IsBoolean( args.relativeToCurrentDate ?: "" ) && args.relativeToCurrentDate ) {
 			var theDate   = Now();
