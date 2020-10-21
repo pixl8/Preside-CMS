@@ -19,6 +19,7 @@
 					, datasourceUrl   = event.buildAdminLink( linkTo='formbuilder.listSubmissionsForAjaxDataTable', querystring="formId=#formId#" )
 					, gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ]
 					, allowSearch     = true
+					, filterContextData   = { formId = formId }
 				} )#
 			</div>
 		</div>

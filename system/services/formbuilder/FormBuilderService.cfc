@@ -160,16 +160,40 @@ component {
 		return Len( Trim( arguments.id ) ) ? $getPresideObject( "formbuilder_question" ).selectData( id=arguments.id ) : QueryNew('');
 	}
 
+
+
 	/**
 	 * Returns formbuilder questions which allow multiple selections
 	 *
 	 */
-	public query function getMultiValueQuestions() {
-		var filter = "( item_type = 'checkboxList' or ( item_type = 'select' and item_type_config like '%""multiple"":""1""%' ) )"
+	public query function getQuestions( required string item_type, string formId = "" ) {
+		var filter = { item_type = ListToArray(arguments.item_type) };
+		var extraFilters=[];
+		if ( len( trim( arguments.formId ) ) ) {
+			extraFilters = [ { filter = { "forms.id" = arguments.formId } } ];
+		}
+		return $getPresideObject( "formbuilder_question" ).selectData(
+			 selectFields  = [ "id", "field_label" ]
+			, filter       = filter
+			, extraFilters = extraFilters
+		) ;
+
+	}
+	/**
+	 * Returns formbuilder questions which allow multiple selections
+	 *
+	 */
+	public query function getMultiValueQuestions( string formId = "" ) {
+		var filter = "( formbuilder_question.item_type = 'checkboxList' or ( formbuilder_question.item_type = 'select' and item_type_config like '%""multiple"":""1""%' ) )"
+		var extraFilters=[];
+		if ( len( trim( arguments.formId ) ) ) {
+			extraFilters = [ { filter = { "forms.id" = arguments.formId } } ];
+		}
 
 		return $getPresideObject( "formbuilder_question" ).selectData(
 			  filter       = filter
 			, selectFields = [ "id", "field_label" ]
+			, extraFilters = extraFilters
 		) ;
 	}
 
@@ -177,11 +201,16 @@ component {
 	 * Returns formbuilder questions which allow single selections
 	 *
 	 */
-	public query function getSingleValueQuestions() {
-		var filter = "( item_type = 'radio' or ( item_type = 'select' and item_type_config not like '%""multiple"":""1""%' ) )"
+	public query function getSingleValueQuestions( string formId = "" ) {
+		var filter = "( formbuilder_question.item_type = 'radio' or ( formbuilder_question.item_type = 'select' and item_type_config not like '%""multiple"":""1""%' ) )"
+		var extraFilters=[];
+		if ( len( trim( arguments.formId ) ) ) {
+			extraFilters = [ { filter = { "forms.id" = arguments.formId } } ];
+		}
 
 		return $getPresideObject( "formbuilder_question" ).selectData(
 			  filter       = filter
+			, extraFilters = extraFilters
 			, selectFields = [ "id", "field_label" ]
 		) ;
 	}
@@ -190,11 +219,20 @@ component {
 	 * Returns formbuilder questions which are text
 	 *
 	 */
-	public query function getTextValueQuestions() {
-		var filter = " item_type in ('textinput', 'textarea', 'email') "
+	public query function getTextValueQuestions( required string item_type, string formId = "" ) {
+
+		var filter = { item_type = ListToArray(arguments.item_type) };
+		var extraFilters=[];
+		if ( len( trim( arguments.formId ) ) ) {
+			extraFilters = [ { filter = { "forms.id" = arguments.formId } } ];
+		}
+		if ( len( trim( arguments.formId ) ) ) {
+			filter["forms.id"] = arguments.formId;
+		}
 
 		return $getPresideObject( "formbuilder_question" ).selectData(
 			  filter       = filter
+			, extraFilters = extraFilters
 			, selectFields = [ "id", "field_label" ]
 		) ;
 	}

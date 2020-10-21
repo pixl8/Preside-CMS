@@ -28,7 +28,7 @@ component {
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
-		var textQuestions = formBuilderService.getTextValueQuestions( );
+		var textQuestions = formBuilderService.getTextValueQuestions( config.item_type, config.formId?:"" );
 		var values = [];
 		var labels = [];
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( "formbuilder_question" );
@@ -36,7 +36,7 @@ component {
 
 		for ( var question in textQuestions ) {
 			arrayAppend( values, question.id );
-			arrayAppend( labels, question.field_label );
+			arrayAppend( labels, question.field_label );  //renderlabel
 		}
 
 		return renderFormControl(
@@ -45,7 +45,7 @@ component {
 			, type               = "select"
 			, values             = values
 			, labels             = labels
-			, multiple           = true
+			, multiple           = false
 			, label              = label
 			, savedValue         = arguments.value
 			, defaultValue       = arguments.value
