@@ -14,6 +14,7 @@
 			<div class="tab-pane active">
 				#renderView( view="/admin/datamanager/_objectDataTable", args={
 					  objectName      = "formbuilder_formsubmission"
+					, id              = "formbuilder_formsubmission-" & formId
 					, useMultiActions = canDelete
 					, multiActionUrl  = event.buildAdminLink( linkTo='formbuilder.deleteSubmissionsAction', querystring="formId=#formId#" )
 					, datasourceUrl   = event.buildAdminLink( linkTo='formbuilder.listSubmissionsForAjaxDataTable', querystring="formId=#formId#" )

@@ -1036,23 +1036,22 @@ component {
 		, required string overallFilter
 		,          string row
 	) {
-		var params = initialParams ?: {};
-		//var responseQueryAlias  = "responseQuery" & paramSuffix;
-		var latestQueryAlias  = "latestQuery" & paramSuffix;
-		var andOr             = _all ? " and " : " or ";
-		var i                 = 0;
-		var values            = listToArray( value );
-		var andOrSubquery     = "";
+		var params           = initialParams ?: {};
+		var latestQueryAlias = "latestQuery" & paramSuffix;
+		var andOr            = _all ? " and " : " or ";
+		var i                = 0;
+		var values           = listToArray( value );
+		var andOrSubquery    = "";
 
 		for (var val in values) {
 			i++;
 
 			// equals 'value' or startsWith 'value,' or contains ', value' or ends with ', value'
-			andOrSubquery &=  " #( i>1 ? andOr : "" )# ( "
-			andOrSubquery &=  " response = :response#paramSuffix#_#i# "
-			andOrSubquery &=  " or response like concat( :response#paramSuffix#_#i#, ',%' ) "
-			andOrSubquery &=  " or response like concat( '%, ', :response#paramSuffix#_#i#, ',%' )  "
-			andOrSubquery &=  " or response like concat( '%, ', :response#paramSuffix#_#i#) ) ";
+			andOrSubquery &= " #( i>1 ? andOr : "" )# ( "
+			andOrSubquery &= " response = :response#paramSuffix#_#i# "
+			andOrSubquery &= " or response like concat( :response#paramSuffix#_#i#, ',%' ) "
+			andOrSubquery &= " or response like concat( '%, ', :response#paramSuffix#_#i#, ',%' )  "
+			andOrSubquery &= " or response like concat( '%, ', :response#paramSuffix#_#i#) ) ";
 			params["response#paramSuffix#_#i#"] = { value=val, type="cf_sql_varchar" }
 		}
 

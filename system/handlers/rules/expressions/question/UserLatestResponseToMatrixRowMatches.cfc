@@ -10,11 +10,10 @@ component {
 	property name="formBuilderFilterService"   inject="formBuilderFilterService";
 
 	 /**
-	 * @question.fieldtype      formbuilderQuestion
-	 * @question.object         formbuilder_question
-	 * @question.item_type      matrix
-	 * @row.fieldtype           formbuilderQuestionMatrixRow
-	 * @value.fieldtype         formbuilderQuestionMatrixCol
+	 * @question.fieldtype  formbuilderQuestion
+	 * @question.item_type  matrix
+	 * @row.fieldtype       formbuilderQuestionMatrixRow
+	 * @value.fieldtype     formbuilderQuestionMatrixCol
 	 *
 	 */
 	private boolean function evaluateExpression(

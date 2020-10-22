@@ -11,11 +11,10 @@ component {
 	property name="formBuilderFilterService"   inject="formBuilderFilterService";
 
 	/**
-	 * @question.fieldtype      formbuilderQuestion
-	 * @question.object         formbuilder_question
-	 * @question.item_type      "date"
-	 * @dateFrom.fieldtype      "date"
-	 * @dateTo.fieldtype        "date"
+	 * @question.fieldtype  formbuilderQuestion
+	 * @question.item_type  date
+	 * @dateFrom.fieldtype  date
+	 * @dateTo.fieldtype    date
 	 */
 	private boolean function evaluateExpression(
 		  required string question
