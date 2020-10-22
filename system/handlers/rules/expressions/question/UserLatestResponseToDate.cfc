@@ -1,7 +1,7 @@
 /**
  *
  * @expressionCategory formbuilder
-  * @expressionContexts user
+ * @expressionContexts user
  * @feature            websiteusers
  */
 component {
@@ -13,15 +13,12 @@ component {
 	/**
 	 * @question.fieldtype  formbuilderQuestion
 	 * @question.item_type  date
-	 * @dateFrom.fieldtype  date
-	 * @dateTo.fieldtype    date
+	 * @_time.isDate
 	 *
 	 */
 	private boolean function evaluateExpression(
-		  required string  question
-		, required string  dateFrom
-		, required string  dateTo
-		,          boolean _is = true
+		  required string question
+		,          struct _time = {}
 	) {
 		var userId = payload.user.id ?: "";
 
@@ -45,12 +42,10 @@ component {
 	 * @objects website_user
 	 */
 	private array function prepareFilters(
-		  required string  question
-		, required string dateFrom
-		, required string dateTo
-		, required boolean _is
-		,          string  parentPropertyName  = ""
-		,          string  filterPrefix        = ""
+		  required string question
+		,          struct _time               = {}
+		,          string parentPropertyName  = ""
+		,          string filterPrefix        = ""
 	){
 		return formBuilderFilterService.prepareFilterForUserLatestResponseToDateField( argumentCollection=arguments );
 	}

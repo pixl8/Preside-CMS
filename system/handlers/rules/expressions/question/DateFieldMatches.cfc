@@ -13,14 +13,11 @@ component {
 	/**
 	 * @question.fieldtype  formbuilderQuestion
 	 * @question.item_type  date
-	 * @dateFrom.fieldtype  date
-	 * @dateTo.fieldtype    date
+	 * @_time.isDate
 	 */
 	private boolean function evaluateExpression(
 		  required string question
-		, required string  dateFrom
-		, required string  dateTo
-		,          boolean _is = true
+		,          struct _time = {}
 
 	) {
 		var filter = prepareFilters(
@@ -41,9 +38,7 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string question
-		, required string dateFrom
-		, required string dateTo
-		, required boolean _is
+		,          struct _time              = {}
 		,          string parentPropertyName = ""
 		,          string filterPrefix       = ""
 	) {
