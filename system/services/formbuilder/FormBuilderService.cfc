@@ -160,44 +160,6 @@ component {
 		return Len( Trim( arguments.id ) ) ? $getPresideObject( "formbuilder_question" ).selectData( id=arguments.id ) : QueryNew('');
 	}
 
-	/**
-	 * Returns formbuilder questions which allow multiple selections
-	 *
-	 */
-	public query function getMultiValueQuestions() {
-		var filter = "( item_type = 'checkboxList' or ( item_type = 'select' and item_type_config like '%""multiple"":""1""%' ) )"
-
-		return $getPresideObject( "formbuilder_question" ).selectData(
-			  filter       = filter
-			, selectFields = [ "id", "field_label" ]
-		) ;
-	}
-
-	/**
-	 * Returns formbuilder questions which allow single selections
-	 *
-	 */
-	public query function getSingleValueQuestions() {
-		var filter = "( item_type = 'radio' or ( item_type = 'select' and item_type_config not like '%""multiple"":""1""%' ) )"
-
-		return $getPresideObject( "formbuilder_question" ).selectData(
-			  filter       = filter
-			, selectFields = [ "id", "field_label" ]
-		) ;
-	}
-
-	/**
-	 * Returns formbuilder questions which are text
-	 *
-	 */
-	public query function getTextValueQuestions() {
-		var filter = " item_type in ('textinput', 'textarea', 'email') "
-
-		return $getPresideObject( "formbuilder_question" ).selectData(
-			  filter       = filter
-			, selectFields = [ "id", "field_label" ]
-		) ;
-	}
 
 	/**
 	 * Returns a form's item that matches the given input name.

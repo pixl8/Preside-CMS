@@ -10,11 +10,8 @@ component {
 	property name="formBuilderFilterService"   inject="formBuilderFilterService";
 
 	 /**
-	 * @question.fieldtype      formbuilderQuestionMulti
-	 * @question.object         formbuilder_question
-	 * @question.item_type      checkboxList
-	 * @question.questionType   checkbox
-	 * @question.multiSelect    true
+	 * @question.fieldtype      formbuilderQuestion
+	 * @question.objectFilters  formbuilderMultiChoiceFields
 	 * @value.fieldtype         formbuilderQuestionChoiceValue
 	 *
 	 */

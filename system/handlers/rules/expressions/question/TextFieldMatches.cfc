@@ -11,9 +11,8 @@ component {
 	property name="formBuilderFilterService"   inject="formBuilderFilterService";
 
 	/**
-	 * @question.fieldtype      formbuilderQuestionText
-	 * @question.object         formbuilder_question
-	 * @question.item_type      ""
+	 * @question.fieldtype  formbuilderQuestion
+	 * @question.item_type  textinput,textarea,email
 	 *
 	 */
 	private boolean function evaluateExpression(

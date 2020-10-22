@@ -184,7 +184,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                    = "presideobject_dateinrange_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
 					, category              = objectName
-					, fields                = { _time={ fieldtype="timeperiod", type="alltime", required=false, default="" } }
+					, fields                = { _time={ fieldtype="timeperiod", type="alltime", required=false, default="", isDate=false } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.evaluateExpression"
 					, filterHandler         = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.prepareFilters"
@@ -195,6 +195,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, labelHandlerArgs      = { propertyName=propertyDef.name, objectName=objectName }
 					, textHandlerArgs       = { propertyName=propertyDef.name, objectName=objectName }
 				};
+
+				mockPresideObjectService.$( "getObjectPropertyAttribute" ).$args( objectname, propertyDef.name, "dbtype" ).$results( "datetime" );
 
 				var expressions = builder.generateExpressionsForProperty(
 					  objectName         = objectName

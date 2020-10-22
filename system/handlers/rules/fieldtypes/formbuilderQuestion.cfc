@@ -4,9 +4,10 @@
  */
 component {
 	property name="presideObjectService" inject="presideObjectService";
+	property name="formBuilderService"   inject="formBuilderService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
-		var objectName = config.object ?: "";
+		var objectName = "formbuilder_question";
 		var ids        = ListToArray( Trim( value ) );
 
 		if ( !ids.len() ) {
@@ -25,12 +26,16 @@ component {
 		return ValueList( records.label, ", " );
 	}
 
-	private string function renderConfigScreen( string value="", string item_type="", struct config={} ) {
-
-		var object        = config.object ?: "";
-		var multiple      = false; // IsTrue( config.multiple ?: true );
-		var sortable      = IsTrue( config.sortable ?: true );
+	private string function renderConfigScreen( string value="", struct config={} ) {
+		var object        = "formbuilder_question";
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( object );
+		var filterBy      = "formId";
+		var filterByField = "forms.id";
+
+		if ( len( config.item_type ?: "" ) ) {
+			filterBy      &= ",item_type";
+			filterByField &= ",item_type";
+		}
 
 		rc.delete( "value" );
 
@@ -39,14 +44,14 @@ component {
 			, name               = "value"
 			, type               = "objectPicker"
 			, object             = object
-			, multiple           = multiple
-			, sortable           = sortable
+			, filterBy           = filterBy
+			, filterByField      = filterByField
+			, multiple           = false
+			, sortable           = false
 			, label              = translateResource( objectUriRoot & "title" )
 			, savedValue         = arguments.value
 			, defaultValue       = arguments.value
 			, required           = true
-			, filterBy           = "item_type"
 		);
 	}
-
 }

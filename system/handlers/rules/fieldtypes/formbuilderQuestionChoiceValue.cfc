@@ -17,6 +17,20 @@ component {
 
 		if ( len( theQuestion ) ) {
 			var questionConfig = DeserializeJson( theQuestion.item_type_config );
+			var sourceObject = questionConfig.datamanagerObject;
+			if ( Len( Trim( sourceObject ) ) ) {
+				if ( ids.len() == 1 ) {
+					return renderLabel( objectName=sourceObject, recordId=ids[1] );
+				}
+
+				var records = presideObjectService.selectData(
+					  objectName   = sourceObject
+					, selectFields = [ "${labelfield} as label" ]
+					, filter       = { id=ids }
+				);
+				return ValueList( records.label, ", " );
+			}
+
 			var values  = ListToArray( questionConfig.values ?: "", Chr( 10 ) & Chr( 13 ) );
 			if ( values.len() ) {
 				var labels  = _getLabels( questionConfig );
@@ -63,6 +77,22 @@ component {
 					, required           = true
 				);
 			}
+
+			var dataManagerObject = questionConfig.datamanagerObject?:"";
+			if ( len( datamanagerObject) ) {
+				return renderFormControl(
+					  argumentCollection = arguments.config
+					, name               = "value"
+					, type               = "objectPicker"
+					, object             = dataManagerObject
+					, multiple           = true
+					, label              = label
+					, savedValue         = arguments.value
+					, defaultValue       = arguments.value
+					, required           = true
+				);
+			}
+
 		}
 
 		return '<p class="alert alert-warning"><i class="fa fa-fw fa-exclamation-triangle"></i> #translateResource( "cms:rulesEngine.fieldtype.formbuilderQuestionMultiChoiceValue.no.choices.warning" )#</p>'

@@ -11,9 +11,8 @@ component {
 	property name="formBuilderFilterService"   inject="formBuilderFilterService";
 
 	/**
-	 * @question.fieldtype      formbuilderQuestion
-	 * @question.object         formbuilder_question
-	 * @question.item_type      "fileUpload"
+	 * @question.fieldtype  formbuilderQuestion
+	 * @question.item_type  fileUpload
 	 *
 	 */
 	private boolean function evaluateExpression(
