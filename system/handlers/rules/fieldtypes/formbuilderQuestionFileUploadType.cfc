@@ -16,11 +16,6 @@ component {
 			return config.defaultLabel ?: "";
 		}
 
-		if ( extensions.len() == 1 ) {
-			var type = extensions.replace(".", "");
-			return translateResource( "filetypes:#type#.picker.label" );
-		}
-
 		var labels=[];
 		for (var extension in extensions) {
 			var type = extension.replace(".", "");
