@@ -5,7 +5,7 @@ component {
 	property name="formBuilderService"   inject="formBuilderService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
-		return NumberFormat( value );
+		return value;
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {

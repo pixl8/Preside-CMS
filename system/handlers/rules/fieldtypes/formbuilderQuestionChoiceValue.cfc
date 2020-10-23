@@ -17,7 +17,7 @@ component {
 
 		if ( len( theQuestion ) ) {
 			var questionConfig = DeserializeJson( theQuestion.item_type_config );
-			var sourceObject = questionConfig.datamanagerObject;
+			var sourceObject = questionConfig.datamanagerObject?:"";
 			if ( Len( Trim( sourceObject ) ) ) {
 				if ( ids.len() == 1 ) {
 					return renderLabel( objectName=sourceObject, recordId=ids[1] );
