@@ -14,7 +14,7 @@ This form is used for the add/edit link screen in the richeditor.
 		</fieldset>
 
 		<fieldset id="url" sortorder="20">
-			<field sortorder="10" name="protocol" control="select"    required="true"  label="cms:ckeditor.linkpicker.protocol.label" defaultValue="http://" values="http://,https://,ftp://,news://" addMissingValues="true" />
+			<field sortorder="10" name="protocol" control="select"    required="true"  label="cms:ckeditor.linkpicker.protocol.label" defaultValue="http://" values="http://,https://,ftp://,news://,tel://" addMissingValues="true" />
 			<field sortorder="20" name="address"  control="textinput" required="true"  label="cms:ckeditor.linkpicker.address.label"  placeholder="cms:ckeditor.linkpicker.address.placeholder" />
 			<field sortorder="30" name="title"    control="textinput" required="false" label="cms:ckeditor.linkpicker.title.label"    placeholder="cms:ckeditor.linkpicker.title.placeholder" maxlength="200" />
 		</fieldset>
@@ -43,8 +43,9 @@ This form is used for the add/edit link screen in the richeditor.
 
 	<tab id="advanced" sortorder="20" title="cms:ckeditor.linkpicker.advanced.tab">
 		<fieldset id="advanced" sortorder="10">
-			<field sortorder="10" name="link_target" control="select"      required="false" label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" labels="cms:ckeditor.linkpicker.link_target._self,cms:ckeditor.linkpicker.link_target._blank,cms:ckeditor.linkpicker.link_target._parent,cms:ckeditor.linkpicker.link_target._top" />
-			<field sortorder="20" name="nofollow"    control="yesnoswitch" required="false" label="cms:ckeditor.linkpicker.nofollow.label" help="cms:ckeditor.linkpicker.nofollow.help" />
+			<field sortorder="10" name="link_target"     control="select"      required="false" label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" labels="cms:ckeditor.linkpicker.link_target._self,cms:ckeditor.linkpicker.link_target._blank,cms:ckeditor.linkpicker.link_target._parent,cms:ckeditor.linkpicker.link_target._top" />
+			<field sortorder="20" name="nofollow"        control="yesnoswitch" required="false" label="cms:ckeditor.linkpicker.nofollow.label" help="cms:ckeditor.linkpicker.nofollow.help" />
+			<field sortorder="20" name="referrer_policy" control="enumSelect"  enum="linkReferrerPolicy" required="false" label="cms:ckeditor.linkpicker.referrer_policy.label" help="cms:ckeditor.linkpicker.referrer_policy.help" />
 		</fieldset>
 	</tab>
 </form>

@@ -15,6 +15,7 @@ component {
 
 		args.href  = linksService.getLinkUrl( link.id );
 		args.title = args.title ?: Trim( link.title );
+		args.referrer_policy = args.referrer_policy ?: Trim( link.referrer_policy );
 
 		if ( !Len( Trim( args.body ?: "" ) ) ) {
 			if ( Len( Trim( link.image ) ) ) {

@@ -6,6 +6,7 @@
 	param name="args.style"    type="string"  default="";
 	param name="args.class"    type="string"  default="";
 	param name="args.nofollow" type="boolean" default=false;
+	param name="args.referrer_policy" type="string"  default="";
 
 	anchorTag = 'href="#args.href#"';
 
@@ -23,6 +24,9 @@
 	}
 	if ( args.noFollow ) {
 		anchorTag &= ' rel="nofollow"';
+	}
+	if ( Len( Trim( args.referrer_policy ) ) ) {
+		anchorTag &= ' referrerpolicy="#args.referrer_policy#"';
 	}
 </cfscript>
 
