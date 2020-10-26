@@ -70,6 +70,8 @@ component {
 
 			//arrayAppend( labels, translateResource( “filetypes:#fileType#.picker.label” ) );
 		}
+
+		return '<p class="alert alert-warning"><i class="fa fa-fw fa-exclamation-triangle"></i> #translateResource( "cms:rulesEngine.fieldtype.formbuilderQuestionFileUploadType.no.choices.warning" )#</p>'
 	}
 }
 
