@@ -5,7 +5,7 @@ component {
 	property name="formBuilderService"   inject="formBuilderService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
-		return NumberFormat( value );
+		return value;
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
@@ -17,7 +17,9 @@ component {
 		var questionConfig = DeserializeJson( theQuestion.item_type_config );
 
 		var values = [];
-		for (var i = 0; i<=questionConfig.starCount; i=i+0.5) {
+
+		var inc = (questionConfig.allowHalfStars==1) ? 0.5 : 1;
+		for (var i = 0; i<=questionConfig.starCount; i=i+inc) {
 			arrayAppend( values, i );
 		}
 

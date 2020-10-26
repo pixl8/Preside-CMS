@@ -1,10 +1,12 @@
 <cfscript>
-	inputName    = args.name         ?: "";
-	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
-	defaultValue = args.defaultValue ?: "";
-	pastOnly     = IsTrue( args.pastOnly   ?: "" );
-	futureOnly   = IsTrue( args.futureOnly ?: "" );
+	inputName      = args.name         ?: "";
+	inputId        = args.id           ?: "";
+	inputClass     = args.class        ?: "";
+	defaultValue   = args.defaultValue ?: "";
+	pastOnly       = IsTrue( args.pastOnly   ?: "" );
+	futureOnly     = IsTrue( args.futureOnly ?: "" );
+	isDate         = IsTrue( args.isDate     ?: "" );
+	datePickerType = isDate ? "datePicker" : "dateTimePicker";
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -41,6 +43,7 @@
 			  name         = ( inputName & "_period_unit" )
 			, type         = "timePeriodUnitPicker"
 			, class        = "time-period-unit"
+			, isDate       = isDate
 			, savedValue   = timePeriod.unit ?: "d"
 			, defaultValue = timePeriod.unit ?: "d"
 			, layout       = ""
@@ -48,7 +51,7 @@
 
 		#renderFormControl(
 			  name         = ( inputName & "_period_date1" )
-			, type         = "dateTimePicker"
+			, type         = datePickerType
 			, class        = "time-period-date1"
 			, savedValue   = timePeriod.date1 ?: ""
 			, defaultValue = timePeriod.date1 ?: ""
@@ -57,7 +60,7 @@
 
 		#renderFormControl(
 			  name         = ( inputName & "_period_date2" )
-			, type         = "dateTimePicker"
+			, type         = datePickerType
 			, class        = "time-period-date2"
 			, savedValue   = timePeriod.date2 ?: ""
 			, defaultValue = timePeriod.date2 ?: ""

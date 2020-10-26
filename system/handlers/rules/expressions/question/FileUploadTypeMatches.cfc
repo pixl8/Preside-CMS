@@ -1,4 +1,6 @@
 /**
+ * Expression handler for "File type for {question} matches"
+ *
  * @expressionContexts webrequest
  * @expressionCategory formbuilder
  */
@@ -8,18 +10,20 @@ component {
 	property name="formBuilderService"         inject="formBuilderService";
 	property name="formBuilderFilterService"   inject="formBuilderFilterService";
 
-	 /**
+	/**
 	 * @question.fieldtype      formbuilderQuestion
-	 * @question.objectFilters  formbuilderMultiChoiceFields
-	 * @value.fieldtype         formbuilderQuestionChoiceValue
-	 *
+	 * @question.object         formbuilder_question
+	 * @question.item_type      fileUpload
+	 * @filetype.fieldtype      formbuilderQuestionFileUploadType
 	 */
 	private boolean function evaluateExpression(
-		  required string question
-		, required string value
-		,          string _all = false
+		  required string  question
+		, required string  filetype
+		,          boolean _is = true
 	) {
-		var filter = prepareFilters( argumentCollection = arguments	);
+		var filter = prepareFilters(
+			  argumentCollection = arguments
+		);
 
 		return formBuilderFilterService.evaluateQuestionSubmissionResponseMatch(
 			  argumentCollection = arguments
@@ -34,13 +38,13 @@ component {
 	 * @objects formbuilder_formsubmission
 	 */
 	private array function prepareFilters(
-		  required string  question
-		, required string  value
-		,          boolean _all               = false
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		  required string question
+		, required string filetype
+		,          boolean _is               = true
+		,          string parentPropertyName = ""
+		,          string filterPrefix       = ""
 	) {
-		return formBuilderFilterService.prepareFilterForSubmissionQuestionResponseMatchesChoiceOptions( argumentCollection=arguments );
+		return formBuilderFilterService.prepareFilterForSubmissionQuestionFileUploadTypeMatches( argumentCollection=arguments );
 	}
 
 }

@@ -66,8 +66,9 @@ component {
 		return renderFormControl(
 			  name         = "value"
 			, type         = "timePeriodPicker"
-			, pastOnly     = IsTrue( config.pastOnly ?: "" )
+			, pastOnly     = IsTrue( config.pastOnly   ?: "" )
 			, futureOnly   = IsTrue( config.futureOnly ?: "" )
+			, isDate       = IsTrue( config.isDate     ?: "" )
 			, label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
