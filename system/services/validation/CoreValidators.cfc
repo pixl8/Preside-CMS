@@ -43,7 +43,13 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) lte arguments.max and Val( arguments.value ) gte arguments.min;
+		var val = Val( Replace( arguments.value, ",", "" ) );
+
+		return val lte arguments.max and val gte arguments.min;
+	}
+
+	public string function range_js() {
+		return "function( value, el, param ) { var val = value.replace(',', ''); return this.optional( el ) || ( val >= param[ 0 ] && val <= param[ 1 ] ); }";
 	}
 
 	public boolean function number( required string value ) validatorMessage="cms:validation.number.default" {

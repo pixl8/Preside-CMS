@@ -52,7 +52,6 @@ component displayName="Validation Engine" {
 		for( rule in rules ){
 			var expandedFieldName = arguments.fieldNamePrefix & rule.fieldName & arguments.fieldNameSuffix;
 
-
 			if ( ( arguments.ignoreMissing && !StructKeyExists( arguments.data, rule.fieldName ) ) || ( arrayLen( arguments.suppressFields ) && arrayFind( arguments.suppressFields, rule.fieldName ) ) ) {
 				continue;
 			}
@@ -68,6 +67,12 @@ component displayName="Validation Engine" {
 				);
 
 				if ( !IsBoolean( fieldResult ) || !fieldResult ) {
+					for ( var key in rule.params ) {
+						if( isNumeric( rule.params[key] ) ) {
+							rule.params[key] = numberFormat( rule.params[key] )
+						}
+					}
+
 					result.addError(
 						  fieldName = expandedFieldName
 						, message   = ( Len( Trim( rule.message ) ) ? rule.message : provider.getDefaultMessage( name=rule.validator ) )
@@ -259,7 +264,7 @@ component displayName="Validation Engine" {
 		var params     = "";
 		var message    = "";
 
-		for( rule in arguments.rules ){
+		for( rule in arguments.rules ) {
 			var fieldName = arguments.fieldNamePrefix & rule.fieldName & arguments.fieldNameSuffix;
 
 			if ( not StructKeyExists( jsRules, fieldName ) ) {
@@ -274,6 +279,12 @@ component displayName="Validation Engine" {
 				jsRules[ fieldName ] &= ", depends : " & _generateClientCondition( rule.clientCondition );
 			}
 			jsRules[ fieldName ] &= ' }';
+
+			for ( var index = 1; index <= params.len(); index++ ) {
+				if( isNumeric( params[index] ) ) {
+					params[index] = numberFormat( params[index] )
+				}
+			}
 
 			jsMessages[ fieldName ] = ListAppend( jsMessages[ fieldName ], ' "#LCase( rule.validator )#" : #SerializeJson( $translateResource( uri=message, data=params ) )#' );
 		}
