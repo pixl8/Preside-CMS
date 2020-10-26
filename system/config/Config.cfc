@@ -480,7 +480,8 @@ component {
 		settings.enum.assetAccessRestriction      = [ "inherit", "none", "full" ];
 		settings.enum.linkType                    = [ "email", "url", "sitetreelink", "asset" ];
 		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
-		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://" ];
+		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://", "tel://" ];
+		settings.enum.linkReferrerPolicy          = [ "no-referrer", "no-referrer-when-downgrade", "origin", "origin-when-cross-origin","same-origin","strict-origin","strict-origin-when-cross-origin","unsafe-url" ];
 		settings.enum.siteProtocol                = [ "http", "https" ];
 		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
 		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
