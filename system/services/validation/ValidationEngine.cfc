@@ -68,6 +68,12 @@ component displayName="Validation Engine" {
 				);
 
 				if ( !IsBoolean( fieldResult ) || !fieldResult ) {
+					for ( var key in rule.params ) {
+						if( isNumeric( rule.params[key] ) ) {
+							rule.params[key] = numberFormat( rule.params[key] )
+						}
+					}
+
 					result.addError(
 						  fieldName = expandedFieldName
 						, message   = ( Len( Trim( rule.message ) ) ? rule.message : provider.getDefaultMessage( name=rule.validator ) )
@@ -274,6 +280,12 @@ component displayName="Validation Engine" {
 				jsRules[ fieldName ] &= ", depends : " & _generateClientCondition( rule.clientCondition );
 			}
 			jsRules[ fieldName ] &= ' }';
+
+			for ( var index = 1; index <= params.len(); index++ ) {
+				if( isNumeric( params[index] ) ) {
+					params[index] = numberFormat( params[index] )
+				}
+			}
 
 			jsMessages[ fieldName ] = ListAppend( jsMessages[ fieldName ], ' "#LCase( rule.validator )#" : #SerializeJson( $translateResource( uri=message, data=params ) )#' );
 		}
