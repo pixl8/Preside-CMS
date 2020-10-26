@@ -267,12 +267,17 @@ component displayName="Validation Engine" {
 				jsMessages[ fieldName ] = "";
 			}
 
-			params  = validators[ rule.validator ].getValidatorParamValues( name=rule.validator, params=rule.params );
-			message = Len( Trim( rule.message ) ) ? rule.message : validators[ rule.validator ].getDefaultMessage( name=rule.validator );
+			var params  = validators[ rule.validator ].getValidatorParamValues( name=rule.validator, params=rule.params );
+			var message = Len( Trim( rule.message ) ) ? rule.message : validators[ rule.validator ].getDefaultMessage( name=rule.validator );
 
 			var validator = LCase( rule.validator );
-			if( validator == "filetype" ) {
+			var data      = duplicate( params );
+			if( validator == "fileType" ) {
 				validator = "extension";
+
+				for( var index = 1; index <= data.len(); index++ ) {
+					data[index] = Replace( data[index], ",", ", ", "all")
+				}
 			}
 
 			jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], ' "#validator#" : { param : #_parseParamsForJQueryValidate( params, validator )#' );
@@ -282,7 +287,7 @@ component displayName="Validation Engine" {
 			}
 			jsRules[ fieldName ] &= ' }';
 
-			jsMessages[ fieldName ] = ListAppend( jsMessages[ fieldName ], ' "#validator#" : #SerializeJson( $translateResource( uri=message, data=params ) )#' );
+			jsMessages[ fieldName ] = ListAppend( jsMessages[ fieldName ], ' "#validator#" : #SerializeJson( $translateResource( uri=message, data=data ) )#' );
 		}
 
 		for( rule in arguments.rules ){
@@ -344,7 +349,6 @@ component displayName="Validation Engine" {
 			case "maxLength":
 				return ArrayLen( params ) ? Val( params[1] ) : 0;
 
-			case "fileType":
 			case "extension":
 				return SerializeJson( ListRemoveDuplicates( ArrayToList( params ) ) );
 

@@ -30,7 +30,16 @@
 		<cfsavecontent variable="formJs">
 			if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
 				executeWithFormBuilderDependencies( function( $ ){
-					$( '###args.id#' ).validate( #args.validationJs# );
+					$( '###args.id#' ).validate( $.extend( #args.validationJs#, {
+						errorPlacement: function( error, element ) {
+							if( element.attr("type") == 'file' ) {
+								error.insertAfter( element.closest( '.form-field' ) );
+							}
+							else {
+								error.insertAfter( element );
+							}
+						}
+					} ) );
 				} );
 			};
 		</cfsavecontent>
