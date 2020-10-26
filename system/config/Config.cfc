@@ -43,6 +43,7 @@ component {
 			, localeStorage      = "cookie"
 			, unknownTranslation = "**NOT FOUND**"
 		};
+		settings.unknownTranslation = i18n.unknownTranslation;
 
 		interceptors = [
 			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
