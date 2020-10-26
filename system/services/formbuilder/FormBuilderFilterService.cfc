@@ -584,8 +584,8 @@ component {
 				, subQuery       = responseQuery.sql
 				, subQueryAlias  = responseQueryAlias
 				, subQueryColumn = "website_user"
-				, joinToTable    = "formbuilder_formsubmission"
-				, joinToColumn   = "submitted_by"
+				, joinToTable    = "website_user"
+				, joinToColumn   = "id"
 			  }
 			]
 			, filter = filter
