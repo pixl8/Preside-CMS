@@ -8,6 +8,7 @@ component {
 		var templates = emailTemplateService.getTemplates(
 			  custom        = IsTrue( args.custom ?: "" )
 			, recipientType = recipientType
+			, allowDrafts   = false
 		);
 
 		if ( !templates.recordcount ) {
