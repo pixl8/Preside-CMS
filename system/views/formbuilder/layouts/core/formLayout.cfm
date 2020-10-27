@@ -31,9 +31,7 @@
 			if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
 				executeWithFormBuilderDependencies( function( $ ){
 					$( '###args.id#' ).validate( $.extend( #args.validationJs#, {
-						errorPlacement: function( error, element ) {
-							error.insertAfter( element.closest( '.form-field' ) );
-						}
+
 					} ) );
 				} );
 			};
