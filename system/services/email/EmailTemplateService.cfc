@@ -482,7 +482,11 @@ component {
 	 * @custom.hint        Whether or not the templates should be custom (if not, they are system)
 	 * @recipientType.hint The recipient type of the templates
 	 */
-	public query function getTemplates( required boolean custom, string recipientType="" ) {
+	public query function getTemplates(
+		  required boolean custom
+		,          string  recipientType = ""
+		,          boolean allowDrafts   = false
+	) {
 		var filters = [];
 
 		filters.append( { filter={ is_system_email = !arguments.custom } } );
@@ -494,7 +498,10 @@ component {
 			} );
 		}
 
-		return $getPresideObject( "email_template" ).selectData( extraFilters=filters );
+		return $getPresideObject( "email_template" ).selectData(
+			  extraFilters       = filters
+			, allowDraftVersions = arguments.allowDrafts
+		);
 	}
 
 	/**
