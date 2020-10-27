@@ -1,7 +1,7 @@
 /**
  * @expressionContexts  formbuilderSubmission
  * @expressionCategory  formbuilder
- * @exclusionCategories formbuilderV1Form
+ * @expressionTags      formbuilderV1Form
  */
 component {
 

@@ -3,7 +3,7 @@
  *
  * @expressionContexts  formbuilderSubmission
  * @expressionCategory  formbuilder
- * @exclusionCategories formbuilderV2Form
+ * @expressionTags      formbuilderV2Form
  */
 component {
 
