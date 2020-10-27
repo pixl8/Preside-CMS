@@ -45,10 +45,11 @@ component displayName="RulesEngine Expression Service" {
 	 * @autodoc           true
 	 * @context.hint      Expression context with which to filter the results
 	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
+	 * @exclude.hint      Expressions with any of these exclusionCategories (comma-separated list) will be ignored
 	 */
-	public array function listExpressions( string context="", string filterObject="" ) {
+	public array function listExpressions( string context="", string filterObject="", string exclude="" ) {
 		var cache    = _getRulesEngineExpressionCache();
-		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context;
+		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context & "_" & arguments.exclude;
 
 		if ( StructKeyExists( cache, cacheKey ) ) {
 			return cache[ cacheKey ];
@@ -58,12 +59,17 @@ component displayName="RulesEngine Expression Service" {
 
 		var allExpressions  = _getExpressions();
 		var list            = [];
-		var filterOnContext = arguments.context.len() > 0;
+		var hasExclusions   = len( arguments.exclude ) > 0;
+		var filterOnContext = len( arguments.context ) > 0;
 		var filterOnObject  = arguments.filterObject.len();
 
 		for( var expressionId in allExpressions ) {
-			var contexts = allExpressions[ expressionId ].contexts ?: [];
+			var contexts            = allExpressions[ expressionId ].contexts            ?: [];
+			var exclusionCategories = allExpressions[ expressionId ].exclusionCategories ?: [];
 
+			if ( hasExclusions && _findListItemInArray( exclusionCategories, arguments.exclude ) ) {
+				continue;
+			}
 			if ( filterOnContext && !(contexts.findNoCase( "global" ) || contexts.findNoCase( arguments.context ) ) ) {
 				continue;
 			}
@@ -485,6 +491,15 @@ component displayName="RulesEngine Expression Service" {
 	}
 
 // PRIVATE HELPERS
+	private boolean function _findListItemInArray( required array array, required string list ) {
+		for( var listItem in listToArray( arguments.list ) ) {
+			if ( arguments.array.find( listItem ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();
 

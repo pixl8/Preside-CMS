@@ -90,12 +90,13 @@ component displayName="RulesEngine Expression Reader Service" {
 	 * @rootPath.hint      Root path of directory containing expressions, e.g. app.handlers.rules.expressions
 	 */
 	public struct function getExpressionsFromCfc( required string componentPath, required string rootPath ) {
-		var meta     = getComponentMetadata( arguments.componentPath );
-		var feature  = meta.feature ?: "";
-		var category = meta.expressionCategory ?: "default";
-		var contexts = ListToArray( meta.expressionContexts ?: "global" );
-		var contextsEnabled = false;
-		var contextService = _getContextService();
+		var meta                = getComponentMetadata( arguments.componentPath );
+		var feature             = meta.feature ?: "";
+		var category            = meta.expressionCategory ?: "default";
+		var contexts            = ListToArray( meta.expressionContexts ?: "global" );
+		var exclusionCategories = ListToArray( meta.exclusionCategories ?: "" );
+		var contextsEnabled     = false;
+		var contextService      = _getContextService();
 
 		if ( Len( Trim( feature ) ) && !$isFeatureEnabled( feature ) ) {
 			return {};
@@ -124,6 +125,7 @@ component displayName="RulesEngine Expression Reader Service" {
 					, fields                = getExpressionFieldsFromFunctionDefinition( func )
 					, filterObjects         = filterObjects
 					, category              = category
+					, exclusionCategories   = exclusionCategories
 					, expressionHandler     = "rules.expressions.#baseId#.evaluateExpression"
 					, filterHandler         = filterObjects.len() ? "rules.expressions.#baseId#.prepareFilters" : ""
 					, labelHandler          = "rules.expressions.#baseId#.getLabel"
