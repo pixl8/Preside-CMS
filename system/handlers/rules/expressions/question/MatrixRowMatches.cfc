@@ -1,6 +1,7 @@
 /**
- * @expressionContexts webrequest
- * @expressionCategory formbuilder
+ * @expressionContexts  webrequest
+ * @expressionCategory  formbuilder
+ * @expressionTags      formbuilderV2Form
  */
 component {
 
