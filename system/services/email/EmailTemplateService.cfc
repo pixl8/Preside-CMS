@@ -481,11 +481,12 @@ component {
 	 * @autodoc            true
 	 * @custom.hint        Whether or not the templates should be custom (if not, they are system)
 	 * @recipientType.hint The recipient type of the templates
+	 * @allowDrafts.hint   Whether or not to get draft templates
 	 */
 	public query function getTemplates(
 		  required boolean custom
 		,          string  recipientType = ""
-		,          boolean allowDrafts   = false
+		,          boolean allowDrafts   = true
 	) {
 		var filters = [];
 
