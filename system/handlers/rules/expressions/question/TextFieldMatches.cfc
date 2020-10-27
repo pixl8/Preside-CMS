@@ -1,8 +1,9 @@
 /**
  * Expression handler for "Textfield {question} text matches"
  *
- * @expressionContexts webrequest
- * @expressionCategory formbuilder
+ * @expressionContexts  webrequest
+ * @expressionCategory  formbuilder
+ * @exclusionCategories formbuilderV2Form
  */
 component {
 

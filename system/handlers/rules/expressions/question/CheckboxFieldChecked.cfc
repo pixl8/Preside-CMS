@@ -1,8 +1,9 @@
 /**
  * Expression handler for "Checkbox {question} text matches"
  *
- * @expressionContexts formbuilderSubmission
- * @expressionCategory formbuilder
+ * @expressionContexts  formbuilderSubmission
+ * @expressionCategory  formbuilder
+ * @exclusionCategories formbuilderV2Form
  */
 component {
 

@@ -1,8 +1,9 @@
 /**
  * Expression handler for "Has uploaded"
  *
- * @expressionContexts webrequest
- * @expressionCategory formbuilder
+ * @expressionContexts  webrequest
+ * @expressionCategory  formbuilder
+ * @exclusionCategories formbuilderV2Form
  */
 component {
 
