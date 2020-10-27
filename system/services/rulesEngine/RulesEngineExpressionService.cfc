@@ -45,11 +45,11 @@ component displayName="RulesEngine Expression Service" {
 	 * @autodoc           true
 	 * @context.hint      Expression context with which to filter the results
 	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
-	 * @exclude.hint      Expressions with any of these exclusionCategories (comma-separated list) will be ignored
+	 * @excludeTags.hint  Expressions with any of these tags (comma-separated list) will be ignored
 	 */
-	public array function listExpressions( string context="", string filterObject="", string exclude="" ) {
+	public array function listExpressions( string context="", string filterObject="", string excludeTags="" ) {
 		var cache    = _getRulesEngineExpressionCache();
-		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context & "_" & arguments.exclude;
+		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context & "_" & arguments.excludeTags;
 
 		if ( StructKeyExists( cache, cacheKey ) ) {
 			return cache[ cacheKey ];
@@ -59,15 +59,15 @@ component displayName="RulesEngine Expression Service" {
 
 		var allExpressions  = _getExpressions();
 		var list            = [];
-		var hasExclusions   = len( arguments.exclude ) > 0;
+		var hasExclusions   = len( arguments.excludeTags ) > 0;
 		var filterOnContext = len( arguments.context ) > 0;
 		var filterOnObject  = arguments.filterObject.len();
 
 		for( var expressionId in allExpressions ) {
-			var contexts            = allExpressions[ expressionId ].contexts            ?: [];
-			var exclusionCategories = allExpressions[ expressionId ].exclusionCategories ?: [];
+			var contexts = allExpressions[ expressionId ].contexts ?: [];
+			var tags     = allExpressions[ expressionId ].tags     ?: [];
 
-			if ( hasExclusions && _findListItemInArray( exclusionCategories, arguments.exclude ) ) {
+			if ( hasExclusions && _findListItemInArray( tags, arguments.excludeTags ) ) {
 				continue;
 			}
 			if ( filterOnContext && !(contexts.findNoCase( "global" ) || contexts.findNoCase( arguments.context ) ) ) {

@@ -2,10 +2,10 @@ component {
 	property name="expressionService" inject="rulesEngineExpressionService";
 
 	private string function index( event, rc, prc, args={} ) {
-		args.object             = args.object ?: ( rc.filter_object ?: "" );
-		args.excludeExpressions = args.excludeExpressions ?: "";
-		args.expressions        = Len( Trim( args.object ) ) ? expressionService.listExpressions( filterObject=args.object, exclude=args.excludeExpressions ) : [];
-		args.isFilter           = true;
+		args.object      = args.object      ?: ( rc.filter_object ?: "" );
+		args.excludeTags = args.excludeTags ?: "";
+		args.expressions = Len( Trim( args.object ) ) ? expressionService.listExpressions( filterObject=args.object, excludeTags=args.excludeTags ) : [];
+		args.isFilter    = true;
 
 		var fieldId = args.id ?: "";
 		var expressionData = {

@@ -12,7 +12,6 @@
 	param name="args.sortableFields"      type="array"   default=[];
 	param name="args.hiddenGridFields"    type="array"   default=[];
 	param name="args.filterContextData"   type="struct"  default={};
-	param name="args.excludeExpressions"  type="string"  default="";
 	param name="args.allowSearch"         type="boolean" default=true;
 	param name="args.allowFilter"         type="boolean" default=true;
 	param name="args.allowDataExport"     type="boolean" default=false;
@@ -26,6 +25,7 @@
 	param name="args.saveExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction"      );
 	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
 	param name="args.objectTitlePlural"   type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
+	param name="args.excludeFilterExpressionTags" type="string"  default="";
 
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ args.objectTitlePlural ] );
@@ -125,17 +125,17 @@
 				<cfif allowManageFilter>
 					<div id="quick-filter-form-#instanceId#" class="in clearfix">
 						#renderFormControl(
-							  name               = "filter"
-							, id                 = "filter-#instanceId#"
-							, type               = "rulesEngineFilterBuilder"
-							, context            = "admin"
-							, contextData        = args.filterContextData
-							, excludeExpressions = args.excludeExpressions
-							, object             = args.objectName
-							, label              = ""
-							, layout             = ""
-							, compact            = true
-							, showCount          = false
+							  name        = "filter"
+							, id          = "filter-#instanceId#"
+							, type        = "rulesEngineFilterBuilder"
+							, context     = "admin"
+							, contextData = args.filterContextData
+							, excludeTags = args.excludeFilterExpressionTags
+							, object      = args.objectName
+							, label       = ""
+							, layout      = ""
+							, compact     = true
+							, showCount   = false
 						)#
 
 						<div class="form-actions">

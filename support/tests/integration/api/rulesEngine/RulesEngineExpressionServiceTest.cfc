@@ -217,7 +217,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( orderedExpressionLabels ).toBe( labels.sort( "textnocase" ) );
 			} );
 
-			it( "should exclude any expressions whose excludeCategories match the exclude argument", function(){
+			it( "should exclude any expressions whose tags match the excludeTags argument", function(){
 				var service = _getService();
 				var expressionIds = mockExpressions.keyArray();
 				var labels = [];
@@ -227,7 +227,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					service.$( "getExpression" ).$args( id ).$results( { id=id, label=labels[ labels.len() ], text="whatever", fields={}, contexts=[] } );
 				}
 
-				var expressions = service.listExpressions( exclude="excludeTest" );
+				var expressions = service.listExpressions( excludeTags="excludeTest" );
 				var orderedExpressionLabels = [];
 				var orderedExpressionIds    = [];
 
@@ -811,7 +811,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private struct function _getDefaultTestExpressions() {
 		var expressions = {
 			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah" }
-			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah", exclusionCategories=[ "excludeTest" ] }
+			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah", tags=[ "excludeTest" ] }
 			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], filterObjects=[ "objectx" ], category="blah" }
 			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ], filterObjects=[ "objecty" ], category="blah" }
 			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ], filterObjects=[ "objectx" ], category="blah" }
