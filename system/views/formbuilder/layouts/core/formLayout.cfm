@@ -31,7 +31,6 @@
 			if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
 				executeWithFormBuilderDependencies( function( $ ){
 					$( '###args.id#' ).validate( $.extend( #args.validationJs#, {
-
 					} ) );
 				} );
 			};
