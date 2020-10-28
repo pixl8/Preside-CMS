@@ -1,6 +1,8 @@
 #!/bin/bash
 TEST_DIR=$GITHUB_WORKSPACE/support/tests
 
+cd $GITHUB_WORKSPACE
+./support/build/install.sh
+
 cd $TEST_DIR
-box install || exit 1
 ./test.sh || exit 1
