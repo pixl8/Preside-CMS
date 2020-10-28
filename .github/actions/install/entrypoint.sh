@@ -1,4 +1,8 @@
 #!/bin/bash
 
 cd $GITHUB_WORKSPACE
-./support/build/install.sh
+
+box install --force save=false || exit 1;
+rm -rf ./system/externals/lucee-spreadsheet/javaLoader;
+rm -rf ./system/externals/lucee-spreadsheet/test;
+rm -rf ./system/externals/cfconcurrent/javaloader;
