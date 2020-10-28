@@ -42,11 +42,11 @@ component {
 			var isCommandLineExecuted = cgi.server_protocol == "CLI/1.0";
 			var nl          = isCommandLineExecuted ? Chr( 13 ) & Chr( 10 ) : "<br>";
 			var errorDetail =  "Test datasource not setup. Datasource checked using the following details (either defaults or env vars): " & nl & nl;
-			    errorDetail &= "Host     : #_getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost"    )#" & nl;
-			    errorDetail &= "Port     : #_getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "3306"         )#" & nl;
-			    errorDetail &= "DB Name  : #_getEnvironmentVariable( "PRESIDETEST_DB_NAME"    , "preside_test" )#" & nl;
-			    errorDetail &= "User     : #_getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "root"         )#" & nl;
-			    errorDetail &= "Password : #_getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "(empty)"      )#" & nl;
+			    errorDetail &= "Host     : #_getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost"    )#" & nl & nl;
+			    errorDetail &= "Port     : #_getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "3306"         )#" & nl & nl;
+			    errorDetail &= "DB Name  : #_getEnvironmentVariable( "PRESIDETEST_DB_NAME"    , "preside_test" )#" & nl & nl;
+			    errorDetail &= "User     : #_getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "root"         )#" & nl & nl;
+			    errorDetail &= "Password : #_getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "(empty)"      )#" & nl & nl;
 
 			    errorDetail &= nl & "These defaults can be overwritten by setting the following environment variables: " & nl & nl;
 			    errorDetail &= "PRESIDETEST_DB_HOST"     & nl;
