@@ -14,8 +14,6 @@ echo "Packaging application ${RELEASE_VERSION}...";
 echo "";
 echo "";
 
-cd $GITHUB_WORKSPACE
-
 PACKAGE_DIR="${GITHUB_WORKSPACE}/package"
 ARTIFACTS_DIR="${GITHUB_WORKSPACE}/artifacts/${RELEASE_NAME}"
 ZIP_FILE="${ARTIFACTS_DIR}/${ZIP_FILE_NAME}"
@@ -23,10 +21,9 @@ ZIP_FILE="${ARTIFACTS_DIR}/${ZIP_FILE_NAME}"
 mkdir -p $PACKAGE_DIR
 mkdir -p $ARTIFACTS_DIR
 
-rsync -a ../../ --exclude=".*" --exclude="$PACKAGE_DIR" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
+rsync -a ${GITHUB_WORKSPACE} --exclude=".*" --exclude="$PACKAGE_DIR" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
 
 cd $PACKAGE_DIR
-
 
 echo "";
 echo "Setting up version files, etc..."
