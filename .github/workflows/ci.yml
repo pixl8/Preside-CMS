@@ -3,8 +3,8 @@ on:
   push:
   pull_request:
 jobs:
-  test:
-    name: Run tests
+  ci:
+    name: Preside CI
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'twgit init')"
     services:
@@ -32,38 +32,22 @@ jobs:
           PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
           PRESIDETEST_DB_HOST: mysql
 
-      # just testing
       - name: Compile with Grunt
+        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
         uses: elstudio/actions-js-build/build@v2
         with:
           wdPath: './system/assets'
 
-  publish:
-    name: Publish
-    needs: test
-    runs-on: ubuntu-latest
-    if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Generate release version number
+        id: versiongen
+        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
+        uses: pixl8/github-action-twgit-release-version-generator@v2
         with:
-          fetch-depth: 0
+          build_number_start: 8000
 
-      - name: Install dependencies
-        uses: ./.github/actions/install
-
-      - name: Compile with Grunt
-        uses: elstudio/actions-js-build/build@v2
-        with:
-          wdPath: './system/assets'
-
-      # - name: Generate release version number
-      #   id: versiongen
-      #   uses: pixl8/github-action-twgit-release-version-generator@v2
-      #   with:
-      #     build_number_start: 8000
-
-
+      # - name: Package
+      #   id: package
+      #   if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
 
       # - name: Publish to forgebox
       #   uses: pixl8/github-action-box-publish@v1
