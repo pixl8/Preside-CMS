@@ -24,8 +24,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install dependencies
+        uses: ./.github/actions/install
+
       - name: Run tests
-        id: versiongen
         uses: ./.github/actions/runtests
         env:
           PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}

@@ -1,9 +1,5 @@
 name: Run Preside Test suite
 description: This is an action that runs the preside test suite
-author: Pixl8 Group
-branding:
-  icon: 'check-circle'
-  color: 'green'
 runs:
   using: 'docker'
   image: 'Dockerfile'
