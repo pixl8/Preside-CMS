@@ -148,6 +148,9 @@ component validationProvider=true {
 	}
 
 	public boolean function money( required string fieldName, string value="" ) validatorMessage="cms:validation.money.default" {
+		if ( not Len( Trim( arguments.value ) ) ) {
+			return true;
+		}
 		return !arrayIsEmpty(REMatchNoCase("^(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?|\(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?\))$", arguments.value ));
 	}
 	public string function money_js() {
