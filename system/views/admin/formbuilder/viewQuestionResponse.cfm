@@ -1,8 +1,13 @@
 <cfscript>
 	prc.pageIcon  = "question";
 	prc.pageTitle = prc.response.full_question_text;
-
-
+	responseArgs          = {
+						  responseid   = prc.response.id
+						, formId       = prc.response.submission_reference
+						, submissionId = prc.response.submission
+						, questionId   = prc.response.question
+						, itemType     = prc.response.item_type
+					};
 </cfscript>
 
 <cfparam name="prc.response" type="query">
@@ -19,7 +24,9 @@
 		</tr>
 		<tr>
 			<th>#translateResource( "preside-objects.formbuilder_question_response:field.response.title")#</th>
-			<td>#renderField( 'formbuilder_question_response', 'response', prc.response.response )#</td>
+			<td>
+				#renderViewLet( event="renderers.content.formBuilderResponse.default", args=responseArgs )#
+			</td>
 		</tr>
 		<tr>
 			<th>#translateResource( "preside-objects.formbuilder_question_response:field.submitted_by.title")#</th>
