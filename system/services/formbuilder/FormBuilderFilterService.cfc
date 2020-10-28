@@ -868,7 +868,7 @@ component {
 		,          string filterPrefix       = ""
 	) {
 		var responseField = "";
-
+		var cast          = "int"
 		var theQuestion    = _getFormBuilderService().getQuestion( question );
 
 		switch ( theQuestion.item_type )
@@ -877,13 +877,23 @@ component {
 				var questionConfig = DeserializeJson( theQuestion.item_type_config );
 
 				switch ( questionConfig.format ) {
-					case "integer": responseField="int_response";   break;
-					case "free"   : responseField="float_response"; break;
-					case "price"  : responseField="float_response"; break;
+					case "integer":
+						responseField="int_response";
+						cast         ="int";
+						break;
+					case "free"   :
+						responseField="float_response";
+						cast         ="float";
+						break;
+					case "price"  :
+						responseField="float_response";
+						cast         ="decimal(12,2)";
+						break;
 				}
 				break;
 			case "starRating":
 				responseField = "float_response";
+				cast          = "decimal(12,1)";
 				break;
 		}
 
@@ -891,10 +901,10 @@ component {
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var subqueryAlias  = "responseCount" & paramSuffix;
 		var overallFilter  = "#subqueryAlias#.response_count > 0";
-		var subqueryFilter = "question = :question#paramSuffix# and cast(#responseField# as decimal(12,2) ) ${operator} :response#paramSuffix#";
+		var subqueryFilter = "question = :question#paramSuffix# and cast( #responseField# as #cast#) ${operator} cast( :response#paramSuffix# as #cast# )";
 		var params         = {
 			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
-			, "response#paramSuffix#"      = { value=arguments.value, type="cf_sql_varchar" }
+			, "response#paramSuffix#" = { value=arguments.value,    type="cf_sql_varchar" }
 		};
 
 		switch ( _numericOperator ) {
@@ -938,7 +948,6 @@ component {
 			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
 			, joinToColumn   = "id"
 		} ] } ];
-
 
 		return response;
 	}
