@@ -29,3 +29,4 @@ jobs:
         uses: ./.github/actions/runtests
         env:
           PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          PRESIDETEST_DB_HOST: mysql
