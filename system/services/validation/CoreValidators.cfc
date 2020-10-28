@@ -27,7 +27,11 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) gte arguments.min;
+		return Val( Replace( arguments.value, ",", "" ) ) gte arguments.min;
+	}
+
+	public string function min_js() {
+		return "function( value, el, param ) { return this.optional( el ) || value.replace(',', '') >= param; }";
 	}
 
 	public boolean function max( required string fieldName, string value="", required numeric max ) validatorMessage="cms:validation.max.default" {
@@ -35,7 +39,11 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) lte arguments.max;
+		return Val( Replace( arguments.value, ",", "" ) ) lte arguments.max;
+	}
+
+	public string function max_js() {
+		return "function( value, el, param ) { return this.optional( el ) || value.replace(',', '') <= param; }";
 	}
 
 	public boolean function range( required string fieldName, string value="", required numeric min, required numeric max ) validatorMessage="cms:validation.range.default" {
