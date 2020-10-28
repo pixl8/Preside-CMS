@@ -9,7 +9,9 @@ inputs:
     required: true
 outputs:
   artifact_path:
-    description: The relative path to the built zip file
+    description: The path to the built zip file, relative to the workspace
+  artifact_remote_path:
+    description: Relative path for published artifact
   artifact_name:
     description: The file name of the built zip file
 runs:

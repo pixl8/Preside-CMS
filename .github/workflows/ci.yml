@@ -33,28 +33,39 @@ jobs:
           PRESIDETEST_DB_HOST: mysql
 
       - name: Compile with Grunt
-        # if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
+        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
         uses: elstudio/actions-js-build/build@v2
         with:
           wdPath: './system/assets'
 
       - name: Generate release version number
         id: versiongen
-        # if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
-        uses: pixl8/github-action-twgit-release-version-generator@v1
+        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
+        uses: pixl8/github-action-twgit-release-version-generator@v2
         with:
           build_number_start: 8000
 
       - name: Package
         id: package
-        # if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
+        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
         uses: ./.github/actions/package
         with:
           release_version: ${{ steps.versiongen.outputs.semver_release_string }}
           is_snapshot: ${{ steps.versiongen.outputs.semver_release_is_snapshot }}
 
+      - name: Upload to S3
+        uses: prewk/s3-cp-action@master
+        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-west-2'
+          SOURCE: '${{ steps.package.outputs.artifact_path }}'
+          DEST: 's3://downloads.preside.org/${{ steps.package.outputs.artifact_remote_path }}'
+
       # - name: Publish to forgebox
       #   uses: pixl8/github-action-box-publish@v1
+      #   if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
       #   with:
       #     forgebox_user: pixl8
       #     forgebox_pass: ${{ secrets.FORGEBOX_PASS }}

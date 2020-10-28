@@ -4,7 +4,9 @@ RELEASE_VERSION=$INPUT_RELEASE_VERSION
 IS_SNAPSHOT=$INPUT_IS_SNAPSHOT
 ZIP_FILE_NAME="Preside-${RELEASE_VERSION}.zip"
 
-if [[ "${IS_SNAPSHOT}" == "false" ]] ; then
+if [[ $VERSION_NUMBER == feature* ]] ; then
+	RELEASE_NAME="feature"
+elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
 	RELEASE_NAME="stable"
 else
 	RELEASE_NAME="bleeding-edge"
@@ -21,7 +23,7 @@ ZIP_FILE="${ARTIFACTS_DIR}/${ZIP_FILE_NAME}"
 mkdir -p $PACKAGE_DIR
 mkdir -p $ARTIFACTS_DIR
 
-rsync -a ${GITHUB_WORKSPACE} --exclude=".*" --exclude="$PACKAGE_DIR" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
+rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="$PACKAGE_DIR" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
 
 cd $PACKAGE_DIR
 
@@ -47,6 +49,7 @@ echo "";
 zip -rq $ZIP_FILE * -x jmimemagic.log || exit 1
 
 echo "::set-output name=artifact_path::artifacts/${RELEASE_NAME}/${ZIP_FILE_NAME}"
+echo "::set-output name=artifact_remote_path::${RELEASE_NAME}/${ZIP_FILE_NAME}"
 echo "::set-output name=artifact_name::${ZIP_FILE_NAME}"
 
 echo "";
