@@ -1,0 +1,31 @@
+name: PRs and Feature pushes
+on:
+  push:
+    branches:
+      - feature-*
+  pull_request:
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+          image: mysql:5.7
+          env:
+              MYSQL_ALLOW_EMPTY_PASSWORD: yes
+              MYSQL_DATABASE: preside_test
+          ports:
+              - 3306
+          options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Run tests
+        id: versiongen
+        uses: ./.github/actions/runtests
+        env:
+          PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
