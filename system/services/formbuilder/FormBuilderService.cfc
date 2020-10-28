@@ -1041,6 +1041,9 @@ component {
 				, "formbuilder_question_response.submission"
 				, "formbuilder_question_response.submission_type"
 				, "formbuilder_question_response.submission_reference"
+				, "formbuilder_question_response.question"
+				, "question.item_type"
+				, "question.item_type_config"
 				, "question.full_question_text"
 				, "submission$form.name as form_name"
 			]
