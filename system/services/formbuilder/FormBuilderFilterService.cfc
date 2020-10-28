@@ -883,7 +883,7 @@ component {
 						break;
 					case "free"   :
 						responseField="float_response";
-						cast         ="float";
+						cast         ="decimal(12,4)";
 						break;
 					case "price"  :
 						responseField="float_response";
