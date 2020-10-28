@@ -36,14 +36,6 @@
 						},
 						unhighlight: function( element, errorClass ) {
 							$( element ).closest( '.form-group' ).removeClass( 'has-error' );
-						},
-						errorPlacement: function( error, element ) {
-							if( element.attr("type") == 'file' ) {
-								error.insertAfter( element.closest( '.form-field' ) );
-							}
-							else {
-								error.insertAfter( element );
-							}
 						}
 					} ) );
 				} );
