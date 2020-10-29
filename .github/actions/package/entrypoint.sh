@@ -24,7 +24,7 @@ ZIP_FILE="${ARTIFACTS_DIR}/${ZIP_FILE_NAME}"
 mkdir -p $PACKAGE_DIR
 mkdir -p $ARTIFACTS_DIR
 
-rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="/package" --exclude="/artifacts" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
+rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="/package" --exclude="/artifacts" --exclude="*.sh" --exclude="/tests"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
 
 cd $PACKAGE_DIR
 
