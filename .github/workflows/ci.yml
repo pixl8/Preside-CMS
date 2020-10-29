@@ -60,7 +60,7 @@ jobs:
           AWS_REGION: 'eu-west-2'
         with:
           release_version: ${{ steps.versiongen.outputs.semver_release_string }}
-          is_snapshot: ${{ steps.versiongen.outputs.semver_release_is_snapshot }}
+          is_snapshot: ${{ steps.versiongen.outputs.semver_is_snapshot }}
 
       - name: Publish to forgebox
         uses: pixl8/github-action-box-publish@v2
