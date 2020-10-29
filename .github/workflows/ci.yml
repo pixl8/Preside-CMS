@@ -52,7 +52,7 @@ jobs:
       - name: Generate release version number
         id: versiongen
         if: "env.PUBLISH_PRESIDE == 'true'"
-        uses: pixl8/github-action-twgit-release-version-generator@v3
+        uses: pixl8/github-action-twgit-release-version-generator@v4
         with:
           build_number_start: 8000
 
