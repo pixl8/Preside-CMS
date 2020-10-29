@@ -52,7 +52,7 @@ echo "";
 zip -rq $ZIP_FILE * -x jmimemagic.log || exit 1
 
 echo "Uploading to https://downloads.preside.org/${RELEASE_NAME}/${ZIP_FILE_NAME} ..."
-aws s3 cp --acl-public-read $ZIP_FILE s3://downloads.preside.org/${RELEASE_NAME}/${ZIP_FILE_NAME}
+aws s3 cp --acl=public-read $ZIP_FILE s3://downloads.preside.org/${RELEASE_NAME}/${ZIP_FILE_NAME}
 
 echo "::set-output name=artifact_path::artifacts/${RELEASE_NAME}/${ZIP_FILE_NAME}"
 echo "::set-output name=artifact_remote_path::${RELEASE_NAME}/${ZIP_FILE_NAME}"
