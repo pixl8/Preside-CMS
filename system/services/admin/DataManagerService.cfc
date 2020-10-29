@@ -333,8 +333,9 @@ component {
 		var idField        = _getPresideObjectService().getIdField( arguments.objectName );
 		var selectDataArgs = StructCopy( arguments );
 
-		selectDataArgs.orderBy      = getSortField( arguments.objectName );
-		selectDataArgs.selectFields = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", selectDataArgs.orderBy ];
+		selectDataArgs.orderBy          = getSortField( arguments.objectName );
+		selectDataArgs.selectFields     = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", selectDataArgs.orderBy ];
+		selectDataArgs.fromVersionTable = _getPresideObjectService().objectUsesDrafts( objectName=arguments.objectName );
 
 		return _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
 	}
@@ -345,8 +346,12 @@ component {
 
 		for( var i=1; i <= arguments.sortedIds.len(); i++ ) {
 			object.updateData(
-				  id   = arguments.sortedIds[ i ]
-				, data = { "#sortField#" = i }
+				  id      = arguments.sortedIds[ i ]
+				, data    = { "#sortField#" = i }
+				, isDraft = _getPresideObjectService().objectRecordHasDraft(
+					  objectName = arguments.objectName
+					, recordId   = arguments.sortedIds[ i ]
+				)
 			);
 		}
 	}
@@ -671,7 +676,7 @@ component {
 			}
 		}
 
-		return Hash( max( lastModified, rendererCacheDate ) );
+		return Hash( max( parseDateTime(lastModified), rendererCacheDate ) );
 	}
 
 	public boolean function areDraftsEnabledForObject( required string objectName ) {
