@@ -6,7 +6,7 @@ jobs:
   ci:
     name: Preside CI
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[twgit] Init')"
+    if: "!contains(github.event.head_commit.message, '[twgit] Init') && github.ref != 'refs/heads/stable'"
     services:
       mysql:
           image: mysql:5.7
