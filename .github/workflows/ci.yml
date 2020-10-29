@@ -18,6 +18,22 @@ jobs:
           options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
+      - name: Setup flow variables
+        run: |
+          branch=${GITHUB_REF##*/}
+          package=false
+          publish=false
+          if [[ "{{ env.event.name }}" != "pull_request" ]] ; then
+            if [[ $branch == release-* ]] || [[ $branch == v* ]] || [[ $branch == feature-* ]] ; then
+              package=true
+            fi
+            if [[ $branch == release-* ]] || [[ $branch == v* ]] ; then
+              publish=true
+            fi
+          fi
+          echo "PACKAGE_PRESIDE=$package" >> $GITHUB_ENV
+          echo "PUBLISH_PRESIDE=$publish" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -33,21 +49,21 @@ jobs:
           PRESIDETEST_DB_HOST: mysql
 
       - name: Compile with Grunt
-        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
+        if: "env.PACKAGE_PRESIDE == 'true'"
         uses: elstudio/actions-js-build/build@v2
         with:
           wdPath: './system/assets'
 
       - name: Generate release version number
         id: versiongen
-        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
+        if: "env.PACKAGE_PRESIDE == 'true'"
         uses: pixl8/github-action-twgit-release-version-generator@v2
         with:
           build_number_start: 8000
 
       - name: Package
         id: package
-        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
+        if: "env.PACKAGE_PRESIDE == 'true'"
         uses: ./.github/actions/package
         with:
           release_version: ${{ steps.versiongen.outputs.semver_release_string }}
@@ -55,7 +71,7 @@ jobs:
 
       - name: Upload to S3
         uses: prewk/s3-cp-action@master
-        if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) || startsWith( github.ref, 'refs/head/feature-' ) )"
+        if: "env.PACKAGE_PRESIDE == 'true'"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -65,7 +81,7 @@ jobs:
 
       # - name: Publish to forgebox
       #   uses: pixl8/github-action-box-publish@v1
-      #   if: "github.event.name != 'pull_request' && (startsWith( github.ref, 'refs/heads/release-' ) || startsWith( github.ref, 'refs/tags/v' ) )"
+      #   if: "env.PUBLISH_PRESIDE == 'true'"
       #   with:
       #     forgebox_user: pixl8
       #     forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
