@@ -54,22 +54,16 @@ jobs:
         id: package
         if: "env.PUBLISH_PRESIDE == 'true'"
         uses: ./.github/actions/package
-        with:
-          release_version: ${{ steps.versiongen.outputs.semver_release_string }}
-          is_snapshot: ${{ steps.versiongen.outputs.semver_release_is_snapshot }}
-
-      - name: Upload to S3
-        uses: prewk/s3-cp-action@master
-        if: "env.PUBLISH_PRESIDE == 'true'"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'eu-west-2'
-          SOURCE: '${{ steps.package.outputs.artifact_path }}'
-          DEST: 's3://downloads.preside.org/${{ steps.package.outputs.artifact_remote_path }}'
+        with:
+          release_version: ${{ steps.versiongen.outputs.semver_release_string }}
+          is_snapshot: ${{ steps.versiongen.outputs.semver_release_is_snapshot }}
 
       - name: Publish to forgebox
-        uses: pixl8/github-action-box-publish@v1
+        uses: pixl8/github-action-box-publish@v2
         if: "env.PUBLISH_PRESIDE == 'true'"
         with:
           forgebox_user: pixl8
