@@ -75,12 +75,14 @@ jobs:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
 
-      - uses: craftech-io/slack-action@v1
+      - name: Inform Slack of success
+        uses: craftech-io/slack-action@v1
         if: "env.PUBLISH_PRESIDE == 'true'"
         with:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - uses: craftech-io/slack-action@v1
+      - name: Inform Slack of failure
+        uses: craftech-io/slack-action@v1
         if: "failure() && env.PUBLISH_PRESIDE == 'true'"
         with:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
