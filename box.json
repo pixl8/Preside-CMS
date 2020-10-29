@@ -42,7 +42,7 @@
     "installPaths":{
         "sticker":"system/externals/sticker/",
         "lucee-spreadsheet":"system/externals/lucee-spreadsheet/",
-        "testbox":"support/tests/testbox/",
+        "testbox":"tests/testbox/",
         "presidecmseditor":"system/assets/ckeditor/",
         "cbi18n":"system/modules/cbi18n/",
         "cbmessagebox":"system/modules/cbmessagebox/",
