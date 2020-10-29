@@ -10,8 +10,8 @@ component {
 	this.mappings['/testbox']     = currentDir & "testbox";
 	this.mappings['/mxunit' ]     = currentDir & "testbox/system/compat";
 	this.mappings['/app']         = currentDir & "resources/testSite";
-	this.mappings['/preside']     = currentDir & "../../";
-	this.mappings['/coldbox']     = currentDir & "../../system/externals/coldbox";
+	this.mappings['/preside']     = currentDir & "../";
+	this.mappings['/coldbox']     = currentDir & "../system/externals/coldbox";
 
 	setting requesttimeout="6000";
 	_loadDsn();
