@@ -1,0 +1,5 @@
+name: Install preside dependencies
+description: This is an action that installs dependencies needed for Preside
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

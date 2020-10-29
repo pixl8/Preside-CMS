@@ -648,6 +648,7 @@ component extends="testbox.system.BaseSpec" {
 		tm.$( "$isFeatureEnabled" ).$args( "sslInternalHttpCalls" ).$results( true );
 		tm.$( "_setActiveSite" );
 		mockRc.$( "setUseQueryCache" );
+		mockRc.$( "isBackgroundThread", false );
 
 		return tm.init(
 			  configWrapper                = configWrapper

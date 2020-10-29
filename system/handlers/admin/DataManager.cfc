@@ -2216,49 +2216,55 @@ component extends="preside.system.base.AdminHandler" {
 		obj = presideObjectService.getObject( object );
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true, isDraft=isDraft );
 
-		if ( arguments.audit ) {
-			var auditDetail = _getAuditDataFromFormData( formData );
-			auditDetail.id = newId;
-			auditDetail.objectName = arguments.object;
-			if ( arguments.auditAction == "" ) {
-				if ( arguments.draftsEnabled && isDraft ) {
-					arguments.auditAction = "datamanager_add_draft_record";
-				} else {
-					arguments.auditAction = "datamanager_add_record";
+		if ( Len( newId ) ) {
+			if ( arguments.audit ) {
+				var auditDetail = _getAuditDataFromFormData( formData );
+				auditDetail.id = newId;
+				auditDetail.objectName = arguments.object;
+				if ( arguments.auditAction == "" ) {
+					if ( arguments.draftsEnabled && isDraft ) {
+						arguments.auditAction = "datamanager_add_draft_record";
+					} else {
+						arguments.auditAction = "datamanager_add_record";
+					}
 				}
+				event.audit(
+					  action   = arguments.auditAction
+					, type     = arguments.auditType
+					, recordId = newId
+					, detail   = auditDetail
+				);
 			}
-			event.audit(
-				  action   = arguments.auditAction
-				, type     = arguments.auditType
-				, recordId = newId
-				, detail   = auditDetail
-			);
-		}
 
-		if ( customizationService.objectHasCustomization( object, "postAddRecordAction" ) ) {
-			args.newId = newId;
-			customizationService.runCustomization(
-				  objectName = object
-				, action     = "postAddRecordAction"
-				, args       = args
-			);
-		}
+			if ( customizationService.objectHasCustomization( object, "postAddRecordAction" ) ) {
+				args.newId = newId;
+				customizationService.runCustomization(
+					  objectName = object
+					, action     = "postAddRecordAction"
+					, args       = args
+				);
+			}
 
-		if ( !redirectOnSuccess ) {
-			return newId;
-		}
+			if ( !redirectOnSuccess ) {
+				return newId;
+			}
 
-		newRecordLink = replaceNoCase( viewRecordUrl, "{newid}", newId, "all" );
+			newRecordLink = replaceNoCase( viewRecordUrl, "{newid}", newId, "all" );
 
-		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
-			  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
-			, '<a href="#newRecordLink#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
-		] ) );
+			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
+				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
+				, '<a href="#newRecordLink#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+			] ) );
 
-		if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-			setNextEvent( url=addAnotherUrl, persist="_addAnother" );
+			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
+				setNextEvent( url=addAnotherUrl, persist="_addAnother" );
+			} else {
+				setNextEvent( url=replaceNoCase( successUrl, "{newid}", newId, "all" ) );
+			}
 		} else {
-			setNextEvent( url=replaceNoCase( successUrl, "{newid}", newId, "all" ) );
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotAdded.unknown.error" ) );
+			persist = formData;
+			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 	}
 
@@ -2579,49 +2585,53 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		presideObjectService.updateData(
+		if ( presideObjectService.updateData(
 			  id                      = id
 			, objectName              = object
 			, data                    = formData
 			, updateManyToManyRecords = true
 			, isDraft                 = isDraft
 			, forceVersionCreation    = forceVersion
-		);
-
-		if ( arguments.audit ) {
-			var auditDetail = _getAuditDataFromFormData( formData );
-			auditDetail.objectName = arguments.object;
-			if ( !Len( Trim( arguments.auditAction ) ) ) {
-				if ( arguments.draftsEnabled ) {
-					if ( isDraft ) {
-						arguments.auditAction = "datamanager_save_draft_record";
+		) ) {
+			if ( arguments.audit ) {
+				var auditDetail = _getAuditDataFromFormData( formData );
+				auditDetail.objectName = arguments.object;
+				if ( !Len( Trim( arguments.auditAction ) ) ) {
+					if ( arguments.draftsEnabled ) {
+						if ( isDraft ) {
+							arguments.auditAction = "datamanager_save_draft_record";
+						} else {
+							arguments.auditAction = "datamanager_publish_record";
+						}
 					} else {
-						arguments.auditAction = "datamanager_publish_record";
+						arguments.auditAction = "datamanager_edit_record";
 					}
-				} else {
-					arguments.auditAction = "datamanager_edit_record";
 				}
+				event.audit(
+					  action   = arguments.auditAction
+					, type     = arguments.auditType
+					, recordId = id
+					, detail   = auditDetail
+				);
 			}
-			event.audit(
-				  action   = arguments.auditAction
-				, type     = arguments.auditType
-				, recordId = id
-				, detail   = auditDetail
-			);
-		}
 
-		if ( customizationService.objectHasCustomization( object, "postEditRecordAction" ) ) {
-			customizationService.runCustomization(
-				  objectName = object
-				, action     = "postEditRecordAction"
-				, args       = args
-			);
-		}
+			if ( customizationService.objectHasCustomization( object, "postEditRecordAction" ) ) {
+				customizationService.runCustomization(
+					  objectName = object
+					, action     = "postEditRecordAction"
+					, args       = args
+				);
+			}
 
-		if ( redirectOnSuccess ) {
-			messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
+			if ( redirectOnSuccess ) {
+				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
 
-			setNextEvent( url=successUrl );
+				setNextEvent( url=successUrl );
+			}
+		} else {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotUpdated.unknown.error" ) );
+			persist = formData;
+			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 	}
 

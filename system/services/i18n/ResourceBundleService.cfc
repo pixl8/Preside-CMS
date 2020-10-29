@@ -38,7 +38,9 @@ component singleton=true {
 		var resourceKey = "";
 		var bundleData  = "";
 
-		_validateUri( arguments.uri );
+		if ( !isValidResourceUri( arguments.uri ) ) {
+			return arguments.defaultValue;
+		}
 
 		bundle      = ListFirst( arguments.uri, ":" );
 		resourceKey = ListRest( arguments.uri, ":" );
@@ -237,16 +239,6 @@ component singleton=true {
 		fis.close();
 
 		return returnStruct;
-	}
-
-	private void function _validateUri( required string uri ) output=false {
-		if ( !isValidResourceUri( arguments.uri ) ) {
-			throw(
-				  type    = "ResourceBundleService.MalformedResourceUri"
-				, message = "The URI, [#arguments.uri#], was malformed. Valid URIs take the form {bundleName}:{keyName}"
-				, detail  = "Example, well-formed, URIs: 'mybundle:my.key', or 'main:cancel_btn'"
-			);
-		}
 	}
 
 	private string function _getSiteTemplateFromPath( required string path ) output=false {
