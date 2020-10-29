@@ -4,8 +4,6 @@
  */
 component {
 
-	variables.epoch = CreateDate( 1970, 1, 1 );
-
 // CONSTRUCTOR
 	public any function init() {
 		return this;
@@ -34,9 +32,9 @@ component {
 
 // PRIVATE HELPERS
 	private numeric function _getUnixTimeStamp() {
-		var utcNow = DateConvert( "local2utc", Now() );
+		var epochInMs = CreateObject( "java", "java.time.Instant" ).now().toEpochMilli();
 
-		return DateDiff( 's', epoch, utcNow );
+		return Ceiling( epochInMs / 1000  );
 	}
 
 }
