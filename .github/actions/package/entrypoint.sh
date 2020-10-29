@@ -3,9 +3,10 @@
 RELEASE_VERSION=$INPUT_RELEASE_VERSION
 IS_SNAPSHOT=$INPUT_IS_SNAPSHOT
 ZIP_FILE_NAME="Preside-${RELEASE_VERSION}.zip"
+NOW="`date`"
 
-if [[ $VERSION_NUMBER == feature* ]] ; then
-	RELEASE_NAME="feature"
+if [[ $RELEASE_VERSION == demo* ]] ; then
+	RELEASE_NAME="demo"
 elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
 	RELEASE_NAME="stable"
 else
@@ -23,7 +24,7 @@ ZIP_FILE="${ARTIFACTS_DIR}/${ZIP_FILE_NAME}"
 mkdir -p $PACKAGE_DIR
 mkdir -p $ARTIFACTS_DIR
 
-rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="$PACKAGE_DIR" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
+rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="/package" --exclude="/artifacts" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
 
 cd $PACKAGE_DIR
 
@@ -41,6 +42,8 @@ sed -i "s,VERSION_NUMBER,$RELEASE_VERSION," box.json
 sed -i "s,VERSION_NUMBER,$RELEASE_VERSION," version.json
 sed -i "s,VERSION_NUMBER,$RELEASE_VERSION," system/config/Config.cfc
 sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/${ZIP_FILE_NAME}," box.json
+
+cp box.json ${GITHUB_WORKSPACE}/box.json
 
 echo "";
 echo "Zipping up project...";

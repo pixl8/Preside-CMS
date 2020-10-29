@@ -21,17 +21,12 @@ jobs:
       - name: Setup flow variables
         run: |
           branch=${GITHUB_REF##*/}
-          package=false
           publish=false
           if [[ "{{ env.event.name }}" != "pull_request" ]] ; then
-            if [[ $branch == release-* ]] || [[ $branch == v* ]] || [[ $branch == feature-* ]] ; then
-              package=true
-            fi
-            if [[ $branch == release-* ]] || [[ $branch == v* ]] ; then
+            if [[ $branch == release-* ]] || [[ $branch == v* ]] || [[ $branch == demo-* ]] ; then
               publish=true
             fi
           fi
-          echo "PACKAGE_PRESIDE=$package" >> $GITHUB_ENV
           echo "PUBLISH_PRESIDE=$publish" >> $GITHUB_ENV
 
       - name: Checkout code
@@ -49,21 +44,21 @@ jobs:
           PRESIDETEST_DB_HOST: mysql
 
       - name: Compile with Grunt
-        if: "env.PACKAGE_PRESIDE == 'true'"
+        if: "env.PUBLISH_PRESIDE == 'true'"
         uses: elstudio/actions-js-build/build@v2
         with:
           wdPath: './system/assets'
 
       - name: Generate release version number
         id: versiongen
-        if: "env.PACKAGE_PRESIDE == 'true'"
-        uses: pixl8/github-action-twgit-release-version-generator@v2
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        uses: pixl8/github-action-twgit-release-version-generator@v3
         with:
           build_number_start: 8000
 
       - name: Package
         id: package
-        if: "env.PACKAGE_PRESIDE == 'true'"
+        if: "env.PUBLISH_PRESIDE == 'true'"
         uses: ./.github/actions/package
         with:
           release_version: ${{ steps.versiongen.outputs.semver_release_string }}
@@ -71,7 +66,7 @@ jobs:
 
       - name: Upload to S3
         uses: prewk/s3-cp-action@master
-        if: "env.PACKAGE_PRESIDE == 'true'"
+        if: "env.PUBLISH_PRESIDE == 'true'"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -79,12 +74,9 @@ jobs:
           SOURCE: '${{ steps.package.outputs.artifact_path }}'
           DEST: 's3://downloads.preside.org/${{ steps.package.outputs.artifact_remote_path }}'
 
-      # - name: Publish to forgebox
-      #   uses: pixl8/github-action-box-publish@v1
-      #   if: "env.PUBLISH_PRESIDE == 'true'"
-      #   with:
-      #     forgebox_user: pixl8
-      #     forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
-      #   env:
-      #     VERSION_NUMBER: ${{ steps.versiongen.outputs.semver_release_string }}
-      #     DOWNLOAD_LOCATION: ${{ steps.upload.outputs.browser_download_url }}
+      - name: Publish to forgebox
+        uses: pixl8/github-action-box-publish@v1
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        with:
+          forgebox_user: pixl8
+          forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
