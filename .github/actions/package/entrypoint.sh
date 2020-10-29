@@ -5,7 +5,7 @@ IS_SNAPSHOT=$INPUT_IS_SNAPSHOT
 ZIP_FILE_NAME="Preside-${RELEASE_VERSION}.zip"
 NOW="`date`"
 
-if [[ $RELEASE_VERSION == demo* ]] ; then
+if [[ $RELEASE_VERSION == "0.0.0-DEMO"* ]] ; then
 	RELEASE_NAME="demo"
 elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
 	RELEASE_NAME="stable"
