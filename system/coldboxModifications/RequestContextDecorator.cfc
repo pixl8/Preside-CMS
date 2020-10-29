@@ -1001,6 +1001,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
 		    && !event.valueExists( "fwreinit" )
+		    && !this.isBackgroundThread()
 		    && !this.isAdminRequest()
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
@@ -1089,8 +1090,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		writeOutput( contentOutput );
 		abort;
 	}
@@ -1101,10 +1102,18 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		writeOutput( contentOutput );
 		abort;
+	}
+
+// Threading
+	public boolean function isBackgroundThread( boolean value ) {
+		if ( structKeyExists( arguments, "value" ) ) {
+			getRequestContext().setValue( name="_isBackgroundThread", value=arguments.value, private=true );
+		}
+		return getRequestContext().getValue( name="_isBackgroundThread", defaultValue=false, private=true );
 	}
 
 // REST framework
