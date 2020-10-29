@@ -329,8 +329,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockEmailTemplateService   = createMock( "preside.system.services.email.EmailTemplateService" );
 		mockServiceProviderService = createMock( "preside.system.services.email.EmailServiceProviderService" );
 		mockCoreValidators         = createStub();
-		mockEmailValidators         = createStub();
+		mockEmailValidators        = createStub();
+		mockRequestContext         = createStub();
 
+		mockRequestContext.$( "cachePage", false );
 
 		mockTemplate = createStub();
 
@@ -348,6 +350,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
+		service.$( "$getRequestContext", mockRequestContext );
 		mockEmailTemplateService.$( "templateExists", false );
 
 		mockEmailValidators.$( "allowedSenderEmail", true )

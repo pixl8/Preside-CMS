@@ -246,15 +246,29 @@ component displayName="Preside Object Service" {
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
 
 		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
-			args.result = _selectFromVersionTables(
+			var versionTablePrep = _prepareSelectFromVersionTables(
 				  argumentCollection = args
 				, filter             = args.preparedFilter.filter
 				, params             = args.preparedFilter.params
 				, originalTableName  = args.objMeta.tableName
 				, distinct           = args.distinct
 			);
-			if ( arguments.recordCountOnly ) {
-				args.result = Val( args.result.record_count ?: "" );
+
+			if ( arguments.getSqlAndParamsOnly ) {
+				return {
+					  sql    = versionTablePrep.sql
+					, params = arguments.formatSqlParams ? _formatParams( versionTablePrep.params ) : versionTablePrep.params
+				};
+			} else {
+				args.result = _runSql(
+					  sql    = versionTablePrep.sql
+					, dsn    = versionTablePrep.dsn
+					, params = versionTablePrep.params
+				);
+
+				if ( arguments.recordCountOnly ) {
+					args.result = Val( args.result.record_count ?: "" );
+				}
 			}
 		} else {
 			var sql = args.adapter.getSelectSql(
@@ -681,9 +695,10 @@ component displayName="Preside Object Service" {
 
 				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
 				var oldManyToManyData = versionedManyToManyFields.len() ? getDeNormalizedManyToManyData(
-					objectName         = arguments.objectName
+					  objectName       = arguments.objectName
 					, id               = record[ idField ]
 					, selectFields     = versionedManyToManyFields
+					, fromVersionTable = arguments.isDraft
 				) : {};
 
 				var newDataForChangedFieldsCheck = Duplicate( cleanedData );
@@ -714,6 +729,7 @@ component displayName="Preside Object Service" {
 					, manyToManyData       = manyToManyData
 					, existingRecords      = arguments.oldData
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					, isDraft              = arguments.isDraft
 				);
 			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
 				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
@@ -950,7 +966,7 @@ component displayName="Preside Object Service" {
 		return selectData(
 			  argumentCollection = arguments
 			, useCache           = false
-			, selectFields       = [ "1" ]
+			, selectFields       = [ "1 as record" ]
 			, recordCountOnly    = true
 		) > 0;
 	}
@@ -1057,7 +1073,7 @@ component displayName="Preside Object Service" {
 			) > 0;
 		}
 
-		var prop = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var prop         = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObject = prop.relatedTo ?: "";
 		var pivotTable   = prop.relatedVia ?: "";
 		var sourceFk     = prop.relationshipIsSource ? prop.relatedViaSourceFk : prop.relatedViaTargetFk;
@@ -1095,7 +1111,7 @@ component displayName="Preside Object Service" {
 
 				anythingChanged = anythingChanged || newAddedRecords.len();
 
-				if ( anythingChanged && !arguments.isDraft ) {
+				if ( anythingChanged ) {
 					deleteData(
 						  objectName = pivotTable
 						, filter     = { "#sourceFk#" = arguments.sourceId }
@@ -1106,9 +1122,24 @@ component displayName="Preside Object Service" {
 						insertData(
 							  objectName    = pivotTable
 							, useVersioning = false
-							, data          = { "#sourceFk#"=arguments.sourceId, "#targetFk#"=newRecords[i], sort_order=i, _version_has_drafts=arguments.isDraft }
+							, isDraft       = arguments.isDraft
+							, data          = {
+								  "#sourceFk#" = arguments.sourceId
+								, "#targetFk#" = newRecords[i]
+								, sort_order   = i
+							}
 						);
 					}
+				} else if ( !arguments.isDraft && objectIsVersioned( pivotTable ) && objectUsesDrafts( pivotTable ) ) {
+					updateData(
+						  objectName    = pivotTable
+						, filter        = { "#sourceFk#" = arguments.sourceId }
+						, useVersioning = false
+						, data          = {
+							  _version_is_draft   = false
+							, _version_has_drafts = false
+						}
+					);
 				}
 			}
 		}
@@ -1690,6 +1721,29 @@ component displayName="Preside Object Service" {
 		var obj = _getObject( objectName );
 
 		return IsBoolean( obj.meta.useDrafts ?: "" ) && obj.meta.useDrafts;
+	}
+
+	/**
+	 * Returns whether or not the given record has draft
+	 *
+	 * @objectName.hint Name of the object you wish to check
+	 * @recordId.hint   ID of the object record you wish to check
+	 */
+	public boolean function objectRecordHasDraft(
+		  required string objectName
+		, required string recordId
+	) autodoc=true {
+		if ( objectUsesDrafts( objectName=arguments.objectName ) ) {
+			return dataExists(
+				  objectName = arguments.objectName
+				, filter     = {
+					  id                  = arguments.recordId
+					, _version_has_drafts = true
+				}
+			);
+		}
+
+		return false;
 	}
 
 	/**
@@ -2893,7 +2947,7 @@ component displayName="Preside Object Service" {
 		return interceptArguments.tableJoins;
 	}
 
-	private query function _selectFromVersionTables(
+	private struct function _prepareSelectFromVersionTables(
 		  required string  objectName
 		, required string  originalTableName
 		, required array   joins
@@ -2965,7 +3019,11 @@ component displayName="Preside Object Service" {
 			sql = adapter.getCountSql( sql );
 		}
 
-		return _runSql( sql=sql, dsn=versionObj.dsn, params=arguments.params );
+		return {
+			  sql    = sql
+			, dsn    = versionObj.dsn
+			, params = arguments.params
+		};
 	}
 
 	private array function _alterJoinsToUseVersionTables(

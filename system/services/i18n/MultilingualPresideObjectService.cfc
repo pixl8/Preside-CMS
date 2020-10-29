@@ -353,18 +353,18 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public array function getTranslationStatus( required string objectName, required string recordId ) {
 		var languages         = listLanguages( includeDefault=false );
-		var objectIsVersioned = $getPresideObjectService().objectIsVersioned( arguments.objectName );
-		var selectFields      = objectIsVersioned ? [ "_translation_language", "_version_is_draft", "_version_has_drafts" ] : [ "_translation_language" ];
+		var objectUsesDrafts  = $getPresideObjectService().objectUsesDrafts( arguments.objectName );
+		var selectFields      = objectUsesDrafts ? [ "_translation_language", "_version_is_draft", "_version_has_drafts" ] : [ "_translation_language" ];
 		var dbRecords         = $getPresideObjectService().selectData(
 			  objectName         = _getTranslationObjectPrefix() & objectName
 			, selectFields       = selectFields
 			, filter             = { _translation_source_record = arguments.recordId }
-			, allowDraftVersions = true
+			, allowDraftVersions = objectUsesDrafts
 		);
 		var mappedRecords = {};
 
 		for( var record in dbRecords ){
-			if ( objectIsVersioned ) {
+			if ( objectUsesDrafts ) {
 				mappedrecords[ record._translation_language ] = ( !IsBoolean( record._version_is_draft ) || !record._version_is_draft ) && ( !IsBoolean( record._version_has_drafts ) || !record._version_has_drafts );
 			} else {
 				mappedrecords[ record._translation_language ] = true;

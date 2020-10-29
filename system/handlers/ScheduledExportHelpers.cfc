@@ -35,13 +35,13 @@ component {
 				} catch( any e ){}
 
 				for( var filter in configArgs.savedFilters ) {
-						try {
-							configArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
-								  objectName = savedExportDetail.object_name
-								, filterId   = filter
-							) );
-						} catch( any e ){}
-					}
+					try {
+						configArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
+							  objectName = savedExportDetail.object_name
+							, filterId   = filter
+						) );
+					} catch( any e ){}
+				}
 
 				if ( len( trim( savedExportDetail.search_query ?: "" ) ) ) {
 					try {
@@ -52,7 +52,7 @@ component {
 		 						, gridFields   = dataManagerService.listGridFields( savedExportDetail.object_name )
 		 						, searchFields = dataManagerService.listSearchFields( savedExportDetail.object_name )
 		 					  )
-		 					, filterParams = { q = { type="varchar", value="%" & rc.searchQuery & "%" } }
+		 					, filterParams = { q = { type="varchar", value="%" & savedExportDetail.search_query & "%" } }
 		 				} );
 					} catch (any e) {}
 				}
