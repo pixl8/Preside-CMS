@@ -50,7 +50,7 @@
 
 		datetimePicker = $thisPicker.data( "DateTimePicker" );
 
-		if ( relativeToField.length || relativeOperator.length ) {
+		if ( relativeToField.length && relativeOperator.length ) {
 			$form          = $thisPicker.closest( "form" );
 			$relativeField = $form.find( "[name=" + relativeToField + "]" );
 
