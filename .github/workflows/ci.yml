@@ -1,0 +1,83 @@
+name: Continuous Integration
+on:
+  push:
+  pull_request:
+jobs:
+  ci:
+    name: Preside CI
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[twgit] Init')"
+    services:
+      mysql:
+          image: mysql:5.7
+          env:
+              MYSQL_ALLOW_EMPTY_PASSWORD: yes
+              MYSQL_DATABASE: preside_test
+          ports:
+              - 3306:3306
+          options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Setup flow variables
+        run: |
+          branch=${GITHUB_REF##*/}
+          publish=false
+          if [[ "{{ env.event.name }}" != "pull_request" ]] ; then
+            if [[ $branch == release-* ]] || [[ $branch == v* ]] || [[ $branch == demo-* ]] ; then
+              publish=true
+            fi
+          fi
+          echo "PUBLISH_PRESIDE=$publish" >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        uses: ./.github/actions/install
+
+      - name: Run tests
+        uses: ./.github/actions/runtests
+        env:
+          PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          PRESIDETEST_DB_HOST: mysql
+
+      - name: Generate release version number
+        id: versiongen
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        uses: pixl8/github-action-twgit-release-version-generator@v1
+        with:
+          build_number_start: 8000
+
+      - name: Package
+        id: package
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        uses: ./.github/actions/package
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-west-2'
+        with:
+          release_version: ${{ steps.versiongen.outputs.semver_release_string }}
+          is_snapshot: ${{ steps.versiongen.outputs.semver_release_is_snapshot }}
+
+      - name: Publish to forgebox
+        uses: pixl8/github-action-box-publish@v2
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        with:
+          forgebox_user: pixl8
+          forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
+
+      - name: Inform Slack of success
+        uses: craftech-io/slack-action@v1
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        with:
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Inform Slack of failure
+        uses: craftech-io/slack-action@v1
+        if: "failure() && env.PUBLISH_PRESIDE == 'true'"
+        with:
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          status: failure
