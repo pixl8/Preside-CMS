@@ -149,21 +149,14 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test13_getResource_shouldThrowInformativeError_whenMalformedResourceUriPassed" returntype="void">
+	<cffunction name="test13_getResource_shouldReturnDefaultValue_whenMalformedResourceUriPassed" returntype="void">
 		<cfscript>
-			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles/" ];
+			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles3/" ];
 			var rbService  = _getRBService( bundleDirs );
-			var errorThrown = false;
+			var expected   = CreateUUId();
+			var result     = rbService.getResource( uri="malformed.resource.uri", defaultValue=expected );
 
-			try {
-				rbService.getResource( "malformed.resource.uri" );
-			} catch ( "ResourceBundleService.MalformedResourceUri" e ) {
-				super.assertEquals( "The URI, [malformed.resource.uri], was malformed. Valid URIs take the form {bundleName}:{keyName}", e.message );
-				super.assertEquals( "Example, well-formed, URIs: 'mybundle:my.key', or 'main:cancel_btn'", e.detail );
-				errorThrown = true;
-			}
-
-			super.assert( errorThrown, "An informative error was not thrown" );
+			super.assertEquals( expected, result );
 		</cfscript>
 	</cffunction>
 

@@ -778,6 +778,7 @@ component extends="testbox.system.BaseSpec" {
 
 		mockRequestContext.$( "setUseQueryCache" );
 		mockRequestContext.$( "getSiteId", "mock-site-id" );
+		mockRequestContext.$( "isBackgroundThread", false );
 		mockRequestContext.$( "getLanguage", "mock-language" );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );

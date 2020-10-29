@@ -107,13 +107,15 @@ component extends="preside.system.base.adminHandler" {
 	 *
 	 */
 	private string function relatedRecordsDatatable( event, rc, prc, args={} ) {
-		var objectName    = args.objectName   ?: "";
-		var propertyName  = args.propertyName ?: "";
-		var recordId      = args.recordId     ?: "";
-		var queryString   = "objectName=#args.objectName#&propertyName=#args.propertyName#&recordId=#args.recordId#";
-		var datasourceUrl = event.buildAdminLink( linkto="dataHelpers.getRecordsForRelatedRecordsDatatable", queryString=queryString );
-		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
-		var gridFields    = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
+		var objectName       = args.objectName   ?: "";
+		var propertyName     = args.propertyName ?: "";
+		var recordId         = args.recordId     ?: "";
+		var record           = prc.record        ?: queryNew("");
+		var fromVersionTable = isTrue( prc.useVersioning ?: false ) && isTrue( record._version_has_drafts ?: "" );
+		var queryString      = "objectName=#args.objectName#&propertyName=#args.propertyName#&recordId=#args.recordId#&fromVersionTable=#fromVersionTable#";
+		var datasourceUrl    = event.buildAdminLink( linkto="dataHelpers.getRecordsForRelatedRecordsDatatable", queryString=queryString );
+		var relatedObject    = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
+		var gridFields       = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
 
 		return renderView( view="/admin/datamanager/_objectDataTable", args={
 			  objectName        = relatedObject
@@ -161,18 +163,20 @@ component extends="preside.system.base.adminHandler" {
 	 *
 	 */
 	public void function getRecordsForRelatedRecordsDatatable( event, rc, prc ) {
-		var objectName     = rc.objectName   ?: "";
-		var propertyName   = rc.propertyName ?: "";
-		var recordId       = rc.recordId     ?: "";
-		var gridFields     = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName ).toList();
-		var relatedObject  = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
-		var relatedIdField = presideObjectService.getIdField( objectName=relatedObject );
-		var extraFilters   = [];
-		var subquerySelect = presideObjectService.selectData(
+		var objectName       = rc.objectName   ?: "";
+		var propertyName     = rc.propertyName ?: "";
+		var recordId         = rc.recordId     ?: "";
+		var fromVersionTable = isTrue( rc.fromVersionTable ?: "" );
+		var gridFields       = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName ).toList();
+		var relatedObject    = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
+		var relatedIdField   = presideObjectService.getIdField( objectName=relatedObject );
+		var extraFilters     = [];
+		var subquerySelect   = presideObjectService.selectData(
 			  objectName          = objectName
 			, id                  = recordId
 			, selectFields        = [ "#propertyName#.#relatedIdField# as id" ]
 			, getSqlAndParamsOnly = true
+			, fromVersionTable    = fromVersionTable
 		);
 		var subQueryAlias = "relatedRecordsFilter";
 		var params        = {};
