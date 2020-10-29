@@ -1,0 +1,19 @@
+name: Package preside zip
+description: This is an action that packages preside into a zip file
+inputs:
+  release_version:
+    description: Full release version string
+    required: true
+  is_snapshot:
+    description: Whether or not this is a snapshot build
+    required: true
+outputs:
+  artifact_path:
+    description: The path to the built zip file, relative to the workspace
+  artifact_remote_path:
+    description: Relative path for published artifact
+  artifact_name:
+    description: The file name of the built zip file
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
