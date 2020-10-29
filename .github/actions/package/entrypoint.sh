@@ -24,7 +24,7 @@ ZIP_FILE="${ARTIFACTS_DIR}/${ZIP_FILE_NAME}"
 mkdir -p $PACKAGE_DIR
 mkdir -p $ARTIFACTS_DIR
 
-rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="/package" --exclude="/artifacts" --exclude="*.sh" --exclude="/support"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
+rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="/package" --exclude="/artifacts" --exclude="*.sh" --exclude="/tests"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
 
 cd $PACKAGE_DIR
 
@@ -50,6 +50,9 @@ echo "Zipping up project...";
 echo "";
 
 zip -rq $ZIP_FILE * -x jmimemagic.log || exit 1
+
+echo "Uploading to https://downloads.preside.org/${RELEASE_NAME}/${ZIP_FILE_NAME} ..."
+aws s3 cp --acl-public-read $ZIP_FILE s3://downloads.preside.org/${RELEASE_NAME}/${ZIP_FILE_NAME}
 
 echo "::set-output name=artifact_path::artifacts/${RELEASE_NAME}/${ZIP_FILE_NAME}"
 echo "::set-output name=artifact_remote_path::${RELEASE_NAME}/${ZIP_FILE_NAME}"
