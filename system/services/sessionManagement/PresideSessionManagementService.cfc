@@ -4,8 +4,6 @@
  */
 component {
 
-	variables.epoch = CreateDate( 1970, 1, 1 );
-
 // CONSTRUCTOR
 	public any function init() {
 		return this;
@@ -27,16 +25,16 @@ component {
 		return $getPresideObject( "session_storage" ).selectData(
 			  filter          = "expiry >= :expiry"
 			, filterParams    = { expiry=_getUnixTimeStamp() }
-			, selectFields    = [ "1" ]
+			, selectFields    = [ "1 as record" ]
 			, recordCountOnly = true
 		);
 	}
 
 // PRIVATE HELPERS
 	private numeric function _getUnixTimeStamp() {
-		var utcNow = DateConvert( "local2utc", Now() );
+		var epochInMs = CreateObject( "java", "java.time.Instant" ).now().toEpochMilli();
 
-		return DateDiff( 's', epoch, utcNow );
+		return Ceiling( epochInMs / 1000  );
 	}
 
 }

@@ -43,6 +43,7 @@ component {
 			, localeStorage      = "cookie"
 			, unknownTranslation = "**NOT FOUND**"
 		};
+		settings.unknownTranslation = i18n.unknownTranslation;
 
 		interceptors = [
 			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
@@ -423,6 +424,7 @@ component {
 			, emailCenter              = { enabled=true , siteTemplates=[ "*" ] }
 			, emailCenterResend        = { enabled=false, siteTemplates=[ "*" ] }
 			, emailStyleInliner        = { enabled=true , siteTemplates=[ "*" ] }
+			, emailStyleInlinerAscii   = { enabled=false, siteTemplates=[ "*" ] }
 			, emailLinkShortener       = { enabled=false, siteTemplates=[ "*" ] }
 			, emailOverwriteDomain     = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates     = { enabled=true , siteTemplates=[ "*" ] }
@@ -575,6 +577,10 @@ component {
 		settings.heartbeats.cacheBoxReap.hostname = settings.env.CACHEBOXREAP_HEARTBEAT_HOSTNAME ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.healthCheck.hostname  = settings.env.HEALTHCHECK_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.sessionReap.hostname  = settings.env.SESSIONREAP_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
+
+		settings.heartbeats.taskmanager.poolSize  = Val( settings.env.TASKMANAGER_POOL_SIZE  ?: 0 );
+		settings.heartbeats.adhocTask.poolSize    = Val( settings.env.ADHOCTASK_POOL_SIZE    ?: 0 );
+
 
 		_loadConfigurationFromExtensions();
 
