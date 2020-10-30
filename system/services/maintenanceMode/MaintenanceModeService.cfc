@@ -79,20 +79,11 @@ component {
 		}
 
 		if ( Len( Trim( bypassPassword  ) ) ) {
-			var scopes = [ cookie, form, url ];
-
-			if ( _areLuceeSessionsEnabled() ) {
-				ArrayPrepend( scopes, session );
-			}
+			var scopes = [ session, cookie, form, url ];
 
 			for( var scope in scopes ){
 				if ( StructKeyExists( scope, bypassPassword ) ) {
-					if ( _areLuceeSessionsEnabled() ) {
-						session[ bypassPassword ] = true;
-					} else {
-						cookie[ bypassPassword ] = true;
-					}
-
+					session[ bypassPassword ] = true;
 					return true;
 				}
 			}
@@ -141,13 +132,6 @@ component {
 		var statelessRequest         = IsBoolean( appSettings.statelessRequest         ?: "" ) && appSettings.statelessRequest;
 
 		return sessionManagement || ( presideSessionManagement && !statelessRequest );
-	}
-
-	private boolean function _areLuceeSessionsEnabled() {
-		var appSettings       = getApplicationSettings( true );
-		var sessionManagement = IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
-
-		return sessionManagement;
 	}
 
 // getters and setters

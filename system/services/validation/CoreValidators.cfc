@@ -27,11 +27,11 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( Replace( arguments.value, ",", "" ) ) gte arguments.min;
+		return Val( Replace( arguments.value, ",", "", "all" ) ) gte arguments.min;
 	}
 
 	public string function min_js() {
-		return "function( value, el, param ) { return this.optional( el ) || value.replace(',', '') >= param; }";
+		return "function( value, el, param ) { return this.optional( el ) || value.replaceAll( ',', '' ) >= ( ( typeof( param ) == 'object' ) ? param.param : param ); }";
 	}
 
 	public boolean function max( required string fieldName, string value="", required numeric max ) validatorMessage="cms:validation.max.default" {
@@ -39,11 +39,11 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( Replace( arguments.value, ",", "" ) ) lte arguments.max;
+		return Val( Replace( arguments.value, ",", "", "all" ) ) lte arguments.max;
 	}
 
 	public string function max_js() {
-		return "function( value, el, param ) { return this.optional( el ) || value.replace(',', '') <= param; }";
+		return "function( value, el, param ) { return this.optional( el ) || value.replaceAll( ',', '' ) <= ( ( typeof( param ) == 'object' ) ? param.param : param ); }";
 	}
 
 	public boolean function range( required string fieldName, string value="", required numeric min, required numeric max ) validatorMessage="cms:validation.range.default" {
@@ -51,20 +51,22 @@ component validationProvider=true {
 			return true;
 		}
 
-		var val = Val( Replace( arguments.value, ",", "" ) );
+		var val = Val( Replace( arguments.value, ",", "", "all" ) );
 
 		return val lte arguments.max and val gte arguments.min;
 	}
 
 	public string function range_js() {
-		return "function( value, el, param ) { var val = value.replace(',', ''); return this.optional( el ) || ( val >= param[ 0 ] && val <= param[ 1 ] ); }";
+		return "function( value, el, param ) { var val = value.replaceAll( ',', '' ); return this.optional( el ) || ( val >= ( ( typeof( param[0] ) == 'object' ) ? param.param[0] : param[0] ) && val <= ( ( typeof( param[1] ) == 'object' ) ? param.param[1] : param[1] ) ); }";
 	}
+
+	// 			return this.optional( el ) || ( val >= param[ 0 ] && val <= param[ 1 ] ); }
 
 	public boolean function number( required string value ) validatorMessage="cms:validation.number.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
-		return IsNumeric( Replace( arguments.value, ",", "" ) );
+		return IsNumeric( Replace( arguments.value, ",", "", "all" ) );
 	}
 
 	public boolean function digits( required string value ) validatorMessage="cms:validation.digits.default" {
