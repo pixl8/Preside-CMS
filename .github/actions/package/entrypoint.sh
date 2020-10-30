@@ -26,7 +26,19 @@ mkdir -p $ARTIFACTS_DIR
 
 rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="/package" --exclude="/artifacts" --exclude="*.sh" --exclude="/tests"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
 
+
+
 cd $PACKAGE_DIR
+
+echo "";
+echo "Compiling static assets with grunt..."
+echo "";
+
+cd ./system/assets
+npm install || exit 1
+grunt all || exit 1
+
+cd ../../
 
 echo "";
 echo "Setting up version files, etc..."
