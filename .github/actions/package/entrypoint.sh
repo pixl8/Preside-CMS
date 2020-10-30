@@ -26,8 +26,6 @@ mkdir -p $ARTIFACTS_DIR
 
 rsync -a ${GITHUB_WORKSPACE}/ --exclude=".*" --exclude="/package" --exclude="/artifacts" --exclude="*.sh" --exclude="/tests"  --exclude="/system/assets/node_modules" --exclude="zanata.xml" "$PACKAGE_DIR" || exit 1
 
-
-
 cd $PACKAGE_DIR
 
 echo "";
@@ -56,6 +54,11 @@ sed -i "s,VERSION_NUMBER,$RELEASE_VERSION," system/config/Config.cfc
 sed -i "s,DOWNLOADLOCATION,$RELEASE_NAME\/${ZIP_FILE_NAME}," box.json
 
 cp box.json ${GITHUB_WORKSPACE}/box.json
+
+# CLEANUP
+rm -rf ./system/externals/lucee-spreadsheet/javaLoader;
+rm -rf ./system/externals/lucee-spreadsheet/test;
+rm -rf ./system/externals/cfconcurrent/javaloader;
 
 echo "";
 echo "Zipping up project...";
