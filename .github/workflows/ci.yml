@@ -41,13 +41,12 @@ jobs:
           force: true
 
       - name: Run tests
-        uses: pixl8/github-action-box-test@v2
+        uses: pixl8/github-action-box-test@v3
         with:
           boxjson_dir: /tests
           test_dir: /tests
           test_server_json: /tests/server-presidetests.json
           output_file: /tests/test-results.txt
-          output_format: text
           verbose: false
         env:
           PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
