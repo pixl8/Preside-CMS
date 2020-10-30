@@ -46,6 +46,7 @@ runs:
         echo "";
 
         cd ./system/assets
+        npm install -g grunt-cli
         npm install || exit 1
         grunt all || exit 1
 
