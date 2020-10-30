@@ -35,13 +35,13 @@ jobs:
           fetch-depth: 0
 
       - name: Install dependencies
-        uses: pixl8/github-action-box-install@v1
+        uses: pixl8/github-action-box-install@v2
         with:
           verbose: true
           force: true
 
       - name: Run tests
-        uses: pixl8/github-action-box-test@v1
+        uses: pixl8/github-action-box-test@v2
         with:
           boxjson_dir: /tests
           test_dir: /tests
@@ -74,7 +74,7 @@ jobs:
 
       - if: "env.PUBLISH_PRESIDE == 'true'"
         name: Publish to forgebox
-        uses: pixl8/github-action-box-publish@v1
+        uses: pixl8/github-action-box-publish@v3
         with:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
