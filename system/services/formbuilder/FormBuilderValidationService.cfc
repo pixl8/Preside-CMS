@@ -77,12 +77,12 @@ component {
 
 		if ( IsNumeric( arguments.maxValue ?: "" ) ) {
 			if ( IsNumeric( arguments.minValue ?: "" ) ) {
-				rules.append({ fieldname=arguments.name, validator="range", params={ min=Int( arguments.minValue ), max=Int( arguments.maxValue ) } });
+				rules.append({ fieldname=arguments.name, validator="range", params={ min=val( arguments.minValue ), max=val( arguments.maxValue ) } });
 			} else {
-				rules.append({ fieldname=arguments.name, validator="max", params={ max=Int( arguments.maxValue ) } });
+				rules.append({ fieldname=arguments.name, validator="max", params={ max=val( arguments.maxValue ) } });
 			}
 		} else if ( IsNumeric( arguments.minValue ?: "" ) ) {
-			rules.append({ fieldname=arguments.name, validator="min", params={ min=Int( arguments.minValue ) } });
+			rules.append({ fieldname=arguments.name, validator="min", params={ min=val( arguments.minValue ) } });
 		}
 
 		return rules;
