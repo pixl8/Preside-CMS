@@ -58,40 +58,39 @@ jobs:
           name: test-results
           path: tests/test-results.txt
 
-      - if: "env.PUBLISH_PRESIDE == 'true'"
-        name: Generate release version number
+      - name: Generate release version number
+        if: "env.PUBLISH_PRESIDE == 'true'"
         id: versiongen
         uses: pixl8/github-action-twgit-release-version-generator@v1
         with:
           build_number_start: 8000
 
-      - if: "env.PUBLISH_PRESIDE == 'true'"
-        name: Package
-        id: package
-        uses: ./.github/actions/package
+      - name: Package
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        run: ./.github/scripts/package.sh
+        shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'eu-west-2'
-        with:
-          release_version: ${{ steps.versiongen.outputs.semver_release_string }}
-          is_snapshot: ${{ steps.versiongen.outputs.semver_is_snapshot }}
+          RELEASE_VERSION: ${{ steps.versiongen.outputs.semver_release_string }}
+          IS_SNAPSHOT: ${{ steps.versiongen.outputs.semver_is_snapshot }}
 
-      - if: "env.PUBLISH_PRESIDE == 'true'"
-        name: Publish to forgebox
+      - name: Publish to forgebox
+        if: "env.PUBLISH_PRESIDE == 'true'"
         uses: pixl8/github-action-box-publish@v3
         with:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
 
-      - if: "env.PUBLISH_PRESIDE == 'true'"
-        name: Inform Slack of success
+      - name: Inform Slack of success
+        if: "env.PUBLISH_PRESIDE == 'true'"
         uses: craftech-io/slack-action@v1
         with:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - if: "failure() && env.PUBLISH_PRESIDE == 'true'"
-        name: Inform Slack of failure
+      - name: Inform Slack of failure
+        if: "failure() && env.PUBLISH_PRESIDE == 'true'"
         uses: craftech-io/slack-action@v1
         with:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
