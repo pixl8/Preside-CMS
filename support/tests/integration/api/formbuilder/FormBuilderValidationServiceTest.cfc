@@ -52,32 +52,32 @@ component extends="testbox.system.BaseSpec"{
 				] );
 			} );
 
-			it( "should return an array containing a 'max' rule when there is a maxValue attribute that has a greater-than-zero value", function(){
+			it( "should return an array containing a 'max' rule when there is a maxValue attribute that has a numeric value", function(){
 				var service = getService();
 
 				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, maxValue=30 ) ).toBe( [
 					{ fieldName="testfield", validator="max", params={ max=30 } }
 				] );
+				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, maxValue=0 ) ).toBe( [
+					{ fieldName="testfield", validator="max", params={ max=0 } }
+				] );
+				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, maxValue=-10 ) ).toBe( [
+					{ fieldName="testfield", validator="max", params={ max=-10 } }
+				] );
 			} );
 
-			it( "should return an array that does NOT contain a maxValue rule when there is a maxValue attribute equal to zero", function(){
-				var service = getService();
-
-				expect( service.getStandardRulesForFormField( name="testfield", maxValue=0 ) ).toBe( [] );
-			} );
-
-			it( "should return an array containing a 'min' rule when there is a minValue attribute that has a greater-than-zero value", function(){
+			it( "should return an array containing a 'min' rule when there is a minValue attribute that has a numeric value", function(){
 				var service = getService();
 
 				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, minValue=5 ) ).toBe( [
 					{ fieldName="testfield", validator="min", params={ min=5 } }
 				] );
-			} );
-
-			it( "should return an array that does NOT contain a minValue rule when there is a minValue attribute equal to zero", function(){
-				var service = getService();
-
-				expect( service.getStandardRulesForFormField( name="testfield", minValue=0 ) ).toBe( [] );
+				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, minValue=0 ) ).toBe( [
+					{ fieldName="testfield", validator="min", params={ min=0 } }
+				] );
+				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, minValue=-20 ) ).toBe( [
+					{ fieldName="testfield", validator="min", params={ min=-20 } }
+				] );
 			} );
 
 			it( "should return an array that contains a range validator when both minValue and maxValue are supplied and non-zero", function(){
