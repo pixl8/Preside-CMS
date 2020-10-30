@@ -3,8 +3,6 @@ component {
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
 
-		event.include( assetId="/css/frontend/formbuilder/" );
-
 		if ( Len( Trim( args.relativeOperator ?: "" ) ) && IsBoolean( args.relativeToCurrentDate ?: "" ) && args.relativeToCurrentDate ) {
 			var theDate   = Now();
 			var validator = "maximumDate";
