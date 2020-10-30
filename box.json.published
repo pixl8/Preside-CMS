@@ -1,8 +1,8 @@
 {
     "slug":"presidecms",
     "name":"Preside",
-    "version":"VERSION_NUMBER",
-    "location":"https://downloads.preside.org/DOWNLOADLOCATION",
+    "version":"$RELEASE_VERSION",
+    "location":"$DOWNLOAD_LOCATION",
     "type":"cms",
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
