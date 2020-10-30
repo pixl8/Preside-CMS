@@ -47,11 +47,17 @@ jobs:
           test_dir: /tests
           test_server_json: /tests/server-presidetests.json
           output_file: /tests/test-results.txt
-          output_format: junit
+          output_format: text
           verbose: false
         env:
           PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
           PRESIDETEST_DB_HOST: mysql
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v1
+        with:
+          name: test-results
+          path: tests/test-results.txt
 
       - if: "env.PUBLISH_PRESIDE == 'true'"
         name: Generate release version number
