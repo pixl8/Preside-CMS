@@ -37,7 +37,6 @@ jobs:
       - name: Install dependencies
         uses: pixl8/github-action-box-install@v1
         with:
-          production: true
           verbose: true
           force: true
 
