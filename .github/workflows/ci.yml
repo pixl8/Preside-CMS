@@ -87,7 +87,7 @@ jobs:
           elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
             RELEASE_CATEGORY=stable
           else
-            RELEASE_CATEGORY=bleeding
+            RELEASE_CATEGORY="bleeding-edge"
           fi
           echo "RELEASE_CATEGORY=$RELEASE_CATEGORY" >> $GITHUB_ENV
           echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV
