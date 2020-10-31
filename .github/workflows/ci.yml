@@ -58,15 +58,6 @@ jobs:
           name: test-results
           path: tests/test-results.txt
 
-      - name: Build static assets with grunt
-        if: "env.PUBLISH_PRESIDE == 'true'"
-        shell: bash
-        run: |
-          cd ./system/assets &&
-          npm install -g grunt-cli &&
-          npm install &&
-          grunt all
-
       - name: Generate release version number
         if: "env.PUBLISH_PRESIDE == 'true'"
         id: versiongen
@@ -74,55 +65,16 @@ jobs:
         with:
           build_number_start: 8000
 
-      - name: Set release variables
+      - name: Package
         if: "env.PUBLISH_PRESIDE == 'true'"
+        run: ./.github/scripts/package.sh
         shell: bash
-        env:
-          RELEASE_VERSION: ${{ steps.versiongen.outputs.semver_release_string }}
-          IS_SNAPSHOT: ${{ steps.versiongen.outputs.semver_is_snapshot }}
-        run: |
-          if [[ $RELEASE_VERSION == "0.0.0-DEMO"* ]] ; then
-            echo "RELEASE_CATEGORY=demo" >> $GITHUB_ENV
-          elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
-            echo "RELEASE_CATEGORY=stable" >> $GITHUB_ENV
-          else
-            echo "RELEASE_CATEGORY=bleeding-edge" >> $GITHUB_ENV
-          fi
-          echo "ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip" >> $GITHUB_ENV
-          echo "DOWNLOAD_LOCATION=https://downloads.preside.org/$RELEASE_CATEGORY/$ZIP_FILE_NAME" >> $GITHUB_ENV
-          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
-
-      - name: Prepare files for release
-        if: "env.PUBLISH_PRESIDE == 'true'"
-        shell: bash
-        run: |
-          echo '{ "version":"\$RELEASE_VERSION" }' > version.json &&
-          echo 'Built on: $( date )' > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
-          mv box.json.published box.json
-          rm -rf system/externals/lucee-spreadsheet/javaLoader
-          rm -rf system/externals/lucee-spreadsheet/test
-          rm -rf system/externals/cfconcurrent/javaloader
-          rm -rf system/assets/node_modules
-          rm -rf tests
-
-      - name: Inject version numbers
-        if: "env.PUBLISH_PRESIDE == 'true'"
-        uses: dominicwatson/github-action-envsubst@v1
-        with:
-          files: box.json version.json system/config/Config.cfc
-
-      - name: Zip up
-        if: "env.PUBLISH_PRESIDE == 'true'"
-        shell: bash
-        run: zip -rq $ZIP_FILE_NAME * --exclude jmimemagic.log --exclude=".*" --exclude="*.sh" --exclude="zanata.xml"
-
-      - name: Push to S3
-        if: "env.PUBLISH_PRESIDE == 'true'"
-        run: aws s3 cp --acl=public-read $ZIP_FILE_NAME s3://downloads.preside.org/${RELEASE_CATEGORY}/${ZIP_FILE_NAME}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'eu-west-2'
+          RELEASE_VERSION: ${{ steps.versiongen.outputs.semver_release_string }}
+          IS_SNAPSHOT: ${{ steps.versiongen.outputs.semver_is_snapshot }}
 
       - name: Publish to forgebox
         if: "env.PUBLISH_PRESIDE == 'true'"
