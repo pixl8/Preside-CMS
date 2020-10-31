@@ -63,9 +63,9 @@ jobs:
         shell: bash
         run: |
           cd ./system/assets &&
-          npm install -g grunt-cli &&
           npm install &&
-          grunt all
+          grunt all &&
+          rm -rf node_modules
 
       - name: Generate release version number
         if: "env.PUBLISH_PRESIDE == 'true'"
@@ -102,7 +102,6 @@ jobs:
           rm -rf system/externals/lucee-spreadsheet/javaLoader
           rm -rf system/externals/lucee-spreadsheet/test
           rm -rf system/externals/cfconcurrent/javaloader
-          rm -rf system/assets/node_modules
           rm -rf tests
 
       - name: Inject version numbers
