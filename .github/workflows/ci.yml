@@ -88,7 +88,8 @@ jobs:
           else
             echo "RELEASE_CATEGORY=bleeding-edge" >> $GITHUB_ENV
           fi
-          echo "ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip" >> $GITHUB_ENV
+          ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip
+          echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV
           echo "DOWNLOAD_LOCATION=https://downloads.preside.org/$RELEASE_CATEGORY/$ZIP_FILE_NAME" >> $GITHUB_ENV
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
 
@@ -99,9 +100,6 @@ jobs:
           echo '{ "version":"\$RELEASE_VERSION" }' > version.json &&
           echo 'Built on: $( date )' > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
           mv box.json.published box.json
-          rm -rf system/externals/lucee-spreadsheet/javaLoader
-          rm -rf system/externals/lucee-spreadsheet/test
-          rm -rf system/externals/cfconcurrent/javaloader
           rm -rf tests
 
       - name: Inject version numbers
