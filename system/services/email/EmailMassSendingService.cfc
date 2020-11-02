@@ -375,6 +375,7 @@ component {
 			  selectFields        = [ "recipient", "template" ]
 			, getSqlAndParamsOnly = true
 		);
+		var recipientIdField = $getPresideObjectService().getIdField( arguments.recipientObject );
 
 		for ( var _param in sqlAndParams.params ) {
 			filter.filterParams[ _param.name ] = _param;
@@ -386,7 +387,7 @@ component {
 			, subQueryAlias     = "already_queued_check"
 			, subQueryColumn    = "recipient"
 			, joinToTable       = arguments.recipientObject
-			, joinToColumn      = "id"
+			, joinToColumn      = recipientIdField
 			, additionalClauses = "template = :template"
 		} ];
 
