@@ -375,7 +375,7 @@ component {
 			  selectFields        = [ "recipient", "template" ]
 			, getSqlAndParamsOnly = true
 		);
-		var recipientIdField        = $presideObjectService.getIdField( arguments.recipientObject );
+		var recipientIdField = $getPresideObjectService().getIdField( arguments.recipientObject );
 
 		for ( var _param in sqlAndParams.params ) {
 			filter.filterParams[ _param.name ] = _param;
