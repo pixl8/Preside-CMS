@@ -226,32 +226,28 @@ component displayname="Native Image Manipulation Service" {
 			}
 		}
 
-		if ( Val( Left( SERVER.lucee.version ?: "", 1 ) ) >= 5 ) {
-			var tmpFilePDF  = GetTempDirectory() & imagePrefix & "_page_" & arguments.page & ".pdf";
-			var tmpFileJPG  = GetTempDirectory() & imagePrefix & "1.jpg";
+		var tmpFilePDF  = GetTempDirectory() & imagePrefix & "_page_" & arguments.page & ".pdf";
+		var tmpFileJPG  = GetTempDirectory() & imagePrefix & "1.jpg";
 
-			FileWrite( tmpFilePDF, pdfAttributes.source );
+		FileWrite( tmpFilePDF, pdfAttributes.source );
 
-			var returnFilePrefix = GetTempDirectory() & imagePrefix;
-			var bufferedImage    = createObject("java","java.awt.image.BufferedImage");
-			var imageWriter      = createObject("java","org.apache.pdfbox.util.PDFImageWriter");
-			var document         = createObject("java","org.apache.pdfbox.pdmodel.PDDocument").load( tmpFilePDF );
+		var returnFilePrefix = GetTempDirectory() & imagePrefix;
+		var bufferedImage    = createObject("java","java.awt.image.BufferedImage");
+		var imageWriter      = createObject("java","org.apache.pdfbox.util.PDFImageWriter");
+		var document         = createObject("java","org.apache.pdfbox.pdmodel.PDDocument").load( tmpFilePDF );
 
-			imageWriter.writeImage( document, JavaCast( "string", "jpg" ), JavaCast( "string", "" ), "1", "1", JavaCast( "string", returnFilePrefix ), bufferedImage.TYPE_INT_RGB, arguments.width );
-			document.close();
+		imageWriter.writeImage( document, JavaCast( "string", "jpg" ), JavaCast( "string", "" ), "1", "1", JavaCast( "string", returnFilePrefix ), bufferedImage.TYPE_INT_RGB, arguments.width );
+		document.close();
 
-			cfimage(
-				  action      = "resize"
-				, source      = tmpFileJPG
-				, destination = tmpFileJPG
-				, overwrite   = true
-				, width       = arguments.width
-			);
+		cfimage(
+			  action      = "resize"
+			, source      = tmpFileJPG
+			, destination = tmpFileJPG
+			, overwrite   = true
+			, width       = arguments.width
+		);
 
-			tmpFilePath = tmpFileJPG;
-		} else {
-			pdf attributeCollection=pdfAttributes;
-		}
+		tmpFilePath = tmpFileJPG;
 
 		var binary             = FileReadBinary( tmpFilePath );
 		imageInfo              = getImageInformation( binary );

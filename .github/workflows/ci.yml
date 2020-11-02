@@ -6,7 +6,7 @@ jobs:
   ci:
     name: Preside CI
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[twgit] Init')"
+    if: "!contains(github.event.head_commit.message, '[twgit] Init') && github.ref != 'refs/heads/stable'"
     services:
       mysql:
           image: mysql:5.7
@@ -35,49 +35,108 @@ jobs:
           fetch-depth: 0
 
       - name: Install dependencies
-        uses: ./.github/actions/install
+        uses: pixl8/github-action-box-install@v2
+        with:
+          verbose: true
+          force: true
 
       - name: Run tests
-        uses: ./.github/actions/runtests
+        uses: pixl8/github-action-box-test@v3
+        with:
+          boxjson_dir: /tests
+          test_dir: /tests
+          test_server_json: /tests/server-presidetests.json
+          output_file: /tests/test-results.txt
+          verbose: false
         env:
           PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
           PRESIDETEST_DB_HOST: mysql
 
-      - name: Generate release version number
-        id: versiongen
+      - name: Upload test results
+        uses: actions/upload-artifact@v1
+        with:
+          name: test-results
+          path: tests/test-results.txt
+
+      - name: Build static assets with grunt
         if: "env.PUBLISH_PRESIDE == 'true'"
+        shell: bash
+        run: |
+          cd ./system/assets &&
+          npm install &&
+          grunt all &&
+          rm -rf node_modules
+
+      - name: Generate release version number
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        id: versiongen
         uses: pixl8/github-action-twgit-release-version-generator@v1
         with:
           build_number_start: 8000
 
-      - name: Package
-        id: package
+      - name: Set release variables
         if: "env.PUBLISH_PRESIDE == 'true'"
-        uses: ./.github/actions/package
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.versiongen.outputs.semver_release_string }}
+          IS_SNAPSHOT: ${{ steps.versiongen.outputs.semver_is_snapshot }}
+        run: |
+          ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip
+          if [[ $RELEASE_VERSION == "0.0.0-DEMO"* ]] ; then
+            RELEASE_CATEGORY=demo
+          elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
+            RELEASE_CATEGORY=stable
+          else
+            RELEASE_CATEGORY="bleeding-edge"
+          fi
+          echo "RELEASE_CATEGORY=$RELEASE_CATEGORY" >> $GITHUB_ENV
+          echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV
+          echo "DOWNLOAD_LOCATION=https://downloads.preside.org/$RELEASE_CATEGORY/$ZIP_FILE_NAME" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+
+      - name: Prepare files for release
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        shell: bash
+        run: |
+          echo '{ "version":"\$RELEASE_VERSION" }' > version.json &&
+          echo 'Built on: $( date )' > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
+          mv box.json.published box.json
+
+      - name: Inject version numbers
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        uses: dominicwatson/github-action-envsubst@v1
+        with:
+          files: box.json version.json system/config/Config.cfc
+
+      - name: Zip up
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        shell: bash
+        run: zip -rq $ZIP_FILE_NAME * --exclude jmimemagic.log --exclude=".*" --exclude="*.sh" --exclude="zanata.xml" --exclude="tests/**\*" --exclude="system/externals/lucee-spreadsheet/javaloader/**\*"
+
+      - name: Push to S3
+        if: "env.PUBLISH_PRESIDE == 'true'"
+        run: aws s3 cp --acl=public-read $ZIP_FILE_NAME s3://downloads.preside.org/${RELEASE_CATEGORY}/${ZIP_FILE_NAME}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'eu-west-2'
-        with:
-          release_version: ${{ steps.versiongen.outputs.semver_release_string }}
-          is_snapshot: ${{ steps.versiongen.outputs.semver_release_is_snapshot }}
 
       - name: Publish to forgebox
-        uses: pixl8/github-action-box-publish@v2
         if: "env.PUBLISH_PRESIDE == 'true'"
+        uses: pixl8/github-action-box-publish@v3
         with:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
 
       - name: Inform Slack of success
-        uses: craftech-io/slack-action@v1
         if: "env.PUBLISH_PRESIDE == 'true'"
+        uses: craftech-io/slack-action@v1
         with:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Inform Slack of failure
-        uses: craftech-io/slack-action@v1
         if: "failure() && env.PUBLISH_PRESIDE == 'true'"
+        uses: craftech-io/slack-action@v1
         with:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           status: failure
