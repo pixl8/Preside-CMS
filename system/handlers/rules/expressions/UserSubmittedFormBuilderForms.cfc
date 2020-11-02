@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has visited any/all of the following pages"
+ * Expression handler for "User has submitted any/all of the following form builder forms"
  *
  * @feature websiteUsers
  * @expressionContexts user
