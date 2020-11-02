@@ -36,9 +36,24 @@ component {
 		return rules;
 	}
 
+	private string function renderResponse( event, rc, prc, args={} ) {
+		if( isNumeric( args.response ?: "" ) ) {
+			var value = val( args.response );
+
+			if( round( value ) == value ) {
+				return numberFormat( value );
+			}
+			else {
+				return numberFormat( value, ",.__" );
+			}
+		}
+
+		return "";
+	}
+
 	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
 		if ( Len( args.response ?: "" ) ) {
-			return Val( args.response );
+			return Val( Replace( args.response, ",", "", "all" ) );
 		}
 
 		return "";
