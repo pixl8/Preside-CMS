@@ -550,6 +550,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$announceInterception" );
 		mockPresideObjectService.$( "getDbAdapterForObject", mockDbAdapter );
 		mockPresideObjectService.$( "clearRelatedCaches" );
+		mockPresideObjectService.$( "getIdField", "id" );
 
 		mockDbAdapter.$( "getNowFunctionSql", "nowwweee()" );
 
