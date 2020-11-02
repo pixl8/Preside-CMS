@@ -1,5 +1,0 @@
-name: Run Preside Test suite
-description: This is an action that runs the preside test suite
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
