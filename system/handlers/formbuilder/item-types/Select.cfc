@@ -27,7 +27,7 @@ component {
 
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		var responses = ListToArray( args.response ?: "" );
+		var responses = ListToArray( DeserializeJSON( args.response ?: "" ) );
 		var itemConfig = args.itemConfiguration    ?: {};
 
 		if ( !IsEmpty( itemConfig.datamanagerObject ?: "" ) ) {
