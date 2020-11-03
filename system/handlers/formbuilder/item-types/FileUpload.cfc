@@ -4,8 +4,10 @@ component {
 
 	private any function renderResponse( event, rc, prc, args={} ) {
 		var fileName = args.response ?: "";
+
+		fileName = replace( fileName, """", "", "all" );
+
 		if ( rc.event=="admin.formbuilder.listQuestionResponsesForAjaxDataTables" ) {
-			fileName = replace( fileName, """", "", "all" );
 			if ( fileName == "{}" )
 				return "";
 			return fileName;
@@ -14,7 +16,7 @@ component {
 		if ( Len( Trim( fileName ) ) && fileName != "{}" ) {
 			var downloadLink = event.buildLink(
 				  fileStorageProvider = 'formBuilderStorageProvider'
-				, fileStoragePath     = args.response
+				, fileStoragePath     = fileName
 			);
 
 			return '<a target="_blank" href="#downloadLink#"><i class="fa fa-fw fa-download blue"></i> #Trim( fileName )#</a>';
