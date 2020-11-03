@@ -263,13 +263,76 @@
 		padding : 9px 8px;
 		display : inline-block;
 		position : relative;
+		margin   : 1px 11px 1px 1px;
 
 		a {
 			color : @default-light-font-colour;
 			padding : 0;
 
 			&:hover {
-				text-decoration : none;
+				text-decoration  : none;
+				background-color : inherit;
+			}
+		}
+
+		&.open {
+			border : 2px solid @blue;
+			margin : 0 10px 0 0;
+			border-bottom-left-radius : 0 !important;
+
+			.dropdown-toggle {
+				background-color : inherit;
+				border-color     : inherit;
+				color            : @blue;
+
+				& > .fa {
+					color : @blue !important;
+				}
+
+				&::after {
+					content : " ";
+					display: block;
+					width : ~"calc(100% + 20px)";
+					height : 16px;
+					position: absolute;
+					left: -10px;
+					bottom: -16px;
+					z-index: 1000000;
+					background-color: #f5f5f5;
+					border-left: 2px solid @blue;
+					border-right: 2px solid @blue;
+				}
+			}
+
+			.dropdown-menu {
+				left : -2px;
+				top  : ~"calc(100% + 3px)";
+				border : 2px solid @blue;
+				border-radius : 5px !important;
+				border-top-left-radius : 0 !important;
+				background-color: #f5f5f5;
+				min-width : 240px;
+				max-height : 200px;
+				overflow-y : auto;
+				padding-right  : 20px;
+				padding-top    : 15px;
+
+				&::after {
+					content: none !important;
+				}
+
+				li {
+					margin-bottom: 10px;
+					a {
+						padding-left : 4px;
+					}
+				}
+
+				li:hover {
+					a {
+						color : inherit;
+					}
+				}
 			}
 		}
 	}

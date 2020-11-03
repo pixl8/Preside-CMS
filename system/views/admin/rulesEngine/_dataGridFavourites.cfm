@@ -25,11 +25,11 @@
 					<i class="fa fa-caret-down"></i>
 				</a>
 
-				<ul class="dropdown-menu dropdown-yellow dropdown-caret">
+				<ul class="dropdown-menu">
 					<cfoutput>
 						<li data-filter-id="#nonFavouriteFilters.id#" class="filter">
 							<a href="##">
-								<i class="fa fa-fw fa-heart"></i>&nbsp;
+								<i class="fa fa-fw fa-heart"></i>
 								#nonFavouriteFilters.condition_name#
 							</a>
 						</li>
