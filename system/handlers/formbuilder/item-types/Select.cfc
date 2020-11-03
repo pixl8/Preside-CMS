@@ -27,7 +27,7 @@ component {
 
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		var responses = ListToArray( args.response ?: "" );
+		var responses  = ListToArray( ReReplace( args.response, '^"(.*?)"$', "\1" ) );
 		var itemConfig = args.itemConfiguration    ?: {};
 
 		if ( !IsEmpty( itemConfig.datamanagerObject ?: "" ) ) {
