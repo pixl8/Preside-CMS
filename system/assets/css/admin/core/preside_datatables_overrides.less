@@ -145,7 +145,8 @@
 			a {
 				padding-right : 8px;
 				padding-left  : 8px;
-				margin-left   : 5px;
+				margin-top    : 1px;
+				margin-left   : 0px;
 			}
 		}
 	}
@@ -265,11 +266,12 @@
 		position : relative;
 		margin   : 1px 11px 1px 1px;
 
+
 		a {
 			color : @default-light-font-colour;
 			padding : 0;
 
-			&:hover {
+			&:hover, &:active, &:focus {
 				text-decoration  : none;
 				background-color : inherit;
 			}
@@ -313,24 +315,35 @@
 				background-color: #f5f5f5;
 				min-width : 240px;
 				max-height : 200px;
-				overflow-y : auto;
-				padding-right  : 20px;
-				padding-top    : 15px;
+				overflow-y : scroll;
+				padding : 15px 4px;
 
 				&::after {
 					content: none !important;
 				}
 
 				li {
-					margin-bottom: 10px;
+					margin-bottom: 4px;
+
 					a {
-						padding-left : 4px;
+						padding : 5px;
+						border-radius : 5px;
+					}
+
+					&:last-child {
+						margin-bottom: 15px;
 					}
 				}
 
 				li:hover {
 					a {
 						color : inherit;
+					}
+
+					&.active {
+						a {
+							color : @white;
+						}
 					}
 				}
 			}
