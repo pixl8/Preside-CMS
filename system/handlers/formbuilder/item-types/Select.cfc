@@ -27,11 +27,12 @@ component {
 
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		var responses = ListToArray( DeserializeJSON( args.response ?: "" ) );
+		var responses = ListToArray( args.response ?: "" );
 		var itemConfig = args.itemConfiguration    ?: {};
 
 		if ( !IsEmpty( itemConfig.datamanagerObject ?: "" ) ) {
 			var objectName = itemConfig.datamanagerObject;
+			responses = ListToArray( DeserializeJSON( args.response ?: "" ) );
 
 			for( var i=1; i<=responses.len(); i++ ) {
 				responses[ i ] = renderLabel( objectName=objectName, recordId=responses[ i ] );
