@@ -29,11 +29,11 @@
 				<th>#translateResource( "preside-objects.formbuilder_question_response:field.submitted_by.title")#</th>
 				<td>
 					<cfif prc.response.is_admin_user>
-						<a href="#event.buildAdminLink( linkto='usermanager.editUser', queryString='id=' & prc.response.admin_user )#">
+						<a href="#event.buildAdminLink( linkto='usermanager.viewUser', queryString='id=' & prc.response.admin_user )#">
 							#renderField( 'formbuilder_question_response', 'submitted_by', prc.response.submitted_by )#
 						</a>
 					<cfelseif prc.response.is_website_user>
-						<a href="#event.buildAdminLink( linkto='websiteUserManager.editUser', queryString='id=' & prc.response.website_user )#">
+						<a href="#event.buildAdminLink( linkto='websiteUserManager.viewUser', queryString='id=' & prc.response.website_user )#">
 							#renderField( 'formbuilder_question_response', 'submitted_by', prc.response.submitted_by )#
 						</a>
 					<cfelse>
