@@ -69,12 +69,7 @@ component displayName="Validation Engine" {
 				if ( !IsBoolean( fieldResult ) || !fieldResult ) {
 					for ( var key in rule.params ) {
 						if( isNumeric( rule.params[key] ) ) {
-							if( round( rule.params[key] ) == rule.params[key] ) {
-								rule.params[key] = numberFormat( rule.params[key] );
-							}
-							else {
-								rule.params[key] = numberFormat( rule.params[key], ",.__" );
-							}
+							rule.params[key] = numberThousandDecimalFormat( rule.params[key] );
 						}
 					}
 
@@ -299,12 +294,7 @@ component displayName="Validation Engine" {
 
 			for ( var index = 1; index <= params.len(); index++ ) {
 				if( isNumeric( params[index] ) ) {
-					if( round( params[index] ) == params[index] ) {
-						params[index] = numberFormat( params[index] );
-					}
-					else {
-						params[index] = numberFormat( params[index], ",.__" );
-					}
+					params[index] = numberThousandDecimalFormat( params[index] );
 				}
 			}
 
