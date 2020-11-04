@@ -366,7 +366,7 @@
 					filterState = settings.oLoadedState.oFilter;
 				} catch( e ) {}
 
-				if ( filterState !== null ) {
+				if ( typeof filterState !== "undefined" ) {
 					if ( allowManageFilter && typeof filterState.filter !== "undefined" && filterState.filter.length ) {
 						prePopulateFilter( filterState.filter );
 					}
