@@ -15,6 +15,7 @@
 			  , setupCheckboxBehaviour
 			  , setupTableRowFocusBehaviour
 			  , setupFilters
+			  , updateFilterFolderCount
 			  , setupDataExport
 			  , setupQuickSaveFilterIframeModal
 			  , prePopulateFilter
@@ -335,6 +336,11 @@
 
 						$filter.toggleClass( "active" ).find( ":focus" ).blur();
 
+						if ( $filter.parents( ".data-table-favourite-group" ).length ) {
+							e.stopPropagation();
+							updateFilterFolderCount( $filter.closest( ".data-table-favourite-group" ) );
+						}
+
 						datatable.fnDraw();
 					} );
 				}
@@ -372,6 +378,16 @@
 						}
 					}
 				}
+			};
+
+			updateFilterFolderCount = function( $group ) {
+				var activeCount = $group.find( ".filter.active" ).length
+				  , $titleEl    = $group.find( ".dropdown-toggle:first" )
+				  , $counterEl  = $titleEl.find( ".badge" );
+
+				$counterEl.html( activeCount );
+
+				activeCount ? $group.addClass( "has-selections" ) : $group.removeClass( "has-selections" );
 			};
 
 			setupDataExport = function( settings ){
@@ -563,6 +579,10 @@
 					for( i=0; i<ids.length; i++ ) {
 						$favouritesDiv.find( ".filter[ data-filter-id='" + ids[i] + "' ]" ).addClass( "active" );
 					}
+
+					$favouritesDiv.find( ".data-table-favourite-group" ).each( function(){
+						updateFilterFolderCount( $( this ) );
+					} );
 				}
 			};
 

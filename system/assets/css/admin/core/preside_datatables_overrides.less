@@ -277,19 +277,36 @@
 			}
 		}
 
-		&.open {
+		.badge {
+			display : none;
+		}
+
+		&.open, &.has-selections {
 			border : 2px solid @blue;
 			margin : 0 10px 0 0;
+
+			.dropdown-toggle {
+				color : @blue;
+
+				& > .fa {
+					color : @blue !important;
+				}
+			}
+		}
+
+		&.has-selections {
+			.badge {
+				display : inline-block;
+				background-color : @blue;
+			}
+		}
+
+		&.open {
 			border-bottom-left-radius : 0 !important;
 
 			.dropdown-toggle {
 				background-color : inherit;
 				border-color     : inherit;
-				color            : @blue;
-
-				& > .fa {
-					color : @blue !important;
-				}
 
 				&::after {
 					content : " ";

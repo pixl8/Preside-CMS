@@ -16,6 +16,7 @@
 						#translateResource( "cms:rulesengine.ungrouped.filter" )#
 					</cfif>
 					&nbsp;
+					<span class="badge">0</span>
 					<i class="fa fa-caret-down"></i>
 				</a>
 
