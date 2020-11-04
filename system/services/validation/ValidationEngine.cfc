@@ -69,7 +69,7 @@ component displayName="Validation Engine" {
 				if ( !IsBoolean( fieldResult ) || !fieldResult ) {
 					for ( var key in rule.params ) {
 						if( isNumeric( rule.params[key] ) ) {
-							rule.params[key] = numberThousandDecimalFormat( rule.params[key] );
+							rule.params[key] = $helpers.numberThousandDecimalFormat( rule.params[key] );
 						}
 					}
 
@@ -294,7 +294,7 @@ component displayName="Validation Engine" {
 
 			for ( var index = 1; index <= params.len(); index++ ) {
 				if( isNumeric( params[index] ) ) {
-					params[index] = numberThousandDecimalFormat( params[index] );
+					params[index] = $helpers.numberThousandDecimalFormat( params[index] );
 				}
 			}
 
