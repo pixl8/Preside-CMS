@@ -241,6 +241,10 @@ component displayName="Rules Engine Filter Service" {
 		} );
 	}
 
+	public boolean function filterIsUsed( required string filterId ) {
+		return $getPresideObjectService().hasReferences( "rules_engine_condition", arguments.filterId );
+	}
+
 // PRIVATE HELPERS
 	private struct function _getFilterPermissionFilter() {
 		var adminUserId = $getAdminLoggedInUserId();

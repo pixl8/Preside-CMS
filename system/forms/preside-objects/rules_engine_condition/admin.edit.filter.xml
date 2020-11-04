@@ -21,7 +21,7 @@ This form is used for editing a rules engine condition
 			<field binding="rules_engine_condition.filter_folder"                      sortorder="50" superquickadd="true" filterby="filter_object" filterbyfield="object_name" />
 		</fieldset>
 		<fieldset id="sharing" sortorder="20">
-			<field binding="rules_engine_condition.filter_sharing_scope" control="enumRadioList" sortorder="10" defaultValue="global" required="true" />
+			<field binding="rules_engine_condition.filter_sharing_scope" control="rulesEngineFilterSharingScope" sortorder="10" defaultValue="global" required="true" />
 		</fieldset>
 		<fieldset id="group-filter" sortorder="30">
 			<field binding="rules_engine_condition.user_groups" sortorder="10" objectFilters="myAdminGroups" />

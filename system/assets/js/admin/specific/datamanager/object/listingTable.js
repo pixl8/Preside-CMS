@@ -367,7 +367,7 @@
 				} catch( e ) {}
 
 				if ( filterState !== null ) {
-					if ( allowManageFilter && filterState.filter.length ) {
+					if ( allowManageFilter && typeof filterState.filter !== "undefined" && filterState.filter.length ) {
 						prePopulateFilter( filterState.filter );
 					}
 					if ( filterState.favourites && filterState.favourites.length ) {
