@@ -17,7 +17,7 @@ This form is used for creating a new rules engine filter conditions through the 
 			<field binding="rules_engine_condition.filter_sharing_scope" control="enumRadioList" sortorder="10" defaultValue="global" required="true" />
 		</fieldset>
 		<fieldset id="group-filter" sortorder="30">
-			<field binding="rules_engine_condition.user_groups" sortorder="10" />
+			<field binding="rules_engine_condition.user_groups" sortorder="10" objectFilters="myAdminGroups" />
 			<field binding="rules_engine_condition.allow_group_edit" sortorder="20" />
 		</fieldset>
 	</tab>

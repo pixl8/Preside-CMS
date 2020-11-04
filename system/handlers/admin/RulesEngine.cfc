@@ -150,37 +150,13 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="edit" );
 
 		_conditionToFilterCheck( argumentCollection=arguments, action="edit", formData=formData );
-		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+		if ( ( rc.convertAction ?: "" ) == "filter" || ( rc.filter_object ?: "" ).len() ) {
 			rc.context = "";
 
 			formName = "preside-objects.#object#.admin.edit.filter";
 		} else if ( Len( Trim( rc.context ?: "" ) ) ) {
 			rc.filter_object = "";
 		}
-
-		runEvent(
-			  event          = "admin.DataManager._editRecordAction"
-			, private        = true
-			, prePostExempt  = true
-			, eventArguments = {
-				  object        = "rules_engine_condition"
-				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.editCondition", queryString="id=" & conditionId )
-				, successAction = "rulesEngine"
-				, formName      = formName
-				, audit         = true
-				, auditType     = "rulesEngine"
-				, auditAction   = "edit_rules_engine_condition"
-			}
-		);
-	}
-
-	public void function editNonGlobalFilterAction( event, rc, prc ) {
-		var conditionId = rc.id ?: "";
-		var object      = "rules_engine_condition";
-		var formName    = rc[ "$presideform" ];
-		var formData    = event.getCollectionForForm( formName );
-
-		_checkPermissions( argumentCollection=arguments, key="edit" );
 
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"

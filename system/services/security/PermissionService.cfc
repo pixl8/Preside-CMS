@@ -182,21 +182,35 @@ component displayName="Admin permissions service" {
 	 *
 	 * @autodoc
 	 * @userId.hint ID of the user whose groups we wish to get
+	 * @includeCatchAll.hint Whether or not to include the 'catch all' group
 	 *
 	 */
-	public array function listUserGroups( required string userId ) {
+	public array function listUserGroups( required string userId, boolean includeCatchAll=true ) {
+		var catchAllIndex = 0;
 		var groups = _getUserDao().selectManyToManyData(
 			  propertyName = "groups"
 			, id           = arguments.userId
-			, selectFields = [ "groups.id" ]
-		);
-		var catchAllGroups = _getGroupDao().selectData(
-			  selectFields = [ "id" ]
-			, filter       = { is_catch_all=true }
+			, selectFields = [ "groups.id", "is_catch_all" ]
 		);
 
+		for( var i=1; i<=groups.recordCount; i++ ) {
+			if ( IsBoolean( groups.is_catch_all[ i ] ) && groups.is_catch_all[ i ] ) {
+				catchAllIndex = i;
+				break;
+			}
+		}
 		groups = ValueArray( groups.id );
-		groups.append( ValueArray( catchAllGroups.id ), true );
+
+		if ( arguments.includeCatchAll && !catchAllIndex ) {
+			var catchAllGroups = _getGroupDao().selectData(
+				  selectFields = [ "id" ]
+				, filter       = { is_catch_all=true }
+			);
+
+			ArrayAppend( groups, ValueArray( catchAllGroups.id ), true );
+		} else if ( catchAllIndex ) {
+			ArrayDeleteAt( groups, catchAllIndex );
+		}
 
 		return groups;
 	}

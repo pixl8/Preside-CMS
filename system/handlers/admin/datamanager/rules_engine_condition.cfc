@@ -12,18 +12,16 @@ component {
 	}
 
 	private void function preEditRecordAction( event, rc, prc, args={} ) {
-		if ( args.formName == 'preside-objects.rules_engine_condition.admin.edit.filter.nonglobal' ) {
-			switch ( args.formData.rule_scope ) {
-				case "global":
-					args.formData.owner            = "";
-					args.formData.user_groups      = "";
-					args.formData.allow_group_edit = 0;
-					break;
-				case "individual":
-					args.formData.user_groups      = "";
-					args.formData.allow_group_edit = 0;
-					break;
-			}
+		switch ( args.formData.filter_sharing_scope ?: "" ) {
+			case "global":
+				args.formData.owner            = "";
+				args.formData.user_groups      = "";
+				args.formData.allow_group_edit = 0;
+				break;
+			case "individual":
+				args.formData.user_groups      = "";
+				args.formData.allow_group_edit = 0;
+				break;
 		}
 	}
 
