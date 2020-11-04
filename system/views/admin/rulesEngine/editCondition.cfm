@@ -14,6 +14,10 @@
 
 		event.include( "/js/admin/specific/saveFilterForm/" );
 	}
+
+	if ( isFilter ) {
+		event.include( "/js/admin/specific/saveFilterForm/" );
+	}
 </cfscript>
 
 <cfoutput>
