@@ -206,7 +206,7 @@ component displayName="Rules Engine Filter Service" {
 	public query function getNonFavouriteFilters( required string objectName ) {
 
 		return $getPresideObject( "rules_engine_condition" ).selectData(
-			  selectFields = [ "rules_engine_condition.id", "rules_engine_condition.condition_name", "filter_folder.label as folder" ]
+			  selectFields = [ "rules_engine_condition.id", "rules_engine_condition.condition_name", "filter_folder.label as folder", "case when filter_folder.label is null then 0 else 1 end as has_folder" ]
 			, filter       = "filter_object = :filter_object and ( is_favourite = :is_favourite or is_favourite is null )"
 			, filterParams = {
 				  filter_object       = objectName
@@ -214,7 +214,7 @@ component displayName="Rules Engine Filter Service" {
 			}
 			, extraFilters = [ _getFilterPermissionFilter() ]
 			, forceJoins  = "left"
-			, orderBy     = "filter_folder.label,condition_name"
+			, orderBy     = "has_folder desc, filter_folder.label,condition_name"
 			, autoGroupBy = true
 		);
 	}
