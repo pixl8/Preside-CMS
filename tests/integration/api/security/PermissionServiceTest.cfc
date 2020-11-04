@@ -161,7 +161,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var expected = [];
 
 		mockUserDao.$( "selectManyToManyData" )
-			.$args( selectFields=["groups.id"], propertyName="groups", id="testuser" )
+			.$args( selectFields=["groups.id", "is_catch_all" ], propertyName="groups", id="testuser" )
 			.$results( QueryNew('id' ) );
 
 		mockGroupDao.$( "selectData" )
@@ -193,8 +193,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		];
 
 		mockUserDao.$( "selectManyToManyData" )
-			.$args( selectFields=["groups.id"], propertyName="groups", id="me" )
-			.$results( QueryNew('id', 'varchar', [['testgroup'],['testgroup2']] ) );
+			.$args( selectFields=["groups.id", "is_catch_all" ], propertyName="groups", id="me" )
+			.$results( QueryNew('id,is_catch_all', 'varchar,bit', [['testgroup',0],['testgroup2',0]] ) );
 
 		mockGroupDao.$( "selectData" )
 			.$args( selectFields=["id"], filter={ is_catch_all=true } )
@@ -596,7 +596,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		];
 
 		mockUserDao.$( "selectManyToManyData" )
-			.$args( selectFields=["groups.id"], propertyName="groups", id="me" )
+			.$args( selectFields=["groups.id", "is_catch_all" ], propertyName="groups", id="me" )
 			.$results( QueryNew('id') );
 
 		mockGroupDao.$( "selectData" )
