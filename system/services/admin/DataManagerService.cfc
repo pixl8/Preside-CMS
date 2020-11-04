@@ -640,7 +640,6 @@ component {
 			);
 			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
-
 		records = _getPresideObjectService().selectData( argumentCollection = args );
 
 		if ( arguments.ids.len() ) {

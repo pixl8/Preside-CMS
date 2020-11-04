@@ -329,6 +329,7 @@ component extends="preside.system.base.AdminHandler" {
 			, maxRows      = rc.maxRows ?: 1000
 			, searchQuery  = rc.q       ?: ""
 			, extraFilters = [ contextAndObjectFilter ]
+			, savedFilters = [ "globalRulesEngineFilters" ]
 			, ids          = ListToArray( rc.values ?: "" )
 		);
 
@@ -341,7 +342,7 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName   = "rules_engine_condition"
 			, maxRows      = rc.maxRows ?: 1000
 			, searchQuery  = rc.q       ?: ""
-			, savedFilters = [ "globalRulesOnly" ]
+			, savedFilters = [ "globalRulesEngineFilters" ]
 			, extraFilters = [ { filter={ "rules_engine_condition.filter_object" = filterObject } } ]
 			, ids          = ListToArray( rc.values ?: "" )
 		);

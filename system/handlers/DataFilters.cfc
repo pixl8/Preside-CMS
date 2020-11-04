@@ -15,4 +15,11 @@ component {
 		return { filter = { id=groups } };
     }
 
+    private struct function globalRulesEngineFilters( event, rc, prc, args={} ) {
+    	return {
+    		  filter = "filter_sharing_scope is null or filter_sharing_scope = :filter_sharing_scope"
+    		, filterParams = { filter_sharing_scope="global" }
+    	};
+    }
+
 }
