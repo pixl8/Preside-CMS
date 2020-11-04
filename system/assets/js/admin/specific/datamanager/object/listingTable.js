@@ -19,8 +19,7 @@
 			  , setupDataExport
 			  , setupQuickSaveFilterIframeModal
 			  , prePopulateFilter
-			  , showFilters
-			  , showSimpleSearch
+			  , toggleAdvancedFilter
 			  , dtSettings
 			  , getFavourites
 			  , setFavourites
@@ -118,7 +117,7 @@
 				}
 
 				if ( allowFilter ) {
-					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
+					sDom = "<'well well-sm'fr<'clearfix'>><'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
 				} else if ( compact ) {
 					sDom = "frt<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				} else {
@@ -321,11 +320,10 @@
 			setupFilters = function( settings ){
 				// setup DOM
 				var $searchContainer = $( settings.aanFeatures.f[0] )
-				  , $searchTitle     = $( '<h4 class="blue">' + i18n.translateResource( "cms:datatables.simple.search.title" ) + '</h4>' )
-				  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
+				  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' )
+				  , filterState;
 
-				$searchContainer.prepend( $searchTitle );
-				$searchContainer.prepend( $filterLink );
+				$searchContainer.append( $filterLink );
 				if ( $favouritesDiv.length ) {
 					$searchContainer.append( $favouritesDiv );
 					$favouritesDiv.removeClass( "hide" );
@@ -346,17 +344,10 @@
 				}
 				$searchContainer.parent().append( $filterDiv );
 
-				$filterDiv.hide().removeClass( "hide" ).find( ".well" ).removeClass( "well" );
+				$filterDiv.find( ".well" ).removeClass( "well" );
 
 				// toggles between filter mode + basic search mode
-				$filterLink.on( "click", showFilters );
-				$filterDiv.on( "click", ".back-to-basic-search", showSimpleSearch );
-
-				// toggle for showing / hiding filter builder
-				$filterDiv.on( "click", ".quick-filter-toggler", function( e ){
-					e.preventDefault();
-					$( this ).find( ".fa:first" ).toggleClass( "fa-caret-right fa-caret-down" );
-				} );
+				$filterLink.on( "click", toggleAdvancedFilter );
 
 				// filter change listener
 				$filterDiv.on( "change", function( e ){
@@ -369,13 +360,18 @@
 
 				if ( allowManageFilter ) {
 					setupQuickSaveFilterIframeModal( $filterDiv );
+				}
 
-					if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
-						if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
-							prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
-						} else if ( settings.oLoadedState.oFilter.favourites && settings.oLoadedState.oFilter.favourites.length ) {
-							setFavourites( settings.oLoadedState.oFilter.favourites );
-						}
+				try {
+					filterState = settings.oLoadedState.oFilter;
+				} catch( e ) {}
+
+				if ( filterState !== null ) {
+					if ( allowManageFilter && filterState.filter.length ) {
+						prePopulateFilter( filterState.filter );
+					}
+					if ( filterState.favourites && filterState.favourites.length ) {
+						setFavourites( filterState.favourites );
 					}
 				}
 			};
@@ -543,13 +539,20 @@
 				$dataExportContainer.remove();
 			};
 
-			refreshFavourites = function(){
+			refreshFavourites = function( callback ){
 				$.ajax({
 					  url     : favouritesUrl
 					, cache   : false
 					, success : function( resp ) {
 						$favouritesDiv.fadeOut( 200, function(){
-							$favouritesDiv.html( resp ).fadeIn( 200 );
+							$favouritesDiv.html( resp );
+
+							if ( callback !== null ) {
+								callback.call();
+							}
+
+							$favouritesDiv.fadeIn( 200 );
+
 						} )
 					  }
 				});
@@ -586,57 +589,20 @@
 				}
 			};
 
-			prePopulateFilter = function( filters, filter ) {
+			prePopulateFilter = function( filter ) {
 				var loaded = false;
-
-				if ( filters && filters.length ) {
-					var filterArray   = filters.split(",")
-					  , filtersSelect = $filterDiv.find( "[name=filters]" ).data( "uberSelect")
-					  , i;
-
-					for( i=0; i<filterArray.length; i++ ) {
-						if ( filterArray[i].length ) {
-							filtersSelect.select( filterArray[i] )
-						}
-					}
-
-					showFilters();
-				}
 
 				if ( filter && filter.length ) {
 					$( document ).on( "conditionBuilderInitialized", function(){
 						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).load( filter );
 					} );
-					showFilters();
+					toggleAdvancedFilter();
 				}
 			}
 
-			showFilters = function( e ){
+			toggleAdvancedFilter = function( e ){
 				e && e.preventDefault();
-				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
-				$searchContainer.fadeOut( 100, function(){
-					$searchContainer.find( "input.data-table-search" ).val( "" );
-					setFavourites( "" );
-					datatable.fnFilter("");
-					$filterDiv.fadeIn( 100 );
-				} );
-			};
-
-			showSimpleSearch = function( e ){
-				e && e.preventDefault();
-				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
-
-				$filterDiv.fadeOut( 100, function(){
-					if ( allowManageFilter ) {
-						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
-					}
-
-					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
-					$filterDiv.find( "[name=filters]" ).val("");
-					refreshFavourites();
-					datatable.fnDraw();
-					$searchContainer.fadeIn( 100 );
-				} );
+				$filterDiv.toggleClass( "hide" );
 			};
 
 			setupQuickSaveFilterIframeModal = function( $filterDiv ) {
@@ -689,9 +655,19 @@
 					dummyPresideObjectPicker = {
 						  addRecordToControl  : function( recordId ){
 							$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
-							$filterDiv.find( "[name=filters]" ).data( "uberSelect").select( recordId );
-							$filterDiv.find( ".quick-filter-toggler" ).click();
-							datatable.fnDraw();
+
+							refreshFavourites( function(){
+								var $fav = $favouritesDiv.find( '[data-filter-id="' + recordId + '"]' );
+								if ( $fav.length ) {
+									$fav.addClass( "active" );
+									if ( $fav.parents( ".data-table-favourite-group" ).length ) {
+										updateFilterFolderCount( $fav.closest( ".data-table-favourite-group" ) );
+									}
+								}
+
+								toggleAdvancedFilter();
+								datatable.fnDraw();
+							} );
 						  }
 						, closeQuickAddDialog : function(){
 							iframemodal.close();
