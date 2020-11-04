@@ -106,7 +106,7 @@
 
 					<div class="form-actions">
 						<div class="pull-right">
-							<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#" data-modal-dialog-full="#IsTrue( args.filterQuickAddFullModal ?: "" )#">
+							<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#" data-modal-dialog-full="true">
 								<i class="fa fa-fw fa-save"></i>
 								#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
 							</button>
