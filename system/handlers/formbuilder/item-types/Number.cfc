@@ -37,8 +37,14 @@ component {
 	}
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		if( isNumeric( args.response ?: "" ) ) {
-			return numberThousandDecimalFormat( val( args.response ) );
+		var number = args.response ?: "";
+
+		if ( len( number ) ) {
+			number = replace( number, """", "", "all" );
+
+			if( isNumeric( number ) ) {
+				return numberThousandDecimalFormat( val( number ) );
+			}
 		}
 
 		return "";
