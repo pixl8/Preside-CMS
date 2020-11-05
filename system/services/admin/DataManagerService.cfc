@@ -642,7 +642,6 @@ component {
 				)
 			);
 		}
-
 		records = _getPresideObjectService().selectData( argumentCollection = args );
 
 		if ( arguments.ids.len() ) {

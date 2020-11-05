@@ -14,12 +14,19 @@
 <cfoutput>
 	<cfloop array="#items#" index="item">
 		<cfset itemId = inputId & LCase( Hash( item.id ) ) />
+		<cfset disabled = IsTrue( item.disabled ?: "" ) />
 		<div class="checkbox role-picker-radio">
 			<label>
-				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#itemId#" type="radio" value="#HtmlEditFormat( item.id )#"<cfif value == item.id> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
+				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#itemId#" type="radio" value="#HtmlEditFormat( item.id )#"<cfif disabled> disabled="disabled"<cfelseif value == item.id> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
 				<span class="lbl">
 					<span class="role-title bigger">#item.label#</span><br />
-					<span class="role-desc">#item.description#</span>
+					<span class="role-desc">
+						<cfif disabled>
+							<em class="light-grey">#item.description#</em>
+						<cfelse>
+							#item.description#
+						</cfif>
+					</span>
 				</span>
 			</label>
 		</div>
