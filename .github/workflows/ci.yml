@@ -111,7 +111,7 @@ jobs:
       - name: Zip up
         if: "env.PUBLISH_PRESIDE == 'true'"
         shell: bash
-        run: zip -rq $ZIP_FILE_NAME * --exclude jmimemagic.log --exclude=".*" --exclude="*.sh" --exclude="zanata.xml" --exclude="tests/**\*" --exclude="system/externals/lucee-spreadsheet/javaloader/**\*"
+        run: zip -rq $ZIP_FILE_NAME * --exclude jmimemagic.log --exclude=".*" --exclude="*.sh" --exclude="zanata.xml" --exclude="\tests/*" --exclude="\system/externals/lucee-spreadsheet/javaloader/*"
 
       - name: Push to S3
         if: "env.PUBLISH_PRESIDE == 'true'"
