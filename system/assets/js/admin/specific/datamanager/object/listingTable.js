@@ -327,11 +327,13 @@
 			setupFilters = function( settings ){
 				// setup DOM
 				var $searchContainer = $( settings.aanFeatures.f[0] )
-				  , filterState;
+				  , filterState, $filterLinksContainer = $( '<div class="pull-right filter-links-container"></div>' );
 
 				if ( allowUseFilter ) {
-					$filterLink = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-caret-right"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
-					$searchContainer.append( $filterLink );
+					$filterLink = $( '<a href="#"><i class="fa fa-fw fa-caret-right"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
+					$filterLinksContainer.append( $filterLink );
+
+					$searchContainer.append( $filterLinksContainer );
 				}
 
 				if ( $favouritesDiv.length ) {
