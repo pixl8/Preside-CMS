@@ -494,6 +494,7 @@ component {
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
+		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
 
