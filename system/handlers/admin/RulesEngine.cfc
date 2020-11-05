@@ -576,6 +576,20 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.favourites          = rulesEngineFilterService.getFavourites( objectName );
 		args.nonFavouriteFilters = rulesEngineFilterService.getNonFavouriteFilters( objectName );
+		args.noSavedFilters      = ( args.nonFavouriteFilters.recordCount + args.favourites.recordCount ) == 0;
+
+		if ( args.noSavedFilters ) {
+			args.canManageFilters = runEvent(
+				  event         = "admin.datamanager._checkPermission"
+				, private       = true
+				, prePostExempt = true
+				, eventArguments = {
+					  key          = "managefilters"
+					, object       = objectName
+					, throwOnError = false
+				}
+			)
+		}
 
 		return renderView( view="/admin/rulesEngine/_dataGridFavourites", args=args );
 	}

@@ -1,10 +1,26 @@
 <cfscript>
-	favourites              = args.favourites          ?: QueryNew( "" );
-	nonFavouriteFilters     = args.nonFavouriteFilters ?: QueryNew( "" );
+	favourites          = args.favourites          ?: QueryNew( "" );
+	nonFavouriteFilters = args.nonFavouriteFilters ?: QueryNew( "" );
+	noFilters           = ( favourites.recordCount + nonFavouriteFilters.recordCount ) == 0;
+	noSavedFilters      = args.noSavedFilters ?: ( favourites.recordCount + nonFavouriteFilters.recordCount ) == 0;
+	canManageFilters    = IsTrue( args.canManageFilters ?: "" );
 </cfscript>
 
+<cfif noFilters>
+	<ul class="nav nav-pills">
+		<li class="filter-title">
+			<a>
+				<i class="fa fa-fw fa-filter"></i>
+				<cfif canManageFilters>
+					<cfoutput>#translateResource( "cms:rulesengine.filters.favourites.none.saved.message" )#</cfoutput>
+				<cfelse>
+					<cfoutput>#translateResource( "cms:rulesengine.filters.favourites.none.saved.no.rights.message" )#</cfoutput>
+				</cfif>
 
-<cfif nonFavouriteFilters.recordCount or favourites.recordCount>
+			</a>
+		</li>
+	</ul>
+<cfelse>
 	<ul class="data-table-grouped-favourites nav nav-pills">
 		<cfoutput query="nonFavouriteFilters" group="folder">
 			<li class="data-table-favourite-group">
