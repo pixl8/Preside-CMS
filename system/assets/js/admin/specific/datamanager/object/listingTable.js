@@ -42,6 +42,7 @@
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv          = $( '#' + tableId + '-filter' )
 			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
+			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
 			  , filterSettings, allowUseFilter=false, allowManageFilter=false
@@ -326,10 +327,10 @@
 			setupFilters = function( settings ){
 				// setup DOM
 				var $searchContainer = $( settings.aanFeatures.f[0] )
-				  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' )
 				  , filterState;
 
 				if ( allowUseFilter ) {
+					$filterLink = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-caret-right"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
 					$searchContainer.append( $filterLink );
 				}
 
@@ -616,6 +617,7 @@
 
 				if ( allowUseFilter ) {
 					$filterDiv.toggleClass( "hide" );
+					$filterLink.find( "i.fa" ).toggleClass( "fa-caret-right" ).toggleClass( "fa-caret-down" );
 				}
 			};
 
