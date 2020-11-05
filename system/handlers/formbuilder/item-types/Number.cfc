@@ -37,14 +37,13 @@ component {
 	}
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		if( isNumeric( args.response ?: "" ) ) {
-			var value = val( args.response );
+		var number = args.response ?: "";
 
-			if( round( value ) == value ) {
-				return numberFormat( value );
-			}
-			else {
-				return numberFormat( value, ",.__" );
+		if ( len( number ) ) {
+			number = replace( number, """", "", "all" );
+
+			if( isNumeric( number ) ) {
+				return presideStandardNumberFormat( val( number ) );
 			}
 		}
 
