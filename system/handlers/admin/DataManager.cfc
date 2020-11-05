@@ -99,6 +99,12 @@ component extends="preside.system.base.AdminHandler" {
 			, footerEnabled       = StructKeyExists( args, "footerEnabled" ) && !IsTrue( args.footerEnabled ) ? args.footerEnabled : customizationService.objectHasCustomization( objectName, "renderFooterForGridListing" )
 		} );
 
+		args.allowFilter = IsTrue( args.allowFilter ?: true ) && isFeatureEnabled( "rulesengine" );
+		if ( args.allowFilter ) {
+			args.allowUseFilter    = _checkPermission( argumentCollection=arguments, key="usefilters"   , object=objectName, throwOnError=false );
+			args.allowManageFilter = _checkPermission( argumentCollection=arguments, key="managefilters", object=objectName, throwOnError=false );
+		}
+
 		if ( args.treeView ) {
 			listing = renderViewlet( event="admin.datamanager._treeView", args=args );
 
