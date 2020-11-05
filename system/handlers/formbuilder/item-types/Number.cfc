@@ -43,7 +43,7 @@ component {
 			number = replace( number, """", "", "all" );
 
 			if( isNumeric( number ) ) {
-				return numberThousandDecimalFormat( val( number ) );
+				return presideStandardNumberFormat( val( number ) );
 			}
 		}
 
