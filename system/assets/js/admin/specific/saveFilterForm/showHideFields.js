@@ -1,12 +1,11 @@
 ( function( $ ){
 
-	var activeFormClass = $( ".quick-add-form" ).length ? ".quick-add-form" : ".edit-object-form";
-	var $form           = $( activeFormClass );
+	var $favouriteInput = $( "[name=is_favourite]" )
+	  , $form           = $favouriteInput.length ? $favouriteInput.closest( "form" ) : [];
 
 	if ( $form.length ) {
 		var $groupFilterFieldset   = $form.find( "#fieldset-group-filter" )
 		  , $folderPickerContainer = $form.find( "#filter_folder" ).closest( ".form-group" )
-		  , $favouriteInput        = $form.find( "[name=is_favourite]" )
 		  , getRadioValue
 		  , getFilterScope
 		  , enableFieldsetsBasedOnFilterScope
