@@ -230,6 +230,23 @@ component {
 		);
 	}
 
+	private string function buildFilterAjaxListingLink( event, rc, prc, args={} ) {
+		var objectName     = args.objectName ?: "";
+		var qs             = "id=#objectName#";
+		var additionalArgs = [ "useMultiActions", "gridFields", "isMultilingual", "draftsEnabled" ];
+
+		for( var arg in additionalArgs ) {
+			if ( StructKeyExists( args, arg ) ) {
+				qs &= "&#arg#=#args[ arg ]#";
+			}
+		}
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.getObjectFilterRecordsForAjaxDataTables"
+			, queryString = _queryString( qs, args )
+		);
+	}
+
 	private string function buildMultiRecordActionLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 

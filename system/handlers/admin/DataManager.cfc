@@ -101,8 +101,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.allowFilter = IsTrue( args.allowFilter ?: true ) && isFeatureEnabled( "rulesengine" );
 		if ( args.allowFilter ) {
-			args.allowUseFilter    = _checkPermission( argumentCollection=arguments, key="usefilters"   , object=objectName, throwOnError=false );
-			args.allowManageFilter = _checkPermission( argumentCollection=arguments, key="managefilters", object=objectName, throwOnError=false );
+			args.allowUseFilter    = isTrue( args.allowUseFilter    ?: true ) && _checkPermission( argumentCollection=arguments, key="usefilters"   , object=objectName, throwOnError=false );
+			args.allowManageFilter = isTrue( args.allowManageFilter ?: true ) && _checkPermission( argumentCollection=arguments, key="managefilters", object=objectName, throwOnError=false );
 
 			if ( args.allowManageFilter ) {
 				args.manageFilterLink = event.buildAdminLink( objectName=objectName, operation="manageFilters" );
@@ -754,7 +754,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-
 	public void function getObjectRecordsForAjaxDataTables( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="read", object=prc.objectName, checkOperations=false );
 
@@ -769,6 +768,29 @@ component extends="preside.system.base.AdminHandler" {
 				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
 				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
 				, includeActions      = !IsTrue( rc.noActions ?: "" )
+			}
+		);
+	}
+
+	public void function getObjectFilterRecordsForAjaxDataTables( event, rc, prc ) {
+		_checkPermission( argumentCollection=arguments, key="manageFilters", object=prc.objectName, checkOperations=false );
+
+		var extraFilters = [{filter = {
+			filter_object = prc.objectName
+		} }];
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object          = "rules_engine_condition"
+				, useMultiActions = true
+				, gridFields      = ( rc.gridFields            ?: _getObjectFieldsForGrid( "rules_engine_condition" ).toList() )
+				, isMultilingual  = IsTrue( rc.isMultilingual  ?: 'false' )
+				, draftsEnabled   = IsTrue( rc.draftsEnabled   ?: 'false' )
+				, includeActions  = !IsTrue( rc.noActions      ?: "" )
+				, extraFilters    = extraFilters
 			}
 		);
 	}
@@ -1339,12 +1361,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function manageFilters( event, rc, prc ) {
-		var objectName    = prc.objectName ?: "";
+		var objectName = prc.objectName ?: "";
 
 		_checkPermission( argumentCollection=arguments, key="manageFilters" );
 
+		prc.filterDataSourceUrl = event.buildAdminLink( objectName=objectName, operation="filterAjaxListing" );
+
 		prc.pageIcon  = "filter";
-		prc.pageTitle = translateResource( uri="cms:datamanager.managefilters.title" );
+		prc.pageTitle = translateResource( uri="cms:datamanager.managefilters.title", data=[ prc.objectTitlePlural ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.managefilters.subtitle", data=[ prc.objectTitlePlural ] );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
 			, link  = ""
@@ -3673,6 +3698,7 @@ component extends="preside.system.base.AdminHandler" {
 			break;
 			case "object":
 			case "getObjectRecordsForAjaxDataTables":
+			case "getObjectFilterRecordsForAjaxDataTables":
 				prc.objectName = rc.id ?: "";
 			break;
 			case "addRecordAction":
