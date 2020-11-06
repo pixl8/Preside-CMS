@@ -99,7 +99,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
 		var possesses            = translateResource(
 			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
-			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
+			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses.with.negative" )
 		);
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
