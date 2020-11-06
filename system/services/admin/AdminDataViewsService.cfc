@@ -136,7 +136,14 @@ component {
 		var availableProps = [];
 
 		for( var propertyName in allProps ) {
-			if ( getRendererForField( objectName=arguments.objectName, propertyName=propertyName ) !== "none" ) {
+			var displayProperty = $getPresideObjectService().getObjectPropertyAttribute(
+				  objectName    = arguments.objectName
+				, propertyName  = propertyName
+				, attributeName = "displayProperty"
+				, defaultValue  = true
+			);
+
+			if ( getRendererForField( objectName=arguments.objectName, propertyName=propertyName ) !== "none" && displayProperty ) {
 				availableProps.append( propertyName )
 			}
 		}
