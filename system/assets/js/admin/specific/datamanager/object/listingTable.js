@@ -49,8 +49,10 @@
 
 			if ( allowFilter ) {
 				filterSettings = $( ".object-listing-table-filter" ).data();
-				allowUseFilter    = filterSettings.allowUseFilter    || cfrequest.allowUseFilter;
-				allowManageFilter = filterSettings.allowManageFilter || cfrequest.allowManageFilter;
+				if ( filterSettings !== null ) {
+					allowUseFilter    = filterSettings.allowUseFilter    || false;
+					allowManageFilter = filterSettings.allowManageFilter || false;
+				}
 			}
 
 			setupDatatable = function(){
