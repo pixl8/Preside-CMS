@@ -43,6 +43,7 @@
 
 		allowUseFilter    = IsTrue( args.allowUseFilter    ?: true );
 		allowManageFilter = IsTrue( args.allowManageFilter ?: true );
+		manageFilterLink  = args.manageFilterLink ?: "";
 
 		if ( allowManageFilter ) {
 			saveFilterFormEndpoint = event.buildAdminLink(
@@ -94,7 +95,7 @@
 
 		<cfif args.allowFilter>
 			<cfif allowUseFilter>
-				<div class="object-listing-table-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#" data-allow-use-filter="#booleanFormat( allowUseFilter )#">
+				<div class="object-listing-table-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#" data-allow-use-filter="#booleanFormat( allowUseFilter )#" data-manage-filters-link="#manageFilterLink#">
 					<div id="quick-filter-form-#instanceId#" class="in clearfix">
 						#renderFormControl(
 							  name        = "filter"

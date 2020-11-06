@@ -103,6 +103,10 @@ component extends="preside.system.base.AdminHandler" {
 		if ( args.allowFilter ) {
 			args.allowUseFilter    = _checkPermission( argumentCollection=arguments, key="usefilters"   , object=objectName, throwOnError=false );
 			args.allowManageFilter = _checkPermission( argumentCollection=arguments, key="managefilters", object=objectName, throwOnError=false );
+
+			if ( args.allowManageFilter ) {
+				args.manageFilterLink = event.buildAdminLink( objectName=objectName, operation="manageFilters" );
+			}
 		}
 
 		if ( args.treeView ) {
