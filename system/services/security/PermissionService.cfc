@@ -320,6 +320,18 @@ component displayName="Admin permissions service" {
 		return _getGroupDao().dataExists( id=arguments.groupid, extraFilters=[{ filter={ is_catch_all=true } }] );
 	}
 
+	/**
+	 * Returns whether or not the given permission key exists.
+	 * Useful for dynamic permissions checking where you may
+	 * wish to fall back to another check when the permission
+	 * does not exist.
+	 *
+	 * @permissionKey.hint The permission key you wish to check, e.g. blog.share
+	 */
+	public boolean function permissionExists( required string permissionkey ) {
+		return ArrayFindNoCase( _getPermissions(), arguments.permissionKey );
+	}
+
 // PRIVATE HELPERS
 	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
