@@ -562,13 +562,17 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		} catch( any e ) {}
 
-		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.include( "/js/admin/specific/datamanager/quickAddForm/" )
+		     .include( "/js/admin/specific/saveFilterForm/" );
+
 		event.setView( view="/admin/rulesEngine/quickAddFilterForm", layout="adminModalDialog" );
 	}
 
 	public void function quickEditFilterForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
-		event.include( "/js/admin/specific/datamanager/quickEditForm/" );
+		event.include( "/js/admin/specific/datamanager/quickEditForm/" )
+		     .include( "/js/admin/specific/saveFilterForm/" );
+
 		prc.contextData  = {};
 
 		try {
