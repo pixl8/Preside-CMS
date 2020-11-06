@@ -1338,6 +1338,19 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function manageFilters( event, rc, prc ) {
+		var objectName    = prc.objectName ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="manageFilters" );
+
+		prc.pageIcon  = "filter";
+		prc.pageTitle = translateResource( uri="cms:datamanager.managefilters.title" );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
+			, link  = ""
+		);
+	}
+
 // VIEWLETS
 	private string function versionNavigator( event, rc, prc, args={} ) {
 		var selectedVersion = Val( args.version ?: "" );
