@@ -772,29 +772,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function getObjectFilterRecordsForAjaxDataTables( event, rc, prc ) {
-		_checkPermission( argumentCollection=arguments, key="manageFilters", object=prc.objectName, checkOperations=false );
-
-		var extraFilters = [{filter = {
-			filter_object = prc.objectName
-		} }];
-
-		runEvent(
-			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object          = "rules_engine_condition"
-				, useMultiActions = true
-				, gridFields      = ( rc.gridFields            ?: _getObjectFieldsForGrid( "rules_engine_condition" ).toList() )
-				, isMultilingual  = IsTrue( rc.isMultilingual  ?: 'false' )
-				, draftsEnabled   = IsTrue( rc.draftsEnabled   ?: 'false' )
-				, includeActions  = !IsTrue( rc.noActions      ?: "" )
-				, extraFilters    = extraFilters
-			}
-		);
-	}
-
 	public void function getChildObjectRecordsForAjaxDataTables( event, rc, prc ) {
 		var objectName      = prc.objectName     ?: "";
 		var parentId        = rc.parentId        ?: "";
@@ -1364,8 +1341,6 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = prc.objectName ?: "";
 
 		_checkPermission( argumentCollection=arguments, key="manageFilters" );
-
-		prc.filterDataSourceUrl = event.buildAdminLink( objectName=objectName, operation="filterAjaxListing" );
 
 		prc.pageIcon  = "filter";
 		prc.pageTitle = translateResource( uri="cms:datamanager.managefilters.title", data=[ prc.objectTitlePlural ] );

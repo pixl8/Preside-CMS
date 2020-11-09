@@ -7,8 +7,25 @@ component {
 		}
 	}
 
+	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
+		if ( event.isDataManagerRequest() && event.getCurrentAction() == "manageFilters" ) {
+			return "filterobject=" & ( prc.objectName ?: "" );
+		}
+
+		return "";
+	}
+
 	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
+		args.extraFilters = args.extraFilters ?: [];
+
 		rulesEngineFilterService.getRulesEngineSelectArgsForEdit( args=args );
+
+		var filterObject = rc.filterObject ?: "";
+		if ( Len( filterObject ) ) {
+			ArrayAppend( args.extraFilters, { filter = {
+				filter_object = filterObject
+			} } );
+		}
 	}
 
 	private void function preEditRecordAction( event, rc, prc, args={} ) {
