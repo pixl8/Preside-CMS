@@ -25,53 +25,6 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="navigate" );
 	}
 
-	public void function addConditionAction( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="add" );
-		var object   = "rules_engine_condition";
-		var formName = "preside-objects.#object#.admin.add";
-		var formData = event.getCollectionForForm( formName );
-		var context  = rc.context ?: "";
-
-		formData._addAnother = rc._addAnother ?: 0;
-		formData.context     = context;
-
-		_conditionToFilterCheck( argumentCollection=arguments, action="add", formData=formData );
-
-		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
-			rc.context = "";
-
-			formName = "preside-objects.#object#.admin.add.filter";
-		} else {
-			rc.filter_object = "";
-		}
-
-		var newId    = runEvent(
-			  event          = "admin.DataManager._addRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object            = object
-				, errorUrl          = event.buildAdminLink( linkTo="rulesEngine.addCondition", queryString="context=#context#" )
-				, formName          = formName
-				, redirectOnSuccess = false
-				, audit             = true
-				, auditType         = "rulesEngine"
-				, auditAction       = "add_rules_engine_condition"
-			}
-		);
-
-		var newRecordLink = event.buildAdminLink( linkTo="rulesEngine.editCondition", queryString="object=#object#&id=#newId#" );
-
-		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[ translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ) , '<a href="#newRecordLink#">#( rc.condition_name ?: '' )#</a>'
-		] ) );
-
-		if ( Val( rc._addanother ?: 0 ) ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine.addCondition", queryString="context=#rc.context#" ), persist="_addAnother" );
-		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
-		}
-	}
-
 	public void function editCondition( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="edit" );
 

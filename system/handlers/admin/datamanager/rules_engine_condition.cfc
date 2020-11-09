@@ -91,16 +91,6 @@ component extends="preside.system.base.AdminHandler" {
 		return actions;
 	}
 
-	private string function buildEditRecordLink( event, rc, prc, args={} ) {
-		var qs = "id=#( args.recordId ?: '' )#";
-
-		if ( Len( args.queryString ?: "" ) ) {
-			qs &= "&#args.queryString#";
-		}
-
-		return event.buildAdminLink( linkto="rulesengine.editCondition", queryString=qs );
-	}
-
 	private array function getTopRightButtonsForObject( event, rc, prc, args={} ) {
 		var actions = [];
 
@@ -131,6 +121,7 @@ component extends="preside.system.base.AdminHandler" {
 		return actions;
 	}
 
+// ADDING RECORDS
 	private void function preRenderAddRecordForm() {
 		var contextId = rc.context ?: "";
 		var contexts  = rulesEngineContextService.listContexts();
@@ -256,4 +247,17 @@ component extends="preside.system.base.AdminHandler" {
 			, link  = ""
 		);
 	}
+
+// EDITING RECORDS
+	private string function getEditRecordFormName( event, rc, prc, args={} ) {
+		rc.context       = prc.record.context ?: "";
+		rc.filter_object = prc.record.filter_object ?: "";
+
+		if ( Len( Trim( rc.filter_object ) ) ) {
+			return "preside-objects.rules_engine_condition.admin.edit.filter";
+		}
+
+		return "preside-objects.rules_engine_condition.admin.edit";
+	}
+
 }
