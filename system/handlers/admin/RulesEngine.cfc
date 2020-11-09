@@ -386,7 +386,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( objectsFilterable.len() == 1 ) {
 			if ( arguments.ajax ) {
 				var objectName      = renderContent( "objectName", objectsFilterable[ 1 ] );
-				var response = { success=false, convertPrompt=renderView( view="/admin/rulesEngine/convertConditionToFilter", args={
+				var response = { success=false, convertPrompt=renderView( view="/admin/datamanager/rules_engine_condition/convertConditionToFilter", args={
 					  id                = rc.id ?: ""
 					, formData          = arguments.formData
 					, objectsFilterable = objectsFilterable
