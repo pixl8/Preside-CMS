@@ -25,14 +25,6 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="navigate" );
 	}
 
-	public void function index( event, rc, prc ) {
-		prc.pageTitle    = translateResource( "cms:rulesEngine.page.title" );
-		prc.pageSubTitle = translateResource( "cms:rulesEngine.page.subtitle" );
-
-		prc.contexts     = rulesEngineContextService.listContexts();
-		prc.gridFields   = ListToArray( presideObjectService.getObjectAttribute( objectName="rules_engine_condition", attributeName="dataManagerGridFields", defaultValue="condition_name,context,filter_object,datemodified" ) );
-	}
-
 	public void function addCondition( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="add" );
 
