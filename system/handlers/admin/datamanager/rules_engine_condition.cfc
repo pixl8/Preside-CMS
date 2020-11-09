@@ -145,6 +145,22 @@ component {
 		return actions;
 	}
 
+	private void function preRenderAddRecordForm() {
+		var contextId = rc.context ?: "";
+		var contexts  = rulesEngineContextService.listContexts();
+
+		for( var context in contexts ) {
+			if ( context.id == contextId ) {
+				prc.context = context;
+				break;
+			}
+		}
+
+		if ( !IsStruct( prc.context ?: "" ) ) {
+			event.notFound();
+		}
+	}
+
 	/*
 	<div class="top-right-button-group">
 		<cfif hasCmsPermission( "rulesEngine.add" )>

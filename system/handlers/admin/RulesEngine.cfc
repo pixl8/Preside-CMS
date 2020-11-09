@@ -25,33 +25,6 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="navigate" );
 	}
 
-	public void function addCondition( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="add" );
-
-		var contextId = rc.context ?: "";
-		var contexts  = rulesEngineContextService.listContexts();
-
-		for( var context in contexts ) {
-			if ( context.id == contextId ) {
-				prc.context = context;
-				break;
-			}
-		}
-
-		if ( !IsStruct( prc.context ?: "" ) ) {
-			event.notFound();
-		}
-
-		prc.pageTitle    = translateResource( uri="cms:rulesEngine.add.condition.page.title", data=[ prc.context.title, prc.context.description ] );
-		prc.pageSubTitle = translateResource( uri="cms:rulesEngine.add.condition.page.subtitle", data=[ prc.context.title, prc.context.description ] );
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:rulesEngine.add.condition.breadcrumb.title", data=[ prc.context.title, prc.context.description ] )
-			, link  = event.buildAdminLink( linkTo="rulesengine.addCondition", queryString="context=" & contextId )
-		);
-
-	}
-
 	public void function addConditionAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="add" );
 		var object   = "rules_engine_condition";
