@@ -25,20 +25,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	private void function preEditRecordAction( event, rc, prc, args={} ) {
-		switch ( args.formData.filter_sharing_scope ?: "" ) {
-			case "global":
-				args.formData.owner            = "";
-				args.formData.user_groups      = "";
-				args.formData.allow_group_edit = 0;
-				break;
-			case "individual":
-				args.formData.user_groups      = "";
-				args.formData.allow_group_edit = 0;
-				break;
-		}
-	}
-
 	private array function getRecordActionsForGridListing( event, rc, prc, args={} ) {
 		var record    = args.record ?: {};
 		var recordId  = record.id   ?: "";
@@ -250,14 +236,37 @@ component extends="preside.system.base.AdminHandler" {
 
 // EDITING RECORDS
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
-		rc.context       = prc.record.context ?: "";
-		rc.filter_object = prc.record.filter_object ?: "";
-
-		if ( Len( Trim( rc.filter_object ) ) ) {
+		if ( Len( Trim( prc.record.filter_object ?: "" ) ) ) {
+			rc.filter_object = prc.record.filter_object ?: "";
 			return "preside-objects.rules_engine_condition.admin.edit.filter";
 		}
 
+		rc.context = prc.record.context ?: "";
 		return "preside-objects.rules_engine_condition.admin.edit";
+	}
+
+	private void function preEditRecordAction( event, rc, prc, args={} ){
+		var formData = args.formData ?: {};
+		var stuff = event.getCollectionWithoutSystemVars();
+
+		_conditionToFilterCheck( argumentCollection=arguments, action="edit", formData=formData );
+
+		if ( ( rc.convertAction ?: "" ) == "filter" && Len( rc.filter_object ?: "" ) ) {
+			formData.context = "";
+			formData.filter_object = rc.filter_object;
+		}
+
+		switch ( args.formData.filter_sharing_scope ?: "" ) {
+			case "global":
+				args.formData.owner            = "";
+				args.formData.user_groups      = "";
+				args.formData.allow_group_edit = 0;
+				break;
+			case "individual":
+				args.formData.user_groups      = "";
+				args.formData.allow_group_edit = 0;
+				break;
+		}
 	}
 
 }
