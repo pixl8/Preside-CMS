@@ -4,6 +4,43 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineContextService"   inject="rulesEngineContextService";
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 
+// PERMISSIONS
+	private boolean function checkPermission( event, rc, prc, args={} ) {
+		var objectName = "rules_engine_condition";
+
+		if ( Len( Trim( rc.filterobject ?: "" ) ) ) {
+			_checkProxyPermissionForObjectFilters( argumentCollection=arguments );
+		}
+
+		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );
+		var permissionBase   = "rulesengine."
+		var alwaysDisallowed = [ "manageContextPerms" ];
+		var operationMapped  = [ "read", "add", "edit", "delete", "clone" ];
+		var permissionKey    = "#permissionBase#.#args.key#"
+		var hasPermission    = !alwaysDisallowed.find( args.key )
+		                    && ( !operationMapped.find( args.key ) || allowedOps.find( args.key ) )
+		                    && hasCmsPermission( permissionKey );
+
+		if ( !hasPermission && IsTrue( args.throwOnError ?: "" ) ) {
+			event.adminAccessDenied();
+		}
+
+		return hasPermission;
+	}
+
+	private boolean function _checkProxyPermissionForObjectFilters( event, rc, prc, args={} ) {
+		var objectName = Trim( rc.filterobject );
+
+		return runEvent( event="admin.datamanager._checkPermission", private=true, prepostExempt=true, eventArguments={
+			  key             = "manageFilters"
+			, object          = ( rc.filterobject ?: "" )
+			, throwOnError    = IsTrue( args.throwOnError ?: "" )
+			, checkOperations = false
+		} );
+	}
+
+
+// LISTING
 	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
 		if ( event.isDataManagerRequest() && event.getCurrentAction() == "manageFilters" ) {
 			return "filterobject=" & ( prc.objectName ?: "" );
