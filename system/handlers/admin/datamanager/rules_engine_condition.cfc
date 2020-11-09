@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineFilterService"    inject="RulesEngineFilterService";
 	property name="rulesEngineContextService"   inject="rulesEngineContextService";
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
+	property name="datamanagerService"          inject="datamanagerService";
 
 // PERMISSIONS
 	private boolean function checkPermission( event, rc, prc, args={} ) {
@@ -13,9 +14,9 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );
-		var permissionBase   = "rulesengine."
+		var permissionBase   = "rulesengine"
 		var alwaysDisallowed = [ "manageContextPerms" ];
-		var operationMapped  = [ "read", "add", "edit", "delete", "clone" ];
+		var operationMapped  = [ "add", "edit", "delete", "clone" ];
 		var permissionKey    = "#permissionBase#.#args.key#"
 		var hasPermission    = !alwaysDisallowed.find( args.key )
 		                    && ( !operationMapped.find( args.key ) || allowedOps.find( args.key ) )
@@ -63,12 +64,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function getRecordActionsForGridListing( event, rc, prc, args={} ) {
-		var record    = args.record ?: {};
-		var recordId  = record.id   ?: "";
-		var kind      = record.kind ?: "";
-		var actions   = [];
-		var canEdit   = true;
-		var canDelete = true;
+		var record       = args.record ?: {};
+		var recordId     = record.id   ?: "";
+		var kind         = record.kind ?: "";
+		var filterObject = rc.filterObject ?: "";
+		var actions      = [];
+		var canEdit      = true;
+		var canDelete    = true;
 
 		if ( kind == "filter" ) {
 			canEdit = canDelete = runEvent(
@@ -90,7 +92,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( canEdit ) {
 			ArrayAppend( actions, {
-				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="editRecord" )
+				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="editRecord", operationSource=filterObject )
 				, icon       = "fa-pencil"
 				, contextKey = "e"
 			} );
@@ -98,7 +100,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( canDelete ) {
 			ArrayAppend( actions, {
-				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="deleteRecordAction" )
+				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="deleteRecordAction", operationSource=filterObject )
 				, icon       = "fa-trash-o"
 				, contextKey = "d"
 				, class      = "confirmation-prompt"
@@ -143,6 +145,17 @@ component extends="preside.system.base.AdminHandler" {
 
 		return actions;
 	}
+
+// BREADCRUMBS
+	private void function objectBreadcrumb( event, rc, prc, args={} ) {
+
+
+		event.addAdminBreadCrumb(
+			  title = prc.objectTitlePlural
+			, link  = event.buildAdminLink( objectName="rules_engine_condition" )
+		);
+	}
+
 
 // ADDING RECORDS
 	private void function preRenderAddRecordForm() {
