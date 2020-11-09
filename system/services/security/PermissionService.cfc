@@ -201,13 +201,15 @@ component displayName="Admin permissions service" {
 		}
 		groups = ValueArray( groups.id );
 
-		if ( arguments.includeCatchAll && !catchAllIndex ) {
-			var catchAllGroups = _getGroupDao().selectData(
-				  selectFields = [ "id" ]
-				, filter       = { is_catch_all=true }
-			);
+		if ( arguments.includeCatchAll ) {
+			if ( !catchAllIndex ) {
+				var catchAllGroups = _getGroupDao().selectData(
+					  selectFields = [ "id" ]
+					, filter       = { is_catch_all=true }
+				);
 
-			ArrayAppend( groups, ValueArray( catchAllGroups.id ), true );
+				ArrayAppend( groups, ValueArray( catchAllGroups.id ), true );
+			}
 		} else if ( catchAllIndex ) {
 			ArrayDeleteAt( groups, catchAllIndex );
 		}
