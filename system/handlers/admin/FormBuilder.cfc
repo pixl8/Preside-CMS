@@ -266,6 +266,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function viewQuestionResponse( event, rc, prc, args={} ) {
 		prc.response = formBuilderService.getQuestionResponse( rc.id ?: "" );
+
+		if( !prc.response.recordCount ) {
+			event.notFound();
+		}
 	}
 
 	public void function editForm( event, rc, prc ) {
