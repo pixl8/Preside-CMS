@@ -45,13 +45,16 @@
 			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
-			  , filterSettings, allowUseFilter=false, allowManageFilter=false
+			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
 
 			if ( allowFilter ) {
 				filterSettings = $( ".object-listing-table-filter" ).data();
 				if ( filterSettings !== null ) {
 					allowUseFilter    = filterSettings.allowUseFilter    || false;
 					allowManageFilter = filterSettings.allowManageFilter || false;
+					if ( allowManageFilter ) {
+						manageFiltersLink = filterSettings.manageFiltersLink || "";
+					}
 				}
 			}
 
@@ -329,11 +332,16 @@
 			setupFilters = function( settings ){
 				// setup DOM
 				var $searchContainer = $( settings.aanFeatures.f[0] )
-				  , filterState, $filterLinksContainer = $( '<div class="pull-right filter-links-container"></div>' );
+				  , filterState, $manageLink, $filterLinksContainer = $( '<div class="pull-right filter-links-container"></div>' );
 
 				if ( allowUseFilter ) {
 					$filterLink = $( '<a href="#"><i class="fa fa-fw fa-caret-right"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
 					$filterLinksContainer.append( $filterLink );
+
+					if ( allowManageFilter && manageFiltersLink.length ) {
+						$manageLink = $( '<a href="' + manageFiltersLink + '"><i class="fa fa-fw fa-cogs"></i> ' + i18n.translateResource( "cms:datatables.manage.filters.link" ) + '</a>' );
+						$filterLinksContainer.prepend( $manageLink );
+					}
 
 					$searchContainer.append( $filterLinksContainer );
 				}

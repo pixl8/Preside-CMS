@@ -101,8 +101,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.allowFilter = IsTrue( args.allowFilter ?: true ) && isFeatureEnabled( "rulesengine" );
 		if ( args.allowFilter ) {
-			args.allowUseFilter    = _checkPermission( argumentCollection=arguments, key="usefilters"   , object=objectName, throwOnError=false );
-			args.allowManageFilter = _checkPermission( argumentCollection=arguments, key="managefilters", object=objectName, throwOnError=false );
+			args.allowUseFilter    = isTrue( args.allowUseFilter    ?: true ) && _checkPermission( argumentCollection=arguments, key="usefilters"   , object=objectName, throwOnError=false );
+			args.allowManageFilter = isTrue( args.allowManageFilter ?: true ) && _checkPermission( argumentCollection=arguments, key="managefilters", object=objectName, throwOnError=false );
+
+			if ( args.allowManageFilter ) {
+				args.manageFilterLink = event.buildAdminLink( objectName=objectName, operation="manageFilters" );
+			}
 		}
 
 		if ( args.treeView ) {
@@ -750,7 +754,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-
 	public void function getObjectRecordsForAjaxDataTables( event, rc, prc ) {
 		_checkPermission( argumentCollection=arguments, key="read", object=prc.objectName, checkOperations=false );
 
@@ -1336,6 +1339,20 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			event.notFound();
 		}
+	}
+
+	public void function manageFilters( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="manageFilters" );
+
+		prc.pageIcon  = "filter";
+		prc.pageTitle = translateResource( uri="cms:datamanager.managefilters.title", data=[ prc.objectTitlePlural ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.managefilters.subtitle", data=[ prc.objectTitlePlural ] );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
+			, link  = ""
+		);
 	}
 
 // VIEWLETS
@@ -3694,6 +3711,7 @@ component extends="preside.system.base.AdminHandler" {
 			break;
 			case "object":
 			case "getObjectRecordsForAjaxDataTables":
+			case "getObjectFilterRecordsForAjaxDataTables":
 				prc.objectName = rc.id ?: "";
 			break;
 			case "addRecordAction":
