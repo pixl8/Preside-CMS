@@ -25,4 +25,75 @@ component {
 		}
 	}
 
+	private array function getRecordActionsForGridListing( event, rc, prc, args={} ) {
+		var record    = args.record ?: {};
+		var recordId  = record.id   ?: "";
+		var kind      = record.kind ?: "";
+		var actions   = [];
+		var canEdit   = true;
+		var canDelete = true;
+
+		if ( kind == "filter" ) {
+			canEdit = canDelete = runEvent(
+				  event = "admin.datamanager._checkPermission"
+				, private = true
+				, prepostExempt = true
+				, eventArguments = {
+					  key          = "manageFilters"
+					, object       = record.filter_object ?: ""
+					, throwOnError = false
+				  }
+			);
+
+			canDelete = canDelete && !rulesEngineFilterService.filterIsUsed( recordId );
+		} else {
+			canEdit   = hasCmsPermission( "rulesengine.edit" );
+			canDelete = hasCmsPermission( "rulesengine.delete" );
+		}
+
+		if ( canEdit ) {
+			ArrayAppend( actions, {
+				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="editRecord" )
+				, icon       = "fa-pencil"
+				, contextKey = "e"
+			} );
+		}
+
+		if ( canDelete ) {
+			ArrayAppend( actions, {
+				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="deleteRecordAction" )
+				, icon       = "fa-trash-o"
+				, contextKey = "d"
+				, class      = "confirmation-prompt"
+				, title      = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ translateResource( "preside-objects.rules_engine_condition:title.singular" ), record.condition_name ] )
+			} );
+		} else {
+			ArrayAppend( actions, {
+				  link = "##"
+				, icon = "fa-trash-o light-grey disabled"
+			} );
+		}
+
+		return actions;
+	}
+
+	private string function buildEditRecordLink( event, rc, prc, args={} ) {
+		var qs = "id=#( args.recordId ?: '' )#";
+
+		if ( Len( args.queryString ?: "" ) ) {
+			qs &= "&#args.queryString#";
+		}
+
+		return event.buildAdminLink( linkto="rulesengine.editCondition", queryString=qs );
+	}
+
+	private string function buildDeleteRecordActionLink( event, rc, prc, args={} ) {
+		var qs = "id=#( args.recordId ?: '' )#";
+
+		if ( Len( args.queryString ?: "" ) ) {
+			qs &= "&#args.queryString#";
+		}
+
+		return event.buildAdminLink( linkto="rulesengine.deleteConditionAction", queryString=qs );
+	}
 }

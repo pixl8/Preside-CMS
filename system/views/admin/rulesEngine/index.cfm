@@ -29,7 +29,6 @@
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
 		, useMultiActions = false
-		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=rulesengine.getConditionsForAjaxDataTables" )
 		, gridFields      = gridFields
 	} )#
 </cfoutput>

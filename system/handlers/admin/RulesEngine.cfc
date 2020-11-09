@@ -247,23 +247,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function getConditionsForAjaxDataTables( event, rc, prc )  {
-		_checkPermissions( argumentCollection=arguments, key="read" );
-
-		var gridFields = presideObjectService.getObjectAttribute( objectName="rules_engine_condition", attributeName="dataManagerGridFields", defaultValue="condition_name,context,filter_object,datemodified" )
-
-		runEvent(
-			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object      = "rules_engine_condition"
-				, gridFields  = gridFields
-				, actionsView = "/admin/rulesEngine/_conditionsTableActions"
-			}
-		);
-	}
-
 	public string function ajaxRenderField( event, rc, prc ) {
 		var fieldConfig = event.getCollectionWithoutSystemVars();
 		var fieldValue  = rc.fieldValue ?: "";
