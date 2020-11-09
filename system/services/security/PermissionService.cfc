@@ -208,7 +208,7 @@ component displayName="Admin permissions service" {
 			);
 
 			ArrayAppend( groups, ValueArray( catchAllGroups.id ), true );
-		} else if ( catchAllIndex ) {
+		} else if ( !arguments.includeCatchAll && catchAllIndex ) {
 			ArrayDeleteAt( groups, catchAllIndex );
 		}
 
