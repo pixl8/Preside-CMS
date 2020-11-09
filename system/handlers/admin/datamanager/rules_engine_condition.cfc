@@ -194,19 +194,23 @@ component extends="preside.system.base.AdminHandler" {
 			, recordId   = recordId
 		);
 
-		// switch( action ) {
-		// 	case "quickadd":
-		// 	case "add":
-		// 		permissionKey = "add";
-		// 	break;
-		// 	case "edit":
-		// 	case "quickedit":
-		// 		permissionKey = "edit";
-		// 	break;
-		// 	default:
-		// 		event.notFound();
-		// }
-		// _checkPermissions( argumentCollection=arguments, key=permissionKey );
+		switch( action ) {
+			case "quickadd":
+			case "add":
+				permissionKey = "add";
+			break;
+			case "edit":
+			case "quickedit":
+				permissionKey = "edit";
+			break;
+			default:
+				event.notFound();
+		}
+
+		runEvent( event="admin.datamanager._checkPermission", private=true, prepostExempt=true, eventArguments={
+			  objectName = "rules_engine_condition"
+			, key        = permissionKey
+		} );
 
 		switch( action ) {
 			case "add":
