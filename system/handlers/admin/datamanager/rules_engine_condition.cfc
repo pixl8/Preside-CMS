@@ -1,12 +1,8 @@
-component {
-	property name="rulesEngineFilterService"  inject="RulesEngineFilterService";
-	property name="rulesEngineContextService" inject="rulesEngineContextService";
+component extends="preside.system.base.AdminHandler" {
 
-	private void function preAddRecordAction( event, rc, prc, args={} ){
-		if ( !args.validationResult.validated() ) {
-			args.formData.delete( "context" );
-		}
-	}
+	property name="rulesEngineFilterService"    inject="RulesEngineFilterService";
+	property name="rulesEngineContextService"   inject="rulesEngineContextService";
+	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 
 	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
 		if ( event.isDataManagerRequest() && event.getCurrentAction() == "manageFilters" ) {
@@ -105,16 +101,6 @@ component {
 		return event.buildAdminLink( linkto="rulesengine.editCondition", queryString=qs );
 	}
 
-	private string function buildDeleteRecordActionLink( event, rc, prc, args={} ) {
-		var qs = "id=#( args.recordId ?: '' )#";
-
-		if ( Len( args.queryString ?: "" ) ) {
-			qs &= "&#args.queryString#";
-		}
-
-		return event.buildAdminLink( linkto="rulesengine.deleteConditionAction", queryString=qs );
-	}
-
 	private array function getTopRightButtonsForObject( event, rc, prc, args={} ) {
 		var actions = [];
 
@@ -161,25 +147,113 @@ component {
 		}
 	}
 
-	/*
-	<div class="top-right-button-group">
-		<cfif hasCmsPermission( "rulesEngine.add" )>
-			<button data-toggle="dropdown" class="btn btn-sm btn-success pull-right inline">
-				<span class="fa fa-caret-down"></span>
-				<i class="fa fa-fw fa-plus"></i>&nbsp; #translateResource( 'cms:rulesEngine.add.condition.btn')#
-			</button>
+	private void function preAddRecordAction( event, rc, prc, args={} ){
+		var formData = args.formData ?: {};
 
-			<ul class="dropdown-menu pull-right dropdown-caret dropdown-caret-right" role="menu" aria-labelledby="label">
-				<cfloop array="#contexts#" item="context" index="i">
-					<li>
-						<a href="#event.buildAdminLink( linkTo='rulesEngine.addCondition', queryString='context=' & context.id )#">
-							<p class="title"><i class="fa fa-fw #context.iconClass#"></i>&nbsp; #context.title#</p>
-							<p class="description"><em class="light-grey">#context.description#</em></p>
-						</a>
-					</li>
-				</cfloop>
-			</ul>
-		</cfif>
-	</div>
-	*/
+		if ( !args.validationResult.validated() ) {
+			StructDelete( formData,  "context" );
+		}
+
+		_conditionToFilterCheck( argumentCollection=arguments, action="add", formData=formData );
+
+		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+			formData.context = "";
+			formData.filter_object = rc.filter_object;
+		}
+	}
+
+	private boolean function _conditionToFilterCheck( event, rc, prc, required string action, required struct formData, boolean ajax=false ) {
+		if( Len( Trim( rc.convertAction ?: "" ) ) || Len( Trim( rc.filter_object ?: "" ) ) ) {
+			return false;
+		}
+
+		try {
+			var expressionArray = DeSerializeJson( formData.expressions ?: "" );
+		} catch( any e ){
+			return false;
+		}
+
+		if ( !isArray( expressionArray ) ) {
+			return false;
+		}
+		var objectsFilterable = rulesEngineConditionService.listObjectsFilterableByCondition( expressionArray );
+
+		if ( objectsFilterable.len() == 1 ) {
+			if ( arguments.ajax ) {
+				var objectName = renderContent( "objectName", objectsFilterable[ 1 ] );
+				var response = { success=false, convertPrompt=renderView( view="/admin/datamanager/rules_engine_condition/convertConditionToFilter", args={
+					  id                = rc.id ?: ""
+					, formData          = arguments.formData
+					, objectsFilterable = objectsFilterable
+					, saveAction        = arguments.action
+					, submitAction      = event.buildAdminLink( objectName="rules_engine_condition", operation="#arguments.action#RecordAction", recordId=( rc.id ?: "" ) )
+					, pageDescription   = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.single.object", data=[ objectName ] )
+				} ) };
+
+				event.renderData( data=response, type="json" );
+
+				return true;
+			} else {
+				var persist = {
+					  formData          = arguments.formData
+					, objectsFilterable = objectsFilterable
+					, saveAction        = arguments.action
+					, id                = rc.id ?: ""
+				}
+				setNextEvent( url=event.buildAdminLink( linkto="datamanager.rules_engine_condition.convertConditionToFilter" ), persistStruct=persist );
+			}
+		}
+
+		return false;
+	}
+
+	public void function convertConditionToFilter( event, rc, prc ) {
+		var action        = rc.saveAction ?: "";
+		var recordId      = rc.id ?: "";
+		var permissionKey = "";
+
+		event.initializeDatamanagerPage(
+			  objectName = "rules_engine_condition"
+			, recordId   = recordId
+		);
+
+		// switch( action ) {
+		// 	case "quickadd":
+		// 	case "add":
+		// 		permissionKey = "add";
+		// 	break;
+		// 	case "edit":
+		// 	case "quickedit":
+		// 		permissionKey = "edit";
+		// 	break;
+		// 	default:
+		// 		event.notFound();
+		// }
+		// _checkPermissions( argumentCollection=arguments, key=permissionKey );
+
+		switch( action ) {
+			case "add":
+				prc.submitAction = event.buildAdminLink( objectName="rules_engine_condition", operation="addRecordAction" );
+			break;
+			case "edit":
+				prc.submitAction = event.buildAdminLink( objectName="rules_engine_condition", operation="editRecordAction" );
+			break;
+		}
+
+		var objectsFilterable = rc.objectsFilterable ?: [];
+		if ( !IsArray( objectsFilterable ) || !objectsFilterable.len() ) {
+			event.notFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.page.title" );
+		prc.pageSubTitle = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.page.subtitle" );
+
+		var objectName      = renderContent( "objectName", objectsFilterable[ 1 ] );
+		prc.pageDescription = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.intro.single.object", data=[ objectName ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:rulesEngine.convert.condition.to.filter.breadcrumb.title" )
+			, link  = ""
+		);
+	}
 }
