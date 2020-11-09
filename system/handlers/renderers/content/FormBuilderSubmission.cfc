@@ -44,6 +44,7 @@ component  {
 // HELPERS
 	private any function _preRenderResponses( event, rc, prc, args={} ) {
 		var formId            = ( rc.formId ?: ( rc.id ?: ( rc.form ?: "" ) ) );
+		var submissionId      = ( rc.submissionId ?: ( args.record.id ?: ( rc.id ?: "" ) ) );
 		var isV2              = formBuilderService.isV2Form( formId );
 		var formItems         = formBuilderService.getFormItems( formId );
 		var noResponse        = args.noResponse ?: translateResource( "formbuilder:no.response.placeholder" );
@@ -58,9 +59,10 @@ component  {
 		if ( isV2 ) {
 			responses = formBuilderService.getV2Responses(
 				  formId       = formId
-				, submissionId = args.record.id ?: ( rc.id ?: "" )
+				, submissionId = submissionId
 			);
-		} else {
+		}
+		else {
 			responses = args.data ?: "";
 			if ( !IsJson( responses ) || !IsStruct( DeserializeJSON( responses ) ) ) {
 				return responses;
