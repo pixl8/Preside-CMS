@@ -364,6 +364,7 @@ component extends="preside.system.base.AdminHandler" {
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
 		if ( Len( Trim( prc.record.filter_object ?: "" ) ) ) {
 			rc.filter_object = prc.record.filter_object ?: "";
+			event.include( "/js/admin/specific/saveFilterForm/" );
 			return "preside-objects.rules_engine_condition.admin.edit.filter";
 		}
 
