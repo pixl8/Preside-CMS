@@ -1441,7 +1441,7 @@ component extends="preside.system.base.AdminHandler" {
 	private string function topRightButtons( event, rc, prc, args={} ){
 		var objectName         = args.objectName ?: "";
 		var action             = args.action     ?: "";
-		var actionsWithButtons = [ "object", "viewrecord", "addrecord", "editrecord" ];
+		var actionsWithButtons = [ "object", "viewrecord", "addrecord", "editrecord", "managefilters" ];
 		var rendered = "";
 
 		if ( actionsWithButtons.findNoCase( action ) ) {
@@ -1515,6 +1515,29 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		announceInterception( "postExtraTopRightButtonsForObject", { objectName=objectName, actions=actions } );
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForManageFilters() {
+		var objectName  = args.objectName ?: "";
+		var objectTitle = prc.objectTitlePlural ?: "";
+		var actions     = [];
+
+		actions.append( {
+			  link      = event.buildAdminLink( objectName=objectName )
+			, btnClass  = "btn-default"
+			, iconClass = "fa-reply"
+			, title     = translateResource( uri="cms:datamanager.back.to.listing.link", data = [ objectTitle ] )
+		} );
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "extraTopRightButtonsForManageFilters"
+			, args           = { objectName=objectName, actions=actions }
+		);
+
+		announceInterception( "postExtraTopRightButtonsForManageFilters", { objectName=objectName, actions=actions } );
 
 		return actions;
 	}
