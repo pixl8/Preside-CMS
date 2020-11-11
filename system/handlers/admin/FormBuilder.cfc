@@ -724,8 +724,7 @@ component extends="preside.system.base.AdminHandler" {
 						, records[ "question" ][ records.currentRow ]
 						, records[ "item_type" ][ records.currentRow ]
 						);
-				}
-				else {
+				} else {
 					records[ field ][ records.currentRow ] = renderField(
 						  object   = "formbuilder_question_response"
 						, property = field
