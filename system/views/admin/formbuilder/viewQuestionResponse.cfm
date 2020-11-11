@@ -1,13 +1,13 @@
 <cfscript>
 	prc.pageIcon  = "question";
 	prc.pageTitle = prc.response.full_question_text;
-	responseArgs          = {
-						  responseid   = prc.response.id
-						, formId       = prc.response.submission_reference
-						, submissionId = prc.response.submission
-						, questionId   = prc.response.question
-						, itemType     = prc.response.item_type
-					};
+	responseArgs  = {
+		  responseid   = prc.response.id
+		, formId       = prc.response.submission_reference
+		, submissionId = prc.response.submission
+		, questionId   = prc.response.question
+		, itemType     = prc.response.item_type
+	};
 </cfscript>
 
 <cfparam name="prc.response" type="query">
@@ -28,21 +28,7 @@
 			<tr>
 				<th>#translateResource( "preside-objects.formbuilder_question_response:field.submitted_by.title")#</th>
 				<td>
-					<cfif prc.response.is_admin_user>
-						<a href="#event.buildAdminLink( linkto='usermanager.viewUser', queryString='id=' & prc.response.admin_user )#">
-							#renderField( 'formbuilder_question_response', 'submitted_by', prc.response.submitted_by )#
-						</a>
-					<cfelseif prc.response.is_website_user>
-						<a href="#event.buildAdminLink( linkto='websiteUserManager.viewUser', queryString='id=' & prc.response.website_user )#">
-							#renderField( 'formbuilder_question_response', 'submitted_by', prc.response.submitted_by )#
-						</a>
-					<cfelse>
-						<cfif len( trim( prc.response.submitted_by) )>
-							#renderField( 'formbuilder_question_response', 'submitted_by', prc.response.submitted_by )#
-						<cfelse>
-							#translateResource( "cms:anonymous.user" )#
-						</cfif>
-					</cfif>
+					#renderField( 'formbuilder_question_response', 'submitted_by', prc.response.submitted_by )#
 				</td>
 			</tr>
 			<tr>
