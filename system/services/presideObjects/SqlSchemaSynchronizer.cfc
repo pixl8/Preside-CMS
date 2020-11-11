@@ -56,6 +56,11 @@ component {
 				tableVersionExists = StructKeyExists( versions, "table" ) and StructKeyExists( versions.table, obj.meta.tableName );
 				tableExists        = tableVersionExists or _getTableInfo( tableName=obj.meta.tableName, dsn=obj.meta.dsn ).recordCount;
 
+				if( StructKeyExists( obj.meta, "dbsync" ) and not obj.meta.dbsync ) {
+					// skip dbsync for this object
+					continue;
+				}
+
 				if ( not tableExists ) {
 					try {
 						_createObjectInDb(
@@ -156,6 +161,10 @@ component {
 		,          struct relationships = {}
 
 	) {
+		var versions       = _getVersionsOfDatabaseObjects( [arguments.dsn] );
+		var dbTable        = _getTableInfo( tableName=arguments.tableName, dsn=arguments.dsn );
+		var columnsFromDb  = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
+		var indexesFromDb  = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
 		var adapter        = _getAdapter( dsn = arguments.dsn );
 		var columnSql      = "";
 		var colName        = "";
@@ -173,6 +182,8 @@ component {
 			, indexes = {}
 			, table   = { version="", sql="" }
 		};
+		var dbColumn       = "";
+		var dbArgs         = "";
 
 		for( colName in ListToArray( arguments.dbFieldList ) ){
 			column = sql.columns[ colName ] = StructNew();
@@ -190,17 +201,47 @@ component {
 			column.definitionSql = adapter.getColumnDefinitionSql( argumentCollection = args );
 			column.alterSql      = adapter.getAlterColumnSql( argumentCollection = args );
 			column.addSql        = adapter.getAddColumnSql( argumentCollection = args );
+			if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ){
+				dbColumn = QueryFilter( columnsFromDb, function( col ){
+					return col.column_name == colName;
+				});
+
+				if( dbColumn.recordcount ){
+					dbArgs = {
+						tableName     = arguments.tableName
+						, columnName    = colName
+						, dbType        = dbColumn.type_name
+						, nullable      = dbColumn.is_nullable
+						, primaryKey    = dbColumn.is_primarykey
+						, autoIncrement = dbColumn.is_autoincrement
+						, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( dbColumn.type_name ) ? ( IsNumeric( dbColumn.column_size ) ? dbColumn.column_size : 0 ) : 0
+					};
+
+					// Set sql based on current DB details to skip dbsync for this property
+					column.definitionSql = adapter.getColumnDefinitionSql( argumentCollection = dbArgs );
+					column.alterSql      = adapter.getAlterColumnSql( argumentCollection = dbArgs );
+					column.addSql        = adapter.getAddColumnSql( argumentCollection = dbArgs );
+				}
+			}
 			column.version       = Hash( column.definitionSql );
 
 			columnSql &= delim & column.definitionSql;
 			delim = ", ";
 		}
 
-
+		colMeta = "";
 		for( indexName in arguments.indexes ){
 			index          = arguments.indexes[ indexName ];
 			validIndexName = adapter.ensureValidIndexName( indexName );
 
+			if( ListLen( index.fields ) eq 1 ) {
+				// If index is related to only a single field
+				colMeta = arguments.properties[ index.fields ];
+				if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ) {
+					// skip dbsync for this index
+					continue;
+				}
+			}
 			if ( indexName != validIndexName ) {
 			    arguments.indexes[ validIndexName ] = index;
 			    arguments.indexes.delete( indexName );
@@ -222,8 +263,14 @@ component {
 			};
 		}
 
+		colMeta = "";
 		for( fkName in arguments.relationships ){
 			fk = arguments.relationships[ fkName ];
+			colMeta = arguments.properties[ fk.fk_column ];
+			if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ) {
+				// skip dbsync for this fk
+				continue;
+			}
 
 			sql.relationships[ fkName ] = {
 				createSql = adapter.getForeignKeyConstraintSql(
