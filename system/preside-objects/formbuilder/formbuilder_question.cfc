@@ -18,4 +18,5 @@ component displayname="Form builder: global question" extends="preside.system.ba
 	property name="item_type_config"   type="string"  dbtype="text"    required=false               batcheditable=false autofilter=false adminRenderer="none";
 
 	property name="forms" relationship="many-to-many" relatedTo="formbuilder_form" relatedVia="formbuilder_formitem" relatedViaSourceFk="question" relatedViaTargetFk="form" adminViewGroup="forms" displayPropertyTitle=false cloneable=false;
+	property name="responses" relationship="one-to-many" relatedTo="formbuilder_question_response" relationshipkey="question" adminViewGroup="responses" displayPropertyTitle=false cloneable=false;
 }

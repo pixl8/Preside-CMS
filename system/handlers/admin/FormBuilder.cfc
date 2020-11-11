@@ -264,14 +264,6 @@ component extends="preside.system.base.AdminHandler" {
 
 	}
 
-	public void function viewQuestionResponse( event, rc, prc, args={} ) {
-		prc.response = formBuilderService.getQuestionResponse( rc.id ?: "" );
-
-		if( !prc.response.recordCount ) {
-			event.notFound();
-		}
-	}
-
 	public void function editForm( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 
@@ -682,76 +674,6 @@ component extends="preside.system.base.AdminHandler" {
 				, gridFields      = "name,description,locked,active,active_from,active_to"
 				, actionsView     = "admin.formbuilder.formDataTableGridFields"
 			}
-		);
-	}
-
-	public void function listQuestionResponsesForAjaxDataTables( event, rc, prc ) {
-		var questionId                = ( rc.questionId ?: "" );
-
-		var sFilterExpression     = ( structKeyExists( rc, 'sFilterExpression' ) && Len( Trim( rc.sFilterExpression ) ) ) ? rc.sFilterExpression : "";
-		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
-
-		if ( !Len( Trim( questionId ) ) ) {
-			event.adminNotFound();
-		}
-		var canDelete       = false;
-		var useMultiActions = false;
-		var checkboxCol     = [];
-		var optionsCol      = [];
-		var gridFields      = [ "submission", "question", "submitted_by", "datecreated", "response", "is_website_user", "is_admin_user", "datecreated", "form_name" ];
-		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
-		var results         = formbuilderService.getQuestionResponsesForGridListing(
-			  questionId            = questionId
-			, startRow              = dtHelper.getStartRow()
-			, maxRows               = dtHelper.getMaxRows()
-			, orderBy               = dtHelper.getSortOrder()
-			, searchQuery           = dtHelper.getSearchQuery()
-			, sFilterExpression     = sFilterExpression
-			, savedFilterExpIdLists = savedFilterExpIdLists
-		);
-
-		var records = Duplicate( results.records );
-		var viewQuestionResponseTitle   = translateResource( "formbuilder:view.questionresponse.modal.title" );
-
-		for( var record in records ){
-			for( var field in gridFields ){
-				if ( field == "form_name" ) {
-					records[ field ][ records.currentRow ] = records[ field ];
-				} else if ( field == "response" ) {
-					records[ field ][ records.currentRow ] =  formbuilderService.renderV2QuestionResponses(
-						  records[ "submission_reference" ][ records.currentRow ]
-						, records[ "submission" ][ records.currentRow ]
-						, records[ "question" ][ records.currentRow ]
-						, records[ "item_type" ][ records.currentRow ]
-						);
-				} else {
-					records[ field ][ records.currentRow ] = renderField(
-						  object   = "formbuilder_question_response"
-						, property = field
-						, data     = record[ field ]
-						, context  = [ "adminDataTable", "admin" ]
-						, editable = false
-						, recordId = record.id
-						, record   = record
-					);
-				}
-
-			}
-
-			optionsCol.append( renderView( view="/admin/formbuilder/_questionResponseActions", args={
-				  canDelete             = false
-				, viewQuestionResponseLink    = event.buildAdminLink( linkto="formbuilder.viewQuestionResponse"         , queryString="id=#record.id#" )
-				, viewQuestionResponseTitle   = viewQuestionResponseTitle
-
-			} ) );
-		}
-
-		QueryAddColumn( records, "_options" , optionsCol );
-		ArrayAppend( gridFields, "_options" );
-
-		event.renderData(
-			  type = "json"
-			, data = dtHelper.queryToResult( records, gridFields, results.totalRecords )
 		);
 	}
 
