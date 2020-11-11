@@ -17,7 +17,7 @@ component {
 			if ( rulesEngineFilterService.filterIsUsed( prc.record.id ) ) {
 				isUsed = true;
 				for( var item in args.items ) {
-					if ( item.id != "global" ) {
+					if ( item.id != "global" and item.id != args.defaultValue ) {
 						item.disabled    = true;
 						item.description = translateResource( "preside-objects.rules_engine_condition:field.filter_sharing_scope.disabled.because.used" );
 					}
