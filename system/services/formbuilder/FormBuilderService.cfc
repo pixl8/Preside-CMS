@@ -1147,7 +1147,9 @@ component {
 				, "formbuilder_question_response.response"
 				, "formbuilder_question_response.datecreated"
 				, "formbuilder_question_response.submitted_by"
-				, "lformbuilder_question_response.is_website_user"
+				, "formbuilder_question_response.website_user"
+				, "formbuilder_question_response.is_website_user"
+				, "formbuilder_question_response.admin_user"
 				, "formbuilder_question_response.is_admin_user"
 				, "formbuilder_question_response.submission_type"
 				, "formbuilder_question_response.submission_reference"
@@ -1155,7 +1157,6 @@ component {
 				, "question.item_type"
 			]
 		);
-
 
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;

@@ -701,7 +701,7 @@ component extends="preside.system.base.AdminHandler" {
 		var gridFields      = [ "submission", "question", "submitted_by", "datecreated", "response", "is_website_user", "is_admin_user", "datecreated", "form_name" ];
 		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
 		var results         = formbuilderService.getQuestionResponsesForGridListing(
-			  questionId                = questionId
+			  questionId            = questionId
 			, startRow              = dtHelper.getStartRow()
 			, maxRows               = dtHelper.getMaxRows()
 			, orderBy               = dtHelper.getSortOrder()
@@ -709,12 +709,12 @@ component extends="preside.system.base.AdminHandler" {
 			, sFilterExpression     = sFilterExpression
 			, savedFilterExpIdLists = savedFilterExpIdLists
 		);
+
 		var records = Duplicate( results.records );
 		var viewQuestionResponseTitle   = translateResource( "formbuilder:view.questionresponse.modal.title" );
 
 		for( var record in records ){
 			for( var field in gridFields ){
-
 				if ( field == "form_name" ) {
 					records[ field ][ records.currentRow ] = records[ field ];
 				} else if ( field == "response" ) {
@@ -724,8 +724,6 @@ component extends="preside.system.base.AdminHandler" {
 						, records[ "question" ][ records.currentRow ]
 						, records[ "item_type" ][ records.currentRow ]
 						);
-
-
 				} else {
 					records[ field ][ records.currentRow ] = renderField(
 						  object   = "formbuilder_question_response"
@@ -740,17 +738,13 @@ component extends="preside.system.base.AdminHandler" {
 
 			}
 
-
-
 			optionsCol.append( renderView( view="/admin/formbuilder/_questionResponseActions", args={
 				  canDelete             = false
 				, viewQuestionResponseLink    = event.buildAdminLink( linkto="formbuilder.viewQuestionResponse"         , queryString="id=#record.id#" )
 				, viewQuestionResponseTitle   = viewQuestionResponseTitle
 
- 			} ) );
+			} ) );
 		}
-
-
 
 		QueryAddColumn( records, "_options" , optionsCol );
 		ArrayAppend( gridFields, "_options" );
