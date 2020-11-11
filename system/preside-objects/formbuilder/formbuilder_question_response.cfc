@@ -30,7 +30,7 @@ component displayname="Form builder: global question response" extends="preside.
 	property name="sort_order" type="numeric" dbtype="int" required=false indexes="order" excludeDataExport=true;
 
 	// a plain text representation of the owner of this response (if we know who they are)
-	property name="submitted_by" type="string"  dbtype="varchar" maxlength=100;
+	property name="submitted_by" type="string"  dbtype="varchar" maxlength=100 renderer="FormUser";
 
 	// response possibly related to these
 	property name="submission"   relationship="many-to-one" relatedto="formbuilder_formsubmission" required=false excludeDataExport=true;
