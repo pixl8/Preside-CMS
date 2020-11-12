@@ -19,6 +19,9 @@
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
 
+	arrayPrepend( values, "" );
+	arrayPrepend( labels, translateResource( "cms:option.pleaseselect", "" ) );
+
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
