@@ -201,12 +201,12 @@ component {
 			column.definitionSql = adapter.getColumnDefinitionSql( argumentCollection = args );
 			column.alterSql      = adapter.getAlterColumnSql( argumentCollection = args );
 			column.addSql        = adapter.getAddColumnSql( argumentCollection = args );
-			if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ){
-				dbColumn = QueryFilter( columnsFromDb, function( col ){
+			if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ) {
+				dbColumn = QueryFilter( columnsFromDb, function( col ) {
 					return col.column_name == colName;
 				});
 
-				if( dbColumn.recordcount ){
+				if( dbColumn.recordcount ) {
 					dbArgs = {
 						tableName     = arguments.tableName
 						, columnName    = colName
@@ -221,11 +221,13 @@ component {
 					column.definitionSql = adapter.getColumnDefinitionSql( argumentCollection = dbArgs );
 					column.alterSql      = adapter.getAlterColumnSql( argumentCollection = dbArgs );
 					column.addSql        = adapter.getAddColumnSql( argumentCollection = dbArgs );
+				} else {
+					structDelete( sql.columns, colName );
 				}
+			} else {
+				columnSql &= delim & column.definitionSql;
 			}
-			column.version       = Hash( column.definitionSql );
-
-			columnSql &= delim & column.definitionSql;
+			column.version = Hash( column.definitionSql );
 			delim = ", ";
 		}
 
