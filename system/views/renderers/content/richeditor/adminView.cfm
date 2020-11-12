@@ -2,8 +2,8 @@
 	rawContent = args.data ?: "";
 </cfscript>
 
-<cfoutput>
+<cfif Len( Trim( rawContent ) )>
 	<div class="admin-richeditor-preview-container">
-		<script type="text/template" class="admin-richeditor-preview-content">#rawContent#</script>
+		<script type="text/template" class="admin-richeditor-preview-content"><cfoutput>#rawContent#</cfoutput></script>
 	</div>
-</cfoutput>
+</cfif>

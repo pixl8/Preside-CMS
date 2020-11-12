@@ -1024,32 +1024,6 @@ component {
 			filter = { id = arguments.submissionIds }
 		);
 	}
-	public query function getQuestionResponse( required string id ) {
-		var questionResponsesDao = $getPresideObject( "formbuilder_question_response" );
-
-		return questionResponsesDao.selectData(
-			  id           = id
-			, selectFields = [
-				  "formbuilder_question_response.id"
-				, "formbuilder_question_response.response"
-				, "formbuilder_question_response.datecreated"
-				, "formbuilder_question_response.submitted_by"
-				, "formbuilder_question_response.website_user"
-				, "formbuilder_question_response.is_website_user"
-				, "formbuilder_question_response.admin_user"
-				, "formbuilder_question_response.is_admin_user"
-				, "formbuilder_question_response.submission"
-				, "formbuilder_question_response.submission_type"
-				, "formbuilder_question_response.submission_reference"
-				, "formbuilder_question_response.question"
-				, "question.item_type"
-				, "question.item_type_config"
-				, "question.full_question_text"
-				, "submission$form.name as form_name"
-			]
-
-		);
-	}
 
 	/**
 	 * Returns question responses in a result format that is ready

@@ -3,15 +3,7 @@ component {
 	property name="formBuilderStorageProvider" inject="formBuilderStorageProvider";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
-		var fileName = args.response ?: "";
-
-		fileName = replace( fileName, """", "", "all" );
-
-		if ( rc.event=="admin.formbuilder.listQuestionResponsesForAjaxDataTables" ) {
-			if ( fileName == "{}" )
-				return "";
-			return fileName;
-		}
+		var fileName = ReReplace( args.response ?: "", "^""(.*?)""$", "\1" );
 
 		if ( Len( Trim( fileName ) ) && fileName != "{}" ) {
 			var downloadLink = event.buildLink(
