@@ -1,10 +1,6 @@
 /**
- * @feature                      formbuilder
- * @versioned                    false
- * @datamanagerEnabled           true
- * @datamanagerAllowedOperations list,read
- * @dataExportFields             id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name
- * @minimalGridFields            submitted_by,response,datecreated
+ * @feature   formbuilder
+ * @versioned false
  */
 component displayname="Form builder: global question response" extends="preside.system.base.SystemPresideObject" {
 	property name="label" formula="${prefix}question.field_label" adminRenderer="none";
