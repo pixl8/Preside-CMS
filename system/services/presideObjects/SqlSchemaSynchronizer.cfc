@@ -56,7 +56,7 @@ component {
 				tableVersionExists = StructKeyExists( versions, "table" ) and StructKeyExists( versions.table, obj.meta.tableName );
 				tableExists        = tableVersionExists or _getTableInfo( tableName=obj.meta.tableName, dsn=obj.meta.dsn ).recordCount;
 
-				if( StructKeyExists( obj.meta, "dbsync" ) and not obj.meta.dbsync ) {
+				if ( _skipSync( obj.meta ) ) {
 					// skip dbsync for this object
 					continue;
 				}
@@ -161,10 +161,7 @@ component {
 		,          struct relationships = {}
 
 	) {
-		var versions       = _getVersionsOfDatabaseObjects( [arguments.dsn] );
-		var dbTable        = _getTableInfo( tableName=arguments.tableName, dsn=arguments.dsn );
 		var columnsFromDb  = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
-		var indexesFromDb  = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
 		var adapter        = _getAdapter( dsn = arguments.dsn );
 		var columnSql      = "";
 		var colName        = "";
@@ -201,7 +198,7 @@ component {
 			column.definitionSql = adapter.getColumnDefinitionSql( argumentCollection = args );
 			column.alterSql      = adapter.getAlterColumnSql( argumentCollection = args );
 			column.addSql        = adapter.getAddColumnSql( argumentCollection = args );
-			if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ) {
+			if ( _skipSync( colMeta ) ) {
 				dbColumn = QueryFilter( columnsFromDb, function( col ) {
 					return col.column_name == colName;
 				});
@@ -239,15 +236,15 @@ component {
 			if( ListLen( index.fields ) eq 1 ) {
 				// If index is related to only a single field
 				colMeta = arguments.properties[ index.fields ];
-				if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ) {
+				if ( _skipSync( colMeta ) ) {
 					// skip dbsync for this index
 					continue;
 				}
 			}
 			if ( indexName != validIndexName ) {
-			    arguments.indexes[ validIndexName ] = index;
-			    arguments.indexes.delete( indexName );
-			    indexName = validIndexName;
+				arguments.indexes[ validIndexName ] = index;
+				arguments.indexes.delete( indexName );
+				indexName = validIndexName;
 			}
 
 			sql.indexes[ indexName ] = {
@@ -269,7 +266,7 @@ component {
 		for( fkName in arguments.relationships ){
 			fk = arguments.relationships[ fkName ];
 			colMeta = arguments.properties[ fk.fk_column ];
-			if( StructKeyExists( colMeta, "dbsync" ) and not colMeta.dbsync ) {
+			if ( _skipSync( colMeta ) ) {
 				// skip dbsync for this fk
 				continue;
 			}
@@ -800,5 +797,8 @@ component {
 	}
 	private void function _setAutoRestoreDeprecatedFields( required boolean autoRestoreDeprecatedFields ) {
 		_autoRestoreDeprecatedFields = arguments.autoRestoreDeprecatedFields;
+	}
+	private boolean function _skipSync( required struct meta ) {
+		return IsBoolean( arguments.meta.dbsync ?: "" ) && !arguments.meta.dbsync;
 	}
 }
