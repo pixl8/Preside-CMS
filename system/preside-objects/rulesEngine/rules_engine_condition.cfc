@@ -22,6 +22,10 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 	property name="user_groups"   relatedTo="security_group"             relationship="many-to-many" relatedVia="rules_filter_user_group";
 	property name="filter_folder" relatedTo="rules_engine_filter_folder" relationship="many-to-one";
 
+	property name="is_locked"     type="boolean" dbtype="boolean"  required=false default=false;
+	property name="locked_reason" type="string"  dbtype="text"     required=false renderer="plaintext";
+	property name="locked_by"     relatedTo="security_user" relationship="many-to-one";
+
 	// helper formula fields for displays
 	property name="kind" type="string" formula="case when ${prefix}filter_object is null then 'condition' else 'filter' end" autofilter="false" renderer="enumlabel" enum="rulesEngineConditionType" control="none";
 	property name="applies_to" type="string" formula="coalesce( ${prefix}filter_object, ${prefix}context )" renderer="rulesEngineAppliesTo"  autofilter="false" control="none";
