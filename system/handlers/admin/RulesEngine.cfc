@@ -152,6 +152,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.modalClasses = "modal-dialog-less-padding";
 
 		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
+
+		event.include( "/js/admin/specific/rulesEngine/lockingform/" )
 		if ( prc.record.recordCount ) {
 			prc.record       = queryRowToStruct( prc.record );
 			rc.context       = prc.record.context;
@@ -251,6 +253,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function quickEditFilterForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
 		event.include( "/js/admin/specific/datamanager/quickEditForm/" )
+		     .include( "/js/admin/specific/rulesEngine/lockingform/" )
 		     .include( "/js/admin/specific/saveFilterForm/" );
 
 		prc.contextData  = {};
