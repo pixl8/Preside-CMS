@@ -6,19 +6,19 @@ component {
 		args.ruleContext = args.ruleContext ?: ( rc.context ?: "" );
 		args.object      = rc.filter_object ?: "";
 
+		if ( isTrue( args.readonly ?: "" ) ) {
+			return renderContent(
+				  renderer = "rulesEngineConditionReadOnly"
+				, data = args.defaultValue ?: ""
+				, args = args
+			);
+		}
 		if ( !args.ruleContext.len() && args.object.len() ) {
 			return runEvent(
 				  event          = "formcontrols.RulesEngineFilterBuilder.index"
 				, eventArguments = { args=args }
 				, private        = true
 				, prePostExempt  = true
-			);
-		}
-		if ( isTrue( args.readonly ?: "" ) ) {
-			return renderContent(
-				  renderer = "rulesEngineConditionReadOnly"
-				, data = args.defaultValue ?: ""
-				, args = args
 			);
 		}
 		args.expressions = expressionService.listExpressions( args.ruleContext );

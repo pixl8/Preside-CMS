@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 	property name="customizationService"        inject="dataManagerCustomizationService";
 	property name="datamanagerService"          inject="datamanagerService";
+	property name="formsService"                inject="formsService";
 
 // PERMISSIONS
 	private boolean function checkPermission( event, rc, prc, args={} ) {
@@ -366,7 +367,6 @@ component extends="preside.system.base.AdminHandler" {
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
 		var formName = "";
 
-
 		if ( Len( Trim( prc.record.filter_object ?: "" ) ) ) {
 			rc.filter_object = prc.record.filter_object ?: "";
 			event.include( "/js/admin/specific/saveFilterForm/" );
@@ -377,9 +377,9 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( IsTrue( prc.record.is_locked ?: "" ) ) {
-			formName &= ".locked";
+			prc.readOnly = !Len( Trim( prc.record.filter_object ?: "" ) );
+			formName = formsService.getMergedFormName( formName, formName & ".locked" );
 		}
-
 
 		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
 		return formName;
