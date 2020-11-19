@@ -5,7 +5,7 @@
  *
  * @labelfield condition_name
  * @datamanagerEnabled true
- * @dataManagerGridFields kind,condition_name,applies_to,filter_sharing_scope,owner,datemodified
+ * @dataManagerGridFields kind,is_locked,condition_name,applies_to,filter_sharing_scope,owner,datemodified
  * @datamanagerDisallowedOperations read,clone,viewversions,batchdelete,batchedit
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Rules engine: condition" {
@@ -22,7 +22,7 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 	property name="user_groups"   relatedTo="security_group"             relationship="many-to-many" relatedVia="rules_filter_user_group";
 	property name="filter_folder" relatedTo="rules_engine_filter_folder" relationship="many-to-one";
 
-	property name="is_locked"     type="boolean" dbtype="boolean"  required=false default=false;
+	property name="is_locked"     type="boolean" dbtype="boolean"  required=false default=false indexes="locked" renderer="conditionLock";
 	property name="locked_reason" type="string"  dbtype="text"     required=false renderer="plaintext";
 	property name="locked_by"     relatedTo="security_user" relationship="many-to-one";
 
