@@ -136,6 +136,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.modalClasses = "modal-dialog-less-padding";
 		prc.contextData  = {};
 
+		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
+
 		try {
 			prc.contextData = DeSerializeJson( rc.contextData ?: "" );
 			if ( !IsStruct( prc.contextData ) ) {
@@ -240,6 +242,7 @@ component extends="preside.system.base.AdminHandler" {
 		} catch( any e ) {}
 
 		event.include( "/js/admin/specific/datamanager/quickAddForm/" )
+		     .include( "/js/admin/specific/rulesEngine/lockingform/" )
 		     .include( "/js/admin/specific/saveFilterForm/" );
 
 		event.setView( view="/admin/rulesEngine/quickAddFilterForm", layout="adminModalDialog" );
@@ -272,7 +275,8 @@ component extends="preside.system.base.AdminHandler" {
 	public void function superQuickAddFilterForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
 		event.include( "/js/admin/specific/datamanager/quickAddForm/" )
-		     .include( "/js/admin/specific/saveFilterForm/" );
+		     .include( "/js/admin/specific/saveFilterForm/" )
+		     .include( "/js/admin/specific/rulesEngine/lockingform/" );
 		event.setView( view="/admin/rulesEngine/superQuickAddFilterForm", layout="adminModalDialog" );
 	}
 

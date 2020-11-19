@@ -244,6 +244,8 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !IsStruct( prc.context ?: "" ) ) {
 			event.notFound();
 		}
+
+		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
 	}
 
 	private void function preAddRecordAction( event, rc, prc, args={} ){
@@ -367,6 +369,8 @@ component extends="preside.system.base.AdminHandler" {
 			event.include( "/js/admin/specific/saveFilterForm/" );
 			return "preside-objects.rules_engine_condition.admin.edit.filter";
 		}
+
+		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
 
 		rc.context = prc.record.context ?: "";
 		return "preside-objects.rules_engine_condition.admin.edit";
