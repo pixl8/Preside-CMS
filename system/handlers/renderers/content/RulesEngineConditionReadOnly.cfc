@@ -5,6 +5,8 @@ component {
 		args.ruleContext  = args.ruleContext  ?: "";
 		args.filterObject = args.filterObject ?: "";
 
+		event.include( "/css/admin/specific/rulesengine/readyOnlyExpressions/" );
+
 		if ( Len( Trim( args.expressions ) ) ) {
 			try {
 				args.expressions = DeSerializeJson( args.expressions )

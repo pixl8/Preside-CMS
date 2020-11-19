@@ -18,11 +18,14 @@ component {
 			var rendered = expression.text;
 
 			for( var fieldName in expressionFields ) {
-				rendered = replace( rendered, "{#fieldName#}", '<strong class="rules-engine-expression-value">' & fieldTypeService.renderConfiguredField(
+				var renderedField = fieldTypeService.renderConfiguredField(
 					  fieldType          = expression.fields[ fieldName ].fieldType ?: "text"
 					, value              = expressionFields[ fieldName ]
 					, fieldConfiguration = expression.fields[ fieldName ] ?: {}
-				) & '</strong>' );
+				);
+				var fieldClass = fieldName.startsWith( "_" ) ? "rules-engine-expression-system-value" : "rules-engine-expression-value";
+
+				rendered = replace( rendered, "{#fieldName#}", '<span class="#fieldClass#">#renderedField#</span>' );
 			}
 		} catch( preside.rule.expression.not.found e ) {
 			logError( e );

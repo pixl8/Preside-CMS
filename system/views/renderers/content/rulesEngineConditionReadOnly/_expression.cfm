@@ -6,7 +6,9 @@
 </cfscript>
 <cfoutput>
 	<cfif IsSimpleValue( expression )>
-		<li class="rules-engine-join rules-engine-#LCase( expression )#">#translateResource( "cms:rulesEngine.join.#LCase( expression )#" )#</li>
+		<li class="rules-engine-join rules-engine-#LCase( expression )#">
+			#translateResource( "cms:rulesEngine.join.#LCase( expression )#" )#
+		</li>
 	<cfelseif IsArray( expression )>
 		<li class="rules-engine-expression-group">
 			<ul class="rules-engine-expressions-read-only-sub-expressions" data-depth="#depth+1#">
