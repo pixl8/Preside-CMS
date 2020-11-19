@@ -380,7 +380,6 @@ component extends="preside.system.base.AdminHandler" {
 
 	private void function preEditRecordAction( event, rc, prc, args={} ){
 		var formData = args.formData ?: {};
-		var stuff = event.getCollectionWithoutSystemVars();
 
 		_conditionToFilterCheck( argumentCollection=arguments, action="edit", formData=formData );
 
