@@ -14,9 +14,14 @@ component {
 				, prePostExempt  = true
 			);
 		}
-
+		if ( isTrue( args.readonly ?: "" ) ) {
+			return renderContent(
+				  renderer = "rulesEngineConditionReadOnly"
+				, data = args.defaultValue ?: ""
+				, args = args
+			);
+		}
 		args.expressions = expressionService.listExpressions( args.ruleContext );
-
 		var fieldId = args.id ?: "";
 		var expressionData = {
 			"filter-builder-#fieldId#" = {

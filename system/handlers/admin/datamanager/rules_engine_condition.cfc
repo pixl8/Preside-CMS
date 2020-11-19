@@ -364,18 +364,25 @@ component extends="preside.system.base.AdminHandler" {
 
 // EDITING RECORDS
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
-		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
+		var formName = "";
+
 
 		if ( Len( Trim( prc.record.filter_object ?: "" ) ) ) {
 			rc.filter_object = prc.record.filter_object ?: "";
 			event.include( "/js/admin/specific/saveFilterForm/" );
-			return "preside-objects.rules_engine_condition.admin.edit.filter";
+			formName = "preside-objects.rules_engine_condition.admin.edit.filter";
+		} else {
+			rc.context = prc.record.context ?: "";
+			formName = "preside-objects.rules_engine_condition.admin.edit";
 		}
 
-		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
+		if ( IsTrue( prc.record.is_locked ?: "" ) ) {
+			formName &= ".locked";
+		}
 
-		rc.context = prc.record.context ?: "";
-		return "preside-objects.rules_engine_condition.admin.edit";
+
+		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
+		return formName;
 	}
 
 	private void function preEditRecordAction( event, rc, prc, args={} ){
