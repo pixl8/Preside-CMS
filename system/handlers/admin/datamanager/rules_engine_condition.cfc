@@ -387,6 +387,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
 		if ( IsTrue( args.record.is_locked ?: "" ) ) {
+			args.canUnlock = hasCmsPermission( "rulesengine.unlock" );
+			if ( args.canUnlock ) {
+				args.unlockLink = event.buildAdminLink( linkto="datamanager.rules_engine_condition.unlockAction", queryString="id=#prc.recordId#" );
+			}
+
 			return renderView( view="/admin/datamanager/rules_engine_condition/_lockedMessage", args=args );
 		}
 
