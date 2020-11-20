@@ -215,6 +215,7 @@ component {
 	public array function prepareFilterForUserLatestResponseToChoiceField(
 		  required string  question
 		, required string  value
+		,          string  formId             = ""
 		,          boolean _all               = true
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""
@@ -224,15 +225,21 @@ component {
 		var values         = arguments.value.listToArray();
 		var params         = {
 			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
-			, "response#paramSuffix#" = { value=arguments.value, type="cf_sql_varchar", list=true }
+			, "response#paramSuffix#" = { value=arguments.value   , type="cf_sql_varchar", list=true }
+			, "form#paramSuffix#"     = { value=arguments.formId  , type="cf_sql_varchar" }
 		};
 
 		var responseQueryAlias  = "responseQuery" & paramSuffix;
-		var latestQueryFilter   = "question = :question#paramSuffix# and response>'' ";
+		var latestQueryFilter   = "question = :question#paramSuffix# and response > '' ";
+
+		if ( Len( Trim( arguments.formId ) ) ) {
+			latestQueryFilter &= " and submission.form = :form#paramSuffix#";
+		}
+
 		var latestQueryAlias    = "latestQuery" & paramSuffix;
 		var latestQuery         = $getPresideObject( "formbuilder_question_response" ).selectData(
-			  selectFields        = [ "Max( datemodified ) as datemodified, website_user" ]
-			, groupBy             = "website_user"
+			  selectFields        = [ "Max( formbuilder_question_response.datemodified ) as datemodified, formbuilder_question_response.website_user" ]
+			, groupBy             = "formbuilder_question_response.website_user"
 			, filter              = latestQueryFilter
 			, getSqlAndParamsOnly = true
 		);

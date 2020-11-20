@@ -10,12 +10,14 @@ component {
 	 /**
 	 * @question.fieldtype      formbuilderQuestion
 	 * @question.objectFilters  formbuilderMultiChoiceFields
+	 * @formId.fieldtype        formbuilderForm
 	 * @value.fieldtype         formbuilderQuestionChoiceValue
 	 */
 	private boolean function evaluateExpression(
 		  required string question
 		, required string value
-		,          string  _all = false
+		,          string formId = ""
+		,          string  _all  = false
 	) {
 		var userId = payload.user.id ?: "";
 
@@ -38,6 +40,7 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required string  value
+		,          string  formId             = ""
 		,          boolean _all               = false
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""
