@@ -7,28 +7,28 @@
  */
 component {
 
-	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
-	property name="formBuilderService"         inject="formBuilderService";
-	property name="formBuilderFilterService"   inject="formBuilderFilterService";
+	property name="formBuilderFilterService" inject="formBuilderFilterService";
 
 	/**
 	 * @question.fieldtype  formbuilderQuestion
 	 * @question.item_type  fileUpload
-	 *
 	 */
 	private boolean function evaluateExpression(
 		  required string  question
 		,          boolean _has = true
-
 	) {
-		var filter = prepareFilters( argumentCollection = arguments	) ;
+		var userId = payload.user.id ?: "";
+
+		if ( !userId.len() ) {
+			return false;
+		}
 
 		return formBuilderFilterService.evaluateQuestionSubmissionResponseMatch(
 			  argumentCollection = arguments
-			, userId             = payload.user.id
+			, userId             = userId
 			, formId             = payload.formId ?: ""
 			, submissionId       = payload.submissionId ?: ""
-			, extraFilters       = filter
+			, extraFilters       = prepareFilters( argumentCollection=arguments );
 		);
 	}
 

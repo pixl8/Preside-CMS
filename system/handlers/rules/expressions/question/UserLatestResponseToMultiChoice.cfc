@@ -5,15 +5,12 @@
  */
 component {
 
-	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
-	property name="formBuilderService"         inject="formBuilderService";
-	property name="formBuilderFilterService"   inject="formBuilderFilterService";
+	property name="formBuilderFilterService" inject="formBuilderFilterService";
 
 	 /**
 	 * @question.fieldtype      formbuilderQuestion
 	 * @question.objectFilters  formbuilderMultiChoiceFields
 	 * @value.fieldtype         formbuilderQuestionChoiceValue
-	 *
 	 */
 	private boolean function evaluateExpression(
 		  required string question
@@ -26,14 +23,12 @@ component {
 			return false;
 		}
 
-		var filter = prepareFilters( argumentCollection = arguments	);
-
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
 			, userId             = userId
 			, formId             = payload.formId ?: ""
 			, submissionId       = payload.submissionId ?: ""
-			, extraFilters       = filter
+			, extraFilters       = prepareFilters( argumentCollection=arguments );
 		);
 	}
 
