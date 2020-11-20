@@ -5,7 +5,8 @@
 	formId      = "addForm-" & CreateUUId();
 	conditionId = rc.id ?: "";
 	isFilter    = Len( Trim( prc.record.filter_object ?: "" ) );
-	formName    = "preside-objects.rules_engine_condition.admin.quickedit" & ( isFilter ? ".filter" : "" );
+	isLocked    = IsTrue( prc.record.is_locked ?: "" );
+	formName    = prc.formName ?: "";
 </cfscript>
 
 <cfoutput>

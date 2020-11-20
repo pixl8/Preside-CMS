@@ -6,6 +6,14 @@ component {
 		args.expressions = Len( Trim( args.object ) ) ? expressionService.listExpressions( filterObject=args.object ) : [];
 		args.isFilter    = true;
 
+		if ( isTrue( args.readonly ?: "" ) ) {
+			return renderContent(
+				  renderer = "rulesEngineConditionReadOnly"
+				, data = args.defaultValue ?: ""
+				, args = args
+			);
+		}
+
 		var fieldId = args.id ?: "";
 		var expressionData = {
 			"filter-builder-#fieldId#" = {

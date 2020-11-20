@@ -7,6 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"          inject="dataManagerService";
 	property name="messageBox"                  inject="messagebox@cbmessagebox";
 	property name="presideObjectService"        inject="PresideObjectService";
+	property name="formsService"                inject="formsService";
 
 	public string function ajaxRenderField( event, rc, prc ) {
 		var fieldConfig = event.getCollectionWithoutSystemVars();
@@ -153,20 +154,28 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
 
+		event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
 		event.include( "/js/admin/specific/rulesEngine/lockingform/" )
+
+		prc.formName = "preside-objects.rules_engine_condition.admin.quickedit";
+
 		if ( prc.record.recordCount ) {
 			prc.record       = queryRowToStruct( prc.record );
 			rc.context       = prc.record.context;
 			rc.filter_object = prc.record.filter_object;
 
 			if ( Len( Trim( rc.filter_object ?: "" ) ) ) {
-				event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
-			} else {
-				event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
+				prc.formName &= ".filter";
+			}
+
+			if ( IsTrue( prc.record.is_locked ) ) {
+				prc.formName = formsService.getMergedFormName(
+					  formName          = prc.formName
+					, mergeWithFormName = prc.formName & ".locked"
+				);
 			}
 		} else {
 			prc.record = {};
-			event.setView( view="/admin/rulesEngine/quickEditConditionForm", layout="adminModalDialog" );
 		}
 	}
 
@@ -199,21 +208,31 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickEditConditionAction( event, rc, prc ) {
 		var object      = "rules_engine_condition";
-		var formName    = "preside-objects.#object#.admin.quickedit";
-		var formData    = event.getCollectionForForm( formName );
 		var conditionId = rc.id ?: "";
 		var record      = rulesEngineConditionService.getConditionRecord( conditionId );
+		var formName    = "preside-objects.#object#.admin.quickedit";
 
 		_checkPermissions( argumentCollection=arguments, key="edit" );
 		if ( !record.recordCount ) {
 			event.notFound();
 		}
 
+		if ( Len( Trim( record.filter_object ?: "" ) ) ) {
+			formName &= ".filter";
+		}
+
+		if ( IsTrue( record.is_locked ) ) {
+			formName = formsService.getMergedFormName(
+				  formName          = formName
+				, mergeWithFormName = formName & ".locked"
+			);
+		}
+		var formData = event.getCollectionForForm( formName );
+
 		if ( Len( Trim( record.filter_object ) ) || !_conditionToFilterCheck( argumentCollection=arguments, action="quickedit", formData=formData, ajax=true ) ) {
 			if ( Len( Trim( record.filter_object ) ) || ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
 				rc.context = "";
 
-				formName = "preside-objects.#object#.admin.quickedit.filter";
 				formName = "preside-objects.#object#.admin.quickedit.filter";
 			} else {
 				rc.filter_object = "";
@@ -272,6 +291,14 @@ component extends="preside.system.base.AdminHandler" {
 			prc.record = {};
 		}
 
+		prc.formName = "preside-objects.rules_engine_condition.admin.quickedit.filter";
+		if ( IsTrue( prc.record.is_locked ?: "" ) ) {
+			prc.formName = formsService.getMergedFormName(
+				  formName          = prc.formName
+				, mergeWithFormName = prc.formName & ".locked"
+			)
+		}
+
 		event.setView( view="/admin/rulesEngine/quickEditFilterForm", layout="adminModalDialog" );
 	}
 
@@ -296,13 +323,24 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function quickEditFilterAction( event, rc, prc ) {
+		var conditionId = rc.id ?: "";
+		var record      = rulesEngineConditionService.getConditionRecord( conditionId );
+		var formName    = "preside-objects.rules_engine_condition.admin.quickedit.filter";
+
+		if ( IsTrue( record.is_locked ?: "" ) ) {
+			formName = formsService.getMergedFormName(
+				  formName          = formName
+				, mergeWithFormName = formName & ".locked"
+			)
+		}
+
 		runEvent(
 			  event          = "admin.DataManager._quickEditRecordAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
 				  object         = "rules_engine_condition"
-				, formName       = "preside-objects.rules_engine_condition.admin.quickedit.filter"
+				, formName       = formName
 			  }
 		);
 	}
