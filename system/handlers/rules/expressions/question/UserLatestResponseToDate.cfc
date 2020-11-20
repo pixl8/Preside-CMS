@@ -10,11 +10,13 @@ component {
 	/**
 	 * @question.fieldtype  formbuilderQuestion
 	 * @question.item_type  date
+	 * @formId.fieldtype    formbuilderForm
 	 * @_time.isDate
 	 */
 	private boolean function evaluateExpression(
 		  required string question
-		,          struct _time = {}
+		,          string formId = ""
+		,          struct _time  = {}
 	) {
 		var userId = payload.user.id ?: "";
 
@@ -36,6 +38,7 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string question
+		,          string formId              = ""
 		,          struct _time               = {}
 		,          string parentPropertyName  = ""
 		,          string filterPrefix        = ""

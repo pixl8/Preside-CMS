@@ -10,10 +10,12 @@ component {
 	/**
 	 * @question.fieldtype  formbuilderQuestion
 	 * @question.item_type  textinput,textarea,email
+	 * @formId.fieldtype    formbuilderForm
 	 */
 	private boolean function evaluateExpression(
 		  required string question
 		, required string value
+		,          string formId
 		,          string  _stringOperator = "eq"
 	) {
 		var userId = payload.user.id ?: "";
@@ -37,7 +39,8 @@ component {
 	private array function prepareFilters(
 		  required string question
 		, required string value
-		,          string _stringOperator = "contains"
+		,          string formId             = ""
+		,          string _stringOperator    = "contains"
 		,          string parentPropertyName = ""
 		,          string filterPrefix       = ""
 	) {

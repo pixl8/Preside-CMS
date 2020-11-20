@@ -8,10 +8,12 @@ component {
 	property name="formBuilderFilterService" inject="formBuilderFilterService";
 
 	/**
-	 * @question.fieldtype  formbuilderQuestion
+	 * @question.fieldtype formbuilderQuestion
+	 * @formId.fieldtype   formbuilderForm
 	 */
 	private boolean function evaluateExpression(
 		  required string question
+		,          string formId = ""
 		,          boolean _has = true
 	) {
 		var userId = payload.user.id ?: "";
@@ -34,7 +36,8 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string  question
-		,          boolean _has              = true
+		,          string  formId             = ""
+		,          boolean _has               = true
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""
 	) {

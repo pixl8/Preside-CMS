@@ -9,11 +9,13 @@ component {
 
 	/**
 	 * @question.fieldtype  formbuilderQuestion
+	 * @formId.fieldtype    formbuilderForm
 	 * @question.item_type  number
 	 */
 	private boolean function evaluateExpression(
 		  required string  question
 		, required numeric value
+		,          string  formId           = ""
 		,          string  _numericOperator = "eq"
 	) {
 		var userId = payload.user.id ?: "";
@@ -37,7 +39,8 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required numeric value
-		,          string  _numericOperator = "eq"
+		,          string  formId             = ""
+		,          string  _numericOperator   = "eq"
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""
 	) {

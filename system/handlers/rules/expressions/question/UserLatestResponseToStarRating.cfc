@@ -10,11 +10,13 @@ component {
 	/**
 	 * @question.fieldtype  formbuilderQuestion
 	 * @question.item_type  starRating
+	 * @formId.fieldtype    formbuilderForm
 	 * @value.fieldtype     formbuilderQuestionStarRatingValue
 	 */
 	private boolean function evaluateExpression(
 		  required string  question
 		, required numeric value
+		,          string  formId           = ( payload.formId ?: "" )
 		,          string  _numericOperator = "eq"
 	) {
 		var userId = payload.user.id ?: "";
@@ -26,7 +28,7 @@ component {
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
 			, userId             = userId
-			, formId             = payload.formId ?: ""
+			, formId             = arguments.formid
 			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
@@ -38,7 +40,8 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required numeric value
-		,          string  _numericOperator = "eq"
+		,          string  formId             = ""
+		,          string  _numericOperator   = "eq"
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""
 	) {
