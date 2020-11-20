@@ -69,13 +69,14 @@ component extends="preside.system.base.AdminHandler" {
 			contextAndObjectFilter.filterParams[ "rules_engine_condition.filter_object" ] = validFilterObjects;
 		}
 
-		var records       = dataManagerService.getRecordsForAjaxSelect(
-			  objectName   = "rules_engine_condition"
-			, maxRows      = rc.maxRows ?: 1000
-			, searchQuery  = rc.q       ?: ""
-			, extraFilters = [ contextAndObjectFilter ]
-			, savedFilters = [ "globalRulesEngineFilters" ]
-			, ids          = ListToArray( rc.values ?: "" )
+		var records = dataManagerService.getRecordsForAjaxSelect(
+			  objectName    = "rules_engine_condition"
+			, maxRows       = rc.maxRows ?: 1000
+			, searchQuery   = rc.q       ?: ""
+			, extraFilters  = [ contextAndObjectFilter ]
+			, savedFilters  = [ "globalRulesEngineFilters" ]
+			, ids           = ListToArray( rc.values ?: "" )
+			, labelRenderer = "rules_engine_condition"
 		);
 
 		event.renderData( type="json", data=records );
@@ -84,12 +85,13 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getFiltersForAjaxSelectControl() {
 		var filterObject  = rc.filterObject ?: "";
 		var records       = dataManagerService.getRecordsForAjaxSelect(
-			  objectName   = "rules_engine_condition"
-			, maxRows      = rc.maxRows ?: 1000
-			, searchQuery  = rc.q       ?: ""
-			, savedFilters = [ "globalRulesEngineFilters" ]
-			, extraFilters = [ { filter={ "rules_engine_condition.filter_object" = filterObject } } ]
-			, ids          = ListToArray( rc.values ?: "" )
+			  objectName    = "rules_engine_condition"
+			, maxRows       = rc.maxRows ?: 1000
+			, searchQuery   = rc.q       ?: ""
+			, savedFilters  = [ "globalRulesEngineFilters" ]
+			, extraFilters  = [ { filter={ "rules_engine_condition.filter_object" = filterObject } } ]
+			, ids           = ListToArray( rc.values ?: "" )
+			, labelRenderer = "rules_engine_condition"
 		);
 
 		event.renderData( type="json", data=records );

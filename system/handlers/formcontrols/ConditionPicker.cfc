@@ -5,7 +5,8 @@ component  {
 		var multiple            = IsTrue( args.multiple ?: "" );
 		var prefetchCacheBuster = CreateUUId();
 
-		args.object    = "rules_engine_condition";
+		args.object        = "rules_engine_condition";
+		args.labelrenderer = "rules_engine_condition";
 		args.remoteUrl = event.buildAdminLink(
 			  linkTo      = "rulesengine.getConditionsForAjaxSelectControl"
 			, querystring = "context=#context#&q=%QUERY"
