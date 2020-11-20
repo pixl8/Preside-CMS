@@ -10,11 +10,13 @@ component {
 	/**
 	 * @question.fieldtype      formbuilderQuestion
 	 * @question.objectFilters  formbuilderSingleChoiceFields
+	 * @formId.fieldtype        formbuilderForm
 	 * @value.fieldtype         formbuilderQuestionChoiceValue
 	 */
 	private boolean function evaluateExpression(
 		  required string question
 		, required string value
+		,          string formId = ( payload.formId ?: "" )
 	) {
 		var userId = payload.user.id ?: "";
 
@@ -25,7 +27,7 @@ component {
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
 			, userId             = userId
-			, formId             = payload.formId ?: ""
+			, formId             = arguments.formId
 			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
@@ -37,6 +39,7 @@ component {
 	private array function prepareFilters(
 		  required string question
 		, required string value
+		,          string formId
 		,          string parentPropertyName = ""
 		,          string filterPrefix       = ""
 	) {
