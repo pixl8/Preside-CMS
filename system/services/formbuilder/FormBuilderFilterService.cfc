@@ -553,6 +553,7 @@ component {
 
 	public array function prepareFilterForUserHasRespondedToQuestion(
 		  required string  question
+		,          string  formId             = ""
 		,          boolean _has               = true
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""
@@ -562,13 +563,19 @@ component {
 		var params         = {
 			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
 		};
+		var responseQueryFilter = " response > '' and response <> '{}' and question = :question#paramSuffix# ";
+		if ( Len( Trim( arguments.formid ) ) ) {
+			responseQueryFilter &= " and submission.form = :form#paramSuffix#";
+			params[ "form#paramSuffix#" ] = { value=arguments.formId, type="cf_sql_varchar" };
+		}
 
 		var responseQueryAlias = "responseQuery" & paramSuffix;
 		var responseQuery      = $getPresideObject( "formbuilder_question_response" ).selectData(
 			  selectFields        = [ "website_user" ]
-			, filter              = " response>'' and response <> '{}' and question = :question#paramSuffix# "
+			, filter              = responseQueryFilter
 			, getSqlAndParamsOnly = true
 		);
+
 
 		for( var param in responseQuery.params ) {
 			params[ param.name ] = { value=param.value, type=param.type };
