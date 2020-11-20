@@ -25,7 +25,7 @@ component {
 			, userId             = userId
 			, formId             = payload.formId ?: ""
 			, submissionId       = payload.submissionId ?: ""
-			, extraFilters       = prepareFilters( argumentCollection=arguments );
+			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
 	}
 
