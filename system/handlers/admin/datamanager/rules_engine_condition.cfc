@@ -385,6 +385,14 @@ component extends="preside.system.base.AdminHandler" {
 		return formName;
 	}
 
+	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
+		if ( IsTrue( args.record.is_locked ?: "" ) ) {
+			return renderView( view="/admin/datamanager/rules_engine_condition/_lockedMessage", args=args );
+		}
+
+		return "";
+	}
+
 	private void function preEditRecordAction( event, rc, prc, args={} ){
 		var formData = args.formData ?: {};
 
