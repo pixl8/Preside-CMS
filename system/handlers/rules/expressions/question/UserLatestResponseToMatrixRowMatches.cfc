@@ -10,6 +10,7 @@ component {
 	 /**
 	 * @question.fieldtype  formbuilderQuestion
 	 * @question.item_type  matrix
+	 * @formId.fieldtype    formbuilderForm
 	 * @row.fieldtype       formbuilderQuestionMatrixRow
 	 * @value.fieldtype     formbuilderQuestionMatrixCol
 	 */
@@ -17,7 +18,8 @@ component {
 		  required string question
 		, required string row
 		, required string value
-		,          string  _all = false
+		,          string formId = ( payload.formId ?: "" )
+		,          string _all   = false
 	) {
 		var userId = payload.user.id ?: "";
 
@@ -28,7 +30,7 @@ component {
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
 			, userId             = userId
-			, formId             = payload.formId ?: ""
+			, formId             = arguments.formId
 			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
@@ -40,6 +42,7 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required string  value
+		,          string  formId             = ""
 		,          boolean _all               = false
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""

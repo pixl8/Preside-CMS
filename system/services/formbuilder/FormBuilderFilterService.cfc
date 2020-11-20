@@ -50,8 +50,9 @@ component {
 
 
 	public array function prepareFilterForUserLatestResponseMatrixAnyRowMatches(
-		required string question
+		  required string question
 		, required string value
+		,          string formId             = ""
 		,          boolean _all              = false
 		,          string parentPropertyName = ""
 		,          string filterPrefix       = ""
@@ -59,10 +60,14 @@ component {
 		var paramSuffix         = _getRandomFilterParamSuffix();
 		var responseQueryAlias  = "responseCount" & paramSuffix;
 		var overallFilter       = "#responseQueryAlias#.response_count >= 1 ";
-		var params              = { "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" } };
+		var params              = {
+			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
+			, "form#paramSuffix#" = { value=arguments.formId, type="cf_sql_varchar" }
+		};
 
 		return _prepareFilterForLatestResponseMatrixMatches(
 			  value              = arguments.value
+			, formId             = arguments.formId
 			, _all               = arguments._all
 			, responseQueryAlias = responseQueryAlias
 			, initialParams      = params
@@ -74,8 +79,9 @@ component {
 	}
 
 	public array function prepareFilterForUserLatestResponseMatrixAllRowsMatch(
-		required string question
+		  required string question
 		, required string value
+		,          string formId             = ""
 		,          boolean _all              = false
 		,          string parentPropertyName = ""
 		,          string filterPrefix       = ""
@@ -88,10 +94,14 @@ component {
 		var paramSuffix         = _getRandomFilterParamSuffix();
 		var responseQueryAlias  = "responseCount" & paramSuffix;
 		var overallFilter       = "#responseQueryAlias#.response_count >= #totalRows# ";
-		var params              = { "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" } };
+		var params              = {
+			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
+			, "form#paramSuffix#"     = { value=arguments.formId  , type="cf_sql_varchar" }
+		};
 
 		return _prepareFilterForLatestResponseMatrixMatches(
 			  value              = arguments.value
+			, formId             = arguments.formId
 			, _all               = arguments._all
 			, responseQueryAlias = responseQueryAlias
 			, initialParams      = params
@@ -105,6 +115,7 @@ component {
  		  required string question
 		, required string row
 		, required string value
+		,          string formId             = ""
 		,          boolean _all              = false
 		,          string parentPropertyName = ""
 		,          string filterPrefix       = ""
@@ -114,11 +125,13 @@ component {
 		var overallFilter       = "#responseQueryAlias#.response_count >= 1 ";
 		var params              = {
 			  "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" }
-			, "row#paramSuffix#"      = { value=arguments.row, type="cf_sql_varchar" }
+			, "form#paramSuffix#"     = { value=arguments.formId  , type="cf_sql_varchar" }
+			, "row#paramSuffix#"      = { value=arguments.row     , type="cf_sql_varchar" }
 		};
 
 		return _prepareFilterForLatestResponseMatrixMatches(
 			  value              = arguments.value
+			, formId             = arguments.formId
 			, _all               = arguments._all
 			, responseQueryAlias = responseQueryAlias
 			, initialParams      = params
@@ -1016,6 +1029,7 @@ component {
 
 	private array function _prepareFilterForLatestResponseMatrixMatches(
 		  required string value
+		, required string formId
 		, required string _all
 		, required string filterPrefix
 		, required string parentPropertyName
@@ -1050,11 +1064,15 @@ component {
 		}
 
 
-		var latestQueryFilter = "question = :question#paramSuffix# and response>'' ";
+		var latestQueryFilter = "question = :question#paramSuffix# and response > '' ";
+
+		if ( Len( Trim( arguments.formId ) ) ) {
+			latestQueryFilter &= " and submission.form = :form#paramSuffix#";
+		}
 
 		var latestQuery       = $getPresideObject( "formbuilder_question_response" ).selectData(
-			  selectFields        = [ "Max( datemodified ) as datemodified, website_user" ]
-			, groupBy             = "website_user"
+			  selectFields        = [ "Max( formbuilder_question_response.datemodified ) as datemodified, formbuilder_question_response.website_user" ]
+			, groupBy             = "formbuilder_question_response.website_user"
 			, filter              = latestQueryFilter
 			, getSqlAndParamsOnly = true
 		);
