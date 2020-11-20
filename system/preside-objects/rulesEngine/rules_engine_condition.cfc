@@ -24,7 +24,6 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 
 	property name="is_locked"     type="boolean" dbtype="boolean"  required=false default=false indexes="locked" renderer="conditionLock";
 	property name="locked_reason" type="string"  dbtype="text"     required=false renderer="plaintext";
-	property name="locked_by"     relatedTo="security_user" relationship="many-to-one";
 
 	// helper formula fields for displays
 	property name="kind" type="string" formula="case when ${prefix}filter_object is null then 'condition' else 'filter' end" autofilter="false" renderer="enumlabel" enum="rulesEngineConditionType" control="none";

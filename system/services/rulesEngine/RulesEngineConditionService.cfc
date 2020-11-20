@@ -127,6 +127,17 @@ component displayName="RulesEngine Condition Service" {
 		return $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
 	}
 
+	/**
+	 * Unlocks a previously locked condition/filter.
+	 *
+	 */
+	public boolean function unlockCondition( required string conditionId ) {
+		return $getPresideObject( "rules_engine_condition" ).updateData(
+			  id = arguments.conditionId
+			, data = { is_locked=false, locked_reason="" }
+		) > 0;
+	}
+
 // VALIDATOR METHODS
 	/**
 	 * Returns an array of objects (names) that

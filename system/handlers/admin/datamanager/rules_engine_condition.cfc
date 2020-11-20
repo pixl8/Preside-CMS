@@ -6,6 +6,36 @@ component extends="preside.system.base.AdminHandler" {
 	property name="customizationService"        inject="dataManagerCustomizationService";
 	property name="datamanagerService"          inject="datamanagerService";
 	property name="formsService"                inject="formsService";
+	property name="messageBox"                  inject="messagebox@cbmessagebox";
+
+// PUBLIC ACTIONS
+	public void function unlockAction( event, rc, prc ) {
+		var recordId = rc.id ?: "";
+
+		if ( !Len( recordId ) ) {
+			event.notFound();
+		}
+		event.initializeDatamanagerPage( objectName="rules_engine_condition", recordId=recordId );
+
+		if ( !hasCmsPermission( "rulesEngine.unlock" ) ) {
+			event.adminAccessDenied();
+		}
+
+		rulesEngineConditionService.unlockCondition( recordId );
+		messageBox.info( translateResource( "preside-objects.rules_engine_condition:condition.unlocked" ) );
+
+		var auditDetail = QueryRowToStruct( prc.record );
+		auditDetail.append( { objectName="rules_engine_condition" } );
+
+		event.audit(
+			  action   = "datamanager_unlock_record"
+			, type     = "datamanager"
+			, recordId = recordId
+			, detail   = auditDetail
+		);
+
+		setNextEvent( url=event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="editRecord" ) );
+	}
 
 // PERMISSIONS
 	private boolean function checkPermission( event, rc, prc, args={} ) {
