@@ -5,6 +5,37 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 	property name="customizationService"        inject="dataManagerCustomizationService";
 	property name="datamanagerService"          inject="datamanagerService";
+	property name="formsService"                inject="formsService";
+	property name="messageBox"                  inject="messagebox@cbmessagebox";
+
+// PUBLIC ACTIONS
+	public void function unlockAction( event, rc, prc ) {
+		var recordId = rc.id ?: "";
+
+		if ( !Len( recordId ) ) {
+			event.notFound();
+		}
+		event.initializeDatamanagerPage( objectName="rules_engine_condition", recordId=recordId );
+
+		if ( !hasCmsPermission( "rulesEngine.unlock" ) ) {
+			event.adminAccessDenied();
+		}
+
+		rulesEngineConditionService.unlockCondition( recordId );
+		messageBox.info( translateResource( "preside-objects.rules_engine_condition:condition.unlocked" ) );
+
+		var auditDetail = QueryRowToStruct( prc.record );
+		auditDetail.append( { objectName="rules_engine_condition" } );
+
+		event.audit(
+			  action   = "datamanager_unlock_record"
+			, type     = "datamanager"
+			, recordId = recordId
+			, detail   = auditDetail
+		);
+
+		setNextEvent( url=event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="editRecord" ) );
+	}
 
 // PERMISSIONS
 	private boolean function checkPermission( event, rc, prc, args={} ) {
@@ -244,6 +275,8 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !IsStruct( prc.context ?: "" ) ) {
 			event.notFound();
 		}
+
+		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
 	}
 
 	private void function preAddRecordAction( event, rc, prc, args={} ){
@@ -362,19 +395,41 @@ component extends="preside.system.base.AdminHandler" {
 
 // EDITING RECORDS
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
+		var formName = "";
+
 		if ( Len( Trim( prc.record.filter_object ?: "" ) ) ) {
 			rc.filter_object = prc.record.filter_object ?: "";
 			event.include( "/js/admin/specific/saveFilterForm/" );
-			return "preside-objects.rules_engine_condition.admin.edit.filter";
+			formName = "preside-objects.rules_engine_condition.admin.edit.filter";
+		} else {
+			rc.context = prc.record.context ?: "";
+			formName = "preside-objects.rules_engine_condition.admin.edit";
 		}
 
-		rc.context = prc.record.context ?: "";
-		return "preside-objects.rules_engine_condition.admin.edit";
+		if ( IsTrue( prc.record.is_locked ?: "" ) ) {
+			prc.readOnly = !Len( Trim( prc.record.filter_object ?: "" ) );
+			formName = formsService.getMergedFormName( formName, formName & ".locked" );
+		}
+
+		event.include( "/js/admin/specific/rulesEngine/lockingform/" );
+		return formName;
+	}
+
+	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
+		if ( IsTrue( args.record.is_locked ?: "" ) ) {
+			args.canUnlock = hasCmsPermission( "rulesengine.unlock" );
+			if ( args.canUnlock ) {
+				args.unlockLink = event.buildAdminLink( linkto="datamanager.rules_engine_condition.unlockAction", queryString="id=#prc.recordId#" );
+			}
+
+			return renderView( view="/admin/datamanager/rules_engine_condition/_lockedMessage", args=args );
+		}
+
+		return "";
 	}
 
 	private void function preEditRecordAction( event, rc, prc, args={} ){
 		var formData = args.formData ?: {};
-		var stuff = event.getCollectionWithoutSystemVars();
 
 		_conditionToFilterCheck( argumentCollection=arguments, action="edit", formData=formData );
 

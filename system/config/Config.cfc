@@ -324,7 +324,7 @@ component {
 			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
 			, savedExport            = [ "navigate", "read", "add", "edit", "delete" ]
 			, auditTrail             = [ "navigate" ]
-			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete", "clone" ]
+			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete", "clone", "unlock" ]
 			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
 			, errorlogs              = [ "navigate" ]
 			, emailCenter            = {

@@ -122,6 +122,8 @@ component displayName="RulesEngine Expression Service" {
 		,          string context    = ""
 		,          string objectName = ""
 	) {
+		_lazyLoadDynamicExpressions( context=arguments.context, filterObject=arguments.objectName );
+
 		var expression      = Duplicate( _getRawExpression( arguments.expressionId ) );
 		var translationArgs = { expressionId = arguments.expressionId };
 
@@ -160,7 +162,9 @@ component displayName="RulesEngine Expression Service" {
 	public string function getExpressionLabel(
 		  required string expressionId
 		,          string context    = ""
+		,          string objectName = ""
 	) {
+		_lazyLoadDynamicExpressions( context=arguments.context, filterObject=arguments.objectName );
 		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.labelHandler ?: "" ) ) {
@@ -196,7 +200,10 @@ component displayName="RulesEngine Expression Service" {
 	public string function getExpressionText(
 		  required string expressionId
 		,          string context    = ""
+		,          string objectName = ""
 	) {
+		_lazyLoadDynamicExpressions( context=arguments.context, filterObject=arguments.objectName );
+
 		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.textHandler ?: "" ) ) {

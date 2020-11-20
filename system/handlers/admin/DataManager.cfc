@@ -3214,6 +3214,7 @@ component extends="preside.system.base.AdminHandler" {
 		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderEditRecordForm" );
 		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderEditRecordForm" );
 
+		args.formName              = _getDefaultEditFormName( objectName );
 		args.preForm               = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderEditRecordForm" , args=args ) : "";
 		args.postForm              = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderEditRecordForm", args=args ) : "";
 		args.renderedActionButtons = customizationService.runCustomization(
@@ -3225,13 +3226,14 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
-		args.formName = _getDefaultEditFormName( objectName );
 
 		args.append({
 			  object        = ( args.objectName  ?: "" )
 			, id            = ( args.recordId      ?: "" )
 			, resultAction  = rc.resultAction ?: ""
 		});
+
+		args.readOnly = isTrue( prc.readOnly ?: "" );
 
 		return renderView( view="/admin/datamanager/_editRecordForm", args=args );
 	}
@@ -3259,6 +3261,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getEditRecordActionButtons( event, rc, prc, args={} ) {
+		args.readOnly      = prc.readOnly         ?: false;
 		args.draftsEnabled = args.draftsEnabled   ?: false;
 		args.canPublish    = args.canPublish      ?: false;
 		args.canSaveDraft  = args.canSaveDraft    ?: false;
@@ -3279,36 +3282,38 @@ component extends="preside.system.base.AdminHandler" {
 			, label     = args.cancelLabel
 		}];
 
-		if ( args.draftsEnabled ) {
-			if ( args.canSaveDraft ) {
+		if ( !args.readOnly ) {
+			if ( args.draftsEnabled ) {
+				if ( args.canSaveDraft ) {
+					args.actions.append({
+						  type      = "button"
+						, class     = "btn-info"
+						, iconClass = "fa-save"
+						, name      = "_saveAction"
+						, value     = "savedraft"
+						, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.edit.record.draft.btn"  , data=[ prc.objectTitle ?: "" ] )
+					});
+				}
+				if ( args.canPublish ) {
+					args.actions.append({
+						  type      = "button"
+						, class     = "btn-warning"
+						, iconClass = "fa-globe"
+						, name      = "_saveAction"
+						, value     = "publish"
+						, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ prc.objectTitle ?: "" ] )
+					});
+				}
+			} else {
 				args.actions.append({
 					  type      = "button"
 					, class     = "btn-info"
 					, iconClass = "fa-save"
 					, name      = "_saveAction"
-					, value     = "savedraft"
-					, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.edit.record.draft.btn"  , data=[ prc.objectTitle ?: "" ] )
-				});
-			}
-			if ( args.canPublish ) {
-				args.actions.append({
-					  type      = "button"
-					, class     = "btn-warning"
-					, iconClass = "fa-globe"
-					, name      = "_saveAction"
 					, value     = "publish"
-					, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ prc.objectTitle ?: "" ] )
+					, label     = args.editRecordLabel ?: translateResource( uri="cms:datamanager.savechanges.btn", data=[ prc.objectTitle ?: "" ] )
 				});
 			}
-		} else {
-			args.actions.append({
-				  type      = "button"
-				, class     = "btn-info"
-				, iconClass = "fa-save"
-				, name      = "_saveAction"
-				, value     = "publish"
-				, label     = args.editRecordLabel ?: translateResource( uri="cms:datamanager.savechanges.btn", data=[ prc.objectTitle ?: "" ] )
-			});
 		}
 
 		customizationService.runCustomization(

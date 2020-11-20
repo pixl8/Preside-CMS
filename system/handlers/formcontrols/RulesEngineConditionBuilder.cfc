@@ -7,6 +7,13 @@ component {
 		args.excludeTags = args.excludeTags ?: "";
 		args.object      = rc.filter_object ?: "";
 
+		if ( isTrue( args.readonly ?: "" ) ) {
+			return renderContent(
+				  renderer = "rulesEngineConditionReadOnly"
+				, data = args.defaultValue ?: ""
+				, args = args
+			);
+		}
 		if ( !args.ruleContext.len() && args.object.len() ) {
 			return runEvent(
 				  event          = "formcontrols.RulesEngineFilterBuilder.index"

@@ -13,7 +13,8 @@ component  {
 		var preSavedFilters       = args.preSavedFilters ?: "";
 		var preRulesEngineFilters = args.preRulesEngineFilters ?: "";
 
-		args.object    = "rules_engine_condition";
+		args.object        = "rules_engine_condition";
+		args.labelrenderer = "rules_engine_condition";
 		args.remoteUrl = event.buildAdminLink(
 			  linkTo      = "rulesengine.getFiltersForAjaxSelectControl"
 			, querystring = "filterObject=#filterObject#&q=%QUERY"

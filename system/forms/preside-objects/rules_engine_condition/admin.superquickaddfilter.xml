@@ -20,5 +20,9 @@ This form is used for creating a new rules engine filter conditions through the 
 			<field binding="rules_engine_condition.user_groups" sortorder="10" objectFilters="myAdminGroups" />
 			<field binding="rules_engine_condition.allow_group_edit" sortorder="20" />
 		</fieldset>
+		<fieldset id="filterlocking" sortorder="40">
+			<field binding="rules_engine_condition.is_locked" />
+			<field binding="rules_engine_condition.locked_reason" control="textarea" />
+		</fieldset>
 	</tab>
 </form>
