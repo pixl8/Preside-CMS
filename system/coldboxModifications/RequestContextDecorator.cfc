@@ -621,16 +621,15 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			var setting = getPageProperty( propertyName="iframe_restriction", cascading=true );
 			switch( setting ) {
 				case "allow":
-					return; // do not set any header
 				case "sameorigin":
-					arguments.value = "SAMEORIGIN";
+					arguments.value = arguments.value;
 					break;
 				default:
 					arguments.value = "DENY";
 			}
 		}
 
-		this.setHTTPHeader( name="X-Frame-Options", value=arguments.value, overwrite=true );
+		getRequestContext().setValue( name="xframeoptions", value=UCase( arguments.value ), private=true );
 	}
 
 // FRONT END, dealing with current page
