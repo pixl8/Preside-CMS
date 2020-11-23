@@ -32,6 +32,7 @@ component {
 			, applicationStartHandler   = "General.applicationStart"
 			, applicationEndHandler     = "General.applicationEnd"
 			, requestStartHandler       = "General.requestStart"
+			, requestEndHandler         = "General.requestEnd"
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
