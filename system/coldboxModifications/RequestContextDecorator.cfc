@@ -622,7 +622,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			switch( setting ) {
 				case "allow":
 				case "sameorigin":
-					arguments.value = arguments.value;
+					arguments.value = setting;
 					break;
 				default:
 					arguments.value = "DENY";
