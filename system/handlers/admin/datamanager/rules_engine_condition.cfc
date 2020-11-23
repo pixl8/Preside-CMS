@@ -221,6 +221,18 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	private string function buildAddRecordLink( event, rc, prc, args={} ) {
+		var qs = "object=rules_engine_condition";
+		if ( Len( Trim( rc.context ?: "" ) ) ) {
+			qs &= "&context=#rc.context#";
+		}
+
+		return event.buildAdminLink(
+			  linkto      = "datamanager.addRecord"
+			, queryString = _queryString( qs, args )
+		);
+	}
+
 	private string function buildEditRecordLink( event, rc, prc, args={} ) {
 		var filterObject = Trim( rc.filterObject ?: "" );
 
@@ -233,6 +245,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = { args=args }
 		);
 	}
+
 
 	private string function buildEditRecordActionLink( event, rc, prc, args={} ) {
 		var filterObject = Trim( rc.filterObject ?: "" );
@@ -284,13 +297,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !args.validationResult.validated() ) {
 			StructDelete( formData,  "context" );
-		}
+		} else {
+			_conditionToFilterCheck( argumentCollection=arguments, action="add", formData=formData );
 
-		_conditionToFilterCheck( argumentCollection=arguments, action="add", formData=formData );
-
-		if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
-			formData.context = "";
-			formData.filter_object = rc.filter_object;
+			if ( ( rc.convertAction ?: "" ) == "filter" && ( rc.filter_object ?: "" ).len() ) {
+				formData.context = "";
+				formData.filter_object = rc.filter_object;
+			}
 		}
 	}
 
