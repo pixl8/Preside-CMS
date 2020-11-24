@@ -233,7 +233,6 @@ component {
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix       = ""
 	) {
-		var filters        = [];
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var values         = arguments.value.listToArray();
 		var params         = {
@@ -282,7 +281,7 @@ component {
 		var response = [ {
 			  filter=overallFilter
 			, filterParams=params, extraJoins=[ {
-			 	  type           = "inner"
+			 	  type           = "left"
 				, subQuery       = responseQuery.sql
 				, subQueryAlias  = responseQueryAlias
 				, subQueryColumn = "website_user"
@@ -601,13 +600,13 @@ component {
 			params[ param.name ] = { value=param.value, type=param.type };
 		}
 
-		var filter = "";
+		var filter = "#responseQueryAlias#.website_user is not null";
 		if ( !_has ) {
 			filter = "#responseQueryAlias#.website_user is null ";
 		}
 		var response = [ {
 			filterParams=params, extraJoins=[ {
-			 	  type           =  ( _has ? "inner" : "left" )
+			 	  type           = "left"
 				, subQuery       = responseQuery.sql
 				, subQueryAlias  = responseQueryAlias
 				, subQueryColumn = "website_user"
@@ -692,7 +691,7 @@ component {
 		var response = [ {
 			  filter=overallFilter
 			, filterParams=params, extraJoins=[ {
-			 	  type           = "inner"
+			 	  type           = "left"
 				, subQuery       = responseQuery.sql
 				, subQueryAlias  = responseQueryAlias
 				, subQueryColumn = "website_user"
@@ -745,7 +744,7 @@ component {
 		var response = [ {
 			  filter=overallFilter
 			, filterParams=params, extraJoins=[ {
-			 	  type           = "inner"
+			 	  type           = "left"
 				, subQuery       = responseQuery.sql
 				, subQueryAlias  = responseQueryAlias
 				, subQueryColumn = "website_user"
@@ -881,7 +880,7 @@ component {
 		var response = [ {
 			  filter=overallFilter
 			, filterParams=params, extraJoins=[ {
-			      type           = "inner"
+			      type           = "left"
 				, subQuery       = responseQuery.sql
 				, subQueryAlias  = responseQueryAlias
 				, subQueryColumn = "website_user"
@@ -1011,7 +1010,7 @@ component {
 		var responseQuery       = $getPresideObject( "formbuilder_question_response" ).selectData(
 			  selectFields        = arguments.selectFields
 			, extraJoins          = [{
-				  type           = "inner"
+				  type           = "left"
 				, subQuery       = latestQuery.sql
 				, subQueryAlias  = latestQueryAlias
 				, subQueryColumn = "website_user"
