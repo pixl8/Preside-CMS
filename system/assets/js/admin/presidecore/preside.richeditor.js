@@ -94,6 +94,59 @@ PresideRichEditor = ( function( $ ){
 			}
 		} );
 
+		CKEDITOR.on( "dialogDefinition", function( event ) {
+			var dialogDefinition = event.data.definition
+			  , $parent          = $( parent.CKEDITOR.document.$ )
+			  , $dialogIframe    = $parent.find( ".cke_dialog_ui_iframe, .bootbox-body > iframe" )
+			  , $parentModal     = $parent.find( ".bootbox.modal" )
+			  , $parentEditor    = $parent.find( ".cke_dialog" )
+			  , nestedInModal    = $parentModal.length
+			  , nestedInEditor   = $parentEditor.length;
+
+			if ( nestedInEditor ) {
+				dialogDefinition.onShow = function() {
+					$parentEditor.addClass( "is-parent-dialog" );
+					$dialogIframe.width( $dialogIframe.width()+20 ).height( $dialogIframe.height()+106 );
+
+					var newWidth  = $dialogIframe.width()-22
+					  , newHeight = $dialogIframe.height()-128
+					  , iframeId  = this._.contents.iframe.undefined.domId;
+
+					this.move( 0, 0 );
+					this.resize( $dialogIframe.width(), $dialogIframe.height()-109 );
+
+					setTimeout( function(){
+						$( "#"+iframeId ).width( newWidth ).height( newHeight );
+					}, 100 );
+				}
+
+				dialogDefinition.onHide = function() {
+					$parentEditor.removeClass( "is-parent-dialog" );
+					$dialogIframe.width( $dialogIframe.width()-20 ).height( $dialogIframe.height()-106 );
+				}
+			} else if ( nestedInModal ) {
+				dialogDefinition.onShow = function() {
+					$parentModal.addClass( "is-parent-dialog" );
+
+					var newWidth  = $dialogIframe.width()-22
+					  , newHeight = $dialogIframe.height()-128
+					  , iframeId  = this._.contents.iframe.undefined.domId;
+
+					this.move( 0, 0 );
+					this.resize( $dialogIframe.width(), $dialogIframe.height()-109 );
+
+					setTimeout( function(){
+						$( "#"+iframeId ).width( newWidth ).height( newHeight );
+					}, 100 );
+				}
+
+				dialogDefinition.onHide = function() {
+					$parentModal.removeClass( "is-parent-dialog" );
+				}
+			}
+		} );
+
+
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 
 		$elementToReplace.data( 'ckeditorinstance', this.editor );
