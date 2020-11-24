@@ -77,10 +77,24 @@
 			this.setupIframe();
 			this.setupModalOptions();
 
-			var bootbox   = this.getBootbox()
-			  , modal     = this.modal = bootbox.dialog( this.modalOptions )
-			  , callbacks = this.callbacks
-			  , getIframe = this.getIframe;
+			var bootbox        = this.getBootbox()
+			  , modal          = this.modal = bootbox.dialog( this.modalOptions )
+			  , callbacks      = this.callbacks
+			  , getIframe      = this.getIframe
+			  , $parent        = $( parent.CKEDITOR.document.$ )
+			  , $dialogIframe  = $parent.find( ".cke_dialog_ui_iframe" )
+			  , dialogIsNested = $dialogIframe.length && $( "html" ).hasClass( "iframe" );
+
+			if ( dialogIsNested ) {
+				$( "html" ).addClass( "has-parent-dialog" );
+				$parent.find( ".cke_dialog" ).addClass( "is-parent-dialog" );
+				$dialogIframe.width( $dialogIframe.width()+20 ).height( $dialogIframe.height()+106 );
+
+				modal.on( "hide.bs.modal", function(){
+					$parent.find( ".cke_dialog" ).removeClass( "is-parent-dialog" );
+					$dialogIframe.width( $dialogIframe.width()-20 ).height( $dialogIframe.height()-106 );
+				} );
+			}
 
 			if ( typeof callbacks.onShow === "function" ) {
 				modal.on( "shown.bs.modal", function(){
