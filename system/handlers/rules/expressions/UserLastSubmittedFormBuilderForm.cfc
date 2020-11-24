@@ -18,10 +18,6 @@ component {
 		  required string  fbform
 		,          struct  _pastTime
 	) {
-		if ( ListLen( action, "." ) != 2 ) {
-			return false;
-		}
-
 		var lastPerformedDate = websiteUserActionService.getLastPerformedDate(
 			  type        = "formbuilder"
 			, action      = "submitform"
