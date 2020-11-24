@@ -854,7 +854,7 @@ component {
 			params[ param.name ] = { value=param.value, type=param.type };
 		}
 
-		var overallFilter  = "cast(#responseField# as decimal(12,2) ) ${operator} :response#paramSuffix# ";//#subqueryAlias#.response_count > 0";
+		var overallFilter  = "cast(#responseQueryAlias#.#responseField# as decimal(12,2) ) ${operator} :response#paramSuffix# ";
 
 		switch ( _numericOperator ) {
 			case "eq":
