@@ -98,6 +98,7 @@
 
 		return {
 			title: linkLang.title,
+			resizable: CKEDITOR.DIALOG_RESIZE_NONE,
 			minWidth: 900,
 			minHeight: 350,
 			onShow: function(){

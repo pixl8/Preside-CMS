@@ -97,46 +97,54 @@ PresideRichEditor = ( function( $ ){
 		CKEDITOR.on( "dialogDefinition", function( event ) {
 			var dialogDefinition = event.data.definition
 			  , $parent          = $( parent.CKEDITOR.document.$ )
-			  , $dialogIframe    = $parent.find( ".cke_dialog_ui_iframe, .bootbox-body > iframe" )
-			  , $parentModal     = $parent.find( ".bootbox.modal" )
-			  , $parentEditor    = $parent.find( ".cke_dialog" )
+			  , $dialogIframe    = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" )
+			  , $parentModal     = $parent.find( ".bootbox.modal:visible" )
+			  , $parentEditor    = $parent.find( ".cke_dialog:visible" )
 			  , nestedInModal    = $parentModal.length
-			  , nestedInEditor   = $parentEditor.length;
+			  , nestedInEditor   = $parentEditor.length
+			  , originalOnShow   = dialogDefinition.onShow || function(){}
+			  , originalOnHide   = dialogDefinition.onHide || function(){}
+			  , dialogWidth      = $dialogIframe.width()
+			  , dialogHeight     = $dialogIframe.height();
 
 			if ( nestedInEditor ) {
 				dialogDefinition.onShow = function() {
-					$parentEditor.addClass( "is-parent-dialog" );
-					$dialogIframe.width( $dialogIframe.width()+20 ).height( $dialogIframe.height()+106 );
+					originalOnShow.call( this );
 
-					var newWidth  = $dialogIframe.width()-22
-					  , newHeight = $dialogIframe.height()-128
-					  , iframeId  = this._.contents.iframe.undefined.domId;
+					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
+					if ( !iframeId ) return;
+
+					$parentEditor.addClass( "is-parent-dialog" );
+					$dialogIframe.width( dialogWidth+20 ).height( dialogHeight+106 );
 
 					this.move( 0, 0 );
-					this.resize( $dialogIframe.width(), $dialogIframe.height()-109 );
+					this.resize( dialogWidth, dialogHeight-3 );
 
 					setTimeout( function(){
-						$( "#"+iframeId ).width( newWidth ).height( newHeight );
+						$( "#"+iframeId ).width( dialogWidth-2 ).height( dialogHeight-22 );
 					}, 100 );
 				}
 
 				dialogDefinition.onHide = function() {
+					originalOnHide.call( this );
+
+					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
+					if ( !iframeId ) return;
+
 					$parentEditor.removeClass( "is-parent-dialog" );
-					$dialogIframe.width( $dialogIframe.width()-20 ).height( $dialogIframe.height()-106 );
+					$dialogIframe.width( dialogWidth-20 ).height( dialogHeight-106 );
 				}
 			} else if ( nestedInModal ) {
 				dialogDefinition.onShow = function() {
 					$parentModal.addClass( "is-parent-dialog" );
 
-					var newWidth  = $dialogIframe.width()-22
-					  , newHeight = $dialogIframe.height()-128
-					  , iframeId  = this._.contents.iframe.undefined.domId;
+					var iframeId  = this._.contents.iframe.undefined.domId;
 
 					this.move( 0, 0 );
-					this.resize( $dialogIframe.width(), $dialogIframe.height()-109 );
+					this.resize( dialogWidth, dialogHeight-17 );
 
 					setTimeout( function(){
-						$( "#"+iframeId ).width( newWidth ).height( newHeight );
+						$( "#"+iframeId ).width( dialogWidth-22 ).height( dialogHeight-36 );
 					}, 100 );
 				}
 
