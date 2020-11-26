@@ -44,7 +44,7 @@ component hint="Create various preside system entities such as widgets and page 
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
 		}
 		if ( !StructKeyExists( params, "icon" ) ) {
-			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 4: ", required=false, default="fa-magic", paramName="icon"} );
+			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 5: ", required=false, default="fa-magic", paramName="icon"} );
 		}
 		if ( !StructKeyExists( params, "createHandler" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Create handler?", required=true, default="N", paramName="createHandler", validityRegex="^[YyNn]$" } );
@@ -103,7 +103,7 @@ component hint="Create various preside system entities such as widgets and page 
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
 		}
 		if ( !StructKeyExists( params, "icon" ) ) {
-			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 4: ", required=false, default="fa-magic", paramName="icon"} );
+			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 5: ", required=false, default="fa-magic", paramName="icon"} );
 		}
 		if ( !StructKeyExists( params, "dataTableTitle" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Data table title: ", required=false, paramName="dataTableTitle"} );
@@ -157,7 +157,7 @@ component hint="Create various preside system entities such as widgets and page 
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
 		}
 		if ( !StructKeyExists( params, "icon" ) ) {
-			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 4: ", required=false, default="fa-file-o", paramName="icon"} );
+			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 5: ", required=false, default="fa-file-o", paramName="icon"} );
 		}
 		if ( !StructKeyExists( params, "createHandler" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Create handler?", required=true, default="N", paramName="createHandler", validityRegex="^[YyNn]$" } );
@@ -318,7 +318,7 @@ component hint="Create various preside system entities such as widgets and page 
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
 		}
 		if ( !StructKeyExists( params, "icon" ) ) {
-			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 4: ", required=false, default="fa-cogs", paramName="icon"} );
+			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 5: ", required=false, default="fa-cogs", paramName="icon"} );
 		}
 		if ( !StructKeyExists( params, "extension" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
