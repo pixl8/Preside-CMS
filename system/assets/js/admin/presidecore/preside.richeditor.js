@@ -136,6 +136,8 @@ PresideRichEditor = ( function( $ ){
 				}
 			} else if ( nestedInModal ) {
 				dialogDefinition.onShow = function() {
+					originalOnShow.call( this );
+
 					$parentModal.addClass( "is-parent-dialog" );
 
 					var iframeId  = this._.contents.iframe.undefined.domId;
