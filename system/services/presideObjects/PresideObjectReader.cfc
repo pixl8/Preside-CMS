@@ -40,7 +40,10 @@ component {
 
 			obj.instance = CreateObject( "component", objPath );
 			obj.meta     = readObject( obj.instance );
-
+			if ( _skipSync( obj.meta ) ) {
+				// skip dbsync for this object
+				continue;
+			}
 			objects[ objName ] = objects[ objName ] ?: [];
 			objects[ objName ].append( obj );
 
@@ -186,6 +189,10 @@ component {
 
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
+				if ( _skipSync( prop ) ){
+					// skip dbsync for this Property
+					continue;
+				}
 				if ( prop.name == propName ) {
 					if ( !StructKeyExists( arguments.meta.properties, prop.name ) ) {
 						arguments.meta.properties[ prop.name ] = {};
@@ -590,5 +597,8 @@ component {
 	}
 	private void function _setDbAdapter( required any dbAdapter ) {
 		_dbAdapter = arguments.dbAdapter;
+	}
+	private boolean function _skipSync( required struct meta ) {
+		return IsBoolean( arguments.meta.dbsync ?: "" ) && !arguments.meta.dbsync;
 	}
 }
