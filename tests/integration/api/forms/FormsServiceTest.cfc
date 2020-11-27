@@ -406,7 +406,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					_getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms3,/tests/resources/formsService/badForm" );
 				} catch ( "FormsService.BadFormXml" e ) {
 					expect( e.message ).toBe( "The form definition file, [bad.form.xml], does not contain valid XML" );
-					expect( e.detail ).toBe( "XML document structures must start and end within the same entity." );
+					expect( e.detail contains "XML document structures must start and end within the same entity" ).toBeTrue();
 					errorThrown = true;
 				}
 
