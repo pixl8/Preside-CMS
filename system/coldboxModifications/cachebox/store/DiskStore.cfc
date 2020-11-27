@@ -69,10 +69,12 @@ component implements="coldbox.system.cache.store.IObjectStore" accessors="true"{
 		// AutoExpand
 		variables.directoryPath = ( config.autoExpandPath ? expandPath( config.directoryPath ) : config.directoryPath );
 
-		// Check if directory exists else create it
-		if( !directoryExists( variables.directoryPath ) ){
-			directoryCreate( variables.directoryPath );
-		}
+		// Ensure directory exists
+		directoryCreate(
+			  path         = variables.directoryPath
+			, createPath   = true
+			, ignoreExists = true
+		);
 
 		return this;
 	}
