@@ -202,9 +202,9 @@ component {
 			validIndexName = adapter.ensureValidIndexName( indexName );
 
 			if ( indexName != validIndexName ) {
-				arguments.indexes[ validIndexName ] = index;
-				arguments.indexes.delete( indexName );
-				indexName = validIndexName;
+			    arguments.indexes[ validIndexName ] = index;
+			    arguments.indexes.delete( indexName );
+			    indexName = validIndexName;
 			}
 
 			sql.indexes[ indexName ] = {
