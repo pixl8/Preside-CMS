@@ -411,7 +411,7 @@ component displayName="RulesEngine Expression Service" {
 				configuredFields[ fieldName ] = fieldTypeService.prepareConfiguredFieldData(
 					  fieldType          = expressionFields[ fieldName ].fieldType
 					, fieldConfiguration = expressionFields[ fieldName ]
-					, savedValue         = configuredFields[ fieldName ]
+					, savedValue         = ( configuredFields[ fieldName ] ?: "" )
 				);
 			}
 		}
