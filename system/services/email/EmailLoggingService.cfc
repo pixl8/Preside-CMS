@@ -523,7 +523,11 @@ component {
 			}
 		}
 
-		return doc.toString();
+		if ( $isFeatureEnabled( "emailStyleInlinerAscii" ) ) {
+			doc.outputSettings().charset( "ASCII" );
+		}
+
+		return doc.html();
 	}
 
 	/**
