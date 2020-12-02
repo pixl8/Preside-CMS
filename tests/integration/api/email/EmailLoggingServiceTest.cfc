@@ -587,6 +587,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
 		service.$( "$isFeatureEnabled" ).$args( "emailLinkShortener" ).$results( false );
+		service.$( "$isFeatureEnabled" ).$args( "emailStyleInlinerAscii" ).$results( false );
 		service.$( "$announceInterception" );
 
 		nowish  = Now();
