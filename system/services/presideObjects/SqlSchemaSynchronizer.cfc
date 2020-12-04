@@ -45,14 +45,22 @@ component {
 
 		for( objName in objects ) {
 			obj       = objects[ objName ];
-			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
-			dbVersion.append( obj.sql.table.version );
+
+			if ( !_skipSync( obj.meta ?: {} ) ) {
+				obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
+				dbVersion.append( obj.sql.table.version );
+			}
 		}
 		dbVersion.sort( "text" );
 		dbVersion = Hash( dbVersion.toList() );
 		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
 			for( objName in objects ) {
-				obj                = objects[ objName ];
+				obj = objects[ objName ];
+
+				if ( _skipSync( obj.meta ?: {} ) ) {
+					continue;
+				}
+
 				tableVersionExists = StructKeyExists( versions, "table" ) and StructKeyExists( versions.table, obj.meta.tableName );
 				tableExists        = tableVersionExists or _getTableInfo( tableName=obj.meta.tableName, dsn=obj.meta.dsn ).recordCount;
 
