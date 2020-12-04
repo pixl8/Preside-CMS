@@ -13,4 +13,16 @@ component {
 			, required           = IsTrue( args.mandatory ?: "" )
 		);
 	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		if ( Len( args.response ?: "" ) ) {
+			return Val( args.response );
+		}
+
+		return "";
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "float";
+	}
 }

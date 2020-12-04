@@ -27,7 +27,11 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) gte arguments.min;
+		return Val( Replace( arguments.value, ",", "", "all" ) ) gte arguments.min;
+	}
+
+	public string function min_js() {
+		return "function( value, el, param ) { return this.optional( el ) || value.replaceAll( ',', '' ) >= ( ( typeof( param ) == 'object' ) ? param.param : param ); }";
 	}
 
 	public boolean function max( required string fieldName, string value="", required numeric max ) validatorMessage="cms:validation.max.default" {
@@ -35,7 +39,11 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) lte arguments.max;
+		return Val( Replace( arguments.value, ",", "", "all" ) ) lte arguments.max;
+	}
+
+	public string function max_js() {
+		return "function( value, el, param ) { return this.optional( el ) || value.replaceAll( ',', '' ) <= ( ( typeof( param ) == 'object' ) ? param.param : param ); }";
 	}
 
 	public boolean function range( required string fieldName, string value="", required numeric min, required numeric max ) validatorMessage="cms:validation.range.default" {
@@ -43,14 +51,22 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) lte arguments.max and Val( arguments.value ) gte arguments.min;
+		var val = Val( Replace( arguments.value, ",", "", "all" ) );
+
+		return val lte arguments.max and val gte arguments.min;
 	}
+
+	public string function range_js() {
+		return "function( value, el, param ) { var val = value.replaceAll( ',', '' ); return this.optional( el ) || ( val >= ( ( typeof( param[0] ) == 'object' ) ? param.param[0] : param[0] ) && val <= ( ( typeof( param[1] ) == 'object' ) ? param.param[1] : param[1] ) ); }";
+	}
+
+	// 			return this.optional( el ) || ( val >= param[ 0 ] && val <= param[ 1 ] ); }
 
 	public boolean function number( required string value ) validatorMessage="cms:validation.number.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
-		return IsNumeric( arguments.value );
+		return IsNumeric( Replace( arguments.value, ",", "", "all" ) );
 	}
 
 	public boolean function digits( required string value ) validatorMessage="cms:validation.digits.default" {
@@ -148,6 +164,9 @@ component validationProvider=true {
 	}
 
 	public boolean function money( required string fieldName, string value="" ) validatorMessage="cms:validation.money.default" {
+		if ( not Len( Trim( arguments.value ) ) ) {
+			return true;
+		}
 		return !arrayIsEmpty(REMatchNoCase("^(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?|\(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?\))$", arguments.value ));
 	}
 	public string function money_js() {

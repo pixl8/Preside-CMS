@@ -303,6 +303,15 @@ component {
 		);
 	}
 
+	private string function buildManageFiltersLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.manageFilters"
+			, queryString = _queryString( "object=#objectName#", args )
+		);
+	}
+
 // helpers
 	private string function _queryString( required string querystring, struct args={} ) {
 		var extraQs = args.queryString ?: "";

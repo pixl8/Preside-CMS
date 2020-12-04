@@ -5,6 +5,9 @@ component {
 	}
 
 	private string function adminPlaceholder( event, rc, prc, args={} ) {
+		if ( Len( args.questionId ?: "" ) ) {
+			return renderLabel( "formbuilder_question", args.questionId );
+		}
 		if ( Len( args.configuration.label ?: "" ) ) {
 			return args.configuration.label;
 		}

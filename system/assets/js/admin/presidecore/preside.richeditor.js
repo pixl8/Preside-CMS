@@ -94,6 +94,69 @@ PresideRichEditor = ( function( $ ){
 			}
 		} );
 
+		CKEDITOR.on( "dialogDefinition", function( event ) {
+			var dialogDefinition = event.data.definition
+			  , $parent          = $( parent.CKEDITOR.document.$ )
+			  , $dialogIframe    = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" )
+			  , $parentModal     = $parent.find( ".bootbox.modal:visible" )
+			  , $parentEditor    = $parent.find( ".cke_dialog:visible" )
+			  , nestedInModal    = $parentModal.length
+			  , nestedInEditor   = $parentEditor.length
+			  , originalOnShow   = dialogDefinition.onShow || function(){}
+			  , originalOnHide   = dialogDefinition.onHide || function(){}
+			  , dialogWidth      = $dialogIframe.width()
+			  , dialogHeight     = $dialogIframe.height();
+
+			if ( nestedInEditor ) {
+				dialogDefinition.onShow = function() {
+					originalOnShow.call( this );
+
+					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
+					if ( !iframeId ) return;
+
+					$parentEditor.addClass( "is-parent-dialog" );
+					$dialogIframe.width( dialogWidth+20 ).height( dialogHeight+106 );
+
+					this.move( 0, 0 );
+					this.resize( dialogWidth, dialogHeight-3 );
+
+					setTimeout( function(){
+						$( "#"+iframeId ).width( dialogWidth-2 ).height( dialogHeight-22 );
+					}, 100 );
+				}
+
+				dialogDefinition.onHide = function() {
+					originalOnHide.call( this );
+
+					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
+					if ( !iframeId ) return;
+
+					$parentEditor.removeClass( "is-parent-dialog" );
+					$dialogIframe.width( dialogWidth-20 ).height( dialogHeight-106 );
+				}
+			} else if ( nestedInModal ) {
+				dialogDefinition.onShow = function() {
+					originalOnShow.call( this );
+
+					$parentModal.addClass( "is-parent-dialog" );
+
+					var iframeId  = this._.contents.iframe.undefined.domId;
+
+					this.move( 0, 0 );
+					this.resize( dialogWidth, dialogHeight-17 );
+
+					setTimeout( function(){
+						$( "#"+iframeId ).width( dialogWidth-22 ).height( dialogHeight-36 );
+					}, 100 );
+				}
+
+				dialogDefinition.onHide = function() {
+					$parentModal.removeClass( "is-parent-dialog" );
+				}
+			}
+		} );
+
+
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 
 		$elementToReplace.data( 'ckeditorinstance', this.editor );

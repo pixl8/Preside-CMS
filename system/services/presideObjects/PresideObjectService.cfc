@@ -1849,6 +1849,38 @@ component displayName="Preside Object Service" {
 		return blocking;
 	}
 
+	/**
+	 * Returns whether or not the given record
+	 * has any related records in other tables that
+	 * reference it.
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public boolean function hasReferences( required string objectName, required any recordId ) {
+		var obj   = _getObject( objectName=arguments.objectName );
+		var joins = _getRelationshipGuidance().getObjectRelationships( arguments.objectName );
+		var foreignObjName  = "";
+		var join  = "";
+		var filter = {};
+		var recordCount = 0;
+
+		for( foreignObjName in joins ){
+			for( join in joins[ foreignObjName ] ) {
+				if ( join.type == "one-to-many" || join.type == "many-to-many" ) {
+					filter = { "#join.fk#" = arguments.recordId };
+					recordCount = selectData( objectName=foreignObjName, selectFields=["count(*) as record_count"], filter=filter, useCache=false ).record_count;
+
+					if ( Val( recordCount ) ) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
 	public numeric function deleteRelatedData( required string objectName, required any recordId ) {
 		var blocking       = listForeignObjectsBlockingDelete( argumentCollection = arguments );
 		var totalDeleted   = 0;
@@ -3432,7 +3464,10 @@ component displayName="Preside Object Service" {
 	}
 
 	private any function _generateValue( required string objectName, required string id, required string generator, required struct data, required struct prop ) {
-		switch( ListFirst( arguments.generator, ":" ) ) {
+		var generatorName = ListFirst( arguments.generator, ":" );
+		var generatorArg  = ListRest( arguments.generator, ":" );
+
+		switch( generatorName ) {
 			case "UUID":
 				return CreateUUId();
 			break;
@@ -3442,7 +3477,7 @@ component displayName="Preside Object Service" {
 			case "method":
 				var obj = getObject( arguments.objectName );
 
-				return obj[ ListRest( arguments.generator, ":" ) ]( arguments.data );
+				return obj[ generatorArg ]( arguments.data );
 			break;
 			case "hash":
 				if ( Len( Trim( prop.generateFrom ?: "" ) ) ) {
@@ -3490,6 +3525,16 @@ component displayName="Preside Object Service" {
 
 				return slug;
 			break;
+		}
+
+		var coldboxHandler = "generators.#generatorName#";
+		if ( $getColdbox().handlerExists( coldboxHandler ) ) {
+			return $runEvent(
+				  event          = coldboxHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args=arguments }
+			);
 		}
 
 		return;

@@ -20,6 +20,7 @@
 	param name="args.preForm"                 type="string"  default="";
 	param name="args.postForm"                type="string"  default="";
 	param name="args.objectName"              type="string"  default=args.object;
+	param name="args.readOnly"                type="boolean" default=false;
 	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._editRecordActionButtons", args=args );
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue=args.object );
@@ -39,20 +40,24 @@
 		<div class="hr"></div>
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#" enctype="multipart/form-data">
-		<input type="hidden" name="object" value="#args.object#" />
-		<input type="hidden" name="id"     value="#args.id#" />
-		<cfif args.useVersioning>
-			<input type="hidden" name="version" value="#args.version#" />
-		</cfif>
-		<cfif args.resultAction.len()>
-			<input type="hidden" name="__resultAction" value="#args.resultAction#" />
-		</cfif>
-		<cfloop collection="#args.hiddenFields#" item="hiddenField">
-			<cfif !listFindNoCase( "object,id,version", hiddenField )>
-				<input type="hidden" name="#hiddenField#" value="#HTMLEditFormat( args.hiddenFields[ hiddenField ] )#" />
+	<cfif args.readOnly>
+		<div id="#formId#" class="form-horizontal edit-object-form">
+	<cfelse>
+		<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#" enctype="multipart/form-data">
+			<input type="hidden" name="object" value="#args.object#" />
+			<input type="hidden" name="id"     value="#args.id#" />
+			<cfif args.useVersioning>
+				<input type="hidden" name="version" value="#args.version#" />
 			</cfif>
-		</cfloop>
+			<cfif args.resultAction.len()>
+				<input type="hidden" name="__resultAction" value="#args.resultAction#" />
+			</cfif>
+			<cfloop collection="#args.hiddenFields#" item="hiddenField">
+				<cfif !listFindNoCase( "object,id,version", hiddenField )>
+					<input type="hidden" name="#hiddenField#" value="#HTMLEditFormat( args.hiddenFields[ hiddenField ] )#" />
+				</cfif>
+			</cfloop>
+	</cfif>
 
 		#args.preForm#
 
@@ -77,5 +82,10 @@
 		<div class="form-actions row">
 			#args.renderedActionButtons#
 		</div>
-	</form>
+
+	<cfif args.readOnly>
+		</div>
+	<cfelse>
+		</form>
+	</cfif>
 </cfoutput>

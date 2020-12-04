@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <config xmlns="http://zanata.org/namespace/config/">
-  <url>https://translate.zanata.org/</url>
-  <project>presidecms</project>
-  <project-version>10.12.0</project-version>
+  <url>https://zanata.pixl8.cloud/</url>
+  <project>preside</project>
+  <project-version>10.13.0</project-version>
   <project-type>properties</project-type>
   <src-dir>system/i18n</src-dir>
   <trans-dir>system/i18n</trans-dir>
-
 </config>

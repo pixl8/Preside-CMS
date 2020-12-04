@@ -535,6 +535,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			inlineJs[ arguments.group ] = [];
 
 			getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
+
+			if ( Find( "/preside/system/assets/_dynamic/i18nBundle.js", rendered ) ) {
+				var languageCode = instance.i18n.getFWLanguageCode();
+				var cachebuster  = instance.i18n.getI18nJsCachebusterForAdmin();
+
+				rendered = Replace( rendered, "/preside/system/assets/_dynamic/i18nBundle.js", "/preside/system/assets/_dynamic/i18nBundle.#languageCode#.#cachebuster#.js" );
+			}
 		}
 
 		return rendered;

@@ -3,10 +3,6 @@ component {
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
 
-		event.include( assetId="/css/frontend/formbuilder/" );
-		event.include( assetId="/css/frontend/formbuilder/datePicker/" );
-		event.include( assetId="/js/frontend/formbuilder/datePicker/" );
-
 		if ( Len( Trim( args.relativeOperator ?: "" ) ) && IsBoolean( args.relativeToCurrentDate ?: "" ) && args.relativeToCurrentDate ) {
 			var theDate   = Now();
 			var validator = "maximumDate";
@@ -17,14 +13,16 @@ component {
 					args.maxDate = DateAdd( 'd', diff, Now() );
 				break;
 				case "lte":
-					args.maxDate = Now();
+					var diff = val(args.offset) ? val(-args.offset) : 0;
+					args.maxDate = DateAdd( 'd', diff, Now() );
 				break;
 				case "gt":
 					var diff = val(args.offset) ? val(args.offset) : 1;
 					args.minDate = DateAdd( 'd', diff, Now() );
 				break;
 				case "gte":
-					args.minDate = Now();
+					var diff = val(args.offset) ? val(args.offset) : 0;
+					args.minDate = DateAdd( 'd', diff, Now() );
 				break;
 			}
 		}
@@ -92,5 +90,13 @@ component {
 			}
 		}
 		return rules;
+	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return IsDate( args.response ?: "" ) ? args.response : "";
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "date";
 	}
 }

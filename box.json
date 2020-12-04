@@ -27,7 +27,7 @@
     ],
     "dependencies":{
         "sticker":"1.2.2",
-        "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v1.3.0",
+        "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v2.12.0",
         "presidecmseditor":"github:pixl8/Preside-Editor#4.11.3",
         "cbi18n":"1.3.1+56",
         "cbmessagebox":"2.2.0+10",

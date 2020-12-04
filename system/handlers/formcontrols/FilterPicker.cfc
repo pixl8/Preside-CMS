@@ -13,7 +13,8 @@ component  {
 		var preSavedFilters       = args.preSavedFilters ?: "";
 		var preRulesEngineFilters = args.preRulesEngineFilters ?: "";
 
-		args.object    = "rules_engine_condition";
+		args.object        = "rules_engine_condition";
+		args.labelrenderer = "rules_engine_condition";
 		args.remoteUrl = event.buildAdminLink(
 			  linkTo      = "rulesengine.getFiltersForAjaxSelectControl"
 			, querystring = "filterObject=#filterObject#&q=%QUERY"
@@ -24,13 +25,16 @@ component  {
 		);
 		args.placeholder = args.placeholder ?: "cms:rulesengine.filterPicker.placeholder"
 
-		if ( IsTrue( args.quickAdd ?: "" ) ) {
+		args.quickAdd  = IsTrue( args.quickAdd  ?: "" ) && hasCmsPermission( "rulesengine.add"  );
+		args.quickEdit = IsTrue( args.quickEdit ?: "" ) && hasCmsPermission( "rulesengine.edit" );
+
+		if ( args.quickAdd ) {
 			args.quickAddUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickAddFilterForm"
 				, querystring = "filter_object=#filterObject#&multiple=#multiple#&contextData=#contextData#&preSavedFilters=#preSavedFilters#&preRulesEngineFilters=#preRulesEngineFilters#"
 			);
 		}
-		if ( IsTrue( args.quickEdit ?: "" ) ) {
+		if ( args.quickEdit ) {
 			args.quickEditUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickEditFilterForm"
 				, querystring = "filter_object=#filterObject#&multiple=#multiple#&contextData=#contextData#&preSavedFilters=#preSavedFilters#&preRulesEngineFilters=#preRulesEngineFilters#&id="

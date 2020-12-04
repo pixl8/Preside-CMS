@@ -30,7 +30,14 @@
 		<cfsavecontent variable="formJs">
 			if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
 				executeWithFormBuilderDependencies( function( $ ){
-					$( '###args.id#' ).validate( #args.validationJs# );
+					$( '###args.id#' ).validate( $.extend( #args.validationJs#, {
+						highlight: function( element, errorClass ) {
+							$( element ).closest( '.form-group' ).addClass( 'has-error' );
+						},
+						unhighlight: function( element, errorClass ) {
+							$( element ).closest( '.form-group' ).removeClass( 'has-error' );
+						}
+					} ) );
 				} );
 			};
 		</cfsavecontent>

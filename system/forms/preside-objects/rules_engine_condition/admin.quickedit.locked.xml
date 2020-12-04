@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="default">
+		<fieldset id="default">
+			<field name="condition_name" required="false" control="readonly" />
+			<field name="expressions"    required="false" readonly="true" />
+		</fieldset>
+	</tab>
+	<tab id="locking" deleted="true" />
+</form>
