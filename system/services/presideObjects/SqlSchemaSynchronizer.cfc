@@ -321,6 +321,9 @@ component {
 		var colProperties   = {};
 
 		for( column in columnsFromDb ){
+			if ( StructKeyExists( arguments.objectProperties, column.column_name ) && _skipSync( arguments.objectProperties[ column.column_name ] ) ) {
+				continue;
+			}
 			wasDeDeprecated = false;
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
 				columnName = Replace( column.column_name, "__deprecated__", "" );
@@ -751,5 +754,8 @@ component {
 	}
 	private void function _setAutoRestoreDeprecatedFields( required boolean autoRestoreDeprecatedFields ) {
 		_autoRestoreDeprecatedFields = arguments.autoRestoreDeprecatedFields;
+	}
+	private boolean function _skipSync( required struct meta ) {
+		return IsBoolean( arguments.meta.dbsync ?: "" ) && !arguments.meta.dbsync;
 	}
 }
