@@ -14,7 +14,7 @@
 				<div class="row">
 					<div class="col-md-5 col-lg-4">
 						<div id="tab-fields" class="item-type-picker">
-							#renderViewlet( "admin.formbuilder.itemTypePicker" )#
+							#renderViewlet( event="admin.formbuilder.itemTypePicker", args={ formId=formId } )#
 						</div>
 					</div>
 					<div class="col-md-7 col-lg-8">

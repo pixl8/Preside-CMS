@@ -4,7 +4,7 @@ component output=false {
 		var data = args.data ?: "";
 
 		if ( LSisDate( data ) ) {
-			return LSdateFormat( LSparseDateTime( data ), translateResource( uri="cms:dateFormat") );
+			return LSdateFormat( LSparseDateTime( data ), translateResource( uri="cms:dateFormat" ) );
 		}
 
 		return data;

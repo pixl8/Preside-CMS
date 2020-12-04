@@ -78,15 +78,19 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
-		var clone = rc.clone ?: false;
 		_permissionsCheck( "editform", event );
+
+		var formId = rc.formId ?: "";
+		var clone  = isTrue( rc.clone ?: "" );
 
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
-			item.configuration.name  = isTrue( clone ) ? "" : ( item.configuration.name  ?: "" );
-			item.configuration.label = isTrue( clone ) ? "" : ( item.configuration.label ?: "" );
+
+			item.configuration.name  = clone ? "" : ( item.configuration.name  ?: "" );
+			item.configuration.label = clone ? "" : ( item.configuration.label ?: "" );
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
+				prc.savedData.question = item.questionId ?: "";
 			}
 		}
 
@@ -105,23 +109,31 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
 		} );
+
+		if ( IsTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+			prc.formName = "formbuilder.item-types.formfieldv2";
+			prc.additionalFormArgs = { fields={ question={
+				placeholder = translateResource( uri="preside-objects.formbuilder_formitem:field.question.placeholder.custom", data=[ prc.itemTypeConfig.title ] )
+			} } };
+		} else {
+			prc.formName = prc.itemTypeConfig.configFormName ?: "";
+		}
 	}
 
 	public void function validateItemConfig( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 
-		var config = event.getCollectionWithoutSystemVars();
+		var formId         = rc.formId ?: "";
+		var formName       = "";
+		var itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
 
-		config.delete( "formId"   );
-		config.delete( "itemId"   );
-		config.delete( "itemType" );
+		if ( isTrue( itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+			formName = "formbuilder.item-types.formfieldv2";
+		} else {
+			formName = itemTypeConfig.configFormName ?: "";
+		}
 
-		var validationResult = formBuilderService.validateItemConfig(
-			  formId    = rc.formId   ?: ""
-			, itemId    = rc.itemId   ?: ""
-			, itemType  = rc.itemType ?: ""
-			, config    = config
-		);
+		var validationResult = validateForm( formName, event.getCollectionForForm( formName ) );
 
 		if ( validationResult.validated() ) {
 			event.renderData( data=true, type="json" );
@@ -328,6 +340,72 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function exportQuestionResponsesConfig( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+		var args   = {};
+
+		args.objectName            = "formbuilder_question_response";
+		args.objectTitle           = "";
+		args.defaultExporter       = getSetting( name="dataExport.defaultExporter" , defaultValue="" );
+
+		event.setView( view="/admin/datamanager/formbuilder_question/dataExportConfigModal", layout="adminModalDialog", args=args );
+	}
+
+	public void function exportQuestionResponses( event, rc, prc ) {
+		var questionId         =  rc.questionId        ?: "";
+		var exportFields       =  rc.exportFields      ?: "id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name";
+		var exporter           =  rc.exporter          ?: "Excel";
+
+		var theQuestion        =      formBuilderService.getQuestion( questionId );
+
+		if ( !theQuestion.recordCount ) {
+			event.adminNotFound();
+		}
+
+		var taskId = createTask(
+			  event             = "admin.formbuilder.exportQuestionResponsesInBackgroundThread"
+			, args              = {
+									  questionId        = questionId
+									, exportFields      = exportFields
+									, exporter          = exporter
+									, filterExpressions = rc.filterExpressions ?: ""
+									, savedFilters      = rc.savedFilters      ?: ""
+								  }
+			, runNow            = true
+			, adminOwner        = event.getAdminUserId()
+			, discardOnComplete = false
+			, title             = "cms:formbuilder.export.task.title"
+			, resultUrl         = event.buildAdminLink( linkto="formbuilder.downloadExport", querystring="taskId={taskId}" )
+			, returnUrl         = event.buildAdminLink( linkto="datamanager.formbuilder.viewRecord", querystring="id=" & questionId )
+		);
+
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
+	}
+
+	private void function exportQuestionResponsesInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var questionId   = args.questionId   ?: "";
+		var exportFields = args.exportFields ?: "id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name";
+		var exporter     = args.exporter     ?: "Excel"
+
+		formBuilderService.exportQuestionResponses(
+			  questionId        = questionId
+			, exportFields      = exportFields
+			, exporter          = exporter
+			, filterExpressions = args.filterExpressions
+			, savedFilters      = args.savedFilters
+			, writeToFile       = true
+			, logger            = arguments.logger   ?: NullValue()
+			, progress          = arguments.progress ?: NullValue()
+		);
+	}
+
+
+
 	public void function downloadExport( event, rc, prc ) {
 		var taskId          = rc.taskId ?: "";
 		var task            = adhocTaskManagerService.getProgress( taskId );
@@ -411,11 +489,14 @@ component extends="preside.system.base.AdminHandler" {
 
 		configuration.delete( "formId"   );
 		configuration.delete( "itemType" );
+		configuration.delete( "question" );
+		configuration.delete( "_sid" );
 
 		var newId = formBuilderService.addItem(
 			  formId        = rc.formId   ?: ""
 			, itemType      = rc.itemType ?: ""
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={
@@ -431,10 +512,12 @@ component extends="preside.system.base.AdminHandler" {
 		var itemId        = rc.id ?: "";
 
 		configuration.delete( "id" );
+		configuration.delete( "question" );
 
 		formBuilderService.saveItem(
 			  id            = itemId
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={
@@ -597,6 +680,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function listSubmissionsForAjaxDataTable( event, rc, prc ) {
 		var formId                = ( rc.formId ?: "" );
 		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
+		var sFilterExpression     = ( structKeyExists( rc, 'sFilterExpression' ) && Len( Trim( rc.sFilterExpression ) ) ) ? rc.sFilterExpression : "";
 
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
@@ -613,6 +697,7 @@ component extends="preside.system.base.AdminHandler" {
 			, maxRows               = dtHelper.getMaxRows()
 			, orderBy               = dtHelper.getSortOrder()
 			, searchQuery           = dtHelper.getSearchQuery()
+			, sFilterExpression     = sFilterExpression
 			, savedFilterExpIdLists = savedFilterExpIdLists
 		);
 		var records = Duplicate( results.records );
@@ -621,7 +706,15 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( "formbuilder_formsubmission", field, record[ field ], [ "adminDataTable", "admin" ] );
+				records[ field ][ records.currentRow ] = renderField(
+					  object   = "formbuilder_formsubmission"
+					, property = field
+					, data     = record[ field ]
+					, context  = [ "adminDataTable", "admin" ]
+					, editable = false
+					, recordId = record.id
+					, record   = record
+				);
 			}
 
 			if ( useMultiActions ) {
@@ -729,6 +822,10 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/formbuilder/_formGridFields", args=args );
 	}
 
+	private string function questionResponseDataTableGridFields( event, rc, prc, args ) {
+		return renderView( view="/admin/formbuilder/_questionResponseGridFields", args=args );
+	}
+
 	private string function itemTypePicker( event, rc, prc, args ) {
 		args.itemTypesByCategory = itemTypesService.getItemTypesByCategory();
 
@@ -765,6 +862,7 @@ component extends="preside.system.base.AdminHandler" {
 			  event = formBuilderRenderingService.getItemTypeViewlet( itemType=( args.type.id ?: "" ), context="adminPlaceholder" )
 			, args  = args
 		);
+		args.isV2 = formbuilderService.isV2Form( args.formId ?: "" );
 		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
 

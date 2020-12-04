@@ -211,9 +211,11 @@ component displayName="Forms service" {
 					continue;
 				}
 				for( var field in fieldset.fields ) {
-					var control = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
+					var control  = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
+					var readOnly = IsBoolean( field.readOnly ?: "" ) && field.readOnly;
+					var deleted  = IsBoolean( field.deleted ?: "" ) && field.deleted;
 
-					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) && !arguments.suppressFields.findNoCase( field.name ) ) {
+					if ( !readOnly && !deleted && !ignoreControls.findNoCase( control ) && !arguments.suppressFields.findNoCase( field.name ) ) {
 						ArrayAppend( fields, field.name ?: "" );
 					}
 				}

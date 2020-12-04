@@ -6,11 +6,12 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @appMapping.inject coldbox:setting:appMapping
+	 * @appMapping.inject       coldbox:setting:appMapping
+	 * @ignoreExtensions.inject coldbox:setting:legacyExtensionsNowInCore
 	 *
 	 */
-	public any function init( string appMapping="/app" ) {
-		_readExtensions( arguments.appMapping );
+	public any function init( string appMapping="/app", array ignoreExtensions=[] ) {
+		_readExtensions( arguments.appMapping, arguments.ignoreExtensions );
 
 		return this;
 	}
@@ -21,7 +22,7 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private void function _readExtensions( required string appMapping ) {
+	private void function _readExtensions( required string appMapping, required array ignoreExtensions ) {
 		appMapping = "/" & appMapping.reReplace( "^/", "" );
 
 		var appDir              = ExpandPath( appMapping );
@@ -31,7 +32,9 @@ component {
 
 		for( var manifestFile in manifestFiles ) {
 			var extension = _parseManifest( manifestFile, appMapping );
-			extensions.append( extension );
+			if ( !ArrayFindNoCase( arguments.ignoreExtensions, extension.id ) ) {
+				ArrayAppend( extensions, extension );
+			}
 		}
 
 		extensions = _sortExtensions( extensions );

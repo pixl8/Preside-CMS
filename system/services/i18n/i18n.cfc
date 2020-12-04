@@ -10,6 +10,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	property name="unknownTranslation"    inject="coldbox:setting:unknownTranslation";
 
 	variables._localeCache = {};
+	variables._jsCache = {};
 
 	public any function init() {
 		super.init( argumentCollection=arguments );
@@ -71,32 +72,64 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		);
 	}
 
-	public string function getI18nJsForAdmin(){
-		var data    = {};
-		var bundles = [ "cms" ];
-		var locale  = getFwLocale();
-		var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
+	public string function getI18nJsForAdmin( string locale=getFwLocale() ){
+		if ( !Len( variables._jsCache[ arguments.locale ] ?: "" ) ) {
+			var data    = {};
+			var bundles = [ "cms" ];
+			var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
 
-		for( var widget in widgetsService.getWidgets() ) {
-			ArrayAppend( bundles, "widgets." & widget );
+			for( var widget in widgetsService.getWidgets() ) {
+				ArrayAppend( bundles, "widgets." & widget );
+			}
+			for( var po in presideObjectService.listObjects() ) {
+				ArrayAppend( bundles, "preside-objects." & po );
+			}
+
+			for( var bundle in bundles ) {
+				var json = resourceBundleService.getBundleAsJson(
+					  bundle   = bundle
+					, language = ListFirst( arguments.locale, "-_" )
+					, country  = ListRest( arguments.locale, "-_" )
+				);
+
+				js &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
+			}
+
+			js &= "return rb; } )();";
+
+			variables._jsCache[ arguments.locale ] = js;
 		}
-		for( var po in presideObjectService.listObjects() ) {
-			ArrayAppend( bundles, "preside-objects." & po );
+
+		return variables._jsCache[ arguments.locale ];
+	}
+
+	public string function getI18nJsCachebusterForAdmin( string locale=getFwLocale() ){
+		if ( !Len( variables._jsCache[ arguments.locale & "buster" ] ?: "" ) ) {
+			var data    = {};
+			var bundles = [ "cms" ];
+			var content = "";
+
+			for( var widget in widgetsService.getWidgets() ) {
+				ArrayAppend( bundles, "widgets." & widget );
+			}
+			for( var po in presideObjectService.listObjects() ) {
+				ArrayAppend( bundles, "preside-objects." & po );
+			}
+
+			for( var bundle in bundles ) {
+				var json = resourceBundleService.getBundleAsJson(
+					  bundle   = bundle
+					, language = ListFirst( arguments.locale, "-_" )
+					, country  = ListRest( arguments.locale, "-_" )
+				);
+
+				content &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
+			}
+
+			variables._jsCache[ arguments.locale & "buster" ] = Left( LCase( Hash( content ) ), 8 );
 		}
 
-		for( var bundle in bundles ) {
-			var json = resourceBundleService.getBundleAsJson(
-				  bundle   = bundle
-				, language = ListFirst( locale, "-_" )
-				, country  = ListRest( locale, "-_" )
-			);
-
-			js &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
-		}
-
-		js &= "return rb; } )();";
-
-		return js;
+		return variables._jsCache[ arguments.locale & "buster" ];
 	}
 
 	public boolean function isValidResourceUri( required string uri ) {

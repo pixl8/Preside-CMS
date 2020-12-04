@@ -11,6 +11,12 @@ component {
 		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
+		settings.legacyExtensionsNowInCore = [
+			  "preside-ext-taskmanager"
+			, "preside-ext-formbuilder"
+			, "preside-ext-redirects"
+			, "preside-ext-individual-filter"
+		];
 
 		settings.activeExtensions = _loadExtensions();
 
@@ -44,7 +50,6 @@ component {
 			, localeStorage      = "cookie"
 			, unknownTranslation = "**NOT FOUND**"
 		};
-		settings.unknownTranslation = i18n.unknownTranslation;
 
 		interceptors = [
 			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
@@ -121,6 +126,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError" );
 		interceptorSettings.customInterceptionPoints.append( "preFormBuilderFormSubmission"          );
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
+		interceptorSettings.customInterceptionPoints.append( "preSaveFormbuilderQuestionResponse"    );
 		interceptorSettings.customInterceptionPoints.append( "onReloadConfigCategories"              );
 		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
 		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
@@ -301,7 +307,7 @@ component {
 			  cms                    = [ "access" ]
 			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches", "clone" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
-			, datamanager            = [ "navigate", "read", "add", "edit","batchedit", "delete", "batchdelete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone" ]
+			, datamanager            = [ "navigate", "read", "add", "edit","batchedit", "delete", "batchdelete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone", "usefilters", "managefilters" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, passwordPolicyManager  = [ "manage" ]
@@ -314,11 +320,12 @@ component {
 			, systemInformation      = [ "navigate" ]
 			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, formquestions          = [ "navigate", "read", "add", "edit", "delete", "batchdelete", "batchedit", "clone" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
 			, savedExport            = [ "navigate", "read", "add", "edit", "delete" ]
 			, auditTrail             = [ "navigate" ]
-			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
+			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete", "clone", "unlock" ]
 			, apiManager             = [ "navigate", "read", "add", "edit", "delete" ]
 			, errorlogs              = [ "navigate" ]
 			, emailCenter            = {
@@ -350,10 +357,10 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*" ];
-		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "rulesEngine.navigate", "emailCenter.*", "!emailCenter.queue.*" ];
-		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read", "rulesEngine.navigate" ];
-		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*" ];
+		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "formquestions.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "emailCenter.*", "!emailCenter.queue.*" ];
+		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read" ];
+		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*", "formquestions.*" ];
 		settings.adminRoles.emailcentremanager = [ "cms.access", "emailCenter.*", "!emailCenter.queue.*" ];
 		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
@@ -417,7 +424,8 @@ component {
 			, auditTrail               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemInformation        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, formbuilder              = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, formbuilder              = { enabled=true , siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, formbuilder2             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, multilingual             = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport               = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, twoFactorAuthentication  = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -425,7 +433,6 @@ component {
 			, emailCenter              = { enabled=true , siteTemplates=[ "*" ] }
 			, emailCenterResend        = { enabled=false, siteTemplates=[ "*" ] }
 			, emailStyleInliner        = { enabled=true , siteTemplates=[ "*" ] }
-			, emailStyleInlinerAscii   = { enabled=false, siteTemplates=[ "*" ] }
 			, emailLinkShortener       = { enabled=false, siteTemplates=[ "*" ] }
 			, emailOverwriteDomain     = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates     = { enabled=true , siteTemplates=[ "*" ] }
@@ -475,7 +482,8 @@ component {
 		settings.enum.assetAccessRestriction      = [ "inherit", "none", "full" ];
 		settings.enum.linkType                    = [ "email", "url", "sitetreelink", "asset" ];
 		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
-		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://" ];
+		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://", "tel://" ];
+		settings.enum.linkReferrerPolicy          = [ "no-referrer", "no-referrer-when-downgrade", "origin", "origin-when-cross-origin","same-origin","strict-origin","strict-origin-when-cross-origin","unsafe-url" ];
 		settings.enum.siteProtocol                = [ "http", "https" ];
 		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
 		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
@@ -487,6 +495,9 @@ component {
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
+		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
+		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
+		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
 
@@ -656,7 +667,8 @@ component {
 
 	private array function _loadExtensions() {
 		return new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping = settings.appMapping
+			  appMapping       = settings.appMapping
+			, ignoreExtensions = settings.legacyExtensionsNowInCore
 		).listExtensions();
 	}
 
@@ -668,9 +680,10 @@ component {
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
-			, svg = { serveAsAttachmemnt=false, mimeType="image/svg+xml" }
+			, svg  = { serveAsAttachment=false, mimeType="image/svg+xml" }
 			, tiff = { serveAsAttachment=false, mimeType="image/tiff" }
 			, tif  = { serveAsAttachment=false, mimeType="image/tiff" }
+			, webp = { serveAsAttachment=false, mimeType="image/webp" }
 		};
 
 		types.video = {

@@ -5,13 +5,19 @@ Rules engine condition: add form
 This form is used for creating a new rules engine condition
 -->
 <form>
-	<tab id="default">
+	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
 			<field binding="rules_engine_condition.context"        control="hidden" />
 			<field binding="rules_engine_condition.condition_name" control="textinput" />
 			<field binding="rules_engine_condition.expressions"    control="rulesEngineConditionBuilder">
 				<rule validator="rulesEngineCondition" />
 			</field>
+		</fieldset>
+	</tab>
+	<tab id="locking" sortorder="20">
+		<fieldset id="locking" sortorder="10">
+			<field binding="rules_engine_condition.is_locked" />
+			<field binding="rules_engine_condition.locked_reason" control="textarea" />
 		</fieldset>
 	</tab>
 </form>

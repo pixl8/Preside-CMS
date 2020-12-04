@@ -9,10 +9,7 @@
 		  , conf, $form, relativeField, datetimePicker;
 
 		conf = {
-			  minDate     : pickerConfig.startDate || false
-			, maxDate     : pickerConfig.endDate   || false
-			, useCurrent  : false
-			, icons       : {
+			  icons          : {
 				  time:     'fa fa-clock-o'
 				, date:     'fa fa-calendar'
 				, up:       'fa fa-chevron-up'
@@ -22,9 +19,14 @@
 				, today:    'fa fa-screenshot'
 				, clear:    'fa fa-trash'
 			}
-			, format     : 'YYYY-MM-DD HH:mm'
-			, sideBySide : true
-			, locale     : $thisPicker.data( "language" ) || "en"
+			, format         : 'YYYY-MM-DD HH:mm'
+            , useCurrent     : false
+            , defaultHour    : pickerConfig.defaultHour    || 0
+            , defaultMinutes : pickerConfig.defaultMinutes || 0
+			, minDate        : pickerConfig.startDate      || false
+			, maxDate        : pickerConfig.endDate        || false
+			, sideBySide     : true
+			, locale         : pickerConfig.language       || "en"
 		};
 
 		$thisPicker.datetimepicker( conf ).next().on( "click", function(){
@@ -42,13 +44,13 @@
 			  , currentDate = $.trim( $thisPicker.val() );
 
 			if ( currentDate === "" ) {
-				dp.date( moment( defaultDate ) );
+				dp.date( moment( defaultDate ).hours( pickerConfig.defaultHour || 0 ).minutes( pickerConfig.defaultMinutes || 0 ).seconds(0).milliseconds(0) );
 			}
 		} );
 
 		datetimePicker = $thisPicker.data( "DateTimePicker" );
 
-		if ( relativeToField.length || relativeOperator.length ) {
+		if ( relativeToField.length && relativeOperator.length ) {
 			$form          = $thisPicker.closest( "form" );
 			$relativeField = $form.find( "[name=" + relativeToField + "]" );
 

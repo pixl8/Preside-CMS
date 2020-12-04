@@ -89,8 +89,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  parentPropertyName = ""
 	) {
 		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated = translateObjectProperty( objectName, propertyName );
 		var possesses           = translateResource(
 			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
 			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
@@ -112,8 +111,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
 	){
-		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );

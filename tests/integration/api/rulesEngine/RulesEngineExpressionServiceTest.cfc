@@ -217,6 +217,37 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( orderedExpressionLabels ).toBe( labels.sort( "textnocase" ) );
 			} );
 
+			it( "should exclude any expressions whose tags match the excludeTags argument", function(){
+				var service = _getService();
+				var expressionIds = mockExpressions.keyArray();
+				var labels = [];
+
+				for( var id in expressionIds ){
+					labels.append( CreateUUId() );
+					service.$( "getExpression" ).$args( id ).$results( { id=id, label=labels[ labels.len() ], text="whatever", fields={}, contexts=[] } );
+				}
+
+				var expressions = service.listExpressions( excludeTags="excludeTest" );
+				var orderedExpressionLabels = [];
+				var orderedExpressionIds    = [];
+
+				for( var expression in expressions ) {
+					orderedExpressionIds.append( expression.id );
+					orderedExpressionLabels.append( expression.label );
+				}
+
+				var expectedExpressionIds = [
+					  "userGroup.user"
+					, "expression3.context1"
+					, "expression4.context2"
+					, "expression5.context3"
+					, "expression6.context4"
+					, "expression7.context5"
+				];
+
+				expect( orderedExpressionIds.sort( "textnocase" ) ).toBe( expectedExpressionIds.sort( "textnocase" ) );
+			} );
+
 			it( "should filter expressions by context when a context is supplied, with 'global' context matching any context", function(){
 				var service = _getService();
 				var context = "request";
@@ -780,7 +811,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private struct function _getDefaultTestExpressions() {
 		var expressions = {
 			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah" }
-			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah" }
+			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah", tags=[ "excludeTest" ] }
 			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], filterObjects=[ "objectx" ], category="blah" }
 			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ], filterObjects=[ "objecty" ], category="blah" }
 			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ], filterObjects=[ "objectx" ], category="blah" }
