@@ -159,6 +159,10 @@ component {
 		);
 	}
 
+	private void function preRenderEditRecordForm( event, rc, prc, args={} ) {
+		rc.filterObject = args.record.object_name ?: "";
+	}
+
 // HELPERS
 	private string function _decorateLabelForListing( required string recordId ) {
 		var detail     = presideObjectService.selectData( objectName="saved_export", id=arguments.recordId );
