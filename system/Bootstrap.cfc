@@ -43,7 +43,6 @@ component {
 	public boolean function onRequestStart( required string targetPage ) {
 		_pingCheck();
 		_maintenanceModeCheck();
-		_readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
 			_initEveryEverything();
@@ -375,10 +374,6 @@ component {
 		}
 
 		return "preside.system.config.Config";
-	}
-
-	private void function _readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
-		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 
 	private boolean function _showErrors() {
