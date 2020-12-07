@@ -101,23 +101,31 @@ component displayName="Admin permissions service" {
 		,          array  contextKeys   = []
 		,          string userId        = _getLoginService().getLoggedInUserId()
 	) {
+		var cacheKey = "hasPermission-#arguments.userId#-#arguments.permissionKey#-#arguments.context#-#ArrayToList( arguments.contextKeys )#";
+		var fromCache = _getCacheProvider().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var hasPermission = true;
+
 		if ( !Len( Trim( arguments.userId ) ) ) {
-			return false;
-		}
-
-		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
-			return true;
-		}
-
-		if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
+			hasPermission = false;
+		} else if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+			hasPermission = true;
+		} else if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
 			if ( !IsNull( local.contextPerm ) && IsBoolean( contextPerm ) ) {
-				return contextPerm;
+				hasPermission = contextPerm;
 			}
+		} else {
+			hasPermission = ArrayFind( listPermissionKeys( user=arguments.userId ), LCase( arguments.permissionKey ) ) > 0;
 		}
 
+		_getCacheProvider().set( cacheKey, hasPermission )
 
-		return ArrayFind( listPermissionKeys( user=arguments.userId ), LCase( arguments.permissionKey ) ) > 0;
+		return hasPermission;
 	}
 
 	/**
