@@ -15,7 +15,7 @@
 		, link   = ( args.tab == "general" ) ? "" : event.buildAdminLink( linkTo="emailcenter.settings" )
 	});
 
-	for( var provider in args.providers ) {
+	for( provider in args.providers ) {
 		tabs.append({
 			  id     = "provider-" & provider.id
 			, icon   = provider.iconClass
