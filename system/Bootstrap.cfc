@@ -765,8 +765,8 @@ component {
 	}
 
 	private string function _getUrl() {
-		var requestData = GetHttpRequestData();
-		var requestUrl  = requestData.headers[ 'X-Original-URL' ] ?: "";
+		var headers    = GetHttpRequestData( false ).headers;
+		var requestUrl = headers[ 'X-Original-URL' ] ?: "";
 
 		if ( !Len( Trim( requestUrl ) ) ) {
 			requestUrl = request[ "javax.servlet.forward.request_uri" ] ?: "";
@@ -779,7 +779,7 @@ component {
 				if( isBoolean( cgi.server_port_secure ) AND cgi.server_port_secure){
 					protocol = "https";
 				} else {
-					protocol = requestData.headers[ "x-forwarded-proto" ] ?: ( requestData.headers[ "x-scheme" ] ?: LCase( ListFirst( cgi.server_protocol, "/" ) ) );
+					protocol = headers[ "x-forwarded-proto" ] ?: ( headers[ "x-scheme" ] ?: LCase( ListFirst( cgi.server_protocol, "/" ) ) );
 				}
 
 				requestUrl = protocol & "://" & cgi.http_host & requestUrl;
