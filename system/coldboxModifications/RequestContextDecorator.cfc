@@ -960,7 +960,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // HTTP Header helpers
 	public string function getClientIp() {
-		var httpHeaders = getHttpRequestData().headers;
+		var httpHeaders = getHttpRequestData( false ).headers;
 		var clientIp    = httpHeaders[ "x-real-ip" ] ?: ( httpHeader[ "x-forwarded-for"] ?: cgi.remote_addr );
 
 		return Trim( ListFirst( clientIp ) );
