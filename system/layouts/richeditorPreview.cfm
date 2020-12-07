@@ -1,7 +1,7 @@
 <cfscript>
 	stylesheets = getSetting( name="ckeditor.defaults.stylesheets", defaultValue=[] );
 	if ( IsArray( stylesheets ) ) {
-		for( var stylesheet in stylesheets ) {
+		for( stylesheet in stylesheets ) {
 			event.include( stylesheet );
 		}
 	}

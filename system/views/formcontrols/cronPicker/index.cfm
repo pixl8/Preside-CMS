@@ -16,7 +16,7 @@
 	if ( !isEmpty( value ) ) {
 		savedFieldValue = listToArray( value, " " );
 
-		for ( var i=1; i<=arrayLen( savedFieldValue ); i++ ) {
+		for ( i=1; i<=arrayLen( savedFieldValue ); i++ ) {
 			args.fieldValue[ fieldKeys[i] ] = savedFieldValue[i];
 		}
 	}
