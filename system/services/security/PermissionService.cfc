@@ -117,7 +117,7 @@ component displayName="Admin permissions service" {
 		}
 
 
-		return listPermissionKeys( user=arguments.userId ).findNoCase( arguments.permissionKey );
+		return ArrayFind( listPermissionKeys( user=arguments.userId ), LCase( arguments.permissionKey ) ) > 0;
 	}
 
 	/**
@@ -363,16 +363,25 @@ component displayName="Admin permissions service" {
 	}
 
 	private array function _getUserPermissions( required string user ) {
-		var perms = [];
-		var groups = listUserGroups( arguments.user );
+		var cacheKey = "_userPermissionsCache#arguments.user#";
+		var fromCache = _getCacheProvider().get( cacheKey );
 
-		for( var group in groups ){
-			_getGroupPermissions( group ).each( function( perm ){
-				if ( !perms.findNoCase( perm ) ) {
-					perms.append( perm );
-				}
-			} );
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
 		}
+
+		var perms = [];
+
+		for( var group in listUserGroups( arguments.user ) ){
+			var groupPerms = _getGroupPermissions( group );
+			for( var perm in groupPerms ) {
+				if ( !ArrayFind( perms, LCase( perm ) ) ) {
+					ArrayAppend( perms, LCase( perm ) );
+				}
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, perms );
 
 		return perms;
 	}
