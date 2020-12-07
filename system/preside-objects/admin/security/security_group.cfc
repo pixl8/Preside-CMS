@@ -3,6 +3,7 @@
  *
  * See [[cmspermissioning]] for more information on users and permissioning.
  *
+ * @datamanagerEnabled true
  */
 component extends="preside.system.base.SystemPresideObject" output="false" displayName="User group" {
 	property name="label" uniqueindexes="role_name" sortorder=10;
