@@ -410,7 +410,16 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function getHTTPContent() {
-		return request.http.body ?: ToString( getHTTPRequestData().content );
+		if ( !StructKeyExists( request, "http" ) || !StructKeyExists( request.http, "body" ) ) {
+			request.http.body = ToString( GetHTTPRequestData().content );
+		}
+		return request.http.body;
+	}
+
+	function getHTTPHeader( required header, defaultValue="" ){
+		var headers = getHttpRequestData( false ).headers;
+
+		return headers[ arguments.header ] ?: arguments.defaultValue;
 	}
 
 	public void function initializeDatamanagerPage(
@@ -960,7 +969,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // HTTP Header helpers
 	public string function getClientIp() {
-		var httpHeaders = getHttpRequestData().headers;
+		var httpHeaders = getHttpRequestData( false ).headers;
 		var clientIp    = httpHeaders[ "x-real-ip" ] ?: ( httpHeader[ "x-forwarded-for"] ?: cgi.remote_addr );
 
 		return Trim( ListFirst( clientIp ) );
