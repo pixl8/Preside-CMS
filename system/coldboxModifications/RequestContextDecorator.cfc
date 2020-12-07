@@ -410,7 +410,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function getHTTPContent() {
-		return request.http.body ?: ToString( getHTTPRequestData().content );
+		if ( !StructKeyExists( request, "http" ) || !StructKeyExists( request.http, "body" ) ) {
+			request.http.body = ToString( GetHTTPRequestData().content );
+		}
+		return request.http.body;
 	}
 
 	function getHTTPHeader( required header, defaultValue="" ){
