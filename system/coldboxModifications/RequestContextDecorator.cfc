@@ -413,6 +413,12 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return request.http.body ?: ToString( getHTTPRequestData().content );
 	}
 
+	function getHTTPHeader( required header, defaultValue="" ){
+		var headers = getHttpRequestData( false ).headers;
+
+		return headers[ arguments.header ] ?: arguments.defaultValue;
+	}
+
 	public void function initializeDatamanagerPage(
 		  required string objectName
 		,          string recordId   = ""
