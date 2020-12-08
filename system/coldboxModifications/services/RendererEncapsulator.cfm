@@ -38,6 +38,12 @@
 		variables.renderedHelpers[ hash( arguments.viewHelperPath.toString() ) ] = true;
 	}
 
-	// The actual view requested
-	include "#arguments.viewPath#.cfm";
+	function includeWrapper( viewPath ){
+		// we do this for backward compat: any
+		// views with 'var' declarations
+		// break without this
+		include template=arguments.viewPath;
+	}
+
+	includeWrapper( "#arguments.viewPath#.cfm" );
 </cfscript>
