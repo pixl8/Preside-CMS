@@ -84,6 +84,20 @@ component {
 		return "";
 	}
 
+	public array function fuzzySearchKeyByLabel( required string enum, required array searchTerms ) {
+		var result = [];
+		var items  = listItems( arguments.enum );
+
+		for ( var q in arguments.searchTerms ) {
+			for ( var item in items ) {
+				if ( findNoCase( q, item.label ) ) {
+					result.append( item.id );
+				}
+			}
+		}
+
+		return result;
+	}
 
 	/**
 	 * @validator        true

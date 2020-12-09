@@ -22,6 +22,7 @@ component {
 	 * @customizationService.inject datamanagerCustomizationService
 	 * @cloningService.inject       presideObjectCloningService
 	 * @multilingualService.inject  multilingualPresideObjectService
+	 * @enumService.inject          enumService
 	 */
 	public any function init(
 		  required any presideObjectService
@@ -34,6 +35,7 @@ component {
 		, required any customizationService
 		, required any cloningService
 		, required any multilingualService
+		, required any enumService
 	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
@@ -45,6 +47,7 @@ component {
 		_setCustomizationService( arguments.customizationService );
 		_setCloningService( arguments.cloningService );
 		_setMultilingualService( arguments.multilingualService );
+		_setEnumService( arguments.enumService );
 
 		return this;
 	}
@@ -766,6 +769,13 @@ component {
 		var poService            = _getPresideObjectService();
 		var relationshipGuidance = _getRelationshipGuidance();
 		var searchTerms          = arguments.expandTerms ? listToArray( arguments.q, " " ) : [ arguments.q ];
+		var objEnumFields        = poService.getObjectEnumProperties( objectName=arguments.objectName );
+
+		for ( var enumField in objEnumFields ) {
+			var enum = poService.getObjectPropertyAttribute( arguments.objectName, enumField, "enum" );
+
+			searchTerms = arrayMerge( searchTerms, _getEnumService().fuzzySearchKeyByLabel( enum, searchTerms ) );
+		}
 
 		if ( arguments.searchFields.len() ) {
 			var parsedFields = poService.parseSelectFields(
@@ -787,7 +797,11 @@ component {
 				}
 
 				filter   &= " )";
-				termDelim = " and ";
+				if ( arrayLen( objEnumFields ) ) {
+					termDelim = " or ";
+				} else {
+					termDelim = " and ";
+				}
 			}
 		} else {
 			for( var t=1; t<=searchTerms.len(); t++ ) {
@@ -820,7 +834,11 @@ component {
 				}
 
 				filter   &= " )";
-				termDelim = " and ";
+				if ( arrayLen( objEnumFields ) ) {
+					termDelim = " or ";
+				} else {
+					termDelim = " and ";
+				}
 			}
 		}
 
@@ -1088,4 +1106,10 @@ component {
 		_multilingualService = arguments.multilingualService;
 	}
 
+	private any function _getEnumService() {
+		return _enumService;
+	}
+	private void function _setEnumService( required any enumService ) {
+		_enumService = arguments.enumService;
+	}
 }
