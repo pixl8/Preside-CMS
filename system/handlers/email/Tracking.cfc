@@ -29,23 +29,23 @@ component {
 		var getLinkFromDb     = isFeatureEnabled( "emailLinkShortener" ) && ReFindNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}", link );
 
 		if ( getLinkFromDb ) {
-			link = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
+			var dbLink = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
 
-			if ( link.recordCount ) {
-				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link.href ) ) {
+			if ( dbLink.recordCount ) {
+				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, dbLink.href ) ) {
 					try {
 						emailLoggingService.recordClick(
 							  id        = messageId
-							, link      = link.href
-							, linkTitle = link.title
-							, linkBody  = link.body
+							, link      = dbLink.href
+							, linkTitle = dbLink.title
+							, linkBody  = dbLink.body
 						);
 					} catch( any e ) {
 						// ignore errors that will be due to original email log no longer existing
 					}
 				}
 
-				setNextEvent( url=link.href );
+				setNextEvent( url=dbLink.href );
 			}
 		}
 
