@@ -49,9 +49,6 @@ component {
 		if ( IsBoolean( propertyDefinition.autofilter ?: "" ) && !propertyDefinition.autofilter ) {
 			return [];
 		}
-		if ( ( propertyDefinition.formula ?: "" ).len() ) {
-			return [];
-		}
 
 		var isRequired   = IsBoolean( propertyDefinition.required ?: "" ) && propertyDefinition.required;
 		var propType     = propertyDefinition.type ?: "string";
@@ -63,7 +60,9 @@ component {
 			switch( propType ) {
 				case "string":
 				case "numeric":
-					expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( !Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+						expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 				default:
 					expressions.append( _createIsSetExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
@@ -73,7 +72,9 @@ component {
 		if ( !relationship contains "many" ) {
 			switch( propType ) {
 				case "string":
-					if ( !Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
+					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+						expressions.append( _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else {
 						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
@@ -84,7 +85,11 @@ component {
 					expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 				break;
 				case "numeric":
-					expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+						// TODO
+					} else {
+						expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 			}
 		}
@@ -165,6 +170,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createStringFormulaMatchExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_formulamatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getText"
 		} );
 
 		return expression;
