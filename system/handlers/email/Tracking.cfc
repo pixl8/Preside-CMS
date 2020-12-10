@@ -46,6 +46,8 @@ component {
 				}
 
 				setNextEvent( url=link.href );
+			} else {
+				event.notFound();
 			}
 		}
 
