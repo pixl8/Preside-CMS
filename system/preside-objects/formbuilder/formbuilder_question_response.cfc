@@ -1,5 +1,4 @@
 /**
- * @feature   formbuilder
  * @versioned false
  */
 component displayname="Form builder: global question response" extends="preside.system.base.SystemPresideObject" {
