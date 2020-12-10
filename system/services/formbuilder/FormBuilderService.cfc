@@ -105,17 +105,6 @@ component {
 	}
 
 	/**
-	 * Returns the matching database record for the given question ID
-	 *
-	 * @autodoc
-	 * @id.hint ID of the question you wish to get
-	 *
-	 */
-	public query function getQuestion( required string id ) {
-		return Len( Trim( arguments.id ) ) ? $getPresideObject( "formbuilder_question" ).selectData( id=arguments.id ) : QueryNew('');
-	}
-
-	/**
 	 * Retuns a form's item from the DB, converted to a useful struct. Keys are
 	 * 'id', 'type' (a structure containing type configuration) and 'configuration'
 	 * (a structure of configuration options for the item)
