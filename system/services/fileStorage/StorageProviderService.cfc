@@ -44,6 +44,10 @@ component {
 		return provider.validate( validationResult=arguments.validationResult, configuration=arguments.configuration );
 	}
 
+	public boolean function providerSupportsFileSystem( required any storageProvider ) {
+		return IsInstanceOf( arguments.storageProvider, "StorageProviderFileSystemSupport" );
+	}
+
 // PRIVATE HELPERS
 	private any function _createObject( required string cfcPath, required struct constructorArgs, required boolean skipConstructor ) {
 		var instance = CreateObject( "component", arguments.cfcPath );

@@ -714,7 +714,7 @@ component displayName="AssetManager Service" {
 
 		var sp = getStorageProviderForFolder( asset.asset_folder );
 
-		if ( Len( arguments.filePath ) && _storageProviderSupportsFileSystemUpload( sp ) ) {
+		if ( Len( arguments.filePath ) && _providerSupportsFileSystem( sp ) ) {
 			sp.putObjectFromLocalPath(
 				  localPath = arguments.filePath
 				, path      = asset.storage_path
@@ -800,7 +800,7 @@ component displayName="AssetManager Service" {
 
 		var sp = getStorageProviderForFolder( originalAsset.asset_folder );
 
-		if ( Len( arguments.filePath ) && _storageProviderSupportsFileSystemUpload( sp ) ) {
+		if ( Len( arguments.filePath ) && _providerSupportsFileSystem( sp ) ) {
 			sp.putObjectFromLocalPath(
 				  localPath = arguments.filePath
 				, path      = newFileName
@@ -1167,7 +1167,7 @@ component displayName="AssetManager Service" {
 
 			var sp = getStorageProviderForFolder( asset.asset_folder );
 
-			if ( arguments.getFilePathIfSupported && _storageProviderSupportsFileSystemUpload( sp ) ) {
+			if ( arguments.getFilePathIfSupported && _providerSupportsFileSystem( sp ) ) {
 				return sp.getObjectLocalPath(
 					  path    = asset.storage_path
 					, trashed = arguments.isTrashed
@@ -1661,7 +1661,7 @@ component displayName="AssetManager Service" {
 		if ( derivative.recordCount ) {
 			var sp = getStorageProviderForFolder( derivative.asset_folder );
 
-			if ( arguments.getFilePathIfSupported && _storageProviderSupportsFileSystemUpload( sp ) ) {
+			if ( arguments.getFilePathIfSupported && _providerSupportsFileSystem( sp ) ) {
 				return sp.getObjectLocalPath(
 					  path    = derivative.storage_path
 					, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
@@ -2567,8 +2567,8 @@ component displayName="AssetManager Service" {
 		return ExpandPath( _getDerivativeLimits().tooBigPlaceholder );
 	}
 
-	private boolean function _storageProviderSupportsFileSystemUpload( required any storageProvider ) {
-		return IsInstanceOf( storageProvider, "StorageProviderFileSystemSupport" );
+	private boolean function _providerSupportsFileSystem( required any storageProvider ) {
+		return _getStorageProviderService().providerSupportsFileSystem( arguments.storageProvider );
 	}
 
 	private struct function _getFileMeta(
