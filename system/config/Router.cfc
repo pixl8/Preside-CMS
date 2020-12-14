@@ -32,9 +32,9 @@ component extends="coldbox.system.web.routing.Router" {
 	}
 
 	function pathInfoProvider( event ) {
-		var requestData = GetHttpRequestData();
-		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: (request[ "javax.servlet.forward.request_uri" ] ?: "") ), '?' );
-		var qs          = "";
+		var headers = GetHttpRequestData( false ).headers;
+		var uri     = ListFirst( ( headers['X-Original-URL'] ?: (request[ "javax.servlet.forward.request_uri" ] ?: "") ), '?' );
+		var qs      = "";
 
 		if ( !Len( Trim( uri ) ) ) {
 			uri = cgi.path_info ?: "";
@@ -44,8 +44,8 @@ component extends="coldbox.system.web.routing.Router" {
 			}
 		}
 
-		if ( ListLen( requestData.headers['X-Original-URL'] ?: "", "?" ) > 1 ) {
-			qs = ListRest( requestData.headers['X-Original-URL'], "?" );
+		if ( ListLen( headers['X-Original-URL'] ?: "", "?" ) > 1 ) {
+			qs = ListRest( headers['X-Original-URL'], "?" );
 		}
 		if ( !Len( Trim( qs ) ) ) {
 			qs = request[ "javax.servlet.forward.query_string" ] ?: ( cgi.query_string ?: "" );
