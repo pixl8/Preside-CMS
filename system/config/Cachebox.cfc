@@ -56,8 +56,8 @@ component {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 100
-						, maxObjects                     = 500
+						, evictCount                     = 200
+						, maxObjects                     = 2000
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
