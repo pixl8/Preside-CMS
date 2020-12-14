@@ -732,10 +732,6 @@ component displayName="AssetManager Service" {
 			asset.title = arguments.fileName;
 		}
 
-		if ( _autoExtractDocumentMeta() ) {
-			asset.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
-		}
-
 		if ( fileTypeInfo.groupName == "image" ) {
 			asset.width  = fileWidth;
 			asset.height = fileHeight;
@@ -765,8 +761,18 @@ component displayName="AssetManager Service" {
 		return asset.id;
 	}
 
-	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "file_name", "asset_type", "asset_folder", "focal_point", "crop_hint", "access_restriction" ] );
+	public boolean function addAssetVersion(
+		  required string  assetId
+		,          binary  fileBinary
+		, required string  fileName
+		,          boolean makeActive = true
+		,          string  filePath    = ""
+		,          numeric fileSize    = Len( arguments.fileBinary ?: "" )
+	) {
+		var originalAsset = getAsset(
+			  id           = arguments.assetId
+			, selectFields = [ "id", "title", "file_name", "asset_type", "asset_folder", "focal_point", "crop_hint", "access_restriction" ]
+		);
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -774,7 +780,6 @@ component displayName="AssetManager Service" {
 
 		var originalFileTypeInfo = getAssetType( name=originalAsset.asset_type, throwOnMissing=true );
 		var fileTypeInfo         = getAssetType( filename=arguments.fileName, throwOnMissing=true );
-
 		if ( fileTypeInfo.mimeType != originalFileTypeInfo.mimeType ) {
 			throw( type="AssetManager.mismatchedMimeType", message="The mime type of the uploaded file, [#fileTypeInfo.mimeType#], does not match that of the original version [#originalFileTypeInfo.mimeType#]." );
 		}
@@ -787,21 +792,27 @@ component displayName="AssetManager Service" {
 			, asset          = arguments.assetId
 			, asset_type     = fileTypeInfo.typeName
 			, storage_path   = newFileName
-			, size           = Len( arguments.fileBinary )
+			, size           = arguments.fileSize
 			, focal_point    = originalAsset.focal_point
 			, crop_hint      = originalAsset.crop_hint
 			, version_number = _getNextAssetVersionNumber( arguments.assetId )
 		};
 
-		if ( _autoExtractDocumentMeta() ) {
-			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
-		}
+		var sp = getStorageProviderForFolder( originalAsset.asset_folder );
 
-		getStorageProviderForFolder( originalAsset.asset_folder ).putObject(
-			  object  = arguments.fileBinary
-			, path    = newFileName
-			, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
-		);
+		if ( Len( arguments.filePath ) && _storageProviderSupportsFileSystemUpload( sp ) ) {
+			sp.putObjectFromLocalPath(
+				  localPath = arguments.filePath
+				, path      = newFileName
+				, private   = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
+			);
+		} else {
+			sp.putObject(
+				  object  = arguments.fileBinary ?: FileReadBinary( arguments.filePath )
+				, path    = newFileName
+				, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
+			);
+		}
 
 		_getAssetVersionDao().insertData( data=assetVersion );
 
@@ -813,7 +824,7 @@ component displayName="AssetManager Service" {
 			_saveAssetMetaData(
 				  assetId   = arguments.assetId
 				, versionId = versionId
-				, metaData  = _getDocumentMetadataService().getMetaData( arguments.fileBinary )
+				, metaData  = _getFileMeta( argumentCollection=arguments )
 			);
 		}
 
@@ -1934,7 +1945,7 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( versionToMakeActive.recordCount ) {
-			var versionImageDimension = _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
+			var versionImageDimension = _getImageInfo( getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, getFilePathIfSupported=true ) );
 			var generatedAssetUrl     = generateAssetUrl(
 				  id          = arguments.assetId
 				, versionId   = arguments.versionId
@@ -2382,8 +2393,14 @@ component displayName="AssetManager Service" {
 	}
 
 	private struct function _getImageInfo( fileBinary ) {
+		var info = {};
 		try {
-			var info = ImageInfo( arguments.fileBinary );
+			if ( IsBinary(  arguments.fileBinary  ) ) {
+				info = ImageInfo( arguments.fileBinary );
+			} else {
+				info = JavaImageMetaReader::readMeta( arguments.fileBinary );
+			}
+
 			return {
 				  width  = Val( info.width  ?: 0 )
 				, height = Val( info.height ?: 0 )

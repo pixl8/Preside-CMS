@@ -35,7 +35,7 @@ component {
 			, tempFileInfo = uploadResult
 		};
 
-		if ( arguments.readBinary ) {
+		if ( arguments.readBinary && IsTrue( arguments.preProcessorArgs.preProcessBinary ?: true ) ) {
 			returnInfo.binary = FileReadBinary( returnInfo.path );
 		}
 

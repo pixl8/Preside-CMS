@@ -831,6 +831,7 @@ component extends="preside.system.base.AdminHandler" {
 		var formName = "preside-objects.asset.newversion";
 		var formData = event.getCollectionForForm( formName );
 
+
 		preProcessForm( formName, formData );
 
 		if ( !IsStruct( formData.file ?: "" ) || formData.file.isEmpty() ) {
@@ -840,9 +841,10 @@ component extends="preside.system.base.AdminHandler" {
 
 			try {
 				success = assetmanagerService.addAssetVersion(
-					  assetId    = assetId
-					, fileBinary = formData.file.binary
-					, fileName   = formData.file.fileName
+					  assetId  = assetId
+					, filePath = formData.file.path
+					, fileName = formData.file.fileName
+					, fileSize = formData.file.size
 				);
 			} catch ( "AssetManager.mismatchedMimeType" e ) {
 				messagebox.error( translateResource( "cms:assetmanager.upload.new.version.mismatched.type.error" ) );
