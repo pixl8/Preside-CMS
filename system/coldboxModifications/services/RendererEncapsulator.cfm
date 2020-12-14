@@ -1,7 +1,6 @@
 <cfscript>
 	// Merge variables from renderer
 	StructAppend( variables, attributes.rendererVariables, false );
-	StructAppend( variables, ( variables.rc ?: {} ), false );
 
 	variables.isViewsHelperIncluded = variables.isViewsHelperIncluded ?: false;
 	variables.renderedHelpers 		= variables.renderedHelpers       ?: {};
@@ -10,6 +9,7 @@
 	variables.event = attributes.event;
 	variables.rc 	= attributes.rc;
 	variables.prc 	= attributes.prc;
+	StructAppend( variables, variables.rc, false );
 
 	// Spoof the arguments scope for backwards compat.  i.e. arguments.args
 	variables.arguments = {
