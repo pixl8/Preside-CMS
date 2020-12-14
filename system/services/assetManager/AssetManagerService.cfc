@@ -1131,12 +1131,13 @@ component displayName="AssetManager Service" {
 		);
 	}
 
-	public binary function getAssetBinary(
+	public any function getAssetBinary(
 		  required string  id
-		,          string  versionId             = ""
-		,          boolean throwOnMissing        = false
-		,          boolean isTrashed             = false
-		,          boolean placeholderIfTooLarge = false
+		,          string  versionId              = ""
+		,          boolean throwOnMissing         = false
+		,          boolean isTrashed              = false
+		,          boolean placeholderIfTooLarge  = false
+		,          boolean getFilePathIfSupported = false
 	) {
 		var assetBinary = "";
 		var isPrivate   = isAssetAccessRestricted( arguments.id )
@@ -1147,9 +1148,22 @@ component displayName="AssetManager Service" {
 
 		if ( asset.recordCount ) {
 			if ( arguments.placeholderIfTooLarge && assetIsTooLargeForDerivatives( asset.width, asset.height ) ) {
+				if ( arguments.getFilePathIfSupported ) {
+					return _getLargeImagePlaceholderPath();
+				}
 				return _getLargeImagePlaceholder();
 			}
-			return getStorageProviderForFolder( asset.asset_folder ).getObject(
+
+			var sp = getStorageProviderForFolder( asset.asset_folder );
+
+			if ( arguments.getFilePathIfSupported && _storageProviderSupportsFileSystemUpload( sp ) ) {
+				return sp.getObjectLocalPath(
+					  path    = asset.storage_path
+					, trashed = arguments.isTrashed
+					, private = isPrivate
+				);
+			}
+			return sp.getObject(
 				  path    = asset.storage_path
 				, trashed = arguments.isTrashed
 				, private = isPrivate
@@ -1618,7 +1632,13 @@ component displayName="AssetManager Service" {
 		return QueryNew( '' );
 	}
 
-	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="", string configHash="" ) {
+	public any function getAssetDerivativeBinary(
+		  required string  assetId
+		, required string  derivativeName
+		,          string  versionId              = ""
+		,          string  configHash             = ""
+		,          boolean getFilePathIfSupported = false
+	) {
 		var derivative = getAssetDerivative(
 			  assetId        = arguments.assetId
 			, derivativeName = arguments.derivativeName
@@ -1628,12 +1648,22 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( derivative.recordCount ) {
-			return getStorageProviderForFolder( derivative.asset_folder ).getObject(
+			var sp = getStorageProviderForFolder( derivative.asset_folder );
+
+			if ( arguments.getFilePathIfSupported && _storageProviderSupportsFileSystemUpload( sp ) ) {
+				return sp.getObjectLocalPath(
+					  path    = derivative.storage_path
+					, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
+				);
+			}
+
+			return sp.getObject(
 				  path    = derivative.storage_path
 				, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
 			);
 		}
 	}
+
 
 	public string function createAssetDerivativeWhenNotExists(
 		  required string assetId
@@ -2513,7 +2543,11 @@ component displayName="AssetManager Service" {
 	}
 
 	private binary function _getLargeImagePlaceholder() {
-		return FileReadBinary( ExpandPath( _getDerivativeLimits().tooBigPlaceholder ) );
+		return FileReadBinary( _getLargeImagePlaceholderPath() );
+	}
+
+	private string function _getLargeImagePlaceholderPath() {
+		return ExpandPath( _getDerivativeLimits().tooBigPlaceholder );
 	}
 
 	private boolean function _storageProviderSupportsFileSystemUpload( required any storageProvider ) {

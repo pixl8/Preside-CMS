@@ -71,15 +71,26 @@ component {
 
 		try {
 			if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
-				var assetBinary = "";
+				var assetFilePathOrBinary = "";
 				var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
 				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, throwOnMissing=true, isTrashed=isTrashed  );
 				_doBrowserEtagLookup( etag );
 
 				if ( Len( Trim( derivativeName ) ) ) {
-					assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash );
+					assetFilePathOrBinary = assetManagerService.getAssetDerivativeBinary(
+						  assetId                = assetId
+						, versionId              = versionId
+						, derivativeName         = derivativeName
+						, configHash             = configHash
+						, getFilePathIfSupported = true
+					);
 				} else {
-					assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
+					assetFilePathOrBinary = assetManagerService.getAssetBinary(
+						  id                     = assetId
+						, versionId              = versionId
+						, isTrashed              = isTrashed
+						, getFilePathIfSupported = true
+					);
 				}
 
 				announceInterception( "onDownloadAsset", {
@@ -103,18 +114,25 @@ component {
 
 				header name="etag" value=etag;
 				header name="cache-control" value="max-age=31536000";
-				content
-					reset    = true
-					variable = assetBinary
-					type     = type.mimeType;
+
+				if ( IsBinary( assetFilePathOrBinary ) ) {
+					content
+						reset    = true
+						variable = assetFilePathOrBinary
+						type     = type.mimeType;
+				} else {
+					content
+						reset = true
+						file  = assetFilePathOrBinary
+						type  = type.mimeType;
+				}
 				abort;
 			} else if( passwordProtected ){
-				assetBinary = fileReadBinary(event.buildLink( systemStaticAsset = "/images/asset-type-icons/48px/locked-pdf.png" ));
 				header name="Content-Disposition" value="inline; filename=""ProctedPDF""";
 				content
-					reset    = true
-					variable = assetBinary
-					type     = 'png';
+					reset = true
+					file  = ExpandPath( "/preside/system/assets/images/asset-type-icons/48px/locked-pdf.png" )
+					type  = 'image/png';
 				abort;
 			}
 		} catch ( "storageProvider.objectNotFound" e ) {}
