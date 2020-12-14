@@ -537,10 +537,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	function uploadAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
 		rc.file = runEvent(
 			  event          = "preprocessors.FileUpload.index"
-			, eventArguments = { fieldName="file" }
+			, eventArguments = { fieldName="file", readBinary=false }
 			, private        = true
 			, prePostExempt  = true
 		);
@@ -575,7 +574,8 @@ component extends="preside.system.base.AdminHandler" {
 
 			try {
 				var assetId = assetManagerService.addAsset(
-					  fileBinary        = rc.file.binary
+					  filePath          = rc.file.path
+					, fileSize          = rc.file.size
 					, folder            = rc.asset_folder ?: ""
 					, fileName          = filename
 					, assetData         = assetData

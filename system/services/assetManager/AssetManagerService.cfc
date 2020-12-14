@@ -661,35 +661,43 @@ component displayName="AssetManager Service" {
 	 * Adds an asset into the Asset manager. The asset binary will be uploaded to the appropriate storage
 	 * location for the given folder.
 	 *
-	 * @autodoc
-	 * @fileBinary.hint        Binary data of the file
+	 * @autodoc                true
+	 * @fileBinary.hint        Binary data of the file (instead of filePath)
+	 * @filePath.hint          Path to local file (instead of fileBinary)
 	 * @fileName.hint          Uploaded filename (asset type information will be retrieved from here)
 	 * @folder.hint            Either folder ID or name of a configured system folder
 	 * @assetData.hint         Structure of additional data that can be saved against the [[presideobject-asset]] record
 	 * @ensureUniqueTitle.hint If set to true (default is false), asset titles will be made unique should name conflicts exist
+	 * @fileSize.hint          Size, in bytes, of the file
 	 *
 	 */
 	public string function addAsset(
-		  required binary  fileBinary
+		           binary  fileBinary
+		,          string  filePath          = ""
 		, required string  fileName
 		, required string  folder
 		,          struct  assetData         = {}
 		,          boolean ensureUniqueTitle = false
 		,          boolean ignoreAudit       = false
+		,          numeric fileSize          = 0
 	) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var asset        = Duplicate( arguments.assetData );
-		var fileMetaInfo = _getDocumentMetadataService().getMetaData( arguments.fileBinary );
+		var fileMetaInfo = _getFileMeta( argumentCollection=arguments );
 		var fileWidth    = fileMetaInfo.width  ?: 0;
 		var fileHeight   = fileMetaInfo.height ?: 0;
 
 		asset.id               = asset.id ?: CreateUUId();
 		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
-		asset.size             = asset.size  ?: Len( arguments.fileBinary );
+		asset.size             = asset.size  ?: arguments.fileSize;
 		asset.title            = asset.title ?: arguments.fileName;
 		asset.file_name        = asset.file_name ?: _slugifyTitleForFileName( asset.title );
 		asset.storage_path     = "/#LCase( asset.id )#/#asset.file_name#.#fileTypeInfo.extension#";
+
+		if ( !asset.size && StructKeyExists( arguments, "fileBinary" ) ) {
+			asset.size = Len( arguments.fileBinary );
+		}
 
 		isAssetAllowedInFolder(
 			  type       = asset.asset_type
@@ -704,11 +712,21 @@ component displayName="AssetManager Service" {
 			asset.title = _ensureUniqueTitle( asset.title, asset.asset_folder );
 		}
 
-		getStorageProviderForFolder( asset.asset_folder ).putObject(
-			  object  = arguments.fileBinary
-			, path    = asset.storage_path
-			, private = isFolderAccessRestricted( asset.asset_folder )
-		);
+		var sp = getStorageProviderForFolder( asset.asset_folder );
+
+		if ( Len( arguments.filePath ) && _storageProviderSupportsFileSystemUpload( sp ) ) {
+			sp.putObjectFromLocalPath(
+				  localPath = arguments.filePath
+				, path      = asset.storage_path
+				, private   = isFolderAccessRestricted( asset.asset_folder )
+			);
+		} else {
+			sp.putObject(
+				  object  = arguments.fileBinary ?: FileReadBinary( arguments.filePath )
+				, path    = asset.storage_path
+				, private = isFolderAccessRestricted( asset.asset_folder )
+			);
+		}
 
 		if ( !Len( Trim( asset.title ) ) ) {
 			asset.title = arguments.fileName;
@@ -719,7 +737,8 @@ component displayName="AssetManager Service" {
 		}
 
 		if ( fileTypeInfo.groupName == "image" ) {
-			asset.append( _getImageInfo( arguments.fileBinary ) );
+			asset.width  = fileWidth;
+			asset.height = fileHeight;
 		}
 
 		if ( not Len( Trim( asset.asset_folder ) ) ) {
@@ -2495,6 +2514,20 @@ component displayName="AssetManager Service" {
 
 	private binary function _getLargeImagePlaceholder() {
 		return FileReadBinary( ExpandPath( _getDerivativeLimits().tooBigPlaceholder ) );
+	}
+
+	private boolean function _storageProviderSupportsFileSystemUpload( required any storageProvider ) {
+		return IsInstanceOf( storageProvider, "StorageProviderFileSystemSupport" );
+	}
+
+	private struct function _getFileMeta(
+		  binary fileBinary
+		, string filePath = ""
+	) {
+		if ( Len( Trim( arguments.filePath ) ) ) {
+			return _getDocumentMetadataService().getImageMetaDataFromFilePath( arguments.filePath );
+		}
+		return _getDocumentMetadataService().getMetaData( arguments.fileBinary );
 	}
 
 // GETTERS AND SETTERS

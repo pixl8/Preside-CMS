@@ -77,14 +77,12 @@ component displayname="Image Manipulation Service" {
 	}
 
 	public boolean function isValidImageFile( required string path ) {
-		var asset = fileReadBinary( arguments.path );
 		try {
-			var imageInfo = getImageInformation( asset );
-		}
-		catch( any e ) {
+			var imageInfo = JavaImageMetaReader::readMeta( arguments.path );
+		} catch( any e ) {
 			return false;
 		}
-		return isStruct( imageInfo ) && StructKeyExists( imageInfo, "height" );
+		return StructKeyExists( imageInfo, "height" );
 	}
 
 	private struct function _getCropHintArea(
