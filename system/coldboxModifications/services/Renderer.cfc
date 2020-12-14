@@ -259,9 +259,9 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		return iData.renderedView;
 	}
 
-    /**
-    * Render a view composed of collections, mostly used internally, use at your own risk.
-    */
+	/**
+	* Render a view composed of collections, mostly used internally, use at your own risk.
+	*/
 	function renderViewCollection(
 		view,
 		viewPath,
@@ -348,51 +348,40 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		}
 
 		return buffer.toString();
-    }
+	}
 
-    /**
-    * Render a view alongside its helpers, used mostly internally, use at your own risk.
-    */
-    private function renderViewComposite(
-    	view,
-    	viewPath,
-    	viewHelperPath,
-    	args,
-    	boolean _threadsafe = false
-    ){
-    	if ( !arguments._threadsafe ) {
-			return _getThreadSafeInstanceOfThisPlugin().renderViewComposite(
-				  argumentCollection = arguments
-				, _threadsafe        = true
+	/**
+	* Render a view alongside its helpers, used mostly internally, use at your own risk.
+	*/
+	private function renderViewComposite(
+		view,
+		viewPath,
+		viewHelperPath,
+		args,
+	){
+		var cbox_renderedView = "";
+		var event             = getRequestContext();
+
+		savecontent variable="cbox_renderedView" {
+			cfmodule(
+				template          = "RendererEncapsulator.cfm",
+				view              = arguments.view,
+				viewPath          = arguments.viewPath,
+				viewHelperPath    = arguments.viewHelperPath,
+				args              = arguments.args,
+				rendererVariables = ( isNull( attributes.rendererVariables ) ? variables : attributes.rendererVariables ),
+				event             = event,
+				rc                = event.getCollection(),
+				prc               = event.getPrivateCollection()
 			);
 		}
 
-    	var cbox_renderedView = "";
-    	var event             = getRequestContext();
-		var rc                = event.getCollection();
-		var prc               = event.getCollection( private=true );
+		return cbox_renderedView;
+	}
 
-		savecontent variable="cbox_renderedView"{
-			// global views helper
-			if( len( variables.viewsHelper ) AND ! variables.isViewsHelperIncluded  ){
-				include "#variables.viewsHelper#";
-				variables.isViewsHelperIncluded = true;
-			}
-			// view helper
-			if( len( arguments.viewHelperPath ) AND NOT structKeyExists( renderedHelpers,arguments.viewHelperPath ) ){
-				include "#arguments.viewHelperPath#";
-				renderedHelpers[arguments.viewHelperPath] = true;
-			}
-			//writeOutput( include "#arguments.viewPath#.cfm" );
-			include "#arguments.viewPath#.cfm";
-		}
-
-    	return cbox_renderedView;
-    }
-
-    /**
-    * Renders an external view anywhere that cfinclude works.
-    * @view The the view to render
+	/**
+	* Renders an external view anywhere that cfinclude works.
+	* @view The the view to render
 	* @args A struct of arguments to pass into the view for rendering, will be available as 'args' in the view.
 	* @cache Cached the view output or not, defaults to false
 	* @cacheTimeout The time in minutes to cache the view
@@ -400,15 +389,15 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	* @cacheSuffix The suffix to add into the cache entry for this view rendering
 	* @cacheProvider The provider to cache this view in, defaults to 'template'
 	*/
-    function renderExternalView(
-    	required view,
-    	struct args=getRequestContext().getCurrentViewArgs(),
-    	boolean cache=false,
-    	cacheTimeout="",
-    	cacheLastAccessTimeout="",
-    	cacheSuffix="",
-    	cacheProvider="template"
-    ){
+	function renderExternalView(
+		required view,
+		struct args=getRequestContext().getCurrentViewArgs(),
+		boolean cache=false,
+		cacheTimeout="",
+		cacheLastAccessTimeout="",
+		cacheSuffix="",
+		cacheProvider="template"
+	){
 		var cbox_renderedView = "";
 		// Cache Entries
 		var cbox_cacheKey 		= "";
@@ -774,7 +763,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		}
 
 		return refMap;
-    }
+	}
 
 	/**
 	* Checks if implicit views are turned on and if so, calculate view according to event.
@@ -852,10 +841,6 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		return directories;
 	}
 
-	private any function _getThreadSafeInstanceOfThisPlugin() {
-		return Duplicate( this, false );
-	}
-
 	private struct function _getViewMappings() {
 		var site     = getRequestContext().getSite();
 		var cacheKey = "viewsFullMappings" & ( site.template ?: "" );
@@ -875,9 +860,9 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 
 			for ( var filePath in viewFiles ) {
 				var mapping = ReReplaceNoCase( filePath, "\.cfm$", "" );
-				    mapping = Replace( mapping, "\", "/", "all" );
-				    mapping = Replace( mapping, fullDirPath, "" );
-				    mapping = ReReplace( mapping, "^/", "" );
+					mapping = Replace( mapping, "\", "/", "all" );
+					mapping = Replace( mapping, fullDirPath, "" );
+					mapping = ReReplace( mapping, "^/", "" );
 
 				var mappings[ mapping ] = viewDir & "/" & mapping;
 			}

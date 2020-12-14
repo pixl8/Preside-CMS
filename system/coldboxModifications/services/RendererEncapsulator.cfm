@@ -1,6 +1,7 @@
 <cfscript>
 	// Merge variables from renderer
 	StructAppend( variables, attributes.rendererVariables, false );
+	StructAppend( variables, ( variables.rc ?: {} ), false );
 
 	variables.isViewsHelperIncluded = variables.isViewsHelperIncluded ?: false;
 	variables.renderedHelpers 		= variables.renderedHelpers       ?: {};
