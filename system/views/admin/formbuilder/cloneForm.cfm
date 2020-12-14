@@ -1,6 +1,6 @@
 <cfscript>
-	var basedOnFormId    = rc.id ?: "";
-	var validationResult = rc.validationResult ?: "";
+	basedOnFormId    = rc.id ?: "";
+	validationResult = rc.validationResult ?: "";
 </cfscript>
 
 <cfoutput>
