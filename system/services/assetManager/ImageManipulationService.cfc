@@ -28,7 +28,7 @@ component displayname="Image Manipulation Service" {
     }
 
 	public string function resize(
-		  required string  asset
+		  required string  filePath
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
@@ -54,7 +54,7 @@ component displayname="Image Manipulation Service" {
 	}
 
 	public binary function shrinkToFit(
-		  required string  asset
+		  required string  filePath
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
@@ -64,7 +64,7 @@ component displayname="Image Manipulation Service" {
 	}
 
 	public binary function pdfPreview(
-		  required string asset
+		  required string filePath
 		,          string scale
 		,          string resolution
 		,          string format

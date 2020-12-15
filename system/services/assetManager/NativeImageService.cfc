@@ -148,15 +148,11 @@ component displayname="Native Image Manipulation Service" {
 
 		if ( imageInfo.width > arguments.width || imageInfo.height > arguments.height ) {
 			ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
-		}else{
-			ImageScaleToFit( image, imageInfo.width, imageInfo.height, interpolation );
+			imageInfo             = ImageInfo( image );
+			fileProperties.width  = imageInfo.width;
+			fileProperties.height = imageInfo.height;
+			ImageWrite( image, arguments.filePath );
 		}
-
-		imageInfo             = ImageInfo( image );
-		fileProperties.width  = imageInfo.width;
-		fileProperties.height = imageInfo.height;
-
-		ImageWrite( image, arguments.filePath );
 	}
 
 	/**
@@ -268,7 +264,6 @@ component displayname="Native Image Manipulation Service" {
 		var imageInfo = {};
 
 		try {
-
 			image = ImageNew( correctImageOrientation( arguments.asset ) );
 			imageInfo = ImageInfo( image );
 
