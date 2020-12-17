@@ -25,7 +25,7 @@ component {
 		for ( var response in responses ) {
 			var ix = values.find( response );
 			if ( ix>0 ) {
-				renderLabels.append( labels[ix] );
+				renderLabels.append( labels[ix] ?: values[ix] );
 			}
 		}
 
