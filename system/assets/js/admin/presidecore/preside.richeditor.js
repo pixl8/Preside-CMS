@@ -132,7 +132,7 @@ PresideRichEditor = ( function( $ ){
 					if ( !iframeId ) return;
 
 					$parentEditor.removeClass( "is-parent-dialog" );
-					$dialogIframe.width( dialogWidth-20 ).height( dialogHeight-106 );
+					$dialogIframe.width( $dialogIframe.width()-20 ).height( $dialogIframe.height()-106 );
 				}
 			} else if ( nestedInModal ) {
 				dialogDefinition.onShow = function() {
