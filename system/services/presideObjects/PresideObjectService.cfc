@@ -1635,6 +1635,41 @@ component displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Returns the flag field name of the object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose flag field you wish to get
+	 */
+	public string function getFlagField( required string objectName ) {
+		var flagEnabled = getObjectAttribute( arguments.objectName, "flagEnabled", "" );
+
+		if ( IsBoolean( flagEnabled ) && flagEnabled ) {
+			return getObjectAttribute( arguments.objectName, "flagField", "recordFlagged" );
+		}
+
+		return "";
+	}
+
+	public boolean function recordIsFlagged(
+		  required string objectName
+		, required string recordId
+	) {
+		var flagField = getFlagField( arguments.objectName );
+
+		if ( !isEmpty( flagField ) ) {
+			return dataExists(
+				  objectName = arguments.objectName
+				, filter     = {
+					  id            = arguments.recordId
+					, "#flagField#" = true
+				}
+			);
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
 	 * \n
 	 * ${arguments}

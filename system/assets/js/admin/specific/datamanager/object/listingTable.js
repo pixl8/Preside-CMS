@@ -107,7 +107,7 @@
 						sClass    : "text-right",
 						bSortable : false,
 						mData     : "_options",
-						sWidth    : "12em"
+						sWidth    : "13em"
 					} );
 				}
 				$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );

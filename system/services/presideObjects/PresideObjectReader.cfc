@@ -87,6 +87,7 @@ component {
 		_defineCreatedField( meta );
 		_defineModifiedField( meta );
 		_defineLabelField( meta );
+		_defineFlagField( meta );
 		_addDefaultsToProperties( meta );
 		_mergeSystemPropertyDefaults( meta );
 		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
@@ -254,6 +255,9 @@ component {
 		if ( ( arguments.meta.labelField ?: "label" ) == "label" ) {
 			corePropertyNames.append( "label" );
 		}
+		if ( ( arguments.meta.flagField ?: "recordflagged" ) == "recordflagged" ) {
+			corePropertyNames.append( "recordflagged" );
+		}
 
 		for( var propName in arguments.meta.properties ){
 			var prop           = arguments.meta.properties[ propName ];
@@ -318,12 +322,14 @@ component {
 		var idField           = arguments.meta.idField           ?: "id";
 		var dateCreatedField  = arguments.meta.dateCreatedField  ?: "datecreated";
 		var dateModifiedField = arguments.meta.dateModifiedField ?: "datemodified";
+		var flagField         = arguments.meta.flagField         ?: "recordflagged";
 
 		var defaults = {
-			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
-			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
-			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datecreated" }
-			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datemodified" }
+			  id            = { type="string" , dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
+			, label         = { type="string" , dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datecreated   = { type="date"   , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datecreated" }
+			, datemodified  = { type="date"   , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datemodified" }
+			, flag          = { type="boolean", dbtype="boolean" , control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="recordflagged", default="0", renderer="none" }
 		};
 
 		if ( labelField == "label" ) {
@@ -371,6 +377,17 @@ component {
 			}
 		}
 
+		if ( arguments.meta.flagEnabled ) {
+			if ( arguments.meta.propertyNames.find( flagField ) ) {
+				StructAppend( arguments.meta.properties[ flagField ], defaults.flag, false );
+			} else {
+				arguments.meta.properties[ flagField ] = defaults[ "flag" ];
+				ArrayAppend( arguments.meta.propertyNames, flagField );
+			}
+			if ( flagField.len() && flagField != "recordflagged" && !arguments.meta.propertyNames.findNoCase( "recordflagged" ) ) {
+				arguments.meta.properties[ flagField ].aliases = ( arguments.meta.properties[ flagField ].aliases ?: "" ).listAppend( "recordflagged" );
+			}
+		}
 	}
 
 	private void function _deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( required struct meta ) {
@@ -520,6 +537,16 @@ component {
 		}
 		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield == "";
 		arguments.objectMeta.noLabel = IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel;
+	}
+
+	private void function _defineFlagField( required struct objectMeta ) {
+		if ( IsBoolean ( arguments.objectMeta.flagEnabled ?: "" ) && arguments.objectMeta.flagEnabled ) {
+			arguments.objectMeta.flagField = arguments.objectMeta.flagField ?: "recordflagged";
+		} else {
+			arguments.objectMeta.flagField = arguments.objectMeta.flagField ?: "";
+		}
+		arguments.objectMeta.flagEnabled = arguments.objectMeta.flagEnabled ?: ( arguments.objectMeta.flagField != "" );
+		arguments.objectMeta.flagEnabled = IsBoolean ( arguments.objectMeta.flagEnabled ?: "" ) && arguments.objectMeta.flagEnabled;
 	}
 
 	private void function _removeObjectsUsedInDisabledFeatures( required struct objects ) {
