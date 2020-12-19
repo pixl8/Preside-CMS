@@ -1,5 +1,6 @@
 /**
  * @singleton
+ * @presideService
  *
  */
 component {
@@ -45,7 +46,19 @@ component {
 	}
 
 	public boolean function providerSupportsFileSystem( required any storageProvider ) {
-		return IsInstanceOf( arguments.storageProvider, "StorageProviderFileSystemSupport" );
+		if ( !StructKeyExists( arguments.storageProvider, "__supportsFileSystem" ) ) {
+			var meta = getComponentMetadata( arguments.storageProvider );
+
+			if ( $helpers.isTrue( meta.fileSystemSupport ?: "" ) ) {
+				arguments.storageProvider.__supportsFileSystem = true;
+			} else if ( IsInstanceOf( arguments.storageProvider, "StorageProviderFileSystemSupport" ) ) {
+				arguments.storageProvider.__supportsFileSystem = true;
+			} else {
+				arguments.storageProvider.__supportsFileSystem = false;
+			}
+		}
+
+		return arguments.storageProvider.__supportsFileSystem;
 	}
 
 // PRIVATE HELPERS
