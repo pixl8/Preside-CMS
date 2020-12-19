@@ -16,7 +16,8 @@ component displayName="Document metadata service" {
 	 *
 	 */
 	public any function init( required any xmpMetaReader ) {
-		_setXmpMetaReader( xmpMetaReader );
+		_setXmpMetaReader( arguments.xmpMetaReader );
+
 		return this;
 	}
 
@@ -32,6 +33,23 @@ component displayName="Document metadata service" {
 		var result = _parse( fileContent = arguments.fileContent, includeText = false );
 
 		return result.metadata ?: {};
+	}
+
+	/**
+	 * This method returns any metadata as a cfml structure. This is currently only supported
+	 * natively for images. For full support see Pixl8s Apache Tika extension.
+	 *
+	 * @filePath.hint String path to a local file
+	 * @autodoc true
+	 */
+	public struct function getImageMetaDataFromFilePath( required string filePath ) {
+		var imageExtensions = [ "png", "jpg", "tiff", "jpeg", "gif", "webp" ];
+
+		if ( ArrayFind( imageExtensions, LCase( ListLast( arguments.filePath, "." ) ) ) ) {
+			return JavaImageMetaReader::readMeta( arguments.filePath );
+		}
+
+		return {};
 	}
 
 	/**

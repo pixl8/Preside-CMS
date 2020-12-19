@@ -661,35 +661,43 @@ component displayName="AssetManager Service" {
 	 * Adds an asset into the Asset manager. The asset binary will be uploaded to the appropriate storage
 	 * location for the given folder.
 	 *
-	 * @autodoc
-	 * @fileBinary.hint        Binary data of the file
+	 * @autodoc                true
+	 * @fileBinary.hint        Binary data of the file (instead of filePath)
+	 * @filePath.hint          Path to local file (instead of fileBinary)
 	 * @fileName.hint          Uploaded filename (asset type information will be retrieved from here)
 	 * @folder.hint            Either folder ID or name of a configured system folder
 	 * @assetData.hint         Structure of additional data that can be saved against the [[presideobject-asset]] record
 	 * @ensureUniqueTitle.hint If set to true (default is false), asset titles will be made unique should name conflicts exist
+	 * @fileSize.hint          Size, in bytes, of the file
 	 *
 	 */
 	public string function addAsset(
-		  required binary  fileBinary
+		           binary  fileBinary
+		,          string  filePath          = ""
 		, required string  fileName
 		, required string  folder
 		,          struct  assetData         = {}
 		,          boolean ensureUniqueTitle = false
 		,          boolean ignoreAudit       = false
+		,          numeric fileSize          = 0
 	) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var asset        = Duplicate( arguments.assetData );
-		var fileMetaInfo = _getDocumentMetadataService().getMetaData( arguments.fileBinary );
+		var fileMetaInfo = _getFileMeta( argumentCollection=arguments );
 		var fileWidth    = fileMetaInfo.width  ?: 0;
 		var fileHeight   = fileMetaInfo.height ?: 0;
 
 		asset.id               = asset.id ?: CreateUUId();
 		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
-		asset.size             = asset.size  ?: Len( arguments.fileBinary );
+		asset.size             = asset.size  ?: arguments.fileSize;
 		asset.title            = asset.title ?: arguments.fileName;
 		asset.file_name        = asset.file_name ?: _slugifyTitleForFileName( asset.title );
 		asset.storage_path     = "/#LCase( asset.id )#/#asset.file_name#.#fileTypeInfo.extension#";
+
+		if ( !asset.size && StructKeyExists( arguments, "fileBinary" ) ) {
+			asset.size = Len( arguments.fileBinary );
+		}
 
 		isAssetAllowedInFolder(
 			  type       = asset.asset_type
@@ -704,22 +712,29 @@ component displayName="AssetManager Service" {
 			asset.title = _ensureUniqueTitle( asset.title, asset.asset_folder );
 		}
 
-		getStorageProviderForFolder( asset.asset_folder ).putObject(
-			  object  = arguments.fileBinary
-			, path    = asset.storage_path
-			, private = isFolderAccessRestricted( asset.asset_folder )
-		);
+		var sp = getStorageProviderForFolder( asset.asset_folder );
+
+		if ( Len( arguments.filePath ) && _providerSupportsFileSystem( sp ) ) {
+			sp.putObjectFromLocalPath(
+				  localPath = arguments.filePath
+				, path      = asset.storage_path
+				, private   = isFolderAccessRestricted( asset.asset_folder )
+			);
+		} else {
+			sp.putObject(
+				  object  = arguments.fileBinary ?: FileReadBinary( arguments.filePath )
+				, path    = asset.storage_path
+				, private = isFolderAccessRestricted( asset.asset_folder )
+			);
+		}
 
 		if ( !Len( Trim( asset.title ) ) ) {
 			asset.title = arguments.fileName;
 		}
 
-		if ( _autoExtractDocumentMeta() ) {
-			asset.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
-		}
-
 		if ( fileTypeInfo.groupName == "image" ) {
-			asset.append( _getImageInfo( arguments.fileBinary ) );
+			asset.width  = fileWidth;
+			asset.height = fileHeight;
 		}
 
 		if ( not Len( Trim( asset.asset_folder ) ) ) {
@@ -746,8 +761,18 @@ component displayName="AssetManager Service" {
 		return asset.id;
 	}
 
-	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "file_name", "asset_type", "asset_folder", "focal_point", "crop_hint", "access_restriction" ] );
+	public boolean function addAssetVersion(
+		  required string  assetId
+		,          binary  fileBinary
+		, required string  fileName
+		,          boolean makeActive = true
+		,          string  filePath    = ""
+		,          numeric fileSize    = Len( arguments.fileBinary ?: "" )
+	) {
+		var originalAsset = getAsset(
+			  id           = arguments.assetId
+			, selectFields = [ "id", "title", "file_name", "asset_type", "asset_folder", "focal_point", "crop_hint", "access_restriction" ]
+		);
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -755,7 +780,6 @@ component displayName="AssetManager Service" {
 
 		var originalFileTypeInfo = getAssetType( name=originalAsset.asset_type, throwOnMissing=true );
 		var fileTypeInfo         = getAssetType( filename=arguments.fileName, throwOnMissing=true );
-
 		if ( fileTypeInfo.mimeType != originalFileTypeInfo.mimeType ) {
 			throw( type="AssetManager.mismatchedMimeType", message="The mime type of the uploaded file, [#fileTypeInfo.mimeType#], does not match that of the original version [#originalFileTypeInfo.mimeType#]." );
 		}
@@ -768,21 +792,27 @@ component displayName="AssetManager Service" {
 			, asset          = arguments.assetId
 			, asset_type     = fileTypeInfo.typeName
 			, storage_path   = newFileName
-			, size           = Len( arguments.fileBinary )
+			, size           = arguments.fileSize
 			, focal_point    = originalAsset.focal_point
 			, crop_hint      = originalAsset.crop_hint
 			, version_number = _getNextAssetVersionNumber( arguments.assetId )
 		};
 
-		if ( _autoExtractDocumentMeta() ) {
-			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
-		}
+		var sp = getStorageProviderForFolder( originalAsset.asset_folder );
 
-		getStorageProviderForFolder( originalAsset.asset_folder ).putObject(
-			  object  = arguments.fileBinary
-			, path    = newFileName
-			, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
-		);
+		if ( Len( arguments.filePath ) && _providerSupportsFileSystem( sp ) ) {
+			sp.putObjectFromLocalPath(
+				  localPath = arguments.filePath
+				, path      = newFileName
+				, private   = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
+			);
+		} else {
+			sp.putObject(
+				  object  = arguments.fileBinary ?: FileReadBinary( arguments.filePath )
+				, path    = newFileName
+				, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
+			);
+		}
 
 		_getAssetVersionDao().insertData( data=assetVersion );
 
@@ -794,7 +824,7 @@ component displayName="AssetManager Service" {
 			_saveAssetMetaData(
 				  assetId   = arguments.assetId
 				, versionId = versionId
-				, metaData  = _getDocumentMetadataService().getMetaData( arguments.fileBinary )
+				, metaData  = _getFileMeta( argumentCollection=arguments )
 			);
 		}
 
@@ -1112,12 +1142,13 @@ component displayName="AssetManager Service" {
 		);
 	}
 
-	public binary function getAssetBinary(
+	public any function getAssetBinary(
 		  required string  id
-		,          string  versionId             = ""
-		,          boolean throwOnMissing        = false
-		,          boolean isTrashed             = false
-		,          boolean placeholderIfTooLarge = false
+		,          string  versionId              = ""
+		,          boolean throwOnMissing         = false
+		,          boolean isTrashed              = false
+		,          boolean placeholderIfTooLarge  = false
+		,          boolean getFilePathIfSupported = false
 	) {
 		var assetBinary = "";
 		var isPrivate   = isAssetAccessRestricted( arguments.id )
@@ -1128,9 +1159,22 @@ component displayName="AssetManager Service" {
 
 		if ( asset.recordCount ) {
 			if ( arguments.placeholderIfTooLarge && assetIsTooLargeForDerivatives( asset.width, asset.height ) ) {
+				if ( arguments.getFilePathIfSupported ) {
+					return _getLargeImagePlaceholderPath();
+				}
 				return _getLargeImagePlaceholder();
 			}
-			return getStorageProviderForFolder( asset.asset_folder ).getObject(
+
+			var sp = getStorageProviderForFolder( asset.asset_folder );
+
+			if ( arguments.getFilePathIfSupported && _providerSupportsFileSystem( sp ) ) {
+				return sp.getObjectLocalPath(
+					  path    = asset.storage_path
+					, trashed = arguments.isTrashed
+					, private = isPrivate
+				);
+			}
+			return sp.getObject(
 				  path    = asset.storage_path
 				, trashed = arguments.isTrashed
 				, private = isPrivate
@@ -1599,7 +1643,13 @@ component displayName="AssetManager Service" {
 		return QueryNew( '' );
 	}
 
-	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="", string configHash="" ) {
+	public any function getAssetDerivativeBinary(
+		  required string  assetId
+		, required string  derivativeName
+		,          string  versionId              = ""
+		,          string  configHash             = ""
+		,          boolean getFilePathIfSupported = false
+	) {
 		var derivative = getAssetDerivative(
 			  assetId        = arguments.assetId
 			, derivativeName = arguments.derivativeName
@@ -1609,12 +1659,22 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( derivative.recordCount ) {
-			return getStorageProviderForFolder( derivative.asset_folder ).getObject(
+			var sp = getStorageProviderForFolder( derivative.asset_folder );
+
+			if ( arguments.getFilePathIfSupported && _providerSupportsFileSystem( sp ) ) {
+				return sp.getObjectLocalPath(
+					  path    = derivative.storage_path
+					, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
+				);
+			}
+
+			return sp.getObject(
 				  path    = derivative.storage_path
 				, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
 			);
 		}
 	}
+
 
 	public string function createAssetDerivativeWhenNotExists(
 		  required string assetId
@@ -1885,7 +1945,7 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( versionToMakeActive.recordCount ) {
-			var versionImageDimension = _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
+			var versionImageDimension = _getImageInfo( getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, getFilePathIfSupported=true ) );
 			var generatedAssetUrl     = generateAssetUrl(
 				  id          = arguments.assetId
 				, versionId   = arguments.versionId
@@ -2333,8 +2393,14 @@ component displayName="AssetManager Service" {
 	}
 
 	private struct function _getImageInfo( fileBinary ) {
+		var info = {};
 		try {
-			var info = ImageInfo( arguments.fileBinary );
+			if ( IsBinary(  arguments.fileBinary  ) ) {
+				info = ImageInfo( arguments.fileBinary );
+			} else {
+				info = JavaImageMetaReader::readMeta( arguments.fileBinary );
+			}
+
 			return {
 				  width  = Val( info.width  ?: 0 )
 				, height = Val( info.height ?: 0 )
@@ -2494,7 +2560,25 @@ component displayName="AssetManager Service" {
 	}
 
 	private binary function _getLargeImagePlaceholder() {
-		return FileReadBinary( ExpandPath( _getDerivativeLimits().tooBigPlaceholder ) );
+		return FileReadBinary( _getLargeImagePlaceholderPath() );
+	}
+
+	private string function _getLargeImagePlaceholderPath() {
+		return ExpandPath( _getDerivativeLimits().tooBigPlaceholder );
+	}
+
+	private boolean function _providerSupportsFileSystem( required any storageProvider ) {
+		return _getStorageProviderService().providerSupportsFileSystem( arguments.storageProvider );
+	}
+
+	private struct function _getFileMeta(
+		  binary fileBinary
+		, string filePath = ""
+	) {
+		if ( Len( Trim( arguments.filePath ) ) ) {
+			return _getDocumentMetadataService().getImageMetaDataFromFilePath( arguments.filePath );
+		}
+		return _getDocumentMetadataService().getMetaData( arguments.fileBinary );
 	}
 
 // GETTERS AND SETTERS

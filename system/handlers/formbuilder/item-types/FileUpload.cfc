@@ -1,6 +1,7 @@
 component {
 	property name="assetManagerService"        inject="assetManagerService";
 	property name="formBuilderStorageProvider" inject="formBuilderStorageProvider";
+	property name="storageProviderService"     inject="storageProviderService";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
 		var fileName = ReReplace( args.response ?: "", "^""(.*?)""$", "\1" );
@@ -80,7 +81,7 @@ component {
 			  event          = "preprocessors.fileupload.index"
 			, prePostExempt  = true
 			, private        = true
-			, eventArguments = { fieldName=args.inputName ?: "", preProcessorArgs={} }
+			, eventArguments = { fieldName=args.inputName ?: "", preProcessorArgs={}, readBinary=false }
 		);
 
 		return tmpFileDetails;
@@ -89,13 +90,20 @@ component {
 	private any function renderResponseToPersist( event, rc, prc, args={} ) {
 		var response = args.response ?: "";
 
-		if ( IsBinary( response.binary ?: "" ) ) {
+		if ( FileExists( response.path ?: "" ) ) {
 			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( Len( response.tempFileInfo.clientFile ?: '' ) ? urlEncode( response.tempFileInfo.clientFile ) : 'uploaded.file' )#";
 
-			formBuilderStorageProvider.putObject(
-				  object = response.binary
-				, path   = savedPath
-			);
+			if ( storageProviderService.providerSupportsFileSystem( formBuilderStorageProvider ) ) {
+				formBuilderStorageProvider.putObjectFromLocalPath(
+					  localPath = response.path
+					, path      = savedPath
+				);
+			} else {
+				formBuilderStorageProvider.putObject(
+					  object = FileReadBinary( response.path )
+					, path   = savedPath
+				);
+			}
 
 			return savedPath;
 		}

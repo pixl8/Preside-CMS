@@ -16,6 +16,7 @@ component {
 			, "preside-ext-formbuilder"
 			, "preside-ext-redirects"
 			, "preside-ext-individual-filter"
+			, "preside-ext-vips"
 		];
 
 		settings.activeExtensions = _loadExtensions();
@@ -293,6 +294,10 @@ component {
 			, derivatives = _getConfiguredAssetDerivatives()
 			, queue       = { concurrency=1, batchSize=100, downloadWaitSeconds=5 }
 			, folders     = {}
+			, vips        = {
+				  binDir  = settings.env.VIPS_BINDIR ?: "/usr/bin"
+				, timeout = Val( settings.env.VIPS_TIMEOUT ?: 60 )
+			  }
 			, storage     = {
 				  public    = ( settings.env[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
 				, private   = ( settings.env[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility

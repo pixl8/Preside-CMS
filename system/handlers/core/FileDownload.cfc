@@ -1,6 +1,7 @@
 component {
 
-	property name="assetManagerService" inject="assetManagerService";
+	property name="assetManagerService"    inject="assetManagerService";
+	property name="storageProviderService" inject="storageProviderService";
 
 	public function index( event, rc, prc ) output=false {
 		announceInterception( "preDownloadFile" );
@@ -34,7 +35,6 @@ component {
 
 		_doBrowserEtagLookup( etag );
 
-		var fileBinary = storageProvider.getObject( storagePath );
 
 		if ( type.serveAsAttachment ) {
 			header name="Content-Disposition" value="attachment; filename=""#filename#""";
@@ -47,15 +47,23 @@ component {
 			, storagePath     = storagePath
 			, filename        = filename
 			, type            = type
-			, fileBinary      = fileBinary
 		} );
 
 		header name="etag" value=etag;
 		header name="cache-control" value="max-age=31536000";
-		content
-			reset    = true
-			variable = fileBinary
-			type     = type.mimeType;
+
+		if ( storageProviderService.providerSupportsFileSystem( storageProvider ) ) {
+			content
+				reset = true
+				file  = storageProvider.getObjectLocalPath( storagePath )
+				type  = type.mimeType;
+		} else {
+			content
+				reset    = true
+				variable = storageProvider.getObject( storagePath )
+				type     = type.mimeType;
+		}
+
 		abort;
 	}
 
