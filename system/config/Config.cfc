@@ -779,7 +779,7 @@ component {
 		derivatives.openGraphImage = {
 			  permissions = "inherit"
 			, autoQueue   = [ "image" ]
-			, transformations = [ { method="shrinkToFit", args={ width=200, height=200 } } ]
+			, transformations = [ { method="shrinkToFit", args={ width=400, height=400 } } ]
 		};
 
 		return derivatives;
