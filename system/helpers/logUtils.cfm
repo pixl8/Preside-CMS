@@ -5,8 +5,8 @@
 
 	<cfscript>
 		if ( !isNull( arguments.logger ) ) {
-			if ( arguments.logger[ "can#severity#" ]() ) {
-				arguments.logger[ severity ]( arguments.message );
+			if ( arguments.logger[ "can#arguments.severity#" ]() ) {
+				arguments.logger[ arguments.severity ]( arguments.message );
 			}
 		}
 	</cfscript>
