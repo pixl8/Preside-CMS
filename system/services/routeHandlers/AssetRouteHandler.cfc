@@ -55,7 +55,7 @@ component implements="iRouteHandler" singleton=true {
 		).asset_type ?: "";
 
 		if ( !isEmpty( assetType ) ) {
-			trackDownload = structKeyExists( _getAssetImageType(), assetType );
+			trackDownload = !structKeyExists( _getAssetImageType(), assetType );
 		}
 
 		if ( Len( Trim( derivative ) ) ) {
