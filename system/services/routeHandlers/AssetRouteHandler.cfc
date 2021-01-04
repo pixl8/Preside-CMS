@@ -43,24 +43,49 @@ component implements="iRouteHandler" singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var assetId    = buildArgs.assetId    ?: ""
-		var derivative = buildArgs.derivative ?: ""
-		var versionId  = buildArgs.versionId  ?: ""
-		var trashed    = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
-		var link       = "";
+		var assetId       = buildArgs.assetId       ?: "";
+		var derivative    = buildArgs.derivative    ?: "";
+		var versionId     = buildArgs.versionId     ?: "";
+		var trackDownload = buildArgs.trackDownload ?: false;
+		var trashed       = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
+		var link          = "";
+		var assetType     = _getAssetManagerService().getAsset(
+			  id           = assetId
+			, selectFields = [ "asset_type" ]
+		).asset_type ?: "";
+
+		if ( !isEmpty( assetType ) ) {
+			trackDownload = structKeyExists( _getAssetImageType(), assetType );
+		}
 
 		if ( Len( Trim( derivative ) ) ) {
-			link = _getAssetManagerService().getDerivativeUrl(
-				  assetId        = assetId
-				, derivativeName = derivative
-				, versionId      = versionId
-			);
+			if ( IsBoolean( trackDownload ) && trackDownload ) {
+				link = _getAssetManagerService().getInternalAssetUrl(
+					  id         = assetId
+					, versionId  = versionId
+					, derivative = derivative
+				);
+			} else {
+				link = _getAssetManagerService().getDerivativeUrl(
+					  assetId        = assetId
+					, derivativeName = derivative
+					, versionId      = versionId
+				);
+			}
 		} else {
-			link = _getAssetManagerService().getAssetUrl(
-				  id         = assetId
-				, versionId  = versionId
-				, trashed    = trashed
-			);
+			if ( IsBoolean( trackDownload ) && trackDownload ) {
+				link = _getAssetManagerService().getInternalAssetUrl(
+					  id         = assetId
+					, versionId  = versionId
+					, trashed    = trashed
+				);
+			} else {
+				link = _getAssetManagerService().getAssetUrl(
+					  id         = assetId
+					, versionId  = versionId
+					, trashed    = trashed
+				);
+			}
 		}
 
 		if ( !link.reFind( "^(https?:)?\/\/" ) ) {
