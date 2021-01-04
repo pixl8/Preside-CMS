@@ -103,6 +103,7 @@ component extends="preside.system.base.AdminHandler" {
 		var operationSource = Len( filterObject ) ? "manageObjectFilters" : "rulesEngineManager";
 		var actions         = [];
 		var canEdit         = true;
+		var canClone        = true;
 		var canDelete       = true;
 
 		if ( kind == "filter" ) {
@@ -120,6 +121,7 @@ component extends="preside.system.base.AdminHandler" {
 			canDelete = canDelete && !rulesEngineFilterService.filterIsUsed( recordId );
 		} else {
 			canEdit   = hasCmsPermission( "rulesengine.edit" );
+			canClone  = hasCmsPermission( "rulesengine.clone" );
 			canDelete = hasCmsPermission( "rulesengine.delete" );
 		}
 
@@ -128,6 +130,14 @@ component extends="preside.system.base.AdminHandler" {
 				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="editRecord", operationSource=operationSource )
 				, icon       = "fa-pencil"
 				, contextKey = "e"
+			} );
+		}
+
+		if ( canClone ) {
+			ArrayAppend( actions, {
+				  link       = event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=#recordId#" )
+				, icon       = "fa-copy"
+				, contextKey = "c"
 			} );
 		}
 
