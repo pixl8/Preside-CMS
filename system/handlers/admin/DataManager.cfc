@@ -489,6 +489,45 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function flagRecordAction( event, rc, prc, args={} ) {
+		var objectName = rc.object ?: "";
+		var recordId   = rc.id     ?: "";
+		var resultView = rc.result ?: "";
+		var successUrl = event.buildAdminLink( objectName=objectName );
+		var updated    = false;
+
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		if ( !isFlaggingEnabled( objectName=objectName ) ) {
+			event.adminAccessDenied();
+		}
+
+		if ( resultView == "detail" ) {
+			successUrl = event.buildAdminLink( objectName=objectName, recordId=recordId, operation="viewRecord" );
+		}
+
+		if ( !isEmpty( objectName ) && !isEmpty( recordId ) ) {
+			var recordIsFlagged = presideObjectService.recordIsFlagged( objectName=objectName, recordId=recordId );
+			var objFlagField    = presideObjectService.getFlagField( objectName=objectName );
+
+			updated = presideObjectService.updateData(
+				  objectName = objectName
+				, id         = recordId
+				, data       = { "#objFlagField#"=!recordIsFlagged }
+			);
+		}
+
+		if ( isTrue( updated ) ) {
+			messageBox.info( translateResource(
+				  uri = "cms:datamanager.record#recordIsFlagged ? "un" : ""#flagged.confirmation"
+				, data = [ renderLabel( objectName, recordId ) ]
+			) );
+		} else {
+			messageBox.info( translateResource( uri="cms:datamanager.recordFlagged.error" ) );
+		}
+
+		setNextEvent( url=successUrl );
+	}
+
 	public void function cascadeDeletePrompt( event, rc, prc ) {
 		var objectName = prc.objectName ?: "";
 
@@ -1557,6 +1596,23 @@ component extends="preside.system.base.AdminHandler" {
 			} else {
 				link = event.buildAdminLink( objectName=objectName, operation="editRecord", recordId=recordId );
 			}
+
+			if ( isFlaggingEnabled( objectName=objectName ) ) {
+				var recordIsFlagged = presideObjectService.recordIsFlagged(
+					  objectName = objectName
+					, recordId   = recordId
+				);
+
+				actions.append( {
+					  link      = event.buildAdminLink( objectName=objectName, recordId=recordId, operation="flagRecordAction", queryString="result=detail" )
+					, btnClass  = "#recordIsFlagged ? "btn-danger" : "btn-muted"#"
+					, iconClass = "fa-font-awesome-flag"
+					, title     = translateResource( uri="cms:datamanager.#recordIsFlagged ? "un" : ""#flagrecord.btn" )
+					, prompt    = translateResource( uri="cms:datamanager.#recordIsFlagged ? "un" : ""#flagrecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
+					, globalKey = "f"
+				} );
+			}
+
 			actions.append( {
 				  link      = link
 				, btnClass  = "btn-success"
@@ -1872,6 +1928,7 @@ component extends="preside.system.base.AdminHandler" {
 				var useVersioning   = datamanagerService.isOperationAllowed( objectName, "viewversions" ) && presideObjectService.objectIsVersioned( objectName );
 			}
 
+			var canFlagRecord          = canEdit && isFlaggingEnabled( objectName=objectName );
 			var addChildRecordLink     = canAdd && isTreeView ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
 			var sortChildrenRecordLink = canEdit && isTreeView ? event.buildAdminLink( objectName=objectName, operation="sortRecords", queryString="#parentProperty#={id}" ) : "";
 			var viewRecordLink         = canView              ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
@@ -1880,6 +1937,7 @@ component extends="preside.system.base.AdminHandler" {
 			var deleteRecordLink       = canDelete            ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
 			var viewHistoryLink        = canViewVersions      ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
 			var deleteRecordTitle      = canDelete            ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
+			var flagRecordLink         = canFlagRecord        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="flagRecordAction" )                         : "";
 		}
 
 		for( var record in records ){
@@ -1953,6 +2011,24 @@ component extends="preside.system.base.AdminHandler" {
 							  link       = viewHistoryLink.replace( "{id}", record.id )
 							, icon       = "fa-history"
 							, contextKey = "h"
+						} );
+					}
+					if ( canFlagRecord ) {
+						var recordIsFlagged = presideObjectService.recordIsFlagged(
+							  objectName = objectName
+							, recordId   = record.id
+						);
+						var flagRecordTitle = translateResource(
+							  uri  = "cms:datamanager.#recordIsFlagged ? "un" : ""#flagRecord.prompt"
+							, data = [ objectTitleSingular, "{recordlabel}" ]
+						);
+
+						actions.append( {
+							  link       = flagRecordLink.replace( "{id}", record.id )
+							, icon       = "fa-font-awesome-flag #recordIsFlagged ? "text-danger" : "text-muted"#"
+							, class      = "confirmation-prompt"
+							, title      = flagRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
+							, contextKey = "f"
 						} );
 					}
 				}
