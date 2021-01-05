@@ -1650,6 +1650,18 @@ component displayName="Preside Object Service" {
 		return "";
 	}
 
+	public boolean function isFlaggingEnabled( required string objectName ) {
+		var flagEnabled = getObjectAttribute( arguments.objectName, "flagEnabled", "" );
+
+		if ( IsBoolean( flagEnabled ) && flagEnabled ) {
+			var flagField = getObjectAttribute( arguments.objectName, "flagField", "recordFlagged" );
+
+			return Len( Trim( flagField ) );
+		}
+
+		return false;
+	}
+
 	public boolean function recordIsFlagged(
 		  required string objectName
 		, required string recordId

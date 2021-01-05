@@ -496,6 +496,11 @@ component extends="preside.system.base.AdminHandler" {
 		var successUrl = event.buildAdminLink( objectName=objectName );
 		var updated    = false;
 
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		if ( !isFlaggingEnabled( objectName=objectName ) ) {
+			event.adminAccessDenied();
+		}
+
 		if ( resultView == "detail" ) {
 			successUrl = event.buildAdminLink( objectName=objectName, recordId=recordId, operation="viewRecord" );
 		}
@@ -1592,7 +1597,7 @@ component extends="preside.system.base.AdminHandler" {
 				link = event.buildAdminLink( objectName=objectName, operation="editRecord", recordId=recordId );
 			}
 
-			if ( !isEmpty( presideObjectService.getFlagField( objectName ) ) ) {
+			if ( isFlaggingEnabled( objectName=objectName ) ) {
 				var recordIsFlagged = presideObjectService.recordIsFlagged(
 					  objectName = objectName
 					, recordId   = recordId
@@ -1923,7 +1928,7 @@ component extends="preside.system.base.AdminHandler" {
 				var useVersioning   = datamanagerService.isOperationAllowed( objectName, "viewversions" ) && presideObjectService.objectIsVersioned( objectName );
 			}
 
-			var canFlagRecord          = canEdit && !isEmpty( presideObjectService.getFlagField( objectName ) );
+			var canFlagRecord          = canEdit && isFlaggingEnabled( objectName=objectName );
 			var addChildRecordLink     = canAdd && isTreeView ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
 			var sortChildrenRecordLink = canEdit && isTreeView ? event.buildAdminLink( objectName=objectName, operation="sortRecords", queryString="#parentProperty#={id}" ) : "";
 			var viewRecordLink         = canView              ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
