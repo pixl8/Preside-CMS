@@ -175,7 +175,7 @@ component {
 		var propertyNames        = _getPresideObjectService().getObjectAttribute( objectName=objectName, attributeName="propertyNames" );
 		var props                = _getPresideObjectService().getObjectProperties( objectName );
 		var dao                  = _getPresideObjectService().getObject( objectName );
-		var forbiddenFields      = [ dao.getIdField(), dao.getLabelField(), dao.getDateCreatedField(), dao.getDateModifiedField() ];
+		var forbiddenFields      = [ dao.getIdField(), dao.getLabelField(), dao.getDateCreatedField(), dao.getDateModifiedField(), dao.getFlagField() ];
 		var isFieldBatchEditable = function( propertyName, attributes ) {
 			if ( forbiddenFields.findNoCase( propertyName ) ) {
 				return false
