@@ -415,12 +415,17 @@ component extends="preside.system.base.AdminHandler" {
 			rc.filter_object = "";
 		}
 
+		if ( !Len( Trim( prc.objectTitle ?: "" ) ) ) {
+			var objectRootUri = presideObjectService.getResourceBundleUriRoot( object );
+			prc.objectTitle   = translateResource( uri=objectRootUri & "title.singular", defaultValue=object );
+		}
+
 		runEvent(
-			  event          = "admin.DataManager._cloneRecordAction"
+			  event          = "admin.DataManager.cloneRecordAction"
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
-				  object        = "rules_engine_condition"
+				  object        = object
 				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=" & conditionId )
 				, formName      = formName
 				, audit         = true
