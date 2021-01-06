@@ -12,12 +12,7 @@
 	StructAppend( variables, variables.rc, false );
 
 	// Spoof the arguments scope for backwards compat.  i.e. arguments.args
-	variables.arguments = {
-		view 			= attributes.view,
-		viewPath 		= attributes.viewPath,
-		viewHelperPath 	= attributes.viewHelperPath,
-		args 			= attributes.args
-	};
+	variables.arguments = attributes;
 
  	// Also add these to variables as well for scope-less lookups
 	StructAppend( variables, variables.arguments, true );
