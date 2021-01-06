@@ -61,7 +61,13 @@ component extends="preside.system.base.adminHandler" {
 		var useVersioning = presideObjectService.objectIsVersioned( objectName );
 
 		if ( useVersioning && Val( version ) ) {
-			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
+			prc.record       = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
+			prc.sourceRecord = presideObjectService.selectData( objectName=objectName, filter={ id=recordId }, useCache=false );
+			if ( prc.sourceRecord.recordCount > 0 ) {
+				var dateCreatedField  = presideObjectService.getDateCreatedField( objectName );
+
+				prc.record[ dateCreatedField ]  = prc.sourceRecord[ dateCreatedField ];
+			}
 		} else {
 			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, allowDraftVersions=true );
 		}
