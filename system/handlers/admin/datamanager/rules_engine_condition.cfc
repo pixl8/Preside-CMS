@@ -135,7 +135,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( canClone ) {
 			ArrayAppend( actions, {
-				  link       = event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=#recordId#" )
+				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="cloneRecord" )
 				, icon       = "fa-copy"
 				, contextKey = "c"
 			} );
@@ -254,6 +254,10 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, eventArguments = { args=args }
 		);
+	}
+
+	private string function buildCloneRecordLink( event, rc, prc, args={} ) {
+		return event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=#args.recordId#" )
 	}
 
 
