@@ -357,23 +357,21 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		view,
 		viewPath,
 		viewHelperPath,
-		args,
+		args
 	){
 		var cbox_renderedView = "";
 		var event             = getRequestContext();
+		var moduleArgs        = {
+			  template          = "RendererEncapsulator.cfm"
+			, rendererVariables = ( isNull( attributes.rendererVariables ) ? variables : attributes.rendererVariables )
+			, event             = event
+			, rc                = event.getCollection()
+			, prc               = event.getPrivateCollection()
+		};
+		structAppend( moduleArgs, arguments, false );
 
 		savecontent variable="cbox_renderedView" {
-			cfmodule(
-				template          = "RendererEncapsulator.cfm",
-				view              = arguments.view,
-				viewPath          = arguments.viewPath,
-				viewHelperPath    = arguments.viewHelperPath,
-				args              = arguments.args,
-				rendererVariables = ( isNull( attributes.rendererVariables ) ? variables : attributes.rendererVariables ),
-				event             = event,
-				rc                = event.getCollection(),
-				prc               = event.getPrivateCollection()
-			);
+			module attributeCollection=moduleArgs;
 		}
 
 		return cbox_renderedView;
