@@ -109,6 +109,9 @@ PresideRichEditor = ( function( $ ){
 
 			if ( nestedInEditor ) {
 				dialogDefinition.onShow = function() {
+					dialogWidth  = $dialogIframe.width();
+					dialogHeight = $dialogIframe.height();
+
 					originalOnShow.call( this );
 
 					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
@@ -126,16 +129,22 @@ PresideRichEditor = ( function( $ ){
 				}
 
 				dialogDefinition.onHide = function() {
+					dialogWidth  = $dialogIframe.width();
+					dialogHeight = $dialogIframe.height();
+
 					originalOnHide.call( this );
 
 					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
 					if ( !iframeId ) return;
 
 					$parentEditor.removeClass( "is-parent-dialog" );
-					$dialogIframe.width( $dialogIframe.width()-20 ).height( $dialogIframe.height()-106 );
+					$dialogIframe.width( dialogWidth-20 ).height( dialogHeight-106 );
 				}
 			} else if ( nestedInModal ) {
 				dialogDefinition.onShow = function() {
+					dialogWidth  = $dialogIframe.width();
+					dialogHeight = $dialogIframe.height();
+
 					originalOnShow.call( this );
 
 					$parentModal.addClass( "is-parent-dialog" );
