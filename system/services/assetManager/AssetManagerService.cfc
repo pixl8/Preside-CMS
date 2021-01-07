@@ -1046,6 +1046,75 @@ component displayName="AssetManager Service" {
 		return false;
 	}
 
+	public boolean function moveAssetsInBgThread(
+		  required array  assetIds
+		, required string toFolder
+		,          any    logger
+		,          any    progress
+	) {
+		var canLog      = StructKeyExists( arguments, "logger" );
+		var canInfo     = canLog && arguments.logger.canInfo();
+		var canProgress = StructKeyExists( arguments, "progress" );
+		var folder      = getFolder( arguments.toFolder );
+
+		if ( folder.recordCount ) {
+			try {
+				areAssetsAllowedInFolder(
+					  assetIds   = arguments.assetIds
+					, folderId   = arguments.toFolder
+					, throwIfNot = true
+				);
+			} catch( any e ) {
+				if ( canLog ) {
+					arguments.logger.error( e );
+				}
+				$raiseError( e );
+
+				if ( canProgress ) {
+					arguments.progress.failTask( e );
+				}
+				return false;
+			}
+
+			var i = 0;
+			for( var assetId in arguments.assetIds ) {
+				if ( canInfo ) {
+					arguments.logger.info( $translateResource( uri="cms:assetmanager.moving.asset.log.info", data=[ $renderLabel( "asset", assetId ) ] ) );
+				}
+				var result = _getAssetDao().updateData(
+					  id   = assetId
+					, data = { asset_folder = arguments.toFolder }
+				);
+				try {
+					ensureAssetsAreInCorrectLocation( assetId=assetId );
+				} catch( any e ) {
+					$raiseError( e );
+					if ( canLog ) {
+						arguments.logger.error( "Failed to ensure files stored in the correct location. See error below." );
+						arguments.logger.error( e );
+					}
+				}
+
+				if ( canProgress ) {
+					arguments.progress.setProgress( Int( ( 100 / ArrayLen( arguments.assetIds ) ) * ++i ) );
+				}
+			}
+			if ( canProgress ) {
+				arguments.progress.setProgress( 100 );
+			}
+
+			$audit(
+				  action = "move_assets"
+				, type   = "assetmanager"
+				, detail = arguments
+			);
+
+			return result;
+		}
+
+		return false;
+	}
+
 	public boolean function restoreAssets( required array assetIds, required string folderId ) {
 		var folder             = getFolder( arguments.folderId );
 		var restoredAssetCount = 0;
@@ -1479,6 +1548,7 @@ component displayName="AssetManager Service" {
 			$raiseError( e );
 			trashedPath = asset.storage_path;
 		}
+
 
 		if( asset.active_version.len() ) {
 			_getAssetVersionDao().updateData(
