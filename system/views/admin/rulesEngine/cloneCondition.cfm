@@ -8,7 +8,7 @@
 		, id                = rc.id      ?: ""
 		, cloneableData     = prc.record ?: {}
 		, cloneRecordAction = event.buildAdminLink( linkTo='rulesEngine.cloneConditionAction' )
-		, cancelAction      = event.buildAdminLink( linkTo='rulesEngine' )
+		, cancelAction      = event.buildAdminLink( objectName='rules_engine_condition' )
 		, formName          = formName
 	} )#
 </cfoutput>
