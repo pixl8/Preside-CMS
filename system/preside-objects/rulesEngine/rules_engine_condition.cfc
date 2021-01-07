@@ -6,7 +6,7 @@
  * @labelfield condition_name
  * @datamanagerEnabled true
  * @dataManagerGridFields kind,is_locked,condition_name,applies_to,filter_sharing_scope,owner,datemodified
- * @datamanagerDisallowedOperations read,clone,viewversions,batchdelete,batchedit
+ * @datamanagerDisallowedOperations read,viewversions,batchdelete,batchedit
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Rules engine: condition" {
 	property name="condition_name"   type="string"  dbtype="varchar"  required=true  maxlength=200  uniqueindexes="contextname|2,filterobjectname|2";
