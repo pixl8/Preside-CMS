@@ -88,7 +88,7 @@ component {
 							, indexes            = obj.meta.indexes
 							, columnVersions     = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
 							, objectProperties   = obj.meta.properties
-							, skipSync           = _skipSync( obj.meta.dbSync ?: true )
+							, skipSync           = _skipSync( obj.meta )
 						);
 						_enableFkChecks( true, obj.meta.dsn, obj.meta.tableName );
 					} catch( any e ) {
