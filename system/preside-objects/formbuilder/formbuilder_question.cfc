@@ -1,5 +1,4 @@
 /**
- * @feature                 formbuilder
  * @datamanagerEnabled      true
  * @labelfield              field_id
  * @labelrenderer           formbuilder_question
