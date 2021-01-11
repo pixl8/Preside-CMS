@@ -21,11 +21,7 @@ component {
 		var config            = assetManagerService.getDerivativeConfig( assetId );
 		var configHash        = assetManagerService.getDerivativeConfigHash( config );
 		var queueEnabled      = isFeatureEnabled( "assetQueue" );
-		var assetPublicUrl    = assetManagerService.getAssetUrl(
-			  id        = assetId
-			, versionId = versionId
-			, trashed   = isTrashed
-		);
+		var assetPublicUrl    = "";
 
 		try {
 			if ( Len( Trim( derivativeName ) ) ) {
@@ -60,9 +56,20 @@ component {
 			} else if( Len( Trim( versionId ) ) ) {
 				arrayAppend( assetSelectFields , "asset_version.asset_type" );
 				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
+
+				assetPublicUrl = assetManagerService.getAssetUrl(
+					  id        = assetId
+					, versionId = versionId
+					, trashed   = isTrashed
+				);
 			} else {
 				arrayAppend( assetSelectFields , "asset.asset_type" );
 				asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
+
+				assetPublicUrl = assetManagerService.getAssetUrl(
+					  id      = assetId
+					, trashed = isTrashed
+				);
 			}
 		} catch ( "AssetManager.assetNotFound" e ) {
 			asset = QueryNew('');
