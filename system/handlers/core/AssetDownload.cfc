@@ -49,7 +49,7 @@ component {
 				} while( ++waitAttempts <= queueMaxWaitAttempts );
 
 				assetPublicUrl = assetManagerService.getDerivativeUrl(
-					  id             = assetId
+					  assetId        = assetId
 					, derivativeName = derivativeName
 					, versionId      = versionId
 				);
