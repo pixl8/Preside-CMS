@@ -2387,6 +2387,7 @@ component displayName="AssetManager Service" {
 						, extension         = type.extension ?: typeName
 						, mimetype          = type.mimetype  ?: ""
 						, serveAsAttachment = IsBoolean( type.serveAsAttachment ?: "" ) && type.serveAsAttachment
+						, trackDownloads    = IsBoolean( type.trackDownloads    ?: "" ) && type.trackDownloads
 					};
 				}
 			}
