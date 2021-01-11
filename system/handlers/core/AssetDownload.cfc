@@ -132,7 +132,7 @@ component {
 
 				if ( event.getCurrentUrl() != assetPublicUrl ) {
 					setNextEvent(
-						  URL        = event.getBaseUrl() & assetPublicUrl
+						  url        = assetPublicUrl
 						, statusCode = "302"
 					);
 				}
