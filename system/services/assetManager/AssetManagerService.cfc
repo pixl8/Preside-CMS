@@ -1115,21 +1115,53 @@ component displayName="AssetManager Service" {
 		return false;
 	}
 
-	public boolean function restoreAssets( required array assetIds, required string folderId ) {
+	public boolean function restoreAssets(
+		  required array   assetIds
+		, required string  folderId
+		,          boolean skipErrors = false
+		,          any     logger
+		,          any     progress
+	) {
 		var folder             = getFolder( arguments.folderId );
+		var assetCount         = ArrayLen( arguments.assetIds );
 		var restoredAssetCount = 0;
+		var canReportProgress  = StructKeyExists( arguments, "logger" );
+		var canLog             = StructKeyExists( arguments, "progress" );
+		var canInfo            = canLog && arguments.logger.canInfo();
+		var canError           = canLog && arguments.logger.canError();
 
 		if ( folder.recordCount ) {
-			areAssetsAllowedInFolder(
-				  assetIds   = arguments.assetIds
-				, folderId   = arguments.folderId
-				, throwIfNot = true
-				, restore    = true
-			);
+			try {
+				areAssetsAllowedInFolder(
+					  assetIds   = arguments.assetIds
+					, folderId   = arguments.folderId
+					, throwIfNot = true
+					, restore    = true
+				);
+			} catch( any e ) {
+				if ( arguments.skipErrors ) {
+					if ( canError ) {
+						arguments.logger.error( $translateResource( "cms:assetmanager.restore.assets.task.error.log" ) );
+						arguments.logger.error( e );
+					}
+					return false;
+				}
 
+				rethrow;
+			}
+
+			var i=0;
 			for( var assetId in arguments.assetIds ) {
 				var asset = getAsset( id=assetId, selectFields=[ "original_title", "file_name", "asset_type", "trashed_path", "asset_folder", "active_version" ] );
+
 				if ( asset.recordCount ) {
+					if ( canInfo ) {
+						arguments.logger.info( $translateResource(
+							  uri  = "cms:assetmanager.restore.assets.task.restoring.asset.log"
+							, data = [ asset.original_title, folder.label ]
+						) );
+					}
+
 					var fileName        = Len( Trim( asset.file_name ) ) ? asset.file_name : _slugifyTitleForFileName( asset.original_title );
 					var newPath         = "/#LCase( assetId )#/#fileName#.#asset.asset_type#";
 					var storageProvider = getStorageProviderForFolder( asset.asset_folder );
@@ -1157,7 +1189,9 @@ component displayName="AssetManager Service" {
 						, trashed_path   = ""
 					} );
 
-
+					if ( canReportProgress ) {
+						arguments.progress.setProgress( Int( ( 100 / assetCount ) * ++i ) );
+					}
 				}
 			}
 
