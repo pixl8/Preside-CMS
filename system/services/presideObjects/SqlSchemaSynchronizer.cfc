@@ -82,13 +82,13 @@ component {
 					try {
 						_enableFkChecks( false, obj.meta.dsn, obj.meta.tableName );
 						_updateDbTable(
-							  tableName        = obj.meta.tableName
-							, generatedSql     = obj.sql
-							, dsn              = obj.meta.dsn
-							, indexes          = obj.meta.indexes
-							, columnVersions   = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
-							, objectProperties = obj.meta.properties
-							, isObjectNeedDbSync = obj.meta.dbSync ?: "true"
+							  tableName          = obj.meta.tableName
+							, generatedSql       = obj.sql
+							, dsn                = obj.meta.dsn
+							, indexes            = obj.meta.indexes
+							, columnVersions     = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
+							, objectProperties   = obj.meta.properties
+							, skipSync           = _skipSync( obj.meta.dbSync ?: true )
 						);
 						_enableFkChecks( true, obj.meta.dsn, obj.meta.tableName );
 					} catch( any e ) {
@@ -337,13 +337,13 @@ component {
 	}
 
 	private void function _updateDbTable(
-		  required string tableName
-		, required struct generatedSql
-		, required struct indexes
-		, required string dsn
-		, required struct columnVersions
-		, required struct objectProperties
-		, required boolean isObjectNeedDbSync
+		  required string  tableName
+		, required struct  generatedSql
+		, required struct  indexes
+		, required string  dsn
+		, required struct  columnVersions
+		, required struct  objectProperties
+		, required boolean skipSync
 
 	) {
 		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
@@ -364,7 +364,7 @@ component {
 		var newName         = "";
 		var colProperties   = {};
 
-		if( arguments.isObjectNeedDbSync ) {
+		if( !arguments.skipSync ) {
 			for( column in columnsFromDb ){
 				if ( StructKeyExists( arguments.objectProperties, column.column_name ) && _skipSync( arguments.objectProperties[ column.column_name ] ) ) {
 					continue;
