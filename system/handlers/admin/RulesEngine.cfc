@@ -365,6 +365,76 @@ component extends="preside.system.base.AdminHandler" {
 		} ) );
 	}
 
+	public void function cloneCondition( event, rc, prc, args={} ) {
+		_checkPermissions( argumentCollection=arguments, key="clone" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="preside-objects.rules_engine_condition:title" )
+			, link  = event.buildAdminLink( objectName="rules_engine_condition" )
+		);
+
+		var id = rc.id ?: "";
+
+		prc.record = rulesEngineConditionService.getConditionRecord( id );
+
+		if ( !prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:rulesEngine.condition.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
+		}
+		prc.record       = queryRowToStruct( prc.record );
+		rc.context       = prc.record.context;
+		rc.filter_object = prc.record.filter_object;
+
+		if ( Len( Trim( rc.filter_object ) ) ) {
+			prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.filter.page.title", data=[ prc.record.condition_name ] );
+			prc.pageSubTitle = translateResource( uri="cms:rulesEngine.clone.filter.page.subtitle", data=[ prc.record.condition_name ] );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:rulesEngine.clone.filter.breadcrumb.title", data=[ prc.record.condition_name ] )
+				, link  = event.buildAdminLink( linkTo="rulesengine.cloneCondition", queryString="id=" & id )
+			);
+
+		} else {
+			prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.condition.page.title", data=[ prc.record.condition_name ] );
+			prc.pageSubTitle = translateResource( uri="cms:rulesEngine.clone.condition.page.subtitle", data=[ prc.record.condition_name ] );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:rulesEngine.clone.condition.breadcrumb.title", data=[ prc.record.condition_name ] )
+				, link  = event.buildAdminLink( linkTo="rulesengine.cloneCondition", queryString="id=" & id )
+			);
+		}
+	}
+
+	public void function cloneConditionAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="clone" );
+
+		var conditionId = rc.id ?: "";
+		var object      = "rules_engine_condition";
+		var formName    = "preside-objects.#object#.admin.clone";
+		var formData    = event.getCollectionForForm( formName );
+
+		if ( Len( Trim( rc.context ?: "" ) ) ) {
+			rc.filter_object = "";
+		}
+
+		if ( !Len( Trim( prc.objectTitle ?: "" ) ) ) {
+			var objectRootUri = presideObjectService.getResourceBundleUriRoot( object );
+			prc.objectTitle   = translateResource( uri=objectRootUri & "title.singular", defaultValue=object );
+		}
+
+		runEvent(
+			  event          = "admin.DataManager.cloneRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object        = object
+				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=" & conditionId )
+				, formName      = formName
+				, audit         = true
+				, auditType     = "rulesEngine"
+				, auditAction   = "clone_rules_engine_condition"
+			}
+		);
+	}
+
 // VIWLETS
 	private string function dataGridFavourites( event, rc, prc, args ) {
 		var objectName = args.objectName ?: "";

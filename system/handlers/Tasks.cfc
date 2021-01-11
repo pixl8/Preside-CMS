@@ -4,10 +4,11 @@
  */
 component {
 
-	property name="emailLoggingService" inject="emailLoggingService";
-	property name="notificationService" inject="notificationService";
-	property name="workflowService"     inject="WorkflowService";
-	property name="websiteLoginService" inject="websiteLoginService";
+	property name="emailLoggingService"     inject="emailLoggingService";
+	property name="notificationService"     inject="notificationService";
+	property name="workflowService"         inject="WorkflowService";
+	property name="websiteLoginService"     inject="websiteLoginService";
+	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -60,5 +61,18 @@ component {
 	 */
 	private boolean function deleteExpiredPasswordResetTokens( logger ) {
 		return websiteLoginService.deleteExpiredPasswordResetTokens( arguments.logger ?: NullValue() );
+	}
+
+	/**
+	 * Delete expired ad-hoc tasks
+	 *
+	 * @priority     5
+	 * @schedule     0 0 3 * * *
+	 * @timeout      1200
+	 * @displayName  Delete expired ad-hoc tasks
+	 * @displayGroup Cleanup
+	 */
+	private boolean function deleteExpiredAdhocTasks( logger ) {
+		return adhocTaskManagerService.deleteExpiredAdhocTasks( arguments.logger ?: NullValue() );
 	}
 }
