@@ -1,4 +1,4 @@
-component implements="iRouteHandler" singleton=true {
+component implements="iRouteHandler" singleton=true presideService=true {
 
 // constructor
 	/**
@@ -55,7 +55,8 @@ component implements="iRouteHandler" singleton=true {
 		).asset_type ?: "";
 
 		if ( !isEmpty( assetType ) ) {
-			trackDownload = !structKeyExists( _getAssetImageType(), assetType );
+			var assetTypeDetail = _getAssetManagerService().getAssetType( name=assetType );
+			trackDownloads      = $helpers.isTrue( assetTypeDetail.trackDownloads ?: ( assetTypeDetail.serveAsAttachment ?: false ) );
 		}
 
 		if ( Len( Trim( derivative ) ) ) {

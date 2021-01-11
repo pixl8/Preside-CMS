@@ -21,6 +21,11 @@ component {
 		var config            = assetManagerService.getDerivativeConfig( assetId );
 		var configHash        = assetManagerService.getDerivativeConfigHash( config );
 		var queueEnabled      = isFeatureEnabled( "assetQueue" );
+		var assetPublicUrl    = assetManagerService.getAssetUrl(
+			  id        = assetId
+			, versionId = versionId
+			, trashed   = isTrashed
+		);
 
 		try {
 			if ( Len( Trim( derivativeName ) ) ) {
@@ -46,6 +51,12 @@ component {
 						break;
 					}
 				} while( ++waitAttempts <= queueMaxWaitAttempts );
+
+				assetPublicUrl = assetManagerService.getDerivativeUrl(
+					  id             = assetId
+					, derivativeName = derivativeName
+					, versionId      = versionId
+				);
 			} else if( Len( Trim( versionId ) ) ) {
 				arrayAppend( assetSelectFields , "asset_version.asset_type" );
 				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
@@ -99,6 +110,13 @@ component {
 					header name="Content-Disposition" value="attachment; filename=""#filename#""";
 				} else {
 					header name="Content-Disposition" value="inline; filename=""#filename#""";
+				}
+
+				if ( event.getCurrentUrl() != assetPublicUrl ) {
+					setNextEvent(
+						  URL        = event.getBaseUrl() & assetPublicUrl
+						, statusCode = "302"
+					);
 				}
 
 				header name="etag" value=etag;
