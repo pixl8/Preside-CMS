@@ -202,13 +202,13 @@ component extends="preside.system.base.AdminHandler" {
 			var firstAsset = assetManagerService.getAsset( assetIds[ 1 ] );
 			var folderId   = firstAsset.recordCount ? firstAsset.asset_folder : "";
 			var taskId     = createTask(
-				  event             = "admin.assetManager.trashAssetsInBgThread"
-				, runNow            = true
-				, args              = { assetIds=assetIds, folderId=folderId }
-				, adminOwner        = event.getAdminUserId()
-				, title             = "cms:assetmanager.trash.assets.task.title"
-				, returnUrl         = event.buildAdminLink( linkTo="assetManager", queryString="folder=" & folderId )
-				, discardOnComplete = true
+				  event                = "admin.assetManager.trashAssetsInBgThread"
+				, runNow               = true
+				, args                 = { assetIds=assetIds, folderId=folderId }
+				, adminOwner           = event.getAdminUserId()
+				, title                = "cms:assetmanager.trash.assets.task.title"
+				, returnUrl            = event.buildAdminLink( linkTo="assetManager", queryString="folder=" & folderId )
+				, discardAfterInterval = CreateTimeSpan( 0, 0, 2, 0 )
 			);
 
 			setNextEvent( url=event.buildAdminLink(
@@ -299,13 +299,13 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( Len( folderId ) && fromFolder != folderId ) {
 				var taskId = createTask(
-					  event             = "admin.assetManager.moveAssetsInBgThread"
-					, runNow            = true
-					, args              = { assetIds=assetIds, folderId=folderId, fromFolder=fromFolder }
-					, adminOwner        = event.getAdminUserId()
-					, title             = "cms:assetmanager.move.assets.task.title"
-					, returnUrl         = event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder )
-					, discardOnComplete = true
+					  event                = "admin.assetManager.moveAssetsInBgThread"
+					, runNow               = true
+					, args                 = { assetIds=assetIds, folderId=folderId, fromFolder=fromFolder }
+					, adminOwner           = event.getAdminUserId()
+					, title                = "cms:assetmanager.move.assets.task.title"
+					, returnUrl            = event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder )
+					, discardAfterInterval = CreateTimeSpan( 0, 0, 2, 0 )
 				);
 
 				setNextEvent( url=event.buildAdminLink(
