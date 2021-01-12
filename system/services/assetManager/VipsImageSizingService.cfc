@@ -302,9 +302,9 @@ component {
 		, required string  vipsQuality
 	) {
 		if ( !arguments.height ) {
-			arguments.height = imageInfo.height * ( arguments.width / imageInfo.width );
+			arguments.height = Ceiling( imageInfo.height * ( arguments.width / imageInfo.width ) );
 		} else if ( !arguments.width ) {
-			arguments.width = imageInfo.width * ( arguments.height / imageInfo.height );
+			arguments.width = Ceiling( imageInfo.width * ( arguments.height / imageInfo.height ) );
 		}
 
 		return _thumbnail( argumentCollection=arguments );
