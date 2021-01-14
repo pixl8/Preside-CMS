@@ -1,6 +1,7 @@
 /**
- * @expressionContexts formbuilderSubmission
- * @expressionCategory formbuilder
+ * @expressionContexts  formbuilderSubmission
+ * @expressionCategory  formbuilder
+ * @expressionTags      formbuilderV1Form
  */
 component {
 
@@ -10,6 +11,7 @@ component {
 	/**
 	 * @fbform.fieldtype      object
 	 * @fbform.object         formbuilder_form
+	 * @fbform.objectFilters  formbuilderV1Form
 	 * @fbform.multiple       false
 	 * @fbformfield.fieldtype formbuilderField
 	 *

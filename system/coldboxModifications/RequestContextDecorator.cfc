@@ -535,6 +535,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			inlineJs[ arguments.group ] = [];
 
 			getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
+
+			if ( Find( "/preside/system/assets/_dynamic/i18nBundle.js", rendered ) ) {
+				var languageCode = instance.i18n.getFWLanguageCode();
+				var cachebuster  = instance.i18n.getI18nJsCachebusterForAdmin();
+
+				rendered = Replace( rendered, "/preside/system/assets/_dynamic/i18nBundle.js", "/preside/system/assets/_dynamic/i18nBundle.#languageCode#.#cachebuster#.js" );
+			}
 		}
 
 		return rendered;
@@ -621,16 +628,15 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			var setting = getPageProperty( propertyName="iframe_restriction", cascading=true );
 			switch( setting ) {
 				case "allow":
-					return; // do not set any header
 				case "sameorigin":
-					arguments.value = "SAMEORIGIN";
+					arguments.value = setting;
 					break;
 				default:
 					arguments.value = "DENY";
 			}
 		}
 
-		this.setHTTPHeader( name="X-Frame-Options", value=arguments.value, overwrite=true );
+		getRequestContext().setValue( name="xframeoptions", value=UCase( arguments.value ), private=true );
 	}
 
 // FRONT END, dealing with current page

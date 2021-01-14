@@ -1,0 +1,43 @@
+.cke_dialog.is-parent-dialog {
+	.cke_dialog_title,
+	.cke_dialog_close_button,
+	.cke_dialog_footer {
+		display : none;
+	}
+
+	.cke_dialog_body {
+		background : #e4e4e4;
+	}
+
+	.cke_dialog_contents_body {
+		padding : 0;
+	}
+}
+
+.modal.is-parent-dialog {
+	.modal-header,
+	.modal-footer {
+		background : #e4e4e4;
+		height     : 12px;
+		padding    : 0;
+
+		* {
+			display : none;
+		}
+	}
+	.modal-dialog .modal-content .modal-body {
+		height : ~"calc(100% - 24px)";
+	}
+}
+
+
+.presidecms.has-parent-dialog {
+	.modal-dialog {
+		width   : 100% !important;
+		padding : 0 !important;
+	}
+}
+
+.full-screen-dialog.limited-size {
+	background : rgba( 255, 255, 255, 0.5 );
+}

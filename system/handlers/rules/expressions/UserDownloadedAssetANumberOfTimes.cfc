@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has visited a page a number of times"
+ * Expression handler for "User has downloaded an asset a number of times"
  *
  * @feature websiteUsers
  * @expressionContexts user

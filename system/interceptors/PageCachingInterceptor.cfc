@@ -22,6 +22,11 @@ component extends="coldbox.system.Interceptor" {
 				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
 				var contentType      = cached.contentType ?: "";
 				var pageId           = event.getCurrentPageId();
+				var xframeOptions    = prc.xframeoptions ?: "DENY";
+
+				if ( xframeOptions != "ALLOW" ) {
+					event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
+				}
 
 				if ( Len( Trim( pageId ) ) ) {
 					websiteUserActionService.recordAction(

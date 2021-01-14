@@ -25,6 +25,7 @@
 	param name="args.saveExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction"      );
 	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
 	param name="args.objectTitlePlural"   type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
+	param name="args.excludeFilterExpressionTags" type="string"  default="";
 
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ args.objectTitlePlural ] );
@@ -36,16 +37,21 @@
 	instanceId = LCase( Hash( CallStackGet( "string" ) ) );
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
-	args.allowFilter  = args.allowFilter && isFeatureEnabled( "rulesengine" );
-	allowManageFilter = args.allowFilter && hasCmsPermission( "rulesEngine.add" ) && hasCmsPermission( "rulesEngine.edit" );
+	args.allowFilter  = IsTrue( args.allowFilter ?: "" );
 
 	if ( args.allowFilter ) {
-		saveFilterFormEndpoint = event.buildAdminLink(
-			  linkTo      = "rulesEngine.superQuickAddFilterForm"
-			, querystring = "filter_object=#args.objectName#&multiple=false&expressions="
-		);
-
 		favourites = renderViewlet( event="admin.rulesEngine.dataGridFavourites", args={ objectName=args.objectName } );
+
+		allowUseFilter    = IsTrue( args.allowUseFilter    ?: true );
+		allowManageFilter = IsTrue( args.allowManageFilter ?: true );
+		manageFilterLink  = args.manageFilterLink ?: "";
+
+		if ( allowManageFilter ) {
+			saveFilterFormEndpoint = event.buildAdminLink(
+				  linkTo      = "rulesEngine.superQuickAddFilterForm"
+				, querystring = "filter_object=#args.objectName#&multiple=false&expressions="
+			);
+		}
 	}
 
 	allowDataExport  = args.allowDataExport && isFeatureEnabled( "dataexport" );
@@ -89,39 +95,8 @@
 		</cfif>
 
 		<cfif args.allowFilter>
-			<div class="object-listing-table-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#">
-				<div class="row">
-					<div class="col-md-12">
-						<a class="pull-right back-to-basic-search" href="##">
-							<i class="fa fa-fw fa-reply"></i>
-							#translateResource( "cms:datatables.show.basic.search" )#
-						</a>
-						<h4 class="blue">#translateResource( "cms:rulesEngine.saved.filters" )#</h4>
-						<p class="grey"><i class="fa fa-fw fa-info-circle"></i> <em>#translateResource( "cms:rulesEngine.saved.filters.help" )#</em></p>
-						#renderFormControl(
-							  name         = "filters"
-							, id           = "filters-#instanceId#"
-							, type         = "filterPicker"
-							, context      = "admin"
-							, filterObject = args.objectName
-							, multiple     = true
-							, quickedit    = true
-							, label        = ""
-							, layout       = ""
-							, compact      = true
-							, showCount    = false
-						)#
-						<br><br>
-
-						<cfif allowManageFilter>
-							<a href="##" data-toggle="collapse" data-target="##quick-filter-form-#instanceId#" class="quick-filter-toggler">
-								<i class="fa fa-fw fa-caret-down"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
-							</a>
-						</cfif>
-					</div>
-				</div>
-
-				<cfif allowManageFilter>
+			<cfif allowUseFilter>
+				<div class="object-listing-table-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#" data-allow-use-filter="#booleanFormat( allowUseFilter )#" data-manage-filters-link="#manageFilterLink#">
 					<div id="quick-filter-form-#instanceId#" class="in clearfix">
 						#renderFormControl(
 							  name        = "filter"
@@ -129,6 +104,7 @@
 							, type        = "rulesEngineFilterBuilder"
 							, context     = "admin"
 							, contextData = args.filterContextData
+							, excludeTags = args.excludeFilterExpressionTags
 							, object      = args.objectName
 							, label       = ""
 							, layout      = ""
@@ -136,17 +112,19 @@
 							, showCount   = false
 						)#
 
-						<div class="form-actions">
-							<div class="pull-right">
-								<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#" data-modal-dialog-full="#IsTrue( args.filterQuickAddFullModal ?: "" )#">
-									<i class="fa fa-fw fa-save"></i>
-									#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
-								</button>
+						<cfif allowManageFilter>
+							<div class="form-actions">
+								<div class="pull-right">
+									<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#" data-modal-dialog-full="true">
+										<i class="fa fa-fw fa-save"></i>
+										#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
+									</button>
+								</div>
 							</div>
-						</div>
+						</cfif>
 					</div>
-				</cfif>
-			</div>
+				</div>
+			</cfif>
 
 			<div class="object-listing-table-favourites hide" id="#tableId#-favourites">
 				#favourites#

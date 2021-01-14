@@ -46,8 +46,8 @@ component {
 						type.title                   = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
 						type.iconClass               = $translateResource( uri="formbuilder.item-types.#typeId#:iconclass", defaultValue="fa-square" );
 						type.isFormField             = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
-						type.configFormName          = "formbuilder.item-types.#typeid#";
-						type.configFormExists        = _getFormsService().formExists( type.configFormName );
+						type.baseConfigFormName      = "formbuilder.item-types.#typeid#";
+						type.configFormExists        = _getFormsService().formExists( type.baseConfigFormName );
 						type.adminPlaceholderViewlet = "formbuilder.item-types.#type.id#.adminPlaceholder";
 						type.requiresConfiguration   = type.isFormField || type.configFormExists;
 
@@ -55,13 +55,16 @@ component {
 							if ( type.configFormExists && type.isFormField ) {
 								type.configFormName = _getFormsService().getMergedFormName(
 									  formName          = standardFormFieldFormName
-									, mergeWithFormName = type.configFormName
+									, mergeWithFormName = type.baseConfigFormName
 								);
 							} else if ( type.isFormField ) {
 								type.configFormName = standardFormFieldFormName;
+							} else {
+								type.configFormName = type.baseConfigFormName;
 							}
 						} else {
-							type.configFormName = "";
+							type.baseConfigFormName = "";
+							type.configFormName     = "";
 						}
 
 						if ( !$getColdbox().viewletExists( type.adminPlaceholderViewlet ) ) {

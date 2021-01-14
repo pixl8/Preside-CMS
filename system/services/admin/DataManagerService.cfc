@@ -406,15 +406,15 @@ component {
 		args.delete( "searchFields" );
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.extraFilters.append({
-				  filter       = buildSearchFilter(
+			args.extraFilters.append(
+				buildSearchFilter(
 					  q            = arguments.searchQuery
 					, objectName   = arguments.objectName
 					, gridFields   = arguments.gridFields
 					, searchFields = arguments.searchFields
-				  )
-				, filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } }
-			});
+					, expandTerms  = true
+				)
+			);
 		}
 
 		if ( arguments.treeView ) {
@@ -631,16 +631,17 @@ component {
 			if ( len( arguments.labelRenderer ) ) {
 				searchFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer=arguments.labelRenderer, includeAlias=false );
 			}
-			args.filter       = buildSearchFilter(
-				  q            = arguments.searchQuery
-				, objectName   = arguments.objectName
-				, gridFields   = args.selectFields
-				, labelfield   = labelfield
-				, searchFields = searchFields
+			args.extraFilters.append(
+				buildSearchFilter(
+					  q            = arguments.searchQuery
+					, objectName   = arguments.objectName
+					, gridFields   = args.selectFields
+					, labelfield   = labelfield
+					, searchFields = searchFields
+					, expandTerms  = true
+				)
 			);
-			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		}
-
 		records = _getPresideObjectService().selectData( argumentCollection = args );
 
 		if ( arguments.ids.len() ) {
@@ -693,13 +694,24 @@ component {
 		return IsBoolean( draftsEnabled ) && draftsEnabled;
 	}
 
-	public struct function superQuickAdd( required string objectName, required string value ) {
+	public struct function superQuickAdd(
+		  required string objectName
+		, required string value
+		,          struct additionalFilters = {}
+	) {
 		var dao        = _getPresideObjectService().getObject( arguments.objectName );
 		var labelField = _getPresideObjectService().getLabelField( arguments.objectName );
 		var labelValue = Trim( arguments.value );
+		var extraFilters = [];
+
+		if ( StructCount( arguments.additionalFilters ) ) {
+			ArrayAppend( extraFilters, { filter=arguments.additionalFilters } );
+		}
+
 		var existing   = dao.selectData(
 			  selectFields = [ "id", labelField ]
 			, filter       = { "#labelField#"=labelValue }
+			, extraFilters = extraFilters
 		);
 
 		if ( existing.recordCount ) {
@@ -709,26 +721,51 @@ component {
 			};
 		}
 
+		var dataToInsert = { "#labelField#"=labelValue };
+		for( var field in arguments.additionalFilters ) {
+			dataToInsert[ field ] = IsArray( arguments.additionalFilters[ field ] ) ? ArrayToList( arguments.additionalFilters[ field ] ) : arguments.additionalFilters[ field ]
+		}
+
 		return {
-			  value = dao.insertData( { "#labelField#"=labelValue } )
+			  value = dao.insertData( data=dataToInsert, insertManyToManyRecords=true )
 			, text  = labelValue
 		};
 	}
 
-	public string function buildSearchFilter(
-		  required string q
-		, required string objectName
-		, required array  gridFields
-		,          string labelfield   = _getPresideObjectService().getLabelField( arguments.objectName )
-		,          array  searchFields = []
+	/**
+	 * Builds a filter expression matching the search term against the appropriate grid/search fields.
+	 * The default behaviour is to return a simple filter string; the "q" filterParam for the search term is
+	 * expected to be provided separately.
+	 * \n
+	 * *As of 10.13.0*, a new argument is added - `expandTerms`. If true, then the search term will be broken
+	 * down into individual words and the search will attempt to match *ALL* the words, even if they are found in
+	 * different fields. In this scenario, the method will return a struct containing `filter` and `filterParams`.
+	 *
+	 * @autodoc       true
+	 * @q             The search term for which to build a filter
+	 * @objectName    Name of the object to filter against
+	 * @gridFields    Array of "grid fields" to be searched against
+	 * @searchFields  Optional array of fields that will be used to search against
+	 * @expandTerms   If true, the search term (`q`) will be split into individual words
+	 */
+	public any function buildSearchFilter(
+		  required string  q
+		, required string  objectName
+		, required array   gridFields
+		,          string  labelfield   = _getPresideObjectService().getLabelField( arguments.objectName )
+		,          array   searchFields = []
+		,          boolean expandTerms  = false
 	) {
 		var field                = "";
 		var fullFieldName        = "";
 		var objName              = "";
 		var filter               = "";
 		var delim                = "";
+		var termDelim            = "";
+		var paramName            = "";
 		var poService            = _getPresideObjectService();
 		var relationshipGuidance = _getRelationshipGuidance();
+		var searchTerms          = arguments.expandTerms ? listToArray( arguments.q, " " ) : [ arguments.q ];
 
 		if ( arguments.searchFields.len() ) {
 			var parsedFields = poService.parseSelectFields(
@@ -736,40 +773,68 @@ component {
 				, selectFields = arguments.searchFields
 				, includeAlias = false
 			);
-			for( field in parsedFields ){
-				if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
-					field = _getFullFieldName( field,  arguments.objectName );
+			for( var t=1; t<=searchTerms.len(); t++ ) {
+				delim     = "";
+				paramName = t==1 ? "q" : "q#t#";
+				filter   &= termDelim & "( ";
+
+				for( field in parsedFields ){
+					if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
+						field = _getFullFieldName( field,  arguments.objectName );
+					}
+					filter &= delim & field & " like :#paramName#";
+					delim = " or ";
 				}
-				filter &= delim & field & " like :q";
-				delim = " or ";
+
+				filter   &= " )";
+				termDelim = " and ";
 			}
 		} else {
-			for( field in arguments.gridFields ){
-				field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
-				objName = arguments.objectName;
+			for( var t=1; t<=searchTerms.len(); t++ ) {
+				delim     = "";
+				paramName = t==1 ? "q" : "q#t#";
+				filter   &= termDelim & "( ";
 
-				if ( ListLen( field, "." ) == 2 ) {
-					objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
-						  sourceObject     = arguments.objectName
-						, relationshipPath = ListFirst( field, "." )
-					);
-					field = ListLast( field, "." );
-				}
+				for( field in arguments.gridFields ){
+					field = fullFieldName = ListFirst( field, " " ).replace( "${labelfield}", arguments.labelField, "all" );
+					objName = arguments.objectName;
 
-				if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
-					if ( ListLen( fullFieldName, "." ) < 2 ) {
-						fullFieldName = _getFullFieldName( field, objName );
+					if ( ListLen( field, "." ) == 2 ) {
+						objName = relationshipGuidance.resolveRelationshipPathToTargetObject(
+							  sourceObject     = arguments.objectName
+							, relationshipPath = ListFirst( field, "." )
+						);
+						field = ListLast( field, "." );
 					}
 
-					if ( _propertyIsSearchable( field, objName ) ) {
-						filter &= delim & fullFieldName & " like :q";
-						delim = " or ";
+					if ( poService.objectExists( objName ) && poService.getObjectProperties( objName ).keyExists( field ) ) {
+						if ( ListLen( fullFieldName, "." ) < 2 ) {
+							fullFieldName = _getFullFieldName( field, objName );
+						}
+
+						if ( _propertyIsSearchable( field, objName ) ) {
+							filter &= delim & fullFieldName & " like :#paramName#";
+							delim = " or ";
+						}
 					}
 				}
+
+				filter   &= " )";
+				termDelim = " and ";
 			}
 		}
 
-		return filter;
+		if ( !arguments.expandTerms ) {
+			return filter;
+		}
+
+		var filterParams = {};
+		for( var t=1; t<=searchTerms.len(); t++ ) {
+			paramName = t==1 ? "q" : "q#t#";
+			filterParams[ paramName ] = { type="varchar", value="%" & searchTerms[ t ] & "%" };
+		}
+
+		return { filter=filter, filterParams=filterParams };
 	}
 
 	public boolean function isDataExportEnabled( required string objectName ) {

@@ -15,4 +15,10 @@ This form is used for editing a rules engine condition
 			</field>
 		</fieldset>
 	</tab>
+	<tab id="locking" sortorder="20">
+		<fieldset id="locking" sortorder="10">
+			<field binding="rules_engine_condition.is_locked" />
+			<field binding="rules_engine_condition.locked_reason" control="textarea" />
+		</fieldset>
+	</tab>
 </form>

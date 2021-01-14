@@ -1,7 +1,6 @@
 /**
  * Service to convert html email styles to be inline.
  *
- * @presideService true
  * @singleton      true
  * @autodoc        true
  */
@@ -31,11 +30,7 @@ component {
 			elementStyle.element.attr( "style", elementStyle.style );
 		}
 
-		if ( $isFeatureEnabled( "emailStyleInlinerAscii" ) ) {
-			doc.outputSettings().charset( "ASCII" );
-		}
-
-		return doc.html();
+		return doc.toString();
 	}
 
 	private any function _new( required string className ) {

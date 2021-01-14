@@ -43,10 +43,12 @@ component  {
 
 // HELPERS
 	private any function _preRenderResponses( event, rc, prc, args={} ) {
-		var noResponse        = args.noResponse ?: translateResource( "formbuilder:no.response.placeholder" );
-		var responses         = args.data ?: "";
 		var formId            = ( rc.formId ?: ( rc.id ?: ( rc.form ?: "" ) ) );
+		var submissionId      = ( rc.submissionId ?: ( args.record.id ?: ( rc.id ?: "" ) ) );
+		var isV2              = formBuilderService.isV2Form( formId );
 		var formItems         = formBuilderService.getFormItems( formId );
+		var noResponse        = args.noResponse ?: translateResource( "formbuilder:no.response.placeholder" );
+		var responses         = "";
 		var rendered          = "";
 		var renderedResponses = [];
 
@@ -54,34 +56,45 @@ component  {
 			return noResponse;
 		}
 
-		if ( !IsJson( responses ) || !IsStruct( DeserializeJSON( responses ) ) ) {
-			return responses;
+		if ( isV2 ) {
+			responses = formBuilderService.getV2Responses(
+				  formId       = formId
+				, submissionId = submissionId
+			);
+		}
+		else {
+			responses = args.data ?: "";
+			if ( !IsJson( responses ) || !IsStruct( DeserializeJSON( responses ) ) ) {
+				return responses;
+			}
+			responses = DeserializeJson( responses );
 		}
 
-
-		responses         = DeserializeJson( responses );
-		renderedResponses = [];
-
 		for( var item in formItems ) {
-			if ( item.type.isFormField && StructKeyExists( responses, item.configuration.name ?: "" ) ) {
-				var inputName = item.configuration.name;
-				var rendered  = formbuilderService.renderResponse(
-					  formId     = formId
-					, inputName  = inputName
-					, inputValue = responses[ inputName ]
-				);
+			if ( item.type.isFormField ) {
+				var keyField = isV2 ? item.questionId : ( item.configuration.name ?: "" );
+				if ( StructKeyExists( responses, keyField ) ) {
+					var inputName = item.configuration.name;
+					var rendered  = formbuilderService.renderResponse(
+						  formId     = formId
+						, inputName  = inputName
+						, inputValue = responses[ keyField ]
+					);
 
-				renderedResponses.append({
-					  item     = item
-					, rendered = rendered
-				});
+					renderedResponses.append({
+						  item     = item
+						, rendered = rendered
+					});
 
-				if ( IsTrue( args.firstResponseOnly ?: "" ) ) {
-					break;
+					if ( IsTrue( args.firstResponseOnly ?: "" ) ) {
+						break;
+					}
 				}
 			}
 		}
 
 		return renderedResponses;
 	}
+
+
 }

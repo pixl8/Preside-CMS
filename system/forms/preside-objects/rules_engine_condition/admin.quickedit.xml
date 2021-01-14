@@ -7,11 +7,18 @@ This form is used for editing a rules engine condition through the quick edit in
 <form>
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
-			<field binding="rules_engine_condition.context"       control="hidden" />
-			<field binding="rules_engine_condition.filter_object" control="hidden" />
-			<field binding="rules_engine_condition.expressions"   control="rulesEngineConditionBuilder">
+			<field binding="rules_engine_condition.context"        sortorder="00" control="hidden" />
+			<field binding="rules_engine_condition.filter_object"  sortorder="00" control="hidden" />
+			<field binding="rules_engine_condition.condition_name" sortorder="10" control="textinput" />
+			<field binding="rules_engine_condition.expressions"    sortorder="20" control="rulesEngineConditionBuilder">
 				<rule validator="rulesEngineCondition" />
 			</field>
+		</fieldset>
+	</tab>
+	<tab id="locking" sortorder="20">
+		<fieldset id="locking" sortorder="10">
+			<field binding="rules_engine_condition.is_locked" />
+			<field binding="rules_engine_condition.locked_reason" control="textarea" />
 		</fieldset>
 	</tab>
 </form>

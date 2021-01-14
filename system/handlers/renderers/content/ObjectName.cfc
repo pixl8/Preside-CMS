@@ -2,7 +2,7 @@ component {
 
 	property name="presideObjectService" inject="presideObjectService";
 
-	public string function default( event, rc, prc, args={} ){
+	private string function default( event, rc, prc, args={} ){
 		var objectId = args.data ?: "";
 
 		if ( presideObjectService.objectExists( objectId ) ) {
@@ -16,7 +16,7 @@ component {
 		return "";
 	}
 
-	public string function admindatatable( event, rc, prc, args={} ){
+	private string function admindatatable( event, rc, prc, args={} ){
 		var objectId = args.data ?: "";
 
 		if ( presideObjectService.objectExists( objectId ) ) {

@@ -15,6 +15,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Link" {
 	property name="page_anchor"       type="string"  dbtype="varchar" maxlength="30"  required=false;
 	property name="target"            type="string"  dbtype="varchar" maxlength="20"  required=false enum="linkTarget";
 	property name="nofollow"          type="boolean" dbtype="boolean"                 required=false default=false;
+	property name="referrer_policy"   type="string"  dbtype="varchar" enum="linkReferrerPolicy"  required=false default="";
 	property name="text"              type="string"  dbtype="varchar" maxlength="400" required=false;
 
 	property name="external_protocol" adminviewgroup="external" type="string"  dbtype="varchar" maxlength="10"  required=false default="http://" enum="linkProtocol";

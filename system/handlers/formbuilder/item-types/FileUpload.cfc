@@ -3,12 +3,12 @@ component {
 	property name="formBuilderStorageProvider" inject="formBuilderStorageProvider";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
-		var fileName = Listlast( args.response ?: "", '/\' );
+		var fileName = ReReplace( args.response ?: "", "^""(.*?)""$", "\1" );
 
 		if ( Len( Trim( fileName ) ) && fileName != "{}" ) {
 			var downloadLink = event.buildLink(
 				  fileStorageProvider = 'formBuilderStorageProvider'
-				, fileStoragePath     = args.response
+				, fileStoragePath     = fileName
 			);
 
 			return '<a target="_blank" href="#downloadLink#"><i class="fa fa-fw fa-download blue"></i> #Trim( fileName )#</a>';
@@ -101,5 +101,13 @@ component {
 		}
 
 		return SerializeJson( response );
+	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return renderResponseToPersist( argumentCollection=arguments );
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "text";
 	}
 }

@@ -4,8 +4,16 @@ component {
 
 	private string function index( event, rc, prc, args={} ) {
 		args.ruleContext = args.ruleContext ?: ( rc.context ?: "" );
+		args.excludeTags = args.excludeTags ?: "";
 		args.object      = rc.filter_object ?: "";
 
+		if ( isTrue( args.readonly ?: "" ) ) {
+			return renderContent(
+				  renderer = "rulesEngineConditionReadOnly"
+				, data = args.defaultValue ?: ""
+				, args = args
+			);
+		}
 		if ( !args.ruleContext.len() && args.object.len() ) {
 			return runEvent(
 				  event          = "formcontrols.RulesEngineFilterBuilder.index"
@@ -15,7 +23,7 @@ component {
 			);
 		}
 
-		args.expressions = expressionService.listExpressions( args.ruleContext );
+		args.expressions = expressionService.listExpressions( context=args.ruleContext, excludeTags=args.excludeTags );
 
 		var fieldId = args.id ?: "";
 		var expressionData = {

@@ -43,6 +43,11 @@ component {
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
+		_setLocale( argumentCollection = arguments );
+	}
+
+	public void function requestEnd( event, rc, prc ) {
+		_setXFrameOptionsHeader( argumentCollection = arguments );
 	}
 
 	public void function notFound( event, rc, prc ) {
@@ -193,6 +198,10 @@ component {
 		}
 	}
 
+	private void function _setLocale( event, rc, prc ) {
+		SetLocale( getModel( "i18n" ).getFwLocale() );
+	}
+
 	private void function _performDbMigrations() {
 		databaseMigrationService.migrate();
 	}
@@ -270,6 +279,13 @@ component {
 
 			var rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName );
 			validationEngine.newRuleset( name="PresideObject.#objName#", rules=rules );
+		}
+	}
+
+	private void function _setXFrameOptionsHeader( event, rc, prc ) {
+		var xframeOptions = prc.xframeoptions ?: "DENY";
+		if ( xframeOptions != "ALLOW" ) {
+			event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
 		}
 	}
 }

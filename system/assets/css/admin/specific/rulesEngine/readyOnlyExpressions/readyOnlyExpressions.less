@@ -1,0 +1,45 @@
+@import url( 'globals.less' );
+
+.presidecms {
+	.rules-engine-expressions-read-only {
+		list-style : none;
+		font-size  : 14px;
+		margin     : 7px 0 0 0;
+		color      : @default-light-font-colour;
+
+		ul {
+			list-style : none;
+		}
+
+		.rules-engine-join {
+			font-style: italic;
+		}
+
+		.rules-engine-expressions-read-only-sub-expressions {
+			&::before {
+				content: "(";
+			}
+
+			&::after {
+				content: ")";
+			}
+
+			li {
+				margin-left : 18px;
+			}
+		}
+
+		.rules-engine-expression-system-value,
+		.rules-engine-expression-value {
+			font-style : italic;
+			&::before {
+				padding-right : 2px;
+				content : '[';
+			}
+			&::after {
+				content : ']';
+				padding-left : 2px;
+			}
+		}
+	}
+}

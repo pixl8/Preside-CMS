@@ -45,15 +45,15 @@ component {
 
 				if ( len( trim( savedExportDetail.search_query ?: "" ) ) ) {
 					try {
-						configArgs.extraFilters.append( {
-		 					  filter       = dataManagerService.buildSearchFilter(
+						configArgs.extraFilters.append(
+		 					dataManagerService.buildSearchFilter(
 		 						  q            = savedExportDetail.search_query
 		 						, objectName   = savedExportDetail.object_name
 		 						, gridFields   = dataManagerService.listGridFields( savedExportDetail.object_name )
 		 						, searchFields = dataManagerService.listSearchFields( savedExportDetail.object_name )
-		 					  )
-		 					, filterParams = { q = { type="varchar", value="%" & savedExportDetail.search_query & "%" } }
-		 				} );
+		 						, expandTerms  = true
+		 					)
+		 				);
 					} catch (any e) {}
 				}
 

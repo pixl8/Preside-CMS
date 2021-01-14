@@ -1,5 +1,6 @@
 <cfscript>
 	param name="args.objectName"              type="string"  default=(rc.object ?: '' );
+	param name="args.formName"                type="string"  default=( prc.formName ?: '' );
 	param name="args.addRecordAction"         type="string"  default=event.buildAdminLink( linkTo='datamanager.quickAddRecordAction', queryString="object=#args.objectName#" );
 	param name="args.allowAddAnotherSwitch"   type="boolean" default=true;
 	param name="args.validationResult"        type="any"     default=( rc.validationResult ?: '' );
@@ -17,7 +18,7 @@
 <cfoutput>
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-add-form" method="post" action="#args.addRecordAction#">
 		#renderForm(
-			  formName                = "preside-objects.#args.objectName#.admin.quickadd"
+			  formName                = args.formName
 			, context                 = "admin"
 			, formId                  = formId
 			, validationResult        = args.validationResult
