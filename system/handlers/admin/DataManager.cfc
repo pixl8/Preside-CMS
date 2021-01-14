@@ -1751,11 +1751,7 @@ component extends="preside.system.base.AdminHandler" {
 					  objectName = object
 					, expressionArray = DeSerializeJson( rc.sFilterExpression ?: "" )
 				) );
-			} catch( any e ){
-
-				writeDump( e)
-				abort;
-			}
+			} catch( any e ){}
 		}
 
 		if ( Len( Trim( rc.sSavedFilterExpressions ?: "" ) ) ) {
