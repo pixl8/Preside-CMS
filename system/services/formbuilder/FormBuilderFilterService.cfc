@@ -601,10 +601,8 @@ component {
 	) {
 
 		var filters        = [];
-		var paramSuffix    = "sfx";
-
+		var paramSuffix    = _getRandomFilterParamSuffix();
 		var params = {};
-
 		var extraFilters = [];
 
 		if ( len( arguments.dateFrom ) ) {
@@ -630,7 +628,6 @@ component {
 		var responseQueryAlias = "responseQuery" & paramSuffix;
 
 		var responseQuery      = $getPresideObject( "formbuilder_formsubmission" ).selectData(
-
 			  selectFields = [ "count( distinct form ) as response_count", "submitted_by" ]
 			, filter       = " form in ( :forms ) "
 			, filterParams = {
@@ -642,7 +639,6 @@ component {
 		);
 
 		for( var param in responseQuery.params ) {
-
 			params[ param.name ] = { value=param.value, type=param.type, list=param.list?:false, separator=param.separator?:"" };
 		}
 
