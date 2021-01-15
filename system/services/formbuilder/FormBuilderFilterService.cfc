@@ -574,21 +574,14 @@ component {
 		  required string userId
 		, required array extraFilters
 	) {
-		var websiteUserDao = $getPresideObject( "website_user" );
-
 		var filter = {
 			id = arguments.userId
 	  	}
 
-		result.records = websiteUserDao.selectData(
-			  filter       = filter
-			, extraFilters = arguments.extraFilters
-			, selectFields = [
-				  "website_user.id"
-			]
+	  	return $getPresideObject( "website_user" ).dataExists(
+		    filter       = { id=arguments.userId }
+		  , extraFilters = arguments.extraFilters
 		);
-
-		return len( result.records );
 	}
 
 
