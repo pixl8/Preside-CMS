@@ -149,10 +149,16 @@ component {
 		var known_as   = args.known_as  ?: "";
 		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
 		var task       = args.record_id;
-		var taskDetail = Len( Trim( task ) ) ? taskmanagerService.getTask( task ) : {};
-		var taskName   = taskDetail.name ?: "unknown";
-		var taskUrl    = event.buildAdminLink( linkTo="taskmanager.history", queryString="task=" & task );
-		var taskLink   = '<a href="#taskUrl#">#taskName#</a>';
+		var taskDetail = {};
+		var taskLink   = "";
+		try {
+			taskDetail = Len( Trim( task ) ) ? taskmanagerService.getTask( task ) : {};
+			var taskName = taskDetail.name ?: "unknown";
+			var taskUrl  = event.buildAdminLink( linkTo="taskmanager.history", queryString="task=" & task );
+			taskLink     = '<a href="#taskUrl#">#taskName#</a>';
+		} catch( "TaskManager.missing.task" e ) {
+			action = "#action#.unknown_task";
+		}
 
 		return translateResource( uri="auditlog.taskmanager:#action#.message", data=[ userLink, taskLink ] );
 	}
