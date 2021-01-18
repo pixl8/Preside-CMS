@@ -6,8 +6,7 @@
  * @expressionCategory website_user
  */
 component {
-
-	property name="websiteUserActionService" inject="websiteUserActionService";
+	property name="formBuilderFilterService"   inject="formBuilderFilterService";
 	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
 
 	/**
@@ -22,17 +21,14 @@ component {
 		,          boolean _has = true
 		,          struct  _pastTime
 	) {
-		var userId = payload.user.id ?: "";
-		var actionCount = websiteUserActionService.getActionCount(
-			  type        = "formbuilder"
-			, action      = "submitform"
-			, userId      = userId
-			, identifiers = [ fbform ]
-			, dateFrom    = _pastTime.from ?: ""
-			, dateTo      = _pastTime.to   ?: ""
+		var userSubmissions = formBuilderFilterService.getUserSubmissionsRecords(
+			  userId = payload.user.id ?: ""
+			, formId = arguments.fbform
+			, from   = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
+			, to     = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
 		);
 
-		var result = rulesEngineOperatorService.compareNumbers( actionCount, arguments._numericOperator, arguments.times );
+		var result = rulesEngineOperatorService.compareNumbers( userSubmissions.recordcount, arguments._numericOperator, arguments.times );
 
 		return _has ? result : !result;
 	}
@@ -50,15 +46,13 @@ component {
 		,          string  filterPrefix       = ""
 		,          string  parentPropertyName = ""
 	) {
-		return websiteUserActionService.getUserPerformedActionFilter(
-			  action             = "submitform"
-			, type               = "formbuilder"
+		return formBuilderFilterService.prepareFilterForUserSubmittedFormBuilderForm(
+			  formId             = arguments.fbform
 			, has                = arguments._has
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, identifiers        = [ arguments.fbform ]
 			, qty                = arguments.times
 			, qtyOperator        = arguments._numericOperator
+			, from               = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
+			, to                 = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
 			, filterPrefix       = arguments.filterPrefix
 			, parentPropertyName = arguments.parentPropertyName
 		);
