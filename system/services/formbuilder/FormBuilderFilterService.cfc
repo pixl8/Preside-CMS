@@ -985,6 +985,100 @@ component {
 		return response;
 	}
 
+	public query function getUserSubmissionsRecords(
+		  required string userId
+		,          array  selectFields = []
+		,          string formId       = ""
+		,          date   from
+		,          date   to
+	) {
+		var filter = "submitted_by = '#arguments.userId#'";
+		var fParms = {};
+
+		if ( !isEmpty( arguments.formId ) ) {
+			filter &= " AND form = '#arguments.formId#'";
+		}
+
+		if ( structKeyExists( arguments, "from" ) && isDate( arguments.from ) ) {
+			filter &= " AND datecreated >= :createdfrom";
+			fParms.createdfrom = { value=arguments.from, type= "cf_sql_timestamp" };
+		}
+
+		if ( structKeyExists( arguments, "to" ) && isDate( arguments.to ) ) {
+			filter &= " AND datecreated <= :createdto";
+			fParms.createdto = { name="createdto", value=arguments.to, type= "cf_sql_timestamp" };
+		}
+
+		return $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  selectFields = arguments.selectFields
+			, filter       = filter
+			, filterParams = fParms
+		);
+	}
+
+	public array function prepareFilterForUserLastSubmittedFormBuilderForm(
+		           string formId = ""
+		,          date   from
+		,          date   to
+		,          string filterPrefix       = ""
+		,          string parentPropertyName = ""
+	) {
+		var filters         = [];
+		var paramSuffix     = _getRandomFilterParamSuffix();
+		var subqueryAlias   = "lastsubmitted" & paramSuffix;
+		var subqueryFilter  = "";
+		var subqueryFParams = {};
+		var params          = {};
+
+		if ( !isEmpty( arguments.formId ) ) {
+			subqueryFilter = "form = :form#paramSuffix#";
+			subqueryFParams[ "form#paramSuffix#" ] = { value=arguments.formId, type="cf_sql_varchar" };
+		}
+
+		if ( structKeyExists( arguments, "from" ) && isDate( arguments.from ) ) {
+			if ( !isEmpty( subqueryFilter ) ) {
+				subqueryFilter &= " AND datecreated >= :createdfrom#paramSuffix#";
+			} else {
+				subqueryFilter = "datecreated >= :createdfrom#paramSuffix#";
+			}
+
+			subqueryFParams[ "createdfrom#paramSuffix#" ] = { value=arguments.from, type= "cf_sql_timestamp" };
+		}
+
+		if ( structKeyExists( arguments, "to" ) && isDate( arguments.to ) ) {
+			if ( !isEmpty( subqueryFilter ) ) {
+				subqueryFilter &= " AND datecreated <= :createdto#paramSuffix#";
+			} else {
+				subqueryFilter = "datecreated <= :createdto#paramSuffix#";
+			}
+
+			subqueryFParams[ "createdto#paramSuffix#" ] = { value=arguments.to, type= "cf_sql_timestamp" };
+		}
+
+		var subquery = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  selectFields        = [ "id", "form", "submitted_by" ]
+			, filter              = subqueryFilter
+			, filterParams        = subqueryFParams
+			, groupBy             = "submitted_by"
+			, getSqlAndParamsOnly = true
+		);
+
+		for( var param in subquery.params ) {
+			params[ param.name ] = { value=param.value, type=param.type };
+		}
+
+		var response = [ { filter="", filterParams=params, extraJoins=[ {
+			  type           = "inner"
+			, subQuery       = subquery.sql
+			, subQueryAlias  = subqueryAlias
+			, subQueryColumn = "submitted_by"
+			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "website_user" )
+			, joinToColumn   = "id"
+		} ] } ];
+
+		return response;
+	}
+
 // PRIVATE HELPERS
 	private struct function _prepareLatestResponseQuery(
 		  required string question
