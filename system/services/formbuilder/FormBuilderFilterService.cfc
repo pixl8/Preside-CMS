@@ -570,6 +570,105 @@ component {
 		return response;
 	}
 
+	public boolean function evaluateUserHasSubmittedForm(
+		  required string userId
+		, required array extraFilters
+	) {
+		var filter = {
+			id = arguments.userId
+	  	}
+
+	  	return $getPresideObject( "website_user" ).dataExists(
+		    filter       = { id=arguments.userId }
+		  , extraFilters = arguments.extraFilters
+		);
+	}
+
+
+	public array function prepareFilterForUserHasSubmittedFormFilter(
+		  required array  formId
+		,          boolean _has  = true
+		,          boolean _all  = false
+		,          string  dateFrom           = ""
+		,          string  dateTo             = ""
+	) {
+
+		var filters        = [];
+		var paramSuffix    = _getRandomFilterParamSuffix();
+		var params = {};
+		var extraFilters = [];
+
+		if ( len( arguments.dateFrom ) ) {
+			var dfFilter = {
+				  filter = " datecreated >= :datefrom "
+				, filterParams = {
+					datefrom = { type="cf_sql_timestamp", value=arguments.dateFrom }
+				}
+			};
+			extraFilters.append(dfFilter);
+		}
+
+		if ( len( arguments.dateTo ) ) {
+			var dtFilter = {
+				  filter = " datecreated <= :dateto "
+				, filterParams = {
+					dateto = { type="cf_sql_timestamp", value=arguments.dateTo }
+				}
+			};
+			extraFilters.append(dtFilter);
+		}
+
+		var responseQueryAlias = "responseQuery" & paramSuffix;
+
+		var responseQuery      = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  selectFields = [ "count( distinct form ) as response_count", "submitted_by" ]
+			, filter       = " form in ( :forms ) "
+			, filterParams = {
+				forms = { type="varchar", value=formId }
+			}
+			, extraFilters = extraFilters
+			, groupBy      = "submitted_by"
+			, getSqlAndParamsOnly = true
+		);
+
+		for( var param in responseQuery.params ) {
+			params[ param.name ] = { value=param.value, type=param.type, list=param.list?:false, separator=param.separator?:"" };
+		}
+
+		var overallFilter =  "";
+
+		if ( !_has ) {
+			if ( _all ) {
+				overallFilter = " ifnull( #responseQueryAlias#.response_count,0 ) < #len(formId)# ";
+			} else {
+				overallFilter = " ifnull( #responseQueryAlias#.response_count,0 ) = 0 ";
+			}
+		} else {
+			if ( _all ) {
+				overallFilter = " ifnull( #responseQueryAlias#.response_count, 0 ) = #len(formId)# ";
+			} else {
+				overallFilter = " ifnull( #responseQueryAlias#.response_count, 0 ) >= 1 ";
+			}
+		}
+
+		var response = [ {
+			  filter = overallFilter
+			, filterParams=params
+			, extraJoins=[ {
+			 	  type           = "left"
+				, subQuery       = responseQuery.sql
+				, subQueryAlias  = responseQueryAlias
+				, subQueryColumn = "submitted_by"
+				, joinToTable    = "website_user"
+				, joinToColumn   = "id"
+			  }
+			]
+		} ];
+
+		return response;
+
+	}
+
 	public array function prepareFilterForUserHasRespondedToQuestion(
 		  required string  question
 		,          string  formId             = ""
