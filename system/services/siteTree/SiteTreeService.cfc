@@ -1160,7 +1160,7 @@ component {
 	public boolean function userHasPageAccess( required string pageId ) {
 		var restrictionRules = getAccessRestrictionRulesForPage( arguments.pageId );
 
-		if ( [ "none", "partial" ].find( restrictionRules.access_restriction ) ) {
+		if ( [ "none" ].find( restrictionRules.access_restriction ) ) {
 			return true;
 		}
 
