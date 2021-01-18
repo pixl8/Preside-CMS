@@ -1016,16 +1016,20 @@ component {
 		);
 	}
 
-	public array function prepareFilterForUserLastSubmittedFormBuilderForm(
-		           string formId = ""
-		,          date   from
-		,          date   to
-		,          string filterPrefix       = ""
-		,          string parentPropertyName = ""
+	public array function prepareFilterForUserSubmittedFormBuilderForm(
+		  string  formId = ""
+		, boolean has    = true
+		, date    from
+		, date    to
+		, string  filterPrefix       = ""
+		, string  parentPropertyName = ""
+		, numeric qty
+		, string  qtyOperator
 	) {
 		var filters         = [];
 		var paramSuffix     = _getRandomFilterParamSuffix();
 		var subqueryAlias   = "lastsubmitted" & paramSuffix;
+		var subqueryHaving  = "";
 		var subqueryFilter  = "";
 		var subqueryFParams = {};
 		var params          = {};
@@ -1055,10 +1059,37 @@ component {
 			subqueryFParams[ "createdto#paramSuffix#" ] = { value=arguments.to, type= "cf_sql_timestamp" };
 		}
 
+		if ( structKeyExists( arguments, "qty" ) && structKeyExists( arguments, "qtyOperator" ) ) {
+			var mappedOperator = ">";
+			switch( arguments.qtyOperator ) {
+				case "eq":
+					mappedOperator = arguments.has ? "=" : "!=";
+				break;
+				case "neq":
+					mappedOperator = arguments.has ? "!=" : "=";
+				break;
+				case "gt":
+					mappedOperator = arguments.has ? ">" : "<";
+				break;
+				case "gte":
+					mappedOperator = arguments.has ? ">=" : "<=";
+				break;
+				case "lt":
+					mappedOperator = arguments.has ? "<" : ">";
+				break;
+				case "lte":
+					mappedOperator = arguments.has ? "<=" : ">=";
+				break;
+			}
+
+			subqueryHaving = "submission_count #mappedOperator# #arguments.qty#";
+		}
+
 		var subquery = $getPresideObject( "formbuilder_formsubmission" ).selectData(
-			  selectFields        = [ "id", "form", "submitted_by" ]
+			  selectFields        = [ "Count( distinct id ) as submission_count", "id", "form", "submitted_by" ]
 			, filter              = subqueryFilter
 			, filterParams        = subqueryFParams
+			, having              = subqueryHaving
 			, groupBy             = "submitted_by"
 			, getSqlAndParamsOnly = true
 		);
@@ -1067,7 +1098,7 @@ component {
 			params[ param.name ] = { value=param.value, type=param.type };
 		}
 
-		var response = [ { filter="", filterParams=params, extraJoins=[ {
+		return [ { filter="", filterParams=params, extraJoins=[ {
 			  type           = "inner"
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
@@ -1075,8 +1106,6 @@ component {
 			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "website_user" )
 			, joinToColumn   = "id"
 		} ] } ];
-
-		return response;
 	}
 
 // PRIVATE HELPERS

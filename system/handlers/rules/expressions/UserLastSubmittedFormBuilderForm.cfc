@@ -37,7 +37,7 @@ component {
 		,          string  filterPrefix
 		,          string  parentPropertyName
 	) {
-		return formBuilderFilterService.prepareFilterForUserLastSubmittedFormBuilderForm(
+		return formBuilderFilterService.prepareFilterForUserSubmittedFormBuilderForm(
 			  formId             = arguments.fbform
 			, from               = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
 			, to                 = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
