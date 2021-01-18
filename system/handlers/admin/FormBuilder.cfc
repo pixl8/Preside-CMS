@@ -167,7 +167,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:actions.breadcrumb.title", data=[ prc.form.name ] )
-			, link  = event.buildAdminLink( linkTo="formbuilder.actions", queryStrign="id=" & prc.form.id )
+			, link  = event.buildAdminLink( linkTo="formbuilder.actions", queryString="id=" & prc.form.id )
 		);
 
 
@@ -259,7 +259,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:submissions.breadcrumb.title", data=[ prc.form.name ] )
-			, link  = event.buildAdminLink( linkTo="formbuilder.submissions", queryStrign="id=" & prc.form.id )
+			, link  = event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & prc.form.id )
 		);
 
 	}
@@ -288,7 +288,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:edit.form.breadcrumb.title", data=[ prc.form.name ] )
-			, link  = event.buildAdminLink( linkTo="formbuilder.editform", queryStrign="id=" & prc.form.id )
+			, link  = event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=" & prc.form.id )
 		);
 	}
 
