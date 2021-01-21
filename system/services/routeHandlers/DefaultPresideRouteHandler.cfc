@@ -140,6 +140,10 @@ component implements="iRouteHandler" singleton=true {
 			, site         = arguments.site
 		};
 
+		if ( !Len( getPageArgs.site ) ) {
+			getPageArgs.bypassTenants = [ "site" ];
+		}
+
 		if ( ptService.pageTypeExists( arguments.page ) && ptService.isSystemPageType( arguments.page ) ) {
 			getPageArgs.systemPage = arguments.page;
 		} else {
