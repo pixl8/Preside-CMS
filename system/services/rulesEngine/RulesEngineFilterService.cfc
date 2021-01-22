@@ -84,6 +84,9 @@ component displayName="Rules Engine Filter Service" {
 						}
 
 						var rawSql = dbAdapter.getClauseSql( filter=rawFilter.filter ?: "", tableAlias=arguments.objectName );
+						if ( isEmpty( rawSql ) ) {
+							rawSql = " 1 = 1 ";
+						}
 						var having = rawFilter.having ?: "";
 
 						if ( having.len() ) {
