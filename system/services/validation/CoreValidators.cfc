@@ -76,7 +76,7 @@ component validationProvider=true {
 		return ReFind( "^[0-9]+$", arguments.value );
 	}
 
-	public boolean function date( required string value ) validatorMessage="cms:validation.date.default" {
+	public boolean function date( required string value, required string format  ) validatorMessage="cms:validation.date.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
