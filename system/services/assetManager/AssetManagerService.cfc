@@ -13,6 +13,7 @@ component displayName="AssetManager Service" {
 	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
+	 * @imageManipulationService.inject   imageManipulationService
 	 * @assetQueueService.inject          presidecms:dynamicservice:assetQueue
 	 * @derivativeGeneratorService.inject presidecms:dynamicservice:derivativeGenerator
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
@@ -26,6 +27,7 @@ component displayName="AssetManager Service" {
 		, required any    documentMetadataService
 		, required any    storageLocationService
 		, required any    storageProviderService
+		, required any    imageManipulationService
 		, required any    assetQueueService
 		, required any    derivativeGeneratorService
 		, required any    renderedAssetCache
@@ -41,6 +43,7 @@ component displayName="AssetManager Service" {
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
+		_setImageManipulationServiceSer( arguments.imageManipulationService );
 		_setAssetQueueService( arguments.assetQueueService );
 		_setDerivativeGeneratorService( arguments.derivativeGeneratorService );
 		_setRenderedAssetCache( arguments.renderedAssetCache );
@@ -679,9 +682,9 @@ component displayName="AssetManager Service" {
 	) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var asset        = Duplicate( arguments.assetData );
-		var fileMetaInfo = _getDocumentMetadataService().getMetaData( arguments.fileBinary );
-		var fileWidth    = fileMetaInfo.width  ?: 0;
-		var fileHeight   = fileMetaInfo.height ?: 0;
+		if ( fileTypeInfo.groupName == "image" ) {
+			asset.append( _getImageInfo( arguments.fileBinary ) );
+		}
 
 		asset.id               = asset.id ?: CreateUUId();
 		asset.asset_folder     = resolveFolderId( arguments.folder );
@@ -696,8 +699,8 @@ component displayName="AssetManager Service" {
 			, size       = asset.size
 			, folderId   = asset.asset_folder
 			, throwIfNot = true
-			, fileWidth  = fileWidth
-			, fileHeight = fileHeight
+			, fileWidth  = asset.width  ?: 0
+			, fileHeight = asset.height ?: 0
 		);
 
 		if ( arguments.ensureUniqueTitle ) {
@@ -718,9 +721,6 @@ component displayName="AssetManager Service" {
 			asset.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
-		if ( fileTypeInfo.groupName == "image" ) {
-			asset.append( _getImageInfo( arguments.fileBinary ) );
-		}
 
 		if ( not Len( Trim( asset.asset_folder ) ) ) {
 			asset.asset_folder = getRootFolderId();
@@ -729,7 +729,10 @@ component displayName="AssetManager Service" {
 		_getAssetDao().insertData( data=asset, insertManyToManyRecords=true );
 
 		if ( _autoExtractDocumentMeta() ) {
-			_saveAssetMetaData( assetId=asset.id, metaData=fileMetaInfo );
+			_saveAssetMetaData(
+				  assetId  = asset.id
+				, metaData = _getDocumentMetadataService().getMetaData( arguments.fileBinary )
+			);
 		}
 
 		_autoQueueDerivatives( asset.id, fileTypeInfo.typeName, fileTypeInfo.groupName );
@@ -2334,7 +2337,7 @@ component displayName="AssetManager Service" {
 
 	private struct function _getImageInfo( fileBinary ) {
 		try {
-			var info = ImageInfo( arguments.fileBinary );
+			var info = _getImageManipulationService().getImageInformation( arguments.fileBinary );
 			return {
 				  width  = Val( info.width  ?: 0 )
 				, height = Val( info.height ?: 0 )
@@ -2498,6 +2501,12 @@ component displayName="AssetManager Service" {
 	}
 
 // GETTERS AND SETTERS
+	private any function _getimageManipulationService() {
+		return _imageManipulationService;
+	}
+	private void function _setImageManipulationServiceSer( required any imageManipulationService ) {
+		_imageManipulationService = arguments.imageManipulationService;
+	}
 	private any function _getDefaultStorageProvider() {
 		return _defaultStorageProvider;
 	}
