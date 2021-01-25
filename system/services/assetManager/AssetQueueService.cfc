@@ -23,7 +23,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 		,          string derivativeName = ""
 		,          string configHash     = ""
 	) {
-		var alreadExists = $getPresideObject( "asset_generation_queue" ).dataExists(
+		var alreadyExists = $getPresideObject( "asset_generation_queue" ).dataExists(
 			  filter = {
 				  asset           = arguments.assetId
 				, asset_version   = arguments.versionId
@@ -36,7 +36,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 			  } ]
 		);
 
-		if ( !alreadExists ) {
+		if ( !alreadyExists ) {
 			try {
 				$getPresideObject( "asset_generation_queue" ).insertData( data={
 					  asset           = arguments.assetId
@@ -213,7 +213,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 				arguments.logger.info( "Cleared [#NumberFormat( result )#] stuck queued asset derivatives." );
 
 			} else {
-				arguments.logger.info( "0 stuck queued asset derivatives.to clear." );
+				arguments.logger.info( "0 stuck queued asset derivatives to clear." );
 			}
 
 			arguments.logger.info( "Clearing out errored generations over 1 month old..." );
@@ -228,7 +228,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 			if ( result ) {
 				arguments.logger.info( "Cleared [#NumberFormat( result )#] old failed asset derivative generations." );
 			} else {
-				arguments.logger.info( "0 stuck failed asset derivatives.to clear." );
+				arguments.logger.info( "0 stuck failed asset derivatives to clear." );
 			}
 			arguments.logger.info( "Finished cleaning the asset generation queue." );
 		}
