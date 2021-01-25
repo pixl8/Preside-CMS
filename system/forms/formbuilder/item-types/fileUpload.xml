@@ -4,6 +4,7 @@
 		<fieldset id="default">
 			<field name="accept"           control="filetypepicker"  required="false"  sortorder="34"  multiple="true" defaultvalue="" />
 			<field name="maximumFileSize"  control="textInput"       required="false"  sortorder="36"  defaultvalue="5" />
+			<field name="is_private"       control="yesNoSwitch"     required="false"  sortorder="38" />
 		</fieldset>
 	</tab>
 </form>
