@@ -19,6 +19,7 @@ component extends="testbox.system.BaseSpec"{
 					, queue_status    = "pending"
 				};
 
+				mockQueueDao.$( "dataExists", false );
 				mockQueueDao.$( "insertData" );
 
 				service.queueAssetGeneration( argumentCollection=deets );
@@ -27,6 +28,33 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( callLog.len() ).toBe( 1 );
 				expect( callLog[ 1 ] ).toBe( { data=expectedDeets } );
+			} );
+
+			it( "it should NOT insert a record into the queue when the item is already in the queue", function(){
+				var service = _getService();
+				var deets   = {
+					  assetId        = CreateUUId()
+					, versionId      = CreateUUId()
+					, derivativeName = CreateUUId()
+					, configHash     = Hash( CreateUUid() )
+				};
+
+				mockQueueDao.$( "dataExists", true );
+				mockQueueDao.$( "insertData" );
+
+				service.queueAssetGeneration( argumentCollection=deets );
+
+				var insertCallLog = mockQueueDao.$callLog().insertData;
+				expect( insertCallLog.len() ).toBe( 0 );
+
+				var existsCallLog = mockQueueDao.$callLog().dataExists;
+				expect( existsCallLog.len() ).toBe( 1 );
+				expect( existsCallLog[ 1 ].filter ).toBe( {
+					  asset           = deets.assetId
+					, asset_version   = deets.versionId
+					, derivative_name = deets.derivativeName
+					, config_hash     = deets.configHash
+				} );
 			} );
 		} );
 
