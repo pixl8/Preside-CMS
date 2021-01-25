@@ -180,6 +180,47 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 		return $getPresideObject( "asset_generation_queue" ).deleteData( filter=filter );
 	}
 
+	public boolean function deleteExpiredQueuedItems( any logger ) {
+		var canLog  = StructKeyExists( arguments, "logger" );
+		var canInfo = canLog && arguments.logger.canInfo();
+
+		if ( canInfo ) {
+			arguments.logger.info( "Clearing out stuck queued asset derivatives..." );
+		}
+
+		var result = $getPresideObject( "asset_generation_queue" ).deleteData(
+			  filter = "datecreated < :datecreated and queue_status = :queue_status"
+			, filterParams = { datecreated = dateAdd( "d", -1, Now() ), queue_status="running" }
+		);
+
+		if ( canInfo ) {
+			if ( result ) {
+				arguments.logger.info( "Cleared [#NumberFormat( result )#] stuck queued asset derivatives." );
+
+			} else {
+				arguments.logger.info( "0 stuck queued asset derivatives.to clear." );
+			}
+
+			arguments.logger.info( "Clearing out errored generations over 1 month old..." );
+		}
+
+		result = $getPresideObject( "asset_generation_queue" ).deleteData(
+			  filter       = "datecreated < :datecreated and queue_status = :queue_status"
+			, filterParams = { datecreated = dateAdd( "m", -1, Now() ), queue_status="failed" }
+		);
+
+		if ( canInfo ) {
+			if ( result ) {
+				arguments.logger.info( "Cleared [#NumberFormat( result )#] old failed asset derivative generations." );
+			} else {
+				arguments.logger.info( "0 stuck failed asset derivatives.to clear." );
+			}
+			arguments.logger.info( "Finished cleaning the asset generation queue." );
+		}
+
+		return true;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getAssetManagerService() {
 	    return _assetManagerService.get();
