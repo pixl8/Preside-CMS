@@ -943,7 +943,6 @@ component displayName="Forms service" {
 		var xml            = "";
 		var tabs           = "";
 		var theForm        = {};
-		var formAttributes = {};
 
 		try {
 			var xmlContent = fileread( arguments.filePath, "utf-8" );
@@ -957,7 +956,7 @@ component displayName="Forms service" {
 			);
 		}
 
-		formAttribs = xml.form.xmlAttributes ?: {};
+		var formAttribs = xml.form.xmlAttributes ?: {};
 		for( var key in formAttribs ){
 			theForm[ key ] = formAttribs[ key ];
 		}
