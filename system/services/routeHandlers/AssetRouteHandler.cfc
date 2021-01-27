@@ -56,7 +56,7 @@ component implements="iRouteHandler" singleton=true presideService=true {
 
 		if ( !isEmpty( assetType ) ) {
 			var assetTypeDetail = _getAssetManagerService().getAssetType( name=assetType );
-			trackDownloads      = $helpers.isTrue( assetTypeDetail.trackDownloads ?: ( assetTypeDetail.serveAsAttachment ?: false ) );
+			trackDownload      = $helpers.isTrue( assetTypeDetail.trackDownloads ?: ( assetTypeDetail.serveAsAttachment ?: false ) );
 		}
 
 		if ( Len( Trim( derivative ) ) ) {
