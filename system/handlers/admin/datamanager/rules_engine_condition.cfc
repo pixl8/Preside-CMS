@@ -463,6 +463,8 @@ component extends="preside.system.base.AdminHandler" {
 		if ( ( rc.convertAction ?: "" ) == "filter" && Len( rc.filter_object ?: "" ) ) {
 			formData.context = "";
 			formData.filter_object = rc.filter_object;
+		} else {
+			structDelete( formData, "filter_object" );
 		}
 
 		switch ( args.formData.filter_sharing_scope ?: "" ) {
