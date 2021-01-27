@@ -21,10 +21,12 @@ component {
 		var row           = 1;
 		var col           = 0;
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
-		var objectTitle   = translateResource( uri=objectUriRoot & "title", defaultValue=arguments.objectname );
+		var sheetName     = translateResource( uri=objectUriRoot & "title", defaultValue=arguments.objectname );
+			sheetName     = _cleanSheetName( sheetName );
 
-		objectTitle = Left( objectTitle, 31 );
-		spreadsheetLib.renameSheet( workbook, objectTitle, 1 );
+		if ( len( sheetName ) ) {
+			spreadsheetLib.renameSheet( workbook, sheetName, 1 );
+		}
 
 		do {
 			data     = arguments.batchedRecordIterator();
@@ -54,5 +56,13 @@ component {
 		spreadsheetLib.write( workbook, tmpFile, true );
 
 		return tmpFile;
+	}
+
+	private string function _cleanSheetName( required string sheetname ) {
+		var name = rereplace( arguments.sheetname, "[\\\/\*\[\]\:\?]", " ", "all" );
+		name     = trim( rereplace( name, "\s+", " ", "all" ) );
+		name     = trim( left( name, 31 ) );
+
+		return name;
 	}
 }
