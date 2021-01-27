@@ -6,7 +6,7 @@
  * @autodoc
  *
  */
-component implements="preside.system.services.fileStorage.StorageProvider" displayname="File System Storage Provider" {
+component implements="preside.system.services.fileStorage.StorageProvider,preside.system.services.fileStorage.StorageProviderFileSystemSupport" displayname="File System Storage Provider" {
 
 // CONSTRUCTOR
 	public any function init(
@@ -101,6 +101,10 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
+	public string function getObjectLocalPath( required string path, boolean trashed=false, boolean private=false ) {
+		return _expandPath( arguments.path, arguments.trashed, arguments.private, true );
+	}
+
 	public struct function getObjectInfo( required string path, boolean trashed=false, boolean private=false ){
 		try {
 			var info = GetFileInfo( _expandPath( arguments.path, arguments.trashed, arguments.private, true ) );
@@ -138,6 +142,10 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		} else {
 			FileCopy( arguments.object, fullPath );
 		}
+	}
+
+	public void function putObjectFromLocalPath( required string localPath, required string path, boolean private=false ) {
+		return putObject( object=arguments.localPath, path=arguments.path, private=arguments.private );
 	}
 
 	public void function deleteObject( required string path, boolean trashed=false, boolean private=false ){

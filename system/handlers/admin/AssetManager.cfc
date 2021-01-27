@@ -195,38 +195,93 @@ component extends="preside.system.base.AdminHandler" {
 
 	function trashMultiAssetsAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.delete" );
-		var parentFolder = "";
-		var permanent    = false;
 
-		for( var assetId in ListToArray( rc.id ?: "" ) ) {
-			var asset = assetManagerService.getAsset( assetId );
-			parentFolder = asset.recordCount ? asset.asset_folder : "";
+		var assetIds = ListToArray( Trim( rc.id ?: "" ) );
 
-			var alreadyTrashed = IsTrue( asset.is_trashed );
-			if ( alreadyTrashed ) {
-				permanent = true;
+		if ( ArrayLen( assetIds ) ) {
+			var firstAsset = assetManagerService.getAsset( assetIds[ 1 ] );
+			var folderId   = firstAsset.recordCount ? firstAsset.asset_folder : "";
+			var taskId     = createTask(
+				  event                = "admin.assetManager.trashAssetsInBgThread"
+				, runNow               = true
+				, args                 = { assetIds=assetIds, folderId=folderId }
+				, adminOwner           = event.getAdminUserId()
+				, title                = "cms:assetmanager.trash.assets.task.title"
+				, returnUrl            = event.buildAdminLink( linkTo="assetManager", queryString="folder=" & folderId )
+				, discardAfterInterval = CreateTimeSpan( 0, 0, 2, 0 )
+			);
+
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=" & taskId
+			) );
+		}
+
+		messageBox.error( translateResource( "cms:assetmanager.trash.assets.none.to.delete.warning" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager" ) );
+	}
+
+	private void function trashAssetsInBgThread( event, rc, prc, args={}, logger, progress ) {
+		var assetIds    = args.assetIds ?: [];
+		var assetCount  = ArrayLen( assetIds );
+		var folderId    = args.folderId ?: "";
+		var canProgress = StructKeyExists( arguments, "progress" );
+		var canLog      = StructKeyExists( arguments, "logger" );
+		var canInfo     = canLog && arguments.logger.canInfo();
+		var canError    = canLog && arguments.logger.canError();
+		var folderName  = "";
+
+		if ( folderId == assetManagerService.getRootFolderId() ) {
+			folderName = translateResource( "cms:assetmanager.root.folder" );
+		} else {
+			folderName = renderLabel( "asset_folder", folderId );
+		}
+
+		if ( canInfo ) {
+			logger.info( translateResource(
+				  uri  = "cms:assetmanager.trash.assets.task.intro.log"
+				, data = [ NumberFormat( assetCount ), folderName ]
+			) );
+		}
+
+		var i = 0;
+		for( var assetId in assetIds )  {
+			var asset        = assetManagerService.getAsset( assetId );
+			var assetLabel   = asset.title ?: "";
+			var parentFolder = asset.recordCount ? asset.asset_folder : "";
+			var permanent    = IsTrue( asset.is_trashed );
+
+			if ( canInfo ) {
+				logger.info( translateResource(
+					  uri  = "cms:assetmanager.trash.assets.task.#( permanent ? 'deleting' : 'recycling' )#.asset.log"
+					, data = [ assetLabel ]
+				) );
 			}
-
 			try {
-				if ( alreadyTrashed ) {
+				if ( permanent ) {
 					assetManagerService.permanentlyDeleteAsset( assetId );
 				} else {
 					assetManagerService.trashAsset( assetId );
 				}
 			} catch ( any e ) {
 				logError( e );
-				messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#parentFolder#" ) );
+				if ( canError ) {
+					arguments.logger.error( "There was a problem deleting the asset: [#assetLabel#]." );
+					arguments.logger.error( e );
+				}
+			}
+
+			if ( canProgress ) {
+				arguments.progress.setProgress( Int( ( 100 / assetCount ) * ++i ) );
 			}
 		}
 
-		if ( permanent ) {
-			messageBox.info( translateResource( uri="cms:assetmanager.delete.assets.success" ) );
-		} else {
-			messageBox.info( translateResource( uri="cms:assetmanager.trash.assets.success" ) );
+		if ( canInfo ) {
+			logger.info( translateResource(
+				  uri  = "cms:assetmanager.trash.assets.task.complete.log"
+				, data = [ NumberFormat( assetCount ), folderName ]
+			) );
 		}
-
-		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
 	function moveAssetsAction( event, rc, prc ) {
@@ -241,67 +296,127 @@ component extends="preside.system.base.AdminHandler" {
 				var asset = assetmanagerService.getAsset( assetIds[1] );
 				fromFolder = asset.asset_folder ?: "";
 			}
-			var success = true;
-			try {
-				assetManagerService.moveAssets(
-					  assetIds  = assetIds
-					, folderId  = folderId
-				);
-			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
-				success = false;
-			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
-				success = false;
-			} catch( "PresideCMS.AssetManager.folder.in.different.location" e ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
-				success = false;
-			} catch ("PresideCMS.AssetManager.asset.file.exist.in.folder" e ){
-				messagebox.error( translateResource( "cms:assetmanager.assets.file.is.exist.in.folder.error" ) );
-				success = false;
-			}
 
-			if ( !success ) {
-				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
+			if ( Len( folderId ) && fromFolder != folderId ) {
+				var taskId = createTask(
+					  event                = "admin.assetManager.moveAssetsInBgThread"
+					, runNow               = true
+					, args                 = { assetIds=assetIds, folderId=folderId, fromFolder=fromFolder }
+					, adminOwner           = event.getAdminUserId()
+					, title                = "cms:assetmanager.move.assets.task.title"
+					, returnUrl            = event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder )
+					, discardAfterInterval = CreateTimeSpan( 0, 0, 2, 0 )
+				);
+
+				setNextEvent( url=event.buildAdminLink(
+					  linkTo      = "adhoctaskmanager.progress"
+					, queryString = "taskId=" & taskId
+				) );
 			}
 		}
 
-		messagebox.info( translateResource( "cms:assetmanager.assets.moved.confirmation" ) );
-
+		messagebox.error( translateResource( "cms:assetmanager.no.assets.moved.warning" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 	}
+
+	private void function moveAssetsInBgThread( event, rc, prc, args={}, logger, progress ) {
+		var assetIds   = args.assetIds   ?: [];
+		var folderId   = args.folderId   ?: "";
+		var fromFolder = args.fromFolder ?: "";
+		var canLog     = StructKeyExists( arguments, "logger" );
+
+		if ( canLog ) {
+			logger.info( translateResource( uri="cms:assetmanager.moving.assets.log.info", data=[
+				  LsNumberFormat( ArrayLen( assetIds ) )
+				, renderLabel( 'asset_folder', fromFolder )
+				, renderLabel( 'asset_folder', folderId )
+			] ) );
+		}
+
+		assetManagerService.moveAssetsInBgThread(
+			  assetIds   = assetIds
+			, toFolder   = folderId
+			, logger     = arguments.logger ?: NullValue()
+			, progress   = arguments.progress ?: NullValue()
+		);
+
+		if ( canLog ) {
+			logger.info( translateResource( uri="cms:assetmanager.moving.assets.log.complete.info" ) );
+		}
+	}
+
+
 
 	function restoreAssetsAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
 
-		var assetIds      = ListToArray( rc.assets ?: "" );
-		var folderId      = rc.toFolder   ?: "";
+		var assetIds = ListToArray( rc.assets ?: "" );
+		var folderId = rc.toFolder   ?: "";
 
-		if ( assetIds.len() ) {
-			var success = true;
-			try {
-				assetManagerService.restoreAssets(
-					  assetIds  = assetIds
-					, folderId  = folderId
-				);
-			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
-				success = false;
-			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
-				success = false;
-			} catch( "PresideCMS.AssetManager.folder.in.different.location" e ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
-				success = false;
-			}
+		if ( ArrayLen( assetIds ) && Len( Trim( folderId ) ) ) {
+			var taskId = createTask(
+				  event                = "admin.assetManager.restoreAssetsInBgThread"
+				, runNow               = true
+				, args                 = { assetIds=assetIds, folderId=folderId }
+				, adminOwner           = event.getAdminUserId()
+				, title                = "cms:assetmanager.restore.assets.task.title"
+				, returnUrl            = event.buildAdminLink( linkTo="assetManager", queryString="folder=trash" )
+				, discardAfterInterval = CreateTimeSpan( 0, 0, 2, 0 )
+			);
 
-			if ( !success ) {
-				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
-			}
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=" & taskId
+			) );
 		}
 
-		messagebox.info( translateResource( "cms:assetmanager.assets.restored.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=trash" ) );
+		messageBox.error( translateResource( "cms:assetmanager.restore.assets.none.to.restore.warning" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager", queryString="folder=trash" ) );
+	}
+
+	private void function restoreAssetsInBgThread( event, rc, prc, args={}, logger, progress) {
+		var assetIds   = args.assetIds ?: [];
+		var assetCount = ArrayLen( assetIds );
+		var folderId   = args.folderId ?: "";
+		var folderName = "";
+		var canLog     = StructKeyExists( arguments, "logger" );
+		var canInfo    = canLog && arguments.logger.canInfo();
+		var canError   = canLog && arguments.logger.canError();
+
+		if ( !ArrayLen( assetIds ) || !Len( Trim( folderId ) ) ) {
+			if ( canError ) {
+				arguments.logger.error( "No assets to restore, or no folder to restore to." );
+			}
+			return false;
+		}
+
+		if ( folderId == assetManagerService.getRootFolderId() ) {
+			folderName = translateResource( "cms:assetmanager.root.folder" );
+		} else {
+			folderName = renderLabel( "asset_folder", folderId );
+		}
+
+		if ( canInfo ) {
+			arguments.logger.info( translateResource(
+				  uri  = "cms:assetmanager.restore.assets.task.intro.log"
+				, data = [ NumberFormat( assetCount ), folderName ]
+			) );
+		}
+
+		assetManagerService.restoreAssets(
+			  assetIds   = assetIds
+			, folderId   = folderId
+			, skipErrors = true
+			, logger     = arguments.logger   ?: NullValue()
+			, progress   = arguments.progress ?: NullValue()
+		);
+
+		if ( canInfo ) {
+			arguments.logger.info( translateResource(
+				  uri  = "cms:assetmanager.restore.assets.task.completed.log"
+				, data = [ NumberFormat( assetCount ), folderName ]
+			) );
+		}
 	}
 
 	function addFolder( event, rc, prc ) {
@@ -483,7 +598,7 @@ component extends="preside.system.base.AdminHandler" {
 		var folderId         = rc.folder ?: "";
 
 		if ( assetManagerService.folderHasContent( folderId ) ) {
-			messageBox.warn( translateResource( "cms:assetmanager.trash.folder.not.empty.error" ) );
+			messageBox.error( translateResource( "cms:assetmanager.trash.folder.not.empty.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#folderId#" ) );
 		}
 
@@ -537,10 +652,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	function uploadAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
 		rc.file = runEvent(
 			  event          = "preprocessors.FileUpload.index"
-			, eventArguments = { fieldName="file" }
+			, eventArguments = { fieldName="file", readBinary=false }
 			, private        = true
 			, prePostExempt  = true
 		);
@@ -575,7 +689,8 @@ component extends="preside.system.base.AdminHandler" {
 
 			try {
 				var assetId = assetManagerService.addAsset(
-					  fileBinary        = rc.file.binary
+					  filePath          = rc.file.path
+					, fileSize          = rc.file.size
 					, folder            = rc.asset_folder ?: ""
 					, fileName          = filename
 					, assetData         = assetData
@@ -831,6 +946,7 @@ component extends="preside.system.base.AdminHandler" {
 		var formName = "preside-objects.asset.newversion";
 		var formData = event.getCollectionForForm( formName );
 
+
 		preProcessForm( formName, formData );
 
 		if ( !IsStruct( formData.file ?: "" ) || formData.file.isEmpty() ) {
@@ -840,9 +956,10 @@ component extends="preside.system.base.AdminHandler" {
 
 			try {
 				success = assetmanagerService.addAssetVersion(
-					  assetId    = assetId
-					, fileBinary = formData.file.binary
-					, fileName   = formData.file.fileName
+					  assetId  = assetId
+					, filePath = formData.file.path
+					, fileName = formData.file.fileName
+					, fileSize = formData.file.size
 				);
 			} catch ( "AssetManager.mismatchedMimeType" e ) {
 				messagebox.error( translateResource( "cms:assetmanager.upload.new.version.mismatched.type.error" ) );

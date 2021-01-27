@@ -101,23 +101,31 @@ component displayName="Admin permissions service" {
 		,          array  contextKeys   = []
 		,          string userId        = _getLoginService().getLoggedInUserId()
 	) {
+		var cacheKey = "hasPermission-#arguments.userId#-#arguments.permissionKey#-#arguments.context#-#ArrayToList( arguments.contextKeys )#";
+		var fromCache = _getCacheProvider().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var hasPermission = true;
+
 		if ( !Len( Trim( arguments.userId ) ) ) {
-			return false;
-		}
-
-		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
-			return true;
-		}
-
-		if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
+			hasPermission = false;
+		} else if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+			hasPermission = true;
+		} else if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
 			if ( !IsNull( local.contextPerm ) && IsBoolean( contextPerm ) ) {
-				return contextPerm;
+				hasPermission = contextPerm;
 			}
+		} else {
+			hasPermission = ArrayFind( listPermissionKeys( user=arguments.userId ), LCase( arguments.permissionKey ) ) > 0;
 		}
 
+		_getCacheProvider().set( cacheKey, hasPermission )
 
-		return listPermissionKeys( user=arguments.userId ).findNoCase( arguments.permissionKey );
+		return hasPermission;
 	}
 
 	/**
@@ -363,16 +371,25 @@ component displayName="Admin permissions service" {
 	}
 
 	private array function _getUserPermissions( required string user ) {
-		var perms = [];
-		var groups = listUserGroups( arguments.user );
+		var cacheKey = "_userPermissionsCache#arguments.user#";
+		var fromCache = _getCacheProvider().get( cacheKey );
 
-		for( var group in groups ){
-			_getGroupPermissions( group ).each( function( perm ){
-				if ( !perms.findNoCase( perm ) ) {
-					perms.append( perm );
-				}
-			} );
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
 		}
+
+		var perms = [];
+
+		for( var group in listUserGroups( arguments.user ) ){
+			var groupPerms = _getGroupPermissions( group );
+			for( var perm in groupPerms ) {
+				if ( !ArrayFind( perms, LCase( perm ) ) ) {
+					ArrayAppend( perms, LCase( perm ) );
+				}
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, perms );
 
 		return perms;
 	}

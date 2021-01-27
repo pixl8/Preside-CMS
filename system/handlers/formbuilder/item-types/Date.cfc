@@ -41,8 +41,7 @@ component {
 	private array function getValidationRules( event, rc, prc, args={} ) {
 		var rules = [];
 
-
-		rules.append( { fieldname=args.name, validator="date" } );
+		rules.append( { fieldname=args.name, validator="date", params={ format="YYYY-MM-DD" } } );
 
 		if ( IsDate( args.minDate ?: "" ) ) {
 			rules.append( { fieldname=args.name, validator="minimumDate", params={ minimumDate=args.minDate } } );

@@ -1,2 +1,2 @@
 #!/bin/bash
-box start force=true port=9999
+box start serverConfigFile=./server-presidetests.json

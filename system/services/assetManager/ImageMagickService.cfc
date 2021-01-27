@@ -20,8 +20,8 @@ component displayname="ImageMagick"  {
 		return this;
 	}
 
-	public binary function resize(
-		  required binary  asset
+	public void function resize(
+		  required string  filePath
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
@@ -32,26 +32,21 @@ component displayname="ImageMagick"  {
 		,          struct  fileProperties      = {}
 	) {
 
-		var imageBinary       = arguments.asset;
-		var currentImageInfo  = getImageInformation( imageBinary );
+		var currentImageInfo  = JavaImageMetaReader::readMeta( arguments.filePath );
 		var isSvg             = ( fileProperties.fileExt ?: "" ) == "svg";
+		var isJpg             = ReFindNoCase( "^jpe?g$", fileProperties.fileExt ?: "" );
 
-		imageBinary = autoCorrectImageOrientation( imageBinary );
-
-		var tmpDir            = _createTmpDir();
-		var tmpSourceFilePath = getTempFile( tmpDir, "mgk" );
-		var tmpDestFilePath   = getTempFile( tmpDir, "mgk" );
-
-		if ( isSvg ) {
-			imageBinary = _getSvgToPngService().SVGToPngBinary( imageBinary, arguments.width, arguments.height );
-			fileProperties.fileExt = "png";
+		if ( isJpg ) {
+			autoCorrectImageOrientation( arguments.filePath );
+		} else if ( isSvg ) {
+			_getSvgToPngService().svgToPng( arguments.filePath, arguments.width, arguments.height );
 		}
 
-		FileWrite( tmpSourceFilePath, arguments.asset );
+		var tmpDestFilePath = GetTempFile( GetTempDirectory(), "mgk" );
 
 		try {
 			imageMagickResize(
-				  sourceFile      = tmpSourceFilePath
+				  sourceFile      = arguments.filePath
 				, destinationFile = tmpDestFilePath
 				, qualityArgs     = _cfToImQuality( arguments.quality )
 				, width           = arguments.width
@@ -64,70 +59,37 @@ component displayname="ImageMagick"  {
 				, imageInfo       = currentImageInfo
 			);
 
-			imageBinary = FileReadBinary( tmpDestFilePath );
+			FileMove( tmpDestFilePath, arguments.filePath );
 		} catch ( any e ) {
 			$raiseError( e );
 			rethrow;
 		} finally {
-			_deleteDir( tmpDir );
+			_deleteFile( tmpDestFilePath );
 		}
 
-		currentImageInfo      = getImageInformation( imageBinary );
+		currentImageInfo      = JavaImageMetaReader::readMeta( arguments.filePath );
 		fileProperties.width  = currentImageInfo.width;
 		fileProperties.height = currentImageInfo.height;
-
-		return imageBinary;
 	}
 
-	public binary function pdfPreview(
-		  required binary asset
-		,          string scale
-		,          string resolution
-		,          string format
-		,          string pages
-		,          string transparent
-		,          struct fileProperties = {}
-	) {
-		var imagePrefix    = CreateUUId();
-		var tmpDir         = _createTmpDir();
-		var tmpFilePathPDF = GetTempFile( tmpDir, "mgk" ) & ".pdf";
-		var tmpFilePathJpg = GetTempFile( tmpDir, "mgk" ) & ".jpg";
-		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB -flatten "#tmpFilePathJpg#"';
-
-		FileWrite( tmpFilePathPDF, arguments.asset );
-
-		_exec( command="convert", args=args );
-
-		var binary = FileReadBinary( tmpFilePathJpg );
-
-		_deleteDir( tmpDir );
-
-		var imageInfo          = getImageInformation( binary );
-		fileProperties.width   = imageInfo.width;
-		fileProperties.height  = imageInfo.height;
-		fileProperties.fileExt = "jpg";
-
-		return binary;
-	}
-
-	public binary function shrinkToFit(
-		  required binary  asset
+	public void function shrinkToFit(
+		  required string  filePath
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
 		,          struct  fileProperties = {}
 	) {
-		var imageBinary = arguments.asset;
-		var isSvg       = ( fileProperties.fileExt ?: "" ) == "svg";
+		var currentImageInfo  = JavaImageMetaReader::readMeta( arguments.filePath );
+		var isSvg             = ( fileProperties.fileExt ?: "" ) == "svg";
+		var isJpg             = ReFindNoCase( "^jpe?g$", fileProperties.fileExt ?: "" );
 
-		imageBinary = autoCorrectImageOrientation( imageBinary );
+		if ( isJpg ) {
+			autoCorrectImageOrientation( arguments.filePath );
+		} else if ( isSvg ) {
+			_getSvgToPngService().svgToPng( arguments.filePath, arguments.width, arguments.height );
+		}
 
-		var currentImageInfo  = getImageInformation( imageBinary );
-		var tmpDir            = _createTmpDir();
-		var tmpSourceFilePath = GetTempFile( tmpDir, "mgk" );
-		var tmpDestFilePath   = GetTempFile( tmpDir, "mgk" );
-
-
+		var tmpDestFilePath   = GetTempFile( GetTempDirectory(), "mgk" );
 		var shrinkToWidth     = arguments.width;
 		var shrinkToHeight    = arguments.height;
 		var widthChangeRatio  = currentImageInfo.width / shrinkToWidth;
@@ -145,16 +107,9 @@ component displayname="ImageMagick"  {
 			shrinkToHeight = currentImageInfo.height;
 		}
 
-		if ( isSvg ) {
-			imageBinary = _getSvgToPngService().SVGToPngBinary( imageBinary, shrinkToWidth, shrinkToHeight );
-			fileProperties.fileExt = "png";
-		}
-
-		FileWrite( tmpSourceFilePath, imageBinary );
-
 		try {
 			imageMagickResize(
-				  sourceFile      = tmpSourceFilePath
+				  sourceFile      = arguments.filePath
 				, destinationFile = tmpDestFilePath
 				, qualityArgs     = _cfToImQuality( arguments.quality )
 				, width           = shrinkToWidth
@@ -163,19 +118,52 @@ component displayname="ImageMagick"  {
 				, crop            = false
 			);
 
-			imageBinary = FileReadBinary( tmpDestFilePath );
+			FileMove( tmpDestFilePath, arguments.filePath )
 		} catch ( any e ) {
 			$raiseError( e );
 			rethrow;
 		} finally {
-			_deleteDir( tmpDir );
+			_deleteFile( tmpDestFilePath );
 		}
 
-		currentImageInfo      = getImageInformation( imageBinary );
+		currentImageInfo      = JavaImageMetaReader::readMeta( arguments.filePath );
 		fileProperties.width  = currentImageInfo.width;
 		fileProperties.height = currentImageInfo.height;
+	}
 
-		return imageBinary;
+	public void function pdfPreview(
+		  required string filePath
+		,          string scale
+		,          string resolution
+		,          string format
+		,          string pages
+		,          string transparent
+		,          struct fileProperties = {}
+	) {
+		var imagePrefix    = CreateUUId();
+		var tmpDir         = GetTempDirectory();
+		var tmpFilePathPDF = GetTempFile( tmpDir, "mgk" ) & ".pdf";
+		var tmpFilePathJpg = GetTempFile( tmpDir, "mgk" ) & ".jpg";
+		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB -flatten "#tmpFilePathJpg#"';
+
+		FileCopy( arguments.filePath, tmpFilePathPdf );
+
+		try {
+			_exec( command="convert", args=args );
+
+			FileMove( tmpFilePathJpg, arguments.filePath );
+
+			var imageInfo          = JavaImageMetaReader::readMeta( arguments.filePath );
+			fileProperties.width   = imageInfo.width;
+			fileProperties.height  = imageInfo.height;
+			fileProperties.fileExt = "jpg";
+
+		} catch( any e ) {
+			rethrow;
+		} finally {
+			_deleteFile( tmpFilePathPDF );
+			_deleteFile( tmpFilePathJpg );
+		}
 	}
 
 	public string function imageMagickResize(
@@ -234,32 +222,8 @@ component displayname="ImageMagick"  {
 		return arguments.destinationFile;
 	}
 
-	public struct function getImageInformation( required binary asset ) {
-		var tmpFilePath = GetTempFile( GetTempDirectory(), "mgk" );
-		var imageBinary = autoCorrectImageOrientation( arguments.asset );
-
-		FileWrite( tmpFilePath, imageBinary );
-
-		var rawInfo = Trim( _exec( command="identify", args='-format "%[width]x%[height]" "#tmpFilePath#"[0]' ) );
-
-		FileDelete( tmpFilePath );
-
-		if ( ReFindNoCase( "^[0-9]+x[0-9]+$", rawInfo ) ) {
-			return {
-				  width  = ListFirst( rawInfo, "x" )
-				, height = ListLast( rawInfo, "x" )
-			};
-		}
-
-		throw( type="AssetTransformer.shrinkToFit.notAnImage" );
-	}
-
-	public binary function autoCorrectImageOrientation( required binary asset ) {
-		var tmpSourceFilePath = GetTempFile( GetTempDirectory(), "mgk" );
-		var imageBinary = arguments.asset;
-
-		FileWrite( tmpSourceFilePath, imageBinary );
-		var rawOrientation = Trim( _exec( command="identify", args='-format "%[orientation]" "#tmpSourceFilePath#"' ) );
+	public void function autoCorrectImageOrientation( required string filePath ) {
+		var rawOrientation = Trim( _exec( command="identify", args='-format "%[orientation]" "#arguments.filePath#"' ) );
 		var convertOrientation = false;
 
 		switch ( rawOrientation ) {
@@ -278,14 +242,10 @@ component displayname="ImageMagick"  {
 			var tmpDestinationFilePath = GetTempFile( GetTempDirectory(), "mgk" );
 			var imageQuality = _cfToImQuality( "highestQuality" );
 			var defaultSettings = "-auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
-			_exec( command="convert", args="#tmpSourceFilePath# #imageQuality# #defaultSettings# #tmpDestinationFilePath#" );
-			imageBinary = fileReadBinary( tmpDestinationFilePath );
-			fileDelete( tmpDestinationFilePath );
+			_exec( command="convert", args="#arguments.filePath# #imageQuality# #defaultSettings# #tmpDestinationFilePath#" );
+
+			FileMove( tmpDestinationFilePath, arguments.filePath );
 		}
-
-		fileDelete( tmpSourceFilePath );
-
-		return imageBinary;
 	}
 
 // PRIVATE HELPERS
@@ -437,20 +397,14 @@ component displayname="ImageMagick"  {
 		return abs( arguments.dimension1 - arguments.dimension2 ) > 2; // within 2px is fine
 	}
 
-	private string function _createTmpDir() {
-		var dir = GetTempDirectory() & "imgmgkoperation-#CreateUUId()#";
-
-		DirectoryCreate( dir );
-
-		return dir;
-	}
-
-	private void function _deleteDir( required string dir ) {
-		try {
-			DirectoryDelete( dir, true );
-		} catch( any e ) {
-			if ( DirectoryExists( dir ) ) {
-				rethrow;
+	private void function _deleteFile( required string path ) {
+		if ( FileExists( arguments.path ) ) {
+			try {
+				FileDelete( arguments.path );
+			} catch( any e ) {
+				if ( FileExists( arguments.path ) ) {
+					rethrow;
+				}
 			}
 		}
 	}

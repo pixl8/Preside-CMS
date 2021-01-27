@@ -277,12 +277,22 @@ component displayName="Validation Engine" {
 
 			var validator = LCase( rule.validator );
 			var data      = duplicate( params );
-			if( validator == "fileType" ) {
-				validator = "extension";
 
-				for( var index = 1; index <= data.len(); index++ ) {
-					data[index] = Replace( data[index], ",", ", ", "all")
-				}
+			switch( validator ) {
+				case "fileType":
+					validator = "extension";
+
+					for( var index = 1; index <= data.len(); index++ ) {
+						data[index] = Replace( data[index], ",", ", ", "all")
+					}
+					break;
+
+				case "date":
+					validator = "dateISO";
+					break;
+
+				default:
+					break;
 			}
 
 			jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], ' "#validator#" : { param : #_parseParamsForJQueryValidate( params, validator )#' );

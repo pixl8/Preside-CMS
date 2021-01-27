@@ -12,20 +12,23 @@ component displayname="Image Manipulation Service" {
 	/**
      * @nativeImageImplementation.inject nativeImageService
      * @imageMagickImplementation.inject imageMagickService
+     * @libVipsImplementation.inject     vipsImageSizingService
      *
      */
     public any function init(
           required any nativeImageImplementation
         , required any imageMagickImplementation
+        , required any libVipsImplementation
     ) {
         _setNativeImageImplementation( arguments.nativeImageImplementation );
         _setImageMagickImplementation( arguments.imageMagickImplementation );
+        _setLibVipsImplementation( arguments.libVipsImplementation );
 
         return this;
     }
 
 	public string function resize(
-		  required binary  asset
+		  required string  filePath
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
@@ -51,7 +54,7 @@ component displayname="Image Manipulation Service" {
 	}
 
 	public binary function shrinkToFit(
-		  required binary  asset
+		  required string  filePath
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
@@ -61,7 +64,7 @@ component displayname="Image Manipulation Service" {
 	}
 
 	public binary function pdfPreview(
-		  required binary asset
+		  required string filePath
 		,          string scale
 		,          string resolution
 		,          string format
@@ -69,26 +72,24 @@ component displayname="Image Manipulation Service" {
 		,          string transparent
 		,          struct fileProperties      = {}
 	) {
-		return _getImplementation().pdfPreview( argumentCollection = arguments );
+		return _getImplementation( vipsEnabled=false ).pdfPreview( argumentCollection = arguments );
 	}
 
-	public struct function getImageInformation( required binary asset ) {
-		return _getImplementation().getImageInformation( argumentCollection = arguments );
+	public struct function getImageInformation( required string asset ) {
+		return JavaImageMetaReader::readMeta( arguments.asset );
 	}
 
 	public boolean function isValidImageFile( required string path ) {
-		var asset = fileReadBinary( arguments.path );
 		try {
-			var imageInfo = getImageInformation( asset );
-		}
-		catch( any e ) {
+			var imageInfo = getImageInformation( arguments.path );
+		} catch( any e ) {
 			return false;
 		}
-		return isStruct( imageInfo ) && StructKeyExists( imageInfo, "height" );
+		return StructKeyExists( imageInfo, "height" );
 	}
 
 	private struct function _getCropHintArea(
-		  required binary  image
+		  required string  image
 		, required numeric width
 		, required numeric height
 		, required string  cropHint
@@ -155,9 +156,12 @@ component displayname="Image Manipulation Service" {
 		}
 	}
 
-	private function _getImplementation() {
-	    var useImageMagick = $getPresideSetting( "asset-manager", "use_imagemagick" );
+	private function _getImplementation( boolean vipsEnabled=true ) {
+		if ( arguments.vipsEnabled && _getLibVipsImplementation().enabled() ) {
+			return _getLibVipsImplementation();
+		}
 
+	    var useImageMagick = $getPresideSetting( "asset-manager", "use_imagemagick" );
 	    if ( IsBoolean( useImageMagick ) && useImageMagick ) {
 	        return _getImageMagickImplementation();
 	    }
@@ -178,6 +182,13 @@ component displayname="Image Manipulation Service" {
 	}
 	private void function _setImageMagickImplementation( required any imageMagickImplementation ) {
 		_imageMagickImplementation = arguments.imageMagickImplementation;
+	}
+
+	private any function _getLibVipsImplementation() {
+	    return _libVipsImplementation;
+	}
+	private void function _setLibVipsImplementation( required any libVipsImplementation ) {
+	    _libVipsImplementation = arguments.libVipsImplementation;
 	}
 
 }

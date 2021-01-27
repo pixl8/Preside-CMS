@@ -256,6 +256,12 @@
 		<cfreturn getSingleton( "PresideObjectService" ).slugify( argumentCollection=arguments )>
 	</cffunction>
 
+	<cffunction name="isFlaggingEnabled" access="public" returntype="boolean" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+
+		<cfreturn getSingleton( "PresideObjectService" ).isFlaggingEnabled( objectName=arguments.objectName )>
+	</cffunction>
+
 <!--- datamanager --->
 	<cffunction name="objectDataTable" access="public" returntype="string" output="false">
 		<cfargument name="objectName" type="string" required="true" />

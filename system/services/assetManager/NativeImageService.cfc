@@ -32,8 +32,8 @@ component displayname="Native Image Manipulation Service" {
 	 * @cropHintArea.hint        Struct (x,y,width,height) defining a crop hint area of the image. Image will be cropped to this area before resizing.
 	 *
 	 */
-	public binary function resize(
-		  required binary  asset
+	public void function resize(
+		  required string  filePath
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
@@ -43,21 +43,26 @@ component displayname="Native Image Manipulation Service" {
 		,          struct  fileProperties      = {}
 	) {
 		var image              = "";
+		var assetBinary        = "";
 		var interpolation      = arguments.quality;
 		var targetAspectRatio  = 0;
 		var currentImageInfo   = {};
 		var currentAspectRatio = 0;
 		var isSvg              = ( fileProperties.fileExt ?: "" ) == "svg";
+		var isJpg              = ReFindNoCase( "^jpe?g$", fileProperties.fileExt ?: "" );
 
 		try {
-			var assetBinary = arguments.asset;
-
 			if( isSvg ) {
-				assetBinary = _getSvgToPngService().SVGToPngBinary( arguments.asset, arguments.width, arguments.height );
+				_getSvgToPngService().SvgToPng( arguments.filePath, arguments.width, arguments.height );
 				fileProperties.fileExt = "png";
 			}
 
-			image = ImageNew( correctImageOrientation( assetBinary ) );
+			assetBinary = FileReadBinary( arguments.filePath );
+			if ( isJpg ) {
+				image = correctImageOrientation( assetBinary );
+			} else {
+				image = ImageNew( assetBinary );
+			}
 			currentImageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
@@ -85,7 +90,7 @@ component displayname="Native Image Manipulation Service" {
 				} else {
 					ImageScaleToFit( image, arguments.width, "", interpolation );
 				}
-				cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
+				image = cropAroundFocalPoint( image, arguments.width, arguments.height, arguments.focalPoint );
 			}
 		}
 
@@ -93,7 +98,7 @@ component displayname="Native Image Manipulation Service" {
 		fileProperties.width  = currentImageInfo.width;
 		fileProperties.height = currentImageInfo.height;
 
-		return ImageGetBlob( image );
+		ImageWrite( image, arguments.filePath );
 	}
 
 	/**
@@ -107,8 +112,8 @@ component displayname="Native Image Manipulation Service" {
 	 * @quality.hint Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
 	 *
 	 */
-	public binary function shrinkToFit(
-		  required binary  asset
+	public void function shrinkToFit(
+		  required string  filePath
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
@@ -116,19 +121,25 @@ component displayname="Native Image Manipulation Service" {
 
 	) {
 		var image         = "";
+		var assetBinary   = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
 		var isSvg         = ( fileProperties.fileExt ?: "" ) == "svg";
+		var isJpg         = ReFindNoCase( "^jpe?g$", fileProperties.fileExt ?: "" );
 
 		try {
-			var assetBinary = arguments.asset;
-
 			if( isSvg ) {
-				assetBinary = _getSvgToPngService().SVGToPngBinary ( arguments.asset, arguments.width, arguments.height );
+				_getSvgToPngService().SvgToPng( arguments.filePath, arguments.width, arguments.height );
 				fileProperties.fileExt = "png";
 			}
 
-			image = ImageNew( correctImageOrientation( assetBinary ) );
+			assetBinary = FileReadBinary( arguments.filePath );
+			if ( isJpg ) {
+				image = correctImageOrientation( assetBinary );
+			} else {
+				image = ImageNew( assetBinary );
+			}
+
 			imageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
@@ -137,15 +148,11 @@ component displayname="Native Image Manipulation Service" {
 
 		if ( imageInfo.width > arguments.width || imageInfo.height > arguments.height ) {
 			ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
-		}else{
-			ImageScaleToFit( image, imageInfo.width, imageInfo.height, interpolation );
+			imageInfo             = ImageInfo( image );
+			fileProperties.width  = imageInfo.width;
+			fileProperties.height = imageInfo.height;
+			ImageWrite( image, arguments.filePath );
 		}
-
-		imageInfo             = ImageInfo( image );
-		fileProperties.width  = imageInfo.width;
-		fileProperties.height = imageInfo.height;
-
-		return ImageGetBlob( image );
 	}
 
 	/**
@@ -159,7 +166,7 @@ component displayname="Native Image Manipulation Service" {
 	 * @focalPoint.hint Coordinates of the image's focal point. Comma-separated x,y - where each coordinate is a value between 0 and 1, the offset of the point from the top left corner of the image. So "0.5,0.5" would place the focal point in the centre of the image.
 	 *
 	 */
-	public binary function cropAroundFocalPoint(
+	public any function cropAroundFocalPoint(
 		  required any     image
 		, required numeric width
 		, required numeric height
@@ -184,7 +191,7 @@ component displayname="Native Image Manipulation Service" {
 
 		ImageCrop( image, originX, originY, arguments.width, arguments.height );
 
-		return ImageGetBlob( image );
+		return image;
 	}
 
 
@@ -200,8 +207,8 @@ component displayname="Native Image Manipulation Service" {
 	 * @transparent.hint (format="png" only) Specifies whether the native image background is transparent or opaque
 	 *
 	 */
-	public binary function pdfPreview(
-		  required binary  asset
+	public void function pdfPreview(
+		  required string  filePath
 		,          string  scale
 		,          string  resolution
 		,          string  format
@@ -215,7 +222,7 @@ component displayname="Native Image Manipulation Service" {
 		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth", "width" ];
 		var pdfAttributes = {
 			  action      = "thumbnail"
-			, source      = asset
+			, source      = arguments.filePath
 			, destination = GetTempDirectory()
 			, imagePrefix = imagePrefix
 		};
@@ -226,15 +233,12 @@ component displayname="Native Image Manipulation Service" {
 			}
 		}
 
-		var tmpFilePDF  = GetTempDirectory() & imagePrefix & "_page_" & arguments.page & ".pdf";
 		var tmpFileJPG  = GetTempDirectory() & imagePrefix & "1.jpg";
-
-		FileWrite( tmpFilePDF, pdfAttributes.source );
 
 		var returnFilePrefix = GetTempDirectory() & imagePrefix;
 		var bufferedImage    = createObject("java","java.awt.image.BufferedImage");
 		var imageWriter      = createObject("java","org.apache.pdfbox.util.PDFImageWriter");
-		var document         = createObject("java","org.apache.pdfbox.pdmodel.PDDocument").load( tmpFilePDF );
+		var document         = createObject("java","org.apache.pdfbox.pdmodel.PDDocument").load( arguments.filePath );
 
 		imageWriter.writeImage( document, JavaCast( "string", "jpg" ), JavaCast( "string", "" ), "1", "1", JavaCast( "string", returnFilePrefix ), bufferedImage.TYPE_INT_RGB, arguments.width );
 		document.close();
@@ -247,15 +251,12 @@ component displayname="Native Image Manipulation Service" {
 			, width       = arguments.width
 		);
 
-		tmpFilePath = tmpFileJPG;
+		FileMove( tmpFileJPG, arguments.filePath );
 
-		var binary             = FileReadBinary( tmpFilePath );
-		imageInfo              = getImageInformation( binary );
+		imageInfo              = JavaImageMetaReader::readMeta( arguments.filePath );
 		fileProperties.width   = imageInfo.width;
 		fileProperties.height  = imageInfo.height;
 		fileProperties.fileExt = "jpg";
-
-		return binary;
 	}
 
 	public struct function getImageInformation( required binary asset ) {
@@ -263,7 +264,6 @@ component displayname="Native Image Manipulation Service" {
 		var imageInfo = {};
 
 		try {
-
 			image = ImageNew( correctImageOrientation( arguments.asset ) );
 			imageInfo = ImageInfo( image );
 
@@ -274,44 +274,35 @@ component displayname="Native Image Manipulation Service" {
 		return imageInfo;
 	}
 
-	public binary function correctImageOrientation( required binary asset ) {
-		var imageBinary = arguments.asset;
+	public any function correctImageOrientation( required binary imageBinary ) {
 		var imageInfo = {};
-		var tmpFilePath = GetTempFile( GetTempDirectory(), "ntv" );
-
-		fileWrite( tmpFilePath, imageBinary );
-		var oImage = ImageNew( tmpFilePath );
+		var oImage = ImageNew( arguments.imageBinary );
 
 		try {
-
-			imageOrientation = imageGetEXIFTag( oImage, "orientation" );
-			imageInfo = imageInfo( oImage );
-			if ( findNoCase( "Rotate", imageOrientation ) && !findNoCase( "Mirror", imageOrientation ) ){
+			imageOrientation = ImageGetEXIFTag( oImage, "orientation" );
+			imageInfo = ImageInfo( oImage );
+			if ( FindNoCase( "Rotate", imageOrientation ) && !FindNoCase( "Mirror", imageOrientation ) ){
 				var iRotate = 0;
 				if ( imageInfo.width > imageInfo.height ) {
-					if ( findNoCase( "Rotate 90 CW", imageOrientation ) ){
+					if ( FindNoCase( "Rotate 90 CW", imageOrientation ) ){
 						iRotate = 90;
 					}
-					if ( findNoCase( "Rotate 270 CW", imageOrientation ) ){
+					if ( FindNoCase( "Rotate 270 CW", imageOrientation ) ){
 						iRotate = 270;
 					}
 				}
-				if ( findNoCase( "Rotate 180", imageOrientation ) ){
+				if ( FindNoCase( "Rotate 180", imageOrientation ) ){
 					iRotate = 180;
 				}
 				if ( iRotate > 0 ){
-					imageRotate( name = oImage, angle = iRotate, x = 2, interpolation = "bicubic" );
-					imageBinary = imageGetBlob( oImage );
+					ImageRotate( name = oImage, angle = iRotate, x = 2, interpolation = "bicubic" );
 				}
 			}
-
-		} catch (any e) {
+		} catch ( any e ) {
 			//No exif tag - orientation
-		} finally {
-			fileDelete( tmpFilePath );
 		}
 
-		return ( imageBinary );
+		return oImage;
 	}
 
 // GETTERS/SETTERS

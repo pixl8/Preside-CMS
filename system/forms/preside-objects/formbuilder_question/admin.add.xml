@@ -6,7 +6,7 @@
 			<field binding="formbuilder_question.field_id"           sortorder="10" />
 			<field binding="formbuilder_question.field_label"        sortorder="20" />
 			<field binding="formbuilder_question.full_question_text" sortorder="30" control="textarea" />
-			<field binding="formbuilder_question.help_text"          sortorder="40" />
+			<field binding="formbuilder_question.help_text"          sortorder="40" control="textarea" />
 		</fieldset>
 	</tab>
 </form>
