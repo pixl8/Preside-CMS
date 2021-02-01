@@ -130,7 +130,7 @@ component {
 					header name="Content-Disposition" value="inline; filename=""#filename#""";
 				}
 
-				if ( event.getCurrentUrl() != urlDecode( assetPublicUrl ) ) {
+				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 					setNextEvent(
 						  url        = assetPublicUrl
 						, statusCode = "302"
