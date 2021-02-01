@@ -98,7 +98,7 @@ jobs:
         if: "env.PUBLISH_PRESIDE == 'true'"
         shell: bash
         run: |
-          echo '{ "version":"\$RELEASE_VERSION" }' > version.json &&
+          echo '{ "version":"$RELEASE_VERSION" }' > version.json &&
           echo 'Built on: $( date )' > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
           mv box.json.published box.json
 
