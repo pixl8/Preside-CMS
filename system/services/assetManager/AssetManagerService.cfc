@@ -1231,8 +1231,8 @@ component displayName="AssetManager Service" {
 				_getAssetQueueService().queueAssetGeneration(
 					  assetId        = arguments.assetId
 					, derivativeName = arguments.derivativeName
-					, versionId      = arguments.versionId
-					, configHash     = arguments.configHash ?: ""
+					, versionId      = version
+					, configHash     = configHash
 				);
 			}
 

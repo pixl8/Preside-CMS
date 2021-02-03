@@ -23,16 +23,32 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 		,          string derivativeName = ""
 		,          string configHash     = ""
 	) {
-		try {
-			$getPresideObject( "asset_generation_queue" ).insertData( data={
+		var queueDao      = $getPresideObject( "asset_generation_queue" );
+		var alreadyExists = queueDao.dataExists(
+			  filter = {
 				  asset           = arguments.assetId
 				, asset_version   = arguments.versionId
 				, derivative_name = arguments.derivativeName
 				, config_hash     = arguments.configHash
-				, retry_count     = 0
-				, queue_status    = "pending"
-			} );
-		} catch( any e ) {}
+			  }
+			, extraFilters = [ {
+				  filter       = "datecreated > :datecreated"
+				, filterParams = { datecreated=DateAdd( "h", -1, Now() ) }
+			  } ]
+		);
+
+		if ( !alreadyExists ) {
+			try {
+				queueDao.insertData( data={
+					  asset           = arguments.assetId
+					, asset_version   = arguments.versionId
+					, derivative_name = arguments.derivativeName
+					, config_hash     = arguments.configHash
+					, retry_count     = 0
+					, queue_status    = "pending"
+				} );
+			} catch( any e ) {}
+		}
 	}
 
 	public void function processQueue() {
