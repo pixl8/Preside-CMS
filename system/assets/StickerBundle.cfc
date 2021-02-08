@@ -4,7 +4,7 @@ component output=false {
 
 		// REGISTER ASSETS
 		bundle.addAsset( id="i18n-resource-bundle"        , url="/preside/system/assets/_dynamic/i18nBundle.js" );
-		bundle.addAsset( id="ckeditor"                    , url="/preside/system/assets/ckeditor/ckeditor.js?v=4.16.0", type="js" );
+		bundle.addAsset( id="ckeditor"                    , url="/preside/system/assets/ckeditor/ckeditor.js?v=4.16.0" );
 		bundle.addAsset( id="/js/admin/lib/jquery/"       , path="/js/admin/lib/jquery-2*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-for-ie/", path="/js/admin/lib/jquery-1*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-ui/"    , path="/js/admin/lib/jquery-ui*.min.js" );
