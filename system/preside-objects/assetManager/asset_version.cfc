@@ -16,6 +16,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="size"              type="numeric" dbtype="int"                       required=true;
 	property name="asset_type"        type="string"  dbtype="varchar" maxLength=10      required=true;
 	property name="raw_text_content"  type="string"  dbtype="longtext";
+	property name="width"             type="numeric" dbtype="int"                       required=false;
+	property name="height"            type="numeric" dbtype="int"                       required=false;
 	property name="focal_point"       type="string"  dbtype="varchar" maxLength=15      required=false;
 	property name="crop_hint"         type="string"  dbtype="varchar" maxLength=30      required=false;
 
