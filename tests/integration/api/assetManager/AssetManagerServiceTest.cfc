@@ -397,6 +397,128 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+
+		describe( "getAssetDimensions", function(){
+
+			it( "should return width and height from the asset derivative record if a derivative is supplied", function(){
+				var service    = _getService();
+				var assetId    = CreateUUId();
+				var derivative = "myDerivative";
+
+				service.$( "getActiveAssetVersion" ).$results( "" );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "width,height", "int,int", [ 100, 200 ] ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "width,height", "int,int", [ 300, 400 ] ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+
+				expect( service.getAssetDimensions( id=assetId, derivativeName=derivative ) ).toBe( { width:100, height:200 } );
+			} );
+
+			it( "should estimate width and height based the asset record if derivative is supplied but has no dimensions", function(){
+				var service    = _getService();
+				var assetId    = CreateUUId();
+				var derivative = "myDerivative";
+
+				service.$( "getActiveAssetVersion" ).$results( "" );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "" ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "width,height", "int,int", [ 300, 400 ] ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+				service.$( "_estimateDerivativeDimensions" ).$args( 500, 600, derivative ).$results( { width:50, height:60 } );
+
+				expect( service.getAssetDimensions( id=assetId, derivativeName=derivative ) ).toBe( { width:50, height:60 } );
+			} );
+
+			it( "should estimate width and height based the asset version record if derivative is supplied but has no dimensions, and versions exist", function(){
+				var service    = _getService();
+				var assetId    = CreateUUId();
+				var versionId  = CreateUUId();
+				var derivative = "myDerivative";
+
+				service.$( "getActiveAssetVersion" ).$results( versionId );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "" ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "width,height", "int,int", [ 300, 400 ] ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+				service.$( "_estimateDerivativeDimensions" ).$args( 300, 400, derivative ).$results( { width:30, height:40 } );
+
+				expect( service.getAssetDimensions( id=assetId, derivativeName=derivative ) ).toBe( { width:30, height:40 } );
+			} );
+
+			it( "should return width and height from the asset record if no derivative is supplied and no versions exist and no versionId is supplied", function(){
+				var service = _getService();
+				var assetId = CreateUUId();
+
+				service.$( "getActiveAssetVersion" ).$results( "" );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "width,height", "int,int", [ 100, 200 ] ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "width,height", "int,int", [ 300, 400 ] ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+
+				expect( service.getAssetDimensions( id=assetId ) ).toBe( { width:500, height:600 } );
+			} );
+
+			it( "should return width and height from the asset version record if no derivative is supplied and versions exist", function(){
+				var service   = _getService();
+				var assetId   = CreateUUId();
+				var versionId = CreateUUId();
+
+				service.$( "getActiveAssetVersion" ).$results( versionId );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "width,height", "int,int", [ 100, 200 ] ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "width,height", "int,int", [ 300, 400 ] ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+
+				expect( service.getAssetDimensions( id=assetId ) ).toBe( { width:300, height:400 } );
+			} );
+
+			it( "should return width and height from the asset version record if no derivative is supplied and versionId is supplied", function(){
+				var service   = _getService();
+				var assetId   = CreateUUId();
+				var versionId = CreateUUId();
+
+				service.$( "getActiveAssetVersion" ).$results( "" );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "width,height", "int,int", [ 100, 200 ] ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "width,height", "int,int", [ 300, 400 ] ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+
+				expect( service.getAssetDimensions( id=assetId, versionId=versionId ) ).toBe( { width:300, height:400 } );
+			} );
+
+			it( "should return an empty struct if versions do not exist and asset is not found or has no dimensions", function(){
+				var service = _getService();
+				var assetId = CreateUUId();
+
+				service.$( "getActiveAssetVersion" ).$results( "" );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "width,height", "int,int", [ 100, 200 ] ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "width,height", "int,int", [ 300, 400 ] ) );
+				service.$( "getAsset"              ).$results( queryNew( "" ) );
+
+				expect( service.getAssetDimensions( id=assetId ) ).toBe( {} );
+			} );
+
+			it( "should return an empty struct if versions exist and asset version is not found or has no dimensions", function(){
+				var service   = _getService();
+				var assetId   = CreateUUId();
+				var versionId = createUUID();
+
+				service.$( "getActiveAssetVersion" ).$results( versionId );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "width,height", "int,int", [ 100, 200 ] ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "" ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+
+				expect( service.getAssetDimensions( id=assetId ) ).toBe( {} );
+			} );
+
+			it( "should return an empty struct if versionId is supplied and asset version is not found or has no dimensions", function(){
+				var service   = _getService();
+				var assetId   = CreateUUId();
+				var versionId = createUUID();
+
+				service.$( "getActiveAssetVersion" ).$results( "" );
+				service.$( "getAssetDerivative"    ).$results( queryNew( "width,height", "int,int", [ 100, 200 ] ) );
+				service.$( "getAssetVersion"       ).$results( queryNew( "" ) );
+				service.$( "getAsset"              ).$results( queryNew( "width,height", "int,int", [ 500, 600 ] ) );
+
+				expect( service.getAssetDimensions( id=assetId, versionId=versionId ) ).toBe( {} );
+			} );
+
+		} );
 	}
 
 
