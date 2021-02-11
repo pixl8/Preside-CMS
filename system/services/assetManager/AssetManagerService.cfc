@@ -1298,7 +1298,7 @@ component displayName="AssetManager Service" {
 	 */
 	public struct function getAssetDimensions( required string id, string derivativeName="", string versionId="" ) {
 		var version = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.id );
-		var asset   = "";
+		var asset   = queryNew("");
 
 		if ( Len( Trim( arguments.derivativeName ) ) ) {
 			asset = getAssetDerivative(
@@ -2038,6 +2038,8 @@ component displayName="AssetManager Service" {
 				, "asset_version.size"
 				, "asset_version.asset_type"
 				, "asset_version.raw_text_content"
+				, "asset_version.width"
+				, "asset_version.height"
 				, "asset_version.focal_point"
 				, "asset_version.crop_hint"
 				, "asset_version.created_by"
@@ -2049,8 +2051,22 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( versionToMakeActive.recordCount ) {
-			var versionImageDimension = _getImageInfo( getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, getFilePathIfSupported=true ) );
-			var generatedAssetUrl     = generateAssetUrl(
+			var versionWidth  = versionToMakeActive.width;
+			var versionHeight = versionToMakeActive.height;
+
+			if ( !val( versionWidth ) || !val( versionHeight ) ) {
+				var versionImageDimension = _getImageInfo( getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, getFilePathIfSupported=true ) );
+
+				versionWidth  = versionImageDimension.width  ?: "";
+				versionHeight = versionImageDimension.height ?: "";
+
+				_getAssetVersionDao().updateData(
+					  id   = arguments.versionId
+					, data = { width=versionWidth, height=versionHeight }
+				);
+			}
+
+			var generatedAssetUrl = generateAssetUrl(
 				  id          = arguments.assetId
 				, versionId   = arguments.versionId
 				, storagePath = versionToMakeActive.storage_path
@@ -2067,9 +2083,9 @@ component displayName="AssetManager Service" {
 				, crop_hint        = versionToMakeActive.crop_hint
 				, created_by       = versionToMakeActive.created_by
 				, updated_by       = versionToMakeActive.updated_by
-				, width            = versionImageDimension.width  ?: ""
-				, height           = versionImageDimension.height ?: ""
-				, asset_url 	   = generatedAssetUrl
+				, width            = versionWidth
+				, height           = versionHeight
+				, asset_url        = generatedAssetUrl
 			} );
 
 			invalidateRenderedAssetCache( arguments.assetId );
@@ -2473,6 +2489,8 @@ component displayName="AssetManager Service" {
 			, "asset_type"
 			, "active_version"
 			, "raw_text_content"
+			, "width"
+			, "height"
 			, "focal_point"
 			, "crop_hint"
 			, "created_by"
@@ -2487,6 +2505,8 @@ component displayName="AssetManager Service" {
 				, size             = asset.size
 				, asset_type       = asset.asset_type
 				, raw_text_content = asset.raw_text_content
+				, width            = asset.width
+				, height           = asset.height
 				, focal_point      = asset.focal_point
 				, crop_hint        = asset.crop_hint
 				, created_by       = asset.created_by
