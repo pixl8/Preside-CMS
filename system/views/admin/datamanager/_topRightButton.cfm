@@ -28,7 +28,7 @@
 			<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 				<cfloop array="#children#" item="child" index="i">
 					<li>
-						<a href="#( child.link ?: '' )#"<cfif ( child.target ?: "" ).len()> target="#target#"</cfif>>
+						<a href="#( child.link ?: '' )#"<cfif ( child.target ?: "" ).len()> target="#target#"</cfif> class="<cfif Len( child.prompt ?: "") > confirmation-prompt</cfif>" <cfif Len( child.prompt ?: "")> title="#HtmlEditFormat( child.prompt )#"</cfif> <cfif Len( child.match ?: "")> data-confirmation-match="#child.match#"</cfif>>
 							<cfif ( child.icon ?: '' ).len()>
 								<i class="fa fa-fw #( child.icon ?: '' )#"></i>&nbsp;
 							</cfif>
