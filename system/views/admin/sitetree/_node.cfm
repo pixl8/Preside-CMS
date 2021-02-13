@@ -107,7 +107,7 @@
 		<tr class="depth-#args._hierarchy_depth#<cfif isOpen> open</cfif><cfif isSelected> selected</cfif><cfif isDraft> draft light-grey<cfelseif hasDrafts> has-drafts</cfif>" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> data-context-container="#args.id#"<cfif isOpen> data-open-on-start="true"</cfif>>
 			<td class="page-title-cell">
 				<!--- whitespace important here hence one line --->
-				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
+				<cfif hasChildren><i class="fa fa-lg fa-fw <cfif isOpen> fa-caret-down <cfelse> fa-caret-right </cfif> tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
 					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id, child_count=args.child_count} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#" #dataImage#> #args.title#</a>
