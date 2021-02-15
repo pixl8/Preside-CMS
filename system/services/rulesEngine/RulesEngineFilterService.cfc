@@ -236,10 +236,10 @@ component displayName="Rules Engine Filter Service" {
 		}
 
 		args.extraFilters.append( {
-			  filter       = "( owner is null or owner=:owner or ( security_group.id in (:security_group.id) and allow_group_edit = 1 ) )"
+			  filter       = "( owner is null or owner=:owner or ( user_groups.id in (:user_groups.id) and allow_group_edit = 1 ) )"
 			, filterParams = {
-				  owner               = adminUserId
-				, "security_group.id" = $getAdminPermissionService().listUserGroups( adminUserId )
+				  owner            = adminUserId
+				, "user_groups.id" = $getAdminPermissionService().listUserGroups( adminUserId )
 			}
 		} );
 	}
