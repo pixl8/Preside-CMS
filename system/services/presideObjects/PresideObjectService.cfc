@@ -3077,10 +3077,10 @@ component displayName="Preside Object Service" {
 			entities = StructKeyList( entities, "|" );
 			aliasEntitiesOnly = StructKeyList( aliasEntitiesOnly, "|" );
 
-			_aliasedAliasRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)([`\]])?\.([`\[])?(#aliasEntitiesOnly#)(\s|$|\)|,|`|\])";
+			this._aliasedAliasRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)([`\]])?\.([`\[])?(#aliasEntitiesOnly#)(\s|$|\)|,|`|\])";
 		}
 
-		return _aliasedAliasRegex;
+		return this._aliasedAliasRegex;
 	}
 
 	private struct function _reSearch( required string regex, required string text ) {
