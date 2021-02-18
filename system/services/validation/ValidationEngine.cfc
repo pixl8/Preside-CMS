@@ -67,16 +67,17 @@ component displayName="Validation Engine" {
 				);
 
 				if ( !IsBoolean( fieldResult ) || !fieldResult ) {
-					for ( var key in rule.params ) {
-						if( isNumeric( rule.params[key] ) ) {
-							rule.params[key] = $helpers.presideStandardNumberFormat( rule.params[key] );
+					var ruleParams = duplicate( rule.params );
+					for ( var key in ruleParams ) {
+						if( isNumeric( ruleParams[key] ) ) {
+							ruleParams[key] = $helpers.presideStandardNumberFormat( ruleParams[key] );
 						}
 					}
 
 					result.addError(
 						  fieldName = expandedFieldName
 						, message   = ( Len( Trim( rule.message ) ) ? rule.message : provider.getDefaultMessage( name=rule.validator ) )
-						, params    = provider.getValidatorParamValues( name=rule.validator, params=rule.params )
+						, params    = provider.getValidatorParamValues( name=rule.validator, params=ruleParams )
 					);
 				}
 			}
