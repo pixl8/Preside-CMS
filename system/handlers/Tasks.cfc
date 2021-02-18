@@ -85,6 +85,7 @@ component {
 	 * @timeout      1200
 	 * @displayName  Cleanup asset generation queue
 	 * @displayGroup Cleanup
+	 * @feature      assetQueue
 	 */
 	private boolean function deleteExpiredQueuedAssetGenerations( logger ) {
 		return assetQueueService.deleteExpiredQueuedItems( arguments.logger ?: NullValue() );
