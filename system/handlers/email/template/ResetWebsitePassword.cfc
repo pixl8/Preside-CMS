@@ -37,7 +37,7 @@ component {
 
 	private struct function rebuildArgsForResend( required string logId ) {
 		var userId    = sendLogDao.selectData( id=logId, selectFields=[ "website_user_recipient" ] ).website_user_recipient;
-		var tokenInfo = websiteLoginService.createPasswordResetToken();
+		var tokenInfo = websiteLoginService.createPasswordResetToken( userId );
 
 		userDao.updateData( id=userId, data={
 			  reset_password_token        = tokenInfo.resetToken
