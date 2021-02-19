@@ -446,6 +446,8 @@ component extends="preside.system.base.AdminHandler" {
 		var formData         = event.getCollectionWithoutSystemVars();
 		    formData.id      = id;
 
+		structAppend( formData, event.getCollectionForForm( formName=rc.$presideform ?: "" ) );
+
 		if ( anonymousOnly ) {
 			formData.sending_method = "auto";
 		}
