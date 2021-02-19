@@ -443,7 +443,7 @@ component extends="preside.system.base.AdminHandler" {
 		var filterObject     = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
 		var anonymousOnly    = !filterObject.len();
 		var validationResult = validateForms();
-		var formData         = event.getCollectionWithoutSystemVars();
+		var formData         = event.getCollectionForForm();
 		    formData.id      = id;
 
 		if ( anonymousOnly ) {
