@@ -362,7 +362,7 @@ component {
 				}
 			}
 
-			return gridFields.listToArray();
+			return gridFields.listToArray(", ");
 		} );
 	}
 
