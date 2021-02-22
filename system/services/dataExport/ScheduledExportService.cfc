@@ -97,6 +97,10 @@ component {
 	}
 
 	public string function getNextRunDate( required string schedule, date lastRun=now() ) {
+		if ( !Len( Trim( arguments.schedule ) ) || arguments.schedule == "disabled" ) {
+			return "";
+		}
+
 		var cronTabExpression = _getCrontabExpressionObject( arguments.schedule );
 		var lastRunJodaTime   = _createJodaTimeObject( arguments.lastRun );
 
