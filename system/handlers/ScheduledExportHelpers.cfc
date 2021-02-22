@@ -60,7 +60,7 @@ component {
 				var exportedFile = dataExportService.exportData( argumentCollection=configArgs );
 
 				if ( !isEmpty( exportedFile ) ) {
-					var filePath = "#savedExportDetail.file_name# #dateTimeFormat( now() )#.#exporterDetail.fileExtension#";
+					var filePath = "#savedExportDetail.file_name# #DateTimeFormat( Now(), "yyyymmdd_HHnn" )#.#exporterDetail.fileExtension#";
 
 					exportStorageProvider.putObject( object=fileReadBinary( exportedFile ), path=filePath );
 					scheduledExportService.saveFilePathToHistoryExport( filepath=filePath, historyExportId=historyId );
