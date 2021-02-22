@@ -46,10 +46,10 @@ component {
 		outputValues = listAppend( outputValues, "0 0 0 */7 * 0" );
 		outputLabels = listAppend( outputLabels, translateResource( uri="formcontrols.cronPickerItem:commonsettings.oncePerWeek.label" ) );
 
-		outputValues = listAppend( outputValues, "0 0 0 */30 0 0" );
+		outputValues = listAppend( outputValues, "0 0 0 1 * *" );
 		outputLabels = listAppend( outputLabels, translateResource( uri="formcontrols.cronPickerItem:commonsettings.oncePerMonth.label" ) );
 
-		outputValues = listAppend( outputValues, "0 0 0 0 */12 0" );
+		outputValues = listAppend( outputValues, "0 0 0 1 1 1" );
 		outputLabels = listAppend( outputLabels, translateResource( uri="formcontrols.cronPickerItem:commonsettings.oncePerYear.label" ) );
 
 		return { values=outputValues, labels=outputLabels};
