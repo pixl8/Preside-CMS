@@ -839,14 +839,11 @@ component {
 			]
 		);
 
-		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
-			result.totalRecords = result.records.recordCount;
-		} else {
-			result.totalRecords = submissionsDao.selectData(
-				  selectFields = [ "count( * ) as nRows" ]
-				, filter       = { form = arguments.formId }
-			).nRows;
-		}
+		result.totalRecords = submissionsDao.selectData(
+			  filter          = { form = arguments.formId }
+			, extraFilters    = extraFilters
+			, recordCountOnly = true
+		);
 
 		return result;
 	}
