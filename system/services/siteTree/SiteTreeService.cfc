@@ -302,9 +302,10 @@ component {
 			if ( Len( Trim( sourceObject ) ) ) {
 				if ( poService.isManyToManyProperty( sourceObject, arguments.propertyName ) ) {
 					var relatedRecords = poService.selectManyToManyData(
-						  objectName   = sourceObject
-						, propertyName = arguments.propertyName
-						, filter       = ( sourceObject == "page" ? { id = arguments.page.id } : { page = arguments.page.id } )
+						  objectName       = sourceObject
+						, propertyName     = arguments.propertyName
+						, filter           = ( sourceObject == "page" ? { id = arguments.page.id } : { page = arguments.page.id } )
+						, fromVersionTable = !$getRequestContext().showNonLiveContent()
 					);
 
 					if ( relatedRecords.recordCount ) {
