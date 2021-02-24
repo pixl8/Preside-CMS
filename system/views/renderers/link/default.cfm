@@ -10,7 +10,8 @@
 	param name="args.role"            type="string"  default="";
 	param name="args.ariaLabel"       type="string"  default="";
 	param name="args.ariaLabelledby"  type="string"  default="";
-	param name="args.ariaDisabled"    type="boolean" default=false;
+	param name="args.ariaDescribedby" type="string"  default="";
+	param name="args.ariaHidden"      type="boolean" default=false;
 
 	anchorTag = 'href="#args.href#"';
 
@@ -41,8 +42,11 @@
 	if ( Len( Trim( args.ariaLabelledby ) ) ) {
 		anchorTag &= ' aria-labelledby="#args.ariaLabelledby#"';
 	}
-	if ( args.ariaDisabled ) {
-		anchorTag &= ' aria-disabled="true"';
+	if ( Len( Trim( args.ariaDescribedby ) ) ) {
+		anchorTag &= ' aria-describedby="#args.ariaDescribedby#"';
+	}
+	if ( args.ariaHidden ) {
+		anchorTag &= ' aria-hidden="true"';
 	}
 </cfscript>
 
