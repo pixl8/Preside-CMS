@@ -7,6 +7,10 @@
 	param name="args.class"    type="string"  default="";
 	param name="args.nofollow" type="boolean" default=false;
 	param name="args.referrer_policy" type="string"  default="";
+	param name="args.role"            type="string"  default="";
+	param name="args.ariaLabel"       type="string"  default="";
+	param name="args.ariaLabelledby"  type="string"  default="";
+	param name="args.ariaDisabled"    type="boolean" default=false;
 
 	anchorTag = 'href="#args.href#"';
 
@@ -27,6 +31,18 @@
 	}
 	if ( Len( Trim( args.referrer_policy ) ) ) {
 		anchorTag &= ' referrerpolicy="#args.referrer_policy#"';
+	}
+	if ( Len( Trim( args.role ) ) ) {
+		anchorTag &= ' role="#args.role#"';
+	}
+	if ( Len( Trim( args.ariaLabel ) ) ) {
+		anchorTag &= ' aria-label="#args.ariaLabel#"';
+	}
+	if ( Len( Trim( args.ariaLabelledby ) ) ) {
+		anchorTag &= ' aria-labelledby="#args.ariaLabelledby#"';
+	}
+	if ( args.ariaDisabled ) {
+		anchorTag &= ' aria-disabled="true"';
 	}
 </cfscript>
 
