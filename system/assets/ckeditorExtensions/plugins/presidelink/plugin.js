@@ -205,7 +205,7 @@
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
 		emailAntiSpamRegex = /emailantispam=(\d)/,
-		emailVariableRegex = /emailvariable=(\$\{[^\}]+\})/,
+		emailVariableRegex = /(\$\{[^\}]+\})/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
 		presideLinkRegex = /^{{link:(.*?):link}}(?:#([^'"]+))?$/,
@@ -433,7 +433,7 @@
 			var href = ( element && ( element.data( 'cke-saved-href' ) || element.getAttribute( 'href' ) ) ) || '',
 				compiledProtectionFunction = editor.plugins.presidelink.compiledProtectionFunction,
 				emailProtection = editor.config.emailProtection,
-				javascriptMatch, emailMatch, anchorMatch, urlMatch, data,
+				javascriptMatch, emailMatch, anchorMatch, emailVariableMatch, urlMatch, data,
 				retval = {};
 
 			if ( ( javascriptMatch = href.match( javascriptProtocolRegex ) ) ) {
@@ -502,15 +502,15 @@
 						retval = {};
 					}
 				}
+				else if ( href && ( emailVariableMatch = href.match( emailVariableRegex ) ) ) {
+					retval.type = 'emailvariable';
+					retval.emailvariable = emailVariableMatch[ 1 ];
+				}
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
 					retval.type = 'url';
 					retval.protocol = urlMatch[ 1 ];
 					retval.address = urlMatch[ 2 ];
-				}
-				else if ( href && ( emailVariableMatch = href.match( emailVariableRegex ) ) ) {
-					retval.type = 'emailvariable';
-					retval.emailvariable = emailVariableMatch[ 1 ];
 				}
 
 			}
