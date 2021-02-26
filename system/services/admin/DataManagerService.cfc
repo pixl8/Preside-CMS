@@ -442,11 +442,19 @@ component {
 				args.filterParams[ param.name ] = args.filterParams[ param.name ] ?: param;
 			}
 		}
+		
+		var enhancedGridRecordcount = $isFeatureEnabled( "enhancedGridRecordcount" );
+		
+		if ( enhancedGridRecordcount ) {
+			args.selectFields.append( "count(*) over() as _total_recordcount" );
+		}
 
 		result.records = _getPresideObjectService().selectData( argumentCollection=args );
 
 		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
+		} else if ( enhancedGridRecordcount ) {
+			result.totalRecords = result.records.recordCount ? result.records._total_recordcount : 0;
 		} else {
 			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0 );
 		}
