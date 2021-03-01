@@ -1111,7 +1111,7 @@ component displayName="Preside Object Service" {
 
 				anythingChanged = anythingChanged || newAddedRecords.len();
 
-				if ( anythingChanged ) {
+				if ( anythingChanged && !arguments.isDraft ) {
 					deleteData(
 						  objectName = pivotTable
 						, filter     = { "#sourceFk#" = arguments.sourceId }

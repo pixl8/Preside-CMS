@@ -305,7 +305,7 @@ component {
 						  objectName       = sourceObject
 						, propertyName     = arguments.propertyName
 						, filter           = ( sourceObject == "page" ? { id = arguments.page.id } : { page = arguments.page.id } )
-						, fromVersionTable = !$getRequestContext().showNonLiveContent()
+						, fromVersionTable = $getRequestContext().showNonLiveContent()
 					);
 
 					if ( relatedRecords.recordCount ) {
