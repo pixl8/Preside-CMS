@@ -86,7 +86,7 @@ component {
 				break;
 				case "numeric":
 					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
-						// TODO
+						expressions.append( _createNumericFormulaComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					} else {
 						expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
@@ -267,6 +267,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createNumericFormulaComparisonExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_formulacompares_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldtype="number", required=false, default=0 } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.getText"
 		} );
 
 		return expression;
