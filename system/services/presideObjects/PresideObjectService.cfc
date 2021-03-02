@@ -2190,7 +2190,7 @@ component displayName="Preside Object Service" {
 					objName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
 				}
 
-				labelField = getObjectAttribute( objName, "labelfield", "label" );
+				labelField = listLast(getObjectAttribute( objName, "labelfield", "label" ));
 				if ( !Len( labelField ) ) {
 					throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
 				}
