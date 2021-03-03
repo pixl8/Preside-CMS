@@ -663,15 +663,16 @@ component {
 		var dmField           = obj.getDateModifiedField();
 		var lastModified      = Now();
 		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
-		var recordCount       = obj.selectData( recordCountOnly=true );
+		var recordCount       = 0;
 
 		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
 			var records = obj.selectData(
-				selectFields = [ "Max( #dmField# ) as lastmodified" ]
+				selectFields = [ "Max( #dmField# ) as lastmodified", "count(1) as rowcount" ]
 			);
 
 			if ( IsDate( records.lastmodified ) ) {
 				lastModified = records.lastmodified;
+				recordCount  = records.rowcount;
 			}
 		}
 
