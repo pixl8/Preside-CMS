@@ -664,6 +664,7 @@ component {
 		var dmField           = obj.getDateModifiedField();
 		var lastModified      = Now();
 		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
+		var recordCount       = obj.selectData( recordCountOnly=true );
 
 		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
 			var records = obj.selectData(
@@ -675,7 +676,7 @@ component {
 			}
 		}
 
-		return Hash( max( parseDateTime(lastModified), rendererCacheDate ) );
+		return Hash( recordCount & "|" & max( parseDateTime(lastModified), rendererCacheDate ) );
 	}
 
 	public boolean function areDraftsEnabledForObject( required string objectName ) {
