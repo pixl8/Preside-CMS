@@ -282,6 +282,7 @@ component {
 
 			if ( ( prop.formula ?: "" ).len() ) {
 				prop.dbtype = "none";
+				prop.control = "none";
 			}
 
 			if ( ( ( prop.relationship ?: "" ) == "many-to-one" ) && IsBoolean( createFkIndex ) && createFkIndex ) {

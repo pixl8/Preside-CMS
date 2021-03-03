@@ -522,9 +522,7 @@ component displayName="Forms service" {
 		} catch ( "missinginclude" e ) {
 			renderedControl = "**control, [#arguments.type#], not found**";
 		}
-		if(structKeyExists(arguments,'formula')){
-			renderedControl = '';
-		}
+		
 		if ( Len( Trim( arguments.layout ) ) && Len( Trim( renderedControl ) ) ) {
 			var layoutArgs = {
 				  control  = renderedControl
