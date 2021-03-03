@@ -56,13 +56,11 @@ component {
 		var relatedTo    = propertyDefinition.relatedTo ?: "";
 		var expressions  = [];
 
-		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) ) {
+		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
 			switch( propType ) {
 				case "string":
 				case "numeric":
-					if ( !Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
-						expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					}
+					expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 				break;
 				default:
 					expressions.append( _createIsSetExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
@@ -79,10 +77,16 @@ component {
 					}
 				break;
 				case "boolean":
-					expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+						expressions.append( _createBooleanFormulaIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else {
+						expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 				case "date":
-					expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( !Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+						expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 				case "numeric":
 					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
@@ -235,6 +239,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createBooleanFormulaIsTrueExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_booleanformulaistrue_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.getText"
 		} );
 
 		return expression;
