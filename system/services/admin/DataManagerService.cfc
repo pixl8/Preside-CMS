@@ -405,6 +405,10 @@ component {
 		args.delete( "searchQuery"  );
 		args.delete( "searchFields" );
 
+		if ( Len( args.extraFilters ?: [] ) ) {
+			args.selectFields = _prepareSelectFieldsForFilters( extraFilters=args.extraFilters, selectFields=args.selectFields )
+		}
+
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.extraFilters.append(
 				buildSearchFilter(
@@ -1015,6 +1019,25 @@ component {
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
 		return ( prop.type ?: "" ) == "string";
+	}
+
+	private array function _prepareSelectFieldsForFilters( required array extraFilters, required array selectFields ) {
+		var extraFilters = arguments.extraFilters;
+		var selectFields = arguments.selectFields;
+
+		for ( var filter in extraFilters ) {
+			var params = filter.filterParams ?: {};
+			if( Len( Trim( filter.having ?: "" ) ) ) {
+				structEach( params, function( key, value ) {
+					if( ( value.isFormula ?: false ) && Len( Trim( value.propertyName ?: "" ) ) ) {
+						if( !ArrayFindNoCase( selectFields, value.propertyName ) ) {
+							selectFields.append( value.propertyName );
+						}
+					}
+				} );
+			}
+		}
+		return selectFields;
 	}
 
 // GETTERS AND SETTERS

@@ -1,6 +1,6 @@
 /**
  * Dynamic expression handler for checking whether or not a preside object
- * numeric property's value matches compares to the given number input
+ * numeric formula property's value matches compares to the given number input
  *
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
@@ -35,9 +35,9 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          numeric value            = 0
 	){
 		var paramName = "numericFormulaPropertyCompares" & CreateUUId().lCase().replace( "-", "", "all" );
-		var prefix    = filterPrefix.len() ? filterPrefix & "." : "";
-		var filterSql = "#prefix##propertyName# ${operator} :#paramName#";
-		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
+		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+		var filterSql = "#propertyName# ${operator} :#paramName#";
+		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_number", propertyName="#prefix#.#propertyName#", isFormula=true } };
 
 		switch ( _numericOperator ) {
 			case "eq":
