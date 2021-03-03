@@ -664,18 +664,20 @@ component {
 		var dmField           = obj.getDateModifiedField();
 		var lastModified      = Now();
 		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
+		var recordCount       = 0;
 
 		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
 			var records = obj.selectData(
-				selectFields = [ "Max( #dmField# ) as lastmodified" ]
+				selectFields = [ "Max( #dmField# ) as lastmodified", "count(1) as rowcount" ]
 			);
 
 			if ( IsDate( records.lastmodified ) ) {
 				lastModified = records.lastmodified;
+				recordCount  = records.rowcount;
 			}
 		}
 
-		return Hash( max( parseDateTime(lastModified), rendererCacheDate ) );
+		return Hash( recordCount & "|" & max( parseDateTime(lastModified), rendererCacheDate ) );
 	}
 
 	public boolean function areDraftsEnabledForObject( required string objectName ) {
