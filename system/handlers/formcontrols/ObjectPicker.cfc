@@ -68,7 +68,7 @@ component {
 	}
 
 	private string function _removeInvalidValues( required string objectName, required string values ) {
-		if ( !len( args.defaultValue ?: "" ) ) {
+		if ( !len( arguments.values ?: "" ) ) {
 			return "";
 		}
 
