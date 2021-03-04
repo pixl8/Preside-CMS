@@ -267,10 +267,10 @@
 
 		UberSelect.prototype.winnow_results = function() {
 			var $uberSelect = this
-			  , searchText  = $uberSelect.get_search_text();
+			  , searchText  = $uberSelect.get_search_text().replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>');
 
 			$uberSelect.search_engine.get( searchText, function( suggestions ){
-				var userHasChangedSearch = searchText != $uberSelect.get_search_text()
+				var userHasChangedSearch = searchText != $uberSelect.get_search_text().replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
 
 				if ( !userHasChangedSearch ){
 					if ( $uberSelect.allowSuperQuickAdd() && searchText.length && ( !suggestions.length || suggestions[0].text.toLowerCase() != searchText.toLowerCase() ) ) {
