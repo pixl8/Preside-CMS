@@ -57,7 +57,7 @@ component displayName="Rules Engine Filter Service" {
 
 				if ( StructKeyExists( subFilter, "having" ) ) {
 					hasHaving = true;
-					sql &= " #join# #subfilter.having#";
+					havingSql &= " #join# #subfilter.having#";
 				} else {
 					hasFilter = true;
 					sql &= " #join# #subfilter.filter#";
