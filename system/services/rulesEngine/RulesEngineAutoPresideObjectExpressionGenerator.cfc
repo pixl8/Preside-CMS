@@ -55,8 +55,9 @@ component {
 		var relationship = propertyDefinition.relationship ?: "";
 		var relatedTo    = propertyDefinition.relatedTo ?: "";
 		var expressions  = [];
+		var isFormula    = Len( Trim( propertyDefinition.formula ?: "" ) );
 
-		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !isFormula ) {
 			switch( propType ) {
 				case "string":
 				case "numeric":
@@ -70,26 +71,26 @@ component {
 		if ( !relationship contains "many" ) {
 			switch( propType ) {
 				case "string":
-					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+					if ( isFormula ) {
 						expressions.append( _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					} else {
 						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "boolean":
-					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+					if ( isFormula ) {
 						expressions.append( _createBooleanFormulaIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					} else {
 						expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "date":
-					if ( !Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+					if ( !isFormula ) {
 						expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "numeric":
-					if ( Len( Trim( propertyDefinition.formula ?: "" ) ) ) {
+					if ( isFormula ) {
 						expressions.append( _createNumericFormulaComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					} else {
 						expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
