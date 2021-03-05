@@ -85,7 +85,6 @@ component displayName="Rules Engine Filter Service" {
 							params.append( rawFilter.filter );
 						}
 
-
 						if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
 							havingfields.append( rawFilter.propertyName );
 						}

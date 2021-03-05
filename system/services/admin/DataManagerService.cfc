@@ -356,6 +356,44 @@ component {
 		}
 	}
 
+	public array function parseSelectFieldsForHavingClause( required array selectFields, required array extraFilters ) {
+		var extraFilters = arguments.extraFilters;
+		var selectFields = Duplicate( arguments.selectFields );
+
+		for ( var filter in extraFilters ) {
+			if( Len( Trim( filter.having ?: "" ) ) ) {
+				var fields = filter.havingfields ?: [];
+				for( var field in fields ) {
+					if( Len( Trim( field ?: "" ) ) ) {
+						if( !ArrayFindNoCase( selectFields, field ) ) {
+							selectFields.append( field );
+						}
+					}
+				};
+			}
+		}
+		return selectFields;
+	}
+
+	public array function parseFiltersForHavingClause( required array extraFilters, required string objectName ) {
+		var extraFilters = arguments.extraFilters;
+		var objectName   = arguments.objectName;
+
+		for ( var extraFilter in extraFilters ) {
+			if( Len( Trim( extraFilter.having ?: "" ) ) ) {
+				var havingFilters = extraFilter.havingFilters ?: [];
+				for( var havingFilter in havingFilters ) {
+					if( Len( Trim( havingFilter ?: "" ) ) ) {
+						extraFilters.append( { filter=havingFilter } );
+						extraFilter.having = Replace( extraFilter.having, havingFilter, "1 = 1" );
+					}
+				};
+				extraFilter.having = ReReplace( extraFilter.having, "[^\.]#objectName#.", " " );
+			}
+		}
+		return extraFilters;
+	}
+
 	/**
 	 * Gets raw results from the database for the data manager
 	 * grid listing. Results are returned as a struct with keys:
@@ -396,18 +434,16 @@ component {
 		var result = { totalRecords = 0, records = "" };
 		var args   = Duplicate( arguments );
 
-		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled, extraFilters=arguments.extraFilters );
+		args.selectFields       = parseSelectFieldsForHavingClause( selectFields=arguments.gridFields, extraFilters=arguments.extraFilters );
+		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=args.selectFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled);
 		args.orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy );
 		args.autoGroupBy        = true;
 		args.allowDraftVersions = arguments.draftsEnabled;
+		args.extraFilters       = parseFiltersForHavingClause( extraFilters=args.extraFilters, objectName=objectName );
 
 		args.delete( "gridFields"   );
 		args.delete( "searchQuery"  );
 		args.delete( "searchFields" );
-
-		if ( Len( args.extraFilters ?: [] ) ) {
-			args.extraFilters = _prepareExtraFiltersForHaving( extraFilters=args.extraFilters, objectName=objectName );
-		}
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.extraFilters.append(
@@ -857,7 +893,7 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ), array extraFilters=[] ) {
+	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
 		var field                    = "";
 		var i                        = "";
@@ -871,8 +907,6 @@ component {
 		var dateModifiedField        = obj.getDateModifiedField();
 		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
 		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
-
-		sqlFields = _prepareSqlFieldsForFilters( arguments.extraFilters, sqlFields );
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.#idField# as id" );
@@ -1022,44 +1056,6 @@ component {
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
 		return ( prop.type ?: "" ) == "string";
-	}
-
-	private array function _prepareSqlFieldsForFilters( required array extraFilters, required array sqlFields ) {
-		var extraFilters = arguments.extraFilters;
-		var sqlFields    = arguments.sqlFields;
-
-		for ( var filter in extraFilters ) {
-			if( Len( Trim( filter.having ?: "" ) ) ) {
-				var fields = filter.havingfields ?: [];
-				for( var field in fields ) {
-					if( Len( Trim( field ?: "" ) ) ) {
-						if( !ArrayFindNoCase( sqlFields, field ) ) {
-							sqlFields.append( field );
-						}
-					}
-				};
-			}
-		}
-		return sqlFields;
-	}
-
-	private array function _prepareExtraFiltersForHaving( required array extraFilters, required string objectName ) {
-		var extraFilters = arguments.extraFilters;
-		var objectName   = arguments.objectName;
-
-		for ( var extraFilter in extraFilters ) {
-			if( Len( Trim( extraFilter.having ?: "" ) ) ) {
-				var havingFilters = extraFilter.havingFilters ?: [];
-				for( var havingFilter in havingFilters ) {
-					if( Len( Trim( havingFilter ?: "" ) ) ) {
-						extraFilters.append( { filter=havingFilter } );
-						extraFilter.having = Replace( extraFilter.having, havingFilter, "1 = 1" );
-					}
-				};
-				extraFilter.having = ReReplace( extraFilter.having, "[^\.]#objectName#.", " " );
-			}
-		}
-		return extraFilters;
 	}
 
 // GETTERS AND SETTERS
