@@ -790,11 +790,7 @@ component {
 				}
 
 				filter   &= " )";
-				if ( arrayLen( objEnumFields ) ) {
-					termDelim = " or ";
-				} else {
-					termDelim = " and ";
-				}
+				termDelim = " and ";
 			}
 		} else {
 			for( var t=1; t<=searchTerms.len(); t++ ) {
