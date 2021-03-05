@@ -996,7 +996,11 @@ component {
 			]
 		);
 
-		result.totalRecords = result.records.recordCount;
+		result.totalRecords = submissionsDao.selectData(
+			  filter          = { form = arguments.formId }
+			, extraFilters    = extraFilters
+			, recordCountOnly = true
+		);
 
 		return result;
 	}
