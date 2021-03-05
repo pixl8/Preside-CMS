@@ -37,7 +37,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		return [ {
 			  having       = "#propertyName# = :#paramName#"
-			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean", propertyName="#prefix#.#propertyName#", isFormula=true } }
+			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
+			, propertyName = propertyName
 		} ];
 	}
 

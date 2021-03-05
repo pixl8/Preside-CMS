@@ -33,15 +33,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
-		var prefix       = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-		var paramName    = "textFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var expandedName = presideObjectService.expandFormulaFields(
-			  objectName   = arguments.objectName
-			, expression   = arguments.propertyName
-			, includeAlias = false
-		);
-		var filterSql    = "#expandedName# ${operator} :#paramName#";
-		var params       = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
+		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+		var paramName = "textFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
+		var filterSql = "#propertyName# ${operator} :#paramName#";
+		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
 
 		switch ( _stringOperator ) {
 			case "eq":
@@ -76,7 +71,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			break;
 		}
 
-		return [ { filter=filterSql, filterParams=params } ];
+		return [ { having=filterSql, filterParams=params, propertyName=propertyName } ];
 	}
 
 	private string function getLabel(

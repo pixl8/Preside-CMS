@@ -40,7 +40,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		var filterSql = "#prefix#.#propertyName# #operator# (:#paramName#)";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
-		return [ { filter=filterSql, filterParams=params } ];
+		return [ { filter=filterSql, filterParams=params, propertyName=propertyName } ];
 	}
 
 	private string function getLabel(

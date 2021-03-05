@@ -44,9 +44,9 @@ component displayName="Rules Engine Filter Service" {
 		var sql        = "";
 		var params     = {};
 		var extraJoins = [];
-		var hasFilter  = false;
-		var hasHaving  = false;
-		var havingSql  = "";
+		var isHaving   = false;
+		var havingFilters = [];
+		var havingfields  = [];
 
 		for( var i=1; i <= expressionArray.len(); i++ ) {
 			var isJoin = !(i mod 2);
@@ -56,10 +56,9 @@ component displayName="Rules Engine Filter Service" {
 				var subFilter = prepareFilter( objectName=objectName, expressionArray=expressionArray[i], filterPrefix=arguments.filterPrefix );
 
 				if ( StructKeyExists( subFilter, "having" ) ) {
-					hasHaving = true;
-					havingSql &= " #join# #subfilter.having#";
+					isHaving = true;
+					sql &= " #join# #subfilter.having#";
 				} else {
-					hasFilter = true;
 					sql &= " #join# #subfilter.filter#";
 				}
 
@@ -74,16 +73,11 @@ component displayName="Rules Engine Filter Service" {
 				);
 
 				if ( rawFilters.len() ) {
-
-					sql       &= " #join# ";
-					havingSql &= " #join# ";
-
+					sql &= " #join# ";
 					if ( rawFilters.len() > 1 ) {
-						sql       &= "( ";
-						havingSql &= "( ";
+						sql &= "( ";
 					}
-					var delim       = "";
-					var havingDelim = "";
+					var delim = "";
 					for( var rawFilter in rawFilters ) {
 						extraJoins.append( rawFilter.extraJoins ?: [], true );
 						params.append( rawFilter.filterParams ?: {} );
@@ -91,32 +85,35 @@ component displayName="Rules Engine Filter Service" {
 							params.append( rawFilter.filter );
 						}
 
+
+						if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
+							havingfields.append( rawFilter.propertyName );
+						}
+
 						var rawSql = dbAdapter.getClauseSql( filter=rawFilter.filter ?: "", tableAlias=arguments.objectName );
 						var having = rawFilter.having ?: "";
 
-						if ( isEmpty( rawSql ) ) {
-							rawSql = " 1 = 1 ";
-						} else {
-							hasFilter = true;
+						if ( having.len() ) {
+							isHaving = true;
+							if ( rawSql.len() ) {
+								rawSql = "( #rawSql# and #having# )";
+							} else {
+								rawSql = having;
+							}
 						}
 
 						if ( rawSql.len() ) {
-							sql &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
+							var trimSql = delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
+							sql  &= trimSql;
 							delim = " and ";
-						}
 
-						if ( having.len() ) {
-							hasHaving = true;
-							havingSql &= havingDelim & Trim( Trim( having ).reReplace( "^where", "" ) );
-							havingDelim = " and ";
-						} else {
-							havingSql &= " 1 = 1 ";
+							if( !ArrayIsEmpty( rawFilter.extraJoins ?: [] ) || ReFindNoCase( "(oneToMany|manyToMany|manyToOne)", trimSql ) ) {
+								havingFilters.append( trimSql );
+							}
 						}
-
 					}
 					if ( rawFilters.len() > 1 ) {
-						sql       &= " )";
-						havingSql &= " )";
+						sql &= " )";
 					}
 				}
 			}
@@ -126,17 +123,13 @@ component displayName="Rules Engine Filter Service" {
 			sql = "( #sql.trim()# )";
 		}
 
-		if ( havingSql.trim().len() ) {
-			havingSql = "( #havingSql.trim()# )";
-		}
-
 		var returnValue = { filterParams=params, extraJoins=extraJoins };
 
-		if ( hasHaving ) {
-			returnValue.having = Trim( havingSql );
-		}
-
-		if( hasFilter ) {
+		if ( isHaving ) {
+			returnValue.having        = Trim( sql );
+			returnValue.havingfields  = havingfields;
+			returnValue.havingFilters = havingFilters;
+		} else {
 			returnValue.filter = Trim( sql );
 		}
 

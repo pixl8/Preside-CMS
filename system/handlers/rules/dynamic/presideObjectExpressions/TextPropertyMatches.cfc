@@ -72,7 +72,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			break;
 		}
 
-		return [ { filter=filterSql, filterParams=params } ];
+		return [ { filter=filterSql, filterParams=params, propertyName=propertyName } ];
 	}
 
 	private string function getLabel(

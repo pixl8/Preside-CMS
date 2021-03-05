@@ -396,7 +396,7 @@ component {
 		var result = { totalRecords = 0, records = "" };
 		var args   = Duplicate( arguments );
 
-		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled );
+		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled, extraFilters=arguments.extraFilters );
 		args.orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy );
 		args.autoGroupBy        = true;
 		args.allowDraftVersions = arguments.draftsEnabled;
@@ -406,7 +406,7 @@ component {
 		args.delete( "searchFields" );
 
 		if ( Len( args.extraFilters ?: [] ) ) {
-			args.selectFields = _prepareSelectFieldsForFilters( extraFilters=args.extraFilters, selectFields=args.selectFields )
+			args.extraFilters = _prepareExtraFiltersForHaving( extraFilters=args.extraFilters, objectName=objectName );
 		}
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -857,7 +857,7 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
+	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ), array extraFilters=[] ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
 		var field                    = "";
 		var i                        = "";
@@ -871,6 +871,8 @@ component {
 		var dateModifiedField        = obj.getDateModifiedField();
 		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
 		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
+
+		sqlFields = _prepareSqlFieldsForFilters( arguments.extraFilters, sqlFields );
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.#idField# as id" );
@@ -893,6 +895,7 @@ component {
 			sqlFields.append( "_version_has_drafts" );
 			sqlFields.append( "_version_is_draft"   );
 		}
+
 
 		// ensure all fields are valid + get labels from join tables
 		var ignore = [
@@ -1021,23 +1024,42 @@ component {
 		return ( prop.type ?: "" ) == "string";
 	}
 
-	private array function _prepareSelectFieldsForFilters( required array extraFilters, required array selectFields ) {
+	private array function _prepareSqlFieldsForFilters( required array extraFilters, required array sqlFields ) {
 		var extraFilters = arguments.extraFilters;
-		var selectFields = arguments.selectFields;
+		var sqlFields    = arguments.sqlFields;
 
 		for ( var filter in extraFilters ) {
-			var params = filter.filterParams ?: {};
 			if( Len( Trim( filter.having ?: "" ) ) ) {
-				structEach( params, function( key, value ) {
-					if( ( value.isFormula ?: false ) && Len( Trim( value.propertyName ?: "" ) ) ) {
-						if( !ArrayFindNoCase( selectFields, value.propertyName ) ) {
-							selectFields.append( value.propertyName );
+				var fields = filter.havingfields ?: [];
+				for( var field in fields ) {
+					if( Len( Trim( field ?: "" ) ) ) {
+						if( !ArrayFindNoCase( sqlFields, field ) ) {
+							sqlFields.append( field );
 						}
 					}
-				} );
+				};
 			}
 		}
-		return selectFields;
+		return sqlFields;
+	}
+
+	private array function _prepareExtraFiltersForHaving( required array extraFilters, required string objectName ) {
+		var extraFilters = arguments.extraFilters;
+		var objectName   = arguments.objectName;
+
+		for ( var extraFilter in extraFilters ) {
+			if( Len( Trim( extraFilter.having ?: "" ) ) ) {
+				var havingFilters = extraFilter.havingFilters ?: [];
+				for( var havingFilter in havingFilters ) {
+					if( Len( Trim( havingFilter ?: "" ) ) ) {
+						extraFilters.append( { filter=havingFilter } );
+						extraFilter.having = Replace( extraFilter.having, havingFilter, "1 = 1" );
+					}
+				};
+				extraFilter.having = ReReplace( extraFilter.having, "[^\.]#objectName#.", " " );
+			}
+		}
+		return extraFilters;
 	}
 
 // GETTERS AND SETTERS

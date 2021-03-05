@@ -56,6 +56,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		return [ {
 			  filter = "#adapter.escapeEntity( '#subQueryAlias#.id' )# is not null"
 			, filterParams = subquery.params
+			, propertyName = arguments.propertyName
 			, extraJoins = [{
 				  type           = "left"
 				, subQuery       = subQuery.sql
