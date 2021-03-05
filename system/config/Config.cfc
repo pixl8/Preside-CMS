@@ -453,7 +453,6 @@ component {
 			, assetQueueHeartBeat      = { enabled=true , siteTemplates=[ "*" ] }
 			, assetQueue               = { enabled=false , siteTemplates=[ "*" ] }
 			, queryCachePerObject      = { enabled=false, siteTemplates=[ "*" ] }
-			, enhancedGridRecordcount  = { enabled=false, siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls     = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls     = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, presideSessionManagement = { enabled=_usePresideSessionManagement(), siteTemplates=[ "*" ] }
