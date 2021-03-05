@@ -769,13 +769,6 @@ component {
 		var poService            = _getPresideObjectService();
 		var relationshipGuidance = _getRelationshipGuidance();
 		var searchTerms          = arguments.expandTerms ? listToArray( arguments.q, " " ) : [ arguments.q ];
-		var objEnumFields        = poService.getObjectEnumProperties( objectName=arguments.objectName );
-
-		for ( var enumField in objEnumFields ) {
-			var enum = poService.getObjectPropertyAttribute( arguments.objectName, enumField, "enum" );
-
-			searchTerms = arrayMerge( searchTerms, _getEnumService().fuzzySearchKeyByLabel( enum, searchTerms ) );
-		}
 
 		if ( arguments.searchFields.len() ) {
 			var parsedFields = poService.parseSelectFields(
@@ -827,18 +820,31 @@ component {
 						}
 
 						if ( _propertyIsSearchable( field, objName ) ) {
-							filter &= delim & fullFieldName & " like :#paramName#";
-							delim = " or ";
+							var fieldEnumName = poService.getObjectPropertyAttribute(
+								  objectName    = objName
+								, propertyName  = field
+								, attributeName = "enum"
+							);
+
+							if ( !isEmpty( fieldEnumName ) ) {
+								var enumFuzzyMatches = _getEnumService().fuzzySearchKeyByLabel(
+									 enum       = fieldEnumName
+									,searchTerm = searchTerms[ t ]
+								);
+
+								for ( var enumMatch in enumFuzzyMatches ) {
+									filter &= delim & fullFieldName & " = '#enumMatch#'";
+								}
+							} else {
+								filter &= delim & fullFieldName & " like :#paramName#";
+								delim = " or ";
+							}
 						}
 					}
 				}
 
 				filter   &= " )";
-				if ( arrayLen( objEnumFields ) ) {
-					termDelim = " or ";
-				} else {
-					termDelim = " and ";
-				}
+				termDelim = " and ";
 			}
 		}
 

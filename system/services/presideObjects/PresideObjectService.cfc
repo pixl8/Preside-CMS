@@ -2349,19 +2349,6 @@ component displayName="Preside Object Service" {
 		return stats;
 	}
 
-	public array function getObjectEnumProperties( required string objectName ) {
-		var enumFields = [];
-		var properties = getObjectProperties( objectName=arguments.objectName );
-
-		for ( var p in properties ) {
-			if ( !isEmpty( properties[ p ].enum ?: "" ) ) {
-				enumFields.append( p );
-			}
-		}
-
-		return enumFields;
-	}
-
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
