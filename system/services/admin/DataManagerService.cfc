@@ -435,7 +435,7 @@ component {
 		var args   = Duplicate( arguments );
 
 		args.selectFields       = parseSelectFieldsForHavingClause( selectFields=arguments.gridFields, extraFilters=arguments.extraFilters );
-		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=args.selectFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled);
+		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=args.selectFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled );
 		args.orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy );
 		args.autoGroupBy        = true;
 		args.allowDraftVersions = arguments.draftsEnabled;
@@ -929,7 +929,6 @@ component {
 			sqlFields.append( "_version_has_drafts" );
 			sqlFields.append( "_version_is_draft"   );
 		}
-
 
 		// ensure all fields are valid + get labels from join tables
 		var ignore = [
