@@ -76,7 +76,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 
-		return [ { filter=filterSql, filterParams=subQueryParams, extraJoins=[ {
+		return [ { filter=filterSql, filterParams=subQueryParams, propertyName=propertyName, extraJoins=[ {
 			  type           = "left"
 			, subQuery       = subQuery.sql
 			, subQueryAlias  = subQueryAlias

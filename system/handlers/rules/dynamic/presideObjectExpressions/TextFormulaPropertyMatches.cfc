@@ -1,10 +1,9 @@
 /**
  * Dynamic expression handler for checking whether or not a preside object
- * string property's value matches the supplied text
+ * formula property's value matches the supplied text
  *
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
-
 	property name="presideObjectService" inject="presideObjectService";
 
 	private boolean function evaluateExpression(
@@ -35,8 +34,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  value           = ""
 	){
 		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-		var paramName = "textPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql = "#prefix#.#propertyName# ${operator} :#paramName#";
+		var paramName = "textFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
+		var filterSql = "#propertyName# ${operator} :#paramName#";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
 
 		switch ( _stringOperator ) {
@@ -72,7 +71,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			break;
 		}
 
-		return [ { filter=filterSql, filterParams=params, propertyName=propertyName } ];
+		return [ { having=filterSql, filterParams=params, propertyName=propertyName } ];
 	}
 
 	private string function getLabel(
@@ -85,10 +84,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.textPropertyMatches.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.textFormulaPropertyMatches.label", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.label", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:textFormulaPropertyMatches.label", data=[ propNameTranslated ] );
 	}
 
 	private string function getText(
@@ -102,10 +101,9 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
 
-			return translateResource( uri="rules.dynamicExpressions:related.textPropertyMatches.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.textFormulaPropertyMatches.text", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.text", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:textFormulaPropertyMatches.text", data=[ propNameTranslated ] );
 	}
-
 }

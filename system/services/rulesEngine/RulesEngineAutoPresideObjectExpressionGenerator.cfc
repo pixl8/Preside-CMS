@@ -49,17 +49,15 @@ component {
 		if ( IsBoolean( propertyDefinition.autofilter ?: "" ) && !propertyDefinition.autofilter ) {
 			return [];
 		}
-		if ( ( propertyDefinition.formula ?: "" ).len() ) {
-			return [];
-		}
 
 		var isRequired   = IsBoolean( propertyDefinition.required ?: "" ) && propertyDefinition.required;
 		var propType     = propertyDefinition.type ?: "string";
 		var relationship = propertyDefinition.relationship ?: "";
 		var relatedTo    = propertyDefinition.relatedTo ?: "";
 		var expressions  = [];
+		var isFormula    = Len( Trim( propertyDefinition.formula ?: "" ) );
 
-		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) ) {
+		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !isFormula ) {
 			switch( propType ) {
 				case "string":
 				case "numeric":
@@ -73,18 +71,30 @@ component {
 		if ( !relationship contains "many" ) {
 			switch( propType ) {
 				case "string":
-					if ( !Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
+					if ( isFormula ) {
+						expressions.append( _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else {
 						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "boolean":
-					expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( isFormula ) {
+						expressions.append( _createBooleanFormulaIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else {
+						expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 				case "date":
-					expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( !isFormula ) {
+						expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 				case "numeric":
-					expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( isFormula ) {
+						expressions.append( _createNumericFormulaComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else {
+						expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 			}
 		}
@@ -170,6 +180,21 @@ component {
 		return expression;
 	}
 
+	private struct function _createStringFormulaMatchExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_formulamatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
 	private struct function _createEnumMatchesExpression( required string objectName, required string propertyName, required string enum, required string parentObjectName, required string parentPropertyName  ) {
 		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
@@ -220,6 +245,21 @@ component {
 		return expression;
 	}
 
+	private struct function _createBooleanFormulaIsTrueExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_booleanformulaistrue_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.BooleanFormulaPropertyIsTrue.getText"
+		} );
+
+		return expression;
+	}
+
 	private struct function _createDateInRangeExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
 		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 		var dbType      = $getPresideObjectService().getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "dbtype" );
@@ -247,6 +287,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createNumericFormulaComparisonExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_formulacompares_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldtype="number", required=false, default=0 } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.getText"
 		} );
 
 		return expression;

@@ -37,7 +37,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 		var isIsNot  = ( _is == ( variety == "isEmpty" ) ) ? "is" : "is not";
 
-		return [ { filter="#prefix#.#propertyName# #isIsNot# null" } ];
+		return [ { filter="#prefix#.#propertyName# #isIsNot# null", propertyName=propertyName } ];
 	}
 
 	private string function getLabel(
