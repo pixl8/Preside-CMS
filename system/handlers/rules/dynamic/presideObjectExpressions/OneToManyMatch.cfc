@@ -47,6 +47,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			return [ {
 				  filter       = "#prefix#.#relatedIdField# in (:#paramName#)"
 				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
+				, propertyName = propertyName
 			} ];
 		}
 
@@ -69,6 +70,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		return [ {
 			  filter = "#subQueryAlias#.id is null"
 			, filterParams = params
+			, propertyName = propertyName
 			, extraJoins = [{
 				  type           = "left"
 				, subQuery       = subQuery.sql

@@ -3078,6 +3078,11 @@ component extends="preside.system.base.AdminHandler" {
 			, additionalArgs     = arguments.additionalArgs
 		};
 
+		args.selectFields = dataManagerService.parseSelectFieldsForHavingClause(
+			  selectFields = selectFields
+			, extraFilters = args.extraFilters
+		);
+
 		try {
 			args.extraFilters.append( rulesEngineFilterService.prepareFilter(
 				  objectName      = objectName
@@ -3093,6 +3098,11 @@ component extends="preside.system.base.AdminHandler" {
 				) );
 			} catch( any e ){}
 		}
+
+		args.extraFilters = dataManagerService.parseFiltersForHavingClause(
+			  extraFilters = args.extraFilters
+			, objectName   = args.objectName
+		);
 
 		if( Len( Trim( rc.searchQuery ?: "" ) ) ){
 			try {

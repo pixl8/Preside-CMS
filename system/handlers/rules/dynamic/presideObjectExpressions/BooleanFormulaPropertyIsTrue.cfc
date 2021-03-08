@@ -1,6 +1,6 @@
 /**
  * Dynamic expression handler for checking whether or not a preside object
- * boolean property's value is true / fase
+ * boolean formula property's value is true / fase
  *
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
@@ -32,11 +32,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  filterPrefix = ""
 		,          boolean _is = true
 	){
-		var paramName = "booleanPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
+		var paramName = "booleanFormulaPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
 		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 
 		return [ {
-			  filter       = "#prefix#.#propertyName# = :#paramName#"
+			  having       = "#propertyName# = :#paramName#"
 			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
 			, propertyName = propertyName
 		} ];
@@ -52,10 +52,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.booleanPropertyIsTrue.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.booleanFormulaPropertyIsTrue.label", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.label", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:booleanFormulaPropertyIsTrue.label", data=[ propNameTranslated ] );
 	}
 
 	private string function getText(
@@ -68,10 +68,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.booleanPropertyIsTrue.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.booleanFormulaPropertyIsTrue.text", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.text", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:booleanFormulaPropertyIsTrue.text", data=[ propNameTranslated ] );
 	}
 
 }

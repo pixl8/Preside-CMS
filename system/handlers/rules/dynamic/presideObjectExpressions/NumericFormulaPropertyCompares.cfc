@@ -1,6 +1,6 @@
 /**
  * Dynamic expression handler for checking whether or not a preside object
- * boolean property's value is true / fase
+ * numeric formula property's value matches compares to the given number input
  *
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
@@ -12,7 +12,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
-		,          boolean _is = true
+		,          string  _numericOperator = "eq"
+		,          numeric value            = 0
 	) {
 		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
 		var recordId     = payload[ sourceObject ].id ?: "";
@@ -30,16 +31,36 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
-		,          boolean _is = true
+		,          string  _numericOperator = "eq"
+		,          numeric value            = 0
 	){
-		var paramName = "booleanPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
+		var paramName = "numericFormulaPropertyCompares" & CreateUUId().lCase().replace( "-", "", "all" );
 		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+		var filterSql = "#propertyName# ${operator} :#paramName#";
+		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
-		return [ {
-			  filter       = "#prefix#.#propertyName# = :#paramName#"
-			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
-			, propertyName = propertyName
-		} ];
+		switch ( _numericOperator ) {
+			case "eq":
+				filterSql = filterSql.replace( "${operator}", "=" );
+			break;
+			case "neq":
+				filterSql = filterSql.replace( "${operator}", "!=" );
+			break;
+			case "gt":
+				filterSql = filterSql.replace( "${operator}", ">" );
+			break;
+			case "gte":
+				filterSql = filterSql.replace( "${operator}", ">=" );
+			break;
+			case "lt":
+				filterSql = filterSql.replace( "${operator}", "<" );
+			break;
+			case "lte":
+				filterSql = filterSql.replace( "${operator}", "<=" );
+			break;
+		}
+
+		return [ { filterParams=params, having=filterSql, propertyName=propertyName } ];
 	}
 
 	private string function getLabel(
@@ -52,26 +73,26 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.booleanPropertyIsTrue.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.numericFormulaPropertyCompares.label", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.label", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:numericFormulaPropertyCompares.label", data=[ propNameTranslated ] );
 	}
 
 	private string function getText(
 		  required string objectName
 		, required string propertyName
-		,          string parentObjectName   = ""
-		,          string parentPropertyName = ""
-
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	){
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.booleanPropertyIsTrue.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.numericFormulaPropertyCompares.text", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.text", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:numericFormulaPropertyCompares.text", data=[ propNameTranslated ] );
 	}
 
 }
