@@ -22,6 +22,7 @@ component {
 	 * @customizationService.inject datamanagerCustomizationService
 	 * @cloningService.inject       presideObjectCloningService
 	 * @multilingualService.inject  multilingualPresideObjectService
+	 * @enumService.inject          enumService
 	 */
 	public any function init(
 		  required any presideObjectService
@@ -34,6 +35,7 @@ component {
 		, required any customizationService
 		, required any cloningService
 		, required any multilingualService
+		, required any enumService
 	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
@@ -45,6 +47,7 @@ component {
 		_setCustomizationService( arguments.customizationService );
 		_setCloningService( arguments.cloningService );
 		_setMultilingualService( arguments.multilingualService );
+		_setEnumService( arguments.enumService );
 
 		return this;
 	}
@@ -766,6 +769,7 @@ component {
 		var poService            = _getPresideObjectService();
 		var relationshipGuidance = _getRelationshipGuidance();
 		var searchTerms          = arguments.expandTerms ? listToArray( arguments.q, " " ) : [ arguments.q ];
+		var enumParamTerms       = [];
 
 		if ( arguments.searchFields.len() ) {
 			var parsedFields = poService.parseSelectFields(
@@ -813,6 +817,24 @@ component {
 						}
 
 						if ( _propertyIsSearchable( field, objName ) ) {
+							var fieldEnumName = poService.getObjectPropertyAttribute(
+								  objectName    = objName
+								, propertyName  = field
+								, attributeName = "enum"
+							);
+
+							if ( !isEmpty( fieldEnumName ) ) {
+								var enumFuzzyMatches = _getEnumService().fuzzySearchKeyByLabel(
+									 enum       = fieldEnumName
+									,searchTerm = searchTerms[ t ]
+								);
+
+								for ( var e=1; e<=enumFuzzyMatches.len(); e++ ) {
+									filter &= delim & fullFieldName & " = :enum#paramName##e>1 ? "#e#" : ""#";
+									arrayAppend( enumParamTerms, enumFuzzyMatches[e] );
+								}
+							}
+
 							filter &= delim & fullFieldName & " like :#paramName#";
 							delim = " or ";
 						}
@@ -832,6 +854,11 @@ component {
 		for( var t=1; t<=searchTerms.len(); t++ ) {
 			paramName = t==1 ? "q" : "q#t#";
 			filterParams[ paramName ] = { type="varchar", value="%" & searchTerms[ t ] & "%" };
+
+			for ( var et=1; et<=enumParamTerms.len(); et++ ) {
+				var enumParamName             = "enum#paramName##et>1 ? "#et#" : ""#";
+				filterParams[ enumParamName ] = { type="varchar", value=enumParamTerms[ et ] };
+			}
 		}
 
 		return { filter=filter, filterParams=filterParams };
@@ -1088,4 +1115,10 @@ component {
 		_multilingualService = arguments.multilingualService;
 	}
 
+	private any function _getEnumService() {
+		return _enumService;
+	}
+	private void function _setEnumService( required any enumService ) {
+		_enumService = arguments.enumService;
+	}
 }

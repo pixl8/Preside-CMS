@@ -241,6 +241,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockCustomizationService = createEmptyMock( "preside.system.services.admin.DataManagerCustomizationService" );
 		mockCloningService       = createEmptyMock( "preside.system.services.presideObjects.PresideObjectCloningService" );
 		mockMultilingualService  = createEmptyMock( "preside.system.services.i18n.MultilingualPresideObjectService" );
+		enumService              = createEmptyMock( "preside.system.services.enum.EnumService" );
 
 		_setupMockObjectMeta();
 
@@ -255,6 +256,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, customizationService = mockCustomizationService
 			, cloningService       = mockCloningService
 			, multilingualService  = mockMultilingualService
+			, enumService          = enumService
 		);
 	}
 
