@@ -472,6 +472,14 @@ component {
 		return false;
 	}
 
+	public boolean function supportsCountOverWindowFunction() {
+		return false;
+	}
+
+	public string function getCountOverWindowFunctionSql() {
+		return "null";
+	}
+
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
 		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";
 	}

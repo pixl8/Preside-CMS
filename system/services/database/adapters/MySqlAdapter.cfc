@@ -248,4 +248,12 @@ component extends="BaseAdapter" {
 		        where           u.table_schema = :databasename
 		        and             u.referenced_column_name is not null";
 	}
+
+	public boolean function supportsCountOverWindowFunction() {
+		return true;
+	}
+
+	public string function getCountOverWindowFunctionSql() {
+		return "count(*) over()";
+	}
 }
