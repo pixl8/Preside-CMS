@@ -267,10 +267,10 @@
 
 		UberSelect.prototype.winnow_results = function() {
 			var $uberSelect = this
-			  , searchText  = $uberSelect.get_search_text().replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>');
+			  , searchText  = $uberSelect.get_search_text();
 
 			$uberSelect.search_engine.get( searchText, function( suggestions ){
-				var userHasChangedSearch = searchText != $uberSelect.get_search_text().replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+				var userHasChangedSearch = searchText != $uberSelect.get_search_text()
 
 				if ( !userHasChangedSearch ){
 					if ( $uberSelect.allowSuperQuickAdd() && searchText.length && ( !suggestions.length || suggestions[0].text.toLowerCase() != searchText.toLowerCase() ) ) {
@@ -1255,7 +1255,7 @@
 			if (this.search_field.val() === this.default_text) {
 				return "";
 			} else {
-				return $('<div/>').text($.trim(this.search_field.val())).html();
+				return $('<div/>').html($.trim(this.search_field.val())).text();
 			}
 		};
 
