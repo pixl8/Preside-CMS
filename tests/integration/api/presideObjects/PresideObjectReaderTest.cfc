@@ -434,7 +434,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dummyObj.meta.properties.myformulafield ).toBe( {
 					  name         = "myformulafield"
 					, formula      = "Sum( ${prefix}comments.id )"
-					, control      = "default"
+					, control      = "none"
 					, dbtype       = "none"
 					, generate     = "never"
 					, generator    = "none"
