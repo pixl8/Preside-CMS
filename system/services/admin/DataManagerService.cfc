@@ -769,6 +769,7 @@ component {
 		var poService            = _getPresideObjectService();
 		var relationshipGuidance = _getRelationshipGuidance();
 		var searchTerms          = arguments.expandTerms ? listToArray( arguments.q, " " ) : [ arguments.q ];
+		var enumParamTerms       = [];
 
 		if ( arguments.searchFields.len() ) {
 			var parsedFields = poService.parseSelectFields(
@@ -828,13 +829,14 @@ component {
 									,searchTerm = searchTerms[ t ]
 								);
 
-								for ( var enumMatch in enumFuzzyMatches ) {
-									filter &= delim & fullFieldName & " = '#enumMatch#'";
+								for ( var e=1; e<=enumFuzzyMatches.len(); e++ ) {
+									filter &= delim & fullFieldName & " = :enum#paramName##e>1 ? "#e#" : ""#";
+									arrayAppend( enumParamTerms, enumFuzzyMatches[e] );
 								}
-							} else {
-								filter &= delim & fullFieldName & " like :#paramName#";
-								delim = " or ";
 							}
+
+							filter &= delim & fullFieldName & " like :#paramName#";
+							delim = " or ";
 						}
 					}
 				}
@@ -852,6 +854,11 @@ component {
 		for( var t=1; t<=searchTerms.len(); t++ ) {
 			paramName = t==1 ? "q" : "q#t#";
 			filterParams[ paramName ] = { type="varchar", value="%" & searchTerms[ t ] & "%" };
+
+			for ( var et=1; et<=enumParamTerms.len(); et++ ) {
+				var enumParamName             = "enum#paramName##et>1 ? "#et#" : ""#";
+				filterParams[ enumParamName ] = { type="varchar", value=enumParamTerms[ et ] };
+			}
 		}
 
 		return { filter=filter, filterParams=filterParams };
