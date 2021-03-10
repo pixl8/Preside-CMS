@@ -806,7 +806,6 @@ component {
 							}
 						}
 
-					if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
 						field = _getFullFieldName( field,  arguments.objectName );
 					}
 					filter &= delim & field & " like :#paramName#";
