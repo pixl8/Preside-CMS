@@ -11,17 +11,19 @@ component displayName="Website permissions service" {
 
 // CONSTRUCTOR
 	/**
-	 * @websiteLoginService.inject websiteLoginService
-	 * @cacheProvider.inject       cachebox:WebsitePermissionsCache
-	 * @permissionsConfig.inject   coldbox:setting:websitePermissions
-	 * @benefitsDao.inject         presidecms:object:website_benefit
-	 * @userDao.inject             presidecms:object:website_user
-	 * @appliedPermDao.inject      presidecms:object:website_applied_permission
+	 * @websiteLoginService.inject         websiteLoginService
+	 * @cacheProvider.inject               cachebox:WebsitePermissionsCache
+	 * @permissionsConfig.inject           coldbox:setting:websitePermissions
+	 * @permissionHandlersConfig.inject    coldbox:setting:websitePermissionHandlers
+	 * @benefitsDao.inject                 presidecms:object:website_benefit
+	 * @userDao.inject                     presidecms:object:website_user
+	 * @appliedPermDao.inject              presidecms:object:website_applied_permission
 	 */
 	public any function init(
 		  required any    websiteLoginService
 		, required any    cacheProvider
 		, required struct permissionsConfig
+		, required array  permissionHandlersConfig
 		, required any    benefitsDao
 		, required any    userDao
 		, required any    appliedPermDao
@@ -33,6 +35,7 @@ component displayName="Website permissions service" {
 		_setAppliedPermDao( arguments.appliedPermDao );
 
 		_denormalizeAndSaveConfiguredPermissions( arguments.permissionsConfig );
+		_setPermissionHandlers( arguments.permissionHandlersConfig );
 
 		return this;
 	}
@@ -87,6 +90,24 @@ component displayName="Website permissions service" {
 		,          string  userId              = _getWebsiteLoginService().getLoggedInUserId()
 		,          boolean forceGrantByDefault = false
 	) {
+		var coldbox            = $getColdbox();
+		var permissionHandlers = _getPermissionHandlers();
+
+		for ( var permHandler in permissionHandlers ) {
+			if ( !isEmpty( permHandler.handler ?: "" ) && coldbox.viewletExists( permHandler.handler ) ) {
+
+				for ( var key in ( permHandler.keyPatterns ?: [] ) ) {
+					if ( reFindNoCase( key, arguments.permissionKey ) ) {
+						return coldbox.renderViewlet(
+							  event = permHandler.handler
+							, args  = arguments
+						);
+					}
+				}
+
+			}
+		}
+
 		if ( !Len( Trim( arguments.userId ) ) ) {
 			return false;
 		}
@@ -554,6 +575,13 @@ component displayName="Website permissions service" {
 	}
 	private void function _setPermissions( required array permissions ) {
 		_permissions = arguments.permissions;
+	}
+
+	private array function _getPermissionHandlers() {
+		return _permissionHandlers;
+	}
+	private void function _setPermissionHandlers( required array permissionHandlers ) {
+		_permissionHandlers = arguments.permissionHandlers;
 	}
 
 	private any function _getWebsiteLoginService() {
