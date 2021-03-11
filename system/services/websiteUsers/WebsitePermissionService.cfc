@@ -92,7 +92,6 @@ component displayName="Website permissions service" {
 		,          string  userId              = _getWebsiteLoginService().getLoggedInUserId()
 		,          boolean forceGrantByDefault = false
 	) {
-		var coldbox            = $getColdbox();
 		var permissionHandlers = _getPermissionHandlers();
 
 		for ( var permHandler in permissionHandlers ) {
