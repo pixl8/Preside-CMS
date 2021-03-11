@@ -227,6 +227,7 @@ component displayName="Preside Object Service" {
 		var objMeta = _getObject( args.objectName ).meta;
 		var adapter = _getAdapter( objMeta.dsn );
 
+		args.selectFields   = parseSelectFieldsForHavingClause( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
@@ -2187,6 +2188,53 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
+	}
+
+	public array function parseSelectFieldsForHavingClause(
+		  required array  selectFields
+		, required array  extraFilters
+		, required string objectName
+	) {
+		var extraFilters = arguments.extraFilters;
+		var selectFields = Duplicate( arguments.selectFields );
+		var props        = getObjectProperties( arguments.objectName );
+
+		for ( var filter in extraFilters ) {
+			if( Len( Trim( filter.having ?: "" ) ) ) {
+				var fields = filter.havingfields ?: ListToArray( filter.propertyName ?: "" );
+
+				for ( var field in fields ) {
+					var propertyLen = ListLen( field, "." );
+
+					if ( propertyLen == 1 ) {
+						if( !ArrayFindNoCase( selectFields, field ) ) {
+							field = "#arguments.objectName#.#field#";
+						}
+					}
+					else if (propertyLen == 2 ) {
+						var prefix       = ListFirst( field, "." );
+						var propertyName = ListLast( field, "." );
+						var prop         = props[ propertyName ] ?: {};
+
+						if ( Len( Trim( prop.formula ?: "" ) ) ) {
+							filter.having = ReReplace( filter.having, "(^|\s)#Replace( field, "$", "\$" )#(\s)", " #propertyName# " );
+						} else {
+							var newFieldName = Replace( field, ".", "_" );
+							filter.having = ReReplace( filter.having, "(^|\s)#Replace( field, "$", "\$" )#(\s)", " #newFieldName# " );
+							if ( !ArrayFindNoCase( selectFields, newFieldName ) ) {
+								ArrayAppend( selectFields, "#field# as #newFieldName#" );
+								continue;
+							}
+						}
+					}
+
+					if ( !ArrayFindNoCase( selectFields, field ) ) {
+						ArrayAppend( selectFields, field );
+					}
+				};
+			}
+		}
+		return selectFields;
 	}
 
 	public string function expandFormulaFields(
