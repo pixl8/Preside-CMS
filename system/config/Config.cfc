@@ -366,8 +366,7 @@ component {
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
 		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate", "savedExport.read" ];
 
-		settings.websitePermissionHandlers = [];
-		settings.websitePermissions        = {
+		settings.websitePermissions = {
 			  pages  = [ "access" ]
 			, assets = [ "access" ]
 		};

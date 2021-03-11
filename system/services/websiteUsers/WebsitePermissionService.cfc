@@ -11,22 +11,24 @@ component displayName="Website permissions service" {
 
 // CONSTRUCTOR
 	/**
-	 * @websiteLoginService.inject         websiteLoginService
-	 * @cacheProvider.inject               cachebox:WebsitePermissionsCache
-	 * @permissionsConfig.inject           coldbox:setting:websitePermissions
-	 * @permissionHandlersConfig.inject    coldbox:setting:websitePermissionHandlers
-	 * @benefitsDao.inject                 presidecms:object:website_benefit
-	 * @userDao.inject                     presidecms:object:website_user
-	 * @appliedPermDao.inject              presidecms:object:website_applied_permission
+	 * @websiteLoginService.inject             websiteLoginService
+	 * @permissionHandlersReader.inject        websitePermissionHandlerReaderService
+	 * @cacheProvider.inject                   cachebox:WebsitePermissionsCache
+	 * @permissionsConfig.inject               coldbox:setting:websitePermissions
+	 * @benefitsDao.inject                     presidecms:object:website_benefit
+	 * @userDao.inject                         presidecms:object:website_user
+	 * @appliedPermDao.inject                  presidecms:object:website_applied_permission
+	 * @permissionHandlerDirectories.inject    presidecms:directories:/handlers/websitePermissions
 	 */
 	public any function init(
 		  required any    websiteLoginService
 		, required any    cacheProvider
 		, required struct permissionsConfig
-		, required array  permissionHandlersConfig
 		, required any    benefitsDao
 		, required any    userDao
 		, required any    appliedPermDao
+		, required any    permissionHandlersReader
+		, required array  permissionHandlerDirectories
 	) {
 		_setWebsiteLoginService( arguments.websiteLoginService );
 		_setCacheProvider( arguments.cacheProvider );
@@ -35,7 +37,7 @@ component displayName="Website permissions service" {
 		_setAppliedPermDao( arguments.appliedPermDao );
 
 		_denormalizeAndSaveConfiguredPermissions( arguments.permissionsConfig );
-		_setPermissionHandlers( arguments.permissionHandlersConfig );
+		_setPermissionHandlers( permissionHandlersReader.getPermissionHandlerFromDirectories( arguments.permissionHandlerDirectories ) );
 
 		return this;
 	}
@@ -94,17 +96,17 @@ component displayName="Website permissions service" {
 		var permissionHandlers = _getPermissionHandlers();
 
 		for ( var permHandler in permissionHandlers ) {
-			if ( !isEmpty( permHandler.handler ?: "" ) && coldbox.viewletExists( permHandler.handler ) ) {
+			if ( $getColdbox().viewletExists( permissionHandlers[ permHandler ].handler ) &&
+				 reFindNoCase( permissionHandlers[ permHandler ].keyPattern, arguments.permissionKey )
+			) {
+				var result = $runEvent(
+					  event          = permissionHandlers[ permHandler ].handler
+					, eventArguments = { args=arguments }
+					, private        = true
+					, prePostExempt  = true
+				);
 
-				for ( var key in ( permHandler.keyPatterns ?: [] ) ) {
-					if ( reFindNoCase( key, arguments.permissionKey ) ) {
-						return coldbox.renderViewlet(
-							  event = permHandler.handler
-							, args  = arguments
-						);
-					}
-				}
-
+				return $helpers.isTrue( local.result ?: "" );
 			}
 		}
 
@@ -577,10 +579,10 @@ component displayName="Website permissions service" {
 		_permissions = arguments.permissions;
 	}
 
-	private array function _getPermissionHandlers() {
+	private any function _getPermissionHandlers() {
 		return _permissionHandlers;
 	}
-	private void function _setPermissionHandlers( required array permissionHandlers ) {
+	private void function _setPermissionHandlers( required any permissionHandlers ) {
 		_permissionHandlers = arguments.permissionHandlers;
 	}
 
