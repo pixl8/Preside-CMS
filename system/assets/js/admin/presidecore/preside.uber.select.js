@@ -1255,7 +1255,7 @@
 			if (this.search_field.val() === this.default_text) {
 				return "";
 			} else {
-				return $('<div/>').text($.trim(this.search_field.val())).html();
+				return $('<div/>').html($.trim(this.search_field.val())).text();
 			}
 		};
 
