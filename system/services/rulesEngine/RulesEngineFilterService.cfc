@@ -101,8 +101,7 @@ component displayName="Rules Engine Filter Service" {
 							delim = " and ";
 
 							if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
-								var prefix = Len( Trim( rawFilter.prefix ?: "" ) ) ? "#prefix#." : "";
-								havingfields.append( Trim( prefix ) & rawFilter.propertyName );
+								havingfields.append( rawFilter.propertyName );
 							} else {
 								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
 								if( ListLen( firstField, "." ) == 2 ) {
