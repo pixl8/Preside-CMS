@@ -667,12 +667,12 @@ component {
 
 		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
 			var records = obj.selectData(
-				selectFields = [ "Max( #dmField# ) as lastmodified", "count(1) as rowcount" ]
+				selectFields = [ "Max( #dmField# ) as lastmodified", "count(1) as _total_rowcount" ]
 			);
 
 			if ( IsDate( records.lastmodified ) ) {
 				lastModified = records.lastmodified;
-				recordCount  = records.rowcount;
+				recordCount  = records._total_rowcount;
 			}
 		}
 
