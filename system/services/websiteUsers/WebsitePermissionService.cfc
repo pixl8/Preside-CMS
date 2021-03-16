@@ -95,7 +95,7 @@ component displayName="Website permissions service" {
 		var permissionHandlers = _getPermissionHandlers();
 
 		for ( var permHandler in permissionHandlers ) {
-			if ( $getColdbox().viewletExists( permissionHandlers[ permHandler ].handler ) &&
+			if ( $getColdbox().handlerExists( permissionHandlers[ permHandler ].handler ) &&
 				 reFindNoCase( permissionHandlers[ permHandler ].keyPattern, arguments.permissionKey )
 			) {
 				var result = $runEvent(
