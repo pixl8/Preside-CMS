@@ -227,7 +227,7 @@ component displayName="Preside Object Service" {
 		var objMeta = _getObject( args.objectName ).meta;
 		var adapter = _getAdapter( objMeta.dsn );
 
-		args.selectFields   = parseSelectFieldsForHavingClause( argumentCollection=args );
+		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
@@ -2190,7 +2190,7 @@ component displayName="Preside Object Service" {
 		return fields;
 	}
 
-	public array function parseSelectFieldsForHavingClause(
+	public array function expandHavingClauses(
 		  required array  selectFields
 		, required array  extraFilters
 		, required string objectName
@@ -2212,9 +2212,15 @@ component displayName="Preside Object Service" {
 						}
 					}
 					else if (propertyLen == 2 ) {
-						var prefix       = ListFirst( field, "." );
-						var propertyName = ListLast( field, "." );
-						var prop         = props[ propertyName ] ?: {};
+						var prefix            = ListFirst( field, "." );
+						var propertyName      = ListLast( field, "." );
+						var relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
+
+						if ( objectExists( relatedObjectName ) ) {
+							props = getObjectProperties( relatedObjectName );
+						}
+
+						var prop = props[ propertyName ] ?: {};
 
 						if ( Len( Trim( prop.formula ?: "" ) ) ) {
 							filter.having = ReReplace( filter.having, "(^|\s)#Replace( field, "$", "\$" )#(\s)", " #propertyName# " );
