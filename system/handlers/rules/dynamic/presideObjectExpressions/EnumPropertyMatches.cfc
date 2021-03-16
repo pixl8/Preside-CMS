@@ -45,7 +45,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			filterSql = filterSql.replace( "${operator}", "not in" );
 		}
 
-		return [ { filter=filterSql, filterParams=params, propertyName=propertyName } ];
+		return [ { filter=filterSql, filterParams=params } ];
 	}
 
 	private string function getLabel(

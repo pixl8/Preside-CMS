@@ -51,7 +51,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		}
 
 		if ( Len( Trim( sql ) ) ) {
-			return [ { filter=sql, filterParams=params, propertyName=propertyName } ];
+			return [ { filter=sql, filterParams=params } ];
 		}
 
 		return [];

@@ -1,6 +1,6 @@
 /**
  * Dynamic expression handler for checking whether or not a preside object
- * property value is null
+ * formula property value is within a given date range
  *
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
@@ -12,8 +12,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
-		,          boolean _is     = true
-		,          string  variety = "isEmpty"
+		,          struct  _time
 	) {
 		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
 		var recordId     = payload[ sourceObject ].id ?: "";
@@ -31,13 +30,31 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
-		,          boolean _is     = true
-		,          string  variety = "isEmpty"
+		,          struct  _time = {}
 	){
-		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-		var isIsNot  = ( _is == ( variety == "isEmpty" ) ) ? "is" : "is not";
+		var params      = {};
+		var sql         = "";
+		var prefix      = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+		var delim       = "";
 
-		return [ { filter="#prefix#.#propertyName# #isIsNot# null" } ];
+		if ( IsDate( _time.from ?: "" ) ) {
+			var fromParam = "dateFormulaPropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
+			sql   = propertyName & " >= :#fromParam#";
+			params[ fromParam ] = { value=_time.from, type="cf_sql_timestamp" };
+			delim = " and ";
+		}
+		if ( IsDate( _time.to ?: "" ) ) {
+			var toParam = "dateFormulaPropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
+			sql   &= delim & propertyName & " <= :#toParam#";
+			params[ toParam ] = { value=_time.to, type="cf_sql_timestamp" };
+		}
+
+		if ( Len( Trim( sql ) ) ) {
+			return [ { having=sql, filterParams=params, propertyName=propertyName } ];
+		}
+
+		return [];
+
 	}
 
 	private string function getLabel(
@@ -45,16 +62,15 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
-		,          string  variety = "isEmpty"
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.propertyIsNull.#variety#.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.dateFormulaPropertyInRange.label", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.label", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:dateFormulaPropertyInRange.label", data=[ propNameTranslated ] );
 	}
 
 	private string function getText(
@@ -62,16 +78,14 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string propertyName
 		,          string parentObjectName   = ""
 		,          string parentPropertyName = ""
-		,          string variety = "isEmpty"
 	){
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-
-			return translateResource( uri="rules.dynamicExpressions:related.propertyIsNull.#variety#.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.dateFormulaPropertyInRange.text", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.text", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:dateFormulaPropertyInRange.text", data=[ propNameTranslated ] );
 	}
 }

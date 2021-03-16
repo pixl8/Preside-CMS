@@ -43,7 +43,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		}
 		var params    = { "#paramName#" = { value=( loggedInUserId.len() ? loggedInUserId : CreateUUId() ), type="cf_sql_varchar" } };
 
-		return [ { filter=filterSql, filterParams=params, propertyName=propertyName } ];
+		return [ { filter=filterSql, filterParams=params } ];
 	}
 
 	private string function getLabel(

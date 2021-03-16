@@ -85,7 +85,9 @@ component {
 					}
 				break;
 				case "date":
-					if ( !isFormula ) {
+					if ( isFormula ) {
+						expressions.append( _createDateFormulaInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else {
 						expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
@@ -272,6 +274,23 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createDateFormulaInRangeExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+		var dbType      = $getPresideObjectService().getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "dbtype" );
+		var isDate      = dbType=="date";
+
+		expression.append( {
+			  id                = "presideobject_formulainrange_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _time={ fieldtype="timePeriod", type="alltime", required=false, default="", isDate=isDate } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.DateFormulaPropertyInRange.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.DateFormulaPropertyInRange.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.DateFormulaPropertyInRange.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.DateFormulaPropertyInRange.getText"
 		} );
 
 		return expression;

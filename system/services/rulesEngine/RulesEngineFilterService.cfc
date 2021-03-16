@@ -45,8 +45,7 @@ component displayName="Rules Engine Filter Service" {
 		var params     = {};
 		var extraJoins = [];
 		var isHaving   = false;
-		var havingFilters = [];
-		var havingfields  = [];
+		var havingfields = [];
 
 		for( var i=1; i <= expressionArray.len(); i++ ) {
 			var isJoin = !(i mod 2);
@@ -85,10 +84,6 @@ component displayName="Rules Engine Filter Service" {
 							params.append( rawFilter.filter );
 						}
 
-						if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
-							havingfields.append( rawFilter.propertyName );
-						}
-
 						var rawSql = dbAdapter.getClauseSql( filter=rawFilter.filter ?: "", tableAlias=arguments.objectName );
 						if ( isEmpty( rawSql ) ) {
 							rawSql = " 1 = 1 ";
@@ -105,12 +100,16 @@ component displayName="Rules Engine Filter Service" {
 						}
 
 						if ( rawSql.len() ) {
-							var trimSql = delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
-							sql  &= trimSql;
+							sql  &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
 							delim = " and ";
 
-							if( !ArrayIsEmpty( rawFilter.extraJoins ?: [] ) || ReFindNoCase( "(oneToMany|manyToMany|manyToOne)", trimSql ) ) {
-								havingFilters.append( trimSql );
+							if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
+								havingfields.append( rawFilter.propertyName );
+							} else {
+								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
+								if( ListLen( firstField, "." ) == 2 ) {
+									havingfields.append( firstField );
+								}
 							}
 						}
 					}
@@ -130,11 +129,9 @@ component displayName="Rules Engine Filter Service" {
 		if ( isHaving ) {
 			returnValue.having        = Trim( sql );
 			returnValue.havingfields  = havingfields;
-			returnValue.havingFilters = havingFilters;
 		} else {
 			returnValue.filter = Trim( sql );
 		}
-
 		return returnValue;
 	}
 
