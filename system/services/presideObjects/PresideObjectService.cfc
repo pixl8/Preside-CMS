@@ -2259,8 +2259,9 @@ component displayName="Preside Object Service" {
 						}
 					}
 					else if (propertyLen == 2 ) {
-						var prefix            = ListFirst( field, "." );
-						var propertyName      = ListLast( field, "." );
+						var unescapedField    = _unescapeEntity( field );
+						var prefix            = ListFirst( unescapedField, "." );
+						var propertyName      = ListLast( unescapedField, "." );
 						var relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
 
 						if ( objectExists( relatedObjectName ) ) {
@@ -2272,7 +2273,7 @@ component displayName="Preside Object Service" {
 						if ( Len( Trim( prop.formula ?: "" ) ) ) {
 							filter.having = ReReplace( filter.having, "(^|\s)#Replace( field, "$", "\$" )#(\s)", " #propertyName# " );
 						} else {
-							var newFieldName = Replace( field, ".", "_" );
+							var newFieldName = Replace( unescapedField, ".", "_" );
 							filter.having = ReReplace( filter.having, "(^|\s)#Replace( field, "$", "\$" )#(\s)", " #newFieldName# " );
 							if ( !ArrayFindNoCase( selectFields, newFieldName ) ) {
 								ArrayAppend( selectFields, "#field# as #newFieldName#" );
@@ -3816,6 +3817,10 @@ component displayName="Preside Object Service" {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};
+	}
+
+	private string function _unescapeEntity( required string entityName ) {
+		return ReplaceList( arguments.entityName , '`,",[,]', "");
 	}
 
 // GETTERS AND SETTERS
