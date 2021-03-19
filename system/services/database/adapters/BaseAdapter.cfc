@@ -484,6 +484,10 @@ component {
 		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getDatabaseNameSql method." );
 	}
 
+	public string function getAllTablesSql() {
+		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getAllTablesSql method." );
+	}
+
 	public string function getAllForeignKeysSql( required string database ) {
 		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getAllForeignKeysSql method." );
 	}

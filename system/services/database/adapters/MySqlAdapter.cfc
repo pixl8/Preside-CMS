@@ -130,7 +130,7 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( 
+	public string function getDeleteSql(
 		  required string tableName
 		, required any    filter
 		,          string tableAlias = ""
@@ -236,6 +236,10 @@ component extends="BaseAdapter" {
 
 	public string function getDatabaseNameSql() {
 		return "select database() as db";
+	}
+
+	public string function getAllTablesSql() {
+		return "select table_name from information_schema.tables where table_schema = database() and table_type = 'BASE TABLE'";
 	}
 
 	public string function getAllForeignKeysSql() {
