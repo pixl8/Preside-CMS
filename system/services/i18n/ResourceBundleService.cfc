@@ -183,6 +183,7 @@ component singleton=true {
 		var file               = "";
 		var bundleData         = {};
 		var filePattern        = ListLast( arguments.bundleName, "." );
+		var dirCache           = {};
 
 		if ( ListLen( arguments.bundleName, "." ) gt 1 ) {
 			subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
@@ -204,7 +205,9 @@ component singleton=true {
 			siteTemplate = _getSiteTemplateFromPath( directory );
 
 			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
-				files = DirectoryList( directory & subDirectory, false, "path", filePattern );
+				if ( !structKeyExists( dirCache, "#directory##subDirectory#" ) )
+					dirCache[ "#directory##subDirectory#" ] = DirectoryList( directory & subDirectory, false, "path", filePattern );
+				files = dirCache[ "#directory##subDirectory#" ];
 
 				for( file in files ){
 					if ( filePattern == ListLast( file, "\/" ) ) {
