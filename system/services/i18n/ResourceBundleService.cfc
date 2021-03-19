@@ -236,9 +236,9 @@ component singleton=true {
 			return variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: [];
 		}
 
-		var files = variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "-" & arguments.country ] ?: [];
+		var files = variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: [];
 
-		ArrayAppend( files, variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: [], true );
+		ArrayAppend( files, variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "_" & arguments.country ] ?: [], true );
 
 		return files;
 	}
