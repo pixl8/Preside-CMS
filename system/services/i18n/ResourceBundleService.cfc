@@ -113,27 +113,32 @@ component singleton=true {
 					if ( not StructKeyExists( locales, bundleName ) ) {
 						locales[ bundleName ] = {};
 					}
-					locales[ bundleName ][ locale ] = 1;
+					locales[ bundleName ][ locale ] = locales[ bundleName ][ locale ] ?: [];
+					ArrayAppend( locales[ bundleName ][ locale ], file.directory & "/" & file.name );
 				} else {
-					bundles[ bundleName ] = 1;
+					bundles[ bundleName ] = bundles[ bundleName ] ?: [];
+					ArrayAppend( bundles[ bundleName ], file.directory & "/" & file.name );
 				}
 			}
 		}
 
-		bundles = StructKeyArray( bundles );
-		ArraySort( bundles, "text" );
-		_setBundleNames( bundles );
+		_setBundleFileDiscoveryCache( bundles, locales );
 
-		locales._all = StructKeyArray( locales._all );
-		ArraySort( locales._all, "text" );
-		for( bundleName in bundles ){
+		var bundleNames = StructKeyArray( bundles );
+		ArraySort( bundleNames, "text" );
+		_setBundleNames( bundleNames );
+
+		var localeNames = {};
+		localeNames._all = StructKeyArray( locales._all );
+		ArraySort( localeNames._all, "text" );
+		for( bundleName in bundleNames ){
 			if ( StructKeyExists( locales, bundleName ) ) {
-				locales[ bundleName ] = StructKeyArray( locales[ bundleName ] );
-				ArraySort( locales[ bundleName ], "text" );
+				localeNames[ bundleName ] = StructKeyArray( locales[ bundleName ] );
+				ArraySort( localeNames[ bundleName ], "text" );
 			}
 		}
 
-		_setLocales( locales );
+		_setLocales( localeNames );
 	}
 
 	private struct function _getBundleData( required string bundleName, string language, string country ) output=false {
@@ -174,44 +179,16 @@ component singleton=true {
 	}
 
 	private struct function _readBundleData( required string bundleName, string language, string country ) output=false {
-		var directories        = _getBundleDirectories();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
-		var siteTemplate       = "";
-		var subDirectory       = "";
-		var files              = "";
-		var directory          = "";
-		var file               = "";
 		var bundleData         = {};
-		var filePattern        = ListLast( arguments.bundleName, "." );
+		var files              = _getBundleFiles( argumentCollection=arguments );
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 
-		if ( ListLen( arguments.bundleName, "." ) gt 1 ) {
-			subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
-			subDirectory = "/" & ListChangeDelims( subDirectory, "/", "." );
-		}
-
-		if ( StructKeyExists( arguments, "language" ) ) {
-			filePattern &= "_" & LCase( arguments.language );
-			if ( StructKeyExists( arguments, "country" ) ) {
-				filePattern &= "_" & UCase( arguments.country );
-			}
-		}
-
-		filePattern &= ".properties";
-
-		for( directory in directories ){
-			directory = ReReplace( directory, "[\\/]$", "" );
-
-			siteTemplate = _getSiteTemplateFromPath( directory );
+		for( file in files ){
+			var directory = ReReplace( getDirectoryFromPath( file ), "[\\/]$", "" );
+			var siteTemplate = _getSiteTemplateFromPath( directory );
 
 			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
-				files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
-
-				for( file in files ){
-					if ( filePattern == ListLast( file, "\/" ) ) {
-						StructAppend( bundleData, _propertiesFileToStruct( file ) );
-						break;
-					}
-				}
+				StructAppend( bundleData, _propertiesFileToStruct( file ) );
 			}
 		}
 
@@ -249,6 +226,26 @@ component singleton=true {
 		}
 
 		return ReReplaceNoCase( arguments.path, regex, "\1" );
+	}
+
+	private array function _getBundleFiles( required string bundleName, string language, string country ) {
+		if ( !StructKeyExists( arguments, "language" ) && !StructKeyExists( arguments, "country" ) ) {
+			return variables._bundleFileDiscoveryCache[ arguments.bundleName ] ?: [];
+		}
+		if ( !StructKeyExists( arguments, "country" ) ) {
+			return variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: [];
+		}
+
+		var files = variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "-" & arguments.country ] ?: [];
+
+		ArrayAppend( files, variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: [], true );
+
+		return files;
+	}
+
+	private void function _setBundleFileDiscoveryCache( required struct bundles, required struct locales ) {
+	    variables._bundleFileDiscoveryCache = arguments.bundles;
+	    variables._localeFileDiscoveryCache = arguments.locales;
 	}
 
 // GETTERS AND SETTERS
