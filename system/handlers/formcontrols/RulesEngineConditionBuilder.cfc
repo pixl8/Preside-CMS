@@ -23,12 +23,10 @@ component {
 			);
 		}
 
-		args.expressions = expressionService.listExpressions( context=args.ruleContext, excludeTags=args.excludeTags );
-
 		var fieldId = args.id ?: "";
 		var expressionData = {
 			"filter-builder-#fieldId#" = {
-				  rulesEngineExpressions           = args.expressions
+				  rulesEngineExpressionEndpoint    = event.buildLink( conditionExpressionsContext=args.ruleContext, excludeTags=args.excludeTags )
 				, rulesEngineRenderFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.ajaxRenderField" )
 				, rulesEngineEditFieldEndpoint     = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
 				, rulesEngineContext               = args.ruleContext
