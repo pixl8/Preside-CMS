@@ -1,13 +1,15 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="rulesEngineContextService"   inject="rulesEngineContextService";
-	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
-	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
-	property name="rulesEngineFilterService"    inject="rulesEngineFilterService";
-	property name="dataManagerService"          inject="dataManagerService";
-	property name="messageBox"                  inject="messagebox@cbmessagebox";
-	property name="presideObjectService"        inject="PresideObjectService";
-	property name="formsService"                inject="formsService";
+	property name="rulesEngineContextService"    inject="rulesEngineContextService";
+	property name="rulesEngineConditionService"  inject="rulesEngineConditionService";
+	property name="rulesEngineFieldTypeService"  inject="rulesEngineFieldTypeService";
+	property name="rulesEngineFilterService"     inject="rulesEngineFilterService";
+	property name="rulesEngineExpressionService" inject="rulesEngineExpressionService";
+	property name="dataManagerService"           inject="dataManagerService";
+	property name="messageBox"                   inject="messagebox@cbmessagebox";
+	property name="presideObjectService"         inject="PresideObjectService";
+	property name="formsService"                 inject="formsService";
+	property name="i18n"                         inject="i18n";
 
 	public string function ajaxRenderField( event, rc, prc ) {
 		var fieldConfig = event.getCollectionWithoutSystemVars();
@@ -435,6 +437,46 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function downloadFilterExpressions( event, rc, prc ) {
+		var objectName = prc.filterObject ?: "";
+		var excludeTags = rc.excludeTags ?: "";
+		var tmpFilePath = GetTempDirectory() & "/filterexpressions-#i18n.getFwLocale()#-#objectName#-#Hash( excludeTags )#.json"
+
+		if ( !FileExists( tmpFilePath ) ) {
+			var expressions = rulesEngineExpressionService.listExpressions( filterObject=objectName, excludeTags=excludeTags );
+
+			FileWrite( tmpFilePath, SerializeJson( expressions ) );
+		}
+
+		var etag = _getEtag( tmpFilePath );
+		_doBrowserEtagLookup( etag );
+
+		header name="cache-control" value="max-age=31536000";
+		header name="ETag" value=etag;
+		content file=tmpFilePath type="application/json";abort;
+	}
+
+	public void function downloadConditionExpressions( event, rc, prc ) {
+		var ruleContext = prc.ruleContext ?: "";
+		var excludeTags = rc.excludeTags ?: "";
+		var tmpFilePath = GetTempDirectory() & "/conditionexpressions-#i18n.getFwLocale()#-#ruleContext#-#Hash( excludeTags )#.json"
+
+		if ( !FileExists( tmpFilePath ) ) {
+			var expressions = rulesEngineExpressionService.listExpressions( context=ruleContext, excludeTags=excludeTags );
+
+			FileWrite( tmpFilePath, SerializeJson( expressions ) );
+		}
+
+		var etag = _getEtag( tmpFilePath );
+		_doBrowserEtagLookup( etag );
+
+		header name="cache-control" value="max-age=31536000";
+		header name="ETag" value=etag;
+		content file=tmpFilePath type="application/json";abort;
+	}
+
+
+
 // VIWLETS
 	private string function dataGridFavourites( event, rc, prc, args ) {
 		var objectName = args.objectName ?: "";
@@ -536,6 +578,17 @@ component extends="preside.system.base.AdminHandler" {
 			if ( rulesGroup.recordCount ) {
 				prc.filterScope = Len( rulesGroup.group_id ) && Len( rulesGroup.owner ) ? "group" : ( Len( rulesGroup.owner ) ? "individual" : "global" );
 			}
+		}
+	}
+
+	private string function _getEtag( required string fullPath ) {
+		return Left( LCase( Hash( SerializeJson( GetFileInfo( arguments.fullPath ) ) ) ), 8 );
+	}
+
+	private string function _doBrowserEtagLookup( required string etag ) {
+		var headers = getHTTPRequestData( false ).headers;
+		if ( ( headers[ "If-None-Match" ] ?: "" ) == arguments.etag ) {
+			content reset=true;header statuscode=304 statustext="Not Modified";abort;
 		}
 	}
 }
