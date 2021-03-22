@@ -2,6 +2,7 @@ component {
 
 	property name="assetManagerService"    inject="assetManagerService";
 	property name="storageProviderService" inject="storageProviderService";
+	property name="loginService"           inject="loginService";
 
 	public function index( event, rc, prc ) output=false {
 		announceInterception( "preDownloadFile" );
@@ -10,6 +11,7 @@ component {
 		var storagePath     = rc.storagePath     ?: "";
 		var filename        = rc.filename        ?: ListLast( storagePath, "/" );
 		var storagePrivate  = booleanFormat( rc.fileIsPrivate ?: false );
+		var allowAccess     = !( storagePrivate ?: false ) || loginService.isSystemUser();
 
 		if ( !Len( Trim( storageProvider ) ) || !Len( Trim( storagePath ) ) ) {
 			event.notFound();
@@ -49,7 +51,12 @@ component {
 			, storagePrivate  = storagePrivate
 			, filename        = filename
 			, type            = type
+			, allowAccess     = allowAccess
 		} );
+
+		if ( isFalse( allowAccess ) ) {
+			event.accessDenied( reason="The asset is restricted." );
+		}
 
 		header name="etag" value=etag;
 		header name="cache-control" value="max-age=31536000";
