@@ -94,23 +94,6 @@ component {
 				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, throwOnMissing=true, isTrashed=isTrashed  );
 				_doBrowserEtagLookup( etag );
 
-				if ( Len( Trim( derivativeName ) ) ) {
-					assetFilePathOrBinary = assetManagerService.getAssetDerivativeBinary(
-						  assetId                = assetId
-						, versionId              = versionId
-						, derivativeName         = derivativeName
-						, configHash             = configHash
-						, getFilePathIfSupported = true
-					);
-				} else {
-					assetFilePathOrBinary = assetManagerService.getAssetBinary(
-						  id                     = assetId
-						, versionId              = versionId
-						, isTrashed              = isTrashed
-						, getFilePathIfSupported = true
-					);
-				}
-
 				announceInterception( "onDownloadAsset", {
 					  assetId        = assetId
 					, derivativeName = derivativeName
@@ -134,6 +117,23 @@ component {
 					setNextEvent(
 						  url        = assetPublicUrl
 						, statusCode = "302"
+					);
+				}
+
+				if ( Len( Trim( derivativeName ) ) ) {
+					assetFilePathOrBinary = assetManagerService.getAssetDerivativeBinary(
+						  assetId                = assetId
+						, versionId              = versionId
+						, derivativeName         = derivativeName
+						, configHash             = configHash
+						, getFilePathIfSupported = true
+					);
+				} else {
+					assetFilePathOrBinary = assetManagerService.getAssetBinary(
+						  id                     = assetId
+						, versionId              = versionId
+						, isTrashed              = isTrashed
+						, getFilePathIfSupported = true
 					);
 				}
 
