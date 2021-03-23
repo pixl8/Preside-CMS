@@ -57,7 +57,17 @@
 
 	setActiveFieldset = function(){
 		var $activeLink     = $typeLinkList.find( ".link-type.selected .link-type-link" )
-		  , $targetFieldset = $( $activeLink.get(0).hash );
+		  , $targetFieldset = $( $activeLink.get(0).hash )
+		  , emailVariableExists = false;
+
+		$links.each( function () {
+			if ( this.getAttribute( "data-link-type" ) == "emailvariable" ) {
+				emailVariableExists = true;
+			}
+		});
+		if ( emailVariableExists == true ) {
+			$targetFieldset.context.forms[ "link-picker-form" ][ "emailantispam" ].setAttribute( "checked", "checked" );
+		}
 
 		$toggleableFieldsets.each( function(){
 			var $fieldset = $( this );
