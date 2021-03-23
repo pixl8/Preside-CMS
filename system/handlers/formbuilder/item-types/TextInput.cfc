@@ -11,6 +11,7 @@ component {
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
+			, maxlength          = ( val( args.maxlength ?: "" ) == 0 ) ? 200 : ( args.maxlength ?: "" )
 		);
 	}
 
