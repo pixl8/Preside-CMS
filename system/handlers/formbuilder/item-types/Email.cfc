@@ -11,7 +11,8 @@ component {
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, class				 = "form-control"
+			, class              = "form-control"
+			, maxlength          = 200
 		);
 	}
 
