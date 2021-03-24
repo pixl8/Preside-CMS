@@ -3649,21 +3649,15 @@ component displayName="Preside Object Service" {
 	}
 
 	private boolean function _getUseCacheDefault( required string objectName ) {
-		try {
-			return request[ "_defaultUseCache#arguments.objectName#" ];
-		} catch( any e ) {
+		if ( !StructKeyExists( request, "_defaultUseCache#arguments.objectName#" ) )
 			request[ "_defaultUseCache#arguments.objectName#" ] = _objectUsesCaching( arguments.objectName ) && $getRequestContext().getUseQueryCache();
-		}
 
 		return request[ "_defaultUseCache#arguments.objectName#" ];
 	}
 
 	private boolean function _getDefaultAllowDraftVersions() {
-		try {
-			return request._defaultAllowDraftVersions;
-		} catch( any e ) {
+		if ( !StructKeyExists( request , "_defaultAllowDraftVersions" ) )
 			request._defaultAllowDraftVersions = $getRequestContext().showNonLiveContent();
-		}
 
 		return request._defaultAllowDraftVersions;
 	}
