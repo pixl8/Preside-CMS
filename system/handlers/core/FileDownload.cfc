@@ -2,6 +2,7 @@ component {
 
 	property name="assetManagerService"    inject="assetManagerService";
 	property name="storageProviderService" inject="storageProviderService";
+	property name="loginService"           inject="loginService";
 
 	public function index( event, rc, prc ) output=false {
 		announceInterception( "preDownloadFile" );
@@ -9,6 +10,8 @@ component {
 		var storageProvider = rc.storageProvider ?: "";
 		var storagePath     = rc.storagePath     ?: "";
 		var filename        = rc.filename        ?: ListLast( storagePath, "/" );
+		var storagePrivate  = booleanFormat( rc.fileIsPrivate ?: false );
+		var allowAccess     = !( storagePrivate ?: false ) || loginService.isSystemUser();
 
 		if ( !Len( Trim( storageProvider ) ) || !Len( Trim( storagePath ) ) ) {
 			event.notFound();
@@ -20,7 +23,7 @@ component {
 			event.notFound();
 		}
 
-		if ( !storageProvider.objectExists( storagePath ) ) {
+		if ( !storageProvider.objectExists( path=storagePath, private=storagePrivate ) ) {
 			event.notFound();
 		}
 
@@ -31,7 +34,7 @@ component {
 				, mimeType          = "application/octet-stream"
 			}
 		}
-		var etag = LCase( Hash( SerializeJson( storageProvider.getObjectInfo( storagePath ) ) ) );
+		var etag = LCase( Hash( SerializeJson( storageProvider.getObjectInfo( path=storagePath, private=storagePrivate ) ) ) );
 
 		_doBrowserEtagLookup( etag );
 
@@ -45,9 +48,15 @@ component {
 		announceInterception( "onDownloadFile", {
 			  storageProvider = storageProvider
 			, storagePath     = storagePath
+			, storagePrivate  = storagePrivate
 			, filename        = filename
 			, type            = type
+			, allowAccess     = allowAccess
 		} );
+
+		if ( isFalse( allowAccess ) ) {
+			event.accessDenied( reason="The asset is restricted." );
+		}
 
 		header name="etag" value=etag;
 		header name="cache-control" value="max-age=31536000";
@@ -55,12 +64,12 @@ component {
 		if ( storageProviderService.providerSupportsFileSystem( storageProvider ) ) {
 			content
 				reset = true
-				file  = storageProvider.getObjectLocalPath( storagePath )
+				file  = storageProvider.getObjectLocalPath( path=storagePath, private=storagePrivate )
 				type  = type.mimeType;
 		} else {
 			content
 				reset    = true
-				variable = storageProvider.getObject( storagePath )
+				variable = storageProvider.getObject( path=storagePath, private=storagePrivate )
 				type     = type.mimeType;
 		}
 
