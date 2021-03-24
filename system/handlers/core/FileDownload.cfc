@@ -2,7 +2,6 @@ component {
 
 	property name="assetManagerService"    inject="assetManagerService";
 	property name="storageProviderService" inject="storageProviderService";
-	property name="loginService"           inject="loginService";
 
 	public function index( event, rc, prc ) output=false {
 		announceInterception( "preDownloadFile" );
@@ -11,7 +10,7 @@ component {
 		var storagePath     = rc.storagePath     ?: "";
 		var filename        = rc.filename        ?: ListLast( storagePath, "/" );
 		var storagePrivate  = booleanFormat( rc.fileIsPrivate ?: false );
-		var allowAccess     = !( storagePrivate ?: false ) || loginService.isSystemUser();
+		var allowAccess     = !( storagePrivate ?: false ) || event.isAdminUser();
 
 		if ( !Len( Trim( storageProvider ) ) || !Len( Trim( storagePath ) ) ) {
 			event.notFound();
