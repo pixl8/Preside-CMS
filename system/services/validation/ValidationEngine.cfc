@@ -286,6 +286,8 @@ component displayName="Validation Engine" {
 					for( var index = 1; index <= data.len(); index++ ) {
 						data[index] = Replace( data[index], ",", ", ", "all")
 					}
+
+					jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], '"accept" : false' );
 					break;
 
 				case "date":
