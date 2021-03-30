@@ -298,6 +298,9 @@
 										} ).fail( commonFailHandler ).always( commonAlwaysHandler );
 									}
 								});
+							} else if ( data.nondraft ) {
+								toggleEditMode( false );
+								$.alert( { message : data.message } );
 							} else {
 								presideBootbox.alert( data.prompt );
 							}
@@ -599,6 +602,5 @@
 		$checkbox.prop( "checked", editMode );
 		setEditMode( editMode );
 	}
-
 
 } )( presideJQuery );
