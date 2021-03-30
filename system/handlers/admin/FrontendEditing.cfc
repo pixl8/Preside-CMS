@@ -139,8 +139,14 @@ component {
 
 		if ( object == "page" || presideObjectService.isPageType( object ) ) {
 			changedFields = siteTreeService.getDraftChangedFields( recordId );
-		} else {
+		} else if ( versioningService.objectUsesDrafts( object ) ) {
 			changedFields = versioningService.getDraftChangedFields( object, recordId );
+		} else {
+			event.renderData(
+				  type = "json"
+				, data = { message=translateResource( "cms:frontendeditor.nondraftpublish.success" ), publishable=false, nondraft=true }
+			);
+			return;
 		}
 
 		if ( changedFields.len() ) {
@@ -160,12 +166,12 @@ component {
 
 			event.renderData(
 				  type = "json"
-				, data = { prompt=prompt, publishable=true }
+				, data = { prompt=prompt, publishable=true, nondraft=false }
 			);
 		} else {
 			event.renderData(
 				  type = "json"
-				, data = { prompt=translateResource( "cms:frontendeditor.publish.not.required.alert" ), publishable=false }
+				, data = { prompt=translateResource( "cms:frontendeditor.publish.not.required.alert" ), publishable=false, nondraft=false }
 			);
 		}
 	}
