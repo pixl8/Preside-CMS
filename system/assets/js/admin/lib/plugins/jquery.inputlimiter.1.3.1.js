@@ -74,7 +74,12 @@
 
 		inputlimiterKeypress = function (e) {
 			var count = counter($(this).val());
-			if (!opts.allowExceed && count > opts.limit) {
+
+			if (count >= opts.limit-1 && e.which == 13) {
+				return false;
+			}
+
+			if (!opts.allowExceed && count >= opts.limit) {
 				var modifierKeyPressed = e.ctrlKey || e.altKey || e.metaKey;
 				if (!modifierKeyPressed && (e.which >= 32 && e.which <= 122) && this.selectionStart === this.selectionEnd) {
 					return false;
@@ -103,10 +108,12 @@
 				return (value.length > 0 ? $.trim(value).replace(/\ +(?= )/g, '').split(' ').length : 0);
 			}
 			var count = value.length,
-				newlines = value.match(/\n/g);
-			if (newlines && opts.lineReturnCount > 1) {
-				count += newlines.length * (opts.lineReturnCount - 1);
+				newlines = value.match(/\r\n|\n|\r/g),
+				addition = 0;
+			if (newlines != null) {
+				addition = newlines.length;
 			}
+			count += addition;
 			return count;
 		},
 
