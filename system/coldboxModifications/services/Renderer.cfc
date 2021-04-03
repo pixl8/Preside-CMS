@@ -322,7 +322,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 			viewArgs._items = max( 0, viewArgs._items - arguments.collectionStartRow + 1 );
 		}
 		// Max Rows
-		if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE arguments.collection.recordCount){
+		if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE viewArgs._items){
 			viewArgs._items = arguments.collectionMaxRows;
 		}
 
