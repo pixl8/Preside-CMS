@@ -95,7 +95,6 @@ component displayname="ImageMagick"  {
 		var shrinkToHeight    = arguments.height;
 		var widthChangeRatio  = currentImageInfo.width / shrinkToWidth;
 		var heightChangeRatio = currentImageInfo.height / shrinkToHeight;
-		var qualityArgs       = _cfToImQuality( arguments.quality );
 
 		if ( widthChangeRatio > heightChangeRatio ) {
 			shrinkToHeight = 0;
@@ -112,7 +111,7 @@ component displayname="ImageMagick"  {
 			imageMagickResize(
 				  sourceFile      = arguments.filePath
 				, destinationFile = tmpDestFilePath
-				, qualityArgs     = qualityArgs
+				, qualityArgs     = _cfToImQuality( arguments.quality );
 				, width           = shrinkToWidth
 				, height          = shrinkToHeight
 				, expand          = true
