@@ -57,8 +57,9 @@ component displayname="Image Manipulation Service" {
 		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
-		,          struct  fileProperties      = {}
+		,          string  quality        = "highPerformance"
+		,          string  padding        = ""
+		,          struct  fileProperties = {}
 	) {
 		return _getImplementation().shrinkToFit( argumentCollection = arguments);
 	}
