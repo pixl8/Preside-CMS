@@ -75,8 +75,9 @@ component {
 		try {
 			for( var transformation in transformations ) {
 				var transformationArgs = transformation.args ?: {};
-				transformationArgs.focalPoint = asset.focal_point;
-				transformationArgs.cropHint   = asset.crop_hint;
+				transformationArgs.focalPoint   = asset.focal_point;
+				transformationArgs.cropHint     = asset.crop_hint;
+				transformationArgs.resizeNoCrop = $helpers.isTrue( asset.resize_no_crop );
 
 				if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileProperties.fileext ) {
 					_applyAssetTransformation(
