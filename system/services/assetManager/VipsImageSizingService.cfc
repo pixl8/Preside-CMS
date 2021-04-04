@@ -113,6 +113,7 @@ component {
 		, required numeric height
 		,          string  quality        = "highPerformance"
 		,          string  outputFormat   = ""
+		,          string  padding        = ""
 		,          struct  fileProperties = {}
 	) {
 		var originalFileExt = fileProperties.fileExt ?: "";
@@ -167,6 +168,10 @@ component {
 			}
 		} else if ( requiresConversion ) {
 			targetFile = _thumbnail( targetFile, imageInfo, imageInfo.width, imageInfo.height, vipsQuality );
+		}
+
+		if ( len( arguments.padding ) ) {
+			targetFile = _padding( targetFile, arguments.width, arguments.height, vipsQuality, arguments.padding );
 		}
 
 		FileMove( targetFile, arguments.filePath );
@@ -332,6 +337,46 @@ component {
 		}
 
 		return newTargetFile;
+	}
+
+	private string function _padding(
+		  required string  targetFile
+		, required numeric width
+		, required numeric height
+		, required string  vipsQuality
+		, required string  padding
+	){
+		var newTargetFile = _pathFileNamePrefix( arguments.targetFile, "tn_" );
+		var size          = "#_int( arguments.width )# #_int( arguments.height )#";
+		var background    = _getPaddingBackground( arguments.targetFile, arguments.padding );
+
+		try {
+			_exec( "vips", 'gravity "#arguments.targetFile#" "#newTargetFile#[#arguments.vipsQuality#]" VIPS_COMPASS_DIRECTION_CENTRE #size# #background# --extend VIPS_EXTEND_BACKGROUND' );
+		} finally {
+			_deleteFile( arguments.targetFile );
+		}
+
+		return newTargetFile;
+	}
+
+	private string function _getPaddingBackground( required string targetFile, required string padding ) {
+		var backgroundRgb = "";
+
+		if ( arguments.padding == "auto" ) {
+			backgroundRgb = _exec( "vips", 'getpoint "#arguments.targetFile#" 0 0' );
+		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.padding ) ) {
+			backgroundRgb = [
+				  inputBaseN( mid( arguments.padding, 1, 2 ), 16 )
+				, inputBaseN( mid( arguments.padding, 3, 2 ), 16 )
+				, inputBaseN( mid( arguments.padding, 5, 2 ), 16 )
+			].toList( " " )
+		}
+
+		if ( len( backgroundRgb ) ) {
+			return '--background "#backgroundRgb#"';
+		}
+
+		return "";
 	}
 
 	private string function _crop(
