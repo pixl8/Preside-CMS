@@ -116,9 +116,9 @@ component displayname="Native Image Manipulation Service" {
 		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
+		,          string  quality        = "highPerformance"
+		,          string  padding        = ""
 		,          struct  fileProperties = {}
-
 	) {
 		var image         = "";
 		var assetBinary   = "";
@@ -151,8 +151,27 @@ component displayname="Native Image Manipulation Service" {
 			imageInfo             = ImageInfo( image );
 			fileProperties.width  = imageInfo.width;
 			fileProperties.height = imageInfo.height;
-			ImageWrite( image, arguments.filePath );
+
+			if ( len( arguments.padding ) && ( imageInfo.width < arguments.width || imageInfo.height < arguments.height ) ) {
+				var paddedImage = ImageNew( "", arguments.width, arguments.height, "rgb", _getPaddingBackground( arguments.padding ) );
+				var xPos        = floor( ( arguments.width - imageInfo.width ) / 2 );
+				var yPos        = floor( ( arguments.height - imageInfo.height ) / 2 );
+				ImagePaste( paddedImage, image, xPos, yPos );
+				ImageWrite( paddedImage, arguments.filePath );
+			} else {
+				ImageWrite( image, arguments.filePath );
+			}
 		}
+	}
+
+	private string function _getPaddingBackground( required string padding ) {
+		if ( arguments.padding == "auto" ) {
+			return "ffff00";
+		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.padding ) ) {
+			return arguments.padding;
+		}
+
+		return "none";
 	}
 
 	/**
