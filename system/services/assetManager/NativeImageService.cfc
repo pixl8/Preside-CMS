@@ -166,7 +166,7 @@ component displayname="Native Image Manipulation Service" {
 
 	private string function _getPaddingBackground( required string padding ) {
 		if ( arguments.padding == "auto" ) {
-			return "ffff00";
+			return "ffffff";
 		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.padding ) ) {
 			return arguments.padding;
 		}
