@@ -285,28 +285,30 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 
 
 		// Determine the collectionAs key
-		if( NOT len( arguments.collectionAs ) ){
+		if ( !len( arguments.collectionAs ) ) {
 			arguments.collectionAs = listLast( arguments.view, "/" );
 		}
 
 		// Array Rendering
-		if( isArray( arguments.collection ) ){
+		if ( isArray( arguments.collection ) ) {
 			recLen = arrayLen( arguments.collection );
 			// adjust item count for collectionStartRow
 			if ( arguments.collectionStartRow > 1 ) {
 				recLen = max( 0, recLen - arguments.collectionStartRow + 1 );
 			}
 			// is max rows passed?
-			if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE recLen ){ recLen = arguments.collectionMaxRows; }
+			if ( arguments.collectionMaxRows != 0 && arguments.collectionMaxRows <= recLen ) {
+				recLen = arguments.collectionMaxRows;
+			}
 			// Create local marker
 			viewArgs._items	= recLen;
 			// iterate and present
-			for( x=arguments.collectionStartRow; x lte recLen; x++ ){
+			for( x=arguments.collectionStartRow; x<=recLen; x++ ){
 				// setup local variables
-				viewArgs._counter  = x;
+				viewArgs._counter = x;
 				viewArgs[ arguments.collectionAs ] = arguments.collection[ x ];
 				// prepend the delim
-				if ( x NEQ arguments.collectionStartRow ) {
+				if ( x != arguments.collectionStartRow ) {
 					buffer.append( arguments.collectionDelim );
 				}
 				// render item composite
@@ -322,23 +324,22 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 			viewArgs._items = max( 0, viewArgs._items - arguments.collectionStartRow + 1 );
 		}
 		// Max Rows
-		if( arguments.collectionMaxRows NEQ 0 AND arguments.collectionMaxRows LTE arguments.collection.recordCount){
+		if ( arguments.collectionMaxRows != 0 && arguments.collectionMaxRows <= viewArgs._items ) {
 			viewArgs._items = arguments.collectionMaxRows;
 		}
-
 		//local counter when using startrow is greater than one and x values is reletive to lookup
 		var _localCounter = 1;
-		for( x=arguments.collectionStartRow; x lte ( arguments.collectionStartRow + viewArgs._items ) - 1; x++ ){
+		for( x=arguments.collectionStartRow; x<=( arguments.collectionStartRow + viewArgs._items ) - 1; x++ ) {
 			// setup local cvariables
-			viewArgs._counter  = _localCounter;
+			viewArgs._counter = _localCounter;
 
 			var columnList = arguments.collection.columnList;
-			for( var j=1; j <= listLen( columnList ); j++){
+			for( var j=1; j <= listLen( columnList ); j++ ) {
 				viewArgs[ arguments.collectionAs ][ ListGetAt( columnList, j ) ] = arguments.collection[ ListGetAt( columnList, j ) ][ x ];
 			}
 
 			// prepend the delim
-			if ( viewArgs._counter NEQ 1 ) {
+			if ( viewArgs._counter != 1 ) {
 				buffer.append( arguments.collectionDelim );
 			}
 
