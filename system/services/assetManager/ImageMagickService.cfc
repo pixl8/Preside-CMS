@@ -111,7 +111,7 @@ component displayname="ImageMagick"  {
 			imageMagickResize(
 				  sourceFile      = arguments.filePath
 				, destinationFile = tmpDestFilePath
-				, qualityArgs     = _cfToImQuality( arguments.quality );
+				, qualityArgs     = _cfToImQuality( arguments.quality )
 				, width           = shrinkToWidth
 				, height          = shrinkToHeight
 				, expand          = true
