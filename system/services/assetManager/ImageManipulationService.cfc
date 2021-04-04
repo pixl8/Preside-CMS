@@ -58,7 +58,7 @@ component displayname="Image Manipulation Service" {
 		, required numeric width
 		, required numeric height
 		,          string  quality        = "highPerformance"
-		,          string  padding        = ""
+		,          string  paddingColour  = ""
 		,          struct  fileProperties = {}
 	) {
 		return _getImplementation().shrinkToFit( argumentCollection = arguments);

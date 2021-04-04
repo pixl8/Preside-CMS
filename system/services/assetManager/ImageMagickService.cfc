@@ -76,8 +76,8 @@ component displayname="ImageMagick"  {
 		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
-		,          string  padding = ""
+		,          string  quality        = "highPerformance"
+		,          string  paddingColour  = ""
 		,          struct  fileProperties = {}
 	) {
 		var currentImageInfo  = JavaImageMetaReader::readMeta( arguments.filePath );
@@ -116,9 +116,9 @@ component displayname="ImageMagick"  {
 				, height          = shrinkToHeight
 				, expand          = true
 				, crop            = false
-				, padding         = arguments.padding
-				, paddedWidth     = len( arguments.padding ) ? arguments.width  : 0
-				, paddedHeight    = len( arguments.padding ) ? arguments.height : 0
+				, paddingColour   = arguments.paddingColour
+				, paddedWidth     = len( arguments.paddingColour ) ? arguments.width  : 0
+				, paddedHeight    = len( arguments.paddingColour ) ? arguments.height : 0
 			);
 			FileMove( tmpDestFilePath, arguments.filePath )
 
@@ -175,15 +175,15 @@ component displayname="ImageMagick"  {
 		, required string  qualityArgs
 		, required numeric width
 		, required numeric height
-		,          boolean expand       = false
-		,          boolean crop         = false
-		,          string  gravity      = 'center'
-		,          string  focalPoint   = ""
-		,          struct  cropHintArea = {}
-		,          struct  imageInfo    = {}
-		,          string  padding      = ""
-		,          numeric paddedWidth  = 0
-		,          numeric paddedHeight = 0
+		,          boolean expand        = false
+		,          boolean crop          = false
+		,          string  gravity       = 'center'
+		,          string  focalPoint    = ""
+		,          struct  cropHintArea  = {}
+		,          struct  imageInfo     = {}
+		,          string  paddingColour = ""
+		,          numeric paddedWidth   = 0
+		,          numeric paddedHeight  = 0
 	) {
 		var defaultSettings = "-coalesce -auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip -background {background}";
 		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings#{preCrop} -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
@@ -211,8 +211,8 @@ component displayname="ImageMagick"  {
 					, newHeight      = arguments.height
 					, focalPoint     = arguments.focalPoint
 				);
-			} else if ( arguments.padding != "" && arguments.paddedWidth && arguments.paddedHeight ) {
-				background = _getPaddingBackground( arguments.sourceFile, arguments.padding );
+			} else if ( arguments.paddingColour != "" && arguments.paddedWidth && arguments.paddedHeight ) {
+				background = _getPaddingColour( arguments.sourceFile, arguments.paddingColour );
 				gravity    = "Center";
 				extent     = " -extent #arguments.paddedWidth#x#arguments.paddedHeight#";
 				offset     = "";
@@ -304,12 +304,12 @@ component displayname="ImageMagick"  {
 		}
 	}
 
-	private string function _getPaddingBackground( required string sourceFile, required string padding ) {
-		if ( arguments.padding == "auto" ) {
+	private string function _getPaddingColour( required string sourceFile, required string paddingColour ) {
+		if ( arguments.paddingColour == "auto" ) {
 			var rgb = _exec( command="convert", args='#arguments.sourceFile#[1x1+0+0] -format "%[fx:int(255*r)],%[fx:int(255*g)],%[fx:int(255*b)]" info:' );
 			return "rgb(#rgb#)";
-		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.padding ) ) {
-			return "###arguments.padding#";
+		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.paddingColour ) ) {
+			return "###arguments.paddingColour#";
 		}
 
 		return "none";

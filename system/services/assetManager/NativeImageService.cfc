@@ -117,7 +117,7 @@ component displayname="Native Image Manipulation Service" {
 		, required numeric width
 		, required numeric height
 		,          string  quality        = "highPerformance"
-		,          string  padding        = ""
+		,          string  paddingColour  = ""
 		,          struct  fileProperties = {}
 	) {
 		var image         = "";
@@ -152,8 +152,8 @@ component displayname="Native Image Manipulation Service" {
 			fileProperties.width  = imageInfo.width;
 			fileProperties.height = imageInfo.height;
 
-			if ( len( arguments.padding ) && ( imageInfo.width < arguments.width || imageInfo.height < arguments.height ) ) {
-				var paddedImage = ImageNew( "", arguments.width, arguments.height, "rgb", _getPaddingBackground( arguments.padding ) );
+			if ( len( arguments.paddingColour ) && ( imageInfo.width < arguments.width || imageInfo.height < arguments.height ) ) {
+				var paddedImage = ImageNew( "", arguments.width, arguments.height, "rgb", _getPaddingColour( arguments.paddingColour ) );
 				var xPos        = floor( ( arguments.width - imageInfo.width ) / 2 );
 				var yPos        = floor( ( arguments.height - imageInfo.height ) / 2 );
 				ImagePaste( paddedImage, image, xPos, yPos );
@@ -164,11 +164,11 @@ component displayname="Native Image Manipulation Service" {
 		}
 	}
 
-	private string function _getPaddingBackground( required string padding ) {
-		if ( arguments.padding == "auto" ) {
+	private string function _getPaddingColour( required string paddingColour ) {
+		if ( arguments.paddingColour == "auto" ) {
 			return "ffffff";
-		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.padding ) ) {
-			return arguments.padding;
+		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.paddingColour ) ) {
+			return arguments.paddingColour;
 		}
 
 		return "none";
