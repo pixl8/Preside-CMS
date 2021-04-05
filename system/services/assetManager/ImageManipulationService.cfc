@@ -37,9 +37,15 @@ component displayname="Image Manipulation Service" {
 		,          string  focalPoint          = ""
 		,          string  cropHint            = ""
 		,          string  useCropHint         = false
+		,          string  resizeNoCrop        = false
 		,          struct  fileProperties      = {}
 	) {
 		var args = arguments;
+
+		if ( $helpers.isTrue( args.resizeNoCrop ) && args.maintainAspectRatio && val( args.width ) && val( args.height ) ) {
+			args.paddingColour = "auto";
+			return _getImplementation().shrinkToFit( argumentCollection=args );
+		}
 
 		if ( arguments.useCropHint && arguments.cropHint.len() ) {
 			args.cropHintArea = _getCropHintArea(
@@ -50,17 +56,18 @@ component displayname="Image Manipulation Service" {
 			);
 		}
 
-       	return _getImplementation().resize( argumentCollection = args);
+       	return _getImplementation().resize( argumentCollection=args );
 	}
 
 	public binary function shrinkToFit(
 		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
-		,          struct  fileProperties      = {}
+		,          string  quality        = "highPerformance"
+		,          string  paddingColour  = ""
+		,          struct  fileProperties = {}
 	) {
-		return _getImplementation().shrinkToFit( argumentCollection = arguments);
+		return _getImplementation().shrinkToFit( argumentCollection=arguments );
 	}
 
 	public binary function pdfPreview(
@@ -72,7 +79,7 @@ component displayname="Image Manipulation Service" {
 		,          string transparent
 		,          struct fileProperties      = {}
 	) {
-		return _getImplementation( vipsEnabled=false ).pdfPreview( argumentCollection = arguments );
+		return _getImplementation( vipsEnabled=false ).pdfPreview( argumentCollection=arguments );
 	}
 
 	public struct function getImageInformation( required string asset ) {

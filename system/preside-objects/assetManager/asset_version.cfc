@@ -20,6 +20,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="height"            type="numeric" dbtype="int"                       required=false;
 	property name="focal_point"       type="string"  dbtype="varchar" maxLength=15      required=false;
 	property name="crop_hint"         type="string"  dbtype="varchar" maxLength=30      required=false;
+	property name="resize_no_crop"    type="boolean" dbtype="boolean" default=false;
 
 	property name="is_trashed"   type="boolean" dbtype="boolean"               required=false default=false;
 	property name="trashed_path" type="string"  dbtype="varchar" maxLength=255 required=false;

@@ -19,6 +19,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="height"            type="numeric" dbtype="int"                       required=false;
 	property name="focal_point"       type="string"  dbtype="varchar" maxLength=15      required=false;
 	property name="crop_hint"         type="string"  dbtype="varchar" maxLength=30      required=false;
+	property name="resize_no_crop"    type="boolean" dbtype="boolean" default=false;
 	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
 	property name="is_trashed"        type="boolean" dbtype="boolean"                   required=false default=false;
