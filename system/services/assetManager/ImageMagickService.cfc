@@ -185,7 +185,7 @@ component displayname="ImageMagick"  {
 		,          numeric paddedWidth   = 0
 		,          numeric paddedHeight  = 0
 	) {
-		var defaultSettings = "-coalesce -auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip -background {background}";
+		var defaultSettings = '-coalesce -auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip -background "{background}"';
 		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings#{preCrop} -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
 		var interlace       = $getPresideSetting( "asset-manager", "imagemagick_interlace" );
 		var extent          = " -extent #arguments.width#x#arguments.height#";
@@ -306,8 +306,7 @@ component displayname="ImageMagick"  {
 
 	private string function _getPaddingColour( required string sourceFile, required string paddingColour ) {
 		if ( arguments.paddingColour == "auto" ) {
-			var rgb = _exec( command="convert", args='#arguments.sourceFile#[1x1+0+0] -format "%[fx:int(255*r)],%[fx:int(255*g)],%[fx:int(255*b)]" info:' );
-			return "rgb(#rgb#)";
+			return _exec( command="convert", args='#arguments.sourceFile#[1x1+0+0] -format "%[pixel:p{40,30}]" info:' );
 		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.paddingColour ) ) {
 			return "###arguments.paddingColour#";
 		}
