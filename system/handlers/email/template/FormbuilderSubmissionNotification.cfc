@@ -7,6 +7,8 @@ component {
 		var link      = event.buildAdminLink( linkto="formbuilder.submissions", queryString="id=" & ( arguments.submissionData.form ?: "" ) );
 		var linkTitle = translateResource( "formbuilder:email.notificatio.admin.link.text" );
 
+		rc.submissionId = arguments.submissionData.id ?: "";
+
 		return {
 			  admin_link = {
 			  	  html = '<a href="#link#">#linkTitle#</a>'
