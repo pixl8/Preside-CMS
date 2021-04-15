@@ -784,6 +784,8 @@ component {
 
 				for( field in parsedFields ){
 					if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
+						field = _getFullFieldName( field,  arguments.objectName );
+
 						var fieldEnumName = poService.getObjectPropertyAttribute(
 							  objectName    = arguments.objectName
 							, propertyName  = field
@@ -797,16 +799,11 @@ component {
 							);
 
 							for ( var e=1; e<=enumFuzzyMatches.len(); e++ ) {
-								if ( e > 1 ) {
-									delim = " or ";
-								}
-
 								filter &= delim & field & " = :enum#paramName##e>1 ? "#e#" : ""#";
 								arrayAppend( enumParamTerms, enumFuzzyMatches[e] );
+								delim = " or ";
 							}
 						}
-
-						field = _getFullFieldName( field,  arguments.objectName );
 					}
 					filter &= delim & field & " like :#paramName#";
 					delim = " or ";
@@ -852,12 +849,9 @@ component {
 								);
 
 								for ( var e=1; e<=enumFuzzyMatches.len(); e++ ) {
-									if ( e > 1 ) {
-										delim = " or ";
-									}
-
 									filter &= delim & fullFieldName & " = :enum#paramName##e>1 ? "#e#" : ""#";
 									arrayAppend( enumParamTerms, enumFuzzyMatches[e] );
+									delim = " or ";
 								}
 							}
 
