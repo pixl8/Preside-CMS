@@ -497,6 +497,33 @@ component displayName="RulesEngine Expression Service" {
 		return arguments.category;
 	}
 
+	/**
+	 * Method that returns a file path of a file
+	 * containing json representation of all expressions for the given object
+	 *
+	 */
+	public string function getExpressionsFile( string context="", string filterObject="", string excludeTags="" ) {
+		var fileName = "";
+		var filePath = GetTempDirectory();
+		var locale   = $i18n.getFwLocale();
+
+		if ( Len( arguments.context ) ) {
+			fileName = "conditionexpressions-#locale#-#arguments.context#-#Hash( excludeTags )#.json"
+		} else {
+			fileName = "filterexpressions-#locale#-#arguments.filterObject#-#Hash( excludeTags )#.json"
+		}
+		filePath &= fileName;
+
+		variables._generatedExpressionFiles = variables._generatedExpressionFiles ?: {};
+		if ( !StructKeyExists( variables._generatedExpressionFiles, fileName ) || !FileExists( filePath ) ) {
+			var expressions = listExpressions( argumentCollection=arguments );
+			FileWrite( filePath, SerializeJson( expressions ) );
+			variables._generatedExpressionFiles[ fileName ] = true;
+		}
+
+		return filePath;
+	}
+
 // PRIVATE HELPERS
 	private boolean function _findListItemInArray( required array array, required string list ) {
 		for( var listItem in listToArray( arguments.list ) ) {
