@@ -38,7 +38,7 @@ component displayname="Image Manipulation Service" {
 		,          string  cropHint            = ""
 		,          string  useCropHint         = false
 		,          struct  fileProperties      = {}
-		,          string  ignoreDimension     = false
+		,          boolean ignoreDimension     = false
 	) {
 		var args = arguments;
 
@@ -48,7 +48,7 @@ component displayname="Image Manipulation Service" {
 				, width           = args.width
 				, height          = args.height
 				, cropHint        = args.cropHint
-				, ignoreDimension = $helpers.isTrue( args.ignoreDimension )
+				, ignoreDimension = args.ignoreDimension
 			);
 		}
 
