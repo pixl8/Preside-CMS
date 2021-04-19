@@ -438,43 +438,26 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function downloadFilterExpressions( event, rc, prc ) {
-		var objectName = prc.filterObject ?: "";
-		var excludeTags = rc.excludeTags ?: "";
-		var tmpFilePath = GetTempDirectory() & "/filterexpressions-#i18n.getFwLocale()#-#objectName#-#Hash( excludeTags )#.json"
-
-		if ( !FileExists( tmpFilePath ) ) {
-			var expressions = rulesEngineExpressionService.listExpressions( filterObject=objectName, excludeTags=excludeTags );
-
-			FileWrite( tmpFilePath, SerializeJson( expressions ) );
-		}
-
-		var etag = _getEtag( tmpFilePath );
+		var objectName    = prc.filterObject ?: "";
+		var excludeTags   = rc.excludeTags ?: "";
+		var localFilePath = rulesEngineExpressionService.getExpressionsFile( filterObject=objectName, excludeTags=excludeTags );
+		var etag          = _getEtag( localFilePath );
 		_doBrowserEtagLookup( etag );
-
 		header name="cache-control" value="max-age=31536000";
 		header name="ETag" value=etag;
-		content file=tmpFilePath type="application/json";abort;
+		content file=localFilePath type="application/json";abort;
 	}
 
 	public void function downloadConditionExpressions( event, rc, prc ) {
-		var ruleContext = prc.ruleContext ?: "";
-		var excludeTags = rc.excludeTags ?: "";
-		var tmpFilePath = GetTempDirectory() & "/conditionexpressions-#i18n.getFwLocale()#-#ruleContext#-#Hash( excludeTags )#.json"
-
-		if ( !FileExists( tmpFilePath ) ) {
-			var expressions = rulesEngineExpressionService.listExpressions( context=ruleContext, excludeTags=excludeTags );
-
-			FileWrite( tmpFilePath, SerializeJson( expressions ) );
-		}
-
-		var etag = _getEtag( tmpFilePath );
+		var ruleContext   = prc.ruleContext ?: "";
+		var excludeTags   = rc.excludeTags ?: "";
+		var localFilePath = rulesEngineExpressionService.getExpressionsFile( context=ruleContext, excludeTags=excludeTags );
+		var etag          = _getEtag( localFilePath );
 		_doBrowserEtagLookup( etag );
-
 		header name="cache-control" value="max-age=31536000";
 		header name="ETag" value=etag;
-		content file=tmpFilePath type="application/json";abort;
+		content file=localFilePath type="application/json";abort;
 	}
-
 
 
 // VIWLETS
