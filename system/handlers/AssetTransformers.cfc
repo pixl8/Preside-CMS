@@ -13,4 +13,10 @@ component {
 		return imageManipulationService.pdfPreview( argumentCollection=args );
 	}
 
+	private binary function resizeCrop( event, rc, prc, args={} ) {
+		args.useCropHint      = true;
+		args.ignoreDimension  = true;
+		return imageManipulationService.resize( argumentCollection=args );
+	}
+
 }
