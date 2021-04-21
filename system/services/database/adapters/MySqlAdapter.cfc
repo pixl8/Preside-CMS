@@ -7,6 +7,8 @@ component extends="BaseAdapter" {
 // CONSTRUCTOR
 	public any function init( required query dbInfo ) {
 		_setDbInfo( arguments.dbInfo );
+		_setDbVendor();
+
 		return this;
 	}
 
@@ -251,10 +253,28 @@ component extends="BaseAdapter" {
 	}
 
 	public boolean function supportsCountOverWindowFunction() {
-		return true;
+		return _isMariaDB();
 	}
 
 	public string function getCountOverWindowFunctionSql() {
-		return "count(*) over()";
+		return _isMariaDB() ? "count(*) over()" : "null";
+	}
+
+
+// PRIVATE METHODS
+	private boolean function _isMySql() {
+		return _dbVendor=="mysql";
+	}
+	private boolean function _isMariaDB() {
+		return _dbVendor=="mariadb";
+	}
+
+	private void function _setDbVendor() {
+		var dbVersion = _getDbInfo().database_version ?: "";
+		if ( findNoCase( "MariaDB", dbVersion ) ) {
+			_dbVendor = "mariadb";
+		} else {
+			_dbVendor = "mysql";
+		}
 	}
 }
