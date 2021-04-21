@@ -2418,6 +2418,7 @@ component extends="preside.system.base.AdminHandler" {
 		var newId            = "";
 		var newRecordLink    = "";
 		var persist          = "";
+		var args             = arguments;
 
 		formData[ arguments.relationshipKey ] = arguments.parentId;
 
