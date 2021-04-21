@@ -2418,10 +2418,21 @@ component extends="preside.system.base.AdminHandler" {
 		var newId            = "";
 		var newRecordLink    = "";
 		var persist          = "";
+		var args             = arguments;
 
 		formData[ arguments.relationshipKey ] = arguments.parentId;
 
 		validationResult = validateForm( formName=arguments.formName, formData=formData, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+
+		args.formData         = formData;
+		args.validationResult = validationResult;
+		if ( customizationService.objectHasCustomization( object, "preAddRecordAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "preAddRecordAction"
+				, args       = args
+			);
+		}
 
 		if ( not validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -2436,6 +2447,15 @@ component extends="preside.system.base.AdminHandler" {
 
 		obj = presideObjectService.getObject( object );
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true );
+
+		if ( customizationService.objectHasCustomization( object, "postAddRecordAction" ) ) {
+			args.newId = newId;
+			customizationService.runCustomization(
+				  objectName = object
+				, action     = "postAddRecordAction"
+				, args       = args
+			);
+		}
 
 		if ( !redirectOnSuccess ) {
 			return newId;
