@@ -686,8 +686,29 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test35_supportsCountOverWindowFunction_shouldBeTrueForMariaDB" returntype="void">
+		<cfscript>
+			var adapter = _getAdapter( "mariadb" );
+			super.assertTrue( adapter.supportsCountOverWindowFunction() );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test35_supportsCountOverWindowFunction_shouldBeFalseForMySQL" returntype="void">
+		<cfscript>
+			var adapter = _getAdapter( "mysql" );
+			super.assertFalse( adapter.supportsCountOverWindowFunction() );
+		</cfscript>
+	</cffunction>
+
 <!--- te helpers --->
 	<cffunction name="_getAdapter" access="private" returntype="any" output="false">
-		<cfreturn new preside.system.services.database.adapters.MySqlAdapter( argumentCollection = arguments ) />
+		<cfargument name="vendor" default="MariaDB">
+		<cfscript>
+			var mockedDbInfo = querySim( "database_productname,database_version
+			    MySql | 0.0.0-#arguments.vendor#"
+			);
+
+			return new preside.system.services.database.adapters.MySqlAdapter( dbInfo=mockedDbInfo );
+		</cfscript>
 	</cffunction>
 </cfcomponent>

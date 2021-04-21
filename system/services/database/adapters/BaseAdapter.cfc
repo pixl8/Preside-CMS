@@ -1,7 +1,9 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required query dbInfo ) {
+		_setDbInfo( arguments.dbInfo );
+
 		return this;
 	}
 
@@ -498,5 +500,16 @@ component {
 
 	public string function getAllForeignKeysSql( required string database ) {
 		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getAllForeignKeysSql method." );
+	}
+
+
+	private struct function _getDbInfo() {
+		return _dbInfo;
+	}
+	private void function _setDbInfo( required query dbInfo ) {
+		for( var row in arguments.dbInfo ) {
+			_dbInfo = row;
+			return;
+		}
 	}
 }
