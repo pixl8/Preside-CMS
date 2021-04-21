@@ -10,6 +10,17 @@
 
 	$( "body" ).on( "click", "tr.clickable", function( e ){
 		if ( !linkWasClicked( e.target ) ) {
+			var anyBoxesTicked = $( this ).closest( 'table' ).find( 'tr > td:first-child input:checkbox:checked' ).length;
+
+			if ( anyBoxesTicked ) {
+				var $rowCheckbox = $( this ).find( '> td:first-child input:checkbox' );
+				if ( $rowCheckbox.length ) {
+					e.preventDefault();
+					$rowCheckbox.click();
+					return;
+				}
+			}
+
 			var $firstLink = $( this ).find( 'a.row-link:first' );
 
 			if ( !$firstLink.length ) {
