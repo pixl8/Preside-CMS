@@ -5,7 +5,9 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required query dbInfo ) {
+		_setDbInfo( arguments.dbInfo );
+
 		return this;
 	}
 

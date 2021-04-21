@@ -5,10 +5,10 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init( required boolean useVarcharMaxForText ) {
-	
+	public any function init( required query dbInfo, required boolean useVarcharMaxForText ) {
+		_setDbInfo( arguments.dbInfo );
 		_setUseVarcharMaxForText( arguments.useVarcharMaxForText );
-		
+
 		return this;
 	}
 
@@ -205,10 +205,10 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( 
+	public string function getDeleteSql(
 		  required string tableName
 		, required any    filter
-		,          string tableAlias = "" 
+		,          string tableAlias = ""
 		,          array  joins      = []
 	) {
 		var sql = "delete "
@@ -387,8 +387,8 @@ component extends="BaseAdapter" {
 	            inner join sys.foreign_key_columns as fc on f.object_id = fc.constraint_object_id
 	            inner join sys.objects             as o  on o.object_id = fc.referenced_object_id";
 	}
-	
-// GETTERS AND SETTERS	
+
+// GETTERS AND SETTERS
 	private boolean function _getUseVarcharMaxForText() {
 		return _useVarcharMaxForText;
 	}
