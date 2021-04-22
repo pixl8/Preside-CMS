@@ -898,6 +898,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockValidationRuleGenerator = createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );
 		mockFeatureService          = createEmptyMock( "preside.system.services.features.FeatureService" );
 		poService                   = _getPresideObjectService();
+		mockConfigService           = createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
 
 		mockSiteService.$( "getActiveSiteTemplate", arguments.activeSiteTemplate );
 		mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );
@@ -905,6 +906,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockFeatureService.$( "isFeatureEnabled" ).$args( "enabled-feature" ).$results( true );
 		mockFeatureService.$( "isFeatureEnabled" ).$args( "disabled-feature" ).$results( false );
 		mockFeatureService.$( "isFeatureEnabled", true );
+
+		mockConfigService.$( "saveSetting" );
 
 		var service = createMock( object=new preside.system.services.forms.FormsService(
 			  presideObjectService = poService
@@ -921,6 +924,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		service.$( "$hasAdminPermission", true );
+		service.$( "$getSystemConfigurationService", mockConfigService );
+		service.$( "$getPresideSetting", "" );
 
 		return service;
 	}
