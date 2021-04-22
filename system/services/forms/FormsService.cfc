@@ -72,8 +72,14 @@ component displayName="Forms service" {
 	 */
 	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) {
 		var forms = _getForms();
+		var existsInMemory = StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
+		var isDynamic = !existsInMemory && ReFindNoCase( "^dynamicform\-", arguments.formName );
 
-		return StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
+		if ( isDynamic ) {
+			return _lazyLoadOldDynamicForm( arguments.formName );
+		}
+
+		return existsInMemory;
 	}
 
 	/**
@@ -158,7 +164,7 @@ component displayName="Forms service" {
 			);
 		}
 
-		_registerForm( mergedName, merged );
+		_registerForm( mergedName, merged, true );
 
 		return merged;
 	}
@@ -926,7 +932,7 @@ component displayName="Forms service" {
 		}
 	}
 
-	private boolean function _registerForm( required string formName, required struct formDefinition ) {
+	private boolean function _registerForm( required string formName, required struct formDefinition, string isDynamic=false ) {
 		if ( !_itemBelongsToDisabledFeature( arguments.formDefinition ) ) {
 			_stripDisabledFeatures( arguments.formDefinition );
 
@@ -934,6 +940,14 @@ component displayName="Forms service" {
 			var ruleset = _getValidationEngine().newRuleset( name="PresideForm.#formName#", rules=_getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition ) );
 
 			forms[ formName ] = formDefinition;
+
+			if ( arguments.isDynamic ) {
+				$getSystemConfigurationService().saveSetting(
+					  category = "dynamicform"
+					, setting  = Hash( formName )
+					, value    = SerializeJson( formDefinition )
+				);
+			}
 
 			return true;
 		}
@@ -1538,6 +1552,21 @@ component displayName="Forms service" {
 		}
 
 		return defaultValue ?: "";
+	}
+
+	private boolean function _lazyLoadOldDynamicForm( required string formName ) {
+		var fromDb = $getPresideSetting( "dynamicform", Hash( formName ) );
+
+		if ( Len( Trim( fromDb ) ) ) {
+			try {
+				_registerForm( arguments.formName, DeSerializeJson( fromDb ) );
+				return true;
+			} catch( any e ) {
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 // GETTERS AND SETTERS
