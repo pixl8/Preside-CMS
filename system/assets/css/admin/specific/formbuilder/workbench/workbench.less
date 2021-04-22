@@ -59,6 +59,16 @@
 					margin-bottom    : 10px;
 					font-size        : 1.1em;
 
+					&.item-type-notfound {
+						background-color : @error-bg-red;
+						border-color     : @error-border-red;
+						color            : @error-red;
+
+						.item-type-name {
+							color : @error-red;
+						}
+					}
+
 					&.sortable-placeholder {
 						border     : 2px dashed @default-panel-border-colour;
 						min-height : 3em;
