@@ -6,7 +6,7 @@
 <cfparam name="args.isV2"          type="boolean" default="false" />
 
 <cfoutput>
-	<li class="item-type ui-draggable form-item"
+	<li class="item-type ui-draggable form-item item-type-#args.type.id#"
 	    data-id="#args.id#"
 	    data-item-template="false"
 	    data-item-type="#args.type.id#"
