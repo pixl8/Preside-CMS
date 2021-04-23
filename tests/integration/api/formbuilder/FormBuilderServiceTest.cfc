@@ -65,13 +65,13 @@ component extends="testbox.system.BaseSpec"{
 					[ "textarea", "some_field", "Some field", "A long question", "some help", "{}" ]
 				]);
 				var expectedResult = [
-					  { id="item1", type=types.a, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
-					, { id="item2", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
-					, { id="item3", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
-					, { id="item4", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
-					, { id="item5", type=types.a, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
-					, { id="item6", type=types.a, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
-					, { id="item7", type=types.b, formId=formId, questionId=questionId, configuration={ name="some_field", label="A long question", help="some help" } }
+					  { id="item1", type=types.a, formId=formId, questionId=questionId, item_type="typea", configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item2", type=types.b, formId=formId, questionId=questionId, item_type="typeb", configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item3", type=types.b, formId=formId, questionId=questionId, item_type="typeb", configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item4", type=types.b, formId=formId, questionId=questionId, item_type="typeb", configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item5", type=types.a, formId=formId, questionId=questionId, item_type="typea", configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item6", type=types.a, formId=formId, questionId=questionId, item_type="typea", configuration={ name="some_field", label="A long question", help="some help" } }
+					, { id="item7", type=types.b, formId=formId, questionId=questionId, item_type="typeb", configuration={ name="some_field", label="A long question", help="some help" } }
 				];
 
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
@@ -136,10 +136,10 @@ component extends="testbox.system.BaseSpec"{
 					, c = { test=true, something=CreateUUId() }
 				};
 				var expectedResult = [
-					  { id="item1", type=types.a, formId=formId, questionId="", configuration={} }
-					, { id="item5", type=types.a, formId=formId, questionId="", configuration={} }
-					, { id="item6", type=types.a, formId=formId, questionId="", configuration={} }
-					, { id="item7", type=types.c, formId=formId, questionId="", configuration={} }
+					  { id="item1", type=types.a, formId=formId, questionId="", item_type="typea", configuration={} }
+					, { id="item5", type=types.a, formId=formId, questionId="", item_type="typea", configuration={} }
+					, { id="item6", type=types.a, formId=formId, questionId="", item_type="typea", configuration={} }
+					, { id="item7", type=types.c, formId=formId, questionId="", item_type="typec", configuration={} }
 				];
 
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
