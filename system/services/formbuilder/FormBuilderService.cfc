@@ -89,6 +89,7 @@ component {
 					  id            = item.id
 					, formId        = item.form
 					, questionId    = item.question
+					, item_type     = item.item_type
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
 				};
@@ -160,7 +161,9 @@ component {
 	public struct function getItemByInputName( required string formId, required string inputName ) {
 		var items = getFormItems( arguments.formId );
 		for( var item in items ) {
-			if ( item.type.isFormField && ( item.configuration.name ?: "" ) == arguments.inputName ) {
+			var isFormField = item.type.isFormField ?: false;
+
+			if ( isFormField && ( item.configuration.name ?: "" ) == arguments.inputName ) {
 				return item;
 			}
 		}
@@ -511,7 +514,7 @@ component {
 			}
 
 			renderedItems.append( renderFormItem(
-				  itemType      = item.type.id
+				  itemType      = item.type.id ?: ""
 				, configuration = config
 			) );
 		}
@@ -547,6 +550,10 @@ component {
 		var renderingService = _getFormBuilderRenderingService();
 		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType, context="input" );
 		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
+
+		if ( !len( trim( renderedItem ) ) ) {
+			renderedItem = "<div class=""alert alert-notfound"">" & $translateResource( uri="formbuilder.item-types.notfound:title" ) & "</div>";
+		}
 
 		if ( StructKeyExists( arguments.configuration, "layout" ) ) {
 			var layoutArgs    = Duplicate( arguments.configuration );
@@ -728,8 +735,10 @@ component {
 		var formItems = getFormItems( id=arguments.formId );
 
 		for( var item in formItems ) {
-			var itemName = item.configuration.name ?: "";
-			if ( item.type.isFormField && Len( Trim( itemName ) ) ) {
+			var itemName    = item.configuration.name ?: "";
+			var isFormField = item.type.isFormField   ?: false;
+
+			if ( isFormField && Len( Trim( itemName ) ) ) {
 				var itemValue = getItemDataFromRequest(
 					  itemType          = item.type.id
 					, inputName         = itemName
@@ -1669,11 +1678,12 @@ component {
 		var responses       = "";
 
 		for( var i=1; i <= arguments.formItems.len(); i++ ) {
-			var formItem = formItems[i];
-			var itemName = formItem.configuration.name ?: "";
+			var formItem    = formItems[i];
+			var itemName    = formItem.configuration.name ?: "";
+			var isFormField = formItem.type.isFormField   ?: false;
 			var dataType = "";
 
-			if ( formItem.type.isFormField && StructKeyExists( arguments.formData, itemName ) ) {
+			if ( isFormField && StructKeyExists( arguments.formData, itemName ) ) {
 				var dataTypeViewlet = "formbuilder.item-types.#formItem.type.id#.getQuestionDataType";
 				var rendererViewlet = rendererService.getItemTypeViewlet(
 					  itemType = formItem.type.id
