@@ -62,7 +62,7 @@
 								$( $link.get( 0 ).form ).submit();
 							}
 							else {
-								document.location = $link.attr( "href" );
+								window.open( $link.attr( "href" ), ( $link.attr( "target" ) || '_self' ) );
 							}
 						}
 
