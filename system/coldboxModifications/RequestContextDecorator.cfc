@@ -358,7 +358,11 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 	public boolean function showNonLiveContent() {
 		try {
-			return request._showNonLiveContent;
+			if ( this.isAdminUser() ) {
+				return true;
+			} else {
+				return request._showNonLiveContent;
+			}
 		} catch( any e ) {
 			if ( this.isAdminRequest() ) {
 				request._showNonLiveContent = true;
