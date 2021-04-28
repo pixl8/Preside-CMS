@@ -360,6 +360,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		try {
 			return request._showNonLiveContent;
 		} catch( any e ) {
+			// we may get called very early in the request before this has been run.
+			// manually call it to ensure we have all the path info setup for the isAdminRequest() call, below
 			getController().getRoutingService().getCgiElement( "path_info", getRequestContext() );
 
 			if ( this.isAdminRequest() ) {
