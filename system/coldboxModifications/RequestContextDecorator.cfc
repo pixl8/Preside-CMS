@@ -360,6 +360,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		try {
 			return request._showNonLiveContent;
 		} catch( any e ) {
+			getController().getRoutingService().getCgiElement( "path_info", getRequestContext() );
+
 			if ( this.isAdminRequest() ) {
 				request._showNonLiveContent = true;
 			} else {
