@@ -32,7 +32,7 @@
 			;
 		}
 
-		presideBootbox.dialog( {
+		var confirmationDialog = presideBootbox.dialog( {
 			  title   : "Confirmation"
 			, message : $message
 			, buttons : {
@@ -60,9 +60,9 @@
 						if( confirmed ) {
 							if ( $link.get( 0 ).form ) {
 								$( $link.get( 0 ).form ).submit();
-							}
-							else {
+							} else {
 								window.open( $link.attr( "href" ), ( $link.attr( "target" ) || '_self' ) );
+								confirmationDialog.modal('hide');
 							}
 						}
 
