@@ -111,7 +111,12 @@ component implements="coldbox.system.cache.store.IObjectStore" accessors="true"{
 		} catch( any e ) {} // already gone
 
 		variables.indexer.clearAll();
-		directoryCreate( variables.directoryPath );
+
+		directoryCreate(
+			  path         = variables.directoryPath
+			, createPath   = true
+			, ignoreExists = true
+		);
 	}
 
 	/**
