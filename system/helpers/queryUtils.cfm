@@ -54,3 +54,9 @@
 		return q;
 	</cfscript>
 </cffunction>
+
+<cffunction name="obfuscateSqlForPreside" access="public" returntype="any" output="false">
+	<cfargument name="sql" type="any" required="true" default="" />
+
+	<cfreturn "{{base64:#toBase64( arguments.sql )#}}" />
+</cffunction>
