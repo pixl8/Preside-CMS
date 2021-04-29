@@ -780,8 +780,8 @@ component displayName="AssetManager Service" {
 
 		var originalFileTypeInfo = getAssetType( name=originalAsset.asset_type, throwOnMissing=true );
 		var fileTypeInfo         = getAssetType( filename=arguments.fileName, throwOnMissing=true );
-		if ( fileTypeInfo.mimeType != originalFileTypeInfo.mimeType ) {
-			throw( type="AssetManager.mismatchedMimeType", message="The mime type of the uploaded file, [#fileTypeInfo.mimeType#], does not match that of the original version [#originalFileTypeInfo.mimeType#]." );
+		if ( fileTypeInfo.groupName != originalFileTypeInfo.groupName ) {
+			throw( type="AssetManager.mismatchedGroupName", message="The type of the uploaded file, [#fileTypeInfo.groupName#], does not match that of the original version [#originalFileTypeInfo.groupName#]." );
 		}
 
 		var versionId    = CreateUUId();
