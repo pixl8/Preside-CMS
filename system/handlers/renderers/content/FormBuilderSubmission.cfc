@@ -71,7 +71,9 @@ component  {
 		}
 
 		for( var item in formItems ) {
-			if ( item.type.isFormField ) {
+			var isFormField = item.type.isFormField ?: false;
+
+			if ( isFormField ) {
 				var keyField = isV2 ? item.questionId : ( item.configuration.name ?: "" );
 				if ( StructKeyExists( responses, keyField ) ) {
 					var inputName = item.configuration.name;

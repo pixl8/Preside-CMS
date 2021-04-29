@@ -34,7 +34,7 @@
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 
-	instanceId = LCase( Hash( CallStackGet( "string" ) ) );
+	instanceId = LCase( Hash( serializeJSON( args.filterContextData ) & CallStackGet( "string" ) ) );
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	args.allowFilter  = IsTrue( args.allowFilter ?: "" );

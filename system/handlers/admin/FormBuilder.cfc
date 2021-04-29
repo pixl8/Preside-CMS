@@ -863,6 +863,16 @@ component extends="preside.system.base.AdminHandler" {
 			, args  = args
 		);
 		args.isV2 = formbuilderService.isV2Form( args.formId ?: "" );
+
+		if ( structIsEmpty( args.type ) ) {
+			args.type = {
+				  id                    = "notfound"
+				, title                 = translateResource( uri="formbuilder.item-types.notfound:description", data=[ args.item_type ?: "" ] )
+				, iconClass             = translateResource( uri="formbuilder.item-types.notfound:iconClass" )
+				, requiresConfiguration = false
+			};
+		}
+
 		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
 
