@@ -242,13 +242,6 @@ component {
 						return "date";
 					}
 				break;
-				case "numeric":
-					var dbType = fieldAttributes.dbType ?: "";
-					if ( not Len( Trim( dbType ) ) or dbType == "none" or dbType contains "int" ) {
-						return "integer";
-					}
-					return "float";
-				break;
 			}
 		}
 
