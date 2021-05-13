@@ -106,7 +106,7 @@ component displayName="Rules Engine Filter Service" {
 							if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
 								havingfields.append( rawFilter.propertyName );
 							} else {
-								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
+								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( isStruct( rawFilter.filter ?: "" ) ? "" : rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
 								if( ListLen( firstField, "." ) == 2 ) {
 									havingfields.append( firstField );
 								}
