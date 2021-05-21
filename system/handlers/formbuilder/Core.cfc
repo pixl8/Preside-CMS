@@ -13,6 +13,11 @@ component {
 			event.notFound();
 		}
 
+		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
+			var csrfErrorMessage = translateResource( uri="formbuilder.item-types.csrf_token:invalid.csrf_token.error.message" );
+			setNextEvent( url=cgi.http_referer, persistStruct={ errorMessage=csrfErrorMessage } );
+		}
+
 		var submission       = event.getCollectionWithoutSystemVars();
 		var validationResult = formBuilderService.saveFormSubmission(
 			  formId      = formId

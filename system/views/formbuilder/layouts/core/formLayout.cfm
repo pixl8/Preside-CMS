@@ -4,7 +4,13 @@
 <cfparam name="args.configuration" type="struct" />
 
 <cfoutput>
+
+	<cfif Len( Trim( rc.errorMessage ?: "" ) ) >
+		<div class="alert alert-danger">#rc.errorMessage#</div>
+	</cfif>
+
 	<form action="#event.buildLink( linkTo='formbuilder.core.submitAction' )#" id="#args.id#" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="csrfToken" value="#event.getCsrfToken()#">
 		<cfloop collection="#args#" item="argName">
 			<cfif !( [ "id", "validationJs","renderedItems", "context", "layout" ].findNoCase( argName ) ) && IsSimpleValue( args[ argName ] )>
 				<input type="hidden" name="#argName#" value="#HtmlEditFormat( args[ argName ] )#">
