@@ -84,6 +84,22 @@ component validationProvider=true {
 		return IsDate( arguments.value );
 	}
 
+	public boolean function minimumTime( required string value, required string minimumTime ) validatorMessage="cms:validation.minimumTime.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.minimumTime ) >= 0 );
+	}
+	
+	public boolean function maximumTime( required string value, required string maximumTime ) validatorMessage="cms:validation.maximumTime.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.maximumTime ) <= 0 );
+	}
+	
 	public boolean function datetime( required string value ) validatorMessage="cms:validation.date.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
