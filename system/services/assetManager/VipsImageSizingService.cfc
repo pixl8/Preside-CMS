@@ -177,6 +177,41 @@ component {
 		FileMove( targetFile, arguments.filePath );
 	}
 
+	public void function pdfPreview(
+		  required string filePath
+		,          string scale
+		,          string resolution     = 144
+		,          string format
+		,          string pages
+		,          string transparent
+		,          struct fileProperties = {}
+	) {
+		var imagePrefix    = CreateUUId();
+		var tmpDir         = GetTempDirectory();
+		var tmpFilePathPdf = tmpDir & "vips#createUUID()#.pdf";
+		var tmpFilePathJpg = tmpDir & "vips#createUUID()#.jpg";
+		var args           = '"#tmpFilePathPdf#"[dpi=#arguments.resolution#] --size 1692x2400 --eprofile srgb -o "#tmpFilePathJpg#"[strip,optimize_coding]';
+
+		FileCopy( arguments.filePath, tmpFilePathPdf );
+
+		try {
+			_exec( command="vipsthumbnail", args=args );
+
+			FileMove( tmpFilePathJpg, arguments.filePath );
+
+			var imageInfo                    = getImageInformation( arguments.filePath );
+			arguments.fileProperties.width   = imageInfo.width;
+			arguments.fileProperties.height  = imageInfo.height;
+			arguments.fileProperties.fileExt = "jpg";
+
+		} catch( any e ) {
+			rethrow;
+		} finally {
+			_deleteFile( tmpFilePathPdf );
+			_deleteFile( tmpFilePathJpg );
+		}
+	}
+
 	public struct function getImageInformation( required string filePath ) {
 		var rawInfo = Trim( _exec( command="vipsheader", args='-a "#arguments.filePath#"' ) );
 		var info = {};
