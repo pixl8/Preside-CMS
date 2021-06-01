@@ -71,8 +71,9 @@ component displayname="Image Manipulation Service" {
 		,          string pages
 		,          string transparent
 		,          struct fileProperties      = {}
+		,         boolean vipsEnabled    = true
 	) {
-		return _getImplementation( vipsEnabled=false ).pdfPreview( argumentCollection = arguments );
+		return _getImplementation( vipsEnabled=arguments.vipsEnabled ).pdfPreview( argumentCollection=arguments );
 	}
 
 	public struct function getImageInformation( required string asset ) {

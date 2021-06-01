@@ -13,13 +13,19 @@ component {
 			event.notFound();
 		}
 
-		var submission       = event.getCollectionWithoutSystemVars();
+		var submission  = event.getCollectionWithoutSystemVars();
+		var persistData = submission;
+
+		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
+			persistData.errorMessage = translateResource( uri="cms:invalidCsrfToken.error" );
+			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
+		}
+
 		var validationResult = formBuilderService.saveFormSubmission(
 			  formId      = formId
 			, requestData = submission
 			, instanceId  = ( rc.instanceId ?: "" )
 		);
-
 
 		if ( event.isAjax() ) {
 			if ( validationResult.validated() ) {
