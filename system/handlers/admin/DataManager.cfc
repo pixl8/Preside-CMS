@@ -897,6 +897,7 @@ component extends="preside.system.base.AdminHandler" {
 			, labelRenderer = labelRenderer
 			, bypassTenants = bypassTenants
 			, useCache      = useCache
+			, idField       = rc.targetIdField ?: ""
 		);
 
 		event.renderData( type="json", data=records );
