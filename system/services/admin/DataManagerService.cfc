@@ -612,7 +612,7 @@ component {
 		if (args.orderBy is 'label') {
 			args.orderBy = labelField;
 		}
-		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
+		var idField            = arguments.idField ?: _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 		if ( len( arguments.labelRenderer ) ) {
 			args.selectFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
