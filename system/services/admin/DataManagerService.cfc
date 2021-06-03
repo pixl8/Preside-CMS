@@ -597,6 +597,7 @@ component {
 		,          string  labelRenderer = ""
 		,          array   bypassTenants = []
 		,          boolean useCache      = false
+		,          string  idField       = ""
 	) {
 		var result = [];
 		var records = "";
@@ -623,7 +624,7 @@ component {
 		if (args.orderBy is 'label') {
 			args.orderBy = labelField;
 		}
-		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
+		var idField            = Len( Trim( arguments.idField ) ) ? arguments.idField : _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 		if ( len( arguments.labelRenderer ) ) {
 			args.selectFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
