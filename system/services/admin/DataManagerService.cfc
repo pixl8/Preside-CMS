@@ -586,7 +586,7 @@ component {
 		,          string  labelRenderer = ""
 		,          array   bypassTenants = []
 		,          boolean useCache      = false
-		,                  idField       = ""
+		,          string  idField       = ""
 	) {
 		var result = [];
 		var records = "";
