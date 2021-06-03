@@ -25,78 +25,86 @@ component displayName="Tenancy service" {
 		}
 
 		var tenant = ( objectMeta.tenant ?: "" ).trim();
+		var tenantItems = listToArray(tenant);
+		var lstfk = [];
+		for (var item in tenantItems){
+			tenant = item;
 
-		if ( tenant.len() ) {
-			var config = _getTenancyConfig();
-			if ( siteFiltered ) {
-			}
-
-			if ( !StructKeyExists( config, tenant ) ) {
-				throw(
-					  type    = "preside.tenancy.invalid.tenant"
-					, message = "The [#arguments.objectName#] object specified the tenant, [#tenant#], but this tenant is not amongst the configured tenants for the system."
-				);
-			}
-
-			var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
-			var tenancyObject = config[ tenant ].object;
-			var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade", control="none", adminViewGroup="system" };
-			var indexNames    = [];
-
-			objectMeta.propertyNames    = objectMeta.propertyNames ?: [];
-			objectMeta.tenancyConfig    = { fk=fk };
-			objectMeta.properties       = objectMeta.properties ?: {};
-			objectMeta.properties[ fk ] = objectMeta.properties[ fk ] ?: {};
-
-			if ( !objectMeta.propertyNames.findNoCase( fk ) ) {
-				objectMeta.propertyNames.append( fk );
-			}
-
-			for( var prop in objectMeta.properties ){
-				if ( prop == fk ) { continue; }
-
-				prop = objectMeta.properties[ prop ];
-
-				if ( Len( Trim( prop.indexes ?: "" ) ) ) {
-					var newIndexDefinition = "";
-
-					for( var ix in ListToArray( prop.indexes ) ) {
-						var indexName = ListFirst( ix, "|" ) & "|1";
-						if ( !ListFindNoCase( fkProperty.indexes, indexName ) ) {
-							fkProperty.indexes = ListAppend( fkProperty.indexes, indexName );
-						}
-
-						if ( ListLen( ix, "|" ) > 1 ) {
-							newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
-						} else {
-							newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
-						}
-					}
-
-					prop.indexes = newIndexDefinition;
+			if ( tenant.len() ) {
+				var config = _getTenancyConfig();
+				if ( siteFiltered ) {
 				}
 
-				if ( Len( Trim( prop.uniqueindexes ?: "" ) ) ) {
-					var newIndexDefinition = "";
+				if ( !StructKeyExists( config, tenant ) ) {
 
-					for( var ix in ListToArray( prop.uniqueindexes ) ) {
-						var indexName = ListFirst( ix, "|" ) & "|1";
-						if ( !ListFindNoCase( ( fkProperty.uniqueIndexes ?: "" ), indexName ) ) {
-							fkProperty.uniqueIndexes = ListAppend( ( fkProperty.uniqueIndexes ?: "" ), indexName );
+					throw(
+						type    = "preside.tenancy.invalid.tenant"
+						, message = "The [#arguments.objectName#] object specified the tenant, [#tenant#], but this tenant is not amongst the configured tenants for the system."
+					);
+				}
+
+				var fk            = findObjectTenancyForeignKey( tenant, objectMeta );
+				lstFk.append(fk);
+				var fkConfig = arrayToList(lstFk,",");
+				var tenancyObject = config[ tenant ].object;
+				var fkProperty    = { name=fk, relationship="many-to-one", relatedTo=tenancyObject, required=false, indexes="_#fk#", ondelete="cascade", onupdate="cascade", control="none", adminViewGroup="system" };
+				var indexNames    = [];
+
+				objectMeta.propertyNames    = objectMeta.propertyNames ?: [];
+				objectMeta.tenancyConfig    = { fk=fkConfig };
+				objectMeta.properties       = objectMeta.properties ?: {};
+				objectMeta.properties[ fk ] = objectMeta.properties[ fk ] ?: {};
+
+				if ( !objectMeta.propertyNames.findNoCase( fk ) ) {
+					objectMeta.propertyNames.append( fk );
+				}
+
+				for( var prop in objectMeta.properties ){
+					if ( prop == fk ) { continue; }
+
+					prop = objectMeta.properties[ prop ];
+
+					if ( Len( Trim( prop.indexes ?: "" ) ) ) {
+						var newIndexDefinition = "";
+
+						for( var ix in ListToArray( prop.indexes ) ) {
+							var indexName = ListFirst( ix, "|" ) & "|1";
+							if ( !ListFindNoCase( fkProperty.indexes, indexName ) ) {
+								fkProperty.indexes = ListAppend( fkProperty.indexes, indexName );
+							}
+
+							if ( ListLen( ix, "|" ) > 1 ) {
+								newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
+							} else {
+								newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
+							}
 						}
 
-						if ( ListLen( ix, "|" ) > 1 ) {
-							newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
-						} else {
-							newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
-						}
+						prop.indexes = newIndexDefinition;
 					}
 
-					prop.uniqueindexes = newIndexDefinition;
-				}
-			}
+					if ( Len( Trim( prop.uniqueindexes ?: "" ) ) ) {
+						var newIndexDefinition = "";
 
-			StructAppend( objectMeta.properties[ fk ], fkProperty, false );
+						for( var ix in ListToArray( prop.uniqueindexes ) ) {
+							var indexName = ListFirst( ix, "|" ) & "|1";
+							if ( !ListFindNoCase( ( fkProperty.uniqueIndexes ?: "" ), indexName ) ) {
+								fkProperty.uniqueIndexes = ListAppend( ( fkProperty.uniqueIndexes ?: "" ), indexName );
+							}
+
+							if ( ListLen( ix, "|" ) > 1 ) {
+								newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
+							} else {
+								newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
+							}
+						}
+
+						prop.uniqueindexes = newIndexDefinition;
+					}
+				}
+
+				StructAppend( objectMeta.properties[ fk ], fkProperty, false );
+			}
 		}
 	}
 
@@ -147,62 +155,78 @@ component displayName="Tenancy service" {
 
 	public string function getTenancyCacheKey( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
 		var tenant = getObjectTenant( arguments.objectName );
-
-		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
-			return "-" & ( arguments.tenantIds[ tenant ] ?: getTenantId( tenant ) );
+		var tenantItems = listToArray(tenant);
+		var cacheTenant = "";
+		for (var item in tenantItems){
+			tenant = item;
+			if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
+				cacheTenant = cacheTenant & "-" & ( arguments.tenantIds[ tenant ] ?: getTenantId( tenant ) );
+			}
 		}
-
-		return "";
+		return cacheTenant;
 	}
 
 	public struct function getTenancyFieldsForInsertData( required string objectName, array bypassTenants=[] ) {
 		var tenant = getObjectTenant( arguments.objectName );
 		var fields = {};
+		var tenantItems = listToArray(tenant);
+		var lstFk = listToArray(getTenantFkForObject( arguments.objectName));
 
-		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
-			var fk       = getTenantFkForObject( arguments.objectName );
-			var tenantId = getTenantId( tenant );
-
-			fields[ fk ] = tenantId;
+		for (i = 1; i <= tenantItems.len(); i++){
+			tenant = tenantItems[i];
+			if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
+				var fk       = lstFk[i];
+				var tenantId = getTenantId( tenant );
+				fields[ fk ] = tenantId;
+			}
 		}
-
 		return fields;
 	}
 
 	public struct function getTenancyFilter( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
 		var tenant = getObjectTenant( arguments.objectName );
-
-		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
-			var fk            = getTenantFkForObject( arguments.objectName );
-			var tenantId      = arguments.tenantIds[ tenant ] ?: getTenantId( tenant );
-			var config        = _getTenancyConfig();
-			var filterHandler = config[ tenant ].getFilterHandler ?: "tenancy.#tenant#.getFilter";
-			var coldbox       = $getColdbox();
-			var defaultFilter = { filter={ "#arguments.objectName#.#fk#"=tenantId } };
-
-			if ( coldbox.handlerExists( filterHandler ) ) {
-				var filter = coldbox.runEvent(
-					  event          = filterHandler
-					, private        = true
-					, prePostExempt  = true
-					, eventArguments = {
-						  objectName    = arguments.objectName
-						, fk            = fk
-						, defaultFilter = defaultFilter
-						, tenantId      = tenantId
-					  }
-				);
-
-				if ( IsNull( local.filter ) ) {
-					return defaultFilter;
+		var tenantItems = listToArray(tenant);
+		var returnNull = true;
+		var filter = {filter={}};
+		var lstFk = listToArray(getTenantFkForObject( arguments.objectName));
+		for (i = 1; i <= tenantItems.len(); i++) {
+			tenant = tenantItems[i];
+			returnNull=false;
+			if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
+				var fk            = lstFk[i];
+				var tenantId      = arguments.tenantIds[ tenant ] ?: getTenantId( tenant );
+				var config        = _getTenancyConfig();
+				var filterHandler = config[ tenant ].getFilterHandler ?: "tenancy.#tenant#.getFilter";
+				var coldbox       = $getColdbox();
+				var defaultFilter = { filter={ "#arguments.objectName#.#fk#"=tenantId } };
+				var defaultFilterItem =  {"#arguments.objectName#.#fk#"=tenantId};
+				if ( coldbox.handlerExists( filterHandler ) ) {
+					var filterItem = coldbox.runEvent(
+						event          = filterHandler
+						, private        = true
+						, prePostExempt  = true
+						, eventArguments = {
+							objectName    = arguments.objectName
+							, fk            = fk
+							, defaultFilter = defaultFilter
+							, tenantId      = tenantId
+						}
+					);
+					if ( IsNull( local.filter ) ) {
+						filter.filter.append(defaultFilterItem);
+					}
+					else{
+						filter.filter.append(filterItem);
+					}
 				}
-
-				return filter;
+				else{
+					filter.filter.append(defaultFilterItem);
+				}
 			}
-
-			return defaultFilter;
 		}
-
+		if(!returnNull){
+			return filter;
+		}
 		return {};
 	}
 
