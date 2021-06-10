@@ -8,7 +8,8 @@ component {
 	variables._lib   = [];
 	variables._jsoup = "";
 
-	property name="styleCache" inject="cachebox:emailStyleInlinerCache";
+	property name="styleCache"    inject="cachebox:emailStyleInlinerCache";
+	property name="templateCache" inject="cachebox:emailTemplateCache";
 
 	public any function init() {
 		_jsoup = _new( "org.jsoup.Jsoup" );
@@ -25,6 +26,13 @@ component {
 	 * @html.hint the original HTML
 	 */
 	public string function inlineStyles( required string html, array styles ) {
+		var cacheKey = "htmlInlineStyles-#Hash( arguments.html )#";
+		var fromCache = templateCache.get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
 		var doc           = _jsoup.parse( arguments.html );
 		if ( !StructKeyExists( arguments, "styles" ) ) {
 			arguments.styles = readStyles( doc );
@@ -35,7 +43,11 @@ component {
 			elementStyle.element.attr( "style", elementStyle.style );
 		}
 
-		return doc.toString();
+		var result = doc.toString();
+
+		templateCache.set( cacheKey, result );
+
+		return result;
 	}
 
 	/**
