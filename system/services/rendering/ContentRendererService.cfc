@@ -260,7 +260,7 @@ component {
 		return fieldAttributes.type ?: "";
 	}
 
-	public string function renderEmbeddedImages( required string richContent, string context="richeditor" ) {
+	public string function renderEmbeddedImages( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedImage   = "";
 		var renderedImage   = "";
 		var renderedContent = arguments.richContent;
@@ -299,6 +299,16 @@ component {
 					_getRenderedAssetCache().set( cacheKey, renderedImage );
 				}
 
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedImage;
+					renderedImage = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
+
 				renderedContent = Replace( renderedContent, embeddedImage.placeholder, renderedImage, "all" );
 			}
 
@@ -307,7 +317,7 @@ component {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor" ) {
+	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedAttachment   = "";
 		var renderedAttachment   = "";
 		var renderedContent = arguments.richContent;
@@ -315,7 +325,7 @@ component {
 		do {
 			embeddedAttachment = _findNextEmbeddedAttachment( renderedContent );
 
-			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) ) {
+			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) && Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
 				var args = Duplicate( embeddedAttachment );
 
 				args.delete( "asset" );
@@ -326,9 +336,17 @@ component {
 					, context = arguments.context
 					, args    = args
 				);
-			}
 
-			if ( Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedAttachment;
+					renderedAttachment = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
+
 				renderedContent = Replace( renderedContent, embeddedAttachment.placeholder, renderedAttachment, "all" );
 			}
 
@@ -346,7 +364,7 @@ component {
 		}
 	}
 
-	public string function renderEmbeddedWidgets( required string richContent, string context="" ) {
+	public string function renderEmbeddedWidgets( required string richContent, string context="", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedWidget      = "";
 		var renderedWidget      = "";
 		var renderedContent = arguments.richContent;
@@ -356,10 +374,20 @@ component {
 
 			if ( StructCount( embeddedWidget ) ) {
 				renderedWidget = _getWidgetsService().renderWidget(
-					  widgetId = embeddedWidget.id
-					, configJson     = embeddedWidget.configJson
-					, context        = arguments.context
+					  widgetId   = embeddedWidget.id
+					, configJson = embeddedWidget.configJson
+					, context    = arguments.context
 				);
+
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedWidget;
+					renderedWidget = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
 
 				renderedContent = Replace( renderedContent, embeddedWidget.placeholder, renderedWidget, "all" );
 			}
@@ -369,7 +397,7 @@ component {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedLinks( required string richContent ) {
+	public string function renderEmbeddedLinks( required string richContent, string postProcessor="", struct postProcessorArgs={} ) {
 		var renderedContent = arguments.richContent;
 		var embeddedLink    = "";
 		var renderedLink    = "";
@@ -399,6 +427,15 @@ component {
 			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedLink;
+					renderedLink = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
 				renderedContent = Replace( renderedContent, embeddedLink.placeholder, renderedLink, "all" );
 			}
 

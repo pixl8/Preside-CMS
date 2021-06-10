@@ -25,6 +25,7 @@ component {
 	 * @emailStyleInliner.inject          emailStyleInliner
 	 * @assetManagerService.inject        assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
+	 * @templateCache.inject              cachebox:emailTemplateCache
 	 *
 	 */
 	public any function init(
@@ -35,6 +36,7 @@ component {
 		, required any assetManagerService
 		, required any emailStyleInliner
 		, required any emailSettings
+		, required any templateCache
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
@@ -43,6 +45,7 @@ component {
 		_setEmailStyleInliner( arguments.emailStyleInliner );
 		_setAssetManagerService( arguments.assetManagerService );
 		_setEmailSettings( arguments.emailSettings );
+		_setTemplateCache( arguments.templateCache );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -93,22 +96,13 @@ component {
 			, template      = messageTemplate
 		);
 		try {
-			var params = Duplicate( arguments.parameters );
-			params.append( prepareParameters(
-				  template       = arguments.template
-				, recipientType  = messageTemplate.recipient_type
-				, recipientId    = arguments.recipientId
-				, args           = arguments.args
-				, templateDetail = messageTemplate
-			) );
-
 			var unsubscribeLink = _getEmailRecipientTypeService().getUnsubscribeLink(
 				  recipientType = messageTemplate.recipient_type
 				, recipientId   = arguments.recipientId
 				, templateId    = arguments.template
 			);
 			var message = {
-				  subject     = replaceParameterTokens( messageTemplate.subject, params, "text" )
+				  subject     = messageTemplate.subject
 				, from        = messageTemplate.from_address
 				, to          = arguments.to
 				, cc          = arguments.cc
@@ -116,6 +110,7 @@ component {
 				, params      = arguments.messageHeaders
 				, attachments = arguments.attachments
 			};
+			var viewOnline = ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online );
 
 			if ( !message.to.len() ) {
 				message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
@@ -133,40 +128,43 @@ component {
 				), true );
 			}
 
-			var body = $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" );
-			var plainTextArgs = {
-				  layout        = messageTemplate.layout
-				, emailTemplate = arguments.template
+			message.textBody = _getEmailLayoutService().renderLayout(
+				  layout         = messageTemplate.layout
+				, emailTemplate  = arguments.template
 				, templateDetail = messageTemplate
-				, blueprint     = messageTemplate.email_blueprint
-				, type          = "text"
-				, subject       = message.subject
-				, body          = messageTemplate.text_body
-			};
-			var htmlArgs = {
-				  layout          = messageTemplate.layout
-				, emailTemplate   = arguments.template
-				, templateDetail   = messageTemplate
-				, blueprint       = messageTemplate.email_blueprint
-				, type            = "html"
-				, subject         = message.subject
-				, body            = body
-				, unsubscribeLink = unsubscribeLink
-			};
-			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
+				, blueprint      = messageTemplate.email_blueprint
+				, type           = "text"
+				, subject        = message.subject
+				, body           = messageTemplate.text_body
+				, viewOnlineLink = viewOnline ? "{{viewonline}}" : ""
+			);
 
-			if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
-				htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
-				message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-				message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-			}
+			var preppedHtml = _prepareHtml(
+				  argumentCollection = arguments
+				, message            = message
+				, messageTemplate    = messageTemplate
+				, unsubscribeLink    = unsubscribeLink
+				, viewOnline         = viewOnline
+			);
+			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
 
-			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
+			var params = Duplicate( arguments.parameters );
+			params.append( prepareParameters(
+				  template       = arguments.template
+				, recipientType  = messageTemplate.recipient_type
+				, recipientId    = arguments.recipientId
+				, args           = arguments.args
+				, templateDetail = messageTemplate
+			) );
+
+			message.subject  = replaceParameterTokens( message.subject , params, "text" );
 			message.textBody = replaceParameterTokens( message.textBody, params, "text" );
+			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html", preppedHtml.styles );
 
-			if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
-				message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+			if ( viewOnline ) {
+				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+				message.htmlBody = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
+				message.textBody = replace( message.textBody, "{{viewonline}}", viewOnlineLink );
 			}
 
 			if ( Len( Trim( unsubscribeLink ) ) && !StructKeyExists( message.params, "List-Unsubscribe" ) ) {
@@ -181,6 +179,27 @@ component {
 		}
 
 		return message;
+	}
+
+	/**
+	 * Method to allow post processing on dynamic email
+	 * content snippets - i.e. inlining css styles into
+	 * generated content.
+	 *
+	 * @autodoc     true
+	 * @html.hint   HTML to process
+	 * @styles.hint Array of styles to apply when using emailStyleInliner feature (previously extracted from emailStyleInliner.readStyles( html ))
+	 *
+	 */
+	public string function renderHtmlSnippet(
+		  required string html
+		,          array  styles = []
+	) {
+		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
+			return _getEmailStyleInliner().inlineStyles( arguments.html, arguments.styles );
+		}
+
+		return arguments.html;
 	}
 
 	/**
@@ -1423,8 +1442,52 @@ component {
 		);
 	}
 
+// PRIVATE HELPERS
 	private string function _addIFrameBaseLinkTagForPreviewHtml( required string html ) {
 		return html.replace( "</head>", '<base target="_parent"></head>' );
+	}
+
+	private struct function _prepareHtml(
+		  message
+		, messageTemplate
+		, unsubscribeLink
+		, template
+		, viewOnline
+	) {
+		var cacheKey = "rawhtml" & arguments.template;
+		var fromCache = _getTemplateCache().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var htmlArgs = {
+			  layout          = arguments.messageTemplate.layout
+			, emailTemplate   = arguments.template
+			, templateDetail  = arguments.messageTemplate
+			, blueprint       = arguments.messageTemplate.email_blueprint
+			, type            = "html"
+			, subject         = arguments.message.subject
+			, body            = arguments.messageTemplate.html_body
+			, unsubscribeLink = arguments.unsubscribeLink
+			, viewOnlineLink  = arguments.viewOnline ? "{{viewonline}}" : ""
+		};
+
+		var html = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
+
+		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
+			var styles = _getEmailStyleInliner().readStyles( html );
+			html = _getEmailStyleInliner().inlineStyles( html, styles );
+		}
+
+		var result = {
+			  html   = html
+			, styles = ( styles ?: [] )
+		};
+
+		_getTemplateCache().set( cacheKey, result );
+
+		return result;
 	}
 
 // GETTERS AND SETTERS
@@ -1475,5 +1538,12 @@ component {
 	}
 	private void function _setEmailSettings( required any emailSettings ) {
 		_emailSettings = arguments.emailSettings;
+	}
+
+	private any function _getTemplateCache() {
+	    return _templateCache;
+	}
+	private void function _setTemplateCache( required any templateCache ) {
+	    _templateCache = arguments.templateCache;
 	}
 }

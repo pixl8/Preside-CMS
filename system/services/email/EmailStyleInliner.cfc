@@ -8,6 +8,8 @@ component {
 	variables._lib   = [];
 	variables._jsoup = "";
 
+	property name="styleCache" inject="cachebox:emailStyleInlinerCache";
+
 	public any function init() {
 		_jsoup = _new( "org.jsoup.Jsoup" );
 
@@ -22,9 +24,12 @@ component {
 	 * @autodoc   true
 	 * @html.hint the original HTML
 	 */
-	public string function inlineStyles( required string html ) {
+	public string function inlineStyles( required string html, array styles ) {
 		var doc           = _jsoup.parse( arguments.html );
-		var elementStyles = _getElementsWithStylesToApply( doc );
+		if ( !StructKeyExists( arguments, "styles" ) ) {
+			arguments.styles = readStyles( doc );
+		}
+		var elementStyles = _getElementsWithStylesToApply( doc, arguments.styles );
 
 		for( var elementStyle in elementStyles ) {
 			elementStyle.element.attr( "style", elementStyle.style );
@@ -33,20 +38,26 @@ component {
 		return doc.toString();
 	}
 
-	private any function _new( required string className ) {
-		return CreateObject( "java", arguments.className, _getLib() );
-	}
-
-	private array function _getLib() {
-		if ( !_lib.len() ) {
-			var libDir = GetDirectoryFromPath( getCurrentTemplatePath() ) & "/lib";
-			_lib = DirectoryList( libDir, false, "path", "*.jar" );
+	/**
+	 * Recieves an html string or jSoup doc and returns an array
+	 * of style rules found
+	 *
+	 * @autodoc   true
+	 * @doc.hint  the original HTML, or a jSoup doc
+	 */
+	public array function readStyles( required any doc ) {
+		if ( IsSimpleValue( arguments.doc ) ) {
+			arguments.doc = _jsoup.parse( arguments.doc );
 		}
-		return _lib;
-	}
 
-	private array function _readStyles( required any doc ) {
 		var styleElements = doc.select( "style" );
+		var cacheKey = "stylescache-" & Hash( styleElements.toString() );
+		var fromCache = styleCache.get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
 		var ruleDelims    = "{}";
 		var styles        = [];
 
@@ -76,11 +87,28 @@ component {
 			}
 		}
 
-		return _orderStylesBySelectorPrecedence( styles );
+		styles = _orderStylesBySelectorPrecedence( styles );
+
+		styleCache.set( cacheKey, styles );
+
+		return styles;
 	}
 
-	private array function _getElementsWithStylesToApply( required any doc ) {
-		var styles        = _readStyles( doc );
+// PRIVATE HELPERS
+
+	private any function _new( required string className ) {
+		return CreateObject( "java", arguments.className, _getLib() );
+	}
+
+	private array function _getLib() {
+		if ( !_lib.len() ) {
+			var libDir = GetDirectoryFromPath( getCurrentTemplatePath() ) & "/lib";
+			_lib = DirectoryList( libDir, false, "path", "*.jar" );
+		}
+		return _lib;
+	}
+
+	private array function _getElementsWithStylesToApply( required any doc, required array styles ) {
 		var elems         = [];
 		var elemStyles    = [];
 

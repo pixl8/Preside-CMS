@@ -134,6 +134,34 @@ component {
 						, maxObjects                     = 10000
 						, objectStore                    = "ConcurrentStore"
 					}
+				},
+
+				emailStyleInlinerCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 120
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 20
+						, maxObjects                     = 100
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
+
+				emailTemplateCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 120
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 20
+						, maxObjects                     = 2000
+						, objectStore                    = "ConcurrentStore"
+					}
 				}
 			}
 		};
