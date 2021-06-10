@@ -120,22 +120,22 @@ component {
 			}
 
 			for ( var selectedElem in selectedElements ) {
-				var index = elems.find( selectedElem );
+				var index = ArrayFind( elems, selectedElem );
 				if ( !index ) {
-					elems.append( selectedElem );
-					elemStyles.append( StructNew( "linked" ) );
-					index = elems.len();
+					ArrayAppend( elems, selectedElem );
+					ArrayAppend( elemStyles, StructNew( "linked" ) );
+					index = ArrayLen( elems );
 				}
 				var elemStyle = elemStyles[ index ];
 
 
-				if ( !elemStyle.count() ) {
-					var existingInlineStyles = selectedElem.attr( "style" ).listToArray( ";" );
+				if ( !StructCount( elemStyle ) ) {
+					var existingInlineStyles = ListToArray( selectedElem.attr( "style" ), ";" );
 					for( var existingInlineStyle in existingInlineStyles ) {
-						existingInlineStyle = existingInlineStyle.trim();
+						existingInlineStyle = Trim(  existingInlineStyle );
 						if ( existingInlineStyle.len() ) {
-							var prop  = existingInlineStyle.listFirst( ":" ).trim();
-							var value = existingInlineStyle.listRest( ":" ).trim();
+							var prop  = Trim( ListFirst( existingInlineStyle, ":" ) );
+							var value = Trim( ListRest( existingInlineStyle, ":" ) );
 
 							elemStyle[ prop ] = {
 								  value = value
@@ -145,8 +145,8 @@ component {
 					}
 				}
 
-				var prop  = style.rule.listFirst( ":" ).trim();
-				var value = style.rule.listRest( ":" ).trim();
+				var prop  = Trim( ListFirst( style.rule, ":" ) );
+				var value = Trim( ListRest( style.rule, ":" ) );
 
 				if ( !StructKeyExists( elemStyle, prop ) || _compareScores( elemStyle[ prop ].score, style.score ) == 1 ) {
 					elemStyle[ prop ] = {
@@ -161,7 +161,7 @@ component {
 		for( var elem in elemStyles ) {
 			var style = "";
 			for( var prop in elem ) {
-				style = style.listAppend( "#prop#:#elem[ prop ].value#", ";" );
+				style = ListAppend( style, "#prop#:#elem[ prop ].value#", ";" );
 			}
 
 			elems[ index ] = {
@@ -197,21 +197,21 @@ component {
 
 	private array function _scoreStylePrecedence( required string selector, required string rule ) {
 		var score          = [ 0, 0, 0, 0, 0 ];
-		var selectorTokens = selector.listToArray( " >+" );
+		var selectorTokens = ListToArray( selector," >+" );
 
 		for( var selectorToken in selectorTokens ) {
 			selectorToken = Trim( selectorToken );
 
-			if ( selectorToken.reFind( "^##" ) ) {
+			if ( ReFind( "^##", selectorToken ) ) {
 				score[ 3 ]++;
-			} else if ( selectorToken.reFind( "^\." ) ) {
+			} else if ( ReFind( "^\.", selectorToken ) ) {
 				score[ 4 ]++;
 			} else {
 				score[ 5 ]++;
 			}
 		}
 
-		if ( rule.trim().contains( "!important" ) ) {
+		if ( Trim( rule ) contains "!important" ) {
 			score[ 1 ]++;
 		}
 
@@ -220,24 +220,24 @@ component {
 
 
 	private string function _concatenateStyles( required string oldStyles, required string newStyles ) {
-		var concatenated = oldStyles.trim();
+		var concatenated = Trim( oldStyles );
 
 		if ( !concatenated.endsWith( ";" ) ) {
 			concatenated &= ";";
 		}
 
-		concatenated &= newStyles.trim();
+		concatenated &= Trim( newStyles );
 
 		return concatenated;
 	}
 
 	private string function _cleanupStyleWhiteSpace( required string style ) {
-		var cleanedUp = style.trim();
+		var cleanedUp = Trim( style );
 
-		cleanedUp = cleanedUp.reReplace( "\s{2,}", " ", "all" );
-		cleanedUp = cleanedUp.reReplace( "\s:", ":", "all" );
-		cleanedUp = cleanedUp.reReplace( ":\s", ":", "all" );
-		cleanedUp = cleanedUp.reReplace( ";$", "" );
+		cleanedUp = ReReplace( cleanedUp, "\s{2,}", " ", "all" );
+		cleanedUp = ReReplace( cleanedUp, "\s:", ":", "all" );
+		cleanedUp = ReReplace( cleanedUp, ":\s", ":", "all" );
+		cleanedUp = ReReplace( cleanedUp, ";$", "" );
 
 		return cleanedUp;
 	}
