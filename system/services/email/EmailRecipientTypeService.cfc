@@ -123,6 +123,7 @@ component displayName="Email Recipient Type Service" {
 	 * @args.hint           Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to prepare the params. e.g. { userId=idofUserToSendEmailTo }.
 	 * @template.hint       ID of the template being prepared
 	 * @templateDetail.hint Structure with details of the template being prepared
+	 * @detectedParams.hint Array of parameter names that have been detected in the content - providers can use this to restrict the rendering of parameters to only those necessary
 	 */
 	public struct function prepareParameters(
 		  required string recipientType
@@ -130,6 +131,7 @@ component displayName="Email Recipient Type Service" {
 		,          struct args           = {}
 		,          string template       = ""
 		,          struct templateDetail = {}
+		,          array  detectedParams
 	) {
 		var handlerAction = "email.recipientType.#recipientType#.prepareParameters";
 
@@ -143,6 +145,7 @@ component displayName="Email Recipient Type Service" {
 					, recipientId    = arguments.recipientId
 					, template       = arguments.template
 					, templateDetail = arguments.templateDetail
+					, detectedParams = arguments.detectedParams ?: NullValue()
 				  }
 			);
 		}

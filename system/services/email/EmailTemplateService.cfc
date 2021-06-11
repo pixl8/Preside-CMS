@@ -156,6 +156,7 @@ component {
 				, args           = arguments.args
 				, templateDetail = messageTemplate
 				, styles         = preppedHtml.styles
+				, detectedParams = _detectParams( message.htmlBody & message.textBody & message.subject )
 			) );
 
 			message.subject  = replaceParameterTokens( message.subject , params, "text" );
@@ -579,6 +580,7 @@ component {
 	 * @args           Structure of variables that are being used to send / prepare the email
 	 * @templateDetail Structure the template record
 	 * @styles         Used to do style inlining in any prepared html when feature enabled
+	 * @detectedParams Parameters detected in the content that are required to be swapped out
 	 */
 	public struct function prepareParameters(
 		  required string template
@@ -587,19 +589,27 @@ component {
 		, required struct args
 		,          struct templateDetail = {}
 		,          array  styles = []
+		,          array  detectedParams
 	) {
+		var anythingToDo = !StructKeyExists( arguments, "detectedParams" ) || ArrayLen( arguments.detectedParams );
+		if ( !anythingToDo ) {
+			return {};
+		}
+
 		var params = _getEmailRecipientTypeService().prepareParameters(
 			  recipientType  = arguments.recipientType
 			, recipientId    = arguments.recipientId
 			, args           = arguments.args
 			, template       = arguments.template
 			, templateDetail = arguments.templateDetail
+			, detectedParams = arguments.detectedParams ?: NullValue()
 		);
 		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
 			params.append( _getSystemEmailTemplateService().prepareParameters(
 				  template       = arguments.template
 				, args           = arguments.args
 				, templateDetail = arguments.templateDetail
+				, detectedParams = arguments.detectedParams ?: NullValue()
 			) );
 		}
 
@@ -1501,6 +1511,18 @@ component {
 		_getTemplateCache().set( cacheKey, result );
 
 		return result;
+	}
+
+	private array function _detectParams( required string content ) {
+		var regexPattern = "\$\{([a-zA-Z_\-0-9]+)\}";
+		var rawMatches   = ReMatch( regexPattern, arguments.content );
+		var params = [];
+
+		for( var rawMatch in rawMatches ) {
+			ArrayAppend( params, ReReplace( rawMatch, regexPattern, "\1" ) );
+		}
+
+		return params;
 	}
 
 // GETTERS AND SETTERS
