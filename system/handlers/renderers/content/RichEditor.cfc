@@ -19,8 +19,32 @@ component {
 	}
 
 	public string function email( event, rc, prc, args={} ){
-		args.data = args.data ?: "";
-		args.data = contentRendererService.renderEmbeddedWidgets( richContent=args.data, context="email" );
-		return default( argumentCollection=arguments );
+		var content = ( args.data ?: "" );
+
+		content = contentRendererService.renderEmbeddedWidgets(
+			  richContent       = content
+			, context           = "email"
+			, postProcessor     = "email.renderHelper.renderHtmlSnippet"
+			, postProcessorArgs = args
+		);
+		content = contentRendererService.renderEmbeddedImages(
+			  richContent       = content
+			, context           = "richeditor"
+			, postProcessor     = "email.renderHelper.renderHtmlSnippet"
+			, postProcessorArgs = args
+		);
+		content = contentRendererService.renderEmbeddedAttachments(
+			  richContent       = content
+			, context           = "richeditor"
+			, postProcessor     = "email.renderHelper.renderHtmlSnippet"
+			, postProcessorArgs = args
+		);
+		content = contentRendererService.renderEmbeddedLinks(
+			  richContent       = content
+			, postProcessor     = "email.renderHelper.renderHtmlSnippet"
+			, postProcessorArgs = args
+		);
+
+		return content;
 	}
 }
