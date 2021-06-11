@@ -8,11 +8,18 @@ component {
 	variables._lib   = [];
 	variables._jsoup = "";
 
-	property name="styleCache"    inject="cachebox:emailStyleInlinerCache";
-	property name="templateCache" inject="cachebox:emailTemplateCache";
-
-	public any function init() {
+	/**
+	 * @styleCache.inject    cachebox:emailStyleInlinerCache
+	 * @templateCache.inject cachebox:emailTemplateCache
+	 */
+	public any function init(
+		  required any styleCache
+		, required any templateCache
+	) {
 		_jsoup = _new( "org.jsoup.Jsoup" );
+
+		_setStyleCache( arguments.styleCache );
+		_setTemplateCache( arguments.templateCache );
 
 		return this;
 	}
@@ -27,7 +34,7 @@ component {
 	 */
 	public string function inlineStyles( required string html, array styles ) {
 		var cacheKey = "htmlInlineStyles-#Hash( arguments.html )#";
-		var fromCache = templateCache.get( cacheKey );
+		var fromCache = _getTemplateCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
 			return fromCache;
@@ -45,7 +52,7 @@ component {
 
 		var result = doc.toString();
 
-		templateCache.set( cacheKey, result );
+		_getTemplateCache().set( cacheKey, result );
 
 		return result;
 	}
@@ -64,7 +71,7 @@ component {
 
 		var styleElements = doc.select( "style" );
 		var cacheKey = "stylescache-" & Hash( styleElements.toString() );
-		var fromCache = styleCache.get( cacheKey );
+		var fromCache = _getStyleCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
 			return fromCache;
@@ -101,7 +108,7 @@ component {
 
 		styles = _orderStylesBySelectorPrecedence( styles );
 
-		styleCache.set( cacheKey, styles );
+		_getStyleCache().set( cacheKey, styles );
 
 		return styles;
 	}
@@ -252,6 +259,21 @@ component {
 		cleanedUp = ReReplace( cleanedUp, ";$", "" );
 
 		return cleanedUp;
+	}
+
+// GETTERS AND SETTERS
+	private any function _getStyleCache() {
+	    return _styleCache;
+	}
+	private void function _setStyleCache( required any styleCache ) {
+	    _styleCache = arguments.styleCache;
+	}
+
+	private any function _getTemplateCache() {
+	    return _templateCache;
+	}
+	private void function _setTemplateCache( required any templateCache ) {
+	    _templateCache = arguments.templateCache;
 	}
 
 }

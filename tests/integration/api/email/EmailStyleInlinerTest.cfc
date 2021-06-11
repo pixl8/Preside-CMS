@@ -1,7 +1,13 @@
 component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	function run() {
-		var inliner = new preside.system.services.email.EmailStyleInliner();
+		var mockCache = CreateStub();
+		var inliner = new preside.system.services.email.EmailStyleInliner( templateCache=mockCache, styleCache=mockCache );
+
+		mockCache.$( "get" );
+		mockCache.$( "set" );
+		mockCache.$( "clear" );
+		mockCache.$( "clearAll" );
 
 		describe( "inlineStyles()", function(){
 			it( "should take all styles defined in &lt;style&gt; tags and make them inline in HTML elements", function(){

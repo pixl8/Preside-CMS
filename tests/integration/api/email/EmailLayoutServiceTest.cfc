@@ -394,6 +394,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	){
 		variables.mockViewletsService = createEmptyMock( "preside.system.services.viewlets.ViewletsService" );
 		variables.mockFormsService    = createEmptyMock( "preside.system.services.forms.FormsService" );
+		variables.mockCache           = createStub();
 		variables.mockConfigDao       = createStub();
 
 		mockViewletsService.$( "listPossibleViewlets" ).$args( filter="email\.layout\.(.*?)\.(html|text)" ).$results( layoutViewlets );
@@ -401,10 +402,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		var service = createMock( object=new preside.system.services.email.EmailLayoutService(
 			  viewletsService = mockViewletsService
 			, formsService    = mockFormsService
+			, templateCache   = mockCache
 		) );
 
 		service.$( "$getPresideObject" ).$args( "email_layout_config_item" ).$results( mockConfigDao );
 		service.$( "$announceInterception" );
+		mockCache.$( "get" );
+		mockCache.$( "set" );
+		mockCache.$( "clear" );
+		mockCache.$( "clearAll" );
 
 		return service;
 	}
