@@ -58,6 +58,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockParams      = { first_name="test", login_id="me" };
 				var template        = CreateUUId();
 				var templateDetail  = { test=CreateUUId() };
+				var detectedParams  = [ "aparam" ];
 
 				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( true );
 				mockColdboxController.$( "runEvent"      ).$args(
@@ -69,6 +70,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, recipientId    = recipientId
 						, template       = template
 						, templateDetail = templateDetail
+						, detectedParams = detectedParams
 					  }
 				).$results( mockParams );
 
@@ -78,6 +80,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, args           = mockArgs
 					, template       = template
 					, templateDetail = templateDetail
+					, detectedParams = detectedParams
 				) ).toBe( mockParams );
 			} );
 
