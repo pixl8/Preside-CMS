@@ -40,4 +40,8 @@ component {
 		return formName;
 	}
 
+	private void function postEditRecordAction( event, rc, prc, args={} ) {
+		templateCache.clear( "rawhtml" & ( args.formData.id ?: "" ) );
+	}
+
 }
