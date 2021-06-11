@@ -408,6 +408,8 @@ component {
 						, detail   = { isSystemEmail = _getSystemEmailTemplateService().templateExists( id ) }
 					);
 
+					_getTemplateCache().clear( "rawhtml" & arguments.id );
+
 					return arguments.id;
 				}
 
