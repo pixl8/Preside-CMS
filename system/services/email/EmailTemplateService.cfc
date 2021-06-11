@@ -155,6 +155,7 @@ component {
 				, recipientId    = arguments.recipientId
 				, args           = arguments.args
 				, templateDetail = messageTemplate
+				, styles         = preppedHtml.styles
 			) );
 
 			message.subject  = replaceParameterTokens( message.subject , params, "text" );
@@ -575,6 +576,7 @@ component {
 	 * @recipientId    ID of the recipient
 	 * @args           Structure of variables that are being used to send / prepare the email
 	 * @templateDetail Structure the template record
+	 * @styles         Used to do style inlining in any prepared html when feature enabled
 	 */
 	public struct function prepareParameters(
 		  required string template
@@ -582,6 +584,7 @@ component {
 		, required string recipientId
 		, required struct args
 		,          struct templateDetail = {}
+		,          array  styles = []
 	) {
 		var params = _getEmailRecipientTypeService().prepareParameters(
 			  recipientType  = arguments.recipientType
@@ -596,6 +599,14 @@ component {
 				, args           = arguments.args
 				, templateDetail = arguments.templateDetail
 			) );
+		}
+
+		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
+			for( var paramName in params ) {
+				if ( IsStruct( params[ paramName ] ) && Len( params[ paramName ].html ?: "" ) ) {
+					params[ paramName ].html = renderHtmlSnippet( params[ paramName ].html, arguments.styles );
+				}
+			}
 		}
 
 		return params;
