@@ -114,7 +114,7 @@ component {
 	 * @id.hint ID of the item you wish to get
 	 */
 	public struct function getFormItem( required string id ) {
-		var result = [];
+		var result = {};
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { id=arguments.id }
 			, selectFields = [
@@ -127,16 +127,21 @@ component {
 		);
 
 		for( var item in items ) {
-			return {
-				  id            = item.id
-				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
-				, configuration = DeSerializeJson( item.configuration )
+			result = {
+					id          = item.id
 				, formId        = item.form
 				, questionId    = item.question
+				, item_type     = item.item_type
+				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
+				, configuration = DeSerializeJson( item.configuration )
 			};
+
+			if ( Len( item.question ) ) {
+				StructAppend( result.configuration, _getItemConfigurationForV2Question( item.question ) );
+			}
 		}
 
-		return {};
+		return result;
 	}
 
 	/**
