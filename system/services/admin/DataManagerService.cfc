@@ -154,7 +154,7 @@ component {
 			, attributeName = "datamanagerHiddenGridFields"
 		);
 
-		return ListToArray( fields );
+		return ListToArray( fields, ", " );
 	}
 
 	public array function listSearchFields( required string objectName ) {
@@ -163,7 +163,7 @@ component {
 			, attributeName = "datamanagerSearchFields"
 		);
 
-		return ListToArray( fields );
+		return ListToArray( fields, ", " );
 	}
 
 	public array function listBatchEditableFields( required string objectName ) {
