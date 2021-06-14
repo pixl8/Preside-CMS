@@ -607,10 +607,14 @@
 			var _this = this;
 
 			this.container.bind('mousedown.chosen', function(evt) {
+				var x = window.scrollX;
+				var y = window.scrollY;
+				window.onscroll = function () { window.scrollTo(x, y); };
 				_this.container_mousedown(evt);
 			});
 			this.container.bind('mouseup.chosen', function(evt) {
 				_this.container_mouseup(evt);
+				window.onscroll = function () { };
 			});
 			this.container.bind('mouseenter.chosen', function(evt) {
 				_this.mouse_enter(evt);
@@ -744,6 +748,7 @@
 		};
 
 		UberSelect.prototype.close_field = function() {
+			window.onscroll = function () { };
 			$(document).unbind("click.chosen", this.click_test_action);
 			this.active_field = false;
 			this.results_hide();
@@ -1403,6 +1408,7 @@
 		};
 
 		UberSelect.prototype.set_selected_order = function(){
+			window.onscroll = function () { };
 			var newVal = [], optionVal, $uberSelect = this;
 			if ( $uberSelect.is_multiple ) {
 				$uberSelect.search_choices.find( "li.search-choice" ).each( function(){
