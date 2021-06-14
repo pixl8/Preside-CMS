@@ -2,7 +2,7 @@
 <config xmlns="http://zanata.org/namespace/config/">
   <url>https://zanata.pixl8.cloud/</url>
   <project>preside</project>
-  <project-version>10.14.0</project-version>
+  <project-version>10.15.0</project-version>
   <project-type>properties</project-type>
   <src-dir>system/i18n</src-dir>
   <trans-dir>system/i18n</trans-dir>
