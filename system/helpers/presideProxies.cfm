@@ -1,7 +1,7 @@
 <!---
 	The helpers in this library should all be simple proxies to functionality declared elsewhere.
 	The purpose is to provide straight forward access to such functionality without the need
-	for calling code to have have to get the right plugin/service/etc.
+	for calling code to have to get the right plugin/service/etc.
 
 	e.g.
 
