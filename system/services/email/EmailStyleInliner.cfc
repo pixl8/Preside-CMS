@@ -81,7 +81,7 @@ component {
 		var styles        = [];
 
 		for( var styleElement in styleElements ) {
-			var elementStyleRules = styleElement.getAllElements().get( 0 ).data().replaceAll( "\n", "" ).replaceAll( "\/\*.*?\*\/", "" ).trim();
+			var elementStyleRules = styleElement.getAllElements().get( 0 ).data().replaceAll( "\n", "" ).replaceAll( "\/\*.*?\*\/", "" ).reReplaceNoCase( "\@media.*?\{(.*?\})?\s*?\}", "", "all" ).trim();
 			var tokenizer         = CreateObject( "java", "java.util.StringTokenizer" ).init( elementStyleRules, ruleDelims );
 
 			while( tokenizer.countTokens() > 1 ) {
