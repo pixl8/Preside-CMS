@@ -842,6 +842,7 @@ component {
 			, email		   = { isFormField=true  }
 			, number 	   = { isFormField=true  }
 			, date 		   = { isFormField=true  }
+			, time 		   = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
 			, starRating   = { isFormField=true  }
 			, checkbox	   = { isFormField=true  }
