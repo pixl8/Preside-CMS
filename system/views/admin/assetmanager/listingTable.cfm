@@ -21,8 +21,9 @@
 						</label>
 					</th>
 					<th data-field="title">#translateResource( "preside-objects.asset:title.singular" )#</th>
-					<th data-width="240px" data-field="datemodified">#translateResource( "preside-objects.asset:field.datemodified.title" )#</th>
-					<th data-width="240px" data-field="datecreated">#translateResource( "preside-objects.asset:field.datecreated.title" )#</th>
+					<th data-width="90px" data-field="asset_type">#translateResource( "preside-objects.asset:field.asset_type.title" )#</th>
+					<th data-width="165px" data-field="datemodified">#translateResource( "preside-objects.asset:field.datemodified.title" )#</th>
+					<th data-width="165px" data-field="datecreated">#translateResource( "preside-objects.asset:field.datecreated.title" )#</th>
 					<th data-width="100px">#translateResource( "cms:assetmanager.browser.table.actions.header" )#</th>
 				</tr>
 			</thead>
