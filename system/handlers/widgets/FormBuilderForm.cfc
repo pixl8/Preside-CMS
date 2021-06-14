@@ -7,12 +7,12 @@ component {
 		event.include( assetId="/js/frontend/formbuilder/" );
 		if ( pageCachingEnabled ) {
 			event.include( "recaptcha-js" );
+			event.cachePage( false );
 		}
 
 		return renderViewlet(
 			  event   = "widgets.FormBuilderForm._renderForm"
 			, args    = args
-			, delayed = pageCachingEnabled
 		);
 	}
 
