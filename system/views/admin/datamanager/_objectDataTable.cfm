@@ -21,6 +21,7 @@
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.exportFilterString"  type="string"  default="";
 	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
+	param name="args.customExportUrl"     type="string"  default="";
 	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
 	param name="args.saveExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction"      );
 	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
@@ -134,17 +135,27 @@
 		<cfif allowDataExport>
 			<div class="object-listing-table-export hide">
 				<div class="pull-left">
-					<cfif savedExportCount>
-						<a href="#savedExportsLink#">
-							<i class="fa fa-fw fa-save"></i>
-							#translateResource( uri="cms:savedexports.for.object.link", data=[ NumberFormat( savedExportCount ) ] )#
+					<cfif !isEmptyString( args.customExportUrl )>
+						<a class="btn btn-info btn-sm" href="#args.customExportUrl#">
+							<i class="fa fa-fw fa-download"></i>
+							#translateResource(
+								  uri          = "preside-objects.#args.objectName#:datatable.custom.export.btn"
+								, defaultValue = translateResource( uri="cms:datatable.custom.export.btn" )
+							)#
+						</a>
+					<cfelse>
+						<cfif savedExportCount>
+							<a href="#savedExportsLink#">
+								<i class="fa fa-fw fa-save"></i>
+								#translateResource( uri="cms:savedexports.for.object.link", data=[ NumberFormat( savedExportCount ) ] )#
+							</a>
+						</cfif>
+						&nbsp;
+						<a class="btn btn-info btn-sm object-listing-data-export-button" href="#args.dataExportConfigUrl#">
+							<i class="fa fa-fw fa-download"></i>
+							#translateResource( "cms:datatable.export.btn" )#
 						</a>
 					</cfif>
-					&nbsp;
-					<a class="btn btn-info btn-sm object-listing-data-export-button" href="#args.dataExportConfigUrl#">
-						<i class="fa fa-fw fa-download"></i>
-						#translateResource( "cms:datatable.export.btn" )#
-					</a>
 				</div>
 			</div>
 		</cfif>
