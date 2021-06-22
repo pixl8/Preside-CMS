@@ -42,7 +42,7 @@
 			};
 
 			this.uberSelect.choice_build = function( item, index ) {
-				var choice, close_link, edit_link,
+				var choice, close_link, edit_link,removeIndex,
 					_this = this;
 
 				choice = $('<li />', {
@@ -62,6 +62,10 @@
 							"class": 'remove-choice-link fa fa-times'
 						});
 						close_link.bind('click.chosen', function(evt) {
+							removeIndex = _this.selected.indexOf(item);
+							if (removeIndex != -1) {
+								_this.selected.splice(removeIndex, 1);
+							}
 							return _this.choice_destroy_link_click(evt);
 						});
 						choice.append( close_link );

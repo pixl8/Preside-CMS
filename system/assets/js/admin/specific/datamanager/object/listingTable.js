@@ -133,7 +133,7 @@
 				} else if ( compact ) {
 					sDom = "frt<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				} else {
-					sDom = "fr<'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
+					sDom = "fr<'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				}
 
 				datatable = $listingTable.dataTable( {
