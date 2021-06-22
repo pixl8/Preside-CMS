@@ -8,6 +8,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockImageMagickImplementation = getMockBox().createMock("preside.system.services.assetManager.imageMagickService");
 		mockLibVipsImplementation     = getMockBox().createMock("preside.system.services.assetManager.VipsImageSizingService" );
 		imageManipulationService      = getMockBox().createMock("preside.system.services.assetManager.imageManipulationService");
+		helpers                       = getMockBox().createStub();
 
 		mockImageMagickImplementation.init("",30);
 
@@ -21,6 +22,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, imagemagick_interlace = false
 		} );
 		imageManipulationService.$( "$getPresideSetting" ).$args( "asset-manager", "use_imagemagick" ).$results( false );
+		imageManipulationService.$property( propertyName="$helpers", mock=helpers );
+		helpers.$( method="isTrue", callback=function( val ){
+			return IsBoolean( arguments.val ?: "" ) && arguments.val;
+		} );
 
 		imageManipulationService = imageManipulationService.init(
 			  nativeImageImplementation = mockNativeImageImplementation

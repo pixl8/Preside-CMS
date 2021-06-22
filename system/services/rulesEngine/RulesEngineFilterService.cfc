@@ -45,6 +45,7 @@ component displayName="Rules Engine Filter Service" {
 		var params     = {};
 		var extraJoins = [];
 		var isHaving   = false;
+		var havingfields = [];
 
 		for( var i=1; i <= expressionArray.len(); i++ ) {
 			var isJoin = !(i mod 2);
@@ -99,8 +100,17 @@ component displayName="Rules Engine Filter Service" {
 						}
 
 						if ( rawSql.len() ) {
-							sql &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
+							sql  &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
 							delim = " and ";
+
+							if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
+								havingfields.append( rawFilter.propertyName );
+							} else {
+								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( isStruct( rawFilter.filter ?: "" ) ? "" : rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
+								if( ListLen( firstField, "." ) == 2 ) {
+									havingfields.append( firstField );
+								}
+							}
 						}
 					}
 					if ( rawFilters.len() > 1 ) {
@@ -117,11 +127,11 @@ component displayName="Rules Engine Filter Service" {
 		var returnValue = { filterParams=params, extraJoins=extraJoins };
 
 		if ( isHaving ) {
-			returnValue.having = Trim( sql );
+			returnValue.having        = Trim( sql );
+			returnValue.havingfields  = havingfields;
 		} else {
 			returnValue.filter = Trim( sql );
 		}
-
 		return returnValue;
 	}
 

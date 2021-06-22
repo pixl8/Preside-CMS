@@ -11,23 +11,23 @@ component extends="coldbox.system.cache.store.indexers.MetadataIndexer" {
 	}
 
 	public any function clear( required any objectKey ) {
-		return poolMetadata.remove( arguments.objectKey );
+		return variables.poolMetadata.remove( arguments.objectKey );
 	}
 
 	public any function getKeys() {
-		return javaCollections.list( poolMetadata.keys() );
+		return javaCollections.list( variables.poolMetadata.keys() );
 	}
 
 	public any function getObjectMetadata( required any objectKey ) {
-		return poolMetadata.get( arguments.objectKey );
+		return variables.poolMetadata.get( arguments.objectKey );
 	}
 
 	public any function setObjectMetadata( required any objectKey, required any metadata ) {
-		return poolMetadata.put( arguments.objectKey, arguments.metadata );
+		return variables.poolMetadata.put( arguments.objectKey, arguments.metadata );
 	}
 
 	public any function objectExists( required any objectKey ) {
-		return poolMetadata.containsKey( arguments.objectKey );
+		return variables.poolMetadata.containsKey( arguments.objectKey );
 	}
 
 	public any function getObjectMetadataProperty( required any objectKey, required any property ) {
@@ -45,6 +45,6 @@ component extends="coldbox.system.cache.store.indexers.MetadataIndexer" {
 	}
 
 	public any function getSize() {
-		return poolMetadata.size();
+		return variables.poolMetadata.size();
 	}
 }

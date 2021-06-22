@@ -37,30 +37,39 @@ component displayname="Image Manipulation Service" {
 		,          string  focalPoint          = ""
 		,          string  cropHint            = ""
 		,          string  useCropHint         = false
+		,          string  resizeNoCrop        = false
 		,          struct  fileProperties      = {}
+		,          string  ignoreDimension     = false
 	) {
 		var args = arguments;
 
+		if ( $helpers.isTrue( args.resizeNoCrop ) && args.maintainAspectRatio && val( args.width ) && val( args.height ) ) {
+			args.paddingColour = "auto";
+			return _getImplementation().shrinkToFit( argumentCollection=args );
+		}
+
 		if ( arguments.useCropHint && arguments.cropHint.len() ) {
 			args.cropHintArea = _getCropHintArea(
-				  image    = args.asset
-				, width    = args.width
-				, height   = args.height
-				, cropHint = args.cropHint
+				  image           = args.asset
+				, width           = args.width
+				, height          = args.height
+				, cropHint        = args.cropHint
+				, ignoreDimension = $helpers.isTrue( args.ignoreDimension )
 			);
 		}
 
-       	return _getImplementation().resize( argumentCollection = args);
+       	return _getImplementation().resize( argumentCollection=args );
 	}
 
 	public binary function shrinkToFit(
 		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
-		,          struct  fileProperties      = {}
+		,          string  quality        = "highPerformance"
+		,          string  paddingColour  = ""
+		,          struct  fileProperties = {}
 	) {
-		return _getImplementation().shrinkToFit( argumentCollection = arguments);
+		return _getImplementation().shrinkToFit( argumentCollection=arguments );
 	}
 
 	public binary function pdfPreview(
@@ -94,6 +103,7 @@ component displayname="Image Manipulation Service" {
 		, required numeric width
 		, required numeric height
 		, required string  cropHint
+		,          boolean ignoreDimension=false
 	) {
 		var imageInfo      = getImageInformation( arguments.image );
 		var targetWidth    = arguments.width;
@@ -110,38 +120,40 @@ component displayname="Image Manipulation Service" {
 		var widthRatio     = 0;
 		var heightRatio    = 0;
 
-		if ( cropHintRatio > targetRatio ) {
-			prevCropHeight = cropHeight;
-			cropHeight     = int( cropHeight * ( cropHintRatio / targetRatio ) );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
-		} else if ( cropHintRatio < targetRatio ) {
-			prevCropWidth = cropWidth;
-			cropWidth     = int( cropWidth * ( targetRatio / cropHintRatio ) );
-			cropX         = int( cropX - ( ( cropWidth - prevCropWidth ) / 2 ) );
-		}
+		if ( !arguments.ignoreDimension ) {
+			if ( cropHintRatio > targetRatio ) {
+				prevCropHeight = cropHeight;
+				cropHeight     = int( cropHeight * ( cropHintRatio / targetRatio ) );
+				cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			} else if ( cropHintRatio < targetRatio ) {
+				prevCropWidth = cropWidth;
+				cropWidth     = int( cropWidth * ( targetRatio / cropHintRatio ) );
+				cropX         = int( cropX - ( ( cropWidth - prevCropWidth ) / 2 ) );
+			}
 
-		if ( targetWidth > cropWidth ) {
-			prevCropWidth  = cropWidth;
-			widthRatio     = targetWidth / cropWidth;
-			cropWidth      = int( cropWidth  * widthRatio );
-			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
-		}
-		if ( targetHeight > cropHeight ) {
-			prevCropHeight = cropHeight;
-			heightRatio    = targetHeight / cropHeight;
-			cropHeight     = int( cropHeight * heightRatio );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
-		}
+			if ( targetWidth > cropWidth ) {
+				prevCropWidth  = cropWidth;
+				widthRatio     = targetWidth / cropWidth;
+				cropWidth      = int( cropWidth  * widthRatio );
+				cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+			}
+			if ( targetHeight > cropHeight ) {
+				prevCropHeight = cropHeight;
+				heightRatio    = targetHeight / cropHeight;
+				cropHeight     = int( cropHeight * heightRatio );
+				cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			}
 
 
-		if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
-			var fitRatio   = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
-			prevCropWidth  = cropWidth;
-			prevCropHeight = cropHeight;
-			cropWidth      = int( cropWidth  * fitRatio );
-			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
-			cropHeight     = int( cropHeight * fitRatio );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
+				var fitRatio   = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
+				prevCropWidth  = cropWidth;
+				prevCropHeight = cropHeight;
+				cropWidth      = int( cropWidth  * fitRatio );
+				cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+				cropHeight     = int( cropHeight * fitRatio );
+				cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			}
 		}
 
 		cropX = max( cropX, 0 );

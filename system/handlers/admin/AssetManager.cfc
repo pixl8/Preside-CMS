@@ -738,6 +738,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.versions     = assetManagerService.getAssetVersions( rc.asset );
 		prc.assetType    = assetManagerService.getAssetType( name=prc.asset.asset_type );
+		prc.accept       = assetManagerService.expandTypeList( [ prc.assetType.groupName ], true ).toList();
 		prc.isImageAsset = listFirst( prc.assetType.mimetype, "/" ) == "image";
 
 		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( "asset" );
@@ -961,7 +962,7 @@ component extends="preside.system.base.AdminHandler" {
 					, fileName = formData.file.fileName
 					, fileSize = formData.file.size
 				);
-			} catch ( "AssetManager.mismatchedMimeType" e ) {
+			} catch ( "AssetManager.mismatchedGroupName" e ) {
 				messagebox.error( translateResource( "cms:assetmanager.upload.new.version.mismatched.type.error" ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", queryString="asset=" & assetId ) )
 
@@ -1097,7 +1098,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified", "datecreated" ];
+		var gridFields = [ "title", "asset_type", "datemodified", "datecreated" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -1135,7 +1136,7 @@ component extends="preside.system.base.AdminHandler" {
 			, trashed     = true
 		);
 
-		var gridFields = [ "title", "datemodified", "datecreated" ];
+		var gridFields = [ "title", "asset_type", "datemodified", "datecreated" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 

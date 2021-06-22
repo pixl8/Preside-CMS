@@ -485,7 +485,7 @@ component {
 		settings.enum.internalSearchAccess        = [ "inherit", "allow", "block" ];
 		settings.enum.searchAccess                = [ "inherit", "allow", "block" ];
 		settings.enum.assetAccessRestriction      = [ "inherit", "none", "full" ];
-		settings.enum.linkType                    = [ "email", "url", "sitetreelink", "asset" ];
+		settings.enum.linkType                    = [ "email", "url", "sitetreelink", "asset", "anchor" ];
 		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
 		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://", "tel://" ];
 		settings.enum.linkReferrerPolicy          = [ "no-referrer", "no-referrer-when-downgrade", "origin", "origin-when-cross-origin","same-origin","strict-origin","strict-origin-when-cross-origin","unsafe-url" ];
@@ -842,6 +842,7 @@ component {
 			, email		   = { isFormField=true  }
 			, number 	   = { isFormField=true  }
 			, date 		   = { isFormField=true  }
+			, time 		   = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
 			, starRating   = { isFormField=true  }
 			, checkbox	   = { isFormField=true  }

@@ -84,6 +84,22 @@ component validationProvider=true {
 		return IsDate( arguments.value );
 	}
 
+	public boolean function minimumTime( required string value, required string minimumTime ) validatorMessage="cms:validation.minimumTime.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.minimumTime ) >= 0 );
+	}
+	
+	public boolean function maximumTime( required string value, required string maximumTime ) validatorMessage="cms:validation.maximumTime.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.maximumTime ) <= 0 );
+	}
+	
 	public boolean function datetime( required string value ) validatorMessage="cms:validation.date.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
@@ -221,6 +237,13 @@ component validationProvider=true {
 		return validFiles == filesToCheck.len();
 	}
 
+	public boolean function fileNameSlug( required string fieldName, string value="" ) validatorMessage="cms:validation.fileNameSlug.default" {
+		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[a-zA-Z0-9\-]+$" );
+	}
+	public string function fileNameSlug_js() {
+		return "function( value ){ return !value.length || value.match( /^[a-zA-Z0-9\-]+$/ ) !== null }";
+	}
+
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
 		if ( !IsDate( arguments.value ) ) {
 			return true;
@@ -286,4 +309,5 @@ component validationProvider=true {
 	public string function earlierThanOrSameAsField_js() {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
 	}
+
 }

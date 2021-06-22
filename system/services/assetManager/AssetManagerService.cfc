@@ -771,7 +771,7 @@ component displayName="AssetManager Service" {
 	) {
 		var originalAsset = getAsset(
 			  id           = arguments.assetId
-			, selectFields = [ "id", "title", "file_name", "asset_type", "asset_folder", "focal_point", "crop_hint", "access_restriction" ]
+			, selectFields = [ "id", "title", "file_name", "asset_type", "asset_folder", "focal_point", "crop_hint", "resize_no_crop", "access_restriction" ]
 		);
 
 		if( !originalAsset.recordCount ) {
@@ -780,8 +780,8 @@ component displayName="AssetManager Service" {
 
 		var originalFileTypeInfo = getAssetType( name=originalAsset.asset_type, throwOnMissing=true );
 		var fileTypeInfo         = getAssetType( filename=arguments.fileName, throwOnMissing=true );
-		if ( fileTypeInfo.mimeType != originalFileTypeInfo.mimeType ) {
-			throw( type="AssetManager.mismatchedMimeType", message="The mime type of the uploaded file, [#fileTypeInfo.mimeType#], does not match that of the original version [#originalFileTypeInfo.mimeType#]." );
+		if ( fileTypeInfo.groupName != originalFileTypeInfo.groupName ) {
+			throw( type="AssetManager.mismatchedGroupName", message="The type of the uploaded file, [#fileTypeInfo.groupName#], does not match that of the original version [#originalFileTypeInfo.groupName#]." );
 		}
 
 		var versionId    = CreateUUId();
@@ -795,6 +795,7 @@ component displayName="AssetManager Service" {
 			, size           = arguments.fileSize
 			, focal_point    = originalAsset.focal_point
 			, crop_hint      = originalAsset.crop_hint
+			, resize_no_crop = originalAsset.resize_no_crop
 			, version_number = _getNextAssetVersionNumber( arguments.assetId )
 		};
 
@@ -885,6 +886,9 @@ component displayName="AssetManager Service" {
 			}
 			if ( StructKeyExists( data, "crop_hint") ) {
 				updateData.crop_hint=data.crop_hint;
+			}
+			if ( StructKeyExists( data, "resize_no_crop") ) {
+				updateData.resize_no_crop=data.resize_no_crop;
 			}
 			if ( !updateData.isEmpty() ) {
 				_getAssetVersionDao().updateData( id=asset.active_version, data=updateData )
@@ -1836,9 +1840,9 @@ component displayName="AssetManager Service" {
 		var asset      = "";
 
 		if ( Len( Trim( arguments.versionId ) ) ) {
-			asset = getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset.title", "asset_version.focal_point", "asset_version.crop_hint" ] );
+			asset = getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset.title", "asset_version.focal_point", "asset_version.crop_hint", "asset_version.resize_no_crop", ] );
 		} else {
-			asset = getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint" ] );
+			asset = getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint", "resize_no_crop" ] );
 		}
 
 		var fileext         = ListLast( asset.storage_path, "." );
@@ -1995,13 +1999,16 @@ component displayName="AssetManager Service" {
 
 	public string function getDerivativeConfig( required string assetId ) {
 		var config = [];
-		var asset  = getAsset( id=arguments.assetId, selectFields=[ "focal_point", "crop_hint" ] );
+		var asset  = getAsset( id=arguments.assetId, selectFields=[ "focal_point", "crop_hint", "resize_no_crop" ] );
 
 		if ( len( asset.focal_point ) ) {
 			config.append( "focal_point=#asset.focal_point#" );
 		}
 		if ( len( asset.crop_hint ) ) {
 			config.append( "crop_hint=#asset.crop_hint#" );
+		}
+		if ( len( asset.resize_no_crop ) ) {
+			config.append( "resize_no_crop=#asset.resize_no_crop#" );
 		}
 
 		return config.toList( "&" );
@@ -2042,6 +2049,7 @@ component displayName="AssetManager Service" {
 				, "asset_version.height"
 				, "asset_version.focal_point"
 				, "asset_version.crop_hint"
+				, "asset_version.resize_no_crop"
 				, "asset_version.created_by"
 				, "asset_version.updated_by"
 				, "asset.title"
@@ -2081,6 +2089,7 @@ component displayName="AssetManager Service" {
 				, raw_text_content = versionToMakeActive.raw_text_content
 				, focal_point      = versionToMakeActive.focal_point
 				, crop_hint        = versionToMakeActive.crop_hint
+				, resize_no_crop   = versionToMakeActive.resize_no_crop
 				, created_by       = versionToMakeActive.created_by
 				, updated_by       = versionToMakeActive.updated_by
 				, width            = versionWidth
@@ -2493,6 +2502,7 @@ component displayName="AssetManager Service" {
 			, "height"
 			, "focal_point"
 			, "crop_hint"
+			, "resize_no_crop"
 			, "created_by"
 			, "updated_by"
 		] );
@@ -2509,6 +2519,7 @@ component displayName="AssetManager Service" {
 				, height           = asset.height
 				, focal_point      = asset.focal_point
 				, crop_hint        = asset.crop_hint
+				, resize_no_crop   = asset.resize_no_crop
 				, created_by       = asset.created_by
 				, updated_by       = asset.updated_by
 			} );

@@ -5,7 +5,10 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required query dbInfo ) {
+		_setDbInfo( arguments.dbInfo );
+		_setDbVendor();
+
 		return this;
 	}
 
@@ -130,7 +133,7 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( 
+	public string function getDeleteSql(
 		  required string tableName
 		, required any    filter
 		,          string tableAlias = ""
@@ -238,6 +241,10 @@ component extends="BaseAdapter" {
 		return "select database() as db";
 	}
 
+	public string function getAllTablesSql() {
+		return "select table_name from information_schema.tables where table_schema = database() and table_type = 'BASE TABLE'";
+	}
+
 	public string function getAllForeignKeysSql() {
 		return "select distinct u.table_name
 		                      , u.column_name
@@ -247,5 +254,31 @@ component extends="BaseAdapter" {
 		        from            information_schema.key_column_usage u
 		        where           u.table_schema = :databasename
 		        and             u.referenced_column_name is not null";
+	}
+
+	public boolean function supportsCountOverWindowFunction() {
+		return _isMariaDB();
+	}
+
+	public string function getCountOverWindowFunctionSql() {
+		return _isMariaDB() ? "count(*) over()" : "null";
+	}
+
+
+// PRIVATE METHODS
+	private boolean function _isMySql() {
+		return _dbVendor=="mysql";
+	}
+	private boolean function _isMariaDB() {
+		return _dbVendor=="mariadb";
+	}
+
+	private void function _setDbVendor() {
+		var dbVersion = _getDbInfo().database_version ?: "";
+		if ( findNoCase( "MariaDB", dbVersion ) ) {
+			_dbVendor = "mariadb";
+		} else {
+			_dbVendor = "mysql";
+		}
 	}
 }

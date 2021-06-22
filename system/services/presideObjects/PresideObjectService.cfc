@@ -227,6 +227,7 @@ component displayName="Preside Object Service" {
 		var objMeta = _getObject( args.objectName ).meta;
 		var adapter = _getAdapter( objMeta.dsn );
 
+		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
@@ -2236,6 +2237,60 @@ component displayName="Preside Object Service" {
 		return fields;
 	}
 
+	public array function expandHavingClauses(
+		  required array  selectFields
+		, required array  extraFilters
+		, required string objectName
+	) {
+		var extraFilters = arguments.extraFilters;
+		var selectFields = Duplicate( arguments.selectFields );
+		var props        = getObjectProperties( arguments.objectName );
+
+		for ( var filter in extraFilters ) {
+			if( Len( Trim( filter.having ?: "" ) ) ) {
+				var fields = filter.havingfields ?: ListToArray( filter.propertyName ?: "" );
+
+				for ( var field in fields ) {
+					var propertyLen = ListLen( field, "." );
+
+					if ( propertyLen == 1 ) {
+						if( !ArrayFindNoCase( selectFields, field ) ) {
+							field = "#arguments.objectName#.#field#";
+						}
+					}
+					else if (propertyLen == 2 ) {
+						var unescapedField    = _unescapeEntity( field );
+						var prefix            = ListFirst( unescapedField, "." );
+						var propertyName      = ListLast( unescapedField, "." );
+						var relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( arguments.objectName, prefix );
+
+						if ( objectExists( relatedObjectName ) ) {
+							props = getObjectProperties( relatedObjectName );
+						}
+
+						var prop = props[ propertyName ] ?: {};
+
+						if ( Len( Trim( prop.formula ?: "" ) ) ) {
+							filter.having = ReReplace( filter.having, "(^|\s)#Replace( field, "$", "\$" )#(\s)", " #propertyName# " );
+						} else {
+							var newFieldName = Replace( unescapedField, ".", "_" );
+							filter.having = ReReplace( filter.having, "(^|\s)#Replace( field, "$", "\$" )#(\s)", " #newFieldName# " );
+							if ( !ArrayFindNoCase( selectFields, newFieldName ) ) {
+								ArrayAppend( selectFields, "#field# as #newFieldName#" );
+								continue;
+							}
+						}
+					}
+
+					if ( !ArrayFindNoCase( selectFields, field ) ) {
+						ArrayAppend( selectFields, field );
+					}
+				};
+			}
+		}
+		return selectFields;
+	}
+
 	public string function expandFormulaFields(
 		  required string  objectName
 		, required string  expression
@@ -3649,19 +3704,14 @@ component displayName="Preside Object Service" {
 	}
 
 	private boolean function _getUseCacheDefault( required string objectName ) {
-		try {
-			return request[ "_defaultUseCache#arguments.objectName#" ];
-		} catch( any e ) {
+		if ( !StructKeyExists( request, "_defaultUseCache#arguments.objectName#" ) ) {
 			request[ "_defaultUseCache#arguments.objectName#" ] = _objectUsesCaching( arguments.objectName ) && $getRequestContext().getUseQueryCache();
 		}
-
 		return request[ "_defaultUseCache#arguments.objectName#" ];
 	}
 
 	private boolean function _getDefaultAllowDraftVersions() {
-		try {
-			return request._defaultAllowDraftVersions;
-		} catch( any e ) {
+		if ( !StructKeyExists( request , "_defaultAllowDraftVersions" ) ) {
 			request._defaultAllowDraftVersions = $getRequestContext().showNonLiveContent();
 		}
 
@@ -3762,6 +3812,10 @@ component displayName="Preside Object Service" {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};
+	}
+
+	private string function _unescapeEntity( required string entityName ) {
+		return ReplaceList( arguments.entityName , '`,",[,]', "");
 	}
 
 // GETTERS AND SETTERS

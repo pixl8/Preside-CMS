@@ -32,6 +32,10 @@ This form is used for the quick add link modal
 		<fieldset id="asset" sortorder="50">
 			<field sortorder="10" binding="link.asset" />
 		</fieldset>
+
+		<fieldset id="anchor" sortorder="60">
+			<field sortorder="10" binding="link.page_anchor" />
+		</fieldset>
 	</tab>
 
 	<tab id="content" sortorder="20" title="preside-objects.link:content.tab.title">

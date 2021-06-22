@@ -7,7 +7,7 @@ component {
 	public string function index( event, rc, prc, args={} ) {
 
 		var targetObject     = args.object        ?: "";
-		var targetIdField    = presideObjectService.getIdField( targetObject );
+		var targetIdField    = args.targetIdField ?:presideObjectService.getIdField( targetObject );
 		var ajax             = args.ajax          ?: true;
 		var savedFilters     = args.objectFilters ?: "";
 		var orderBy          = args.orderBy       ?: datamanagerService.getDefaultSortOrderForObjectPicker( targetObject );
@@ -26,12 +26,12 @@ component {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#"
+					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&q=%QUERY"
+				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&q=%QUERY"
 			);
 		} else {
 			var filter = {};

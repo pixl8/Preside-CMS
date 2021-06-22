@@ -244,20 +244,23 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 
 // private helpers
-	private any function _getPermService( permissionsConfig=_getDefaultPermsConfig() ) output=false {
-		mockWebsiteLoginService = getMockbox().createEmptyMock( "preside.system.services.websiteUsers.WebsiteLoginService" );
-		mockBenefitsDao        = getMockbox().createStub();
-		mockUserDao            = getMockbox().createStub();
-		mockAppliedPermDao     = getMockbox().createStub();
-		mockCacheProvider      = getMockbox().createStub();
+	private any function _getPermService( permissionsConfig=_getDefaultPermsConfig(), permissionHandlerDirectories=[] ) output=false {
+		mockWebsiteLoginService                   = getMockbox().createEmptyMock( "preside.system.services.websiteUsers.WebsiteLoginService" );
+		mockWebsitePermissionHandlerReaderService = getMockbox().createMock( "preside.system.services.websiteUsers.WebsitePermissionHandlerReaderService" );
+		mockBenefitsDao                           = getMockbox().createStub();
+		mockUserDao                               = getMockbox().createStub();
+		mockAppliedPermDao                        = getMockbox().createStub();
+		mockCacheProvider                         = getMockbox().createStub();
 
 		var service = getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsitePermissionService(
-			  websiteLoginService = mockWebsiteLoginService
-			, cacheProvider      = mockCacheProvider
-			, permissionsConfig  = arguments.permissionsConfig
-			, benefitsDao        = mockBenefitsDao
-			, userDao            = mockUserDao
-			, appliedPermDao     = mockAppliedPermDao
+			  websiteLoginService          = mockWebsiteLoginService
+			, cacheProvider                = mockCacheProvider
+			, permissionsConfig            = arguments.permissionsConfig
+			, benefitsDao                  = mockBenefitsDao
+			, userDao                      = mockUserDao
+			, appliedPermDao               = mockAppliedPermDao
+			, permissionHandlersReader     = mockWebsitePermissionHandlerReaderService
+			, permissionHandlerDirectories = arguments.permissionHandlerDirectories
 		) );
 
 		service.$( "$isFeatureEnabled" ).$args( "websitebenefits" ).$results( true );

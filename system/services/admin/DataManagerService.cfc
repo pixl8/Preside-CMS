@@ -22,6 +22,7 @@ component {
 	 * @customizationService.inject datamanagerCustomizationService
 	 * @cloningService.inject       presideObjectCloningService
 	 * @multilingualService.inject  multilingualPresideObjectService
+	 * @enumService.inject          enumService
 	 */
 	public any function init(
 		  required any presideObjectService
@@ -34,6 +35,7 @@ component {
 		, required any customizationService
 		, required any cloningService
 		, required any multilingualService
+		, required any enumService
 	) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
@@ -45,6 +47,7 @@ component {
 		_setCustomizationService( arguments.customizationService );
 		_setCloningService( arguments.cloningService );
 		_setMultilingualService( arguments.multilingualService );
+		_setEnumService( arguments.enumService );
 
 		return this;
 	}
@@ -154,7 +157,7 @@ component {
 			, attributeName = "datamanagerHiddenGridFields"
 		);
 
-		return ListToArray( fields );
+		return ListToArray( fields, ", " );
 	}
 
 	public array function listSearchFields( required string objectName ) {
@@ -163,7 +166,7 @@ component {
 			, attributeName = "datamanagerSearchFields"
 		);
 
-		return ListToArray( fields );
+		return ListToArray( fields, ", " );
 	}
 
 	public array function listBatchEditableFields( required string objectName ) {
@@ -443,10 +446,18 @@ component {
 			}
 		}
 
+		var dbAdapter = _getPresideObjectService().getDbAdapterForObject( arguments.objectName );
+
+		if ( dbAdapter.supportsCountOverWindowFunction() ) {
+			args.selectFields.append( "#dbAdapter.getCountOverWindowFunctionSql()# as _total_recordcount" );
+		}
+
 		result.records = _getPresideObjectService().selectData( argumentCollection=args );
 
 		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
+		} else if ( dbAdapter.supportsCountOverWindowFunction() ) {
+			result.totalRecords = result.records.recordCount ? result.records._total_recordcount : 0;
 		} else {
 			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0 );
 		}
@@ -586,6 +597,7 @@ component {
 		,          string  labelRenderer = ""
 		,          array   bypassTenants = []
 		,          boolean useCache      = false
+		,          string  idField       = ""
 	) {
 		var result = [];
 		var records = "";
@@ -612,7 +624,7 @@ component {
 		if (args.orderBy is 'label') {
 			args.orderBy = labelField;
 		}
-		var idField            = _getPresideOBjectService().getIdField( arguments.objectName );
+		var idField            = Len( Trim( arguments.idField ) ) ? arguments.idField : _getPresideOBjectService().getIdField( arguments.objectName );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 		if ( len( arguments.labelRenderer ) ) {
 			args.selectFields = _getLabelRendererService().getSelectFieldsForLabel( arguments.labelRenderer );
@@ -768,6 +780,7 @@ component {
 		var poService            = _getPresideObjectService();
 		var relationshipGuidance = _getRelationshipGuidance();
 		var searchTerms          = arguments.expandTerms ? listToArray( arguments.q, " " ) : [ arguments.q ];
+		var enumParamTerms       = [];
 
 		if ( arguments.searchFields.len() ) {
 			var parsedFields = poService.parseSelectFields(
@@ -783,6 +796,25 @@ component {
 				for( field in parsedFields ){
 					if ( StructKeyExists( poService.getObjectProperties( arguments.objectName ), field ) ) {
 						field = _getFullFieldName( field,  arguments.objectName );
+
+						var fieldEnumName = poService.getObjectPropertyAttribute(
+							  objectName    = arguments.objectName
+							, propertyName  = field
+							, attributeName = "enum"
+						);
+
+						if ( !isEmpty( fieldEnumName ) ) {
+							var enumFuzzyMatches = _getEnumService().fuzzySearchKeyByLabel(
+								 enum       = fieldEnumName
+								,searchTerm = searchTerms[ t ]
+							);
+
+							for ( var e=1; e<=enumFuzzyMatches.len(); e++ ) {
+								filter &= delim & field & " = :enum#paramName##e>1 ? "#e#" : ""#";
+								arrayAppend( enumParamTerms, enumFuzzyMatches[e] );
+								delim = " or ";
+							}
+						}
 					}
 					filter &= delim & field & " like :#paramName#";
 					delim = " or ";
@@ -815,6 +847,25 @@ component {
 						}
 
 						if ( _propertyIsSearchable( field, objName ) ) {
+							var fieldEnumName = poService.getObjectPropertyAttribute(
+								  objectName    = objName
+								, propertyName  = field
+								, attributeName = "enum"
+							);
+
+							if ( !isEmpty( fieldEnumName ) ) {
+								var enumFuzzyMatches = _getEnumService().fuzzySearchKeyByLabel(
+									 enum       = fieldEnumName
+									,searchTerm = searchTerms[ t ]
+								);
+
+								for ( var e=1; e<=enumFuzzyMatches.len(); e++ ) {
+									filter &= delim & fullFieldName & " = :enum#paramName##e>1 ? "#e#" : ""#";
+									arrayAppend( enumParamTerms, enumFuzzyMatches[e] );
+									delim = " or ";
+								}
+							}
+
 							filter &= delim & fullFieldName & " like :#paramName#";
 							delim = " or ";
 						}
@@ -834,6 +885,11 @@ component {
 		for( var t=1; t<=searchTerms.len(); t++ ) {
 			paramName = t==1 ? "q" : "q#t#";
 			filterParams[ paramName ] = { type="varchar", value="%" & searchTerms[ t ] & "%" };
+
+			for ( var et=1; et<=enumParamTerms.len(); et++ ) {
+				var enumParamName             = "enum#paramName##et>1 ? "#et#" : ""#";
+				filterParams[ enumParamName ] = { type="varchar", value=enumParamTerms[ et ] };
+			}
 		}
 
 		return { filter=filter, filterParams=filterParams };
@@ -1090,4 +1146,10 @@ component {
 		_multilingualService = arguments.multilingualService;
 	}
 
+	private any function _getEnumService() {
+		return _enumService;
+	}
+	private void function _setEnumService( required any enumService ) {
+		_enumService = arguments.enumService;
+	}
 }

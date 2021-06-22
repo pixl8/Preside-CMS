@@ -1383,7 +1383,22 @@ component {
 			}
 		}
 
+		_unsetPageRestrictFields( data );
+
 		return data;
+	}
+
+	private void function _unsetPageRestrictFields( required struct data ) {
+		var data           = arguments.data;
+		var restrictFields = [ "access_condition", "full_login_required", "grantaccess_to_all_logged_in_users", "exclude_from_navigation_when_restricted" ];
+
+		if( StructKeyExists( data, "access_restriction" ) && data.access_restriction == "none" ) {
+			for ( var field in restrictFields ) {
+				if( StructKeyExists( data, field ) ) {
+					data[ field ] = "";
+				}
+			}
+		}
 	}
 
 	private array function _treeQueryToNestedArray( required query treeQuery, any rootPage ) {

@@ -62,7 +62,7 @@ component {
 				}
 
 				tableVersionExists = StructKeyExists( versions, "table" ) and StructKeyExists( versions.table, obj.meta.tableName );
-				tableExists        = tableVersionExists or _getTableInfo( tableName=obj.meta.tableName, dsn=obj.meta.dsn ).recordCount;
+				tableExists        = tableVersionExists or _tableExists( tableName=obj.meta.tableName, dsn=obj.meta.dsn );
 
 				if ( not tableExists ) {
 					try {
@@ -166,7 +166,7 @@ component {
 
 	) {
 		var adapter        = _getAdapter( dsn = arguments.dsn );
-		var tableExists    =  _getTableInfo( tableName=arguments.tableName, dsn=arguments.dsn ).recordCount;
+		var tableExists    =  _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
 		var tableColumns   = tableExists ? valueList( _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ).COLUMN_NAME ) : "";
 		var columnSql      = "";
 		var colName        = "";
@@ -684,8 +684,22 @@ component {
 		sqlScripts.append( Duplicate( arguments ) );
 	}
 
-	private query function _getTableInfo() {
-		return _getDbInfoService().getTableInfo( argumentCollection = arguments );
+	private boolean function _tableExists( required string tableName, required string dsn ) {
+		variables._tableCache = variables._tableCache ?: {};
+
+		if ( !StructKeyExists( variables._tableCache, arguments.dsn ) ) {
+			variables._tableCache[ arguments.dsn ] = {};
+
+			var tables = _getSqlRunner().runSql(
+				dsn=arguments.dsn, sql=_getAdapter( arguments.dsn ).getAllTablesSql()
+			);
+
+			for( var table in tables ) {
+				variables._tableCache[ arguments.dsn ][ table.table_name ] = true;
+			}
+		}
+
+		return variables._tableCache[ arguments.dsn ][ arguments.tableName ] ?: false;
 	}
 
 	private query function _getTableColumns() {
