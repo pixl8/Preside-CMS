@@ -256,15 +256,6 @@ component extends="BaseAdapter" {
 		        and             u.referenced_column_name is not null";
 	}
 
-	public boolean function supportsCountOverWindowFunction() {
-		return _isMariaDB();
-	}
-
-	public string function getCountOverWindowFunctionSql() {
-		return _isMariaDB() ? "count(*) over()" : "null";
-	}
-
-
 // PRIVATE METHODS
 	private boolean function _isMySql() {
 		return _dbVendor=="mysql";
