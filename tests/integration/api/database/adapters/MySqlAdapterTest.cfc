@@ -686,10 +686,10 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test35_supportsCountOverWindowFunction_shouldBeTrueForMariaDB" returntype="void">
+	<cffunction name="test35_supportsCountOverWindowFunction_shouldBeFalseForMariaDB" returntype="void">
 		<cfscript>
 			var adapter = _getAdapter( "mariadb" );
-			super.assertTrue( adapter.supportsCountOverWindowFunction() );
+			super.assertFalse( adapter.supportsCountOverWindowFunction() );
 		</cfscript>
 	</cffunction>
 
