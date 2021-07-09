@@ -102,7 +102,7 @@
 										#translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ] )#
 									</a>
 									<a class="p-0" href="#event.buildLink( linkto="login.logout" )#">
-										<i class="fa fa-fw fa-times"></i>
+										<i class="fa fa-fw fa-lg fa-times"></i>
 									</a>
 									&nbsp;
 								</li>
