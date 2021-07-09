@@ -108,7 +108,7 @@ component displayName="Admin permissions service" {
 			return fromCache;
 		}
 
-		var hasPermission = true;
+		var hasPermission = NullValue();
 
 		if ( !Len( Trim( arguments.userId ) ) ) {
 			hasPermission = false;
@@ -119,7 +119,9 @@ component displayName="Admin permissions service" {
 			if ( !IsNull( local.contextPerm ) && IsBoolean( contextPerm ) ) {
 				hasPermission = contextPerm;
 			}
-		} else {
+		}
+
+		if ( IsNull( local.hasPermission ) ) {
 			hasPermission = ArrayFind( listPermissionKeys( user=arguments.userId ), LCase( arguments.permissionKey ) ) > 0;
 		}
 
