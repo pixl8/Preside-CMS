@@ -95,7 +95,17 @@
 					<div class="navbar-header pull-right">
 						<ul class="nav ace-nav">
 							<cfif event.isWebUserImpersonated()>
-								<li>&nbsp; <i class="fa fa-fw fa-user-md green"></i> #translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ]  )#</li>
+								<li>
+									&nbsp;
+									<a class="pr-0 orange" href="#event.buildAdminLink( objectName="website_user", operation="viewRecord", recordId=getLoggedinUserId() )#">
+										<i class="fa fa-fw fa-lg fa-mask orange"></i>
+										#translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ] )#
+									</a>
+									<a class="p-0" href="#event.buildLink( linkto="login.logout" )#">
+										<i class="fa fa-fw fa-lg fa-times"></i>
+									</a>
+									&nbsp;
+								</li>
 							</cfif>
 							<li>#notificationsMenu#</li>
 							<li>#userMenu#</li>
@@ -104,7 +114,6 @@
 				</div>
 			</div>
 		</div>
-
 
 		#ckEditorJs#
 	</cfoutput>
