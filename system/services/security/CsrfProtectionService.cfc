@@ -34,7 +34,7 @@ component {
 		return token.value;
 	}
 
-	public boolean function validateToken( required string token ) {
+	public boolean function validateToken( required string token, boolean regenerate=true ) {
 		if ( !Len( Trim( arguments.token ) ) ) {
 			return false;
 		}
@@ -53,6 +53,10 @@ component {
 			t.lastActive = Now();
 
 			return !expired;
+		}
+
+		if ( arguments.regenerate ) {
+			generateToken( force=true );
 		}
 
 		return false;
