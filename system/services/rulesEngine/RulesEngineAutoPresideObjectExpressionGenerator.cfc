@@ -537,7 +537,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_onetomanyhas_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
-			, fields            = { _is={ fieldType="boolean", variety=possessesVariety, required=false, default=true }, value={ fieldType="number", required=false, default=0 }, savedFilter={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:oneToManyHas.savedFilter.default.label" } }
+			, fields            = { _is={ fieldType="boolean", variety=possessesVariety, required=false, default=true }, value={ fieldType="number", required=false, default=0 }, savedFilter={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=false, default="", defaultLabel="rules.dynamicExpressions:oneToManyHas.savedFilter.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.OneToManyHas.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyHas.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.OneToManyHas.getLabel"
