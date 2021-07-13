@@ -146,7 +146,7 @@ component {
 				, unsubscribeLink    = unsubscribeLink
 				, viewOnline         = viewOnline
 			);
-			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
+			message.htmlBody = preppedHtml.html;
 
 			var params = Duplicate( arguments.parameters );
 			params.append( prepareParameters(
@@ -1484,6 +1484,8 @@ component {
 			return fromCache;
 		}
 
+		var html = $renderContent( renderer="richeditor", data=arguments.messageTemplate.html_body, context="email" );
+
 		var htmlArgs = {
 			  layout          = arguments.messageTemplate.layout
 			, emailTemplate   = arguments.template
@@ -1491,12 +1493,12 @@ component {
 			, blueprint       = arguments.messageTemplate.email_blueprint
 			, type            = "html"
 			, subject         = arguments.message.subject
-			, body            = arguments.messageTemplate.html_body
+			, body            = html
 			, unsubscribeLink = arguments.unsubscribeLink
 			, viewOnlineLink  = arguments.viewOnline ? "{{viewonline}}" : ""
 		};
 
-		var html = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
+		html = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 
 		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
 			var styles = _getEmailStyleInliner().readStyles( html );
