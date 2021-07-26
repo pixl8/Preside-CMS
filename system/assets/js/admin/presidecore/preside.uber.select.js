@@ -554,6 +554,7 @@
 					$uberSelect.setup_filter();
 					$uberSelect.setup_search_engine();
 					$uberSelect.disable_if_unfiltered();
+					$uberSelect.hidden_field.val( "" );
 				});
 			}
 		};
