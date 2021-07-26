@@ -628,7 +628,7 @@ component displayName="Preside Object Service" {
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";
 		var result             = "";
-		var cacheReloadRequired = false;
+		var updated            = false;
 		var joinTargets        = "";
 		var joins              = [];
 		var cleanedData        = Duplicate( arguments.data );
@@ -768,7 +768,8 @@ component displayName="Preside Object Service" {
 					, filter        = preparedFilter.filter
 					, joins         = joins
 				);
-				result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+				result  = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+				updated = Val( result.recordCount ?: 0 ) > 0;
 			}
 
 			if ( StructCount( manyToManyData ) ) {
@@ -787,12 +788,12 @@ component displayName="Preside Object Service" {
 				}
 
 				for( key in manyToManyData ){
-					var relationship      = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
-					var manyToManyUpdated = false;
+					var relationship   = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+					var thisKeyUpdated = false;
 
 					if ( relationship == "many-to-many" ) {
 						for( var updatedId in updatedRecords ) {
-							manyToManyUpdated = syncManyToManyData(
+							thisKeyUpdated = syncManyToManyData(
 								  sourceObject        = arguments.objectName
 								, sourceProperty      = key
 								, sourceId            = updatedId
@@ -806,7 +807,7 @@ component displayName="Preside Object Service" {
 
 						for( var updatedId in updatedRecords ) {
 							if ( isOneToManyConfigurator ) {
-								manyToManyUpdated = syncOneToManyConfiguratorData(
+								thisKeyUpdated = syncOneToManyConfiguratorData(
 									  sourceObject     = arguments.objectName
 									, sourceProperty   = key
 									, sourceId         = updatedId
@@ -814,7 +815,7 @@ component displayName="Preside Object Service" {
 									, versionNumber    = versionNumber
 								);
 							} else {
-								manyToManyUpdated = syncOneToManyData(
+								thisKeyUpdated = syncOneToManyData(
 									  sourceObject   = arguments.objectName
 									, sourceProperty = key
 									, sourceId       = updatedId
@@ -824,12 +825,12 @@ component displayName="Preside Object Service" {
 							}
 						}
 					}
-					cacheReloadRequired = cacheReloadRequired || manyToManyUpdated;
+					updated = updated || thisKeyUpdated;
 				}
 			}
 		}
 
-		if ( arguments.clearCaches && ( Val( result.recordCount ?: 0 ) || cacheReloadRequired ) ) {
+		if ( arguments.clearCaches && updated ) {
 			clearRelatedCaches(
 				  objectName   = arguments.objectName
 				, filter       = preparedFilter.filter
@@ -841,7 +842,7 @@ component displayName="Preside Object Service" {
 		    interceptionArgs.result = result;
 		_announceInterception( "postUpdateObjectData", interceptionArgs );
 
-		return Val( result.recordCount ?: 0 );
+		return updated;
 	}
 
 	/**
