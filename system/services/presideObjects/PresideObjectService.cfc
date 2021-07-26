@@ -628,6 +628,7 @@ component displayName="Preside Object Service" {
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";
 		var result             = "";
+		var cacheReloadRequired = false;
 		var joinTargets        = "";
 		var joins              = [];
 		var cleanedData        = Duplicate( arguments.data );
@@ -759,14 +760,16 @@ component displayName="Preside Object Service" {
 				, preFix            = "set__"
 			) );
 
-			sql = adapter.getUpdateSql(
-				  tableName     = obj.tableName
-				, tableAlias    = arguments.objectName
-				, updateColumns = StructKeyArray( cleanedData )
-				, filter        = preparedFilter.filter
-				, joins         = joins
-			);
-			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+			if ( structCount( cleanedData ) ) {
+				sql = adapter.getUpdateSql(
+					  tableName     = obj.tableName
+					, tableAlias    = arguments.objectName
+					, updateColumns = StructKeyArray( cleanedData )
+					, filter        = preparedFilter.filter
+					, joins         = joins
+				);
+				result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+			}
 
 			if ( StructCount( manyToManyData ) ) {
 				var updatedRecords = [];
@@ -784,11 +787,12 @@ component displayName="Preside Object Service" {
 				}
 
 				for( key in manyToManyData ){
-					var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+					var relationship      = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+					var manyToManyUpdated = false;
 
 					if ( relationship == "many-to-many" ) {
 						for( var updatedId in updatedRecords ) {
-							syncManyToManyData(
+							manyToManyUpdated = syncManyToManyData(
 								  sourceObject        = arguments.objectName
 								, sourceProperty      = key
 								, sourceId            = updatedId
@@ -802,7 +806,7 @@ component displayName="Preside Object Service" {
 
 						for( var updatedId in updatedRecords ) {
 							if ( isOneToManyConfigurator ) {
-								syncOneToManyConfiguratorData(
+								manyToManyUpdated = syncOneToManyConfiguratorData(
 									  sourceObject     = arguments.objectName
 									, sourceProperty   = key
 									, sourceId         = updatedId
@@ -810,7 +814,7 @@ component displayName="Preside Object Service" {
 									, versionNumber    = versionNumber
 								);
 							} else {
-								syncOneToManyData(
+								manyToManyUpdated = syncOneToManyData(
 									  sourceObject   = arguments.objectName
 									, sourceProperty = key
 									, sourceId       = updatedId
@@ -820,11 +824,12 @@ component displayName="Preside Object Service" {
 							}
 						}
 					}
+					cacheReloadRequired = cacheReloadRequired || manyToManyUpdated;
 				}
 			}
 		}
 
-		if ( arguments.clearCaches && Val( result.recordCount ?: 0 ) ) {
+		if ( arguments.clearCaches && ( Val( result.recordCount ?: 0 ) || cacheReloadRequired ) ) {
 			clearRelatedCaches(
 				  objectName   = arguments.objectName
 				, filter       = preparedFilter.filter
