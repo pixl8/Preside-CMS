@@ -12,6 +12,7 @@
 	param name="args.ariaLabelledby"  type="string"  default="";
 	param name="args.ariaDescribedby" type="string"  default="";
 	param name="args.ariaHidden"      type="boolean" default=false;
+	param name="args.download"        type="boolean" default=false;
 
 	anchorTag = 'href="#args.href#"';
 
@@ -47,6 +48,9 @@
 	}
 	if ( args.ariaHidden ) {
 		anchorTag &= ' aria-hidden="true"';
+	}
+	if ( isTrue( args.download ) ) {
+		anchorTag &= ' download';
 	}
 </cfscript>
 

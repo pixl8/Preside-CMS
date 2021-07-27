@@ -30,7 +30,8 @@ This form is used edit a link
 		</fieldset>
 
 		<fieldset id="asset" sortorder="50" class="link-type-group">
-			<field sortorder="10" binding="link.asset" />
+			<field sortorder="10" binding="link.asset"    />
+			<field sortorder="20" binding="link.download" />
 		</fieldset>
 	</tab>
 

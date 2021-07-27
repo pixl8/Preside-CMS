@@ -30,7 +30,8 @@ This form is used for the quick add link modal
 		</fieldset>
 
 		<fieldset id="asset" sortorder="50">
-			<field sortorder="10" binding="link.asset" />
+			<field sortorder="10" binding="link.asset"    />
+			<field sortorder="20" binding="link.download" />
 		</fieldset>
 
 		<fieldset id="anchor" sortorder="60">
