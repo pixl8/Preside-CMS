@@ -30,7 +30,8 @@ This form is used for editing links through the link picker form control
 		</fieldset>
 
 		<fieldset id="asset" sortorder="50">
-			<field sortorder="10" binding="link.asset" />
+			<field sortorder="10" binding="link.asset"    />
+			<field sortorder="20" binding="link.download" />
 		</fieldset>
 
 		<fieldset id="anchor" sortorder="60">
