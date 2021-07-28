@@ -146,7 +146,7 @@ component {
 				, unsubscribeLink    = unsubscribeLink
 				, viewOnline         = viewOnline
 			);
-			message.htmlBody = preppedHtml.html;
+			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
 
 			var params = Duplicate( arguments.parameters );
 			params.append( prepareParameters(
@@ -251,7 +251,7 @@ component {
 		enableDomainOverwriteForBuildLink( template=messageTemplate );
 
 		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
-		var body          = $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" );
+		var viewOnline    = ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online );
 		var plainTextArgs = {
 			  layout         = messageTemplate.layout
 			, emailTemplate  = arguments.template
@@ -260,30 +260,27 @@ component {
 			, type           = "text"
 			, subject        = message.subject
 			, body           = messageTemplate.text_body
-		};
-		var htmlArgs = {
-			  layout         = messageTemplate.layout
-			, emailTemplate  = arguments.template
-			, templateDetail = messageTemplate
-			, blueprint      = messageTemplate.email_blueprint
-			, type           = "html"
-			, subject        = message.subject
-			, body           = body
+			, viewOnlineLink = viewOnline ? "{{viewonline}}" : ""
 		};
 
-		message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-		message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
-			htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
-			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		}
+		var preppedHtml = _prepareHtml(
+			  argumentCollection = arguments
+			, message            = message
+			, messageTemplate    = messageTemplate
+			, unsubscribeLink    = ""
+			, viewOnline         = viewOnline
+		);
 
+		message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
 		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
-		message.textBody = replaceParameterTokens( message.textBody, params, "text" );
 
-		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
-			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+		message.textBody = replaceParameterTokens( message.textBody, params, "text" );
+		message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html", preppedHtml.styles );
+
+		if ( viewOnline ) {
+			var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+			message.htmlBody = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
+			message.textBody = replace( message.textBody, "{{viewonline}}", viewOnlineLink );
 		}
 
 		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
@@ -1484,8 +1481,6 @@ component {
 			return fromCache;
 		}
 
-		var html = $renderContent( renderer="richeditor", data=arguments.messageTemplate.html_body, context="email" );
-
 		var htmlArgs = {
 			  layout          = arguments.messageTemplate.layout
 			, emailTemplate   = arguments.template
@@ -1493,12 +1488,12 @@ component {
 			, blueprint       = arguments.messageTemplate.email_blueprint
 			, type            = "html"
 			, subject         = arguments.message.subject
-			, body            = html
+			, body            = arguments.messageTemplate.html_body
 			, unsubscribeLink = arguments.unsubscribeLink
 			, viewOnlineLink  = arguments.viewOnline ? "{{viewonline}}" : ""
 		};
 
-		html = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
+		var html = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 
 		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
 			var styles = _getEmailStyleInliner().readStyles( html );
