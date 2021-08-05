@@ -1807,7 +1807,7 @@ component {
 		var originalFormItems = getFormItems( id=arguments.basedOnFormId );
 		if( arrayLen( originalFormItems ) ) {
 			for( var formItem in originalFormItems ) {
-				addItem( formId=newFormId, itemType=formItem.type.id, configuration=formItem.configuration, question=formItem.questionId );
+				addItem( formId=newFormId, itemType=formItem.type.id, configuration=formItem.configuration, question=( formItem.questionId ?: "" ) );
 			}
 		}
 
