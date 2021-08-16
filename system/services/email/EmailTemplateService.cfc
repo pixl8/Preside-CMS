@@ -273,7 +273,7 @@ component {
 
 		message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 		message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
+		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online && Len( Trim( message.htmlBody ) ) ) {
 			htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
 			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
