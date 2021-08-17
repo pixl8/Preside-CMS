@@ -6,5 +6,4 @@
 
 	args.datePickerClass = "formbuilder-date-picker";
 </cfscript>
-form
 <cfoutput>#renderViewlet( event="formcontrols.datePicker.index", args=args )#</cfoutput>
