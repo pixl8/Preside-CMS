@@ -225,6 +225,59 @@ component displayName="Admin permissions service" {
 		return groups;
 	}
 
+	public array function listUserGroupsRoles( required string userId ) {
+		var cacheKey = "userGroupsRoles-#arguments.userId#";
+		var fromCache = _getCacheProvider().get( cacheKey );
+		if ( !isNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var groupsRoles = [];
+		var userGroups  = listUserGroups( argumentCollection=arguments );
+
+		if ( arrayLen( userGroups ) ) {
+			var rolesQuery = _getGroupDao().selectData(
+				  filter       = { id=userGroups }
+				, selectFields = [ "roles" ]
+			);
+
+			for ( var q in rolesQuery ) {
+				for ( var role in q.roles ) {
+					groupsRoles.append( role );
+				}
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, groupsRoles );
+
+		return groupsRoles;
+	}
+
+	public boolean function userHasAssignedRoles(
+		  required string userId
+		, required array  roles
+	) {
+		var cacheKey = "userRoles-#arguments.userId#-#hash( serialize( arguments.roles ) )#";
+		var fromCache = _getCacheProvider().get( cacheKey );
+		if ( !isNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var hasPermission = false;
+		var userRoles     = listUserGroupsRoles( userId=arguments.userId );
+
+		for ( var role in arguments.roles ) {
+			if ( arrayContains( userRoles, role ) ) {
+				hasPermission = true;
+				break;
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, hasPermission );
+
+		return hasPermission;
+	}
+
 	public struct function getContextPermissions(
 		  required string  context
 		, required array   contextKeys
