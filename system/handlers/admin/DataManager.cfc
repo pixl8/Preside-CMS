@@ -128,8 +128,12 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			var dataExportPermKey = dataManagerService.getDataExportPermissionKey( objectName );
-			args.allowDataExport = IsTrue( args.allowDataExport ?: true ) && dataManagerService.isDataExportEnabled( objectName ) && _checkPermission( argumentCollection=arguments, object=objectName, key=dataExportPermKey, throwOnError=false );
-			if ( args.allowDataExport ) {
+			args.allowDataExport  = IsTrue( args.allowDataExport ?: true ) && dataManagerService.isDataExportEnabled( objectName ) && _checkPermission( argumentCollection=arguments, object=objectName, key=dataExportPermKey, throwOnError=false );
+
+			var saveExportPermKey = dataManagerService.getSaveExportPermissionKey( objectName );
+			args.allowSaveExport = isTrue( args.allowDataExport ) && _checkPermission( argumentCollection=arguments, object=objectName, key=saveExportPermKey, throwOnError=false );
+
+			if ( args.allowSaveExport ) {
 				args.savedExportCount = dataExportService.getSavedExportCountForObject( objectName );
 				if ( args.savedExportCount ) {
 					args.savedExportsLink = event.buildAdminLink( objectName="saved_export", operation="listing", queryString="object_name=#args.objectName#" );
