@@ -125,7 +125,7 @@ component {
 				message.from = $getPresideSetting( "email", "default_from_address" );
 			}
 
-			message.attachments.append( getAttachments( arguments.template ), true );
+			message.attachments.append( getAttachments( templateId = arguments.template, allowDrafts=arguments.isTest ), true );
 			if ( isSystemTemplate ) {
 				message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
 					  template = arguments.template
@@ -736,13 +736,19 @@ component {
 	 * @templateId.hint ID of the template whose attachments you want to get
 	 *
 	 */
-	public array function getAttachments( required string templateId ) {
+	public array function getAttachments( 
+		  required string  templateId
+		,          boolean allowDrafts      = false
+		,          boolean fromVersionTable = arguments.allowDrafts
+  	) {
 		var assetManagerService = _getAssetManagerService()
 		var attachments         = [];
 		var assets              = $getPresideObject( "email_template" ).selectData(
-			  id           = arguments.templateId
-			, selectFields = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
-			, orderBy      = "email_template_attachment.sort_order"
+			  id                 = arguments.templateId
+			, selectFields       = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
+			, orderBy            = "email_template_attachment.sort_order"
+			, allowDraftVersions = arguments.allowDrafts
+			, fromversionTable   = arguments.fromVersionTable
 		);
 
 		for ( var asset in assets ) {
