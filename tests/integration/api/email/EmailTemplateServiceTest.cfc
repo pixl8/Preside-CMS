@@ -1496,13 +1496,55 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockTemplateDao.$( "selectData" ).$args(
-					  id           = templateId
-					, selectFields = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
-					, orderBy      = "email_template_attachment.sort_order"
+					  id                 = templateId
+					, selectFields       = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
+					, orderBy            = "email_template_attachment.sort_order"
+					, allowDraftVersions = false
+					, fromversionTable   = false
 				).$results( assets );
 
 
-				expect( service.getAttachments( templateId ) ).toBe( expected );
+				expect( service.getAttachments( templateId )  ).toBe( expected );
+			} );
+
+			it( "should return an array of attachment binaries & titles using the asset manager service with configured _draft_ template attachments when allowDrafts is set to true", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var assets     = QueryNew( 'id,title,asset_type', 'varchar,varchar,varchar', [
+					  [ CreateUUId(), "Title 1", "pdf" ]
+					, [ CreateUUId(), "Title 2", "pdf" ]
+					, [ CreateUUId(), "Title 3", "pdf" ]
+				] );
+				var binaries = [
+					  ToBinary( ToBase64( CreateUUId() ) )
+					, ToBinary( ToBase64( CreateUUId() ) )
+					, ToBinary( ToBase64( CreateUUId() ) )
+				];
+				var expected = [];
+
+				for( var i=1; i<=assets.recordCount; i++ ) {
+					expected.append({
+						  binary          = binaries[ i ]
+						, name            = assets.title[ i ] & ".pdf"
+						, removeAfterSend = false
+					});
+					mockAssetManagerService.$( "getAssetBinary" ).$args(
+						  id             = assets.id[ i ]
+						, throwOnMissing = false
+					).$results( binaries[ i ] );
+					mockAssetManagerService.$( "getAssetType", { extension="pdf" } );
+				}
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  id                 = templateId
+					, selectFields       = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
+					, orderBy            = "email_template_attachment.sort_order"
+					, allowDraftVersions = true
+					, fromversionTable   = true
+				).$results( assets );
+
+
+				expect( service.getAttachments( templateId = templateId, allowDrafts=true ) ).toBe( expected );
 			} );
 		} );
 
