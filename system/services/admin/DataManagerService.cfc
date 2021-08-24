@@ -910,6 +910,10 @@ component {
 		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportPermissionKey", defaultValue="read" );
 	}
 
+	public string function getSaveExportPermissionKey( required string objectName ) {
+		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerSaveExportPermissionKey", defaultValue="read" );
+	}
+
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
