@@ -242,7 +242,7 @@ component displayName="Admin permissions service" {
 			);
 
 			for ( var q in rolesQuery ) {
-				for ( var role in q.roles ) {
+				for ( var role in listToArray( q.roles ) ) {
 					groupsRoles.append( role );
 				}
 			}

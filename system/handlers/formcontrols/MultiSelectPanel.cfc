@@ -16,21 +16,20 @@ component {
 				var props   = presideObjectService.getObjectProperties( objectName );
 
 				for ( var prop in props ) {
-					var hasPermission     = true;
-					var requiredRoleCheck = structKeyExists( props[ prop ], "limitToAdminRoles" );
+					if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
+						var hasPermission     = true;
+						var requiredRoleCheck = structKeyExists( props[ prop ], "limitToAdminRoles" );
 
-					if ( isTrue( requiredRoleCheck ) && ( ( args.context ?: "" ) == "admin" ) ) {
-						hasPermission = permissionService.userHasAssignedRoles(
-							  userId = loginService.getLoggedInUserId()
-							, roles  = listToArray( props[ prop ].limitToAdminRoles )
-						) || loginService.isSystemUser();
-					}
+						if ( isTrue( requiredRoleCheck ) && ( ( args.context ?: "" ) == "admin" ) ) {
+							hasPermission = permissionService.userHasAssignedRoles(
+								  userId = loginService.getLoggedInUserId()
+								, roles  = listToArray( props[ prop ].limitToAdminRoles )
+							) || loginService.isSystemUser();
+						}
 
-					if ( isTrue( hasPermission )
-						 && !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" )
-						 && !IsTrue( props[ prop ].excludeDataExport ?: "" )
-					) {
-						args.values.append( prop );
+						if ( isTrue( hasPermission ) ) {
+							args.values.append( prop );
+						}
 					}
 				}
 
