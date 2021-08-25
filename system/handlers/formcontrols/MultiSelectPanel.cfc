@@ -1,5 +1,7 @@
 component {
 	property name="presideObjectService" inject="PresideObjectService";
+	property name="loginService"         inject="LoginService";
+	property name="permissionService"    inject="PermissionService";
 
 	public string function index( event, rc, prc, args={} ) {
 		args.labels    = args.labels ?: [];
@@ -15,7 +17,21 @@ component {
 
 				for ( var prop in props ) {
 					if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
-						args.values.append( prop );
+						var hasPermission     = true;
+						var requiredRoleCheck = StructKeyExists( props[ prop ], "limitToAdminRoles" )
+						                     && ( args.context ?: "" ) == "admin"
+						                     && !loginService.isSystemUser();
+
+						if ( requiredRoleCheck ) {
+							hasPermission = permissionService.userHasAssignedRoles(
+								  userId = loginService.getLoggedInUserId()
+								, roles  = ListToArray( props[ prop ].limitToAdminRoles )
+							);
+						}
+
+						if ( hasPermission ) {
+							ArrayAppend( args.values, prop );
+						}
 					}
 				}
 
