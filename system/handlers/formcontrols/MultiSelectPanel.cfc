@@ -18,17 +18,19 @@ component {
 				for ( var prop in props ) {
 					if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
 						var hasPermission     = true;
-						var requiredRoleCheck = structKeyExists( props[ prop ], "limitToAdminRoles" );
+						var requiredRoleCheck = StructKeyExists( props[ prop ], "limitToAdminRoles" )
+						                     && ( args.context ?: "" ) == "admin"
+						                     && !loginService.isSystemUser();
 
-						if ( isTrue( requiredRoleCheck ) && ( ( args.context ?: "" ) == "admin" ) ) {
+						if ( requiredRoleCheck ) {
 							hasPermission = permissionService.userHasAssignedRoles(
 								  userId = loginService.getLoggedInUserId()
-								, roles  = listToArray( props[ prop ].limitToAdminRoles )
-							) || loginService.isSystemUser();
+								, roles  = ListToArray( props[ prop ].limitToAdminRoles )
+							);
 						}
 
-						if ( isTrue( hasPermission ) ) {
-							args.values.append( prop );
+						if ( hasPermission ) {
+							ArrayAppend( args.values, prop );
 						}
 					}
 				}
