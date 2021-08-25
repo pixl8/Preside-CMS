@@ -4,10 +4,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		var mockCache = CreateStub();
 		helpers       = getMockBox().createStub();
 
-		var inliner = new preside.system.services.email.EmailStyleInliner( templateCache=mockCache, styleCache=mockCache );
+		var inliner = createMock( object=new preside.system.services.email.EmailStyleInliner( templateCache=mockCache, styleCache=mockCache ) );
 		inliner.$property( propertyName="$helpers", mock=helpers );
 		helpers.$( method="hasTags", callback=function( val ){
-			return IsTrue( ReFind(  "<[^>]*>",arguments.val ) );
+			return ReFind(  "<[^>]*>",arguments.val );
 		} );
 
 		mockCache.$( "get" );
@@ -29,6 +29,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( inliner.inlineStyles( originalHtml ) ).toBe( expectedHtml );
 			} );
+
+			it( "should ignore html without tags", function(){
+				var originalHtml = "a string without tags";
+				var expectedHtml = "a string without tags";
+
+				expect( inliner.inlineStyles( originalHtml ) ).toBe( expectedHtml );
+			} );
 		} );
+
+
 	}
 }
