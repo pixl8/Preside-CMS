@@ -2,7 +2,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	function run() {
 		var mockCache = CreateStub();
+		helpers       = getMockBox().createStub();
+
 		var inliner = new preside.system.services.email.EmailStyleInliner( templateCache=mockCache, styleCache=mockCache );
+		inliner.$property( propertyName="$helpers", mock=helpers );
+		helpers.$( method="hasTags", callback=function( val ){
+			return IsTrue( ReFind(  "<[^>]*>",arguments.val ) );
+		} );
 
 		mockCache.$( "get" );
 		mockCache.$( "set" );
