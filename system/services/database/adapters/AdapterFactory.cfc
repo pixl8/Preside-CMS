@@ -27,6 +27,7 @@ component {
 
 			switch( dbInfo.database_productname ) {
 				case "MySql":
+				case "MariaDB":
 					adapters[ arguments.dsn ] = new MySqlAdapter( dbInfo=dbInfo );
 				break;
 				case "Microsoft SQL Server": {
