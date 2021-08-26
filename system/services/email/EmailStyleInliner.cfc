@@ -3,6 +3,7 @@
  *
  * @singleton      true
  * @autodoc        true
+ * @presideService true
  */
 component {
 	variables._lib   = [];
