@@ -3,6 +3,7 @@
  *
  * @singleton      true
  * @autodoc        true
+ * @presideService true
  */
 component {
 	variables._lib   = [];
@@ -33,8 +34,7 @@ component {
 	 * @html.hint the original HTML
 	 */
 	public string function inlineStyles( required string html, array styles ) {
-
-		if ( !$helpers.hasTags( arguments.html ) ) {
+ 		if ( !$helpers.hasTags( arguments.html ) ) {
 			return arguments.html;
 		}
 
