@@ -33,6 +33,16 @@ component implements="iRouteHandler" {
 		translated = ListChangeDelims( translated, ".", "/" );
 		if ( translated == "admin" ) {
 			translated = _getDefaultEvent();
+
+			var queryStrings = ListToArray( _getDefaultQueryString(), "&" );
+
+			queryStrings.each( function( element, index ) {
+				var queryString = ListToArray( element, "=" );
+
+				if ( !arrayContains( [ "event", "_sid" ], queryString[ 1 ] ) ) {
+					event.setValue( queryString[ 1 ], queryString[ 2 ] );
+				}
+			} );
 		}
 
 		if ( !_getController().handlerExists( translated ) ) {
@@ -59,6 +69,10 @@ component implements="iRouteHandler" {
 // private helpers
 	private string function _getDefaultEvent() {
 		return _getApplicationsService().getDefaultEvent();
+	}
+
+	private string function _getDefaultQueryString() {
+		return _getApplicationsService().getDefaultQueryString();
 	}
 
 // private getters and setters
