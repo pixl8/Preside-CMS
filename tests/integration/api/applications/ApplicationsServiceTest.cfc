@@ -57,29 +57,50 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "getDefaultEvent()", function(){
 			it( "should return the configured default event for the passed application", function(){
-				var service = getService();
+				var service     = getService();
+				var dummyResult = QueryNew( "homepage_data", "varchar", [ [ "" ] ] );
+
+				mockSecurityUserDao.$( "selectData").$args( id=userId, selectFields=[ "homepage_data" ] ).$results( dummyResult );
 
 				expect( service.getDefaultEvent( "test" ) ).toBe( "admin.testing.event" );
 			} );
 
 			it( "should return a default event using configuration when the configured application does not define a default event", function(){
-				var service = getService();
+				var service     = getService();
+				var dummyResult = QueryNew( "homepage_data", "varchar", [ [ "" ] ] );
+
+				mockSecurityUserDao.$( "selectData").$args( id=userId, selectFields=[ "homepage_data" ] ).$results( dummyResult );
 
 				expect( service.getDefaultEvent( "ems" ) ).toBe( "admin.ems.index" );
 			} );
 
 			it( "should return an empty string when the application does not exist", function(){
-				var service = getService();
+				var service     = getService();
+				var dummyResult = QueryNew( "homepage_data", "varchar", [ [ "" ] ] );
+
+				mockSecurityUserDao.$( "selectData").$args( id=userId, selectFields=[ "homepage_data" ] ).$results( dummyResult );
 
 				expect( service.getDefaultEvent( "whatever" ) ).toBe( "" );
 			} );
 
 			it( "should return the default event for the default application when no application supplied", function(){
 				var service = getService();
+				var dummyResult = QueryNew( "homepage_data", "varchar", [ [ "" ] ] );
+
+				mockSecurityUserDao.$( "selectData").$args( id=userId, selectFields=[ "homepage_data" ] ).$results( dummyResult );
 
 				service.$( "getDefaultApplication", "cms" );
 
 				expect( service.getDefaultEvent() ).toBe( "admin.siteTree" );
+			} );
+
+			it( "should return a user event when user has saved homepage event", function(){
+				var service     = getService();
+				var dummyResult = QueryNew( "homepage_data", "varchar", [ [ '{ "event":"admin.datamanager.index" }' ] ] );
+
+				mockSecurityUserDao.$( "selectData").$args( id=userId, selectFields=[ "homepage_data" ] ).$results( dummyResult );
+
+				expect( service.getDefaultEvent( "whatever" ) ).toBe( "admin.datamanager.index" );
 			} );
 		} );
 
@@ -126,10 +147,21 @@ component extends="testbox.system.BaseSpec"{
 
 // HELPERS
 	private any function getService( array configuredApplications=getDefaultTestApplications() ) {
+		mockSecurityUserDao = CreateStub();
+		userId              = createUUID();
+		mockHelpers         = CreateStub();
+
 		var service = createMock( object=new preside.system.services.applications.ApplicationsService(
 			  configuredApplications = arguments.configuredApplications
 		) );
 
+		service.$( "$getPresideObject" ).$args( "security_user" ).$results( mockSecurityUserDao );
+		service.$( "$getAdminLoggedInUserId", userId );
+
+		service.$property( propertyName="$helpers", mock=mockHelpers );
+		mockHelpers.$( method="isEmptyString", callback=function( val ){
+			return !Len( Trim( arguments.val ) ) ;
+		} );
 
 		return service;
 	}

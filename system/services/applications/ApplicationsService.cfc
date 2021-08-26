@@ -67,10 +67,9 @@ component {
 	 */
 	public string function getDefaultEvent( string applicationId=getDefaultApplication() ) {
 		var apps  = _getConfiguredApplications();
-		var event = $getRequestContext();
 
 		var securityUser = $getPresideObject( "security_user" ).selectData(
-			  id   = event.getAdminUserId()
+			  id           = $getAdminLoggedInUserId()
 			, selectFields = [
 				"homepage_data"
 			]
@@ -84,14 +83,14 @@ component {
 			}
 		}
 
+
+
 		return apps[ arguments.applicationId ].defaultEvent ?: "";
 	}
 
 	public string function getDefaultQueryString( string applicationId=getDefaultApplication() ) {
-		var event = $getRequestContext();
-
 		var securityUser = $getPresideObject( "security_user" ).selectData(
-			  id   = event.getAdminUserId()
+			  id           = $getAdminLoggedInUserId()
 			, selectFields = [
 				"homepage_data"
 			]
