@@ -506,11 +506,19 @@ component displayName="RulesEngine Expression Service" {
 		var fileName = "";
 		var filePath = GetTempDirectory();
 		var locale   = $i18n.getFwLocale();
+		var suffix   = Hash( arguments.excludeTags );
+
+		if ( !$getAdminLoginService().isSystemUser() ) {
+			var adminUserId     = $getAdminLoginService().getLoggedInUserId();
+			arguments.userRoles = $getAdminPermissionService().listUserGroupsRoles( userId=adminUserId );
+
+			suffix = hash( arguments.excludeTags & serializeJSON( arguments.userRoles ) );
+		}
 
 		if ( Len( arguments.context ) ) {
-			fileName = "conditionexpressions-#locale#-#arguments.context#-#Hash( excludeTags )#.json"
+			fileName = "conditionexpressions-#locale#-#arguments.context#-#suffix#.json"
 		} else {
-			fileName = "filterexpressions-#locale#-#arguments.filterObject#-#Hash( excludeTags )#.json"
+			fileName = "filterexpressions-#locale#-#arguments.filterObject#-#suffix#.json"
 		}
 		filePath &= fileName;
 
@@ -566,7 +574,7 @@ component displayName="RulesEngine Expression Service" {
 
 		for( var objectName in objects ) {
 			if ( !StructKeyExists( variables._lazyLoadDone, objectName ) ) {
-				var expressions = _getAutoExpressionGenerator().getAutoExpressionsForObject( objectName );
+				var expressions = _getAutoExpressionGenerator().getAutoExpressionsForObject( objectName=objectName, userRoles=arguments.userRoles ?: [] );
 				if ( expressions.len() ) {
 					contextService.addContext( id="presideobject_" & objectName, object=objectName, visible=false );
 					for( var expression in expressions ) {
