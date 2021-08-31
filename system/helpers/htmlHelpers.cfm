@@ -13,3 +13,8 @@
 	<cfargument name="stringValue" type="string" required="true" />
 	<cfreturn ReReplaceNoCase( stringValue , "<[^>]*>","", "all" ) />
 </cffunction>
+
+<cffunction name="hasTags" access="public" returntype="boolean" output="false">
+	<cfargument name="stringValue" type="string" required="true" />
+	<cfreturn IsTrue( ReFind(  "<[^>]*>",stringValue ) ) />
+</cffunction>
