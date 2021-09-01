@@ -66,9 +66,50 @@ component {
 	 *
 	 */
 	public string function getDefaultEvent( string applicationId=getDefaultApplication() ) {
-		var apps = _getConfiguredApplications();
+		var apps  = _getConfiguredApplications();
+
+		var securityUser = $getPresideObject( "security_user" ).selectData(
+			  id           = $getAdminLoggedInUserId()
+			, selectFields = [
+				"homepage_data"
+			]
+		);
+
+		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_data ) ) {
+			var data = DeserializeJson( securityUser.homepage_data );
+
+			if ( StructKeyExists( data, "event" ) ) {
+				return data.event;
+			}
+		}
+
+
 
 		return apps[ arguments.applicationId ].defaultEvent ?: "";
+	}
+
+	public string function getDefaultQueryString( string applicationId=getDefaultApplication() ) {
+		var securityUser = $getPresideObject( "security_user" ).selectData(
+			  id           = $getAdminLoggedInUserId()
+			, selectFields = [
+				"homepage_data"
+			]
+		);
+
+		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_data ) ) {
+			var data        = DeserializeJson( securityUser.homepage_data );
+			var queryString = "";
+
+			data.each( function( key, value ) {
+				if ( !ArrayContains( [ "event", "_sid" ], key ) ) {
+					queryString = ListAppend( queryString, "#key#=#value#", "&" );
+				}
+			} );
+
+			return queryString;
+		}
+
+		return "";
 	}
 
 	/**
