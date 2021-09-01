@@ -4,6 +4,8 @@
 	} else {
 		logoutUrl = event.buildAdminLink( linkTo="login.logout", queryString="redirect=referer" );
 	}
+
+	data = EncodeForUrl( SerializeJson( event.getContext() ) );
 </cfscript>
 
 <cfoutput>
@@ -15,6 +17,14 @@
 	</a>
 
 	<ul class="user-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+		<cfif event.isAdminRequest()>
+			<li>
+				<a href="#event.buildAdminLink( linkTo="homepage.make", queryString="data=#data#" )#" >
+					<i class="fa fa-home"></i>
+					#translateResource( "cms:homepage.make.link" )#
+				</a>
+			</li>
+		</cfif>
 		<li>
 			<a href="#event.buildAdminLink( linkTo="editProfile" )#">
 				<i class="fa fa-user"></i>
