@@ -61,9 +61,12 @@ component extends="coldbox.system.web.Controller" {
 			}
 
 
-		} catch( "HandlerService.EventHandlerNotRegisteredException" e ) {
+		} catch( HandlerService.EventHandlerNotRegisteredException e ) {
+			exists = false;
+		} catch( HandlerService.InvalidEventHandlerException e ) {
 			exists = false;
 		}
+
 
 		variables._handlerExistsCache[ cacheKey ] = exists;
 		return exists;
