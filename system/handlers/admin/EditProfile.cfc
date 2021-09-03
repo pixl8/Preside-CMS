@@ -209,6 +209,19 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" ) );
 	}
 
+	function setUserHomepageAction( event, rc, prc ) {
+		getPresideObject( "security_user" ).updateData(
+			  id   = event.getAdminUserId()
+			, data = {
+				homepage_data = data
+			  }
+		);
+
+		messageBox.info( translateResource( uri="cms:editProfile.homepage.message" ) );
+
+		setNextEvent( url=cgi.http_referer );
+	}
+
 	private void function _setupEditProfileTabs( event, rc, prc ) {
 		var secondaryNavItems = [];
 		var currentEvent = event.getCurrentEvent();

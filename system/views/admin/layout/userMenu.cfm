@@ -19,9 +19,9 @@
 	<ul class="user-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
 		<cfif event.isAdminRequest()>
 			<li>
-				<a href="#event.buildAdminLink( linkTo="homepage.make", queryString="data=#data#" )#" >
+				<a href="#event.buildAdminLink( linkTo="editProfile.setUserHomepageAction", queryString="data=#data#" )#" >
 					<i class="fa fa-home"></i>
-					#translateResource( "cms:homepage.make.link" )#
+					#translateResource( "cms:editProfile.homepage.link" )#
 				</a>
 			</li>
 		</cfif>
