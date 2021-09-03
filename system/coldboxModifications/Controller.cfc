@@ -26,9 +26,11 @@ component extends="coldbox.system.web.Controller" {
 	}
 
 	public boolean function handlerExists( required string event ) {
+		var site     = getRequestContext().getSite();
+		var cacheKey = arguments.event & ( site.template ?: "" );
 		variables._handlerExistsCache = variables._handlerExistsCache ?: {};
-		if ( StructKeyExists( variables._handlerExistsCache, arguments.event ) ) {
-			return variables._handlerExistsCache[ arguments.event ];
+		if ( StructKeyExists( variables._handlerExistsCache, cacheKey ) ) {
+			return variables._handlerExistsCache[ cacheKey ];
 		}
 
 		var handlerSvc = "";
@@ -63,20 +65,23 @@ component extends="coldbox.system.web.Controller" {
 			exists = false;
 		}
 
-		variables._handlerExistsCache[ arguments.event ] = exists;
+		variables._handlerExistsCache[ cacheKey ] = exists;
 		return exists;
 	}
 
 	public boolean function viewExists( required string view ) {
+		var site     = getRequestContext().getSite();
+		var cacheKey = arguments.view & ( site.template ?: "" );
+
 		variables._viewExistsCache = variables._viewExistsCache ?: {};
-		if ( StructKeyExists( variables._viewExistsCache, arguments.view ) ) {
-			return variables._viewExistsCache[ arguments.view ];
+		if ( StructKeyExists( variables._viewExistsCache, cacheKey ) ) {
+			return variables._viewExistsCache[ cacheKey ];
 		}
 
 		var targetView = getRenderer().locateView( ListChangeDelims( arguments.view, "/", "." ) );
 		var exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
 
-		variables._viewExistsCache[ arguments.view ] = exists;
+		variables._viewExistsCache[ cacheKey ] = exists;
 
 		return exists;
 	}
