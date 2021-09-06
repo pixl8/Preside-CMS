@@ -149,6 +149,7 @@ component {
 			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
 
 			var params = Duplicate( arguments.parameters );
+			params.unsubscribeLink = unsubscribeLink;
 			params.append( prepareParameters(
 				  template       = arguments.template
 				, recipientType  = messageTemplate.recipient_type
@@ -1492,7 +1493,7 @@ component {
 			, type            = "html"
 			, subject         = arguments.message.subject
 			, body            = arguments.messageTemplate.html_body
-			, unsubscribeLink = arguments.unsubscribeLink
+			, unsubscribeLink = Len( Trim( arguments.unsubscribeLink ) ) ? "{{unsubscribeLink}}" : ""
 			, viewOnlineLink  = arguments.viewOnline ? "{{viewonline}}" : ""
 		};
 
