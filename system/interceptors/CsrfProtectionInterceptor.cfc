@@ -22,7 +22,7 @@ component extends="coldbox.system.Interceptor" {
 				setNextEvent( url=cgi.http_referer, persistStruct=persist );
 			}
 
-			setNextEvent( url=event.buildLink( linkTo=applicationsService.getDefaultEvent(). queryString=applicationsService.getDefaultQueryString() ), persistStruct=persist );
+			setNextEvent( url=applicationsService.getDefaultUrl(), persistStruct=persist );
 		}
 	}
 
