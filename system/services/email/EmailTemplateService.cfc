@@ -163,6 +163,10 @@ component {
 			message.textBody = replaceParameterTokens( message.textBody, params, "text" );
 			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html", preppedHtml.styles );
 
+			if ( Len( Trim( unsubscribeLink ) ) ) {
+				message.htmlBody = replace( message.htmlBody, "{{unsubscribeLink}}", unsubscribeLink );
+			}
+
 			if ( viewOnline ) {
 				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
 				message.htmlBody = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
@@ -1492,7 +1496,7 @@ component {
 			, type            = "html"
 			, subject         = arguments.message.subject
 			, body            = arguments.messageTemplate.html_body
-			, unsubscribeLink = arguments.unsubscribeLink
+			, unsubscribeLink = Len( Trim( arguments.unsubscribeLink ) ) ? "{{unsubscribeLink}}" : ""
 			, viewOnlineLink  = arguments.viewOnline ? "{{viewonline}}" : ""
 		};
 
