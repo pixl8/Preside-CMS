@@ -558,7 +558,7 @@ component displayName="RulesEngine Expression Service" {
 		,          string structKeyPreffix = ""
 	) {
 		var cache    = _getRulesEngineExpressionCache();
-		var cachekey = "autoExpressionRoleLimits" & "_" & arguments.objectName;
+		var cachekey = "autoExpressionRoleLimits" & "_" & arguments.structKeyPreffix & "_" & arguments.objectName;
 
 		if ( StructKeyExists( cache, cacheKey ) ) {
 			return cache[ cacheKey ];
