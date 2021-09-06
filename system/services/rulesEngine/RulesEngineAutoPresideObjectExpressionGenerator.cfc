@@ -21,13 +21,17 @@ component {
 
 
 // PUBLIC API
-	public array function getAutoExpressionsForObject( required string objectName ) {
+	public array function getAutoExpressionsForObject( required string objectName, array userRoles=[] ) {
 		var properties                      = $getPresideObjectService().getObjectProperties( arguments.objectName );
 		var relatedObjectsForAutoGeneration = $getPresideObjectService().getObjectAttribute( arguments.objectName, "autoGenerateFilterExpressionsFor" ).trim();
 		var expressions                     = [];
 
 		for( var propName in properties ) {
-			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
+			expressions.append( generateExpressionsForProperty(
+				  objectName         = arguments.objectName
+				, propertyDefinition = properties[ propName ]
+				, adminUserRoles     = arguments.userRoles
+			), true );
 		}
 		for( var relatedObjectPath in relatedObjectsForAutoGeneration.listToArray() ) {
 			expressions.append( _createExpressionsForRelatedObjectProperties( arguments.objectName, relatedObjectPath.trim() ), true );
@@ -45,6 +49,7 @@ component {
 		, required struct propertyDefinition
 		,          string parentObjectName   = ""
 		,          string parentPropertyName = ""
+		,          array  adminUserRoles     = []
 	) {
 		if ( IsBoolean( propertyDefinition.autofilter ?: "" ) && !propertyDefinition.autofilter ) {
 			return [];
@@ -56,46 +61,60 @@ component {
 		var relatedTo    = propertyDefinition.relatedTo ?: "";
 		var expressions  = [];
 		var isFormula    = Len( Trim( propertyDefinition.formula ?: "" ) );
+		var excludedKeys = listToArray( propertyDefinition.excludeAutoExpressions ?: "" );
+		var rolesLimit   = {};
+
+		for ( var definition in structKeyArray( propertyDefinition ) ) {
+			var roleLimit = reFindNoCase( "^autoFilterExpressions:(.*)", definition );
+
+			if ( isArray( roleLimit ) && arrayLen( roleLimit ) ) {
+				rolesLimit[ replaceNoCase( definition, "autoFilterExpressions:", "" ) ] = listToArray( propertyDefinition[ definition ] );
+			}
+		}
 
 		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !isFormula ) {
 			switch( propType ) {
 				case "string":
 				case "numeric":
-					expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( !_excludeExpressionCheck( "PropertyIsNull", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 				default:
-					expressions.append( _createIsSetExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( !_excludeExpressionCheck( "PropertyIsNull", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createIsSetExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 			}
 		}
 
 		if ( !relationship contains "many" ) {
 			switch( propType ) {
 				case "string":
-					if ( isFormula ) {
-						expressions.append( _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( isFormula && !_excludeExpressionCheck( "TextFormulaPropertyMatches", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else if ( !_excludeExpressionCheck( "TextPropertyMatches", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "boolean":
-					if ( isFormula ) {
-						expressions.append( _createBooleanFormulaIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( isFormula && !_excludeExpressionCheck( "BooleanFormulaPropertyIsTrue", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createBooleanFormulaIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else if ( !_excludeExpressionCheck( "BooleanPropertyIsTrue", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "date":
-					if ( isFormula ) {
-						expressions.append( _createDateFormulaInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( isFormula && !_excludeExpressionCheck( "DateFormulaPropertyInRange", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createDateFormulaInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else if ( !_excludeExpressionCheck( "DatePropertyInRange", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "numeric":
-					if ( isFormula ) {
-						expressions.append( _createNumericFormulaComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( isFormula && !_excludeExpressionCheck( "NumericFormulaPropertyCompares", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createNumericFormulaComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					} else if ( !_excludeExpressionCheck( "NumericPropertyCompares", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+						arrayAppend( expressions, _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 			}
@@ -103,14 +122,19 @@ component {
 
 		switch( relationship ) {
 			case "many-to-one":
-				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-
-				if ( relatedTo == "security_user" ) {
-					expressions.append( _createManyToOneMatchesLoggedInAdminUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				if ( !_excludeExpressionCheck( "ManyToOneMatch", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createManyToOneMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
-				if ( relatedTo == "website_user" ) {
-					expressions.append( _createManyToOneMatchesLoggedInWebUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+
+				if ( !_excludeExpressionCheck( "ManyToOneFilter", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+
+				if ( relatedTo == "security_user" && !_excludeExpressionCheck( "ManyToOneMatchLoggedInAdminUser", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createManyToOneMatchesLoggedInAdminUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( relatedTo == "website_user" && !_excludeExpressionCheck( "ManyToOneMatchLoggedInWebUser", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createManyToOneMatchesLoggedInWebUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
 				if ( !arguments.parentObjectName.len() ) {
 					if ( IsBoolean( propertyDefinition.autoGenerateFilterExpressions ?: "" ) && propertyDefinition.autoGenerateFilterExpressions ) {
@@ -127,19 +151,31 @@ component {
 				}
 			break;
 			case "many-to-many":
-				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createManyToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createManyToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				if ( !_excludeExpressionCheck( "ManyToManyMatch", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createManyToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !_excludeExpressionCheck( "ManyToManyCount", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createManyToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !_excludeExpressionCheck( "ManyToManyHas", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createManyToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
 			break;
 			case "one-to-many":
-				expressions.append( _createOneToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createOneToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				if ( !_excludeExpressionCheck( "OneToManyMatch", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createOneToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !_excludeExpressionCheck( "OneToManyCount", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createOneToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !_excludeExpressionCheck( "OneToManyHas", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+					arrayAppend( expressions, _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
 			break;
 		}
 
-		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
-			expressions.append( _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) && !_excludeExpressionCheck( "EnumPropertyMatches", excludedKeys, arguments.adminUserRoles, rolesLimit ) ) {
+			arrayAppend( expressions, _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
 		}
 
 
@@ -638,6 +674,24 @@ component {
 		return defaultVariety;
 	}
 
+	private boolean function _excludeExpressionCheck(
+		  required string expressionKey
+		,          array  excludedKeys   = []
+		,          array  adminUserRoles = []
+		,          struct rolesLimit     = {}
+	) {
+		var excludedExpKeys = [];
+
+		if ( arrayLen( arguments.adminUserRoles ) && !structIsEmpty( arguments.rolesLimit ) ) {
+			for ( var role in arguments.adminUserRoles ) {
+				if ( structKeyExists( arguments.rolesLimit, role ) ) {
+					return !arrayContainsNoCase( arguments.rolesLimit[ role ], arguments.expressionKey );
+				}
+			}
+		}
+
+		return arrayContainsNoCase( excludedExpKeys, arguments.expressionKey );
+	}
 
 
 // GETTERS AND SETTERS
