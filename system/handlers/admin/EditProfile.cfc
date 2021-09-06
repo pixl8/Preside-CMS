@@ -28,8 +28,6 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
 			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
 		}
-
-
 	}
 
 	function editProfileAction( event, rc, prc ) {
@@ -207,6 +205,31 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication", queryString="setup=true" ) );
 		}
 		setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" ) );
+	}
+
+	function setUserHomepageAction( event, rc, prc ) {
+		var homepageUrl = rc.url ?: "";
+
+		if ( !isEmptyString( homepageUrl ) ) {
+			if ( REFindNoCase( "^" & event.getAdminPath(), homepageUrl ) ) {
+				getPresideObject( "security_user" ).updateData(
+					  id   = event.getAdminUserId()
+					, data = {
+						homepage_url = homepageUrl
+					  }
+				);
+
+				messageBox.info( translateResource( uri="cms:editProfile.homepage.success.message" ) );
+			} else {
+				messageBox.error( translateResource( uri="cms:editProfile.homepage.error.message" ) );
+			}
+		}
+
+		if ( isEmptyString( homepageUrl ) ) {
+			homepageUrl = cgi.http_referer;
+		}
+
+		setNextEvent( url=homepageUrl );
 	}
 
 	private void function _setupEditProfileTabs( event, rc, prc ) {
