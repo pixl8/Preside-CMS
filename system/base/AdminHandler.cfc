@@ -29,7 +29,7 @@ component {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:home.title" )
-			, link  = event.buildLink( linkTo=applicationsService.getDefaultEvent( activeApplication ), queryString=applicationsService.getDefaultQueryString( activeApplication ) )
+			, link  = applicationsService.getDefaultUrl( activeApplication )
 		);
 	}
 

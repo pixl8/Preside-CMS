@@ -4012,7 +4012,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.setLayout( adminLayout );
-		event.getAdminBreadCrumbs()[ 1 ].link = event.buildLink( linkTo=applicationsService.getDefaultEvent( adminApplication ) );
+		event.getAdminBreadCrumbs()[ 1 ].link = applicationsService.getDefaultUrl( adminApplication );
 	}
 
 	private string function _getDefaultEditFormName( required string objectName ) {
