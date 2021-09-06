@@ -26,7 +26,7 @@
 	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ objectSingularName ] );
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
