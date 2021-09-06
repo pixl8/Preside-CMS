@@ -34,7 +34,7 @@ component implements="iRouteHandler" {
 		if ( translated == "admin" ) {
 			var homepageUrl = event.getAdminHomepageUrl();
 
-			if ( Len( Trim( homepageUrl ) ) && REFindNoCase( "^" & event.getAdminPath(), homepageUrl ) ) {
+			if ( REFindNoCase( "^" & event.getAdminPath(), homepageUrl ) && homepageUrl != event.getCurrentUrl() ) {
 				event.getController().setNextEvent( url=homepageUrl );
 			} else {
 				translated = _getDefaultEvent();
