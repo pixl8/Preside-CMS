@@ -66,47 +66,31 @@ component {
 	 *
 	 */
 	public string function getDefaultEvent( string applicationId=getDefaultApplication() ) {
-		var apps  = _getConfiguredApplications();
-
-		var securityUser = $getPresideObject( "security_user" ).selectData(
-			  id           = $getAdminLoggedInUserId()
-			, selectFields = [
-				"homepage_data"
-			]
-		);
-
-		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_data ) ) {
-			var data = DeserializeJson( securityUser.homepage_data );
-
-			if ( StructKeyExists( data, "event" ) ) {
-				return data.event;
-			}
-		}
-
-
+		var apps = _getConfiguredApplications();
 
 		return apps[ arguments.applicationId ].defaultEvent ?: "";
 	}
 
-	public string function getDefaultQueryString( string applicationId=getDefaultApplication() ) {
+	public string function getDefaultUrl( string applicationId=getDefaultApplication() ) {
+		var defaultUrl = getAdminHomepageUrl();
+
+		if ( !$helpers.isEmptyString( defaultUrl ) ) {
+			return defaultUrl;
+		}
+
+		return $getRequestContext().buildLink( linkTo=getDefaultEvent( applicationId ) );
+	}
+
+	public string function getAdminHomepageUrl() {
 		var securityUser = $getPresideObject( "security_user" ).selectData(
 			  id           = $getAdminLoggedInUserId()
 			, selectFields = [
-				"homepage_data"
+				"homepage_url"
 			]
 		);
 
-		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_data ) ) {
-			var data        = DeserializeJson( securityUser.homepage_data );
-			var queryString = "";
-
-			data.each( function( key, value ) {
-				if ( !ArrayContains( [ "event", "_sid" ], key ) ) {
-					queryString = ListAppend( queryString, "#key#=#value#", "&" );
-				}
-			} );
-
-			return queryString;
+		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_url ) ) {
+			return securityUser.homepage_url
 		}
 
 		return "";

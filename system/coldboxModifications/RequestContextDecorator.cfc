@@ -207,6 +207,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return includeQs ? currentUrl & "?" & qs : currentUrl;
 	}
 
+	public string function getAdminHomepageUrl() {
+		return getModel( "ApplicationsService" ).getAdminHomepageUrl();
+	}
+
 	public void function setCurrentPresideUrlPath( required string presideUrlPath ) {
 		getRequestContext().setValue( name="_presideUrlPath", private=true, value=arguments.presideUrlPath );
 	}
