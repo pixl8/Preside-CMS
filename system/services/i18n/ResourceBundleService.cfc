@@ -229,18 +229,72 @@ component singleton=true {
 	}
 
 	private array function _getBundleFiles( required string bundleName, string language, string country ) {
-		if ( !StructKeyExists( arguments, "language" ) && !StructKeyExists( arguments, "country" ) ) {
-			return variables._bundleFileDiscoveryCache[ arguments.bundleName ] ?: [];
+		if ( !StructKeyExists( arguments, "language" ) ) {
+			return variables._bundleFileDiscoveryCache[ arguments.bundleName ] ?: _discoverOutlierBundleFiles( argumentCollection=arguments );
 		}
+
+		var languageFiles = variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: _discoverOutlierBundleFiles( bundleName=arguments.bundleName, language=arguments.language );
 		if ( !StructKeyExists( arguments, "country" ) ) {
-			return variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: [];
+			return languageFiles;
 		}
 
-		var files = variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: [];
+		ArrayAppend( languageFiles, variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "_" & arguments.country ] ?: _discoverOutlierBundleFiles( argumentCollection=arguments ), true );
 
-		ArrayAppend( files, variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "_" & arguments.country ] ?: [], true );
+		return languageFiles;
+	}
 
-		return files;
+	private array function _discoverOutlierBundleFiles( required string bundleName, string language, string country ) {
+		var directories        = _getBundleDirectories();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
+		var filePattern        = ListLast( arguments.bundleName, "." );
+		var siteTemplate       = "";
+		var subDirectory       = "";
+		var files              = "";
+		var directory          = "";
+		var file               = "";
+		var discoveredFiles    = [];
+
+		if ( ListLen( arguments.bundleName, "." ) > 1 ) {
+			subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
+			subDirectory = "/" & ListChangeDelims( subDirectory, "/", "." );
+		}
+
+		if ( StructKeyExists( arguments, "language" ) ) {
+			filePattern &= "_" & LCase( arguments.language );
+			if ( StructKeyExists( arguments, "country" ) ) {
+				filePattern &= "_" & UCase( arguments.country );
+			}
+		}
+
+		filePattern &= ".properties";
+
+		for( directory in directories ){
+			directory = ReReplace( directory, "[\\/]$", "" );
+
+			siteTemplate = _getSiteTemplateFromPath( directory );
+
+			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
+				files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
+
+				for( file in files ){
+					if ( filePattern == ListLast( file, "\/" ) ) {
+						ArrayAppend( discoveredFiles, file );
+					}
+				}
+			}
+		}
+
+		if ( StructKeyExists( arguments, "language" ) ) {
+			if ( StructKeyExists( arguments, "country" ) ) {
+				variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "_" & arguments.country ] = discoveredFiles;
+			} else {
+				variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] = discoveredFiles;
+			}
+		} else {
+			variables._bundleFileDiscoveryCache[ arguments.bundleName ] = discoveredFiles;
+		}
+
+		return discoveredFiles;
 	}
 
 	private void function _setBundleFileDiscoveryCache( required struct bundles, required struct locales ) {
