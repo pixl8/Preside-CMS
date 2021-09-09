@@ -6,18 +6,20 @@ component extends="preside.system.base.AdminHandler" {
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
 
-		var taskId    = rc.taskId ?: "";
-		var resultUrl = event.buildAdminLink();
+		var taskId          = rc.taskId ?: "";
+		var resultUrl       = event.buildAdminLink();
+		var hideBreadCrumbs = isTrue( rc.hideBreadCrumbs ?: "" );
 
 		if ( len( trim( taskId ) ) ) {
 			var task  = adHocTaskManagerService.getTask( taskId );
 			resultUrl = task.return_url.len() ? task.return_url : event.buildAdminLink();
 		}
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:adhoctaskmanager.breadcrumb.title" )
-			, link  = resultUrl
-		);
+		if( !hideBreadCrumbs ){
+			event.addAdminBreadCrumb(
+					title = translateResource( "cms:adhoctaskmanager.breadcrumb.title" )
+				, link  = resultUrl
+			);
+		}
 
 		prc.pageIcon     = "hourglass-2";
 	}

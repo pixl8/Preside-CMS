@@ -7,8 +7,12 @@
 	log            = taskProgress.log;
 	timeTaken      = taskProgress.timeTaken;
 
-	canCancel    = IsTrue( prc.canCancel ?: "" );
-	hasReturnUrl = Len( Trim( taskProgress.returnUrl ) );
+	hideTaskLog = isTrue( rc.hideTaskLog ?: "" );
+	hideCancel  = isTrue( rc.hideCancel  ?: "" );
+	hideReturn  = isTrue( rc.hideReturn  ?: "" ) && Len( taskProgress.resultUrl ?: "" );
+
+	canCancel    = IsTrue( prc.canCancel ?: "" ) && !hideCancel;
+	hasReturnUrl = Len( Trim( taskProgress.returnUrl ) ) && !hideReturn;
 	succeeded    = status == "succeeded";
 	isRunning    = status == "running";
 	isPending    = status == "pending";
@@ -40,9 +44,11 @@
 		<div class="progress pos-rel <cfif isRunning> progress-striped active</cfif>" data-percent="#progress#%">
 			<div class="progress-bar progress-bar-#progressClass#" style="width:#progress#%;"></div>
 		</div>
-		<div class="task-log">
-			<pre id="taskmanager-log">#log#</pre>
-		</div>
+		<cfif !hideTaskLog>
+			<div class="task-log">
+				<pre id="taskmanager-log">#log#</pre>
+			</div>
+		</cfif>
 		<div class="clearfix">
 			<div class="pull-right log-actions">
 				<span class="time-taken <cfif succeeded>complete green<cfelseif isRunning>running blue<cfelseif isPending>orange<cfelse>red</cfif>">

@@ -17,8 +17,12 @@
 
 
 	scrollToBottom = function(){
-		var logArea = $logArea.get(0);
-		$logArea.animate( {scrollTop: logArea.scrollHeight - logArea.clientHeight}, 400 );
+		var logArea      = $logArea.get(0);
+		var logAreaExist = logArea != undefined;
+
+		if( logAreaExist ){
+			$logArea.animate( {scrollTop: logArea.scrollHeight - logArea.clientHeight}, 400 );
+		}
 	};
 
 	fetchUpdate = function(){
@@ -34,7 +38,12 @@
 		var isRunning          = data.status == "running"
 		  , isPending          = data.status == "pending"
 		  , logArea            = $logArea.get(0)
-		  , isScrolledToBottom = logArea.scrollHeight - logArea.clientHeight <= logArea.scrollTop + 1;
+		  , logAreaExist       = logArea != undefined
+		  , isScrolledToBottom = false;
+
+		if( logAreaExist ){
+			isScrolledToBottom = logArea.scrollHeight - logArea.clientHeight <= logArea.scrollTop + 1;
+		}
 
 		$timeArea.html( data.timeTaken );
 
