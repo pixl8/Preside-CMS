@@ -6,21 +6,19 @@
 		return;
 	}
 
-	var $logArea     = $( '#taskmanager-log' )
-	  , $timeArea    = $( '#task-log-timetaken' )
+	var $timeArea    = $( '#task-log-timetaken' )
 	  , $progressBar = $progressContainer.find( ".progress:first" )
 	  , $cancelBtn   = $( '#task-cancel-button' )
 	  , $resultBtn   = $( '#view-result-button' )
+	  , $logArea     = $( '#taskmanager-log' )
+	  , hasLogArea   = $logArea.length
+	  , logArea      = hasLogArea ? $logArea.get(0) : null
 	  , lineCount    = cfrequest.adhocTaskLineCount || ""
 	  , fetchRate    = 1000
 	  , fetchUpdate, processUpdate, intervalId, scrollToBottom, setProgress;
 
-
 	scrollToBottom = function(){
-		var logArea      = $logArea.get(0);
-		var logAreaExist = logArea != undefined;
-
-		if( logAreaExist ){
+		if ( hasLogArea ) {
 			$logArea.animate( {scrollTop: logArea.scrollHeight - logArea.clientHeight}, 400 );
 		}
 	};
@@ -35,15 +33,9 @@
 	};
 
 	processUpdate = function( data ) {
-		var isRunning          = data.status == "running"
-		  , isPending          = data.status == "pending"
-		  , logArea            = $logArea.get(0)
-		  , logAreaExist       = logArea != undefined
-		  , isScrolledToBottom = false;
-
-		if( logAreaExist ){
-			isScrolledToBottom = logArea.scrollHeight - logArea.clientHeight <= logArea.scrollTop + 1;
-		}
+		var isRunning           = data.status == "running"
+		  , isPending           = data.status == "pending"
+		  , wasScrolledToBottom = hasLogArea ? ( logArea.scrollHeight - logArea.clientHeight <= logArea.scrollTop + 1 ) : false;
 
 		$timeArea.html( data.timeTaken );
 
@@ -51,7 +43,7 @@
 			$logArea.html( $logArea.html() + String.fromCharCode( 10 ) + data.log );
 			lineCount = data.logLineCount;
 
-			if ( isScrolledToBottom ) {
+			if ( wasScrolledToBottom ) {
 				scrollToBottom();
 			}
 		}
@@ -86,6 +78,8 @@
 	};
 
 	intervalId = setInterval( fetchUpdate, fetchRate );
-	setTimeout( scrollToBottom, 2000 );
+	if ( hasLogArea ) {
+		setTimeout( scrollToBottom, 2000 );
+	}
 
 } )( presideJQuery );
