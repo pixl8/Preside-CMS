@@ -123,9 +123,12 @@ component extends="preside.system.base.AdminHandler" {
 	public void function validateItemConfig( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 
-		var formId         = rc.formId ?: "";
+		var formId         = rc.formId   ?: "";
+		var itemId         = rc.itemId   ?: "";
+		var questionId     = rc.question ?: "";
 		var formName       = "";
 		var itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
+
 
 		if ( isTrue( itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
 			formName = "formbuilder.item-types.formfieldv2";
@@ -135,6 +138,18 @@ component extends="preside.system.base.AdminHandler" {
 
 		var validationResult = validateForm( formName, event.getCollectionForForm( formName ) );
 
+		if ( validationResult.validated() && formBuilderService.isV2Form( formId ) ) {
+			var formItems = formBuilderService.getFormItems( formId );
+			for ( var item in formItems ) {
+				if ( itemId != item.id && questionId == item.questionId ?: "" ) {
+					validationResult.addError(
+						  fieldName = "question"
+						, message   = translateResource( uri="preside-objects.formbuilder_formitem:field.question.duplicate.error" )
+					);
+					break;
+				}
+			}
+		}
 		if ( validationResult.validated() ) {
 			event.renderData( data=true, type="json" );
 		} else {
