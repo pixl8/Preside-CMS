@@ -28,10 +28,16 @@ component extends="preside.system.base.AdminHandler" {
 // FIRST CLASS EVENTS
 	public any function index( event, rc, prc ) {
 		prc.categories = systemConfigurationService.listConfigCategories();
-
+		ArraySort( prc.categories, function(a,b){
+			var aTitle = LCase( translateResource( uri=a.getName(), defaultValue=a.getId() ) );
+			var bTitle = LCase( translateResource( uri=b.getName(), defaultValue=b.getId() ) );
+			return compare(aTitle,bTitle);
+		});
 		prc.pageTitle    = translateResource( uri="cms:sysconfig" );
 		prc.pageSubtitle = translateResource( uri="cms:sysconfig.subtitle" );
 		prc.pageIcon     = "cogs";
+
+		event.include( "/js/admin/specific/sysconfig/" );
 	}
 
 	public any function category( event, rc, prc ) {
