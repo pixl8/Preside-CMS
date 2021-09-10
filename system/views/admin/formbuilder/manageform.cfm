@@ -22,14 +22,20 @@
 							#renderViewlet( event="admin.formbuilder.itemsManagement", args={ formId=formId } )#
 						</div>
 						<br>
-						<div class="with-padding">
-							<cfif IsTrue( theForm.use_captcha ?: "" )>
-								<p class="disabled"><em>#translateResource( 'formbuilder:protected.with.captcha' )#</em></p>
-							</cfif>
-							<br>
-							<div class="form-group">
-								<button disabled class="btn btn-disabled">#theForm.button_label ?: 'submit'#</button>
-							</div>
+						<div class="formbuilder-workbench-items">
+							<ul class="list-unstyled form-items">
+								#renderViewlet( event="admin.formbuilder._workbenchSettingItem", args={
+									  formId       = formId
+									, itemTitle    = translateResource( uri='formbuilder:itemconfig.captcha.type.title' )
+									, itemSubTitle = '(<code># IsTrue( theForm.use_captcha ?: "" ) ? "On" : "Off" #</code>)'
+									, iconClass    = "fa-robot"
+								})#
+								#renderViewlet( event="admin.formbuilder._workbenchSettingItem", args={
+									  formId       = formId
+									, itemTitle    = translateResource( uri='formbuilder:itemconfig.submit_button.type.title' )
+									, iconClass    = "fa-arrow-circle-right"
+								})#
+							</ul>
 						</div>
 					</div>
 				</div>
