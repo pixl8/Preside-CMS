@@ -40,25 +40,6 @@ component extends="preside.system.base.AdminHandler" {
 		event.include( "/js/admin/specific/sysconfig/" );
 	}
 
-	public any function quickSearch( event, rc, prc ) {
-		var search = Lcase( rc.sSearch ?: "" );
-		args.categories = systemConfigurationService.listConfigCategories();
-		if ( Len( search ) ) {
-			args.categories = ArrayFilter( args.categories, function(struct) {
-				return LCase( struct.getName()        ).contains( search )
-					|| LCase( struct.getDescription() ).contains( search )
-			})
-		}
-
-		ArraySort( args.categories, function(a,b){
-			var aTitle = LCase( translateResource( uri=a.getName(), defaultValue=a.getId() ) );
-			var bTitle = LCase( translateResource( uri=b.getName(), defaultValue=b.getId() ) );
-			return compare(aTitle,bTitle);
-		});
-
-		return renderView( view="admin/sysconfig/_results", args=args );
-	}
-
 	public any function category( event, rc, prc ) {
 		var categoryId      = Trim( rc.id   ?: "" );
 		var tenantId        = Trim( rc.tenantId ?: "" );

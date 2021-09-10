@@ -6,28 +6,22 @@
 	$.fn.sysconfigTable = function(){
 		return this.each( function(){
 			var $sysconfigTable  = $( this )
-			  , $resultDiv = $(this).find(".sysconfig_results").first()
+			  , $categories = $(this).find(".config-category")
 			  , tableSettings = $(this).data()
 			  , $searchInput     = $sysconfigTable.find( "input" ).first()
-			  , searchDelay      = 400
-			  , datasourceUrl    = tableSettings.datasourceUrl     || cfrequest.datasourceUrl  || buildAdminLink( "sysconfig.quicksearch")
-			  , noRecordMessage  = tableSettings.noRecordMessage   || i18n.translateResource( "cms:datatables.emptyTable" )
-			  , oTimerId;
+			  , noRecordMessage  = tableSettings.noRecordMessage   || i18n.translateResource( "cms:datatables.emptyTable" );
 
-   				$searchInput.bind( 'keyup', function() {
-   					window.clearTimeout( oTimerId );
-					oTimerId = window.setTimeout( function() {
-						$.post( datasourceUrl, { sSearch : $searchInput.val() }, function(h) {
-							if ( h==="") {
-								$resultDiv.html( noRecordMessage )
-							} else {
-								$resultDiv.html( h )
-							}
-						});
-					}, searchDelay );
+			$searchInput.bind( 'keyup', function() {
+				var search = $searchInput.val().toLowerCase();
+				$categories.each( function() {
+					var $this = $(this);
+					if ( $this.text().toLowerCase().indexOf( search ) === -1 ) {
+						$this.fadeOut();
+					} else {
+						$this.fadeIn();
+					}
 				});
-
-
+			});
 		} );
 	};
 
