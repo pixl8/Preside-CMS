@@ -26,14 +26,14 @@
 							<ul class="list-unstyled form-items">
 								#renderViewlet( event="admin.formbuilder._workbenchSettingItem", args={
 									  formId       = formId
-									, itemTitle    = translateResource( uri='formbuilder:itemconfig.submit_button.type.title' )
-									, iconClass    = "fa-arrow-circle-right"
-								})#
-								#renderViewlet( event="admin.formbuilder._workbenchSettingItem", args={
-									  formId       = formId
 									, itemTitle    = translateResource( uri='formbuilder:itemconfig.captcha.type.title' )
 									, itemSubTitle = '(<code># IsTrue( theForm.use_captcha ?: "" ) ? "On" : "Off" #</code>)'
 									, iconClass    = "fa-robot"
+								})#
+								#renderViewlet( event="admin.formbuilder._workbenchSettingItem", args={
+									  formId       = formId
+									, itemTitle    = translateResource( uri='formbuilder:itemconfig.submit_button.type.title' )
+									, iconClass    = "fa-arrow-circle-right"
 								})#
 							</ul>
 						</div>
