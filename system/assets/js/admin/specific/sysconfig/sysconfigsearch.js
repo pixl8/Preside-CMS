@@ -9,6 +9,7 @@
 			  , $categories = $(this).find(".config-category")
 			  , $searchInput     = $sysconfigTable.find( "input" ).first();
 
+			$searchInput.focus();
 			$searchInput.bind( 'keyup', function() {
 				var search = $searchInput.val().toLowerCase();
 				$categories.each( function() {
