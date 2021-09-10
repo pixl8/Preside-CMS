@@ -7,9 +7,7 @@
 		return this.each( function(){
 			var $sysconfigTable  = $( this )
 			  , $categories = $(this).find(".config-category")
-			  , tableSettings = $(this).data()
-			  , $searchInput     = $sysconfigTable.find( "input" ).first()
-			  , noRecordMessage  = tableSettings.noRecordMessage   || i18n.translateResource( "cms:datatables.emptyTable" );
+			  , $searchInput     = $sysconfigTable.find( "input" ).first();
 
 			$searchInput.bind( 'keyup', function() {
 				var search = $searchInput.val().toLowerCase();
