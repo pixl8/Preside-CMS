@@ -14,9 +14,9 @@
 				$categories.each( function() {
 					var $this = $(this);
 					if ( $this.text().toLowerCase().indexOf( search ) === -1 ) {
-						$this.fadeOut();
+						$this.hide();
 					} else {
-						$this.fadeIn();
+						$this.show();
 					}
 				});
 			});
