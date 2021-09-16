@@ -183,7 +183,7 @@ component singleton=true {
 		var files              = _getBundleFiles( argumentCollection=arguments );
 		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 
-		for( file in files ){
+		for( var file in files ){
 			var directory = ReReplace( getDirectoryFromPath( file ), "[\\/]$", "" );
 			var siteTemplate = _getSiteTemplateFromPath( directory );
 
