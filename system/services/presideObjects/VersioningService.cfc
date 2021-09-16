@@ -279,6 +279,46 @@ component {
 		);
 	}
 
+	public numeric function updateLatestVersionWithNonVersionedChangesWithFilters(
+		  required string objectName
+		, required struct data
+		,          any    filter       = {}
+		,          struct filterParams = {}
+		,          array  extraFilters = []
+		,          array  savedFilters = []
+	) {
+		var poService           = $getPresideObjectService();
+		var versionObjectName   = poService.getVersionObjectName( arguments.objectName );
+		var useDrafts           = objectUsesDrafts( arguments.objectName );
+		var versionExtraFilters = duplicate( arguments.extraFilters );
+		var versionFilter       = "";
+		var versionParams       = { _version_is_latest=true };
+
+		if ( useDrafts ) {
+			versionFilter = "_version_is_latest = :_version_is_latest or _version_is_latest_draft = :_version_is_latest_draft";
+			versionParams._version_is_latest_draft = true;
+		} else {
+			versionFilter = "_version_is_latest = :_version_is_latest";
+		}
+
+		arrayAppend( versionExtraFilters, {
+			  filter       = versionFilter
+			, filterParams = versionParams
+		} );
+
+		poService.updateData(
+			  objectName              = versionObjectName
+			, data                    = arguments.data
+			, filter                  = arguments.filter
+			, filterParams            = arguments.filterParams
+			, extraFilters            = versionExtraFilters
+			, savedFilters            = arguments.savedFilters
+			, useVersioning           = false
+			, skipTrivialInterceptors = true
+			, setDateModified         = false
+		);
+	}
+
 	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
 		var poService         = $getPresideObjectService();
 		var changedFields     = [];
