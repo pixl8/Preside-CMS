@@ -721,6 +721,8 @@ component displayName="Preside Object Service" {
 		}
 
 		transaction {
+			var hasAnyFilters = !isEmpty( arguments.filter ) || !isEmpty( arguments.extraFilters ) || !isEmpty( arguments.savedFilters );
+
 			if ( requiresVersioning ) {
 				versionNumber = _getVersioningService().saveVersionForUpdate(
 					  argumentCollection   = arguments
@@ -732,12 +734,23 @@ component displayName="Preside Object Service" {
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 					, isDraft              = arguments.isDraft
 				);
-			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
-				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
-					  objectName = arguments.objectName
-					, recordId   = arguments.id
-					, data       = cleanedData
-				);
+			} else if ( objectIsVersioned( arguments.objectName ) ) {
+				if ( Len( Trim( arguments.id ?: "" ) ) ) {
+					_getVersioningService().updateLatestVersionWithNonVersionedChanges(
+						  objectName = arguments.objectName
+						, recordId   = arguments.id
+						, data       = cleanedData
+					);
+				} else if ( hasAnyFilters ) {
+					_getVersioningService().updateLatestVersionWithNonVersionedChangesWithFilters(
+						  objectName   = arguments.objectName
+						, data         = cleanedData
+						, filter       = arguments.filter
+						, filterParams = arguments.filterParams
+						, extraFilters = arguments.extraFilters
+						, savedFilters = arguments.savedFilters
+					);
+				}
 			}
 
 			if ( arguments.useVersioning && objectUsesDrafts( arguments.objectName ) ) {
