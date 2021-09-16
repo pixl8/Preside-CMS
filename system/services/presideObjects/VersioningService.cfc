@@ -291,18 +291,18 @@ component {
 		var versionObjectName   = poService.getVersionObjectName( arguments.objectName );
 		var useDrafts           = objectUsesDrafts( arguments.objectName );
 		var versionExtraFilters = duplicate( arguments.extraFilters );
-		var versionFiter        = "";
+		var versionFilter       = "";
 		var versionParams       = { _version_is_latest=true };
 
 		if ( useDrafts ) {
-			versionFiter = "_version_is_latest = :_version_is_latest or _version_is_latest_draft = :_version_is_latest_draft";
+			versionFilter = "_version_is_latest = :_version_is_latest or _version_is_latest_draft = :_version_is_latest_draft";
 			versionParams._version_is_latest_draft = true;
 		} else {
-			versionFiter = "_version_is_latest = :_version_is_latest";
+			versionFilter = "_version_is_latest = :_version_is_latest";
 		}
 
 		arrayAppend( versionExtraFilters, {
-			  filter       = versionFiter
+			  filter       = versionFilter
 			, filterParams = versionParams
 		} );
 
