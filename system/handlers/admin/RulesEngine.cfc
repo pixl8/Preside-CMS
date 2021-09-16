@@ -295,6 +295,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.record = {};
 		}
 
+		if ( isEmptyString( rc.filter_object ?: "" ) ) {
+			rc.filter_object = prc.record.filter_object ?: "";
+		}
+
 		prc.formName = "preside-objects.rules_engine_condition.admin.quickedit.filter";
 		if ( IsTrue( prc.record.is_locked ?: "" ) ) {
 			prc.formName = formsService.getMergedFormName(
