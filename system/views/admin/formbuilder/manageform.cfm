@@ -23,7 +23,7 @@
 						</div>
 						<br>
 						<div class="formbuilder-workbench-items">
-							<ul class="list-unstyled form-items">
+							<ul class="list-unstyled setting-items">
 								#renderViewlet( event="admin.formbuilder._workbenchSettingItem", args={
 									  formId       = formId
 									, itemTitle    = translateResource( uri='formbuilder:itemconfig.captcha.type.title' )
