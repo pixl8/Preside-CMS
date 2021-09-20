@@ -19,7 +19,9 @@ component {
 	 * @spreadsheetLib.inject               spreadsheetLib
 	 * @presideObjectService.inject         presideObjectService
 	 * @rulesEngineFilterService.inject     rulesEngineFilterService
+	 * @rulesEngineWebRequestService.inject rulesEngineWebRequestService
 	 * @csvWriter.inject                    csvWriter
+	 * @sessionStorage.inject               sessionStorage
 	 *
 	 */
 	public any function init(
@@ -33,7 +35,9 @@ component {
 		, required any spreadsheetLib
 		, required any presideObjectService
 		, required any rulesEngineFilterService
+		, required any rulesEngineWebRequestService
 		, required any csvWriter
+		, required any sessionStorage
 	) {
 		_setItemTypesService( arguments.itemTypesService );
 		_setActionsService( arguments.actionsService );
@@ -45,7 +49,9 @@ component {
 		_setSpreadsheetLib( arguments.spreadsheetLib );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setRulesEngineFilterService( arguments.rulesEngineFilterService );
+		_setRulesEngineWebRequestService( arguments.rulesEngineWebRequestService );
 		_setCsvWriter( arguments.csvWriter );
+		_setSessionStorage( arguments.sessionStorage );
 
 		return this;
 	}
@@ -478,6 +484,105 @@ component {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks whether access is allowed to the form, based on the form requiring login
+	 * plus an optional access condition. Returns a string
+	 *
+	 * @autodoc
+	 * @formId.hint The ID of the form you wish to check
+	 *
+	 */
+	public struct function checkAccessAllowed( required string formId ) {
+		var formRecord    = getForm( id=arguments.formid );
+		var requiresLogin = IsBoolean( formRecord.require_login ?: "" ) && formRecord.require_login;
+		var hasCondition  = !IsEmpty( formRecord.access_condition ?: "" );
+
+		if ( $isFeatureEnabled( "websiteUsers" ) ) {
+			if ( requiresLogin && !$isWebsiteUserLoggedIn() ) {
+				return {
+					allowed = false
+					, reason  = "login"
+					, content = formRecord.login_required_content ?: ""
+					, message = $translateResource( "formbuilder:ajax.submit.login.required" )
+				};
+			}
+
+			if ( hasCondition && !_getRulesEngineWebRequestService().evaluateCondition( formRecord.access_condition ) ) {
+				return {
+					allowed = false
+					, reason  = "condition"
+					, content = formRecord.access_denied_content ?: ""
+					, message = $translateResource( "formbuilder:ajax.submit.access.denied" )
+				};
+			}
+		}
+
+		return { allowed=true, reason="", content="", message="" };
+	}
+
+	/**
+	 * Returns whether or not a form has fields that identify as being file upload fields,
+	 * to make it easier to handle beahviours and repopulating of forms.
+	 *
+	 * @autodoc
+	 * @formId.hint The ID of the form you wish to check
+	 *
+	 */
+	public boolean function formHasFileUploadFields( required string formId ) {
+		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+
+		return $getPresideObject( "formbuilder_formitem" ).dataExists(
+			filter = { form=arguments.formId, item_type=fileUploadItemTypes }
+		);
+	}
+
+	/**
+	 * Stores a formbuilder form's submitted values in the user's session temporarily, so
+	 * they can be retrieved when the user has, for instance, logged back in after a timeout.
+	 * File upload fields will be omitted from these stored values.
+	 *
+	 * @autodoc
+	 * @formId.hint     The ID of the form you wish to store values for
+	 * @submission.hint The form value collection that will be stored in the session
+	 *
+	 */
+	public void function setTempStoredSubmission( required string formId, required struct submission ) {
+		var tempStorageKey      = "temp_formbuilder_submission_#formId#";
+		var dataToStore         = Duplicate( arguments.submission );
+		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+		var fileFields          = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
+			, selectFields = [ "question.field_id" ]
+		).valueArray( "field_id" );
+
+		for( var field in dataToStore ) {
+			if ( ArrayFind( fileFields, field ) ) {
+				StructDelete( dataToStore, field );
+			}
+		}
+
+		_getSessionStorage().setVar( tempStorageKey, dataToStore );
+	}
+
+	/**
+	 * Retrieves a formbuilder form's submitted values from the user's session temporarily
+	 * for repopulation to a form when the user has logged back in after a timeout.
+	 *
+	 * @autodoc
+	 * @formId.hint     The ID of the form you wish to retrieve stored values for
+	 *
+	 */
+	public struct function getTempStoredSubmission( required string formId ) {
+		var tempStorageKey = "temp_formbuilder_submission_#formId#";
+		var submission     =  _getSessionStorage().getVar( tempStorageKey, StructNew() );
+
+
+		_getSessionStorage().deleteVar( tempStorageKey );
+
+
+		return submission;
 	}
 
 	/**
@@ -2052,10 +2157,25 @@ component {
 	private void function _setRulesEngineFilterService( required any rulesEngineFilterService ) {
 		_rulesEngineFilterService = arguments.rulesEngineFilterService;
 	}
+
+	private any function _getRulesEngineWebRequestService() {
+		return _rulesEngineWebRequestService;
+	}
+	private void function _setRulesEngineWebRequestService( required any rulesEngineWebRequestService ) {
+		_rulesEngineWebRequestService = arguments.rulesEngineWebRequestService;
+	}
+
 	private any function _getCsvWriter() {
 		return _csvWriter;
 	}
 	private void function _setCsvWriter( required any csvWriter ) {
 		_csvWriter = arguments.csvWriter;
+	}
+
+	private any function _getSessionStorage() {
+		return _sessionStorage;
+	}
+	private void function _setSessionStorage( required any sessionStorage ) {
+		_sessionStorage = arguments.sessionStorage;
 	}
 }
