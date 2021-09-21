@@ -46,6 +46,7 @@ component {
 						type.title                   = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
 						type.iconClass               = $translateResource( uri="formbuilder.item-types.#typeId#:iconclass", defaultValue="fa-square" );
 						type.isFormField             = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
+						type.isFileUploadField       = IsBoolean( type.isFileUploadField ?: "" ) ? type.isFileUploadField : false;
 						type.baseConfigFormName      = "formbuilder.item-types.#typeid#";
 						type.configFormExists        = _getFormsService().formExists( type.baseConfigFormName );
 						type.adminPlaceholderViewlet = "formbuilder.item-types.#type.id#.adminPlaceholder";
@@ -90,6 +91,37 @@ component {
 		}
 
 		return cachedConfigurations[ arguments.itemType ];
+	}
+
+	/**
+	 * Returns an array of item types which are identified as being
+	 * file upload types.
+	 *
+	 * @autodoc
+	 */
+	public array function getFileUploadItemTypes() {
+		var cachedTypes = _getCachedFileUploadItemTypes();
+
+		if ( IsNull( cachedTypes ) ) {
+			var configured      = _getConfiguredTypesAndCategories();
+			var fileUploadTypes = [];
+
+			for( var categoryId in configured ) {
+				var types = configured[ categoryId ].types ?: {};
+
+				for( var typeId in types ) {
+					var type = types[ typeId ];
+
+					if ( IsBoolean( type.isFileUploadField ?: "" ) && type.isFileUploadField ) {
+						ArrayAppend( fileUploadTypes, typeId );
+					}
+				}
+			}
+			_setCachedFileUploadItemTypes( fileUploadTypes );
+			return fileUploadTypes;
+		}
+
+		return cachedTypes;
 	}
 
 	/**
@@ -177,6 +209,13 @@ component {
 	}
 	private void function _setCachedItemTypeConfiguration( required struct cachedItemTypeConfiguration ) {
 		_cachedItemTypeConfiguration = arguments.cachedItemTypeConfiguration;
+	}
+
+	private any function _getCachedFileUploadItemTypes() {
+		return _cachedFileUploadItemTypes ?: NullValue();
+	}
+	private void function _setCachedFileUploadItemTypes( required array cachedFileUploadItemTypes ) {
+		_cachedFileUploadItemTypes = arguments.cachedFileUploadItemTypes;
 	}
 
 }

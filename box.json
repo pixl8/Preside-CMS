@@ -16,7 +16,7 @@
     "description":"",
     "instructions":"https://docs.preside.org/quickstart.html",
     "changelog":"https://www.preside.org/release-notes.html",
-    "keywords":"CMS,ColdBox,FOSS",
+    "keywords":["CMS","ColdBox","FOSS"],
     "private":false,
     "projectURL":"https://www.preside.org",
     "license":[

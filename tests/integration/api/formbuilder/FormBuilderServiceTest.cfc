@@ -1187,7 +1187,9 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockRecaptchaService             = CreateEmptyMock( "preside.system.services.formbuilder.RecaptchaService" );
 		variables.mockPresideObjectService         = CreateEmptyMock( "preside.system.services.presideObjects.presideObjectService" );
 		variables.mockRulesEngineFilterService     = CreateEmptyMock( "preside.system.services.rulesEngine.rulesEngineFilterService" );
+		variables.mockRulesEngineWebRequestService = CreateEmptyMock( "preside.system.services.rulesEngine.rulesEngineWebRequestService" );
 		variables.mockCsvWriter                    = createEmptyMock( "preside.system.services.dataExport.CsvWriter" );
+		variables.mockSessionStorage               = createEmptyMock( "preside.system.services.cfmlscopes.SessionStorage" );
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService(
 			  itemTypesService             = mockItemTypesService
@@ -1200,7 +1202,9 @@ component extends="testbox.system.BaseSpec"{
 			, recaptchaService             = mockRecaptchaService
 			, presideObjectService         = mockPresideObjectService
 			, rulesEngineFilterService     = mockRulesEngineFilterService
+			, rulesEngineWebRequestService = mockRulesEngineWebRequestService
 			, csvWriter                    = mockCsvWriter
+			, sessionStorage               = mockSessionStorage
 		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );

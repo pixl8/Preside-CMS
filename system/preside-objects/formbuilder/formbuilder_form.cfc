@@ -15,6 +15,11 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 	property name="active_from"            type="date"    dbtype="datetime"              required=false;
 	property name="active_to"              type="date"    dbtype="datetime"              required=false;
 
+	property name="require_login"          type="boolean" dbtype="boolean" required=false default=false;
+	property name="access_condition"       relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
+	property name="login_required_content" type="string"  dbtype="text"    required=false;
+	property name="access_denied_content"  type="string"  dbtype="text"    required=false;
+
 	property name="uses_global_questions" type="boolean" dbtype="boolean" required=false default=true;
 
 	property name="items" relationship="one-to-many" relatedto="formbuilder_formitem" relationshipKey="form";

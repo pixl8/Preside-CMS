@@ -843,7 +843,6 @@ component {
 			, number 	   = { isFormField=true  }
 			, date 		   = { isFormField=true  }
 			, time 		   = { isFormField=true  }
-			, fileUpload   = { isFormField=true  }
 			, starRating   = { isFormField=true  }
 			, checkbox	   = { isFormField=true  }
 		} };
@@ -853,6 +852,10 @@ component {
 			, checkboxList = { isFormField=true  }
 			, radio	       = { isFormField=true  }
 			, matrix       = { isFormField=true  }
+		} };
+
+		fbSettings.itemTypes.upload = { sortorder=30, types={
+			fileUpload = { isFormField=true, isFileUploadField=true }
 		} };
 
 		fbSettings.itemTypes.content = { sortorder=40, types={
