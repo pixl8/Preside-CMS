@@ -772,14 +772,17 @@ component displayName="Preside Object Service" {
 				, preFix            = "set__"
 			) );
 
-			sql = adapter.getUpdateSql(
-				  tableName     = obj.tableName
-				, tableAlias    = arguments.objectName
-				, updateColumns = StructKeyArray( cleanedData )
-				, filter        = preparedFilter.filter
-				, joins         = joins
-			);
-			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+			if ( structCount( cleanedData ) ) {
+				sql = adapter.getUpdateSql(
+					tableName     = obj.tableName
+					, tableAlias    = arguments.objectName
+					, updateColumns = StructKeyArray( cleanedData )
+					, filter        = preparedFilter.filter
+					, joins         = joins
+				);
+				result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+			}
+			var updatedRecordCount = Val( result.recordCount ?: 0 );
 
 			if ( StructCount( manyToManyData ) ) {
 				var updatedRecords = [];
@@ -834,10 +837,14 @@ component displayName="Preside Object Service" {
 						}
 					}
 				}
+
+				if ( !structCount( cleanedData ) ) {
+					updatedRecordCount = arrayLen( updatedRecords );
+				}
 			}
 		}
 
-		if ( arguments.clearCaches && Val( result.recordCount ?: 0 ) ) {
+		if ( arguments.clearCaches && updatedRecordCount ) {
 			clearRelatedCaches(
 				  objectName   = arguments.objectName
 				, filter       = preparedFilter.filter
@@ -849,7 +856,7 @@ component displayName="Preside Object Service" {
 		    interceptionArgs.result = result;
 		_announceInterception( "postUpdateObjectData", interceptionArgs );
 
-		return Val( result.recordCount ?: 0 );
+		return updatedRecordCount;
 	}
 
 	/**
