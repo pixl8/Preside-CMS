@@ -183,6 +183,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForEditRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraCloneRecordActionButtons"  );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtons"              );
+		interceptorSettings.customInterceptionPoints.append( "preValidateForm"		                 );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
