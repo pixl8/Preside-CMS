@@ -2297,7 +2297,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          any     validationResult
 	) {
 		arguments.formName = Len( Trim( arguments.mergeWithFormName ) ) ? formsService.getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
-		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		var formData         = {};
 		var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 		var obj              = "";
 		var validationResult = "";
@@ -2306,6 +2306,12 @@ component extends="preside.system.base.AdminHandler" {
 		var persist          = "";
 		var isDraft          = false;
 		var args             = arguments;
+		
+		arguments.data = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		arguments.objectName = arguments.object;
+		
+		announceInterception( 'preValidateForm', arguments );
+		formData = arguments.data;
 
 		args.formData = formData;
 
@@ -2313,6 +2319,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.formData         = formData;
 		args.validationResult = validationResult;
+
 		if ( customizationService.objectHasCustomization( object, "preAddRecordAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
@@ -2685,7 +2692,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var id               = rc.id      ?: "";
 		var version          = rc.version ?: "";
-		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		var formData         = {};
 		var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 		var obj              = "";
 		var validationResult = "";
@@ -2700,8 +2707,15 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=missingUrl );
 		}
 
+		arguments.data = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		arguments.objectName = object;
+		
+		announceInterception( 'preValidateForm', arguments );
+
 		formData.id = id;
+
 		validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+		formData = arguments.data;
 
 		var args = arguments;
 
