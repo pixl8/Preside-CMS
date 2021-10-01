@@ -4,6 +4,7 @@ component {
 	property name="formBuilderValidationService" inject="formBuilderValidationService";
 	property name="validationEngine"             inject="validationEngine";
 	property name="rulesEngineWebRequestService" inject="RulesEngineWebRequestService";
+	property name="websiteLoginService"          inject="websiteLoginService";
 
 	public any function submitAction( event, rc, prc ) {
 		var formId       = rc.form ?: "";
@@ -24,7 +25,8 @@ component {
 				if ( event.isAjax() ) {
 					event.renderData( data={ success=false, response=checkAccess.message }, type="json" );
 				} else {
-					event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=cgi.http_referer );
+					websiteLoginService.setPostLoginUrl( cgi.http_referer );
+					setNextEvent( url=event.buildLink( page="login" ), persistStruct={ message="LOGIN_REQUIRED" } );
 				}
 			}
 			if ( checkAccess.reason == "condition" ) {
