@@ -309,14 +309,14 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-		describe( "getTenancyFieldsForInsertData()", function() {
+		describe( "getTenancyFieldsForInsertOrUpdateData()", function() {
 			it( "should do nothing when the object is not using tenancy", function(){
 				var service    = _getService();
 				var objectName = "test";
 
 				service.$( "getObjectTenant" ).$args( objectName ).$results( "" );
 
-				expect( service.getTenancyFieldsForInsertData( objectName ) ).toBe( {} );
+				expect( service.getTenancyFieldsForInsertOrUpdateData( objectName ) ).toBe( {} );
 			} );
 
 			it( "should add the currently set tenant ID for the tenant that the object uses", function(){
@@ -331,7 +331,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
 				service.$( "getTenantId" ).$args( tenant ).$results( tenantId );
 
-				expect( service.getTenancyFieldsForInsertData( objectName ) ).toBe( expected );
+				expect( service.getTenancyFieldsForInsertOrUpdateData( objectName ) ).toBe( expected );
 			} );
 		} );
 
