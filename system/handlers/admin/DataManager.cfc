@@ -2712,10 +2712,10 @@ component extends="preside.system.base.AdminHandler" {
 		
 		announceInterception( 'preValidateForm', arguments );
 
+		formData = arguments.data;
 		formData.id = id;
 
 		validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
-		formData = arguments.data;
 
 		var args = arguments;
 
