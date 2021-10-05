@@ -910,6 +910,12 @@ component {
 		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerExportPermissionKey", defaultValue="read" );
 	}
 
+	public boolean function useTypedConfirmationForDeletion( required string objectName ) {
+		var dataManagerDeletionTypedConfirmation = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerDeletionTypedConfirmation", defaultValue=false );
+
+		return IsBoolean( dataManagerDeletionTypedConfirmation ) && dataManagerDeletionTypedConfirmation;
+	}
+
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
