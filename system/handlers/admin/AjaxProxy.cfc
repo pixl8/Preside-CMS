@@ -12,8 +12,13 @@
 				var action = event.getValue( name="action", defaultValue="", statusCode=403 );
 				if ( Len( Trim( action ) ) ) {
 					event.noLayout();
+
 					try {
-						runEvent( "admin." & action );
+						if ( getController().handlerExists( "admin." & action ) ) {
+							runEvent( "admin." & action );
+						} else {
+							throw( type="HandlerService.EventHandlerNotRegisteredException" );
+						}
 					} catch( "HandlerService.EventHandlerNotRegisteredException" e ) {
 						event.renderData( type="json", data={ success=false, error="Action, [#action#], is not a valid handler action" }, statusCode=500 );
 					}
