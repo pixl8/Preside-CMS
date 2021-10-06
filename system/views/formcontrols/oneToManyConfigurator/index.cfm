@@ -20,13 +20,13 @@
 	formName                = args.formName         ?: "";
 	relationshipKey         = args.relationshipKey  ?: args.sourceObject;
 	labelRenderer           = args.labelRenderer    ?: "";
-	configuratorLabelUrl    = event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#" );
+	configuratorLabelUrl    = event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#&object=#object#" );
 	configuratorAddUrl      = event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
 	objectSingularName      = translateResource( "preside-objects.#object#:title.singular" );
 	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ objectSingularName ] );
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 

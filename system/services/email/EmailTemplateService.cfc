@@ -163,6 +163,10 @@ component {
 			message.textBody = replaceParameterTokens( message.textBody, params, "text" );
 			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html", preppedHtml.styles );
 
+			if ( Len( Trim( unsubscribeLink ) ) ) {
+				message.htmlBody = replace( message.htmlBody, "{{unsubscribeLink}}", unsubscribeLink );
+			}
+
 			if ( viewOnline ) {
 				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
 				message.htmlBody = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
@@ -273,7 +277,7 @@ component {
 
 		message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 		message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
+		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online && Len( Trim( message.htmlBody ) ) ) {
 			htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
 			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
 			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
@@ -1492,7 +1496,7 @@ component {
 			, type            = "html"
 			, subject         = arguments.message.subject
 			, body            = arguments.messageTemplate.html_body
-			, unsubscribeLink = arguments.unsubscribeLink
+			, unsubscribeLink = Len( Trim( arguments.unsubscribeLink ) ) ? "{{unsubscribeLink}}" : ""
 			, viewOnlineLink  = arguments.viewOnline ? "{{viewonline}}" : ""
 		};
 
