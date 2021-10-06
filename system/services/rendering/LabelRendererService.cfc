@@ -61,7 +61,7 @@ component {
 				, eventArguments = args
 			);
 		} else {
-			return args.label ?: "";
+			return EncodeForHTML( args.label ?: "" );
 		}
 	}
 
