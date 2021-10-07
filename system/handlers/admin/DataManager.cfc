@@ -649,21 +649,37 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
-		var success = datamanagerService.batchEditField(
-			  objectName         = objectName
-			, fieldName          = updateField
-			, sourceIds          = sourceIds
-			, value              = rc[ updateField ]      ?: ""
-			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+		var taskId = createTask(
+			  event      = "admin.datamanager.batchEditInBgThread"
+			, runNow     = true
+			, adminOwner = event.getAdminUserId()
+			, title      = "cms:datamanager.batchedit.task.title"
+			, returnUrl  = event.buildAdminLink( objectName=objectName, operation="listing" )
+			, args       = {
+				  objectName         = objectName
+				, fieldName          = updateField
+				, sourceIds          = sourceIds
+				, value              = rc[ updateField ]      ?: ""
+				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+			}
 		);
 
-		if( success ) {
-			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
-		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
-		}
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
+	}
+
+	private boolean function batchEditInBgThread( event, rc, prc, args={}, logger, progress ) {
+		return datamanagerService.batchEditField(
+			  objectName         = args.objectName         ?: ""
+			, fieldName          = args.fieldName          ?: ""
+			, sourceIds          = args.sourceIds          ?: []
+			, value              = args.value              ?: ""
+			, multiEditBehaviour = args.multiEditBehaviour ?: "append"
+			, logger             = arguments.logger   ?: NullValue()
+			, progress           = arguments.progress ?: NullValue()
+		);
 	}
 
 	public void function recordHistory( event, rc, prc ) {

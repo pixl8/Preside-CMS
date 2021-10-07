@@ -520,9 +520,27 @@ component {
 		,          string multiEditBehaviour = "append"
 		,          string auditAction        = "datamanager_batch_edit_record"
 		,          string auditCategory      = "datamanager"
+		,          any    logger
+		,          any    progress
 	) {
-		var pobjService  = _getPresideObjectService();
-		var isMultiValue = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
+		var pobjService       = _getPresideObjectService();
+		var isMultiValue      = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
+		var canLog            = StructKeyExists( arguments, "logger" );
+		var canInfo           = canLog && arguments.logger.canInfo();
+		var canReportProgress = StructKeyExists( arguments, "progress" );
+		var totalrecords      = ArrayLen( sourceIds );
+		var hasLabelField     = Len( pobjService.getLabelField( arguments.objectName ) );
+		var processed         = 0;
+		var objectTitle       = "";
+		var fieldTitle        = "";
+		var uriRoot           = "";
+
+		if ( canInfo ) {
+			uriRoot = pobjService.getResourceBundleUriRoot( arguments.objectName );
+			objectTitle = $translateResource( uri=uriRoot & "title.singular", defaultValue=arguments.objectName );
+			fieldTitle  = $translateResource( uri=uriRoot & "field.#arguments.fieldName#.title", defaultValue=arguments.fieldName );
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.starting.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
+		}
 
 		transaction {
 			for( var sourceId in sourceIds ) {
@@ -578,7 +596,28 @@ component {
 					, recordId = sourceid
 					, detail   = Duplicate( arguments )
 				);
+
+				if ( canReportProgress ) {
+					arguments.progress.setProgress( Int( ( 100 / totalrecords ) * ++processed ) ) ;
+				}
+				if ( canInfo ) {
+					if ( hasLabelField ) {
+						arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message", data=[
+							  objectTitle
+							, $helpers.renderLabel( arguments.objectName, sourceId )
+						] ) );
+					} else {
+						arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message.no.recordlabel", data=[
+							  objectTitle
+							, sourceId
+						] ) );
+					}
+				}
 			}
+		}
+
+		if ( canInfo ) {
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.finished.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
 		}
 
 		return true;
