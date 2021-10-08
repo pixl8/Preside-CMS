@@ -542,76 +542,74 @@ component {
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.starting.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
 		}
 
-		transaction {
-			for( var sourceId in sourceIds ) {
-				if ( !isMultiValue ) {
-					pobjService.updateData(
-						  objectName = objectName
-						, data       = { "#arguments.fieldName#" = value }
-						, filter     = { id=sourceId }
-					);
-				} else {
-					var existingIds  = [];
-					var targetIdList = [];
-					var newChoices   = ListToArray( arguments.value );
-
-					if ( arguments.multiEditBehaviour != "overwrite" ) {
-						var previousData = pobjService.getDeNormalizedManyToManyData(
-							  objectName   = objectName
-							, id           = sourceId
-							, selectFields = [ arguments.fieldName ]
-						);
-						existingIds = ListToArray( previousData[ arguments.fieldName ] ?: "" );
-					}
-
-					switch( arguments.multiEditBehaviour ) {
-						case "overwrite":
-							targetIdList = newChoices;
-							break;
-						case "delete":
-							targetIdList = existingIds;
-							for( var id in newChoices ) {
-								targetIdList.delete( id )
-							}
-							break;
-						default:
-							targetIdList = existingIds;
-							targetIdList.append( newChoices, true );
-					}
-
-					targetIdList = targetIdList.toList();
-					targetIdList = ListRemoveDuplicates( targetIdList );
-
-					pobjService.updateData(
-						  objectName              = objectName
-						, id                      = sourceId
-						, data                    = { "#updateField#" = targetIdList }
-						, updateManyToManyRecords = true
-					);
-				}
-
-				$audit(
-					  action   = arguments.auditAction
-					, type     = arguments.auditCategory
-					, recordId = sourceid
-					, detail   = Duplicate( arguments )
+		for( var sourceId in sourceIds ) {
+			if ( !isMultiValue ) {
+				pobjService.updateData(
+					  objectName = objectName
+					, data       = { "#arguments.fieldName#" = value }
+					, filter     = { id=sourceId }
 				);
+			} else {
+				var existingIds  = [];
+				var targetIdList = [];
+				var newChoices   = ListToArray( arguments.value );
 
-				if ( canReportProgress ) {
-					arguments.progress.setProgress( Int( ( 100 / totalrecords ) * ++processed ) ) ;
+				if ( arguments.multiEditBehaviour != "overwrite" ) {
+					var previousData = pobjService.getDeNormalizedManyToManyData(
+						  objectName   = objectName
+						, id           = sourceId
+						, selectFields = [ arguments.fieldName ]
+					);
+					existingIds = ListToArray( previousData[ arguments.fieldName ] ?: "" );
 				}
-				if ( canInfo ) {
-					if ( hasLabelField ) {
-						arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message", data=[
-							  objectTitle
-							, $helpers.renderLabel( arguments.objectName, sourceId )
-						] ) );
-					} else {
-						arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message.no.recordlabel", data=[
-							  objectTitle
-							, sourceId
-						] ) );
-					}
+
+				switch( arguments.multiEditBehaviour ) {
+					case "overwrite":
+						targetIdList = newChoices;
+						break;
+					case "delete":
+						targetIdList = existingIds;
+						for( var id in newChoices ) {
+							targetIdList.delete( id )
+						}
+						break;
+					default:
+						targetIdList = existingIds;
+						targetIdList.append( newChoices, true );
+				}
+
+				targetIdList = targetIdList.toList();
+				targetIdList = ListRemoveDuplicates( targetIdList );
+
+				pobjService.updateData(
+					  objectName              = objectName
+					, id                      = sourceId
+					, data                    = { "#arguments.fieldName#" = targetIdList }
+					, updateManyToManyRecords = true
+				);
+			}
+
+			$audit(
+				  action   = arguments.auditAction
+				, type     = arguments.auditCategory
+				, recordId = sourceid
+				, detail   = Duplicate( arguments )
+			);
+
+			if ( canReportProgress ) {
+				arguments.progress.setProgress( Int( ( 100 / totalrecords ) * ++processed ) ) ;
+			}
+			if ( canInfo ) {
+				if ( hasLabelField ) {
+					arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message", data=[
+						  objectTitle
+						, $helpers.renderLabel( arguments.objectName, sourceId )
+					] ) );
+				} else {
+					arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message.no.recordlabel", data=[
+						  objectTitle
+						, sourceId
+					] ) );
 				}
 			}
 		}
