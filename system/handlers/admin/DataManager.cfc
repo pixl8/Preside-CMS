@@ -662,6 +662,7 @@ component extends="preside.system.base.AdminHandler" {
 				, sourceIds          = sourceIds
 				, value              = rc[ updateField ]      ?: ""
 				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+				, userId             = event.getAdminUserId()
 			}
 		);
 
@@ -678,6 +679,7 @@ component extends="preside.system.base.AdminHandler" {
 			, sourceIds          = args.sourceIds          ?: []
 			, value              = args.value              ?: ""
 			, multiEditBehaviour = args.multiEditBehaviour ?: "append"
+			, auditUserId        = args.userId             ?: ""
 			, logger             = arguments.logger   ?: NullValue()
 			, progress           = arguments.progress ?: NullValue()
 		);
@@ -2607,8 +2609,12 @@ component extends="preside.system.base.AdminHandler" {
 				, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
 				, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
 				, args       = {
-					  objectName = objectName
-					, ids        = ids
+					  objectName  = objectName
+					, ids         = ids
+					, audit       = arguments.audit
+					, auditAction = arguments.auditAction
+					, auditType   = arguments.auditType
+					, userId      = event.getAdminUserId()
 				}
 			);
 
@@ -2673,6 +2679,10 @@ component extends="preside.system.base.AdminHandler" {
 		return datamanagerService.batchDeleteRecords(
 			  objectName         = args.objectName    ?: ""
 			, sourceIds          = args.ids           ?: []
+			, audit              = isTrue( args.audit ?: "" )
+			, auditAction        = args.auditAction   ?: ""
+			, auditType          = args.auditType     ?: ""
+			, auditUserId        = args.userId        ?: ""
 			, logger             = arguments.logger   ?: NullValue()
 			, progress           = arguments.progress ?: NullValue()
 		);

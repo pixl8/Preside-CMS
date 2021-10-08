@@ -520,6 +520,7 @@ component {
 		,          string multiEditBehaviour = "append"
 		,          string auditAction        = "datamanager_batch_edit_record"
 		,          string auditCategory      = "datamanager"
+		,          string auditUserId        = ""
 		,          any    logger
 		,          any    progress
 	) {
@@ -592,6 +593,7 @@ component {
 			$audit(
 				  action   = arguments.auditAction
 				, type     = arguments.auditCategory
+				, userId   = arguments.auditUserId
 				, recordId = sourceid
 				, detail   = Duplicate( arguments )
 			);
@@ -622,61 +624,145 @@ component {
 	}
 
 	public boolean function batchDeleteRecords(
-		  required string objectName
-		, required array  sourceIds
-		,          any    logger
-		,          any    progress
+		  required string  objectName
+		, required array   sourceIds
+		,          boolean audit       = false
+		,          string  auditAction = ""
+		,          string  auditType   = ""
+		,          string  auditUserId = ""
+		,          any     logger
+		,          any     progress
 	) {
-		// TODO
-		/*
+		var pobjService          = _getPresideObjectService();
+		var customizationService = _getCustomizationService();
+		var canLog               = StructKeyExists( arguments, "logger" );
+		var canInfo              = canLog && arguments.logger.canInfo();
+		var canWarn              = canLog && arguments.logger.canWarn();
+		var canError             = canLog && arguments.logger.canError();
+		var canReportProgress    = StructKeyExists( arguments, "progress" );
+		var totalrecords         = ArrayLen( sourceIds );
+		var uriRoot              = canLog ? pobjService.getResourceBundleUriRoot( arguments.objectName ) : "";
+		var objectTitle          = canLog ? $translateResource( uri=uriRoot & "title.singular", defaultValue=arguments.objectName ) : "";
+		var audited              = 0;
+		var args                 = StructCopy( arguments );
+		var doneMessage          = canInfo ? $translateResource( "cms:datamanager.batchdelete.task.done.message" ) : "";
+		var hasLabelField        = Len( Trim( pobjService.getLabelField( arguments.objectName ) ) );
+
+		if ( canInfo ) {
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.starting.message", data=[ objectTitle, NumberFormat( totalRecords ) ] ) );
+		}
+
+		// fetch records before deleting (useful for labels rendering in audit logs, etc.)
+		args.records = pobjService.selectData( objectName=arguments.objectName, filter={ id=arguments.sourceIds }, selectFields=[
+			  "id"
+			, hasLabelField ? "${labelfield} as label" : "id as label"
+		] );
+
+		// pre delete hooks
+		if ( customizationService.objectHasCustomization( arguments.objectName, "preDeleteRecordAction" ) ) {
+			if ( canInfo ) {
+				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.pre.delete.hooks" ) );
+			}
+			customizationService.runCustomization(
+				  objectName = arguments.objectName
+				, action     = "preDeleteRecordAction"
+				, args       = args
+			);
+			if ( canInfo ) {
+				arguments.logger.info( doneMessage );
+			}
+		}
+
+		// delete related data
+		if ( canInfo ) {
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.relateddata.message" ) );
+		}
 		try {
-			presideObjectService.deleteRelatedData( objectName=objectName, recordId=ids );
+			pobjService.deleteRelatedData( objectName=objectName, recordId=arguments.sourceIds );
 		} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
 			if ( canError ) {
-				arguments.logger.error( translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[ objectName ] ) );
-
+				arguments.logger.error( $translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[ objectTitle ] ) );
 			}
 			return false;
 		}
-
-		if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
-			for( record in records ) {
-				if ( arguments.audit ) {
-					var auditDetail = Duplicate( record );
-					auditDetail.objectName = object;
-					event.audit(
-						  action   = arguments.auditAction
-						, type     = arguments.auditType
-						, recordId = record.id
-						, detail   = auditDetail
-					);
-				}
-			}
-
-			if ( customizationService.objectHasCustomization( object, "postDeleteRecordAction" ) ) {
-				customizationService.runCustomization(
-					  objectName = object
-					, action     = "postDeleteRecordAction"
-					, args       = args
-				);
-			}
-
-			if ( redirectOnSuccess ) {
-				if ( ids.len() eq 1 ) {
-					messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records.label[1] ] ) );
-				} else {
-					messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
-				}
-
-				setNextEvent( url=postActionUrl );
-			}
-		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotDeleted.unknown.error" ) );
-			setNextEvent( url=postActionUrl );
+		if ( canInfo ) {
+			arguments.logger.info( doneMessage );
 		}
-		return true;
-		*/
+		if ( canReportProgress ) {
+			arguments.progress.setProgress( 20 );
+		}
 
+		// delete the records
+		if ( canInfo ) {
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.deleting.records.message" ) );
+		}
+		var deletedCount = pobjService.deleteData( objectName=arguments.objectName, filter={ id = arguments.sourceIds } );
+
+		if ( !deletedCount ) {
+			if ( canReportProgress ) {
+				arguments.progress.setProgress( 100 );
+			}
+			if ( canWarn ) {
+				arguments.logger.warn( $translateResource( uri="cms:datamanager.batchdelete.task.no.records.deleted.message" ) );
+			}
+			return true;
+		}
+		if ( canReportProgress ) {
+			arguments.progress.setProgress( arguments.audit ? 50 : 90 );// a little arbitrary
+		}
+		if ( canInfo ) {
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.deleted.records.message", data=[ objectTitle, NumberFormat( deletedCount ) ] ) );
+		}
+
+		// audit
+		if ( arguments.audit ) {
+			if ( canInfo ) {
+				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.auditing.changes.message" ) );
+			}
+
+			for( var record in args.records ) {
+				$audit(
+					  action   = arguments.auditAction
+					, type     = arguments.auditType
+					, userId   = arguments.auditUserId
+					, recordId = record.id
+					, detail   = { id=record.id, label=record.label, objectName=arguments.objectName }
+				);
+
+				if ( canReportProgress ) {
+					arguments.progress.setProgress( 50 + Int( ( 50/totalRecords ) * ++audited ) );
+				}
+			}
+
+			if ( canInfo ) {
+				arguments.logger.info( doneMessage );
+			}
+		}
+
+		// post delete hooks
+		if ( customizationService.objectHasCustomization( arguments.objectName, "postDeleteRecordAction" ) ) {
+			if ( canInfo ) {
+				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.post.delete.hooks" ) );
+			}
+			customizationService.runCustomization(
+				  objectName = arguments.objectName
+				, action     = "postDeleteRecordAction"
+				, args       = args
+			);
+			if ( canInfo ) {
+				arguments.logger.info( doneMessage );
+			}
+		}
+
+		// finish up
+		if ( canInfo ) {
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.finished" ) );
+		}
+		if ( canReportProgress ) {
+			arguments.progress.setProgress( 100 );
+		}
+
+		return true;
 	}
 
 
