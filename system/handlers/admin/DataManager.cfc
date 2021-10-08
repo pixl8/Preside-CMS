@@ -649,21 +649,40 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 		}
 
-		var success = datamanagerService.batchEditField(
-			  objectName         = objectName
-			, fieldName          = updateField
-			, sourceIds          = sourceIds
-			, value              = rc[ updateField ]      ?: ""
-			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+		var taskId = createTask(
+			  event                = "admin.datamanager.batchEditInBgThread"
+			, runNow               = true
+			, adminOwner           = event.getAdminUserId()
+			, title                = "cms:datamanager.batchedit.task.title"
+			, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
+			, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
+			, args       = {
+				  objectName         = objectName
+				, fieldName          = updateField
+				, sourceIds          = sourceIds
+				, value              = rc[ updateField ]      ?: ""
+				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+				, userId             = event.getAdminUserId()
+			}
 		);
 
-		if( success ) {
-			messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
-		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
-		}
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
+	}
+
+	private boolean function batchEditInBgThread( event, rc, prc, args={}, logger, progress ) {
+		return datamanagerService.batchEditField(
+			  objectName         = args.objectName         ?: ""
+			, fieldName          = args.fieldName          ?: ""
+			, sourceIds          = args.sourceIds          ?: []
+			, value              = args.value              ?: ""
+			, multiEditBehaviour = args.multiEditBehaviour ?: "append"
+			, auditUserId        = args.userId             ?: ""
+			, logger             = arguments.logger   ?: NullValue()
+			, progress           = arguments.progress ?: NullValue()
+		);
 	}
 
 	public void function recordHistory( event, rc, prc ) {
@@ -2567,93 +2586,106 @@ component extends="preside.system.base.AdminHandler" {
 		var id               = rc.id          ?: "";
 		var forceDelete      = rc.forceDelete ?: false;
 		var ids              = ListToArray( id );
-		var obj              = "";
-		var records          = "";
-		var record           = "";
+		var isBatch          = ArrayLen( ids ) > 1;
 		var blockers         = "";
-		var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-		var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
-		var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
+		var objectName       = arguments.object;
+		var objectTitle      = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=objectName );
+		var recordLabel      = "";
 
-		obj = presideObjectService.getObject( object );
+		if ( isFalse( forceDelete ) ) {
+			blockers = presideObjectService.listForeignObjectsBlockingDelete( objectName, ids );
 
-		if ( !Len( labelField ) ) {
-			labelField = "id";
-		} else {
-			try {
-				presideObjectService.getObjectProperty( object, labelField );
-			} catch ( any e ) {
-				labelField = "id";
+			if ( ArrayLen( blockers ) ) {
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#objectName#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids), postActionUrl=postActionUrl, cancelUrl=cancelUrl } );
 			}
 		}
 
-		records = obj.selectData( selectFields=[ "id", "#labelField# as label" ], filter={ id = ids }, useCache=false );
+		if ( isBatch ) {
+			var taskId = createTask(
+				  event                = "admin.datamanager.batchDeleteInBgThread"
+				, runNow               = true
+				, adminOwner           = event.getAdminUserId()
+				, title                = "cms:datamanager.batchdelete.task.title"
+				, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
+				, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
+				, args       = {
+					  objectName  = objectName
+					, ids         = ids
+					, audit       = arguments.audit
+					, auditAction = arguments.auditAction
+					, auditType   = arguments.auditType
+					, userId      = event.getAdminUserId()
+				}
+			);
 
-		if ( records.recordCount neq ids.len() ) {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[objectName] ) );
-			setNextEvent( url=postActionUrl );
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=" & taskId
+			) );
 		}
 
+		recordLabel = renderLabel( objectName, id );
+
 		var args = arguments;
-		args.records = records;
-		if ( customizationService.objectHasCustomization( object, "preDeleteRecordAction" ) ) {
+		if ( customizationService.objectHasCustomization( objectName, "preDeleteRecordAction" ) ) {
 			customizationService.runCustomization(
-				  objectName = object
+				  objectName = objectName
 				, action     = "preDeleteRecordAction"
 				, args       = args
 			);
 		}
 
-		if ( not IsBoolean( forceDelete ) or not forceDelete ) {
-			blockers = presideObjectService.listForeignObjectsBlockingDelete( object, ids );
-
-			if ( ArrayLen( blockers ) ) {
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids), postActionUrl=postActionUrl, cancelUrl=cancelUrl } );
-			}
-		} else {
+		if ( forceDelete ) {
 			try {
-				presideObjectService.deleteRelatedData( objectName=object, recordId=ids );
+				presideObjectService.deleteRelatedData( objectName=objectName, recordId=id );
 			} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
-				messageBox.error( translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[objectName] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[ objectTitle ] ) );
 				setNextEvent( url=postActionUrl );
 			}
 		}
 
-		if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
-			for( record in records ) {
-				if ( arguments.audit ) {
-					var auditDetail = Duplicate( record );
-					auditDetail.objectName = object;
-					event.audit(
-						  action   = arguments.auditAction
-						, type     = arguments.auditType
-						, recordId = record.id
-						, detail   = auditDetail
-					);
-				}
+		if ( presideObjectService.deleteData( objectName=objectName, id=id ) ) {
+			if ( arguments.audit ) {
+				event.audit(
+					  action   = arguments.auditAction
+					, type     = arguments.auditType
+					, recordId = id
+					, detail   = { id=id, label=recordLabel, objectName=objectName }
+				);
 			}
 
-			if ( customizationService.objectHasCustomization( object, "postDeleteRecordAction" ) ) {
+			if ( customizationService.objectHasCustomization( objectName, "postDeleteRecordAction" ) ) {
 				customizationService.runCustomization(
-					  objectName = object
+					  objectName = objectName
 					, action     = "postDeleteRecordAction"
 					, args       = args
 				);
 			}
 
 			if ( redirectOnSuccess ) {
-				if ( ids.len() eq 1 ) {
-					messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records.label[1] ] ) );
-				} else {
-					messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
-				}
-
+				messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectTitle, recordLabel ] ) );
 				setNextEvent( url=postActionUrl );
 			}
 		} else {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotDeleted.unknown.error" ) );
 			setNextEvent( url=postActionUrl );
 		}
+	}
+
+	private boolean function batchDeleteInBgThread( event, rc, prc, args={}, logger, progress ) {
+		var ids        = args.ids        ?: [];
+		var objectName = args.objectName ?: "";
+
+		return datamanagerService.batchDeleteRecords(
+			  objectName         = args.objectName    ?: ""
+			, sourceIds          = args.ids           ?: []
+			, audit              = isTrue( args.audit ?: "" )
+			, auditAction        = args.auditAction   ?: ""
+			, auditType          = args.auditType     ?: ""
+			, auditUserId        = args.userId        ?: ""
+			, logger             = arguments.logger   ?: NullValue()
+			, progress           = arguments.progress ?: NullValue()
+		);
 	}
 
 	private void function _editRecordAction(
