@@ -551,6 +551,11 @@ component extends="preside.system.base.AdminHandler" {
 		var ids        = prc.recordId   ?: "";
 		var listingUrl = "";
 
+		if ( isTrue( rc._batchAll ?: "" ) ) {
+			WriteDump( "TODO: process a multirecord action using filters rather than a list of IDs" );
+			WriteDump( rc ); abort;
+		}
+
 		if ( Len( Trim( rc.postAction ?: "" ) ) ) {
 			listingUrl = event.buildAdminLink( linkto=rc.postAction, queryString="id=#objectName#" );
 		} else {

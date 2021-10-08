@@ -324,6 +324,23 @@
 					$hiddenActionField.val( $( this ).attr( 'name' ) );
 				} );
 
+				$form.on( "submit", function(){
+					var allRecords = $form.find( "[name=_batchAll]:checked" ).length > 0;
+					if ( allRecords ) {
+						var $favourites = $( '<input type="hidden" name="savedFilters">' )
+						  , $search = $( '<input type="hidden" name="searchTerm">' )
+						  , $dtSearchContainer = $( dtSettings.aanFeatures.f[0] )
+						  , $dtSearch = $dtSearchContainer.find( "input.data-table-search" ).first();
+
+						$favourites.val( getFavourites() );
+						$search.val( $dtSearch.val() );
+
+						$form.append( $favourites );
+						$form.append( $search );
+						$form.find( "input[name=id]" ).remove();
+					}
+				} );
+
 			};
 
 			updateSelectAllOptionRecordCount = function( newCount ){
