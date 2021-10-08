@@ -23,6 +23,9 @@
 			  , dtSettings
 			  , getFavourites
 			  , setFavourites
+			  , updateSelectAllOptionRecordCount
+			  , activateSelectAllOption
+			  , deactivateSelectAllOption
 			  , object              = tableSettings.objectName        || cfrequest.objectName     || ""
 			  , datasourceUrl       = tableSettings.datasourceUrl     || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 			  , isMultilingual      = tableSettings.isMultilingual    || cfrequest.isMultilingual || false
@@ -240,8 +243,9 @@
 					fnPreDrawCallback : function() {
 						$( ".datatable-container" ).presideLoadingSheen( true );
 					},
-					fnDrawCallback : function() {
+					fnDrawCallback : function( dt ) {
 						$( ".datatable-container" ).presideLoadingSheen( false );
+						updateSelectAllOptionRecordCount( dt.fnFormatNumber( dt._iRecordsTotal ) );
 					},
 					fnFooterCallback: function ( nRow, aaData, iStart, iEnd, aiDisplay ) {
 						if ( $( nRow ).length ) {
@@ -264,16 +268,23 @@
 				  , $multiActionBtns = $listingTable.closest( '.multi-action-form' ).find( ".multi-action-buttons" );
 
 				$selectAllCBox.on( 'click' , function(){
-					var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
+					var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' )
+					  , isChecked  = $selectAllCBox.is( ':checked' );
 
 					$allCBoxes.each( function(){
-						this.checked = $selectAllCBox.is( ':checked' );
+						this.checked = isChecked;
 						if ( this.checked ) {
 							$( this ).closest( 'tr' ).addClass( 'selected' );
 						} else {
 							$( this ).closest( 'tr' ).removeClass( 'selected' );
 						}
 					});
+
+					if ( isChecked ) {
+						activateSelectAllOption();
+					} else {
+						deactivateSelectAllOption();
+					}
 				});
 
 				$multiActionBtns.data( 'hidden', true );
@@ -282,8 +293,10 @@
 
 					if ( anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length ) {
 						$selectAllCBox.prop( 'checked', true );
+						activateSelectAllOption();
 					} else {
 						$selectAllCBox.prop( 'checked', false );
+						deactivateSelectAllOption();
 					}
 
 					enabledContextHotkeys( !anyBoxesTicked );
@@ -310,6 +323,45 @@
 				$form.find( ".multi-action-buttons button" ).click( function( e ){
 					$hiddenActionField.val( $( this ).attr( 'name' ) );
 				} );
+
+			};
+
+			updateSelectAllOptionRecordCount = function( newCount ){
+				var $form = $listingTable.closest( '.multi-action-form' );
+
+				if ( $form.length ) {
+					$form.find( ".batch-update-select-all .matching-record-count" ).each( function(){
+						$( this ).html( newCount );
+					} );
+				}
+			};
+			activateSelectAllOption = function(){
+				var $form = $listingTable.closest( '.multi-action-form' )
+				  , $selectAllContainer;
+
+				if ( $form.length ) {
+					$selectAllContainer = $form.find( ".batch-update-select-all" );
+					if ( $selectAllContainer.length ) {
+						if ( datatable.fnPagingInfo().iTotalPages > 1 ) {
+							$selectAllContainer.show();
+						} else {
+							deactivateSelectAllOption();
+						}
+					}
+				}
+			};
+			deactivateSelectAllOption = function(){
+				var $form = $listingTable.closest( '.multi-action-form' );
+				var $selectAllContainer;
+
+				if ( $form.length ) {
+					$selectAllContainer = $form.find( ".batch-update-select-all" );
+
+					if ( $selectAllContainer.length ) {
+						$selectAllContainer.find( "input[name='_batchAll']" ).prop( "checked", false );
+						$selectAllContainer.hide();
+					}
+				}
 			};
 
 			enabledContextHotkeys = function( enabled ){
