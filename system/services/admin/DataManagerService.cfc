@@ -621,6 +621,64 @@ component {
 		return true;
 	}
 
+	public boolean function batchDeleteRecords(
+		  required string objectName
+		, required array  sourceIds
+		,          any    logger
+		,          any    progress
+	) {
+		// TODO
+		/*
+		try {
+			presideObjectService.deleteRelatedData( objectName=objectName, recordId=ids );
+		} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
+			if ( canError ) {
+				arguments.logger.error( translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[ objectName ] ) );
+
+			}
+			return false;
+		}
+
+		if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
+			for( record in records ) {
+				if ( arguments.audit ) {
+					var auditDetail = Duplicate( record );
+					auditDetail.objectName = object;
+					event.audit(
+						  action   = arguments.auditAction
+						, type     = arguments.auditType
+						, recordId = record.id
+						, detail   = auditDetail
+					);
+				}
+			}
+
+			if ( customizationService.objectHasCustomization( object, "postDeleteRecordAction" ) ) {
+				customizationService.runCustomization(
+					  objectName = object
+					, action     = "postDeleteRecordAction"
+					, args       = args
+				);
+			}
+
+			if ( redirectOnSuccess ) {
+				if ( ids.len() eq 1 ) {
+					messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records.label[1] ] ) );
+				} else {
+					messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
+				}
+
+				setNextEvent( url=postActionUrl );
+			}
+		} else {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotDeleted.unknown.error" ) );
+			setNextEvent( url=postActionUrl );
+		}
+		return true;
+		*/
+
+	}
+
 
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName
