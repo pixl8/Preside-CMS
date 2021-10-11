@@ -467,7 +467,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function deleteRecordAction( event, rc, prc ) {
+	public void function deleteRecordAction( event, rc, prc, batch=false, batchAll=false, batchSrcArgs={} ) {
 		var objectName = prc.objectName ?: "";
 		var recordId   = prc.recordId ?: "";
 
@@ -477,14 +477,19 @@ component extends="preside.system.base.AdminHandler" {
 			customizationService.runCustomization(
 				  objectName = objectName
 				, action     = "deleteRecordAction"
-				, args       = { objectName=objectName, recordId=recordId }
+				, args       = { objectName=objectName, recordId=recordId, batch=arguments.batch, batchAll=arguments.batchAll, batchSrcArgs=arguments.batchSrcArgs }
 			);
 		} else {
 			runEvent(
 				  event          = "admin.DataManager._deleteRecordAction"
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { audit=true }
+				, eventArguments = {
+					  audit        = true
+					, batch        = arguments.batch
+					, batchAll     = arguments.batchAll
+					, batchSrcArgs = arguments.batchSrcArgs
+				  }
 			);
 		}
 	}
@@ -586,7 +591,12 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			break;
 			case "delete":
-				return deleteRecordAction( argumentCollection = arguments );
+				return deleteRecordAction(
+					  argumentCollection = arguments
+					, batch              = true
+					, batchAll           = batchAll
+					, batchSrcArgs       = batchSrcArgs
+				);
 			break;
 		}
 
@@ -2593,11 +2603,14 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean audit             = false
 		,          string  auditAction       = "datamanager_delete_record"
 		,          string  auditType         = "datamanager"
+		,          boolean batch             = false
+		,          boolean batchAll          = false
+		,          struct  batchSrcArgs      = {}
 	) {
 		var id               = rc.id          ?: "";
 		var forceDelete      = rc.forceDelete ?: false;
 		var ids              = ListToArray( id );
-		var isBatch          = ArrayLen( ids ) > 1;
+		var isBatch          = arguments.batch || ArrayLen( ids ) > 1;
 		var blockers         = "";
 		var objectName       = arguments.object;
 		var objectTitle      = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=objectName );
@@ -2620,12 +2633,14 @@ component extends="preside.system.base.AdminHandler" {
 				, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
 				, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
 				, args       = {
-					  objectName  = objectName
-					, ids         = ids
-					, audit       = arguments.audit
-					, auditAction = arguments.auditAction
-					, auditType   = arguments.auditType
-					, userId      = event.getAdminUserId()
+					  objectName   = objectName
+					, ids          = ids
+					, batchAll     = arguments.batchAll
+					, batchSrcArgs = arguments.batchSrcArgs
+					, audit        = arguments.audit
+					, auditAction  = arguments.auditAction
+					, auditType    = arguments.auditType
+					, userId       = event.getAdminUserId()
 				}
 			);
 
@@ -2694,6 +2709,8 @@ component extends="preside.system.base.AdminHandler" {
 			, auditAction        = args.auditAction   ?: ""
 			, auditType          = args.auditType     ?: ""
 			, auditUserId        = args.userId        ?: ""
+			, batchAll           = IsTrue( args.batchAll ?: "" )
+			, batchSrcArgs       = args.batchSrcArgs  ?: {}
 			, logger             = arguments.logger   ?: NullValue()
 			, progress           = arguments.progress ?: NullValue()
 		);

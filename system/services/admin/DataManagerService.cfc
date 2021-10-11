@@ -626,11 +626,13 @@ component {
 
 	public boolean function batchDeleteRecords(
 		  required string  objectName
-		, required array   sourceIds
-		,          boolean audit       = false
-		,          string  auditAction = ""
-		,          string  auditType   = ""
-		,          string  auditUserId = ""
+		,          array   sourceIds    = []
+		,          boolean batchAll     = false
+		,          struct  batchSrcArgs = {}
+		,          boolean audit        = false
+		,          string  auditAction  = ""
+		,          string  auditType    = ""
+		,          string  auditUserId  = ""
 		,          any     logger
 		,          any     progress
 	) {
@@ -645,123 +647,160 @@ component {
 		var uriRoot              = canLog ? pobjService.getResourceBundleUriRoot( arguments.objectName ) : "";
 		var objectTitle          = canLog ? $translateResource( uri=uriRoot & "title.singular", defaultValue=arguments.objectName ) : "";
 		var audited              = 0;
+		var batchProgress        = 0;
 		var args                 = StructCopy( arguments );
-		var doneMessage          = canInfo ? $translateResource( "cms:datamanager.batchdelete.task.done.message" ) : "";
 		var hasLabelField        = Len( Trim( pobjService.getLabelField( arguments.objectName ) ) );
+		var moreToFetch          = arguments.batchAll;
+		var recordIds            = [];
+
+		if ( arguments.batchAll ) {
+			totalRecords = pobjService.selectData(
+				  argumentCollection = arguments.batchSrcArgs
+				, objectName         = arguments.objectName
+				, recordCountOnly    = true
+			);
+		}
 
 		if ( canInfo ) {
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.starting.message", data=[ objectTitle, NumberFormat( totalRecords ) ] ) );
 		}
 
-		// fetch records before deleting (useful for labels rendering in audit logs, etc.)
-		args.records = pobjService.selectData( objectName=arguments.objectName, filter={ id=arguments.sourceIds }, selectFields=[
-			  "id"
-			, hasLabelField ? "${labelfield} as label" : "id as label"
-		] );
-
-		// pre delete hooks
-		if ( customizationService.objectHasCustomization( arguments.objectName, "preDeleteRecordAction" ) ) {
-			if ( canInfo ) {
-				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.pre.delete.hooks" ) );
-			}
-			customizationService.runCustomization(
-				  objectName = arguments.objectName
-				, action     = "preDeleteRecordAction"
-				, args       = args
-			);
-			if ( canInfo ) {
-				arguments.logger.info( doneMessage );
-			}
-		}
-
-		// delete related data
-		if ( canInfo ) {
-			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.relateddata.message" ) );
-		}
-		try {
-			pobjService.deleteRelatedData( objectName=objectName, recordId=arguments.sourceIds );
-		} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
-			if ( canError ) {
-				arguments.logger.error( $translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[ objectTitle ] ) );
-			}
-			return false;
-		}
-		if ( canInfo ) {
-			arguments.logger.info( doneMessage );
-		}
-		if ( canReportProgress ) {
-			arguments.progress.setProgress( 20 );
-		}
-
-		// delete the records
-		if ( canInfo ) {
-			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.deleting.records.message" ) );
-		}
-		var deletedCount = pobjService.deleteData( objectName=arguments.objectName, filter={ id = arguments.sourceIds } );
-
-		if ( !deletedCount ) {
-			if ( canReportProgress ) {
-				arguments.progress.setProgress( 100 );
-			}
-			if ( canWarn ) {
-				arguments.logger.warn( $translateResource( uri="cms:datamanager.batchdelete.task.no.records.deleted.message" ) );
-			}
-			return true;
-		}
-		if ( canReportProgress ) {
-			arguments.progress.setProgress( arguments.audit ? 50 : 90 );// a little arbitrary
-		}
-		if ( canInfo ) {
-			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.deleted.records.message", data=[ objectTitle, NumberFormat( deletedCount ) ] ) );
-		}
-
-		// audit
-		if ( arguments.audit ) {
-			if ( canInfo ) {
-				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.auditing.changes.message" ) );
+		do {
+			if ( $isInterrupted() ) {
+				if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
+				return false;
 			}
 
-			for( var record in args.records ) {
-				$audit(
-					  action   = arguments.auditAction
-					, type     = arguments.auditType
-					, userId   = arguments.auditUserId
-					, recordId = record.id
-					, detail   = { id=record.id, label=record.label, objectName=arguments.objectName }
+			if ( arguments.batchAll ) {
+				args.records = pobjService.selectData(
+					  argumentCollection = arguments.batchSrcArgs
+					, selectFields       = [ "id", hasLabelField ? "${labelfield} as label" : "id as label" ]
+					, maxRows            = 100
+					, useCache           = false
 				);
+				if ( $isInterrupted() ) {
+					if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
+					return false;
+				}
 
-				if ( canReportProgress ) {
-					arguments.progress.setProgress( 50 + Int( ( 50/totalRecords ) * ++audited ) );
+				moreToFetch = args.records.recordCount == 100;
+
+				if ( !args.records.recordCount ) {
+					break;
+				}
+
+				if ( canInfo ) {
+					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.fetched.next.batch", data=[ args.records.recordCount ] ) );
+				}
+			} else {
+				// fetch records before deleting (useful for labels rendering in audit logs, etc.)
+				args.records = pobjService.selectData( objectName=arguments.objectName, filter={ id=arguments.sourceIds }, selectFields=[
+					  "id"
+					, hasLabelField ? "${labelfield} as label" : "id as label"
+				] );
+			}
+
+			recordIds = ValueArray( args.records.id );
+
+
+			// pre delete hooks
+			if ( customizationService.objectHasCustomization( arguments.objectName, "preDeleteRecordAction" ) ) {
+				if ( canInfo ) {
+					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.pre.delete.hooks" ) );
+				}
+				customizationService.runCustomization(
+					  objectName = arguments.objectName
+					, action     = "preDeleteRecordAction"
+					, args       = args
+				);
+			}
+
+			// delete related data
+			if ( canInfo ) {
+				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.relateddata.message" ) );
+			}
+			try {
+				pobjService.deleteRelatedData( objectName=objectName, recordId=recordIds );
+			} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
+				if ( canError ) {
+					arguments.logger.error( $translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[ objectTitle ] ) );
+				}
+				return false;
+			}
+			if ( canReportProgress && !arguments.batchAll ) {
+				arguments.progress.setProgress( 20 );
+			}
+
+			// delete the records
+			if ( canInfo ) {
+				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.deleting.records.message" ) );
+			}
+			var deletedCount = pobjService.deleteData( objectName=arguments.objectName, filter={ id = recordIds } );
+
+			if ( !deletedCount ) {
+				if ( canReportProgress && !arguments.batchAll ) {
+					arguments.progress.setProgress( 100 );
+				}
+				if ( canWarn ) {
+					arguments.logger.warn( $translateResource( uri="cms:datamanager.batchdelete.task.no.records.deleted.message" ) );
+				}
+				return true;
+			}
+			if ( canReportProgress && !arguments.batchAll ) {
+				arguments.progress.setProgress( arguments.audit ? 50 : 90 );
+			}
+			if ( canInfo ) {
+				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.deleted.records.message", data=[ objectTitle, NumberFormat( deletedCount ) ] ) );
+			}
+
+			// audit
+			if ( arguments.audit ) {
+				if ( canInfo ) {
+					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.auditing.changes.message" ) );
+				}
+
+				for( var record in args.records ) {
+					$audit(
+						  action   = arguments.auditAction
+						, type     = arguments.auditType
+						, userId   = arguments.auditUserId
+						, recordId = record.id
+						, detail   = { id=record.id, label=record.label, objectName=arguments.objectName }
+					);
+
+					if ( canReportProgress && !arguments.batchAll ) {
+						arguments.progress.setProgress( 50 + Int( ( 50/totalRecords ) * ++audited ) );
+					}
 				}
 			}
 
-			if ( canInfo ) {
-				arguments.logger.info( doneMessage );
+			// post delete hooks
+			if ( customizationService.objectHasCustomization( arguments.objectName, "postDeleteRecordAction" ) ) {
+				if ( canInfo ) {
+					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.post.delete.hooks" ) );
+				}
+				customizationService.runCustomization(
+					  objectName = arguments.objectName
+					, action     = "postDeleteRecordAction"
+					, args       = args
+				);
 			}
-		}
 
-		// post delete hooks
-		if ( customizationService.objectHasCustomization( arguments.objectName, "postDeleteRecordAction" ) ) {
-			if ( canInfo ) {
-				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.post.delete.hooks" ) );
+			// finish up
+			if ( ! moreToFetch ) {
+				if ( canInfo ) {
+					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.finished" ) );
+				}
+				if ( canReportProgress ) {
+					arguments.progress.setProgress( 100 );
+				}
 			}
-			customizationService.runCustomization(
-				  objectName = arguments.objectName
-				, action     = "postDeleteRecordAction"
-				, args       = args
-			);
-			if ( canInfo ) {
-				arguments.logger.info( doneMessage );
-			}
-		}
 
-		// finish up
-		if ( canInfo ) {
-			arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.finished" ) );
-		}
-		if ( canReportProgress ) {
-			arguments.progress.setProgress( 100 );
-		}
+			if ( canReportProgress && moreToFetch ) {
+				batchProgress += args.records.recordCount;
+				arguments.progress.setProgress( ( 100 / totalRecords ) * batchProgress );
+			}
+		} while( moreToFetch=true )
 
 		return true;
 	}
