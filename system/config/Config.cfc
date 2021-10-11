@@ -917,6 +917,10 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
+		templates.resetTwoFactorAuthentication = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  "site_url"
+			, "site_admin_url"
+		] };
 
 		recipientTypes.anonymous   = {};
 		recipientTypes.adminUser   = {
