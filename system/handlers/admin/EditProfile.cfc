@@ -5,6 +5,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	property name="bCryptService"         inject="bCryptService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
 	property name="i18n"                  inject="i18n";
+	property name="emailService"          inject="EmailService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -207,6 +208,40 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication", queryString="setup=true" ) );
 		}
 		setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" ) );
+	}
+
+	function resetTwoFactorAuthenticationAction( event, rc, prc ) {
+		if ( !loginService.isTwoFactorAuthenticationEnabled() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
+		}
+
+		var userId = rc.id ?: "";
+
+		if ( !isEmptyString( userId ) ) {
+			loginService.disableTwoFactorAuthenticationForUser( userId=userId );
+
+			event.audit(
+				  action   = "reset_2fa"
+				, type     = "userprofile"
+				, recordId = userId
+			);
+
+			try {
+				emailService.send(
+					  template    = "ResetTwoFactorAuthentication"
+					, recipientId = userId
+					, args        = {
+
+					}
+				);
+			} catch ( any e ) {
+				logError( e );
+			}
+
+			messageBox.info( translateResource( uri="cms:editProfile.twofactorauthentication.reset.message" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#userId#" ) );
 	}
 
 	private void function _setupEditProfileTabs( event, rc, prc ) {
