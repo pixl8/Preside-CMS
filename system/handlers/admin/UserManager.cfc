@@ -320,6 +320,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function resetTwoFactorAuthenticationAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="usermanager.edit" );
+
 		if ( !loginService.isTwoFactorAuthenticationEnabled() ) {
 			setNextEvent( url=event.buildAdminLink( linkto="usermanager.users" ) );
 		}
