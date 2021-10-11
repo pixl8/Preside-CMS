@@ -1917,6 +1917,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
 			result.sFooter = footer;
 		}
+		result._source = _prepareSourceStringForBatchOperations( results.selectDataArgs );
 
 		event.renderData( type="json", data=result );
 	}
@@ -4116,4 +4117,18 @@ component extends="preside.system.base.AdminHandler" {
 
 		return auditDetail;
 	}
+
+	private string function _prepareSourceStringForBatchOperations( required struct selectDataArgs ) {
+		arguments.selectDataArgs.delete( "maxRows" );
+		arguments.selectDataArgs.delete( "startRow" );
+
+		var serialized        = SerializeJson( selectDataArgs );
+		var obfuscated        = ToBase64( serialized );
+		var hashForValidation = Hash( obfuscated );
+
+		sessionStorage.setVar( hashForValidation, 1 ); // later we will validate inputs against present session vars
+
+		return obfuscated;
+	}
+
 }
