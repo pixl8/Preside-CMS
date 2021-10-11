@@ -21,7 +21,7 @@
 	}
 
 	if ( canReset2fa ) {
-		reset2faLink   = event.buildAdminLink( linkTo="editProfile.resetTwoFactorAuthenticationAction", queryString="id=#userId#" );
+		reset2faLink   = event.buildAdminLink( linkTo="userManager.resetTwoFactorAuthenticationAction", queryString="id=#userId#" );
 		reset2faPrompt = translateResource( uri="cms:usermanager.reset2fa.prompt", data=[ userRecord.known_as ?: "" ] );
 		reset2faTitle  = translateResource( "cms:usermanager.reset2fa.btn" );
 		reset2faMatch  = translateResource( "cms:usermanager.reset2fa.match" );

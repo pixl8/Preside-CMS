@@ -732,7 +732,7 @@ component displayName="Admin login service" {
 	 * @autodoc
 	 *
 	 */
-	public void function disableTwoFactorAuthenticationForUser( required string userId=getLoggedInUserId() ) {
+	public void function disableTwoFactorAuthenticationForUser( string userId=getLoggedInUserId() ) {
 		if ( arguments.userId.len() ) {
 			_getUserDao().updateData( id=userId, data={
 				  two_step_auth_enabled     = false
