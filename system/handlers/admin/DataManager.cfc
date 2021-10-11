@@ -546,15 +546,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function multiRecordAction( event, rc, prc ) {
-		var objectName = prc.objectName ?: "";
-		var action     = rc.multiAction ?: "";
-		var ids        = prc.recordId   ?: "";
-		var listingUrl = "";
-
-		if ( isTrue( rc._batchAll ?: "" ) ) {
-			WriteDump( "TODO: process a multirecord action using filters rather than a list of IDs" );
-			WriteDump( rc ); abort;
-		}
+		var objectName   = prc.objectName ?: "";
+		var action       = rc.multiAction ?: "";
+		var ids          = prc.recordId   ?: "";
+		var listingUrl   = "";
+		var batchAll     = isTrue( rc._batchAll ?: "" );
+		var batchSrcArgs = {};
 
 		if ( Len( Trim( rc.postAction ?: "" ) ) ) {
 			listingUrl = event.buildAdminLink( linkto=rc.postAction, queryString="id=#objectName#" );
@@ -562,7 +559,9 @@ component extends="preside.system.base.AdminHandler" {
 			listingUrl = event.buildAdminLink( objectName=objectName );
 		}
 
-		if ( not Len( Trim( ids ) ) ) {
+		if ( batchAll ) {
+			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingUrl=listingUrl );
+		} else if ( !Len( Trim( ids ) ) ) {
 			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
 			setNextEvent( url=listingUrl );
 		}
@@ -570,14 +569,20 @@ component extends="preside.system.base.AdminHandler" {
 		customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "multiRecordAction"
-			, args           = { action=action, ids=ListToArray( ids ), objectName=objectName }
+			, args           = {
+				  action       = action
+				, ids          = ListToArray( ids )
+				, objectName   = objectName
+				, batchAll     = batchAll
+				, batchSrcArgs = batchSrcArgs
+			  }
 		);
 
 		switch( action ){
 			case "batchUpdate":
 				setNextEvent(
 					  url           = event.buildAdminLink( objectName=objectName, operation="batchEditField", queryString="field=#( rc.field ?: '' )#" )
-					, persistStruct = { id = ids }
+					, persistStruct = { id=ids, _batchAll=batchAll, _batchSource=( rc._batchSource ) }
 				);
 			break;
 			case "delete":
@@ -4129,6 +4134,25 @@ component extends="preside.system.base.AdminHandler" {
 		sessionStorage.setVar( hashForValidation, 1 ); // later we will validate inputs against present session vars
 
 		return obfuscated;
+	}
+
+	private struct function _deserializeSourceStringForBatchOperations( event, rc, prc, listingUrl ) {
+		var src = rc._batchSource ?: "";
+
+		if ( Len( Trim( src ) ) ) {
+			var hashForValidation = Hash( rc._batchSource );
+
+			if ( sessionStorage.exists( hashForValidation ) ) {
+				var asJson = ToString( ToBinary( src ) );
+
+				if ( IsJson( asJson ) ) {
+					return DeserializeJson( asJson );
+				}
+			}
+		}
+
+		messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+		setNextEvent( url=arguments.listingUrl );
 	}
 
 }
