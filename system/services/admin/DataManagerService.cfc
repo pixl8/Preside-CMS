@@ -452,7 +452,8 @@ component {
 			args.selectFields.append( "#dbAdapter.getCountOverWindowFunctionSql()# as _total_recordcount" );
 		}
 
-		result.records = _getPresideObjectService().selectData( argumentCollection=args );
+		result.records        = _getPresideObjectService().selectData( argumentCollection=args );
+		result.selectDataArgs = StructCopy( args );
 
 		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
