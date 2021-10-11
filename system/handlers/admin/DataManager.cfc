@@ -1917,7 +1917,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
 			result.sFooter = footer;
 		}
-		result._source = _prepareSourceStringForBatchOperations( results.selectDataArgs );
+		result.sBatchSource = _prepareSourceStringForBatchOperations( results.selectDataArgs );
 
 		event.renderData( type="json", data=result );
 	}
