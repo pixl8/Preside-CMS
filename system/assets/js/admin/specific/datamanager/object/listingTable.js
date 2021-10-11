@@ -327,20 +327,14 @@
 				$form.on( "submit", function(){
 					var allRecords = $form.find( "[name=_batchAll]:checked" ).length > 0;
 					if ( allRecords ) {
-						var $favourites = $( '<input type="hidden" name="savedFilters">' )
-						  , $search = $( '<input type="hidden" name="searchTerm">' )
-						  , $dtSearchContainer = $( dtSettings.aanFeatures.f[0] )
-						  , $dtSearch = $dtSearchContainer.find( "input.data-table-search" ).first();
+						var $batchSource = $( '<input type="hidden" name="_batchSource">' );
 
-						$favourites.val( getFavourites() );
-						$search.val( $dtSearch.val() );
+						$batchSource.val( lastAjaxResult.sBatchSource );
+						$form.append( $batchSource );
 
-						$form.append( $favourites );
-						$form.append( $search );
 						$form.find( "input[name=id]" ).remove();
 					}
 				} );
-
 			};
 
 			updateSelectAllOptionRecordCount = function( newCount ){
@@ -359,7 +353,7 @@
 				if ( $form.length ) {
 					$selectAllContainer = $form.find( ".batch-update-select-all" );
 					if ( $selectAllContainer.length ) {
-						if ( datatable.fnPagingInfo().iTotalPages > 1 ) {
+						if ( datatable.fnPagingInfo().iTotalPages > 1 && lastAjaxResult.sBatchSource ) {
 							$selectAllContainer.show();
 						} else {
 							deactivateSelectAllOption();
