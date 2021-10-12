@@ -642,17 +642,17 @@ component extends="preside.system.base.AdminHandler" {
 			);
 
 			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+				  uri  = "cms:datamanager.batch.edit.warning.multi.value" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectTitle#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		} else {
 			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning"
+				  uri  = "cms:datamanager.batch.edit.warning" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectTitle#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		}
 
-		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectTitle, NumberFormat( recordCount ) ] );
+		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title" & ( batchAll ? ".filtered" : "" ), data=[ objectTitle, NumberFormat( recordCount ) ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
 		prc.pageIcon     = "pencil";
 
@@ -3113,6 +3113,7 @@ component extends="preside.system.base.AdminHandler" {
 		var object      = args.object ?: "";
 		var field       = args.field  ?: "";
 		var ids         = args.ids    ?: "";
+		var batchAll    = isTrue( args.batchAll ?: "" );
 		var recordCount = args.recordCount ?: ListLen( ids );
 		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
 		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
@@ -3132,12 +3133,12 @@ component extends="preside.system.base.AdminHandler" {
 			);
 
 			args.batchEditWarning = args.batchEditWarning ?: translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+				  uri  = "cms:datamanager.batch.edit.warning.multi.value" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		} else {
 			args.batchEditWarning = args.batchEditWarning ?: translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning"
+				  uri  = "cms:datamanager.batch.edit.warning" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		}
