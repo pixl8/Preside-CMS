@@ -557,7 +557,7 @@ component {
 			];
 
 			pobjService.insertDataFromSelect(
-				  objectName     = "batch_edit_queue"
+				  objectName     = "batch_operation_queue"
 				, fieldList      = [ "queue_id", "record_id", "datecreated" ]
 				, selectDataArgs = queueDataArgs
 			);
@@ -576,7 +576,7 @@ component {
 			do {
 				if ( arguments.batchAll ) {
 					var nextBatch = pobjService.selectData(
-						  objectname   = "batch_edit_queue"
+						  objectname   = "batch_operation_queue"
 						, selectFields = [ "record_id" ]
 						, maxRows      = 100
 						, filter       = { queue_id=queueId }
@@ -654,7 +654,7 @@ component {
 					);
 
 					if ( arguments.batchAll ) {
-						pobjService.deleteData( objectName="batch_edit_queue", filter={
+						pobjService.deleteData( objectName="batch_operation_queue", filter={
 							  record_id = sourceId
 							, queue_id  = queueId
 						} );
@@ -671,14 +671,14 @@ component {
 			} while( moreToFetch );
 		} catch( any e ) {
 			if ( arguments.batchAll && Len( queueId ) ) {
-				pobjService.deleteData( objectName="batch_edit_queue", filter={ queue_id=queueId } );
+				pobjService.deleteData( objectName="batch_operation_queue", filter={ queue_id=queueId } );
 			}
 
 			rethrow;
 		}
 
 		if ( arguments.batchAll && Len( queueId ) ) {
-			pobjService.deleteData( objectName="batch_edit_queue", filter={ queue_id=queueId } );
+			pobjService.deleteData( objectName="batch_operation_queue", filter={ queue_id=queueId } );
 		}
 		if ( canInfo ) {
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.finished.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
