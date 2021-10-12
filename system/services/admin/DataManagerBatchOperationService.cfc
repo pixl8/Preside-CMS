@@ -138,10 +138,6 @@ component displayName="Data manager batch operation service" {
 						, detail   = Duplicate( arguments )
 					);
 
-					if ( arguments.batchAll ) {
-						removeBatchOperationQueueItem( queueId, sourceId );
-					}
-
 					if ( canReportProgress ) {
 						arguments.progress.setProgress( Int( ( 100 / totalrecords ) * ++processed ) ) ;
 					}
@@ -247,20 +243,16 @@ component displayName="Data manager batch operation service" {
 				] );
 			}
 
-			recordIds = ValueArray( args.records.id );
-
-
 			// pre delete hooks
-			if ( customizationService.objectHasCustomization( arguments.objectName, "preDeleteRecordAction" ) ) {
-				if ( canInfo ) {
-					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.pre.delete.hooks" ) );
-				}
+			if ( customizationService.objectHasCustomization( arguments.objectName, "preBatchDeleteRecordsAction" ) ) {
 				customizationService.runCustomization(
 					  objectName = arguments.objectName
-					, action     = "preDeleteRecordAction"
+					, action     = "preBatchDeleteRecordsAction"
 					, args       = args
 				);
 			}
+
+			recordIds = ValueArray( args.records.id );
 
 			// delete related data
 			try {
@@ -312,17 +304,12 @@ component displayName="Data manager batch operation service" {
 			}
 
 			// post delete hooks
-			if ( customizationService.objectHasCustomization( arguments.objectName, "postDeleteRecordAction" ) ) {
+			if ( customizationService.objectHasCustomization( arguments.objectName, "postBatchDeleteRecordsAction" ) ) {
 				customizationService.runCustomization(
 					  objectName = arguments.objectName
-					, action     = "postDeleteRecordAction"
+					, action     = "postBatchDeleteRecordsAction"
 					, args       = args
 				);
-			}
-
-			// remove queued items
-			if ( Len( queueId ) ) {
-				removeBatchOperationQueueItem( queueId, recordIds );
 			}
 
 			// finish up
@@ -384,14 +371,14 @@ component displayName="Data manager batch operation service" {
 		);
 	}
 
-	public numeric function removeBatchOperationQueueItem( required string queueId, required any recordId ) {
+	public numeric function removeBatchOperationQueueItems( required string queueId, required any recordId ) {
 		return $getPresideObjectService().deleteData(
 			  objectName = "batch_operation_queue"
 			, filter     = { queue_id=arguments.queueId, record_id=arguments.recordId }
 		);
 	}
 
-	public array function getNextBatchRecordsFromQueue( required string queueId, numeric maxRows=100 ) {
+	public array function getNextBatchRecordsFromQueue( required string queueId, numeric maxRows=100, boolean clearImmediately=true ) {
 		var fetched = $getPresideObjectService().selectData(
 			  objectname   = "batch_operation_queue"
 			, selectFields = [ "record_id" ]
@@ -403,7 +390,12 @@ component displayName="Data manager batch operation service" {
 			return [];
 		}
 
-		return ValueArray( fetched.record_id );
+		var recordIds = ValueArray( fetched.record_id );
+		if ( arguments.clearImmediately ) {
+			removeBatchOperationQueueItems( arguments.queueId, recordIds );
+		}
+
+		return recordIds;
 	}
 
 	public boolean function deleteExpiredOperationQueues( any logger ) {
