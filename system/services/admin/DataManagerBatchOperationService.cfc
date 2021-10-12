@@ -1,11 +1,12 @@
 /**
- * Service to provide business logic for the [[datamanager]].
+ * Service to provide batch operation logic. i.e. logic for batch record
+ * operations kicked off from datamanager datatables.
  *
  * @singleton
  * @presideservice
  * @autodoc
  */
-component {
+component displayName="Data manager batch operation service" {
 
 	variables._operationsCache = {};
 
