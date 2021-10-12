@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="cloningService"                   inject="presideObjectCloningService";
 	property name="dataManagerService"               inject="dataManagerService";
+	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
 	property name="scheduledExportService"           inject="scheduledExportService";
@@ -620,7 +621,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( batchAll ) {
 			batchSource = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
-			recordCount = dataManagerService.getBatchSourceRecordCount( objectName, batchSource );
+			recordCount = batchOperationService.getBatchSourceRecordCount( objectName, batchSource );
 		} else if ( !recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
 			setNextEvent( url=listingView );
@@ -709,7 +710,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private boolean function batchEditInBgThread( event, rc, prc, args={}, logger, progress ) {
-		return datamanagerService.batchEditField(
+		return batchOperationService.batchEditField(
 			  objectName         = args.objectName         ?: ""
 			, fieldName          = args.fieldName          ?: ""
 			, sourceIds          = args.sourceIds          ?: []
@@ -2720,7 +2721,7 @@ component extends="preside.system.base.AdminHandler" {
 		var ids        = args.ids        ?: [];
 		var objectName = args.objectName ?: "";
 
-		return datamanagerService.batchDeleteRecords(
+		return batchOperationService.batchDeleteRecords(
 			  objectName         = args.objectName    ?: ""
 			, sourceIds          = args.ids           ?: []
 			, audit              = isTrue( args.audit ?: "" )
