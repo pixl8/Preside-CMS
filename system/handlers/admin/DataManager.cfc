@@ -556,7 +556,7 @@ component extends="preside.system.base.AdminHandler" {
 		var action       = rc.multiAction ?: "";
 		var ids          = prc.recordId   ?: "";
 		var listingUrl   = "";
-		var batchAll     = isTrue( rc._batchAll ?: "" );
+		var batchAll     = isTrue( rc.batchAll ?: "" );
 		var batchSrcArgs = {};
 
 		if ( Len( Trim( rc.postAction ?: "" ) ) ) {
@@ -588,7 +588,7 @@ component extends="preside.system.base.AdminHandler" {
 			case "batchUpdate":
 				setNextEvent(
 					  url           = event.buildAdminLink( objectName=objectName, operation="batchEditField", queryString="field=#( rc.field ?: '' )#" )
-					, persistStruct = { id=ids, _batchAll=batchAll, _batchSource=( rc._batchSource ?: "" ) }
+					, persistStruct = { id=ids, batchAll=batchAll, batchSrcArgs=( rc.batchSrcArgs ?: "" ) }
 				);
 			break;
 			case "delete":
@@ -606,22 +606,22 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function batchEditField( event, rc, prc ) {
-		var objectName  = prc.objectName  ?: "";
-		var objectTitle = prc.objectTitle ?: "";
-		var ids         = prc.recordId    ?: "";
-		var batchAll    = isTrue( rc._batchAll    ?: "" );
-		var batchSource = {};
-		var field       = rc.field        ?: "";
-		var formControl = {};
-		var recordCount = ListLen( Trim( ids ) );
-		var fieldName   = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
-		var listingView = event.buildAdminLink( objectName=objectName, operation="listing" );
+		var objectName   = prc.objectName  ?: "";
+		var objectTitle  = prc.objectTitle ?: "";
+		var ids          = prc.recordId    ?: "";
+		var batchAll     = isTrue( rc.batchAll    ?: "" );
+		var batchSrcArgs = {};
+		var field        = rc.field        ?: "";
+		var formControl  = {};
+		var recordCount  = ListLen( Trim( ids ) );
+		var fieldName    = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
+		var listingView  = event.buildAdminLink( objectName=objectName, operation="listing" );
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 		if ( batchAll ) {
-			batchSource = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
-			recordCount = batchOperationService.getBatchSourceRecordCount( objectName, batchSource );
+			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
+			recordCount  = batchOperationService.getBatchSourceRecordCount( objectName, batchSrcArgs );
 		} else if ( !recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
 			setNextEvent( url=listingView );
@@ -674,11 +674,11 @@ component extends="preside.system.base.AdminHandler" {
 		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
 		var listingView = event.buildAdminLink( objectName=objectName, operation="listing" );
 		var batchAll    = isTrue( rc.batchAll ?: "" );
-		var batchSource = {};
+		var batchSrcArgs = {};
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 		if ( batchAll ) {
-			batchSource = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
+			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
 		} else if ( !sourceIds.len() ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle ] ) );
 			setNextEvent( url=listingView );
@@ -696,7 +696,7 @@ component extends="preside.system.base.AdminHandler" {
 				, fieldName          = updateField
 				, sourceIds          = sourceIds
 				, batchAll           = batchAll
-				, batchSource        = batchSource
+				, batchSrcArgs        = batchSrcArgs
 				, value              = rc[ updateField ]      ?: ""
 				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
 				, userId             = event.getAdminUserId()
@@ -715,7 +715,7 @@ component extends="preside.system.base.AdminHandler" {
 			, fieldName          = args.fieldName          ?: ""
 			, sourceIds          = args.sourceIds          ?: []
 			, batchAll           = IsTrue( args.batchAll   ?: "" )
-			, batchSrcArgs       = args.batchSource        ?: {}
+			, batchSrcArgs       = args.batchSrcArgs        ?: {}
 			, value              = args.value              ?: ""
 			, multiEditBehaviour = args.multiEditBehaviour ?: "append"
 			, auditUserId        = args.userId             ?: ""
@@ -4173,10 +4173,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private struct function _deserializeSourceStringForBatchOperations( event, rc, prc, listingUrl ) {
-		var src = rc._batchSource ?: "";
+		var src = rc.batchSrcArgs ?: "";
 
 		if ( Len( Trim( src ) ) ) {
-			var hashForValidation = Hash( rc._batchSource );
+			var hashForValidation = Hash( rc.batchSrcArgs );
 
 			if ( sessionStorage.exists( hashForValidation ) ) {
 				var asJson = ToString( ToBinary( src ) );

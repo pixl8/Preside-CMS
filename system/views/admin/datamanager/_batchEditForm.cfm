@@ -8,7 +8,7 @@
 	object                    = args.object                    ?: "";
 	field                     = args.field                     ?: "";
 	batchAll                  = isTrue( args.batchAll          ?: "" );
-	batchSource               = args.batchSource               ?: "";
+	batchSrcArgs              = args.batchSrcArgs              ?: "";
 </cfscript>
 <cfoutput>
 	<p class="alert alert-warning">
@@ -19,7 +19,7 @@
 	<form class="form-horizontal" method="post" data-dirty-form="protect" action="#saveChangesAction#">
 		<cfif batchAll>
 			<input type="hidden" name="batchAll"     value="true">
-			<input type="hidden" name="_batchSource" value="#batchSource#">
+			<input type="hidden" name="batchSrcArgs" value="#batchSrcArgs#">
 		<cfelse>
 			<input type="hidden" name="sourceIds"   value="#ids#">
 		</cfif>

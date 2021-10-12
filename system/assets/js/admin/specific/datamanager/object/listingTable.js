@@ -325,12 +325,12 @@
 				} );
 
 				$form.on( "submit", function(){
-					var allRecords = $form.find( "[name=_batchAll]:checked" ).length > 0;
+					var allRecords = $form.find( "[name=batchAll]:checked" ).length > 0;
 					if ( allRecords ) {
-						var $batchSource = $( '<input type="hidden" name="_batchSource">' );
+						var $batchSrcArgs = $( '<input type="hidden" name="batchSrcArgs">' );
 
-						$batchSource.val( lastAjaxResult.sBatchSource );
-						$form.append( $batchSource );
+						$batchSrcArgs.val( lastAjaxResult.sBatchSource );
+						$form.append( $batchSrcArgs );
 
 						$form.find( "input[name=id]" ).remove();
 					}
@@ -369,7 +369,7 @@
 					$selectAllContainer = $form.find( ".batch-update-select-all" );
 
 					if ( $selectAllContainer.length ) {
-						$selectAllContainer.find( "input[name='_batchAll']" ).prop( "checked", false );
+						$selectAllContainer.find( "input[name='batchAll']" ).prop( "checked", false );
 						$selectAllContainer.hide();
 					}
 				}

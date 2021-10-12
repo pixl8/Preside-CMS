@@ -7,7 +7,7 @@
 		, cancelAction      = event.buildAdminLink( objectName=object, operation="listing" )
 		, ids               = rc.id     ?: ""
 		, batchAll          = isTrue( prc.batchAll ?: "" )
-		, batchSource       = rc._batchSource ?: ""
+		, batchSrcArgs      = rc.batchSrcArgs ?: ""
 		, recordCount       = prc.recordCount ?: ListLen( rc.id ?: "" )
 		, object            = object
 		, field             = rc.field  ?: ""
