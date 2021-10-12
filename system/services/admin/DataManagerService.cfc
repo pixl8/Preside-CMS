@@ -886,6 +886,27 @@ component {
 		return ValueArray( fetched.record_id );
 	}
 
+	public boolean function deleteExpiredOperationQueues( any logger ) {
+		var canLog       = StructKeyExists( arguments, "logger" );
+		var canInfo      = canLog && arguments.logger.canInfo();
+		var cutoffDate   = DateAdd( "d", -2, Now() );
+		var deletedCount = _getPresideObjectService().deleteData(
+			  objectName   = "batch_operation_queue"
+			, filter       = "datecreated <= :datecreated"
+			, filterParams = { datecreated=cutoffDate }
+		);
+
+		if ( canInfo ) {
+			if ( deletedCount ) {
+				arguments.logger.info( "[#NumberFormat( deletedCount )#] queued operations cleaned up." );
+			} else {
+				arguments.logger.info( "No queued operations to cleanup." );
+			}
+		}
+
+		return true;
+	}
+
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName
 		,          array   ids           = []
