@@ -514,21 +514,24 @@ component {
 	}
 
 	public boolean function batchEditField(
-		  required string objectName
-		, required string fieldName
-		, required array  sourceIds
-		, required string value
-		,          string multiEditBehaviour = "append"
-		,          string auditAction        = "datamanager_batch_edit_record"
-		,          string auditCategory      = "datamanager"
-		,          string auditUserId        = ""
-		,          any    logger
-		,          any    progress
+		  required string  objectName
+		, required string  fieldName
+		, required string  value
+		,          array   sourceIds          = []
+		,          boolean batchAll           = false
+		,          struct  batchSrcArgs       = {}
+		,          string  multiEditBehaviour = "append"
+		,          string  auditAction        = "datamanager_batch_edit_record"
+		,          string  auditCategory      = "datamanager"
+		,          string  auditUserId        = ""
+		,          any     logger
+		,          any     progress
 	) {
 		var pobjService       = _getPresideObjectService();
 		var isMultiValue      = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
 		var canLog            = StructKeyExists( arguments, "logger" );
 		var canInfo           = canLog && arguments.logger.canInfo();
+		var canWarn           = canLog && arguments.logger.canWarn();
 		var canReportProgress = StructKeyExists( arguments, "progress" );
 		var totalrecords      = ArrayLen( sourceIds );
 		var hasLabelField     = Len( pobjService.getLabelField( arguments.objectName ) );
@@ -536,6 +539,31 @@ component {
 		var objectTitle       = "";
 		var fieldTitle        = "";
 		var uriRoot           = "";
+		var moreToFetch       = arguments.batchAll;
+		var dbAdapter         = "";
+		var idField           = "";
+		var queueId           = "";
+		var queueDataArgs     = StructCopy( arguments.batchSrcArgs );
+
+		if ( arguments.batchAll ) {
+			dbAdapter = pobjService.getDbAdapterForObject( arguments.objectName );
+			idField   = dbAdapter.escapeEntity( pobjService.getIdField( arguments.objectName ) );
+			queueId   = CreateUUId();
+
+			queueDataArgs.selectFields = [
+				  "'#queueId#'"
+				, idField
+				, dbAdapter.getNowFunctionSql()
+			];
+
+			pobjService.insertDataFromSelect(
+				  objectName     = "batch_edit_queue"
+				, fieldList      = [ "queue_id", "record_id", "datecreated" ]
+				, selectDataArgs = queueDataArgs
+			);
+
+			totalRecords = getBatchSourceRecordCount( arguments.objectName, arguments.batchSrcArgs );
+		}
 
 		if ( canInfo ) {
 			uriRoot = pobjService.getResourceBundleUriRoot( arguments.objectName );
@@ -544,79 +572,114 @@ component {
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.starting.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
 		}
 
-		for( var sourceId in sourceIds ) {
-			if ( !isMultiValue ) {
-				pobjService.updateData(
-					  objectName = objectName
-					, data       = { "#arguments.fieldName#" = value }
-					, filter     = { id=sourceId }
-				);
-			} else {
-				var existingIds  = [];
-				var targetIdList = [];
-				var newChoices   = ListToArray( arguments.value );
-
-				if ( arguments.multiEditBehaviour != "overwrite" ) {
-					var previousData = pobjService.getDeNormalizedManyToManyData(
-						  objectName   = objectName
-						, id           = sourceId
-						, selectFields = [ arguments.fieldName ]
+		try {
+			do {
+				if ( arguments.batchAll ) {
+					var nextBatch = pobjService.selectData(
+						  objectname   = "batch_edit_queue"
+						, selectFields = [ "record_id" ]
+						, maxRows      = 100
+						, filter       = { queue_id=queueId }
 					);
-					existingIds = ListToArray( previousData[ arguments.fieldName ] ?: "" );
+
+					if ( !nextBatch.recordCount ) {
+						break;
+					}
+
+					if ( canInfo ) {
+						arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.fetched.records", data=[ NumberFormat( nextBatch.recordCount ) ] ) );
+					}
+
+					sourceIds   = ValueArray( nextBatch.record_id );
+					moreToFetch = nextBatch.recordCount == 100;
 				}
 
-				switch( arguments.multiEditBehaviour ) {
-					case "overwrite":
-						targetIdList = newChoices;
+				for( var sourceId in sourceIds ) {
+					if ( $isInterrupted() ) {
+						if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
 						break;
-					case "delete":
-						targetIdList = existingIds;
-						for( var id in newChoices ) {
-							targetIdList.delete( id )
+					}
+					if ( !isMultiValue ) {
+						pobjService.updateData(
+							  objectName = objectName
+							, data       = { "#arguments.fieldName#" = value }
+							, filter     = { id=sourceId }
+						);
+					} else {
+						var existingIds  = [];
+						var targetIdList = [];
+						var newChoices   = ListToArray( arguments.value );
+
+						if ( arguments.multiEditBehaviour != "overwrite" ) {
+							var previousData = pobjService.getDeNormalizedManyToManyData(
+								  objectName   = objectName
+								, id           = sourceId
+								, selectFields = [ arguments.fieldName ]
+							);
+							existingIds = ListToArray( previousData[ arguments.fieldName ] ?: "" );
 						}
-						break;
-					default:
-						targetIdList = existingIds;
-						targetIdList.append( newChoices, true );
+
+						switch( arguments.multiEditBehaviour ) {
+							case "overwrite":
+								targetIdList = newChoices;
+								break;
+							case "delete":
+								targetIdList = existingIds;
+								for( var id in newChoices ) {
+									targetIdList.delete( id )
+								}
+								break;
+							default:
+								targetIdList = existingIds;
+								targetIdList.append( newChoices, true );
+						}
+
+						targetIdList = targetIdList.toList();
+						targetIdList = ListRemoveDuplicates( targetIdList );
+
+						pobjService.updateData(
+							  objectName              = objectName
+							, id                      = sourceId
+							, data                    = { "#arguments.fieldName#" = targetIdList }
+							, updateManyToManyRecords = true
+						);
+					}
+
+					$audit(
+						  action   = arguments.auditAction
+						, type     = arguments.auditCategory
+						, userId   = arguments.auditUserId
+						, recordId = sourceid
+						, detail   = Duplicate( arguments )
+					);
+
+					if ( arguments.batchAll ) {
+						pobjService.deleteData( objectName="batch_edit_queue", filter={
+							  record_id = sourceId
+							, queue_id  = queueId
+						} );
+					}
+
+					if ( canReportProgress ) {
+						arguments.progress.setProgress( Int( ( 100 / totalrecords ) * ++processed ) ) ;
+					}
 				}
 
-				targetIdList = targetIdList.toList();
-				targetIdList = ListRemoveDuplicates( targetIdList );
-
-				pobjService.updateData(
-					  objectName              = objectName
-					, id                      = sourceId
-					, data                    = { "#arguments.fieldName#" = targetIdList }
-					, updateManyToManyRecords = true
-				);
-			}
-
-			$audit(
-				  action   = arguments.auditAction
-				, type     = arguments.auditCategory
-				, userId   = arguments.auditUserId
-				, recordId = sourceid
-				, detail   = Duplicate( arguments )
-			);
-
-			if ( canReportProgress ) {
-				arguments.progress.setProgress( Int( ( 100 / totalrecords ) * ++processed ) ) ;
-			}
-			if ( canInfo ) {
-				if ( hasLabelField ) {
-					arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message", data=[
-						  objectTitle
-						, $helpers.renderLabel( arguments.objectName, sourceId )
-					] ) );
-				} else {
-					arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.updated.record.message.no.recordlabel", data=[
-						  objectTitle
-						, sourceId
-					] ) );
+				if ( $isInterrupted() ) {
+					break;
 				}
+			} while( moreToFetch );
+		} catch( any e ) {
+			if ( arguments.batchAll && Len( queueId ) ) {
+				pobjService.deleteData( objectName="batch_edit_queue", filter={ queue_id=queueId } );
 			}
+
+			rethrow;
 		}
 
+		if ( arguments.batchAll && Len( queueId ) ) {
+			pobjService.deleteData( objectName="batch_edit_queue", filter={ queue_id=queueId } );
+		}
 		if ( canInfo ) {
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.finished.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
 		}
@@ -654,11 +717,7 @@ component {
 		var recordIds            = [];
 
 		if ( arguments.batchAll ) {
-			totalRecords = pobjService.selectData(
-				  argumentCollection = arguments.batchSrcArgs
-				, objectName         = arguments.objectName
-				, recordCountOnly    = true
-			);
+			totalRecords = getBatchSourceRecordCount( arguments.objectName, arguments.batchSrcArgs );
 		}
 
 		if ( canInfo ) {
@@ -790,6 +849,14 @@ component {
 		} while( moreToFetch );
 
 		return true;
+	}
+
+	public numeric function getBatchSourceRecordCount( required string objectName, required struct sourceArgs ) {
+		return _getPresideObjectService().selectData(
+			  argumentCollection = arguments.sourceArgs
+			, objectName         = arguments.objectName
+			, recordCountOnly    = true
+		);
 	}
 
 

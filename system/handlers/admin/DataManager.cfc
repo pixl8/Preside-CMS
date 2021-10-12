@@ -608,15 +608,22 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = prc.objectName  ?: "";
 		var objectTitle = prc.objectTitle ?: "";
 		var ids         = prc.recordId    ?: "";
+		var batchAll    = isTrue( rc._batchAll    ?: "" );
+		var batchSource = {};
 		var field       = rc.field        ?: "";
 		var formControl = {};
 		var recordCount = ListLen( Trim( ids ) );
 		var fieldName   = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
+		var listingView = event.buildAdminLink( objectName=objectName, operation="listing" );
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-		if ( !recordCount ) {
+
+		if ( batchAll ) {
+			batchSource = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
+			recordCount = dataManagerService.getBatchSourceRecordCount( objectName, batchSource );
+		} else if ( !recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+			setNextEvent( url=listingView );
 		}
 
 		prc.fieldFormControl = formsService.renderFormControlForObjectField(
@@ -648,11 +655,13 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
 		prc.pageIcon     = "pencil";
 
-
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectTitle, fieldName ] )
 			, link  = ""
 		);
+
+		prc.batchAll    = batchAll;
+		prc.recordCount = recordCount;
 
 		event.setView( view="/admin/datamanager/batchEditField" );
 	}
@@ -662,11 +671,16 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = prc.objectName  ?: "";
 		var objectTitle = prc.objectTitle ?: "";
 		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
+		var listingView = event.buildAdminLink( objectName=objectName, operation="listing" );
+		var batchAll    = isTrue( rc.batchAll ?: "" );
+		var batchSource = {};
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-		if ( !sourceIds.len() ) {
+		if ( batchAll ) {
+			batchSource = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
+		} else if ( !sourceIds.len() ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+			setNextEvent( url=listingView );
 		}
 
 		var taskId = createTask(
@@ -680,6 +694,8 @@ component extends="preside.system.base.AdminHandler" {
 				  objectName         = objectName
 				, fieldName          = updateField
 				, sourceIds          = sourceIds
+				, batchAll           = batchAll
+				, batchSource        = batchSource
 				, value              = rc[ updateField ]      ?: ""
 				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
 				, userId             = event.getAdminUserId()
@@ -697,6 +713,8 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName         = args.objectName         ?: ""
 			, fieldName          = args.fieldName          ?: ""
 			, sourceIds          = args.sourceIds          ?: []
+			, batchAll           = IsTrue( args.batchAll   ?: "" )
+			, batchSrcArgs       = args.batchSource        ?: {}
 			, value              = args.value              ?: ""
 			, multiEditBehaviour = args.multiEditBehaviour ?: "append"
 			, auditUserId        = args.userId             ?: ""
@@ -3094,7 +3112,7 @@ component extends="preside.system.base.AdminHandler" {
 		var object      = args.object ?: "";
 		var field       = args.field  ?: "";
 		var ids         = args.ids    ?: "";
-		var recordCount = ListLen( ids );
+		var recordCount = args.recordCount ?: ListLen( ids );
 		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
 		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
 
