@@ -716,9 +716,6 @@ component {
 			}
 
 			// delete related data
-			if ( canInfo ) {
-				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.relateddata.message" ) );
-			}
 			try {
 				pobjService.deleteRelatedData( objectName=objectName, recordId=recordIds );
 			} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
@@ -732,9 +729,6 @@ component {
 			}
 
 			// delete the records
-			if ( canInfo ) {
-				arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.deleting.records.message" ) );
-			}
 			var deletedCount = pobjService.deleteData( objectName=arguments.objectName, filter={ id = recordIds } );
 
 			if ( !deletedCount ) {
@@ -755,10 +749,6 @@ component {
 
 			// audit
 			if ( arguments.audit ) {
-				if ( canInfo ) {
-					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.auditing.changes.message" ) );
-				}
-
 				for( var record in args.records ) {
 					$audit(
 						  action   = arguments.auditAction
@@ -776,9 +766,6 @@ component {
 
 			// post delete hooks
 			if ( customizationService.objectHasCustomization( arguments.objectName, "postDeleteRecordAction" ) ) {
-				if ( canInfo ) {
-					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.post.delete.hooks" ) );
-				}
 				customizationService.runCustomization(
 					  objectName = arguments.objectName
 					, action     = "postDeleteRecordAction"
@@ -787,7 +774,7 @@ component {
 			}
 
 			// finish up
-			if ( ! moreToFetch ) {
+			if ( !moreToFetch ) {
 				if ( canInfo ) {
 					arguments.logger.info( $translateResource( uri="cms:datamanager.batchdelete.task.finished" ) );
 				}
@@ -800,7 +787,7 @@ component {
 				batchProgress += args.records.recordCount;
 				arguments.progress.setProgress( ( 100 / totalRecords ) * batchProgress );
 			}
-		} while( moreToFetch=true )
+		} while( moreToFetch );
 
 		return true;
 	}
