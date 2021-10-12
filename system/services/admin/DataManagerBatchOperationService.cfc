@@ -8,8 +8,6 @@
  */
 component displayName="Data manager batch operation service" {
 
-	variables._operationsCache = {};
-
 // CONSTRUCTOR
 	/**
 	 *
