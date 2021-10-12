@@ -540,28 +540,10 @@ component {
 		var fieldTitle        = "";
 		var uriRoot           = "";
 		var moreToFetch       = arguments.batchAll;
-		var dbAdapter         = "";
-		var idField           = "";
 		var queueId           = "";
-		var queueDataArgs     = StructCopy( arguments.batchSrcArgs );
 
 		if ( arguments.batchAll ) {
-			dbAdapter = pobjService.getDbAdapterForObject( arguments.objectName );
-			idField   = dbAdapter.escapeEntity( pobjService.getIdField( arguments.objectName ) );
-			queueId   = CreateUUId();
-
-			queueDataArgs.selectFields = [
-				  "'#queueId#'"
-				, idField
-				, dbAdapter.getNowFunctionSql()
-			];
-
-			pobjService.insertDataFromSelect(
-				  objectName     = "batch_operation_queue"
-				, fieldList      = [ "queue_id", "record_id", "datecreated" ]
-				, selectDataArgs = queueDataArgs
-			);
-
+			queueId      = queueBatchOperation( arguments.objectName, arguments.batchSrcArgs );
 			totalRecords = getBatchSourceRecordCount( arguments.objectName, arguments.batchSrcArgs );
 		}
 
@@ -575,23 +557,17 @@ component {
 		try {
 			do {
 				if ( arguments.batchAll ) {
-					var nextBatch = pobjService.selectData(
-						  objectname   = "batch_operation_queue"
-						, selectFields = [ "record_id" ]
-						, maxRows      = 100
-						, filter       = { queue_id=queueId }
-					);
+					sourceIds = getNextBatchRecordsFromQueue( queueId, 100 );
 
-					if ( !nextBatch.recordCount ) {
+					if ( !ArrayLen( sourceIds ) ) {
 						break;
 					}
 
 					if ( canInfo ) {
-						arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.fetched.records", data=[ NumberFormat( nextBatch.recordCount ) ] ) );
+						arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.fetched.records", data=[ NumberFormat( ArrayLen( sourceIds ) ) ] ) );
 					}
 
-					sourceIds   = ValueArray( nextBatch.record_id );
-					moreToFetch = nextBatch.recordCount == 100;
+					moreToFetch = ArrayLen( sourceIds ) == 100;
 				}
 
 				for( var sourceId in sourceIds ) {
@@ -654,10 +630,7 @@ component {
 					);
 
 					if ( arguments.batchAll ) {
-						pobjService.deleteData( objectName="batch_operation_queue", filter={
-							  record_id = sourceId
-							, queue_id  = queueId
-						} );
+						removeBatchOperationQueueItem( queueId, sourceId );
 					}
 
 					if ( canReportProgress ) {
@@ -670,15 +643,15 @@ component {
 				}
 			} while( moreToFetch );
 		} catch( any e ) {
-			if ( arguments.batchAll && Len( queueId ) ) {
-				pobjService.deleteData( objectName="batch_operation_queue", filter={ queue_id=queueId } );
+			if ( Len( queueId ) ) {
+				clearBatchOperationQueue( queueId );
 			}
 
 			rethrow;
 		}
 
-		if ( arguments.batchAll && Len( queueId ) ) {
-			pobjService.deleteData( objectName="batch_operation_queue", filter={ queue_id=queueId } );
+		if ( Len( queueId ) ) {
+			clearBatchOperationQueue( queueId );
 		}
 		if ( canInfo ) {
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.finished.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
@@ -859,6 +832,59 @@ component {
 		);
 	}
 
+	public string function queueBatchOperation(
+		  required string objectName
+		, required struct batchSrcArgs
+	) {
+		var pobjService   = _getPresideObjectService();
+		var queueDataArgs = StructCopy( arguments.batchSrcArgs );
+		var dbAdapter     = pobjService.getDbAdapterForObject( arguments.objectName );
+		var idField       = dbAdapter.escapeEntity( pobjService.getIdField( arguments.objectName ) );
+		var queueId       = CreateUUId();
+
+		queueDataArgs.selectFields = [
+			  "'#queueId#'"
+			, idField
+			, dbAdapter.getNowFunctionSql()
+		];
+
+		pobjService.insertDataFromSelect(
+			  objectName     = "batch_operation_queue"
+			, fieldList      = [ "queue_id", "record_id", "datecreated" ]
+			, selectDataArgs = queueDataArgs
+		);
+
+		return queueId;
+	}
+
+	public numeric function clearBatchOperationQueue( required string queueId ) {
+		return _getPresideObjectService().deleteData(
+			  objectName = "batch_operation_queue"
+			, filter     = { queue_id=arguments.queueId }
+		);
+	}
+
+	public numeric function removeBatchOperationQueueItem( required string queueId, required string recordId ) {
+		return _getPresideObjectService().deleteData(
+			  objectName = "batch_operation_queue"
+			, filter     = { queue_id=arguments.queueId, record_id=arguments.recordId }
+		);
+	}
+
+	public array function getNextBatchRecordsFromQueue( required string queueId, numeric maxRows=100 ) {
+		var fetched = _getPresideObjectService().selectData(
+			  objectname   = "batch_operation_queue"
+			, selectFields = [ "record_id" ]
+			, maxRows      = arguments.maxRows
+			, filter       = { queue_id=arguments.queueId }
+		);
+
+		if ( !fetched.recordCount ) {
+			return [];
+		}
+
+		return ValueArray( fetched.record_id );
+	}
 
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName
