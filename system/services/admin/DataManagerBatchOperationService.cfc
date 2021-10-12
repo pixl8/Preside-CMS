@@ -199,8 +199,10 @@ component displayName="Data manager batch operation service" {
 		var hasLabelField        = Len( Trim( pobjService.getLabelField( arguments.objectName ) ) );
 		var moreToFetch          = arguments.batchAll;
 		var recordIds            = [];
+		var queueId              = [];
 
 		if ( arguments.batchAll ) {
+			queueId      = queueBatchOperation( arguments.objectName, arguments.batchSrcArgs );
 			totalRecords = getBatchSourceRecordCount( arguments.objectName, arguments.batchSrcArgs );
 		}
 
@@ -211,18 +213,22 @@ component displayName="Data manager batch operation service" {
 		do {
 			if ( $isInterrupted() ) {
 				if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
+				if ( Len( queueId ) ) {
+					clearBatchOperationQueue( queueId );
+				}
 				return false;
 			}
 
 			if ( arguments.batchAll ) {
 				args.records = pobjService.selectData(
-					  argumentCollection = arguments.batchSrcArgs
-					, selectFields       = [ "id", hasLabelField ? "${labelfield} as label" : "id as label" ]
-					, maxRows            = 100
-					, useCache           = false
+					  objectName    = arguments.objectName
+					, filter        = { id=getNextBatchRecordsFromQueue( queueId, 100 ) }
+					, selectFields  = [ "id", hasLabelField ? "${labelfield} as label" : "id as label" ]
+					, useCache      = false
 				);
 				if ( $isInterrupted() ) {
 					if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
+					clearBatchOperationQueue( queueId )
 					return false;
 				}
 
@@ -316,6 +322,11 @@ component displayName="Data manager batch operation service" {
 				);
 			}
 
+			// remove queued items
+			if ( Len( queueId ) ) {
+				removeBatchOperationQueueItem( queueId, recordIds );
+			}
+
 			// finish up
 			if ( !moreToFetch ) {
 				if ( canInfo ) {
@@ -375,7 +386,7 @@ component displayName="Data manager batch operation service" {
 		);
 	}
 
-	public numeric function removeBatchOperationQueueItem( required string queueId, required string recordId ) {
+	public numeric function removeBatchOperationQueueItem( required string queueId, required any recordId ) {
 		return $getPresideObjectService().deleteData(
 			  objectName = "batch_operation_queue"
 			, filter     = { queue_id=arguments.queueId, record_id=arguments.recordId }
