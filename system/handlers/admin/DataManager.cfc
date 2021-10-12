@@ -587,7 +587,7 @@ component extends="preside.system.base.AdminHandler" {
 			case "batchUpdate":
 				setNextEvent(
 					  url           = event.buildAdminLink( objectName=objectName, operation="batchEditField", queryString="field=#( rc.field ?: '' )#" )
-					, persistStruct = { id=ids, _batchAll=batchAll, _batchSource=( rc._batchSource ) }
+					, persistStruct = { id=ids, _batchAll=batchAll, _batchSource=( rc._batchSource ?: "" ) }
 				);
 			break;
 			case "delete":
