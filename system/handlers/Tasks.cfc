@@ -10,6 +10,7 @@ component {
 	property name="websiteLoginService"     inject="websiteLoginService";
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 	property name="assetQueueService"       inject="assetQueueService";
+	property name="batchOperationService"   inject="dataManagerBatchOperationService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -76,6 +77,18 @@ component {
 	private boolean function deleteExpiredAdhocTasks( logger ) {
 		return adhocTaskManagerService.deleteExpiredAdhocTasks( arguments.logger ?: NullValue() );
 	}
+
+	/**
+	 * Delete expired batch operation queues
+	 *
+	 * @schedule     0 41 3 * * *
+	 * @displayName  Delete expired batch operation queues
+	 * @displayGroup Cleanup
+	 */
+	private boolean function deleteExpiredBatchOperationQueues( logger ) {
+		return batchOperationService.deleteExpiredOperationQueues( arguments.logger ?: NullValue() );
+	}
+
 
 	/**
 	 * Delete expired derivative generation queues
