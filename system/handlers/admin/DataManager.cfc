@@ -173,7 +173,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	private array function _getListingMultiActions( event, rc, prc, args={} ) {
 		var objectName  = args.objectName ?: "";
-		var objectTitle = prc.objectTitle ?: "";
+		var objectTitle = prc.objectTitlePlural ?: "";
 
 		args.actions             = [];
 		args.batchEditableFields = [];
@@ -191,6 +191,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( IsTrue( args.canDelete ?: ( prc.canDelete ?: "" ) ) && IsTrue( args.canBatchDelete ?: ( prc.canBatchDelete ?: "" ) ) ) {
+			var typeToConfirm = dataManagerService.useTypedConfirmationForBatchDeletion( objectName );
 			args.actions.append({
 				  class     = "btn-danger"
 				, label     = translateResource( uri="cms:datamanager.deleteSelected.title" )
@@ -198,6 +199,7 @@ component extends="preside.system.base.AdminHandler" {
 				, iconClass = "fa-trash-o"
 				, name      = "delete"
 				, globalKey = "d"
+				, match     = typeToConfirm ? datamanagerService.getBatchDeletionConfirmationMatch( objectName ) : ""
 			});
 		}
 
