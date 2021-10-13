@@ -11,8 +11,8 @@ component extends="testbox.system.BaseSpec"{
 			it( "should return an array containing a 'required' rule when the field is mandatory", function(){
 				var service = getService();
 
-				expect( service.getStandardRulesForFormField( name="myfield", mandatory=true ) ).toBe( [
-					{ fieldName="myfield", validator="required" }
+				expect( service.getStandardRulesForFormField( name="myfield", label="My field", mandatory=true ) ).toBe( [
+					{ fieldName="myfield", fieldLabel="My field", validator="required" }
 				] );
 			} );
 

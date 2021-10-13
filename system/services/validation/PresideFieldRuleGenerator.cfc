@@ -95,7 +95,8 @@ component output="false" singleton=true {
 	public array function getRulesForField( required string objectName, required string fieldName, required struct fieldAttributes ) output=false {
 		param name="arguments.fieldAttributes.required"  default="false";
 		param name="arguments.fieldAttributes.generator" default="";
-		param name="arguments.fieldAttributes.type"     default="string";
+		param name="arguments.fieldAttributes.type"      default="string";
+		param name="arguments.fieldAttributes.label"     default="";
 
 		var field = arguments.fieldAttributes;
 		var rules = [];
@@ -113,7 +114,7 @@ component output="false" singleton=true {
 			 and not ListFindNoCase( "datecreated,datemodified", arguments.fieldName )
 			 and ( not Len( Trim( field.generator ) ) or field.generator eq "none" )
 		) {
-			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="required" } );
+			ArrayAppend( rules, { fieldName=arguments.fieldName, fieldLabel=field.label, validator="required" } );
 		}
 
 		// types

@@ -19,9 +19,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // TESTS
 	function test01_getRulesForField_shouldReturnARequiredRule_whenFieldIsRequired(){
-		var expected = [{ fieldName="aField", validator="required", message="preside-objects.test:validation.aField.required.message" }];
+		var expected = [{ fieldName="aField", fieldLabel="A field", validator="required", message="preside-objects.test:validation.aField.required.message" }];
 		var rules     = generator.getRulesForField( objectName="test", fieldName="aField", fieldAttributes={
-			required = true
+			  required = true
+			, label    = "A field"
 		} );
 
 		super.assertEquals( expected, rules );
