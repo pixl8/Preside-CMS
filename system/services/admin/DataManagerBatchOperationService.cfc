@@ -165,7 +165,7 @@ component displayName="Data manager batch operation service" {
 			}
 		}
 		if ( canInfo ) {
-			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.finished.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
+			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.finished.message", data=[ objectTitle, fieldTitle, NumberFormat( processed ) ] ) );
 		}
 
 		return true;
