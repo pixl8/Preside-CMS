@@ -155,9 +155,9 @@ component extends="preside.system.base.adminHandler" {
 
 		for( var record in records ) {
 			if ( baseLink.len() ) {
-				list.append( '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#EncodeForHTML( record.label )#</a>' );
+				list.append( '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#record.label#</a>' );
 			} else {
-				list.append( '#EncodeForHTML( record.label )#' );
+				list.append( '#record.label#' );
 			}
 		}
 

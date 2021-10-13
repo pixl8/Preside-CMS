@@ -21,7 +21,7 @@ component {
 		);
 
 		args.recordLink = event.buildAdminLink( objectName=fkObjectName, recordId=fkId );
-		args.recordLabel = EncodeForHTML( renderLabel( fkObjectName, fkId ) );
+		args.recordLabel = renderLabel( fkObjectName, fkId );
 
 		return renderView( view="/renderers/content/manyToOne/adminView", args=args );
 

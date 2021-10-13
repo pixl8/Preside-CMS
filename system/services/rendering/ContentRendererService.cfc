@@ -80,7 +80,7 @@ component {
 		}
 
 		if ( record.recordCount ) {
-			return EncodeForHTML( record.label );
+			return record.label;
 		}
 
 		return arguments.recordId;
