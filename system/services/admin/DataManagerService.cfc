@@ -9,6 +9,8 @@ component {
 
 	variables._operationsCache = {};
 
+	property name="dataManagerDefaults" inject="coldbox:setting:dataManager.defaults";
+
 // CONSTRUCTOR
 
 	/**
@@ -840,6 +842,52 @@ component {
 
 	public string function getSaveExportPermissionKey( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerSaveExportPermissionKey", defaultValue="read" );
+	}
+
+	public boolean function useTypedConfirmationForDeletion( required string objectName ) {
+		var result = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTypeToConfirmDelete"
+			, defaultValue  = IsBoolean( dataManagerDefaults.typeToConfirmDelete ?: "" ) && dataManagerDefaults.typeToConfirmDelete
+		);
+
+		return IsBoolean( result ) && result;
+	}
+
+	public boolean function useTypedConfirmationForBatchDeletion( required string objectName ) {
+		var result = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTypeToConfirmBatchDelete"
+			, defaultValue  = IsBoolean( dataManagerDefaults.typeToConfirmBatchDelete ?: "" ) && dataManagerDefaults.typeToConfirmBatchDelete
+		);
+
+		return IsBoolean( result ) && result;
+	}
+
+	public string function getDeletionConfirmationMatch( required string objectName, required struct record ) {
+		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, "getRecordDeletionPromptMatch" ) ) {
+			var result = _getCustomizationService().runCustomization(
+				  objectName = arguments.objectName
+				, action     = "getRecordDeletionPromptMatch"
+				, args       = { record=arguments.record }
+			);
+
+			if ( Len( local.result ?: "" ) ) {
+				return result;
+			}
+		}
+
+		var defaultMatch = $translateResource( uri="cms:datamanager.delete.record.match", defaultValue="delete" );
+		var objectUri    = _getPresideObjectService().getResourceBundleUriRoot( arguments.objectname ) & "delete.record.match";
+
+		return $translateResource( uri=objectUri, defaultValue=defaultMatch );
+	}
+
+	public string function getBatchDeletionConfirmationMatch( required string objectName ) {
+		var objectUri  = _getPresideObjectService().getResourceBundleUriRoot( arguments.objectname ) & "batch.delete.records.match";
+		var defaultUri = "cms:datamanager.batch.delete.records.match";
+
+		return $translateResource( uri=objectUri, defaultValue=$translateResource( defaultUri ) );
 	}
 
 // PRIVATE HELPERS

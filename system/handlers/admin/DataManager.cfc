@@ -177,7 +177,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	private array function _getListingMultiActions( event, rc, prc, args={} ) {
 		var objectName  = args.objectName ?: "";
-		var objectTitle = prc.objectTitle ?: "";
+		var objectTitle = prc.objectTitlePlural ?: "";
 
 		args.actions             = [];
 		args.batchEditableFields = [];
@@ -195,6 +195,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( IsTrue( args.canDelete ?: ( prc.canDelete ?: "" ) ) && IsTrue( args.canBatchDelete ?: ( prc.canBatchDelete ?: "" ) ) ) {
+			var typeToConfirm = dataManagerService.useTypedConfirmationForBatchDeletion( objectName );
 			args.actions.append({
 				  class     = "btn-danger"
 				, label     = translateResource( uri="cms:datamanager.deleteSelected.title" )
@@ -202,6 +203,7 @@ component extends="preside.system.base.AdminHandler" {
 				, iconClass = "fa-trash-o"
 				, name      = "delete"
 				, globalKey = "d"
+				, match     = typeToConfirm ? datamanagerService.getBatchDeletionConfirmationMatch( objectName ) : ""
 			});
 		}
 
@@ -1696,6 +1698,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( IsTrue( prc.canDelete ?: "" ) ) {
+			var  useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
 			actions.append( {
 				  link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
 				, btnClass  = "btn-danger"
@@ -1703,6 +1706,7 @@ component extends="preside.system.base.AdminHandler" {
 				, globalKey = "d"
 				, title     = translateResource( uri="cms:datamanager.deleteRecord.btn" )
 				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
+				, match     = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, args.record ) : ""
 			} );
 		}
 
@@ -2062,12 +2066,15 @@ component extends="preside.system.base.AdminHandler" {
 						} );
 					}
 					if ( canDelete ) {
+						var  useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
 						actions.append( {
 							  link       = deleteRecordLink.replace( "{id}", record.id )
 							, icon       = "fa-trash-o"
 							, contextKey = "d"
 							, class      = "confirmation-prompt"
 							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
+							, match      = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
+
 						} );
 					}
 					if ( useVersioning ) {
