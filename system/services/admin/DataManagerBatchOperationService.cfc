@@ -66,7 +66,7 @@ component displayName="Data manager batch operation service" {
 		try {
 			do {
 				if ( arguments.batchAll ) {
-					sourceIds = getNextBatchRecordsFromQueue( queueId, 100 );
+					sourceIds = getNextBatchRecordsFromQueue( queueId );
 
 					if ( !ArrayLen( sourceIds ) ) {
 						break;
@@ -216,7 +216,7 @@ component displayName="Data manager batch operation service" {
 			if ( arguments.batchAll ) {
 				args.records = pobjService.selectData(
 					  objectName    = arguments.objectName
-					, filter        = { id=getNextBatchRecordsFromQueue( queueId, 100 ) }
+					, filter        = { id=getNextBatchRecordsFromQueue( queueId ) }
 					, selectFields  = [ "id", hasLabelField ? "${labelfield} as label" : "id as label" ]
 					, useCache      = false
 				);
