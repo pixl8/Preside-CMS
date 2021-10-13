@@ -61,7 +61,8 @@ component {
 				, eventArguments = args
 			);
 		} else {
-			return EncodeForHtml( args.label ?: ( args[ $getPresideObjectService().getLabelField( objectname=args.object ) ] ?: "" ) );
+
+			return args.label ? EncodeForHTML( args.label ) : args[ $getPresideObjectService().getLabelField( objectname=args.object )] ?: "";
 		}
 	}
 
