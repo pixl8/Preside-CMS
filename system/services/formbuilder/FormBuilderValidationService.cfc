@@ -62,7 +62,7 @@ component {
 		var rules = [];
 
 		if ( IsBoolean( arguments.mandatory ?: "" ) && arguments.mandatory ) {
-			rules.append({ fieldname=arguments.name, fieldLabel=arguments.label, validator="required" });
+			rules.append({ fieldname=arguments.name, fieldLabel=( arguments.label ?: "" ), validator="required" });
 		}
 
 		if ( IsNumeric( arguments.maxLength ?: "" ) && arguments.maxLength > 0 ) {

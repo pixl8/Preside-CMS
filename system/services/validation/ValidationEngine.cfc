@@ -78,7 +78,7 @@ component displayName="Validation Engine" {
 
 					var params = provider.getValidatorParamValues( name=rule.validator, params=ruleParams );
 
-					if ( !$helpers.isEmptyString( rule.fieldLabel ?: "" ) ) {
+					if ( Len( Trim( rule.fieldLabel ?: "" ) ) ) {
 						params.append( _translateLabel( fieldLabel=rule.fieldLabel, fieldName=rule.fieldName ) );
 					}
 
@@ -306,7 +306,7 @@ component displayName="Validation Engine" {
 					break;
 			}
 
-			if ( !$helpers.isEmptyString( rule.fieldLabel ?: "" ) ) {
+			if ( Len( Trim( rule.fieldLabel ?: "" ) ) ) {
 				data.append( _translateLabel( fieldLabel=rule.fieldLabel, fieldName=fieldName ) );
 			}
 
