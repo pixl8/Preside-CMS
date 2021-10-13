@@ -138,8 +138,9 @@ component displayName="Data manager batch operation service" {
 						, detail   = Duplicate( arguments )
 					);
 
+					processed++
 					if ( canReportProgress ) {
-						arguments.progress.setProgress( Int( ( 100 / totalrecords ) * ++processed ) ) ;
+						arguments.progress.setProgress( Int( ( 100 / totalrecords ) * processed ) ) ;
 					}
 				}
 
