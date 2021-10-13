@@ -7,6 +7,8 @@
 	ids                       = args.ids                       ?: "";
 	object                    = args.object                    ?: "";
 	field                     = args.field                     ?: "";
+	batchAll                  = isTrue( args.batchAll          ?: "" );
+	batchSrcArgs              = args.batchSrcArgs              ?: "";
 </cfscript>
 <cfoutput>
 	<p class="alert alert-warning">
@@ -15,7 +17,13 @@
 	</p>
 
 	<form class="form-horizontal" method="post" data-dirty-form="protect" action="#saveChangesAction#">
-		<input type="hidden" name="sourceIds"   value="#ids#">
+		<cfif batchAll>
+			<input type="hidden" name="batchAll"     value="true">
+			<input type="hidden" name="batchSrcArgs" value="#batchSrcArgs#">
+		<cfelse>
+			<input type="hidden" name="sourceIds"   value="#ids#">
+		</cfif>
+
 		<input type="hidden" name="updateField" value="#field#">
 		<input type="hidden" name="object"      value="#object#">
 

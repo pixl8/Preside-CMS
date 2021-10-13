@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="cloningService"                   inject="presideObjectCloningService";
 	property name="dataManagerService"               inject="dataManagerService";
+	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
 	property name="scheduledExportService"           inject="scheduledExportService";
@@ -467,7 +468,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function deleteRecordAction( event, rc, prc ) {
+	public void function deleteRecordAction( event, rc, prc, batch=false, batchAll=false, batchSrcArgs={} ) {
 		var objectName = prc.objectName ?: "";
 		var recordId   = prc.recordId ?: "";
 
@@ -477,14 +478,19 @@ component extends="preside.system.base.AdminHandler" {
 			customizationService.runCustomization(
 				  objectName = objectName
 				, action     = "deleteRecordAction"
-				, args       = { objectName=objectName, recordId=recordId }
+				, args       = { objectName=objectName, recordId=recordId, batch=arguments.batch, batchAll=arguments.batchAll, batchSrcArgs=arguments.batchSrcArgs }
 			);
 		} else {
 			runEvent(
 				  event          = "admin.DataManager._deleteRecordAction"
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { audit=true }
+				, eventArguments = {
+					  audit        = true
+					, batch        = arguments.batch
+					, batchAll     = arguments.batchAll
+					, batchSrcArgs = arguments.batchSrcArgs
+				  }
 			);
 		}
 	}
@@ -546,10 +552,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function multiRecordAction( event, rc, prc ) {
-		var objectName = prc.objectName ?: "";
-		var action     = rc.multiAction ?: "";
-		var ids        = prc.recordId   ?: "";
-		var listingUrl = "";
+		var objectName   = prc.objectName ?: "";
+		var action       = rc.multiAction ?: "";
+		var ids          = prc.recordId   ?: "";
+		var listingUrl   = "";
+		var batchAll     = isTrue( rc.batchAll ?: "" );
+		var batchSrcArgs = {};
 
 		if ( Len( Trim( rc.postAction ?: "" ) ) ) {
 			listingUrl = event.buildAdminLink( linkto=rc.postAction, queryString="id=#objectName#" );
@@ -557,7 +565,9 @@ component extends="preside.system.base.AdminHandler" {
 			listingUrl = event.buildAdminLink( objectName=objectName );
 		}
 
-		if ( not Len( Trim( ids ) ) ) {
+		if ( batchAll ) {
+			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingUrl=listingUrl );
+		} else if ( !Len( Trim( ids ) ) ) {
 			messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
 			setNextEvent( url=listingUrl );
 		}
@@ -565,18 +575,29 @@ component extends="preside.system.base.AdminHandler" {
 		customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "multiRecordAction"
-			, args           = { action=action, ids=ListToArray( ids ), objectName=objectName }
+			, args           = {
+				  action       = action
+				, ids          = ListToArray( ids )
+				, objectName   = objectName
+				, batchAll     = batchAll
+				, batchSrcArgs = batchSrcArgs
+			  }
 		);
 
 		switch( action ){
 			case "batchUpdate":
 				setNextEvent(
 					  url           = event.buildAdminLink( objectName=objectName, operation="batchEditField", queryString="field=#( rc.field ?: '' )#" )
-					, persistStruct = { id = ids }
+					, persistStruct = { id=ids, batchAll=batchAll, batchSrcArgs=( rc.batchSrcArgs ?: "" ) }
 				);
 			break;
 			case "delete":
-				return deleteRecordAction( argumentCollection = arguments );
+				return deleteRecordAction(
+					  argumentCollection = arguments
+					, batch              = true
+					, batchAll           = batchAll
+					, batchSrcArgs       = batchSrcArgs
+				);
 			break;
 		}
 
@@ -585,18 +606,25 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function batchEditField( event, rc, prc ) {
-		var objectName  = prc.objectName  ?: "";
-		var objectTitle = prc.objectTitle ?: "";
-		var ids         = prc.recordId    ?: "";
-		var field       = rc.field        ?: "";
-		var formControl = {};
-		var recordCount = ListLen( Trim( ids ) );
-		var fieldName   = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
+		var objectName   = prc.objectName  ?: "";
+		var objectTitle  = prc.objectTitle ?: "";
+		var ids          = prc.recordId    ?: "";
+		var batchAll     = isTrue( rc.batchAll    ?: "" );
+		var batchSrcArgs = {};
+		var field        = rc.field        ?: "";
+		var formControl  = {};
+		var recordCount  = ListLen( Trim( ids ) );
+		var fieldName    = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
+		var listingView  = event.buildAdminLink( objectName=objectName, operation="listing" );
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-		if ( !recordCount ) {
+
+		if ( batchAll ) {
+			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
+			recordCount  = batchOperationService.getBatchSourceRecordCount( objectName, batchSrcArgs );
+		} else if ( !recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+			setNextEvent( url=listingView );
 		}
 
 		prc.fieldFormControl = formsService.renderFormControlForObjectField(
@@ -614,25 +642,27 @@ component extends="preside.system.base.AdminHandler" {
 			);
 
 			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+				  uri  = "cms:datamanager.batch.edit.warning.multi.value" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectTitle#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		} else {
 			prc.batchEditWarning = translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning"
+				  uri  = "cms:datamanager.batch.edit.warning" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectTitle#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		}
 
-		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectTitle, NumberFormat( recordCount ) ] );
+		prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title" & ( batchAll ? ".filtered" : "" ), data=[ objectTitle, NumberFormat( recordCount ) ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
 		prc.pageIcon     = "pencil";
-
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectTitle, fieldName ] )
 			, link  = ""
 		);
+
+		prc.batchAll    = batchAll;
+		prc.recordCount = recordCount;
 
 		event.setView( view="/admin/datamanager/batchEditField" );
 	}
@@ -642,11 +672,16 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = prc.objectName  ?: "";
 		var objectTitle = prc.objectTitle ?: "";
 		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
+		var listingView = event.buildAdminLink( objectName=objectName, operation="listing" );
+		var batchAll    = isTrue( rc.batchAll ?: "" );
+		var batchSrcArgs = {};
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
-		if ( !sourceIds.len() ) {
+		if ( batchAll ) {
+			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
+		} else if ( !sourceIds.len() ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle ] ) );
-			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+			setNextEvent( url=listingView );
 		}
 
 		var taskId = createTask(
@@ -660,6 +695,8 @@ component extends="preside.system.base.AdminHandler" {
 				  objectName         = objectName
 				, fieldName          = updateField
 				, sourceIds          = sourceIds
+				, batchAll           = batchAll
+				, batchSrcArgs        = batchSrcArgs
 				, value              = rc[ updateField ]      ?: ""
 				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
 				, userId             = event.getAdminUserId()
@@ -673,10 +710,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private boolean function batchEditInBgThread( event, rc, prc, args={}, logger, progress ) {
-		return datamanagerService.batchEditField(
+		return batchOperationService.batchEditField(
 			  objectName         = args.objectName         ?: ""
 			, fieldName          = args.fieldName          ?: ""
 			, sourceIds          = args.sourceIds          ?: []
+			, batchAll           = IsTrue( args.batchAll   ?: "" )
+			, batchSrcArgs       = args.batchSrcArgs        ?: {}
 			, value              = args.value              ?: ""
 			, multiEditBehaviour = args.multiEditBehaviour ?: "append"
 			, auditUserId        = args.userId             ?: ""
@@ -1912,6 +1951,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
 			result.sFooter = footer;
 		}
+		result.sBatchSource = _prepareSourceStringForBatchOperations( results.selectDataArgs );
 
 		event.renderData( type="json", data=result );
 	}
@@ -2582,11 +2622,14 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean audit             = false
 		,          string  auditAction       = "datamanager_delete_record"
 		,          string  auditType         = "datamanager"
+		,          boolean batch             = false
+		,          boolean batchAll          = false
+		,          struct  batchSrcArgs      = {}
 	) {
 		var id               = rc.id          ?: "";
 		var forceDelete      = rc.forceDelete ?: false;
 		var ids              = ListToArray( id );
-		var isBatch          = ArrayLen( ids ) > 1;
+		var isBatch          = arguments.batch || ArrayLen( ids ) > 1;
 		var blockers         = "";
 		var objectName       = arguments.object;
 		var objectTitle      = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=objectName );
@@ -2609,12 +2652,14 @@ component extends="preside.system.base.AdminHandler" {
 				, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
 				, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
 				, args       = {
-					  objectName  = objectName
-					, ids         = ids
-					, audit       = arguments.audit
-					, auditAction = arguments.auditAction
-					, auditType   = arguments.auditType
-					, userId      = event.getAdminUserId()
+					  objectName   = objectName
+					, ids          = ids
+					, batchAll     = arguments.batchAll
+					, batchSrcArgs = arguments.batchSrcArgs
+					, audit        = arguments.audit
+					, auditAction  = arguments.auditAction
+					, auditType    = arguments.auditType
+					, userId       = event.getAdminUserId()
 				}
 			);
 
@@ -2676,13 +2721,15 @@ component extends="preside.system.base.AdminHandler" {
 		var ids        = args.ids        ?: [];
 		var objectName = args.objectName ?: "";
 
-		return datamanagerService.batchDeleteRecords(
+		return batchOperationService.batchDeleteRecords(
 			  objectName         = args.objectName    ?: ""
 			, sourceIds          = args.ids           ?: []
 			, audit              = isTrue( args.audit ?: "" )
 			, auditAction        = args.auditAction   ?: ""
 			, auditType          = args.auditType     ?: ""
 			, auditUserId        = args.userId        ?: ""
+			, batchAll           = IsTrue( args.batchAll ?: "" )
+			, batchSrcArgs       = args.batchSrcArgs  ?: {}
 			, logger             = arguments.logger   ?: NullValue()
 			, progress           = arguments.progress ?: NullValue()
 		);
@@ -3066,7 +3113,8 @@ component extends="preside.system.base.AdminHandler" {
 		var object      = args.object ?: "";
 		var field       = args.field  ?: "";
 		var ids         = args.ids    ?: "";
-		var recordCount = ListLen( ids );
+		var batchAll    = isTrue( args.batchAll ?: "" );
+		var recordCount = args.recordCount ?: ListLen( ids );
 		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
 		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
 
@@ -3085,12 +3133,12 @@ component extends="preside.system.base.AdminHandler" {
 			);
 
 			args.batchEditWarning = args.batchEditWarning ?: translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+				  uri  = "cms:datamanager.batch.edit.warning.multi.value" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		} else {
 			args.batchEditWarning = args.batchEditWarning ?: translateResource(
-				  uri  = "cms:datamanager.batch.edit.warning"
+				  uri  = "cms:datamanager.batch.edit.warning" & ( batchAll ? ".filtered" : "" )
 				, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
 			);
 		}
@@ -4111,4 +4159,37 @@ component extends="preside.system.base.AdminHandler" {
 
 		return auditDetail;
 	}
+
+	private string function _prepareSourceStringForBatchOperations( required struct selectDataArgs ) {
+		arguments.selectDataArgs.delete( "maxRows" );
+		arguments.selectDataArgs.delete( "startRow" );
+
+		var serialized        = SerializeJson( selectDataArgs );
+		var obfuscated        = ToBase64( serialized );
+		var hashForValidation = Hash( obfuscated );
+
+		sessionStorage.setVar( hashForValidation, 1 ); // later we will validate inputs against present session vars
+
+		return obfuscated;
+	}
+
+	private struct function _deserializeSourceStringForBatchOperations( event, rc, prc, listingUrl ) {
+		var src = rc.batchSrcArgs ?: "";
+
+		if ( Len( Trim( src ) ) ) {
+			var hashForValidation = Hash( rc.batchSrcArgs );
+
+			if ( sessionStorage.exists( hashForValidation ) ) {
+				var asJson = ToString( ToBinary( src ) );
+
+				if ( IsJson( asJson ) ) {
+					return DeserializeJson( asJson );
+				}
+			}
+		}
+
+		messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+		setNextEvent( url=arguments.listingUrl );
+	}
+
 }
