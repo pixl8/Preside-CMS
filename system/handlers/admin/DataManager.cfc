@@ -1700,7 +1700,7 @@ component extends="preside.system.base.AdminHandler" {
 				, globalKey = "d"
 				, title     = translateResource( uri="cms:datamanager.deleteRecord.btn" )
 				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
-				, match     = ( useTypedConfirmation ) ? translateResource( uri="cms:datamanager.deleteRecord.match" ) : ""
+				, match     = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, args.record ) : ""
 			} );
 		}
 
@@ -2067,7 +2067,7 @@ component extends="preside.system.base.AdminHandler" {
 							, contextKey = "d"
 							, class      = "confirmation-prompt"
 							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
-							, match      = ( useTypedConfirmation ) ? translateResource( uri="cms:datamanager.deleteRecord.match" ) : ""
+							, match      = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
 
 						} );
 					}

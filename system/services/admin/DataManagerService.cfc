@@ -860,6 +860,32 @@ component {
 		return IsBoolean( result ) && result;
 	}
 
+	public string function getDeletionConfirmationMatch( required string objectName, required struct record ) {
+		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, "getRecordDeletionPromptMatch" ) ) {
+			var result = _getCustomizationService().runCustomization(
+				  objectName = arguments.objectName
+				, action     = "getRecordDeletionPromptMatch"
+				, args       = { record=arguments.record }
+			);
+
+			if ( Len( local.result ?: "" ) ) {
+				return result;
+			}
+		}
+
+		var defaultMatch = $translateResource( uri="cms:datamanager.delete.record.match", defaultValue="delete" );
+		var objectUri    = _getPresideObjectService().getResourceBundleUriRoot( arguments.objectname ) & "delete.record.match";
+
+		return $translateResource( uri=objectUri, defaultValue=defaultMatch );
+	}
+
+	public string function getBatchDeletionConfirmationMatch( required string objectName ) {
+		var objectUri  = _getPresideObjectService().getResourceBundleUriRoot( arguments.objectname ) & "batch.delete.records.match";
+		var defaultUri = "cms:datamanager.batch.delete.records.match";
+
+		return $translateResource( uri=objectUri, defaultValue=$translateResource( defaultUri ) );
+	}
+
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
