@@ -149,14 +149,20 @@ component displayName="Data manager batch operation service" {
 			} while( moreToFetch );
 		} catch( any e ) {
 			if ( Len( queueId ) ) {
-				clearBatchOperationQueue( queueId );
+				var cleared = clearBatchOperationQueue( queueId );
+				if ( canWarn && cleared ) {
+					arguments.logger.warn( $translateResource( uri="cms:datamanager.batchedit.task.queue.cancelled", data=[ NumberFormat( cleared ) ] ) );
+				}
 			}
 
 			rethrow;
 		}
 
 		if ( Len( queueId ) ) {
-			clearBatchOperationQueue( queueId );
+			var cleared = clearBatchOperationQueue( queueId );
+			if ( canWarn && cleared ) {
+				arguments.logger.warn( $translateResource( uri="cms:datamanager.batchedit.task.queue.cancelled", data=[ NumberFormat( cleared ) ] ) );
+			}
 		}
 		if ( canInfo ) {
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.finished.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
@@ -208,7 +214,10 @@ component displayName="Data manager batch operation service" {
 			if ( $isInterrupted() ) {
 				if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
 				if ( Len( queueId ) ) {
-					clearBatchOperationQueue( queueId );
+					var cleared = clearBatchOperationQueue( queueId );
+					if ( canWarn && cleared ) {
+						arguments.logger.warn( $translateResource( uri="cms:datamanager.batchdelete.task.queue.cancelled", data=[ NumberFormat( cleared ) ] ) );
+					}
 				}
 				return false;
 			}
@@ -222,7 +231,10 @@ component displayName="Data manager batch operation service" {
 				);
 				if ( $isInterrupted() ) {
 					if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
-					clearBatchOperationQueue( queueId )
+					var cleared = clearBatchOperationQueue( queueId );
+					if ( canWarn && cleared ) {
+						arguments.logger.warn( $translateResource( uri="cms:datamanager.batchdelete.task.queue.cancelled", data=[ NumberFormat( cleared ) ] ) );
+					}
 					return false;
 				}
 
