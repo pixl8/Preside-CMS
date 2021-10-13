@@ -1,6 +1,6 @@
 <cfscript>
 	imgSrc        = event.buildLink( ( assetId=args.id ?: "" ), derivative=( args.derivative ?: "" ) );
-	altText       = HtmlEditFormat( Len( Trim( args.alt_text ?: '' ) ) ? args.alt_text : ( args.label ?: '' ) );
+	altText       = HtmlEditFormat( Len( Trim( args.alt_text ?: '' ) ) ? args.alt_text : ( args.title ?: "" ) );
 	style         = ListFindNoCase( "left,right", args.alignment ?: "" ) ? "float:#LCase( args.alignment )#;" : "";
 	hasFigure     = Len( Trim( args.copyright ?: "" ) ) || Len( Trim( args.caption ?: "" ) );
 	hasLink       = Len( Trim( args.link ?: ""  ) ) ;

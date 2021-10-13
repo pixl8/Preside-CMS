@@ -11,6 +11,7 @@ that have been uploaded.
 		<fieldset id="standard" sortorder="10">
 			<field sortorder="10" binding="asset.asset_folder" control="assetFolderPicker" quickAdd="true" />
 			<field sortorder="20" binding="asset.author" control="textinput" />
+			<field sortorder="30" binding="asset.alt_text" control="textinput" />
 		</fieldset>
 	</tab>
 </form>
