@@ -308,6 +308,11 @@ component {
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
 
+		settings.dataManager = {};
+		settings.dataManager.defaults = {};
+		settings.dataManager.defaults.typeToConfirmDelete      = false;
+		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
+
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
 			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches", "clone" ]

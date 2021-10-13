@@ -9,6 +9,8 @@ component {
 
 	variables._operationsCache = {};
 
+	property name="dataManagerDefaults" inject="coldbox:setting:dataManager.defaults";
+
 // CONSTRUCTOR
 
 	/**
@@ -839,9 +841,23 @@ component {
 	}
 
 	public boolean function useTypedConfirmationForDeletion( required string objectName ) {
-		var dataManagerDeletionTypedConfirmation = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="dataManagerDeletionTypedConfirmation", defaultValue=false );
+		var result = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTypeToConfirmDelete"
+			, defaultValue  = IsBoolean( dataManagerDefaults.typeToConfirmDelete ?: "" ) && dataManagerDefaults.typeToConfirmDelete
+		);
 
-		return IsBoolean( dataManagerDeletionTypedConfirmation ) && dataManagerDeletionTypedConfirmation;
+		return IsBoolean( result ) && result;
+	}
+
+	public boolean function useTypedConfirmationForBatchDeletion( required string objectName ) {
+		var result = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerTypeToConfirmBatchDelete"
+			, defaultValue  = IsBoolean( dataManagerDefaults.typeToConfirmBatchDelete ?: "" ) && dataManagerDefaults.typeToConfirmBatchDelete
+		);
+
+		return IsBoolean( result ) && result;
 	}
 
 // PRIVATE HELPERS
