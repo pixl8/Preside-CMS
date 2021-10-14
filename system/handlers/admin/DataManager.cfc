@@ -1695,6 +1695,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( IsTrue( prc.canDelete ?: "" ) ) {
 			var  useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
+			var record = args.record ?: ( prc.record ?: {} );
+			if ( isQuery( record ) ) {
+				record = QueryRowToStruct( record );
+			}
 			actions.append( {
 				  link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
 				, btnClass  = "btn-danger"
@@ -1702,7 +1706,7 @@ component extends="preside.system.base.AdminHandler" {
 				, globalKey = "d"
 				, title     = translateResource( uri="cms:datamanager.deleteRecord.btn" )
 				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
-				, match     = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, args.record ) : ""
+				, match     = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
 			} );
 		}
 
