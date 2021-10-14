@@ -41,6 +41,7 @@
 				, size     : dropzone.filesize( file.size )
 				, type     : file.type
 				, tabindex : getNextTabIndex()
+				, alt_text : ""
 			} ) ).get( 0 );
 
 			$previewsContainer.append( file.previewElement );
