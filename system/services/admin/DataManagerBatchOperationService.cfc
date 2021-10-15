@@ -86,9 +86,11 @@ component displayName="Data manager batch operation service" {
 					}
 					if ( !isMultiValue ) {
 						pobjService.updateData(
-							  objectName = objectName
-							, data       = { "#arguments.fieldName#" = value }
-							, filter     = { id=sourceId }
+							  objectName              = objectName
+							, data                    = { "#arguments.fieldName#" = value }
+							, filter                  = { id=sourceId }
+							, clearCaches             = false
+							, skipTrivialInterceptors = true
 						);
 					} else {
 						var existingIds  = [];
@@ -127,6 +129,8 @@ component displayName="Data manager batch operation service" {
 							, id                      = sourceId
 							, data                    = { "#arguments.fieldName#" = targetIdList }
 							, updateManyToManyRecords = true
+							, clearCaches             = false
+							, skipTrivialInterceptors = true
 						);
 					}
 
@@ -135,7 +139,12 @@ component displayName="Data manager batch operation service" {
 						, type     = arguments.auditCategory
 						, userId   = arguments.auditUserId
 						, recordId = sourceid
-						, detail   = Duplicate( arguments )
+						, detail   = {
+							  objectName = arguments.objectName
+							, id         = sourceid
+							, fieldName  = arguments.fieldName
+							, value      = arguments.value
+						}
 					);
 
 					processed++
@@ -143,6 +152,8 @@ component displayName="Data manager batch operation service" {
 						arguments.progress.setProgress( Int( ( 100 / totalrecords ) * processed ) ) ;
 					}
 				}
+
+				pobjService.clearRelatedCaches( arguments.objectName );
 
 				if ( $isInterrupted() ) {
 					break;
@@ -379,15 +390,17 @@ component displayName="Data manager batch operation service" {
 
 	public numeric function clearBatchOperationQueue( required string queueId ) {
 		return $getPresideObjectService().deleteData(
-			  objectName = "batch_operation_queue"
-			, filter     = { queue_id=arguments.queueId }
+			  objectName              = "batch_operation_queue"
+			, filter                  = { queue_id=arguments.queueId }
+			, skipTrivialInterceptors = true
 		);
 	}
 
 	public numeric function removeBatchOperationQueueItems( required string queueId, required any recordId ) {
 		return $getPresideObjectService().deleteData(
-			  objectName = "batch_operation_queue"
-			, filter     = { queue_id=arguments.queueId, record_id=arguments.recordId }
+			  objectName              = "batch_operation_queue"
+			, filter                  = { queue_id=arguments.queueId, record_id=arguments.recordId }
+			, skipTrivialInterceptors = true
 		);
 	}
 

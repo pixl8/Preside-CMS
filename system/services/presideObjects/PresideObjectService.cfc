@@ -630,7 +630,7 @@ component displayName="Preside Object Service" {
 		var result             = "";
 		var joinTargets        = "";
 		var joins              = [];
-		var cleanedData        = Duplicate( arguments.data );
+		var cleanedData        = StructCopy( arguments.data );
 		var manyToManyData     = {}
 		var key                = "";
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
@@ -642,12 +642,12 @@ component displayName="Preside Object Service" {
 		for( key in cleanedData ){
 			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(one|many)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
-				cleanedData.delete( key );
+				StructDelete( cleanedData, key );
 			} else if ( !ListFindNoCase( obj.dbFieldList, key ) ) {
-				cleanedData.delete( key );
+				StructDelete( cleanedData, key );
 			}
 		}
-		cleanedData.append( _addGeneratedValues(
+		StructAppend( cleanedData, _addGeneratedValues(
 			  operation  = "update"
 			, objectName = arguments.objectName
 			, data       = cleanedData
@@ -692,18 +692,30 @@ component displayName="Preside Object Service" {
 			}
 
 			arguments.changedData = {};
+			var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
 			for( var record in arguments.oldData ) {
+				var oldManyToManyData = {};
 
-				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
-				var oldManyToManyData = versionedManyToManyFields.len() ? getDeNormalizedManyToManyData(
-					  objectName       = arguments.objectName
-					, id               = record[ idField ]
-					, selectFields     = versionedManyToManyFields
-					, fromVersionTable = arguments.isDraft
-				) : {};
+				if ( StructCount( manyToManyData ) && ArrayLen( versionedManyToManyFields ) ) {
+					var oldManyToManySelectFields = [];
+					for( var field in manyToManyData ) {
+						if ( ArrayFind( versionedManyToManyFields, field ) ) {
+							ArrayAppend( oldManyToManySelectFields, field );
+						}
+					}
+					if ( ArrayLen( oldManyToManySelectFields ) ) {
+						oldManyToManyData = getDeNormalizedManyToManyData(
+							  objectName       = arguments.objectName
+							, id               = record[ idField ]
+							, selectFields     = oldManyToManySelectFields
+							, fromVersionTable = arguments.isDraft
+						);
+					}
 
-				var newDataForChangedFieldsCheck = Duplicate( cleanedData );
-				newDataForChangedFieldsCheck.append( manyToManyData );
+				}
+				var newDataForChangedFieldsCheck = StructCopy( cleanedData );
+				StructAppend( newDataForChangedFieldsCheck, manyToManyData );
+
 				var changedFields =  _getVersioningService().getChangedFields(
 					  objectName             = arguments.objectName
 					, recordId               = record[ idField ]
@@ -718,116 +730,117 @@ component displayName="Preside Object Service" {
 					arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
 				}
 			}
+			if ( StructIsEmpty( arguments.changedData ) ) {
+				return arguments.oldData.recordCount;
+			}
 		}
 
-		transaction {
-			if ( requiresVersioning ) {
-				versionNumber = _getVersioningService().saveVersionForUpdate(
-					  argumentCollection   = arguments
-					, filter               = preparedFilter.filter
-					, filterParams         = preparedFilter.filterParams
-					, data                 = cleanedData
-					, manyToManyData       = manyToManyData
-					, existingRecords      = arguments.oldData
-					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
-					, isDraft              = arguments.isDraft
+		if ( requiresVersioning ) {
+			versionNumber = _getVersioningService().saveVersionForUpdate(
+				  argumentCollection   = arguments
+				, filter               = preparedFilter.filter
+				, filterParams         = preparedFilter.filterParams
+				, data                 = cleanedData
+				, manyToManyData       = manyToManyData
+				, existingRecords      = arguments.oldData
+				, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+				, isDraft              = arguments.isDraft
+			);
+		} else if ( objectIsVersioned( arguments.objectName ) ) {
+			_getVersioningService().updateLatestVersionWithNonVersionedChanges(
+				  objectName = arguments.objectName
+				, recordId   = arguments.id
+				, data       = cleanedData
+			);
+		}
+
+		if ( arguments.useVersioning && objectUsesDrafts( arguments.objectName ) ) {
+			if ( arguments.isDraft ) {
+				if ( !_isDraft( argumentCollection=arguments ) ) {
+					cleanedData = { _version_has_drafts = true };
+				}
+			} else {
+				cleanedData._version_is_draft   = false;
+				cleanedData._version_has_drafts = false;
+			}
+		}
+
+		preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
+			  objectName        = arguments.objectName
+			, columnDefinitions = obj.properties
+			, data              = cleanedData
+			, dbAdapter         = adapter
+			, preFix            = "set__"
+		) );
+
+		if ( structCount( cleanedData ) ) {
+			sql = adapter.getUpdateSql(
+				tableName     = obj.tableName
+				, tableAlias    = arguments.objectName
+				, updateColumns = StructKeyArray( cleanedData )
+				, filter        = preparedFilter.filter
+				, joins         = joins
+			);
+			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+		}
+		var updatedRecordCount = Val( result.recordCount ?: 0 );
+
+		if ( StructCount( manyToManyData ) ) {
+			var updatedRecords = [];
+
+			if ( Len( Trim( arguments.id ?: "" ) ) ) {
+				updatedRecords = [ arguments.id ];
+			} else {
+				updatedRecords = selectData(
+					  objectName   = arguments.objectName
+					, selectFields = [ "#adapter.escapeEntity( idField )# as id" ]
+					, filter       = preparedFilter.filter
+					, filterParams = preparedFilter.filterParams
 				);
-			} else if ( objectIsVersioned( arguments.objectName ) && Len( Trim( arguments.id ?: "" ) ) ) {
-				_getVersioningService().updateLatestVersionWithNonVersionedChanges(
-					  objectName = arguments.objectName
-					, recordId   = arguments.id
-					, data       = cleanedData
-				);
+				updatedRecords = ListToArray( updatedRecords.id );
 			}
 
-			if ( arguments.useVersioning && objectUsesDrafts( arguments.objectName ) ) {
-				if ( arguments.isDraft ) {
-					if ( !_isDraft( argumentCollection=arguments ) ) {
-						cleanedData = { _version_has_drafts = true };
+			for( key in manyToManyData ){
+				var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+
+				if ( relationship == "many-to-many" ) {
+					for( var updatedId in updatedRecords ) {
+						syncManyToManyData(
+							  sourceObject        = arguments.objectName
+							, sourceProperty      = key
+							, sourceId            = updatedId
+							, targetIdList        = manyToManyData[ key ]
+							, requiresVersionSync = false
+							, isDraft             = arguments.isDraft
+						);
 					}
-				} else {
-					cleanedData._version_is_draft   = false;
-					cleanedData._version_has_drafts = false;
-				}
-			}
+				} else if ( relationship == "one-to-many" ) {
+					var isOneToManyConfigurator = isOneToManyConfiguratorObject( arguments.objectName, key );
 
-			preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = obj.properties
-				, data              = cleanedData
-				, dbAdapter         = adapter
-				, preFix            = "set__"
-			) );
-
-			if ( structCount( cleanedData ) ) {
-				sql = adapter.getUpdateSql(
-					tableName     = obj.tableName
-					, tableAlias    = arguments.objectName
-					, updateColumns = StructKeyArray( cleanedData )
-					, filter        = preparedFilter.filter
-					, joins         = joins
-				);
-				result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
-			}
-			var updatedRecordCount = Val( result.recordCount ?: 0 );
-
-			if ( StructCount( manyToManyData ) ) {
-				var updatedRecords = [];
-
-				if ( Len( Trim( arguments.id ?: "" ) ) ) {
-					updatedRecords = [ arguments.id ];
-				} else {
-					updatedRecords = selectData(
-						  objectName   = arguments.objectName
-						, selectFields = [ "#adapter.escapeEntity( idField )# as id" ]
-						, filter       = preparedFilter.filter
-						, filterParams = preparedFilter.filterParams
-					);
-					updatedRecords = ListToArray( updatedRecords.id );
-				}
-
-				for( key in manyToManyData ){
-					var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
-
-					if ( relationship == "many-to-many" ) {
-						for( var updatedId in updatedRecords ) {
-							syncManyToManyData(
-								  sourceObject        = arguments.objectName
-								, sourceProperty      = key
-								, sourceId            = updatedId
-								, targetIdList        = manyToManyData[ key ]
-								, requiresVersionSync = false
-								, isDraft             = arguments.isDraft
+					for( var updatedId in updatedRecords ) {
+						if ( isOneToManyConfigurator ) {
+							syncOneToManyConfiguratorData(
+								  sourceObject     = arguments.objectName
+								, sourceProperty   = key
+								, sourceId         = updatedId
+								, configuratorData = manyToManyData[ key ]
+								, versionNumber    = versionNumber
 							);
-						}
-					} else if ( relationship == "one-to-many" ) {
-						var isOneToManyConfigurator = isOneToManyConfiguratorObject( arguments.objectName, key );
+						} else {
+							syncOneToManyData(
+								  sourceObject   = arguments.objectName
+								, sourceProperty = key
+								, sourceId       = updatedId
+								, targetIdList   = manyToManyData[ key ]
+							);
 
-						for( var updatedId in updatedRecords ) {
-							if ( isOneToManyConfigurator ) {
-								syncOneToManyConfiguratorData(
-									  sourceObject     = arguments.objectName
-									, sourceProperty   = key
-									, sourceId         = updatedId
-									, configuratorData = manyToManyData[ key ]
-									, versionNumber    = versionNumber
-								);
-							} else {
-								syncOneToManyData(
-									  sourceObject   = arguments.objectName
-									, sourceProperty = key
-									, sourceId       = updatedId
-									, targetIdList   = manyToManyData[ key ]
-								);
-
-							}
 						}
 					}
 				}
+			}
 
-				if ( !structCount( cleanedData ) ) {
-					updatedRecordCount = arrayLen( updatedRecords );
-				}
+			if ( !structCount( cleanedData ) ) {
+				updatedRecordCount = arrayLen( updatedRecords );
 			}
 		}
 
