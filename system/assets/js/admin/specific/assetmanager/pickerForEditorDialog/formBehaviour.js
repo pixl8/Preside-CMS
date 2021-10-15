@@ -36,6 +36,10 @@
 					, data     : { asset : originalAssetValue }
 					, success  : function( data ){
 						$titleInput.attr( 'placeholder', data.LABEL || '' );
+
+						if ( assetType == "image" && !$titleInput.val().length ) {
+							$titleInput.val( data.ALT_TEXT || '' );
+						}
 					}
 				});
 
@@ -63,6 +67,7 @@
 	populateAssetDetails = function( data ){
 		if ( assetType === "image" && data.WIDTH && data.HEIGHT ) {
 			$dimensions.data( "ImageDimensionPicker" ).reset( data.WIDTH, data.HEIGHT );
+			$titleInput.val( data.ALT_TEXT || '' );
 		}
 
 		$titleInput.attr( 'placeholder', data.LABEL || '' );

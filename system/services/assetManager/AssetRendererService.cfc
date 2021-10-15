@@ -47,6 +47,10 @@ component displayname="Asset Renderer Service" {
 
 			StructAppend( asset, arguments.args, false );
 
+			if ( Len( Trim( arguments.args.alt_text ?: "" ) ) ) {
+				asset.alt_text = arguments.args.alt_text;
+			}
+
 			var rendered = _getColdbox().renderViewlet(
 				  event = _getViewletForAssetType( asset.asset_type, arguments.context )
 				, args  = asset
