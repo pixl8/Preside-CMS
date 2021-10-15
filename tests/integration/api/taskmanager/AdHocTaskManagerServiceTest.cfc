@@ -187,6 +187,33 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( [ false ] );
 			} );
+
+			it( "should set the taskID as a private variable in the request context so that we can provide helper methods for active running task later", function(){
+				var service = _getService();
+				var taskId  = CreateUUId();
+				var event   = "some.handler.action";
+				var args    = { test=CreateUUId(), fubar=123 };
+				var taskDef = QueryNew( 'event,event_args,status', 'varchar,varchar,varchar', [ [ event, SerializeJson( args ), "pending" ] ] );
+
+				_mockGetTask( taskId, taskDef );
+				mockColdbox.$( "runEvent" );
+				var mockProgress = _mockProgress( service, taskId );
+				var mockLogger   = _mockLogger( service, taskId );
+
+				service.$( "completeTask" );
+				service.$( "failTask" );
+				service.$( "markTaskAsRunning" );
+
+				service.runTask( taskId );
+
+				log = mockRequestContext.$callLog().setValue;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  name    = "_runningAdhocTaskId"
+					, private = true
+					, value   = taskId
+				} );
+			} );
 		} );
 
 		describe( "createTask()", function(){
@@ -786,6 +813,7 @@ component extends="testbox.system.BaseSpec" {
 		mockRequestContext.$( "getSiteId", "mock-site-id" );
 		mockRequestContext.$( "isBackgroundThread", false );
 		mockRequestContext.$( "getLanguage", "mock-language" );
+		mockRequestContext.$( "setValue" );
 
 		service.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao );
 		service.$( "$getColdbox", mockColdbox );

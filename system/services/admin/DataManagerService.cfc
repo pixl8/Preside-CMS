@@ -452,7 +452,8 @@ component {
 			args.selectFields.append( "#dbAdapter.getCountOverWindowFunctionSql()# as _total_recordcount" );
 		}
 
-		result.records = _getPresideObjectService().selectData( argumentCollection=args );
+		result.records        = _getPresideObjectService().selectData( argumentCollection=args );
+		result.selectDataArgs = StructCopy( args );
 
 		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
@@ -511,79 +512,6 @@ component {
 
 		return result;
 	}
-
-	public boolean function batchEditField(
-		  required string objectName
-		, required string fieldName
-		, required array  sourceIds
-		, required string value
-		,          string multiEditBehaviour = "append"
-		,          string auditAction        = "datamanager_batch_edit_record"
-		,          string auditCategory      = "datamanager"
-	) {
-		var pobjService  = _getPresideObjectService();
-		var isMultiValue = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
-
-		transaction {
-			for( var sourceId in sourceIds ) {
-				if ( !isMultiValue ) {
-					pobjService.updateData(
-						  objectName = objectName
-						, data       = { "#arguments.fieldName#" = value }
-						, filter     = { id=sourceId }
-					);
-				} else {
-					var existingIds  = [];
-					var targetIdList = [];
-					var newChoices   = ListToArray( arguments.value );
-
-					if ( arguments.multiEditBehaviour != "overwrite" ) {
-						var previousData = pobjService.getDeNormalizedManyToManyData(
-							  objectName   = objectName
-							, id           = sourceId
-							, selectFields = [ arguments.fieldName ]
-						);
-						existingIds = ListToArray( previousData[ arguments.fieldName ] ?: "" );
-					}
-
-					switch( arguments.multiEditBehaviour ) {
-						case "overwrite":
-							targetIdList = newChoices;
-							break;
-						case "delete":
-							targetIdList = existingIds;
-							for( var id in newChoices ) {
-								targetIdList.delete( id )
-							}
-							break;
-						default:
-							targetIdList = existingIds;
-							targetIdList.append( newChoices, true );
-					}
-
-					targetIdList = targetIdList.toList();
-					targetIdList = ListRemoveDuplicates( targetIdList );
-
-					pobjService.updateData(
-						  objectName              = objectName
-						, id                      = sourceId
-						, data                    = { "#updateField#" = targetIdList }
-						, updateManyToManyRecords = true
-					);
-				}
-
-				$audit(
-					  action   = arguments.auditAction
-					, type     = arguments.auditCategory
-					, recordId = sourceid
-					, detail   = Duplicate( arguments )
-				);
-			}
-		}
-
-		return true;
-	}
-
 
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName

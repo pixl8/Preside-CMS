@@ -100,7 +100,7 @@ component extends="preside.system.base.AdminHandler" {
 			_checkPermissions( event, "canceltask" );
 		}
 
-		adhocTaskManagerService.discardTask( taskId );
+		adhocTaskManagerService.cancelTask( taskId );
 		setNextEvent( url=resultUrl );
 	}
 
