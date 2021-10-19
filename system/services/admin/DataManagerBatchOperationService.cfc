@@ -391,6 +391,14 @@ component displayName="Data manager batch operation service" {
 		return queueId;
 	}
 
+	public numeric function getBatchOperationQueueSize( required string queueId ) {
+		return $getPresideObjectService().selectData(
+			  objectName      = "batch_operation_queue"
+			, filter          = { queue_id=arguments.queueId }
+			, recordCountOnly = true
+		);
+	}
+
 	public numeric function clearBatchOperationQueue( required string queueId ) {
 		return $getPresideObjectService().deleteData(
 			  objectName              = "batch_operation_queue"
