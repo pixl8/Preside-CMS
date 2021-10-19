@@ -87,7 +87,7 @@ component {
 
 		//  RSELECT
 		var digits = [];
-		for ( i=1; i <= charsetsCount; i++ ) {
+		for ( var i=1; i <= charsetsCount; i++ ) {
 			digits.append( 1 );
 		}
 
@@ -127,7 +127,7 @@ component {
 
 		//  RREST
 		var digits = [];
-		for ( i=1; i <= charsetsCount; i++ ) {
+		for ( var i=1; i <= charsetsCount; i++ ) {
 			digits.append( 1 );
 		}
 		var Lfactorial = _factorial( passwordLength );
@@ -157,7 +157,7 @@ component {
 				}
 
 				var permutationsDenominator = 1;
-				for( i=1; i<=arr.len(); i++ ) {
+				for( var i=1; i<=arr.len(); i++ ) {
 					permutationsDenominator *= _factorial( arr[i] );
 				}
 
