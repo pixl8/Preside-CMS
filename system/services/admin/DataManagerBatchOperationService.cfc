@@ -12,11 +12,14 @@ component displayName="Data manager batch operation service" {
 	/**
 	 *
 	 * @customizationService.inject datamanagerCustomizationService
+	 * @sessionStorage.inject       sessionStorage
 	 */
 	public any function init(
-		required any customizationService
+		  required any customizationService
+		, required any sessionStorage
 	) {
 		_setCustomizationService( arguments.customizationService );
+		_setSessionStorage( arguments.sessionStorage );
 
 		return this;
 	}
@@ -445,11 +448,53 @@ component displayName="Data manager batch operation service" {
 		return true;
 	}
 
+	public string function prepareBatchSourceString( required struct selectDataArgs ) {
+		StructDelete( arguments.selectDataArgs, "maxRows" );
+		StructDelete( arguments.selectDataArgs, "startRow" );
+
+		var serialized        = SerializeJson( selectDataArgs );
+		var obfuscated        = ToBase64( serialized );
+		var hashForValidation = Hash( obfuscated );
+
+		_getSessionStorage().setVar( hashForValidation, 1 ); // later we will validate inputs against present session vars
+
+		return obfuscated;
+	}
+
+	public struct function deserializeBatchSourceString( required string batchSrcArgs ) {
+		if ( areBatchSourceArgsValid( arguments.batchSrcArgs ) ) {
+			try {
+				return DeserializeJson( ToString( ToBinary( arguments.batchSrcArgs ) ) );
+			} catch( any e ) {
+				$raiseError( e );
+			}
+		}
+
+		return {};
+	}
+
+	public boolean function areBatchSourceArgsValid( required string batchSrcArgs ) {
+		if ( Len( Trim( arguments.batchSrcArgs ) ) ) {
+			var hashForValidation = Hash( arguments.batchSrcArgs );
+
+			return _getSessionStorage().exists( hashForValidation );
+		}
+
+		return false;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getCustomizationService() {
 	    return _customizationService;
 	}
 	private void function _setCustomizationService( required any customizationService ) {
 	    _customizationService = arguments.customizationService;
+	}
+
+	private any function _getSessionStorage() {
+	    return _sessionStorage;
+	}
+	private void function _setSessionStorage( required any sessionStorage ) {
+	    _sessionStorage = arguments.sessionStorage;
 	}
 }

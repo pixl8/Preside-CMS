@@ -1963,7 +1963,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
 			result.sFooter = footer;
 		}
-		result.sBatchSource = _prepareSourceStringForBatchOperations( results.selectDataArgs );
+		result.sBatchSource = batchOperationService.prepareBatchSourceString( results.selectDataArgs );
 
 		event.renderData( type="json", data=result );
 	}
@@ -4175,36 +4175,14 @@ component extends="preside.system.base.AdminHandler" {
 		return auditDetail;
 	}
 
-	private string function _prepareSourceStringForBatchOperations( required struct selectDataArgs ) {
-		arguments.selectDataArgs.delete( "maxRows" );
-		arguments.selectDataArgs.delete( "startRow" );
-
-		var serialized        = SerializeJson( selectDataArgs );
-		var obfuscated        = ToBase64( serialized );
-		var hashForValidation = Hash( obfuscated );
-
-		sessionStorage.setVar( hashForValidation, 1 ); // later we will validate inputs against present session vars
-
-		return obfuscated;
-	}
-
 	private struct function _deserializeSourceStringForBatchOperations( event, rc, prc, listingUrl ) {
-		var src = rc.batchSrcArgs ?: "";
+		var deserialized = batchOperationService.deserializeBatchSourceString( rc.batchSrcArgs ?: "" );
 
-		if ( Len( Trim( src ) ) ) {
-			var hashForValidation = Hash( rc.batchSrcArgs );
-
-			if ( sessionStorage.exists( hashForValidation ) ) {
-				var asJson = ToString( ToBinary( src ) );
-
-				if ( IsJson( asJson ) ) {
-					return DeserializeJson( asJson );
-				}
-			}
+		if ( StructCount( deserialized ) ) {
+			return deserialized;
 		}
 
-		messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+		messageBox.error( translateResource( "cms:datamanager.batch.all.source.error" ) );
 		setNextEvent( url=arguments.listingUrl );
 	}
-
 }
