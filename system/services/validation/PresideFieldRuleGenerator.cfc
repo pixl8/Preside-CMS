@@ -66,6 +66,7 @@ component output="false" singleton=true {
 					}
 
 					param name="field.name"         default="";
+					param name="field.label"        default="";
 					param name="field.binding"      default="";
 					param name="field.sourceObject" default="";
 
@@ -76,12 +77,14 @@ component output="false" singleton=true {
 					);
 
 					for( rule in fieldRules ){
+						rule.fieldLabel = field.label;
 						ArrayAppend( rules, rule );
 					}
 
 					if ( StructKeyExists( field, "rules" ) ) {
 						for( rule in field.rules ){
-							rule.fieldName = field.name;
+							rule.fieldName  = field.name;
+							rule.fieldLabel = field.label;
 							ArrayAppend( rules, rule );
 						}
 					}
@@ -96,7 +99,6 @@ component output="false" singleton=true {
 		param name="arguments.fieldAttributes.required"  default="false";
 		param name="arguments.fieldAttributes.generator" default="";
 		param name="arguments.fieldAttributes.type"      default="string";
-		param name="arguments.fieldAttributes.label"     default="";
 
 		var field = arguments.fieldAttributes;
 		var rules = [];
@@ -114,7 +116,7 @@ component output="false" singleton=true {
 			 and not ListFindNoCase( "datecreated,datemodified", arguments.fieldName )
 			 and ( not Len( Trim( field.generator ) ) or field.generator eq "none" )
 		) {
-			ArrayAppend( rules, { fieldName=arguments.fieldName, fieldLabel=field.label, validator="required" } );
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="required" } );
 		}
 
 		// types
