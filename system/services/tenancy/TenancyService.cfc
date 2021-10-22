@@ -174,7 +174,7 @@ component displayName="Tenancy service" {
 			var fk       = getTenantFkForObject( arguments.objectName );
 			var tenantId = "";
 
-			if ( len( formData.id ?: "" ) ) {
+			if ( Len( formData.id ?: "" ) ) {
 				tenantId = getTenantIdFromRecord( arguments.objectName, formData.id, fk ) ;
 			} else {
 				tenantId = getTenantId( tenant );
