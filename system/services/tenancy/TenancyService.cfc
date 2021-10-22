@@ -146,13 +146,13 @@ component displayName="Tenancy service" {
 	}
 
 	public string function getTenantIdFromRecord( required string objectName, required string id, required string fk ){
-		
 		var recordData = $getPresideObjectService().selectData(
 				objectName = arguments.objectName
 			  , id = arguments.id
+			  , selectFields = [ fk ]
 		);
 
-		return recordData.recordCount ? recordData[ arguments.fk ] : '';
+		return recordData[ fk ][ 1 ] ?: "";
 	}
 
 	public string function getTenancyCacheKey( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
