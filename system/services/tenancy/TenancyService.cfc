@@ -166,6 +166,9 @@ component displayName="Tenancy service" {
 	}
 
 	public struct function getTenancyFieldsForInsertOrUpdateData( required string objectName, array bypassTenants=[] ) {
+		if ( !Len( Trim( arguments.objectName ) ) ) {
+			return {};
+		}
 		var tenant = getObjectTenant( arguments.objectName );
 		var fields = {};
 		var formData = arguments.formData ?: {};
