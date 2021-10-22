@@ -29,7 +29,15 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function preInsertObjectData( event, interceptData ) {
-		var tenancyData = tenancyService.get().getTenancyFieldsForInsertData( argumentCollection=interceptData );
+		var tenancyData = tenancyService.get().getTenancyFieldsForInsertOrUpdateData( argumentCollection=interceptData );
+		if ( tenancyData.count() ) {
+			interceptData.data = interceptData.data ?: {};
+			interceptData.data.append( tenancyData );
+		}
+	}
+
+	public void function preValidateForm( event, interceptData ) {
+		var tenancyData = tenancyService.get().getTenancyFieldsForInsertOrUpdateData( argumentCollection=interceptData );
 		if ( tenancyData.count() ) {
 			interceptData.data = interceptData.data ?: {};
 			interceptData.data.append( tenancyData );

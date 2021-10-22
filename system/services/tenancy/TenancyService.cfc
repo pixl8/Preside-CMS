@@ -145,6 +145,16 @@ component displayName="Tenancy service" {
 		return request.__presideTenancy[ arguments.tenant ] ?: "";
 	}
 
+	public string function getTenantIdFromRecord( required string objectName, required string id, required string fk ){
+		var recordData = $getPresideObjectService().selectData(
+				objectName = arguments.objectName
+			  , id = arguments.id
+			  , selectFields = [ fk ]
+		);
+
+		return recordData[ fk ][ 1 ] ?: "";
+	}
+
 	public string function getTenancyCacheKey( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
@@ -155,13 +165,20 @@ component displayName="Tenancy service" {
 		return "";
 	}
 
-	public struct function getTenancyFieldsForInsertData( required string objectName, array bypassTenants=[] ) {
+	public struct function getTenancyFieldsForInsertOrUpdateData( required string objectName, array bypassTenants=[] ) {
 		var tenant = getObjectTenant( arguments.objectName );
 		var fields = {};
+		var formData = arguments.formData ?: {};
 
 		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
 			var fk       = getTenantFkForObject( arguments.objectName );
-			var tenantId = getTenantId( tenant );
+			var tenantId = "";
+
+			if ( Len( formData.id ?: "" ) ) {
+				tenantId = getTenantIdFromRecord( arguments.objectName, formData.id, fk ) ;
+			} else {
+				tenantId = getTenantId( tenant );
+			}
 
 			fields[ fk ] = tenantId;
 		}

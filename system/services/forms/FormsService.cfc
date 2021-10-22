@@ -604,6 +604,10 @@ component displayName="Forms service" {
 		,          string  fieldNameSuffix         = ""
 		,          array   suppressFields          = []
 	) {
+		arguments.objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+		arguments.data = arguments.formData;
+		$announceInterception( "preValidateForm", arguments );
+
 		var ruleset = _getValidationRulesetFromFormName( argumentCollection=arguments );
 		var result  = arguments.preProcessData ? preProcessForm( argumentCollection = arguments ) : "";
 		var data    = Duplicate( arguments.formData );
