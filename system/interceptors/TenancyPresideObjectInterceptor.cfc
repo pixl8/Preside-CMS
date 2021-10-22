@@ -37,10 +37,12 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function preValidateForm( event, interceptData ) {
-		var tenancyData = tenancyService.get().getTenancyFieldsForInsertOrUpdateData( argumentCollection=interceptData );
-		if ( tenancyData.count() ) {
-			interceptData.data = interceptData.data ?: {};
-			interceptData.data.append( tenancyData );
+		if ( Len( interceptData.objectName ?: "" ) ) {
+			var tenancyData = tenancyService.get().getTenancyFieldsForInsertOrUpdateData( argumentCollection=interceptData );
+			if ( tenancyData.count() ) {
+				interceptData.data = interceptData.data ?: {};
+				interceptData.data.append( tenancyData );
+			}
 		}
 	}
 }
