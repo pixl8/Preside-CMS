@@ -2673,6 +2673,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var args = arguments;
 		if ( customizationService.objectHasCustomization( objectName, "preDeleteRecordAction" ) ) {
+			args.records = presideObjectService.selectData( objectName=objectName, id=id ); // here for backward compatibility
 			customizationService.runCustomization(
 				  objectName = objectName
 				, action     = "preDeleteRecordAction"
@@ -2700,6 +2701,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			if ( customizationService.objectHasCustomization( objectName, "postDeleteRecordAction" ) ) {
+				args.records = args.records ?: presideObjectService.selectData( objectName=objectName, id=id ); // here for backward compatibility
 				customizationService.runCustomization(
 					  objectName = objectName
 					, action     = "postDeleteRecordAction"
