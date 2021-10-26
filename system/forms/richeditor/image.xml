@@ -7,9 +7,10 @@ This form is used for the add/edit image screen in the richeditor.
 <form>
 	<tab id="main" sortorder="10" title="cms:ckeditor.imagepicker.main.tab">
 		<fieldset id="main" sortorder="10">
-			<field sortorder="10" name="asset"       control="assetPicker"     required="true"  label="cms:ckeditor.imagepicker.asset.label" allowedTypes="image" />
-			<field sortorder="20" name="alt_text"    control="textinput"       required="false" label="cms:ckeditor.imagepicker.alt_text.label" maxLength="200" />
-			<field sortorder="30" name="alignment"   control="select"  required="false" label="cms:ckeditor.imagepicker.alignment.label" values="auto,left,right,center" labels="cms:ckeditor.imagepicker.alignment.auto,cms:ckeditor.imagepicker.alignment.left,cms:ckeditor.imagepicker.alignment.right,cms:ckeditor.imagepicker.alignment.center" />
+			<field sortorder="10" name="asset"       control="assetPicker" required="true"  label="cms:ckeditor.imagepicker.asset.label" allowedTypes="image" />
+			<field sortorder="15" name="asset_alt"   control="textInput"   required="false" label="cms:ckeditor.imagepicker.asset_alt.label" help="cms:ckeditor.imagepicker.asset_alt.help" disabled="true" />
+			<field sortorder="20" name="alt_text"    control="textinput"   required="false" label="cms:ckeditor.imagepicker.alt_text.label" help="cms:ckeditor.imagepicker.alt_text.help" maxLength="200" />
+			<field sortorder="30" name="alignment"   control="select"      required="false" label="cms:ckeditor.imagepicker.alignment.label" values="auto,left,right,center" labels="cms:ckeditor.imagepicker.alignment.auto,cms:ckeditor.imagepicker.alignment.left,cms:ckeditor.imagepicker.alignment.right,cms:ckeditor.imagepicker.alignment.center" />
 	    </fieldset>
 
 		<fieldset id="resize" sortorder="20" title="cms:ckeditor.imagepicker.resize.fieldset">
