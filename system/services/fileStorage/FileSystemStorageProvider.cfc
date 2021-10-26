@@ -93,11 +93,14 @@ component implements="preside.system.services.fileStorage.StorageProvider,presid
 	public binary function getObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
 			return FileReadBinary( _expandPath( arguments.path, arguments.trashed, arguments.private, true ) );
-		} catch ( java.io.FileNotFoundException e ) {
-			throw(
-				  type    = "storageProvider.objectNotFound"
-				, message = "The object, [#arguments.path#], could not be found or is not accessible"
-			);
+		} catch ( any e ) {
+			if ( e.type contains "FileNotFoundException" || e.type contains "NoSuchFileException" ) {
+				throw(
+					  type    = "storageProvider.objectNotFound"
+					, message = "The object, [#arguments.path#], could not be found or is not accessible"
+				);
+			}
+			rethrow;
 		}
 	}
 

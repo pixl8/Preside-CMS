@@ -15,6 +15,7 @@
 	param name="args.allowSearch"         type="boolean" default=true;
 	param name="args.allowFilter"         type="boolean" default=true;
 	param name="args.allowDataExport"     type="boolean" default=false;
+	param name="args.allowSaveExport"     type="boolean" default=true;
 	param name="args.clickableRows"       type="boolean" default=true;
 	param name="args.compact"             type="boolean" default=false;
 	param name="args.batchEditableFields" type="array"   default=[];
@@ -56,7 +57,7 @@
 	}
 
 	allowDataExport  = args.allowDataExport && isFeatureEnabled( "dataexport" );
-	allowSaveExport  = allowDataExport && isFeatureEnabled( "dataexport" );
+	allowSaveExport  = args.allowSaveExport && allowDataExport;
 	savedExportCount = Val( args.savedExportCount ?: "" );
 	savedExportsLink = args.savedExportsLink ?: "";
 

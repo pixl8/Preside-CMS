@@ -7,6 +7,8 @@
  */
 component displayName="Validation Engine" {
 
+	property name="i18n" inject="i18n";
+
 // CONSTRUCTOR
 	public any function init() {
 		_setRulesets( {} );
@@ -74,10 +76,16 @@ component displayName="Validation Engine" {
 						}
 					}
 
+					var params = provider.getValidatorParamValues( name=rule.validator, params=ruleParams );
+
+					if ( Len( Trim( rule.fieldLabel ?: "" ) ) ) {
+						params.append( _translateLabel( fieldLabel=rule.fieldLabel, fieldName=rule.fieldName ) );
+					}
+
 					result.addError(
 						  fieldName = expandedFieldName
 						, message   = ( Len( Trim( rule.message ) ) ? rule.message : provider.getDefaultMessage( name=rule.validator ) )
-						, params    = provider.getValidatorParamValues( name=rule.validator, params=ruleParams )
+						, params    = params
 					);
 				}
 			}
@@ -284,7 +292,7 @@ component displayName="Validation Engine" {
 					validator = "extension";
 
 					for( var index = 1; index <= data.len(); index++ ) {
-						data[index] = Replace( data[index], ",", ", ", "all")
+						data[index] = Replace( data[index], ",", ", ", "all" );
 					}
 
 					jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], '"accept" : false' );
@@ -296,6 +304,10 @@ component displayName="Validation Engine" {
 
 				default:
 					break;
+			}
+
+			if ( Len( Trim( rule.fieldLabel ?: "" ) ) ) {
+				data.append( _translateLabel( fieldLabel=rule.fieldLabel, fieldName=fieldName ) );
 			}
 
 			jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], ' "#validator#" : { param : #_parseParamsForJQueryValidate( params, validator )#' );
@@ -324,6 +336,14 @@ component displayName="Validation Engine" {
 		}
 
 		return js;
+	}
+
+	private string function _translateLabel( required string fieldLabel, required string fieldName ) {
+		if ( i18n.isValidResourceUri( uri=arguments.fieldLabel ) ) {
+			return $translateResource( uri=arguments.fieldLabel, defaultValue=$translateResource( uri="cms:preside-objects.default.field.#arguments.fieldName#.title", defaultValue=arguments.fieldName ) );
+		}
+
+		return arguments.fieldLabel;
 	}
 
 	private boolean function _evaluateConditionalRule( required struct rule, required struct data ) {

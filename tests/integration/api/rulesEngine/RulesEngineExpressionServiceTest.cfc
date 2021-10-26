@@ -776,17 +776,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 // PRIVATE HELPERS
 	private any function _getService( struct expressions=_getDefaultTestExpressions() ) {
-		variables.mockReaderService       = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
-		variables.mockFieldTypeService    = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineFieldTypeService" );
-		variables.mockContextService      = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineContextService" );
-		variables.mockExpressionGenerator = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineAutoPresideObjectExpressionGenerator" );
-		variables.mockDirectories         = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
-		variables.mockI18n                = createStub();
-		variables.mockExpressions         = arguments.expressions;
-		variables.mockColdboxController   = CreateStub();
+		variables.mockReaderService          = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
+		variables.mockFieldTypeService       = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineFieldTypeService" );
+		variables.mockContextService         = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineContextService" );
+		variables.mockExpressionGenerator    = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineAutoPresideObjectExpressionGenerator" );
+		variables.mockAdminLoginService      = createEmptyMock( "preside.system.services.admin.LoginService" );
+		variables.mockAdminPermissionService = createEmptyMock( "preside.system.services.security.PermissionService" );
+		variables.mockDirectories            = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
+		variables.mockI18n                   = createStub();
+		variables.mockExpressions            = arguments.expressions;
+		variables.mockColdboxController      = CreateStub();
 		mockReaderService.$( "getExpressionsFromDirectories" ).$args( mockDirectories ).$results( mockExpressions );
 		mockI18n.$( "getFWLanguageCode" ).$results( "en" );
 		mockI18n.$( "getFWCountryCode" ).$results( "" );
+		mockAdminLoginService.$( "getLoggedInUserId" ).$results( "" );
+		mockAdminLoginService.$( "isSystemUser" ).$results( true );
 
 		var service = new preside.system.services.rulesEngine.RulesEngineExpressionService(
 			  expressionReaderService    = mockReaderService
@@ -804,6 +808,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockContextService.$( "getContextObject" ).$args( "request" ).$results( "request_object" );
 		mockContextService.$( "getContextObject" ).$args( "" ).$results( "" );
 		service.$( "translateExpressionCategory", "default" );
+		service.$( "$getAdminLoginService", mockAdminLoginService );
+		service.$( "$getAdminPermissionService", mockAdminPermissionService );
 
 		return service;
 	}

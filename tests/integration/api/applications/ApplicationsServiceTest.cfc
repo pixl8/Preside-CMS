@@ -57,19 +57,19 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "getDefaultEvent()", function(){
 			it( "should return the configured default event for the passed application", function(){
-				var service = getService();
+				var service     = getService();
 
 				expect( service.getDefaultEvent( "test" ) ).toBe( "admin.testing.event" );
 			} );
 
 			it( "should return a default event using configuration when the configured application does not define a default event", function(){
-				var service = getService();
+				var service     = getService();
 
 				expect( service.getDefaultEvent( "ems" ) ).toBe( "admin.ems.index" );
 			} );
 
 			it( "should return an empty string when the application does not exist", function(){
-				var service = getService();
+				var service     = getService();
 
 				expect( service.getDefaultEvent( "whatever" ) ).toBe( "" );
 			} );
@@ -126,10 +126,21 @@ component extends="testbox.system.BaseSpec"{
 
 // HELPERS
 	private any function getService( array configuredApplications=getDefaultTestApplications() ) {
+		mockSecurityUserDao = CreateStub();
+		userId              = createUUID();
+		mockHelpers         = CreateStub();
+
 		var service = createMock( object=new preside.system.services.applications.ApplicationsService(
 			  configuredApplications = arguments.configuredApplications
 		) );
 
+		service.$( "$getPresideObject" ).$args( "security_user" ).$results( mockSecurityUserDao );
+		service.$( "$getAdminLoggedInUserId", userId );
+
+		service.$property( propertyName="$helpers", mock=mockHelpers );
+		mockHelpers.$( method="isEmptyString", callback=function( val ){
+			return !Len( Trim( arguments.val ) ) ;
+		} );
 
 		return service;
 	}

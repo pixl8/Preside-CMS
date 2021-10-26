@@ -221,4 +221,19 @@ component {
 
 		return translateResource( uri="auditlog.dataexport:#action#.message", data=[ userLink, file ] );
 	}
+
+	private string function userProfile( event, rc, prc, args={} ) {
+		var action = args.action ?: "";
+
+		var userLink = '<a href="#args.userLink#">#( args.known_as ?: "" )#</a>';
+
+		var recordId   = args.record_id ?: "";
+		var recordLink = "";
+		if ( !isEmptyString( recordId ) ) {
+			recordLink = '<a href="#event.buildAdminLink( linkTo="usermanager.viewUser", queryString="id=" & recordId )#">#renderLabel( "security_user", recordId )#</a>';
+		}
+
+		return translateResource( uri="auditlog.userprofile:#action#.message", data=[ userLink, recordLink ] );
+	}
+
 }

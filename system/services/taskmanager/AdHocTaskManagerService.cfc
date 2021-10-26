@@ -123,6 +123,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			}
 
 			markTaskAsRunning( taskId=arguments.taskId );
+			$getRequestContext().setValue( name="_runningAdhocTaskId", value=arguments.taskId, private=true );
 
 			var logger   = _getTaskLogger( taskId );
 			var progress = _getTaskProgressReporter( taskId );
@@ -433,9 +434,48 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to discard
 	 */
 	public boolean function discardTask( required string taskId ) {
+
 		$getPresideObject( "taskmanager_adhoc_task" ).deleteData( id=arguments.taskId );
 
 		return true;
+	}
+
+	/**
+	 * Cancels a given task
+	 *
+	 * @autodoc true
+	 * @taskId  ID of the task to discard
+	 */
+	public boolean function cancelTask( required string taskId ) {
+		var task = getTask( arguments.taskId );
+
+		if ( IsBoolean( task.discard_on_complete ?: "" ) && task.discard_on_complete ) {
+			return discardTask( taskId=arguments.taskId );
+		}
+
+		var updatedTaskData = { status="cancelled", finished_on=_now() };
+		if ( Val( task.discard_after_interval ?: "" ) > 0 ) {
+			updatedTaskData.discard_expiry = DateAdd( 's', task.discard_after_interval, Now() );
+		}
+
+		return $getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = updatedTaskData
+		);
+	}
+
+	/**
+	 * isActiveTaskCancelled
+	 *
+	 */
+	public boolean function isActiveTaskCancelled() {
+		var taskId = $getRequestContext().getValue( name="_runningAdhocTaskId", defaultValue="", private=true );
+		if ( !Len( Trim( taskId ) ) ) {
+			return false;
+		}
+
+		var task = getTask( taskId );
+		return !task.recordCount || task.status == "cancelled";
 	}
 
 	/**

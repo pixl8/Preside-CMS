@@ -66,6 +66,7 @@ component output="false" singleton=true {
 					}
 
 					param name="field.name"         default="";
+					param name="field.label"        default="";
 					param name="field.binding"      default="";
 					param name="field.sourceObject" default="";
 
@@ -76,12 +77,14 @@ component output="false" singleton=true {
 					);
 
 					for( rule in fieldRules ){
+						rule.fieldLabel = field.label;
 						ArrayAppend( rules, rule );
 					}
 
 					if ( StructKeyExists( field, "rules" ) ) {
 						for( rule in field.rules ){
-							rule.fieldName = field.name;
+							rule.fieldName  = field.name;
+							rule.fieldLabel = field.label;
 							ArrayAppend( rules, rule );
 						}
 					}
@@ -95,7 +98,7 @@ component output="false" singleton=true {
 	public array function getRulesForField( required string objectName, required string fieldName, required struct fieldAttributes ) output=false {
 		param name="arguments.fieldAttributes.required"  default="false";
 		param name="arguments.fieldAttributes.generator" default="";
-		param name="arguments.fieldAttributes.type"     default="string";
+		param name="arguments.fieldAttributes.type"      default="string";
 
 		var field = arguments.fieldAttributes;
 		var rules = [];

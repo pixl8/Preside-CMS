@@ -71,6 +71,31 @@ component {
 		return apps[ arguments.applicationId ].defaultEvent ?: "";
 	}
 
+	public string function getDefaultUrl( string applicationId=getDefaultApplication() ) {
+		var defaultUrl = getAdminHomepageUrl();
+
+		if ( !$helpers.isEmptyString( defaultUrl ) ) {
+			return defaultUrl;
+		}
+
+		return $getRequestContext().buildLink( linkTo=getDefaultEvent( applicationId ) );
+	}
+
+	public string function getAdminHomepageUrl() {
+		var securityUser = $getPresideObject( "security_user" ).selectData(
+			  id           = $getAdminLoggedInUserId()
+			, selectFields = [
+				"homepage_url"
+			]
+		);
+
+		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_url ) ) {
+			return securityUser.homepage_url
+		}
+
+		return "";
+	}
+
 	/**
 	 * Returns the configured (or calculated by convention)
 	 * layout for the given application.

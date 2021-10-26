@@ -183,6 +183,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForEditRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraCloneRecordActionButtons"  );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtons"              );
+		interceptorSettings.customInterceptionPoints.append( "preValidateForm"		                 );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -307,6 +308,11 @@ component {
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
+
+		settings.dataManager = {};
+		settings.dataManager.defaults = {};
+		settings.dataManager.defaults.typeToConfirmDelete      = false;
+		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
@@ -498,7 +504,7 @@ component {
 		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
-		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
+		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed", "cancelled" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
@@ -843,7 +849,6 @@ component {
 			, number 	   = { isFormField=true  }
 			, date 		   = { isFormField=true  }
 			, time 		   = { isFormField=true  }
-			, fileUpload   = { isFormField=true  }
 			, starRating   = { isFormField=true  }
 			, checkbox	   = { isFormField=true  }
 		} };
@@ -853,6 +858,10 @@ component {
 			, checkboxList = { isFormField=true  }
 			, radio	       = { isFormField=true  }
 			, matrix       = { isFormField=true  }
+		} };
+
+		fbSettings.itemTypes.upload = { sortorder=30, types={
+			fileUpload = { isFormField=true, isFileUploadField=true }
 		} };
 
 		fbSettings.itemTypes.content = { sortorder=40, types={
@@ -916,6 +925,10 @@ component {
 		templates.resetWebsitePasswordForTokenExpiry = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
+		] };
+		templates.resetTwoFactorAuthentication = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+			  "site_url"
+			, "site_admin_url"
 		] };
 
 		recipientTypes.anonymous   = {};

@@ -56,15 +56,20 @@ component {
 		var relatedTo    = propertyDefinition.relatedTo ?: "";
 		var expressions  = [];
 		var isFormula    = Len( Trim( propertyDefinition.formula ?: "" ) );
+		var excludedKeys = listToArray( propertyDefinition.excludeAutoExpressions ?: "" );
 
 		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !isFormula ) {
 			switch( propType ) {
 				case "string":
 				case "numeric":
-					expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( !arrayContainsNoCase( excludedKeys, "PropertyIsNull" ) ) {
+						arrayAppend( expressions, _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 				break;
 				default:
-					expressions.append( _createIsSetExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					if ( !arrayContainsNoCase( excludedKeys, "PropertyIsNull" ) ) {
+						arrayAppend( expressions, _createIsSetExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+					}
 			}
 		}
 
@@ -72,30 +77,38 @@ component {
 			switch( propType ) {
 				case "string":
 					if ( isFormula ) {
-						expressions.append( _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						if ( !arrayContainsNoCase( excludedKeys, "TextFormulaPropertyMatches" ) ) {
+							arrayAppend( expressions, _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						}
+					} else if ( !arrayContainsNoCase( excludedKeys, "TextPropertyMatches" ) ) {
+						arrayAppend( expressions, _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "boolean":
 					if ( isFormula ) {
-						expressions.append( _createBooleanFormulaIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						if ( !arrayContainsNoCase( excludedKeys, "BooleanFormulaPropertyIsTrue" ) ) {
+							arrayAppend( expressions, _createBooleanFormulaIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						}
+					} else if ( !arrayContainsNoCase( excludedKeys, "BooleanPropertyIsTrue" ) ) {
+						arrayAppend( expressions, _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "date":
 					if ( isFormula ) {
-						expressions.append( _createDateFormulaInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						if ( !arrayContainsNoCase( excludedKeys, "DateFormulaPropertyInRange" ) ) {
+							arrayAppend( expressions, _createDateFormulaInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						}
+					} else if ( !arrayContainsNoCase( excludedKeys, "DatePropertyInRange" ) ) {
+						arrayAppend( expressions, _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "numeric":
 					if ( isFormula ) {
-						expressions.append( _createNumericFormulaComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
-					} else {
-						expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						if ( !arrayContainsNoCase( excludedKeys, "NumericFormulaPropertyCompares" ) ) {
+							arrayAppend( expressions, _createNumericFormulaComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
+						}
+					} else if ( !arrayContainsNoCase( excludedKeys, "NumericPropertyCompares" ) ) {
+						arrayAppend( expressions, _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 			}
@@ -103,14 +116,19 @@ component {
 
 		switch( relationship ) {
 			case "many-to-one":
-				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-
-				if ( relatedTo == "security_user" ) {
-					expressions.append( _createManyToOneMatchesLoggedInAdminUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				if ( !arrayContainsNoCase( excludedKeys, "ManyToOneMatch" ) ) {
+					arrayAppend( expressions, _createManyToOneMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
-				if ( relatedTo == "website_user" ) {
-					expressions.append( _createManyToOneMatchesLoggedInWebUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+
+				if ( !arrayContainsNoCase( excludedKeys, "ManyToOneFilter" ) ) {
+					arrayAppend( expressions, _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+
+				if ( relatedTo == "security_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInAdminUser" ) ) {
+					arrayAppend( expressions, _createManyToOneMatchesLoggedInAdminUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( relatedTo == "website_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInWebUser" ) ) {
+					arrayAppend( expressions, _createManyToOneMatchesLoggedInWebUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
 				if ( !arguments.parentObjectName.len() ) {
 					if ( IsBoolean( propertyDefinition.autoGenerateFilterExpressions ?: "" ) && propertyDefinition.autoGenerateFilterExpressions ) {
@@ -127,19 +145,31 @@ component {
 				}
 			break;
 			case "many-to-many":
-				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createManyToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createManyToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				if ( !arrayContainsNoCase( excludedKeys, "ManyToManyMatch" ) ) {
+					arrayAppend( expressions, _createManyToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !arrayContainsNoCase( excludedKeys, "ManyToManyCount" ) ) {
+					arrayAppend( expressions, _createManyToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !arrayContainsNoCase( excludedKeys, "ManyToManyHas" ) ) {
+					arrayAppend( expressions, _createManyToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
 			break;
 			case "one-to-many":
-				expressions.append( _createOneToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createOneToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
-				expressions.append( _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				if ( !arrayContainsNoCase( excludedKeys, "OneToManyMatch" ) ) {
+					arrayAppend( expressions, _createOneToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !arrayContainsNoCase( excludedKeys, "OneToManyCount" ) ) {
+					arrayAppend( expressions, _createOneToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
+				if ( !arrayContainsNoCase( excludedKeys, "OneToManyHas" ) ) {
+					arrayAppend( expressions, _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
 			break;
 		}
 
-		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
-			expressions.append( _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) && !arrayContainsNoCase( excludedKeys, "EnumPropertyMatches" ) ) {
+			arrayAppend( expressions, _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
 		}
 
 
@@ -637,7 +667,6 @@ component {
 
 		return defaultVariety;
 	}
-
 
 
 // GETTERS AND SETTERS
