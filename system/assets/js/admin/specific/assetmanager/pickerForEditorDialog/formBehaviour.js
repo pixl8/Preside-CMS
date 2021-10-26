@@ -2,6 +2,7 @@
 
 	var $form
 	  , $assetPicker
+	  , $assetAltText
 	  , $titleInput
 	  , $dimensions
 	  , originalAssetValue
@@ -17,6 +18,7 @@
 
 		if ( assetType === "image" ) {
 			$titleInput     = $form.find( "input[name='alt_text']" );
+			$assetAltText   = $form.find( "input[name='asset_alt']" );
 			$dimensions     = $form.find( "input[name='dimensions']" );
 			assetDetailsUrl = buildAjaxLink( "assetmanager.getImageDetailsForCKEditorImageDialog" );
 
@@ -37,8 +39,8 @@
 					, success  : function( data ){
 						$titleInput.attr( 'placeholder', data.LABEL || '' );
 
-						if ( assetType == "image" && !$titleInput.val().length ) {
-							$titleInput.val( data.ALT_TEXT || '' );
+						if ( assetType == "image" ) {
+							$assetAltText.val( data.ALT_TEXT || '' );
 						}
 					}
 				});
@@ -67,7 +69,7 @@
 	populateAssetDetails = function( data ){
 		if ( assetType === "image" && data.WIDTH && data.HEIGHT ) {
 			$dimensions.data( "ImageDimensionPicker" ).reset( data.WIDTH, data.HEIGHT );
-			$titleInput.val( data.ALT_TEXT || '' );
+			$assetAltText.val( data.ALT_TEXT || '' );
 		}
 
 		$titleInput.attr( 'placeholder', data.LABEL || '' );
