@@ -730,7 +730,7 @@ component displayName="Preside Object Service" {
 					arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
 				}
 			}
-			if ( StructIsEmpty( arguments.changedData ) ) {
+			if ( !arguments.forceVersionCreation && StructIsEmpty( arguments.changedData ) ) {
 				return arguments.oldData.recordCount;
 			}
 		}
