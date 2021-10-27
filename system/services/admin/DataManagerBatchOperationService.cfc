@@ -281,6 +281,10 @@ component displayName="Data manager batch operation service" {
 
 			recordIds = ValueArray( args.records.id );
 
+			if ( !ArrayLen( recordIds ) ) {
+				continue; // interceptor may have blocked these records from being deleted. Let's continue and get the next batch.
+			}
+
 			// delete related data
 			try {
 				pobjService.deleteRelatedData( objectName=objectName, recordId=recordIds );
@@ -304,7 +308,6 @@ component displayName="Data manager batch operation service" {
 				if ( canWarn ) {
 					arguments.logger.warn( $translateResource( uri="cms:datamanager.batchdelete.task.no.records.deleted.message" ) );
 				}
-				return true;
 			}
 			if ( canReportProgress && !arguments.batchAll ) {
 				arguments.progress.setProgress( arguments.audit ? 50 : 90 );
