@@ -462,6 +462,7 @@ component displayName="Data manager batch operation service" {
 	public string function prepareBatchSourceString( required struct selectDataArgs ) {
 		StructDelete( arguments.selectDataArgs, "maxRows" );
 		StructDelete( arguments.selectDataArgs, "startRow" );
+		StructDelete( arguments.selectDataArgs, "orderBy" );
 
 		var serialized        = SerializeJson( selectDataArgs );
 		var obfuscated        = ToBase64( serialized );
