@@ -11,6 +11,7 @@
 	  , colConfig         = []
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
+	  , defaultPageLength = cfrequest.defaultPageLength || 10
 	  , activeFolderTitle = ""
 	  , dataTable, i, nodeClickHandler, presideTreeNav, setupCheckboxBehaviour, enabledContextHotkeys, setupMultiActionButtons;
 
@@ -171,6 +172,7 @@
 		bPaginate     : true,
 		bLengthChange : true,
 		aaSorting     : [],
+		iDisplayLength: parseInt( defaultPageLength ),
 		sDom          : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
 		fnRowCallback : function( row ){
 			$row = $( row );
