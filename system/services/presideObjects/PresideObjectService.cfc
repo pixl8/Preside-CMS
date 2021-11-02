@@ -730,9 +730,6 @@ component displayName="Preside Object Service" {
 					arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
 				}
 			}
-			if ( !arguments.forceVersionCreation && StructIsEmpty( arguments.changedData ) ) {
-				return arguments.oldData.recordCount;
-			}
 		}
 
 		var hasAnyFilters = !isEmpty( arguments.filter ) || !isEmpty( arguments.extraFilters ) || !isEmpty( arguments.savedFilters );
