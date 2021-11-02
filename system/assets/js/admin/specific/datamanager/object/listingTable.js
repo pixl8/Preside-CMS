@@ -48,7 +48,7 @@
 			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
-			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
+			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink="";
 
 			if ( allowFilter ) {
 				filterSettings = $( ".object-listing-table-filter" ).data();
