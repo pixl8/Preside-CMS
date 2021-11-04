@@ -376,7 +376,7 @@ component displayName="Data manager batch operation service" {
 		var pobjService   = $getPresideObjectService();
 		var queueDataArgs = StructCopy( arguments.batchSrcArgs );
 		var dbAdapter     = pobjService.getDbAdapterForObject( arguments.objectName );
-		var idField       = dbAdapter.escapeEntity( pobjService.getIdField( arguments.objectName ) );
+		var idField       = dbAdapter.escapeEntity( arguments.objectName & "." & pobjService.getIdField( arguments.objectName ) );
 		var queueId       = CreateUUId();
 
 		queueDataArgs.selectFields = [
