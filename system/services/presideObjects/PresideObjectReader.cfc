@@ -280,7 +280,7 @@ component {
 				prop.dbtype = "none";
 			}
 
-			if ( ( prop.formula ?: "" ).len() ) {
+			if ( ( prop.formula ?: "" ).len() || ( prop.relationship ?: "" ) == "select-data-view" ) {
 				prop.dbtype = "none";
 				prop.control = "none";
 			}
