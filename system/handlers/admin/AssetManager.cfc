@@ -14,6 +14,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="assetQueueService"                inject="presidecms:dynamicservice:assetQueue";
 	property name="derivativeLimits"                 inject="coldbox:setting:assetManager.derivativeLimits";
+	property name="datatableSettings"                inject="coldbox:setting:assetManager.datatable";
 
 	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -80,6 +81,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	function index( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="general.navigate" );
+
+		event.includeData( {
+			  defaultPageLength = datatableSettings.defaultPageLength ?: 10
+			, paginationOptions = datatableSettings.paginationOptions ?: [ 5, 10, 25, 50, 100 ]
+		} );
 
 		prc.folderTree    = assetManagerService.getFolderTree();
 		prc.trashCount    = assetManagerService.getTrashCount();
