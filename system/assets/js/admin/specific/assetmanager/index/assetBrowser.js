@@ -121,7 +121,7 @@
 	$tree.presideTreeNav( {
 		  onClick      : nodeClickHandler
 		, collapseIcon : "fa-folder-open"
-		, expandIcon   : "fa-folder"
+		, expandIcon   : "fa-folder-plus"
 	} );
 	presideTreeNav = $tree.data( 'presideTreeNav' );
 

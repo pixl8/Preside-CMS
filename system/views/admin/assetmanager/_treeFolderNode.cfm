@@ -22,7 +22,7 @@
 		<cfif hasChildren>
 			<div class="tree-folder">
 				<div class="tree-node tree-folder-header<cfif selected eq args.id> selected</cfif>" data-folder-id="#args.id#">
-					<i class="fa fa-fw fa-folder tree-node-toggler tree-node-icon<cfif IsTrue( args.is_system_folder )> grey</cfif>"></i>
+					<i class="fa fa-fw fa-folder-plus tree-node-toggler tree-node-icon<cfif IsTrue( args.is_system_folder )> grey</cfif>"></i>
 
 					<cfif hasRestrictions>
 						<small><i class="fa fa-lock red"></i></small>
