@@ -50,6 +50,10 @@ component {
 			return [];
 		}
 
+		if ( ( propertyDefinition.relationship ?: "" ) == "select-data-view" ) {
+			return [];
+		}
+
 		var isRequired   = IsBoolean( propertyDefinition.required ?: "" ) && propertyDefinition.required;
 		var propType     = propertyDefinition.type ?: "string";
 		var relationship = propertyDefinition.relationship ?: "";

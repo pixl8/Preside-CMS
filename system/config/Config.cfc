@@ -293,6 +293,7 @@ component {
 			, derivativeLimits = { maxHeight=0, maxWidth=0, maxResolution=0, tooBigPlaceholder="/preside/system/assets/images/placeholders/largeimage.jpg" }
 			, types       = _getConfiguredFileTypes()
 			, derivatives = _getConfiguredAssetDerivatives()
+			, datatable   = { paginationOptions=[ 5, 10, 25, 50, 100 ], defaultPageLength=10 }
 			, queue       = { concurrency=1, batchSize=100, downloadWaitSeconds=5 }
 			, folders     = {}
 			, vips        = {
@@ -313,6 +314,9 @@ component {
 		settings.dataManager.defaults = {};
 		settings.dataManager.defaults.typeToConfirmDelete      = false;
 		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
+		settings.dataManager.defaults.datatable = {}
+		settings.dataManager.defaults.datatable.paginationOptions = [ 5, 10, 25, 50, 100 ];
+		settings.dataManager.defaults.datatable.defaultPageLength = 10;
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
