@@ -9,8 +9,6 @@
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
 	prc.pageSubtitle = folderTitle == "$root" ? "#translateResource( "cms:assetmanager.root.folder" )# (#prc.folderTree[1].asset_count#)" : folderTitle;
-
-
 </cfscript>
 
 <cfoutput>

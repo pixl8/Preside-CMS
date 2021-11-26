@@ -35,6 +35,10 @@
 
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
+	event.includeData( {
+		  defaultPageLength = args.defaultPageLength ?: getSetting( name="datamanager.defaults.datatable.defaultPageLength", defaultValue=10 )
+		, paginationOptions = args.paginationOptions ?: getSetting( name="datamanager.defaults.datatable.paginationOptions", defaultValue=[ 5, 10, 25, 50, 100 ] )
+	} );
 
 	instanceId = LCase( Hash( serializeJSON( args.filterContextData ) & CallStackGet( "string" ) ) );
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";

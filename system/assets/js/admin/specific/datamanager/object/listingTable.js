@@ -40,6 +40,7 @@
 			  , favouritesUrl       = tableSettings.favouritesUrl     || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
 			  , compact             = tableSettings.compact           || cfrequest.compact
 			  , defaultPageLength   = cfrequest.defaultPageLength     || 10
+			  , paginationOptions   = cfrequest.paginationOptions     || [ 5, 10, 25, 50, 100 ]
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
@@ -150,7 +151,7 @@
 					iDeferLoading : 0,
 					bAutoWidth    : false,
 					iDisplayLength: parseInt( defaultPageLength ),
-					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
+					aLengthMenu   : paginationOptions,
 					sDom          : sDom,
 					sAjaxSource   : datasourceUrl,
 					fnRowCallback : function( row ){
