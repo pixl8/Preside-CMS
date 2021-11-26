@@ -33,6 +33,7 @@ component {
 				_removeRelationships( objMeta );
 				_addAdditionalVersioningPropertiesToVersionObject( objMeta, versionObjectName, objectName );
 				_addAdditionalVersioningPropertiesToSourceObject( obj.meta, objectName );
+				_addIndexesForRelationships( objMeta );
 
 				versionedObjects[ versionObjectName ] = { meta = objMeta, instance="auto_created" };
 			}
@@ -546,6 +547,17 @@ component {
 		StructClear( objMeta.relationships );
 	}
 
+	private void function _addIndexesForRelationships( required struct objMeta ) {
+		for( var propertyName in objMeta.properties ) {
+			var prop = objMeta.properties[ propertyName ];
+			if ( ( prop.relationship ?: "" ) == "many-to-one" && !Len( prop.indexes ?: "" ) && !Len( prop.uniqueindexes ?: "" ) ) {
+				var indexName = "ix_fk_" & LCase( Hash( "#objMeta.tableName#.#propertyName#" ) );
+
+				objMeta.indexes[ indexName ] = { unique=false, fields=propertyName };
+			}
+		}
+	}
+
 	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string versionedObjectName, required string originalObjectName ) {
 		var idField = objMeta.idField ?: "id";
 		var useDrafts = IsBoolean( objMeta.useDrafts ?: "" ) && objMeta.useDrafts;
@@ -672,8 +684,8 @@ component {
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for( var indexKey in objMeta.indexes ){
-			objMeta.indexes[ _renameTableIndexes(indexKey, arguments.originalObjectName, arguments.versionedObjectName ) ] = duplicate( objMeta.indexes[indexKey]);
-			structDelete(objMeta.indexes, indexKey);
+			objMeta.indexes[ _renameTableIndexes(indexKey, arguments.originalObjectName, arguments.versionedObjectName ) ] = StructCopy( objMeta.indexes[indexKey]);
+			StructDelete(objMeta.indexes, indexKey);
 		}
 		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_number" ] = { unique=false, fields="_version_number" };
 		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_author" ] = { unique=false, fields="_version_author" };
