@@ -26,7 +26,7 @@ component extends="preside.system.base.SystemPresideObject"  {
 
 	property name="attempt_count"     type="numeric" dbtype="int"      required=false default=0 indexes="attemptcount";
 	property name="next_attempt_date" type="date"    dbtype="datetime" required=false indexes="nextattempt";
-	property name="last_error"        type="string"  dbtype="longtext" required=false indexes="lasterror";
+	property name="last_error"        type="string"  dbtype="longtext" required=false;
 	property name="started_on"        type="date"    dbtype="datetime" required=false indexes="startedon";
 	property name="finished_on"       type="date"    dbtype="datetime" required=false indexes="finishedon";
 
