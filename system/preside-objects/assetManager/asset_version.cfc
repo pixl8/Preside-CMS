@@ -25,7 +25,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="is_trashed"   type="boolean" dbtype="boolean"               required=false default=false;
 	property name="trashed_path" type="string"  dbtype="varchar" maxLength=255 required=false;
 
-	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="LoggedInUser.loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="LoggedInUser.loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
 }
