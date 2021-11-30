@@ -2001,15 +2001,16 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			var canFlagRecord          = canEdit && isFlaggingEnabled( objectName=objectName );
-			var addChildRecordLink     = canAdd && isTreeView ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
+			var addChildRecordLink     = canAdd && isTreeView  ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
 			var sortChildrenRecordLink = canEdit && isTreeView ? event.buildAdminLink( objectName=objectName, operation="sortRecords", queryString="#parentProperty#={id}" ) : "";
-			var viewRecordLink         = canView              ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
-			var cloneRecordLink        = canClone             ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                                    : "";
-			var editRecordLink         = canEdit              ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
-			var deleteRecordLink       = canDelete            ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
-			var viewHistoryLink        = canViewVersions      ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
-			var deleteRecordTitle      = canDelete            ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
-			var flagRecordLink         = canFlagRecord        ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="flagRecordAction" )                         : "";
+			var viewRecordLink         = canView               ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
+			var cloneRecordLink        = canClone              ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                              : "";
+			var editRecordLink         = canEdit               ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
+			var deleteRecordLink       = canDelete             ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
+			var viewHistoryLink        = canViewVersions       ? event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#objectName#&id={id}" )                : "";
+			var deleteRecordTitle      = canDelete             ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
+			var deleteRecordTitleThis  = canDelete             ? translateResource( uri="cms:datamanager.deleteRecord.this",   data=[ objectTitleSingular ] )                         : "";
+			var flagRecordLink         = canFlagRecord         ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="flagRecordAction" )                         : "";
 		}
 
 		for( var record in records ){
@@ -2070,13 +2071,15 @@ component extends="preside.system.base.AdminHandler" {
 						} );
 					}
 					if ( canDelete ) {
-						var  useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
+						var recordLabel          = record[ prc.labelField ] ?: "";
+						var useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
+
 						actions.append( {
 							  link       = deleteRecordLink.replace( "{id}", record.id )
 							, icon       = "fa-trash-o"
 							, contextKey = "d"
 							, class      = "confirmation-prompt"
-							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
+							, title      = isEmptyString( recordLabel ) ? deleteRecordTitleThis : Replace( deleteRecordTitle, "{recordlabel}", recordLabel, "all" )
 							, match      = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
 
 						} );
