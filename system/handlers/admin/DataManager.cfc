@@ -175,6 +175,14 @@ component extends="preside.system.base.AdminHandler" {
 		return "";
 	}
 
+	private string function _selectAllControl( event, rc, prc, args={} ){
+		if ( datamanagerService.canBatchSelectAll( args.objectName ?: "" ) ) {
+			return renderView( view="/admin/datamanager/_selectAllControl", args=args );
+		}
+
+		return "";
+	}
+
 	private array function _getListingMultiActions( event, rc, prc, args={} ) {
 		var objectName  = args.objectName ?: "";
 		var objectTitle = prc.objectTitlePlural ?: "";
@@ -1963,7 +1971,10 @@ component extends="preside.system.base.AdminHandler" {
 		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
 			result.sFooter = footer;
 		}
-		result.sBatchSource = batchOperationService.prepareBatchSourceString( results.selectDataArgs );
+
+		if ( datamanagerService.canBatchSelectAll( arguments.object ) ) {
+			result.sBatchSource = batchOperationService.prepareBatchSourceString( results.selectDataArgs );
+		}
 
 		event.renderData( type="json", data=result );
 	}
