@@ -432,6 +432,7 @@ component {
 			, websiteUsers             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, websiteBenefits          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, datamanager              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, batchOperationSelectAll  = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemConfiguration      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
