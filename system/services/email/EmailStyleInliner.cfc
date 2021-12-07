@@ -45,7 +45,9 @@ component {
 			return fromCache;
 		}
 
+		var innerHtmlOnly = !FindNoCase( "</html>", arguments.html );
 		var doc           = _jsoup.parse( arguments.html );
+
 		if ( !StructKeyExists( arguments, "styles" ) ) {
 			arguments.styles = readStyles( doc );
 		}
@@ -55,7 +57,17 @@ component {
 			elementStyle.element.attr( "style", elementStyle.style );
 		}
 
-		var result = doc.toString();
+		var result = "";
+		if ( innerHtmlOnly ) {
+			result = doc.select( "body" );
+			if ( IsArray( local.result ?: "" ) && ArrayLen( result ) ) {
+				result = result[ 1 ].html();
+			} else {
+				result = doc.toString();
+			}
+		} else {
+			result = doc.toString();
+		}
 
 		_getTemplateCache().set( cacheKey, result );
 
