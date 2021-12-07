@@ -71,30 +71,38 @@ component {
 	public struct function prepareMessage(
 		  required string  template
 		, required struct  args
-		,          string  recipientId    = ""
-		,          array   to             = []
-		,          array   cc             = []
-		,          array   bcc            = []
-		,          struct  parameters     = {}
-		,          array   attachments    = []
-		,          struct  messageHeaders = {}
-		,          boolean isTest         = false
+		,          string  recipientId      = ""
+		,          array   to               = []
+		,          array   cc               = []
+		,          array   bcc              = []
+		,          struct  parameters       = {}
+		,          array   attachments      = []
+		,          struct  messageHeaders   = {}
+		,          boolean isTest           = false
+		,          boolean isPreview        = false
+		,          numeric version          = 0
 	) {
 		$announceInterception( "prePrepareEmailMessage", arguments );
 
-		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.isTest );
+		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=( arguments.isTest || arguments.isPreview ), version=arguments.version );
 		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
 		}
 
-		_getEmailSendingContextService().setContext(
-			  recipientType = messageTemplate.recipient_type ?: ""
-			, recipientId   = arguments.recipientId
-			, templateId    = arguments.template
-			, template      = messageTemplate
-		);
+		if ( arguments.isPreview ) {
+			enableDomainOverwriteForBuildLink( template=messageTemplate );
+		}
+
+		if ( Len( Trim( arguments.recipientId ) ) ) {
+			_getEmailSendingContextService().setContext(
+				  recipientType = messageTemplate.recipient_type ?: ""
+				, recipientId   = arguments.recipientId
+				, templateId    = arguments.template
+				, template      = messageTemplate
+			);
+		}
 		try {
 			var unsubscribeLink = _getEmailRecipientTypeService().getUnsubscribeLink(
 				  recipientType = messageTemplate.recipient_type
@@ -112,20 +120,22 @@ component {
 			};
 			var viewOnline = ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online );
 
-			if ( !message.to.len() ) {
-				message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
-			}
+			if ( !arguments.isPreview ) {
+				if ( !message.to.len() ) {
+					message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
+				}
 
-			if ( !message.from.len() ) {
-				message.from = $getPresideSetting( "email", "default_from_address" );
-			}
+				if ( !message.from.len() ) {
+					message.from = $getPresideSetting( "email", "default_from_address" );
+				}
 
-			message.attachments.append( getAttachments( arguments.template ), true );
-			if ( isSystemTemplate ) {
-				message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
-					  template = arguments.template
-					, args     = arguments.args
-				), true );
+				message.attachments.append( getAttachments( arguments.template ), true );
+				if ( isSystemTemplate ) {
+					message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
+						  template = arguments.template
+						, args     = arguments.args
+					), true );
+				}
 			}
 
 			message.textBody = _getEmailLayoutService().renderLayout(
@@ -149,15 +159,23 @@ component {
 			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
 
 			var params = Duplicate( arguments.parameters );
-			params.append( prepareParameters(
-				  template       = arguments.template
-				, recipientType  = messageTemplate.recipient_type
-				, recipientId    = arguments.recipientId
-				, args           = arguments.args
-				, templateDetail = messageTemplate
-				, styles         = preppedHtml.styles
-				, detectedParams = _detectParams( message.htmlBody & message.textBody & message.subject )
-			) );
+
+			if ( !arguments.isPreview || Len( arguments.recipientId ) ) {
+				params.append( prepareParameters(
+					  template       = arguments.template
+					, recipientType  = messageTemplate.recipient_type
+					, recipientId    = arguments.recipientId
+					, args           = arguments.args
+					, templateDetail = messageTemplate
+					, styles         = preppedHtml.styles
+					, detectedParams = _detectParams( message.htmlBody & message.textBody & message.subject )
+				) );
+			} else {
+				params.append( getPreviewParameters(
+					  template      = arguments.template
+					, recipientType = messageTemplate.recipient_type
+				) );
+			}
 
 			message.subject  = replaceParameterTokens( message.subject , params, "text" );
 			message.textBody = replaceParameterTokens( message.textBody, params, "text" );
@@ -168,7 +186,7 @@ component {
 			}
 
 			if ( viewOnline ) {
-				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+				var viewOnlineLink = arguments.isPreview ? "##" : getViewOnlineLink( message.htmlBody );
 				message.htmlBody = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
 				message.textBody = replace( message.textBody, "{{viewonline}}", viewOnlineLink );
 			}
@@ -181,6 +199,9 @@ component {
 		} catch( any e ) {
 			rethrow;
 		} finally {
+			if ( arguments.isPreview ) {
+				disableDomainOverwriteForBuildLink();
+			}
 			_getEmailSendingContextService().clearContext();
 		}
 
@@ -224,81 +245,13 @@ component {
 		,          numeric version          = 0
 		,          string  previewRecipient = ""
 	) {
-		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.allowDrafts, version=arguments.version );
-
-		if ( messageTemplate.isEmpty() ) {
-			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
-		}
-
-		if ( Len( Trim( arguments.previewRecipient ) ) ) {
-			_getEmailSendingContextService().setContext(
-				  recipientType = messageTemplate.recipient_type ?: ""
-				, recipientId   = arguments.previewRecipient
-				, templateId    = arguments.template
-				, template      = messageTemplate
-			);
-
-			var params = prepareParameters(
-				  template       = arguments.template
-				, recipientType  = messageTemplate.recipient_type
-				, recipientId    = arguments.previewRecipient
-				, args           = {}
-				, templateDetail = messageTemplate
-			);
-		} else {
-			var params = getPreviewParameters(
-				  template      = arguments.template
-				, recipientType = messageTemplate.recipient_type
-			);
-		}
-
-		enableDomainOverwriteForBuildLink( template=messageTemplate );
-
-		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
-		var body          = $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" );
-		var plainTextArgs = {
-			  layout         = messageTemplate.layout
-			, emailTemplate  = arguments.template
-			, templateDetail = messageTemplate
-			, blueprint      = messageTemplate.email_blueprint
-			, type           = "text"
-			, subject        = message.subject
-			, body           = messageTemplate.text_body
-		};
-		var htmlArgs = {
-			  layout         = messageTemplate.layout
-			, emailTemplate  = arguments.template
-			, templateDetail = messageTemplate
-			, blueprint      = messageTemplate.email_blueprint
-			, type           = "html"
-			, subject        = message.subject
-			, body           = body
-		};
-
-		message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-		message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online && Len( Trim( message.htmlBody ) ) ) {
-			htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
-			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		}
-
-		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
-		message.textBody = replaceParameterTokens( message.textBody, params, "text" );
-
-		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
-			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
-		}
-
-		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
-
-		if ( Len( Trim( previewRecipient ) ) ) {
-			_getEmailSendingContextService().clearContext();
-		}
-
-		disableDomainOverwriteForBuildLink();
-
-		return message;
+		return prepareMessage(
+			  template    = arguments.template
+			, args        = {}
+			, recipientId = arguments.previewRecipient
+			, isPreview   = true
+			, version     = arguments.version
+		);
 	}
 
 	/**

@@ -246,6 +246,19 @@ component {
 		return _operationsCache[ arguments.objectName ];
 	}
 
+	public boolean function canBatchSelectAll( required string objectName ) {
+		if ( !$isFeatureEnabled( "batchOperationSelectAll" ) ) {
+			return false;
+		}
+
+		var canSelectAll = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerAllowBatchSelectAll"
+		);
+
+		return !IsBoolean( canSelectAll ) || canSelectAll;
+	}
+
 	public string function getDefaultOperationsForObject( required string objectName ) {
 		var defaults = [ "read", "add", "edit", "batchedit", "delete", "batchdelete" ];
 
