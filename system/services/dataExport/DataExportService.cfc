@@ -133,6 +133,11 @@ component {
 						default:
 							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn:ss" );
 					}
+				case "string":
+					if ( Len( Trim( propertyDefinitions[ arguments.fieldName ].enum ?: "" ) ) ) {
+						return $translateResource( uri="enum.#propertyDefinitions[ arguments.fieldName ].enum#:#arguments.value#.label", defaultValue=arguments.value );
+					}
+					break;
 			}
 
 			return value;
