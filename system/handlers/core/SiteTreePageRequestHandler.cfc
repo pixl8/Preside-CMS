@@ -59,7 +59,7 @@ component {
 		if ( pageType.hasHandler() && getController().handlerExists( viewlet ) ) {
 			var delayed = delayedViewletRendererService.isViewletDelayedByDefault(
 				  viewlet      = viewlet
-				, defaultValue = pageType.isSystemPageType() // system page types should be delayed by default
+				, defaultValue = ( isFeatureEnabled( "fullPageCaching" ) && pageType.isSystemPageType() ) // system page types should be delayed by default when full page caching is enabled
 			);
 
 			rc.body = renderViewlet( event=viewlet, prePostExempt=false, delayed=delayed );
