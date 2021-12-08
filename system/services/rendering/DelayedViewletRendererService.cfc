@@ -136,26 +136,22 @@ component {
 			return _viewletDelayedLookupCache[ cacheKey ];
 		}
 
-		if ( $isFeatureEnabled( "fullPageCaching" ) ) {
-			var coldbox       = $getColdbox();
-			var defaultAction = _getDefaultHandlerAction();
-			var handlerName   = arguments.viewlet;
-			var handlerExists = coldbox.handlerExists( handlerName );
+		var coldbox       = $getColdbox();
+		var defaultAction = _getDefaultHandlerAction();
+		var handlerName   = arguments.viewlet;
+		var handlerExists = coldbox.handlerExists( handlerName );
 
-			if ( !handlerExists ) {
-				handlerName = ListAppend( handlerName, defaultAction, "." );
-				handlerExists = coldbox.handlerExists( handlerName );
+		if ( !handlerExists ) {
+			handlerName = ListAppend( handlerName, defaultAction, "." );
+			handlerExists = coldbox.handlerExists( handlerName );
+		}
+
+		if ( handlerExists ) {
+			var meta = _getHandlerMethodMeta( handlerName );
+
+			if ( IsBoolean( meta.cacheable ?: "" ) ) {
+				isDelayed = !meta.cacheable;
 			}
-
-			if ( handlerExists ) {
-				var meta = _getHandlerMethodMeta( handlerName );
-
-				if ( IsBoolean( meta.cacheable ?: "" ) ) {
-					isDelayed = !meta.cacheable;
-				}
-			}
-		} else {
-			isDelayed = false;
 		}
 
 		_viewletDelayedLookupCache[ cacheKey ] = isDelayed;
