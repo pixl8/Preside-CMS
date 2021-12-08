@@ -81,7 +81,7 @@ component extends="coldbox.system.web.Controller" {
 		,          boolean prepostExempt = true
 		,          boolean delayed       = _getDelayedViewletRendererService().isViewletDelayedByDefault( arguments.event )
 	) {
-		if ( arguments.delayed && getRequestContext().cachePage() ) {
+		if ( arguments.delayed ) {
 			return _getDelayedViewletRendererService().renderDelayedViewletTag(
 				  event         = arguments.event
 				, args          = arguments.args
