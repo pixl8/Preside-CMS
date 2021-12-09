@@ -3669,12 +3669,12 @@ component displayName="Preside Object Service" {
 		var propName      = arguments.propertyName;
 		var propAlias     = "";
 
-		if ( propName.reFind( aliasRegex ) ) {
-			propName  = arguments.propertyName.reReplace( aliasRegex, "\1" );
-			propAlias = arguments.propertyName.reReplace( aliasRegex, "\2" );
+		if ( ReFindNoCase( aliasRegex, propName ) ) {
+			propName  = ReReplaceNoCase( arguments.propertyName, aliasRegex, "\1" );
+			propAlias = ReReplaceNoCase( arguments.propertyName, aliasRegex, "\2" );
 		}
 
-		if ( propName.reFindNoCase( barePropRegex ) ) {
+		if ( ReFindNoCase( barePropRegex, propName ) ) {
 			if ( escapeEntities ) {
 				return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( propName ) & propAlias;
 			}
