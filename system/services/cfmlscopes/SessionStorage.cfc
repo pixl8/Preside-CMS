@@ -26,30 +26,17 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 						request._presideSession = {};
 					}
 					request._presideSession.sessionId = sessionId;
+					request._presideSessionUsed       = _sessionIsUsed( request._presideSession );
 				}
 			}
 		}
+
 	}
 
 	public any function persist() {
-		var storage              = getStorage();
-		var ignoreKeys           = [ "sessionid" ];
-		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
-		var sessionIsUsed        = false;
+		var storage = getStorage();
 
-		for( var key in storage ) {
-			if ( ignoreKeys.findNoCase( key ) ) {
-				continue;
-			}
-			if ( keysToBeEmptyStructs.findNoCase( key ) && IsStruct( storage[ key ] ) && storage[ key ].isEmpty() ) {
-				continue;
-			}
-
-			sessionIsUsed = true;
-			break;
-		}
-
-		if ( sessionIsUsed ) {
+		if ( _sessionHasBeenUsed() || _sessionIsUsed( storage ) ) {
 			var updated = false;
 			var sessionId = storage.sessionId ?: "";
 			var expiry = expiry=_getUnixTimeStamp() + _getSessionTimeoutInSeconds();
@@ -248,6 +235,30 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 		);
 
 		return id;
+	}
+
+	private boolean function _sessionIsUsed( sess ){
+		var ignoreKeys           = [ "sessionid" ];
+		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
+		var sessionIsUsed        = false;
+
+		for( var key in arguments.sess ) {
+			if ( ignoreKeys.findNoCase( key ) ) {
+				continue;
+			}
+			if ( keysToBeEmptyStructs.findNoCase( key ) && IsStruct( arguments.sess[ key ] ) && arguments.sess[ key ].isEmpty() ) {
+				continue;
+			}
+
+			sessionIsUsed = true;
+			break;
+		}
+
+		return sessionIsUsed;
+	}
+
+	private boolean function _sessionHasBeenUsed() {
+		return IsBoolean( request._presideSessionUsed ?: "" ) && request._presideSessionUsed;
 	}
 
 
