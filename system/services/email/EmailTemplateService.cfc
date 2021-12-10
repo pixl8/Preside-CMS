@@ -1369,7 +1369,7 @@ component {
 			} else {
 				try {
 					contentId = dao.insertData( {
-						  content      = arguments.content
+						  content      = ReplaceNoCase( arguments.content, "{{viewonline}}", "", "all" )
 						, content_hash = contentHash
 					} );
 				} catch( any e ) { // i.e. a duplicate record created due to multithreading
