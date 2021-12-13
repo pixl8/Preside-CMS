@@ -1052,11 +1052,13 @@ component displayName="Preside Object Service" {
 		}
 
 		if ( !Len( Trim( selectDataArgs.orderBy ) ) ) {
-			var relatedVia     = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
-			var sortOrderField = getObjectAttribute( relatedVia, "datamanagerSortField", "sort_order" );
-			var hasSortOrder   = Len( Trim( relatedVia ) ) && StructKeyExists( getObjectProperties( relatedVia ), sortOrderField );
-			if ( hasSortOrder ) {
-				selectDataArgs.orderBy = relatedVia & ".#sortOrderField#";
+			var relatedVia = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
+			if ( Len( Trim( relatedVia ) ) ) {
+				var sortOrderField = getObjectAttribute( relatedVia, "datamanagerSortField", "sort_order" );
+				var hasSortOrder   = StructKeyExists( getObjectProperties( relatedVia ), sortOrderField );
+				if ( hasSortOrder ) {
+					selectDataArgs.orderBy = relatedVia & ".#sortOrderField#";
+				}
 			}
 		}
 
