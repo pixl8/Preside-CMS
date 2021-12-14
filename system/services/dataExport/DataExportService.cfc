@@ -152,6 +152,12 @@ component {
 				argumentCollection=selectDataArgs
 			);
 
+			_getDataManagerCustomizationService().runCustomization(
+				  objectName = selectDataArgs.objectName
+				, action     = "postFetchRecordsForGridListing"
+				, args       = { records=results, objectName=selectDataArgs.objectName }
+			);
+
 			if ( canInfo || canReportProgress ) {
 				var currentPage = ( ( selectDataArgs.startRow-1 ) + selectDataArgs.maxRows ) / selectDataArgs.maxRows;
 				if ( canInfo ) {
