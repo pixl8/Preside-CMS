@@ -46,47 +46,61 @@ component hint="Manage Preside features" extends="preside.system.base.Command" {
 		var templateWidth = 13;
 		var widgetWdith   = 7;
 
-		for ( var key in features ) {
-			if ( Len( key ) > featureWidth ) {
-				featureWidth = Len( key );
-			}
+		var keys         = StructKeyArray( features );
+		var filteredKeys = [];
+		var filter       = args.params[ 2 ] ?: "";
 
-			var siteTemplates = ArrayToList( features[ key ].siteTemplates ?: [ "*" ] );
-			if ( Len( siteTemplates ) > templateWidth ) {
-				templateWidth = Len( siteTemplates );
-			}
-
-			var widgets = ArrayToList( features[ key ].widgets ?: [] );
-			if ( Len( widgets ) > widgetWdith ) {
-				widgetWdith = Len( widgets );
-			}
+		if ( Len( Trim( filter ) ) ) {
+			filteredKeys = ArrayFilter( keys, function( item ) {
+				return ArrayLen( ReMatchNoCase( filter, item ) ) > 0;
+			} );
+		} else {
+			filteredKeys = keys;
 		}
 
-		titles &= "  Feature " & RepeatString( " ", featureWidth-7 );
-		titles &= "  Enabled ";
-		titles &= "  SiteTemplates " & RepeatString( " ", templateWidth-13 );
-		titles &= "  Widgets " & RepeatString( " ", widgetWdith-7 );
+		if ( ArrayLen( filteredKeys ) > 0 ) {
+			for ( var key in features ) {
+				if ( Len( key ) > featureWidth ) {
+					featureWidth = Len( key );
+				}
 
-		message &= writeText( text=titles, newLine=true );
-		message &= writeLine( length=Len( titles ), character="=" );
+				var siteTemplates = ArrayToList( features[ key ].siteTemplates ?: [ "*" ] );
+				if ( Len( siteTemplates ) > templateWidth ) {
+					templateWidth = Len( siteTemplates );
+				}
 
-		var keys = StructKeyArray( features );
+				var widgets = ArrayToList( features[ key ].widgets ?: [] );
+				if ( Len( widgets ) > widgetWdith ) {
+					widgetWdith = Len( widgets );
+				}
+			}
 
-		ArraySort( keys, "text", "asc" );
+			titles &= "  Feature " & RepeatString( " ", featureWidth-7 );
+			titles &= "  Enabled ";
+			titles &= "  SiteTemplates " & RepeatString( " ", templateWidth-13 );
+			titles &= "  Widgets " & RepeatString( " ", widgetWdith-7 );
 
-		for ( var key in keys ) {
-			message &= writeText( text="  #key# " & RepeatString( " ", featureWidth-Len( key ) ), type="info", bold=true );
+			message &= writeText( text=titles, newLine=true );
+			message &= writeLine( length=Len( titles ), character="=" );
 
-			var status = ToString( features[ key ].enabled );
-			message &= writeText( text="  #status# " & RepeatString( " ", enabledWidth-Len( status ) ), type=( features[ key ].enabled ? "success" : "error" ), newLine=false );
+			ArraySort( filteredKeys, "text", "asc" );
 
-			var siteTemplates = ArrayToList( features[ key ].siteTemplates ?: [ "*" ] );
-			message &= writeText( text="  #siteTemplates# " & RepeatString( " ", templateWidth-Len( siteTemplates ) ) );
+			for ( var key in filteredKeys ) {
+				message &= writeText( text="  #key# " & RepeatString( " ", featureWidth-Len( key ) ), type="info", bold=true );
 
-			message &= writeText( text="  " & ArrayToList( features[ key ].widgets ?: [] ), newLine=true );
+				var status = ToString( features[ key ].enabled );
+				message &= writeText( text="  #status# " & RepeatString( " ", enabledWidth-Len( status ) ), type=( features[ key ].enabled ? "success" : "error" ), newLine=false );
+
+				var siteTemplates = ArrayToList( features[ key ].siteTemplates ?: [ "*" ] );
+				message &= writeText( text="  #siteTemplates# " & RepeatString( " ", templateWidth-Len( siteTemplates ) ) );
+
+				message &= writeText( text="  " & ArrayToList( features[ key ].widgets ?: [] ), newLine=true );
+			}
+
+			message &= writeLine( Len( titles ) );
+		} else {
+			message &= writeText( text="No features found.", newLine=true );
 		}
-
-		message &= writeLine( Len( titles ) );
 
 		return message;
 	}
