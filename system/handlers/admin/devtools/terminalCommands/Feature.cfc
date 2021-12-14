@@ -70,7 +70,11 @@ component hint="Manage Preside features" extends="preside.system.base.Command" {
 		message &= writeText( text=titles, newLine=true );
 		message &= writeLine( length=Len( titles ), character="=" );
 
-		for ( var key in features ) {
+		var keys = StructKeyArray( features );
+
+		ArraySort( keys, "text", "asc" );
+
+		for ( var key in keys ) {
 			message &= writeText( text="  #key# " & RepeatString( " ", featureWidth-Len( key ) ), type="info", bold=true );
 
 			var status = ToString( features[ key ].enabled );
