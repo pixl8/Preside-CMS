@@ -174,7 +174,7 @@ component {
 			parsed[ key ] = ToString( ToBinary( value ) );
 
 			if ( IsJson( parsed[ key ] ) ) {
-				parsed[ key ] = DeserializeJSON( parsed[ key ] );
+				parsed[ key ] = DeserializeJSON( parsed[ key ], false );
 			}
 		}
 
