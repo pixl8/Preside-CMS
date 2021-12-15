@@ -1052,10 +1052,13 @@ component displayName="Preside Object Service" {
 		}
 
 		if ( !Len( Trim( selectDataArgs.orderBy ) ) ) {
-			var relatedVia   = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
-			var hasSortOrder = Len( Trim( relatedVia ) ) && StructKeyExists( getObjectProperties( relatedVia ), "sort_order" );
-			if ( hasSortOrder ) {
-				selectDataArgs.orderBy = relatedVia & ".sort_order";
+			var relatedVia = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
+			if ( Len( Trim( relatedVia ) ) ) {
+				var sortOrderField = getObjectAttribute( relatedVia, "datamanagerSortField", "sort_order" );
+				var hasSortOrder   = StructKeyExists( getObjectProperties( relatedVia ), sortOrderField );
+				if ( hasSortOrder ) {
+					selectDataArgs.orderBy = relatedVia & ".#sortOrderField#";
+				}
 			}
 		}
 
@@ -1114,11 +1117,12 @@ component displayName="Preside Object Service" {
 			var newAddedRecords = duplicate( newRecords );
 			var existingRecords = [];
 			var anythingChanged = false;
-			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), "sort_order" );
+			var sortOrderField  = getObjectAttribute( pivotTable, "datamanagerSortField", "sort_order" );
+			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), sortOrderField );
 			var currentSelect   = [ "#targetFk# as targetId" ];
 
 			if ( hasSortOrder ) {
-				currentSelect.append( "sort_order" );
+				currentSelect.append( sortOrderField );
 			}
 
 			transaction {
@@ -1130,7 +1134,7 @@ component displayName="Preside Object Service" {
 				);
 
 				for( var record in currentRecords ) {
-					if ( newRecords.find( record.targetId ) && ( !hasSortOrder || newRecords.find( record.targetId ) == record.sort_order ) ) {
+					if ( newRecords.find( record.targetId ) && ( !hasSortOrder || newRecords.find( record.targetId ) == record[ sortOrderField ] ) ) {
 						ArrayDelete( newAddedRecords, record.targetId );
 						ArrayAppend( existingRecords, record.targetId );
 					} else {
@@ -1154,9 +1158,9 @@ component displayName="Preside Object Service" {
 							, useVersioning = false
 							, isDraft       = arguments.isDraft
 							, data          = {
-								  "#sourceFk#" = arguments.sourceId
-								, "#targetFk#" = newRecords[i]
-								, sort_order   = i
+								  "#sourceFk#"       = arguments.sourceId
+								, "#targetFk#"       = newRecords[i]
+								, "#sortOrderField#" = i
 							}
 						);
 					}
@@ -1274,13 +1278,14 @@ component displayName="Preside Object Service" {
 		var targetFk         = prop.relationshipKey ?: arguments.sourceObject;
 		var records          = deserializeJSON( "[#configuratorData#]" );
 		var existingIds      = [];
-		var sort_order       = 0;
+		var sortOrderField   = getObjectAttribute( targetObjectName, "datamanagerSortField", "sort_order" );
+		var sortOrder        = 0;
 		var filter           = { "#targetObjectName#.#targetFk#"=sourceId };
 		var extraFilters     = [];
 
 		for( var record in records ) {
-			record[ "sort_order" ] = ++sort_order;
-			record[ targetFk ]     = sourceId;
+			record[ sortOrderField ] = ++sortOrder;
+			record[ targetFk ]       = sourceId;
 
 			if ( len( record.id ?: "" ) ) {
 				existingIds.append( record.id );
@@ -1356,10 +1361,11 @@ component displayName="Preside Object Service" {
 			if ( ( !arguments.selectFields.len() || arguments.selectFields.findNoCase( prop ) ) ) {
 				if ( isManyToManyProperty( arguments.objectName, prop ) ) {
 
-					var idField = getIdField( props[ prop ].relatedTo ?: "" );
-					var relatedVia = props[ prop ].relatedVia ?: "";
-					var sortOrder = objectExists( relatedVia ) && StructKeyExists( getObjectProperties( relatedVia ), "sort_order" ) ? adapter.escapeEntity( "#relatedVia#.sort_order" ) : adapter.escapeEntity( "#prop#.#idField#" );
-					var records = selectData(
+					var idField        = getIdField( props[ prop ].relatedTo ?: "" );
+					var relatedVia     = props[ prop ].relatedVia ?: "";
+					var sortOrderField = objectExists( relatedVia ) ? getObjectAttribute( relatedVia, "datamanagerSortField", "sort_order" ) : "";
+					var sortOrder      = objectExists( relatedVia ) && StructKeyExists( getObjectProperties( relatedVia ), sortOrderField ) ? adapter.escapeEntity( "#relatedVia#.#sortOrderField#" ) : adapter.escapeEntity( "#prop#.#idField#" );
+					var records        = selectData(
 						  objectName       = arguments.objectName
 						, id               = arguments.id
 						, selectFields     = [ adapter.escapeEntity( "#prop#.#idField#" ) & " as #escapedId#" ]
@@ -1397,15 +1403,16 @@ component displayName="Preside Object Service" {
 		,          string labelRenderer
 		,          string specificVersion
 	) {
-		var targetObject  = arguments.relatedTo       ?: "";
-		var targetFk      = arguments.relationshipKey ?: arguments.sourceObject;
-		var targetIdField = getIdField( targetObject );
-		var useVersioning = Val( arguments.specificVersion ?: "" ) && objectIsVersioned( targetObject );
-		var hasSortOrder  = StructKeyExists( getObjectProperties( targetObject ), "sort_order" );
-		var orderBy       = hasSortOrder ? "sort_order" : "";
-		var labelRenderer = arguments.labelRenderer ?: getObjectAttribute( targetObject, "labelRenderer" );
-		var labelFields   = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
-		var values        = [];
+		var targetObject   = arguments.relatedTo       ?: "";
+		var targetFk       = arguments.relationshipKey ?: arguments.sourceObject;
+		var targetIdField  = getIdField( targetObject );
+		var useVersioning  = Val( arguments.specificVersion ?: "" ) && objectIsVersioned( targetObject );
+		var sortOrderField = getObjectAttribute( targetObject, "datamanagerSortField", "sort_order" );
+		var hasSortOrder   = StructKeyExists( getObjectProperties( targetObject ), sortOrderField );
+		var orderBy        = hasSortOrder ? sortOrderField : "";
+		var labelRenderer  = arguments.labelRenderer ?: getObjectAttribute( targetObject, "labelRenderer" );
+		var labelFields    = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
+		var values         = [];
 
 		if ( Len( Trim( arguments.sourceId ) ) ) {
 			var records = selectData(
