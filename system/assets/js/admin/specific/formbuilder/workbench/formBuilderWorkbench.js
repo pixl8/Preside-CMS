@@ -146,10 +146,20 @@
 		  , modalIframe;
 
 		onDialogOk = function(){
+			var config = modalIframe.getFormBuilderItemConfig();
+
+			if ( itemData.itemType=="content" ) {
+				if ( typeof itemDataId === "undefined" || typeof $item.enableCloneItem !== "undefined" ) {
+					saveNewItem( "content", config, $item );
+				} else {
+					saveItem( config, $item );
+				}
+				modal.close();
+				return false;
+			}
+
 			modalIframe.validateFormBuilderItemConfig( formId, itemDataId || "", function( valid ){
 				if ( valid ) {
-					var config = modalIframe.getFormBuilderItemConfig();
-
 					if ( typeof itemDataId === "undefined" || typeof $item.enableCloneItem !== "undefined" ) {
 						saveNewItem( itemData.itemType, config, $item );
 					} else {
