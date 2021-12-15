@@ -1302,14 +1302,16 @@ component displayName="Preside Object Service" {
 		for (var record in records ) {
 			if ( len( record.id ?: "" ) ) {
 				targetObject.updateData(
-					  id            = record.id
-					, data          = record
-					, versionNumber = versionNumber
+					  id                      = record.id
+					, data                    = record
+					, versionNumber           = versionNumber
+					, updateManyToManyRecords = true
 				);
 			} else {
 				targetObject.insertData(
-					  data          = record
-					, versionNumber = versionNumber
+					  data                    = record
+					, versionNumber           = versionNumber
+					, insertManyToManyRecords = true
 				);
 			}
 		}
