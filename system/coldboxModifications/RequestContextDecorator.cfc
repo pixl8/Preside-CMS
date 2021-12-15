@@ -397,7 +397,11 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
 		event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
 
-		content reset=true type="text/html";header statusCode="401";WriteOutput( getModel( "presideRenderer" ).renderLayout() );abort;
+		content reset=true type="text/html";
+		header statusCode="401";
+		WriteOutput( getModel( "presideRenderer" ).renderLayout() );
+		getController().runEvent( event="general.requestEnd", prePostExempt=true )
+		abort;
 	}
 
 	public void function audit( userId=getAdminUserId() ) {
@@ -1108,7 +1112,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
 		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+
 		writeOutput( contentOutput );
+		getController().runEvent( event="general.requestEnd", prePostExempt=true );
 		abort;
 	}
 
@@ -1120,7 +1126,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
 		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+
 		writeOutput( contentOutput );
+		getController().runEvent( event="general.requestEnd", prePostExempt=true );
 		abort;
 	}
 
