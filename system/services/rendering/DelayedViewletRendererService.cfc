@@ -158,6 +158,22 @@ component {
 		return isDelayed;
 	}
 
+	/**
+	 * Returns whether or not the current context should allow delayed viewlets
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public boolean function isDelayableContext() {
+		var event = $getRequestContext();
+
+		if ( event.isAdminRequest() || event.isEmailRenderingContext() || event.isBackgroundThread()  ) {
+			return false;
+		}
+
+		return true;
+	}
+
 // PRIVATE HELPERS
 	private struct function _parseArgs( required string args ) {
 		var parsed = {};
