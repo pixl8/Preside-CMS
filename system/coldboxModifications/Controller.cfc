@@ -97,7 +97,7 @@ component extends="coldbox.system.web.Controller" {
 		,          string  cacheSuffix            = ""
 		,          string  cacheProvider          = "template"
 	) {
-		if ( arguments.delayed ) {
+		if ( arguments.delayed && _getDelayedViewletRendererService().isDelayableContext() ) {
 			return _getDelayedViewletRendererService().renderDelayedViewletTag(
 				  event         = arguments.event
 				, args          = arguments.args

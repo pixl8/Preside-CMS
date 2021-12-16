@@ -1098,6 +1098,14 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return prc._pageCacheTimeout ?: NullValue();
 	}
 
+	public void function setEmailRenderingContext( boolean value=true ) {
+		getRequestContext().setValue( name="_isEmailRenderingContext", value=arguments.value, private=true );
+	}
+
+	public boolean function isEmailRenderingContext() {
+		return getRequestContext().getValue( name="_isEmailRenderingContext", defaultValue=false, private=true );
+	}
+
 // status codes
 	public void function notFound() {
 		announceInterception( "onNotFound" );
