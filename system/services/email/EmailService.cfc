@@ -77,6 +77,7 @@ component displayName="Email service" {
 	) autodoc=true {
 		var initialCacheState = $getRequestContext().cachePage();
 		$getRequestContext().cachePage( false );
+		$getRequestContext().setEmailRenderingContext( true );
 
 		var hasTemplate = Len( Trim( arguments.template ) );
 
@@ -106,6 +107,7 @@ component displayName="Email service" {
 		}
 
 		$getRequestContext().cachePage( initialCacheState );
+		$getRequestContext().setEmailRenderingContext( false );
 
 		return result;
 	}
