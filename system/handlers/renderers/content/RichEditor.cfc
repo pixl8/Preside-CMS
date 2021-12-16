@@ -27,6 +27,7 @@ component {
 			, postProcessor     = "email.renderHelper.renderHtmlSnippet"
 			, postProcessorArgs = args
 		);
+
 		content = contentRendererService.renderEmbeddedImages(
 			  richContent       = content
 			, context           = "richeditor"
