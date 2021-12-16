@@ -333,6 +333,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockRequestContext         = createStub();
 
 		mockRequestContext.$( "cachePage", false );
+		mockRequestContext.$( "setEmailRenderingContext" );
 
 		mockTemplate = createStub();
 
