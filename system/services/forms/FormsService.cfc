@@ -889,7 +889,7 @@ component displayName="Forms service" {
 			resolvedExtensions[ arguments.formName ] = true;
 
 			return _mergeForms(
-				  form1 = resolveExtensions( parentFormName, arguments.allForms[ parentFormName ], arguments.allForms )
+				  form1 = duplicate( resolveExtensions( parentFormName, arguments.allForms[ parentFormName ], arguments.allForms ) )
 				, form2 = arguments.frmDefinition
 			);
 		};
