@@ -459,8 +459,12 @@
 				} catch( e ) {}
 
 				if ( typeof filterState !== "undefined" ) {
-					if ( allowUseFilter && typeof filterState.filter !== "undefined" && filterState.filter.length ) {
-						prePopulateFilter( filterState.filter );
+					if ( allowUseFilter && typeof filterState.filter !== "undefined" ) {
+						if ( filterState.filter.length ) {
+							prePopulateFilter( filterState.filter );
+						} else {
+							filtersPopulated = true;
+						}
 					}
 					if ( filterState.favourites && filterState.favourites.length ) {
 						setFavourites( filterState.favourites );
@@ -690,6 +694,8 @@
 						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).load( filter );
 					} );
 					toggleAdvancedFilter();
+				} else {
+					filtersPopulated = true;
 				}
 			}
 
