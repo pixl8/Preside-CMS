@@ -2178,7 +2178,7 @@
 			oSettings.bFiltered = true;
 			$(oSettings.oInstance).trigger('filter', oSettings);
 
-			/* Do not reset _iDisplayStart until after the filters have been populated the first time */
+			/* Do not reset _iDisplayStart until after the filters have been populated the first time and after initComplete (including the callback) so that search paging works if filters are disabled */
 			if ( oSettings.bFiltersPopulated && oSettings._bInitCompletePostCallback ) {
 				oSettings._iDisplayStart = 0;
 			}
