@@ -11,6 +11,7 @@ component {
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 	property name="assetQueueService"       inject="assetQueueService";
 	property name="batchOperationService"   inject="dataManagerBatchOperationService";
+	property name="formBuilderService"      inject="FormBuilderService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -102,5 +103,17 @@ component {
 	 */
 	private boolean function deleteExpiredQueuedAssetGenerations( logger ) {
 		return assetQueueService.deleteExpiredQueuedItems( arguments.logger ?: NullValue() );
+	}
+
+	/**
+	 * Update formbuilder2 uses global questions
+	 *
+	 * @schedule     disabled
+	 * @displayName  Update formbuilder2 uses global questions
+	 * @displayGroup Cleanup
+	 * @feature      formbuilder2
+	 */
+	private boolean function updateUsesGlobalQuestions( logger ) {
+		return formBuilderService.updateUsesGlobalQuestions( arguments.logger ?: NullValue() );
 	}
 }

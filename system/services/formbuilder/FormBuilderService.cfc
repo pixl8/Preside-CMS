@@ -1858,6 +1858,53 @@ component {
 		);
 	}
 
+	/**
+	 * Returns whether or not the given form has questions.
+	 *
+	 * @autodoc     true
+	 * @formId.hint The ID of the form to check
+	 */
+	public boolean function hasQuestions( required string formId ) {
+		return $isFeatureEnabled( "formbuilder2" ) && $getPresideObject( "formbuilder_formitem" ).dataExists(
+			  filter       = "form = :form and ( question is null or question = '' )"
+			, filterParams = { form=arguments.formId }
+		);
+	}
+
+	public boolean function updateUsesGlobalQuestions( any logger ) {
+		if ( $isFeatureEnabled( "formbuilder2" ) ) {
+			var formBuilderForms = $getPresideObject( "formbuilder_form" ).selectData( selectFields=[ "id", "name" ] );
+			var totalRecords     = formBuilderForms.recordCount;
+			var totalProcessed   = 1;
+
+			$helpers.logMessage( arguments.logger, "info", "Start updating formbuilder2 uses global questions..." );
+
+			for ( var formBuilderForm in formBuilderForms ) {
+				var message             = "[#formBuilderForm.id#]: #formBuilderForm.name#";
+				var usesGlobalQuestions = hasQuestions( formId=formBuilderForm.id );
+
+				$getPresideObject( "formbuilder_form" ).updateData(
+					  id   = formBuilderForm.id
+					, data = { uses_global_questions=usesGlobalQuestions }
+				);
+
+				if ( usesGlobalQuestions ) {
+					$helpers.logMessage( arguments.logger, "info", "Update #message#" );
+				} else {
+					$helpers.logMessage( arguments.logger, "warn", "Skip #message#" );
+				}
+			}
+
+			$helpers.logMessage( arguments.logger, "info", "Done." );
+
+			return true;
+		}
+
+		$helpers.logMessage( arguments.logger, "warn", "Formbuilder2 is not enabled." );
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
