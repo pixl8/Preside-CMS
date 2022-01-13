@@ -4421,7 +4421,10 @@
 
 		/* Check if filters have been populated */
 		function _fnFiltersPopulatedCallback( oSettings ) {
-			return oSettings.fnFiltersPopulatedCallback( oSettings.oInstance, oSettings );
+			if ( typeof oSettings.fnFiltersPopulatedCallback != "undefined" ) {
+				return oSettings.fnFiltersPopulatedCallback( oSettings.oInstance, oSettings );
+			}
+			return true;
 		}
 
 		/**
