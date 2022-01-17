@@ -62,6 +62,10 @@ component {
 		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
 		,          array bypassTenants = []
 	) {
+		var noLabel = $getPresideObjectService().getObjectAttribute( arguments.objectName, "noLabel", "" );
+		if ( IsBoolean( noLabel ) && noLabel ) {
+			return arguments.recordId;
+		}
 
 		var labelRendererService = _getLabelRendererService();
 		var selectFields = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : [ "${labelfield} as label" ]
