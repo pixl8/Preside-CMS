@@ -1,5 +1,5 @@
 <cfscript>
-	templateId = rc.id ?: "";
+	templateId = rc.id ?: args.templateId ?: "";
 
 	dateFrom = "<strong>#DateTimeFormat( args.dateFrom, "yyyy-mm-dd HH:nn" )#</strong>";
 	dateTo   = "<strong>#DateTimeFormat( args.dateTo  , "yyyy-mm-dd HH:nn" )#</strong>";
