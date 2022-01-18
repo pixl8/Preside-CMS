@@ -62,29 +62,28 @@ component {
 		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
 		,          array bypassTenants = []
 	) {
-		var noLabel = $getPresideObjectService().getObjectAttribute( arguments.objectName, "noLabel", "" );
-		if ( IsBoolean( noLabel ) && noLabel ) {
-			return arguments.recordId;
-		}
-
+		var labelField           = _getPresideObjectService().getObjectAttribute(  arguments.objectName, "labelfield" );
 		var labelRendererService = _getLabelRendererService();
-		var selectFields = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : [ "${labelfield} as label" ]
-		var record = _getPresideObjectService().selectData(
-			  objectName         = arguments.objectName
-			, filter             = { "#keyField#"=arguments.recordId }
-			, selectFields       = selectFields
-			, allowDraftVersions = $getRequestContext().showNonLiveContent()
-			, bypassTenants     = arguments.bypassTenants
-		);
+		var selectFields         = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : ( Len( labelField ) ? [ "${labelfield} as label" ] : [] );
 
-		if ( Len( Trim( arguments.labelRenderer ) ) ) {
-			for( var r in record ) {
-				return labelRendererService.renderLabel( arguments.labelRenderer, r );
+		if ( ArrayLen( selectFields ) ) {
+			var record = _getPresideObjectService().selectData(
+				  objectName         = arguments.objectName
+				, filter             = { "#keyField#"=arguments.recordId }
+				, selectFields       = selectFields
+				, allowDraftVersions = $getRequestContext().showNonLiveContent()
+				, bypassTenants     = arguments.bypassTenants
+			);
+
+			if ( Len( Trim( arguments.labelRenderer ) ) ) {
+				for( var r in record ) {
+					return labelRendererService.renderLabel( arguments.labelRenderer, r );
+				}
 			}
-		}
 
-		if ( record.recordCount ) {
-			return record.label;
+			if ( record.recordCount ) {
+				return record.label;
+			}
 		}
 
 		return arguments.recordId;
