@@ -1670,7 +1670,7 @@ component {
 
 	private boolean function _isAutoRedirectEnabled() {
 		var site = $getRequestContext().getSite();
-		return isBoolean( site.auto_redirect ) && site.auto_redirect;
+		return IsBoolean( site.auto_redirect ?: "" ) && site.auto_redirect;
 	}
 
 	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page="", string site="" ) {
