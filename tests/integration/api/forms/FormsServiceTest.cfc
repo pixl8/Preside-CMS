@@ -355,10 +355,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 			it( "should return a merged form when requested form has an 'extends' definition for another valid form", function(){
 				var formsSvc   = _getFormsService( "/tests/resources/formsService/extending" );
-				var definition = formsSvc.getForm( "form1" );
+				var definition = formsSvc.getForm( "form2" );
 
 				expect( definition ).toBe( {
-					  extends = "form2"
+					  extends = "form1"
 					, tabs    = [{
 						  id          = "tab1"
 						, title       = ""
