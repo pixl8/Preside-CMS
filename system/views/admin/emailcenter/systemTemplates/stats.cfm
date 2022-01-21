@@ -1,5 +1,5 @@
 <cfscript>
-	templateId = rc.template ?: rc.id ?: "";
+	templateId = rc.template ?: ( rc.id ?: "" );
 	showClicks = IsTrue( prc.showClicks ?: "" );
 </cfscript>
 <cfoutput>
