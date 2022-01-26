@@ -616,19 +616,22 @@ component {
 
 	public string function getPrefetchCachebusterForAjaxSelect( required string objectName, string labelRenderer="" ) {
 		var obj               = _getPresideObjectService().getObject( arguments.objectName );
-		var dmField           = obj.getDateModifiedField();
 		var lastModified      = Now();
 		var rendererCacheDate = _getLabelRendererService().getRendererCacheDate( labelRenderer );
 		var recordCount       = 0;
 
-		if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
-			var records = obj.selectData(
-				selectFields = [ "Max( #dmField# ) as lastmodified", "count(1) as _total_rowcount" ]
-			);
+		if ( not isSimpleValue( obj ) ) {
+			var dmField = obj.getDateModifiedField();
 
-			if ( IsDate( records.lastmodified ) ) {
-				lastModified = records.lastmodified;
-				recordCount  = records._total_rowcount;
+			if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.objectName ), dmField ) ) {
+				var records = obj.selectData(
+					selectFields = [ "Max( #dmField# ) as lastmodified", "count(1) as _total_rowcount" ]
+				);
+
+				if ( IsDate( records.lastmodified ) ) {
+					lastModified = records.lastmodified;
+					recordCount  = records._total_rowcount;
+				}
 			}
 		}
 
