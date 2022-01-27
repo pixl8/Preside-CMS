@@ -20,7 +20,7 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 	property name="login_required_content" type="string"  dbtype="text"    required=false;
 	property name="access_denied_content"  type="string"  dbtype="text"    required=false;
 
-	property name="uses_global_questions" type="boolean" dbtype="boolean" required=false default=true;
+	property name="uses_global_questions" type="boolean" dbtype="boolean" required=false default=true feature="formbuilder2";
 
 	property name="items" relationship="one-to-many" relatedto="formbuilder_formitem" relationshipKey="form";
 }

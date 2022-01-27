@@ -103,4 +103,5 @@ component {
 	private boolean function deleteExpiredQueuedAssetGenerations( logger ) {
 		return assetQueueService.deleteExpiredQueuedItems( arguments.logger ?: NullValue() );
 	}
+
 }
