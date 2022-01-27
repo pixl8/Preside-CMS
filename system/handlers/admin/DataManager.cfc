@@ -2031,7 +2031,8 @@ component extends="preside.system.base.AdminHandler" {
 
 				ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
 			} else {
-				var actions = [];
+				var actions     = [];
+				var recordLabel = renderLabel( objectName, record.id  )
 
 				if ( hasRecordActionsCustomization ) {
 					actions = customizationService.runCustomization(
@@ -2087,7 +2088,7 @@ component extends="preside.system.base.AdminHandler" {
 							, icon       = "fa-trash-o"
 							, contextKey = "d"
 							, class      = "confirmation-prompt"
-							, title      = deleteRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
+							, title      = deleteRecordTitle.replace( "{recordlabel}", recordLabel, "all" )
 							, match      = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
 
 						} );
@@ -2113,7 +2114,7 @@ component extends="preside.system.base.AdminHandler" {
 							  link       = flagRecordLink.replace( "{id}", record.id )
 							, icon       = "fa-font-awesome-flag #recordIsFlagged ? "text-danger" : "text-muted"#"
 							, class      = "confirmation-prompt"
-							, title      = flagRecordTitle.replace( "{recordlabel}", ( record[ prc.labelField ] ?: "" ), "all" )
+							, title      = flagRecordTitle.replace( "{recordlabel}", recordLabel, "all" )
 							, contextKey = "f"
 						} );
 					}
