@@ -11,7 +11,6 @@ component {
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 	property name="assetQueueService"       inject="assetQueueService";
 	property name="batchOperationService"   inject="dataManagerBatchOperationService";
-	property name="formBuilderService"      inject="FormBuilderService";
 
 	/**
 	 * Delete expired saved email content from the logs
