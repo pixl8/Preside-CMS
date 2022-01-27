@@ -1858,49 +1858,46 @@ component {
 		);
 	}
 
-	/**
-	 * Returns whether or not the given form has questions.
-	 *
-	 * @autodoc     true
-	 * @formId.hint The ID of the form to check
-	 */
-	public boolean function hasQuestions( required string formId ) {
-		return $isFeatureEnabled( "formbuilder2" ) && $getPresideObject( "formbuilder_formitem" ).dataExists(
-			  filter       = "form = :form and ( question is null or question = '' )"
-			, filterParams = { form=arguments.formId }
-		);
-	}
+	public boolean function updateUsesGlobalQuestions() {
+		try {
+			if ( $isFeatureEnabled( "formbuilder2" ) ) {
+				if ( !$getPresideSetting( category="formbuilder", setting="update_uses_global_questions", default=false ) ) {
+					$systemOutput( "Updating formbuilder2 forms use global questions..." );
 
-	public boolean function updateUsesGlobalQuestions( any logger ) {
-		if ( $isFeatureEnabled( "formbuilder2" ) ) {
-			var formBuilderForms = $getPresideObject( "formbuilder_form" ).selectData( selectFields=[ "id", "name" ] );
-			var totalRecords     = formBuilderForms.recordCount;
-			var totalProcessed   = 1;
+					var formBuilderForms = $getPresideObject( "formbuilder_form" ).selectData( selectFields=[ "id" ] );
 
-			$helpers.logMessage( arguments.logger, "info", "Start updating formbuilder2 uses global questions..." );
+					for ( var formBuilderForm in formBuilderForms ) {
+						var formBuilderFormItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+							  filter       = "form = :form"
+							, filterParams = { form=formBuilderForm.id }
+							, selectFields = [
+								"sum( case when ( question is null or question = '' ) then 0 else 1 end ) as questions"
+							  ]
+						);
 
-			for ( var formBuilderForm in formBuilderForms ) {
-				var message             = "[#formBuilderForm.id#]: #formBuilderForm.name#";
-				var usesGlobalQuestions = hasQuestions( formId=formBuilderForm.id );
+						var usesGlobalQuestions = false;
+						if ( IsNumeric( formBuilderFormItem.questions ?: "" ) ) {
+							usesGlobalQuestions = formBuilderFormItem.questions > 0
+						} else {
+							// Convert empty form i.e. without any form items to v2.
+							usesGlobalQuestions = true;
+						}
 
-				$getPresideObject( "formbuilder_form" ).updateData(
-					  id   = formBuilderForm.id
-					, data = { uses_global_questions=usesGlobalQuestions }
-				);
+						$getPresideObject( "formbuilder_form" ).updateData(
+							  id   = formBuilderForm.id
+							, data = { uses_global_questions=usesGlobalQuestions }
+						);
+					}
 
-				if ( usesGlobalQuestions ) {
-					$helpers.logMessage( arguments.logger, "info", "Update #message#" );
-				} else {
-					$helpers.logMessage( arguments.logger, "warn", "Skip #message#" );
+					$getSystemConfigurationService().saveSetting( category="formbuilder", setting="update_uses_global_questions", value=true );
+
+					return true;
 				}
 			}
-
-			$helpers.logMessage( arguments.logger, "info", "Done." );
-
-			return true;
+		} catch ( any e ) {
+			$raiseError( e );
+			$systemOutput( "Failed to Update formbuilder2 forms use global questions." );
 		}
-
-		$helpers.logMessage( arguments.logger, "warn", "Formbuilder2 is not enabled." );
 
 		return false;
 	}

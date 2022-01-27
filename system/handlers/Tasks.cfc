@@ -105,15 +105,4 @@ component {
 		return assetQueueService.deleteExpiredQueuedItems( arguments.logger ?: NullValue() );
 	}
 
-	/**
-	 * Update formbuilder2 uses global questions
-	 *
-	 * @schedule     disabled
-	 * @displayName  Update formbuilder2 uses global questions
-	 * @displayGroup Cleanup
-	 * @feature      formbuilder2
-	 */
-	private boolean function updateUsesGlobalQuestions( logger ) {
-		return formBuilderService.updateUsesGlobalQuestions( arguments.logger ?: NullValue() );
-	}
 }
