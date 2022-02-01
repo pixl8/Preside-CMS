@@ -26,5 +26,6 @@ component extends="preside.system.base.SystemPresideObject" labelfield="known_as
 	property name="subscribed_to_all_notifications" type="boolean"  dbtype="boolean"                 required=false default=false sortorder=170;
 	property name="homepage_url"                    type="string"   dbtype="text"                    required=false default="";
 
-	property name="groups" relationship="many-to-many" relatedTo="security_group" sortOrder=1000;
+	property name="groups"        relationship="many-to-many" relatedTo="security_group" sortOrder=1000;
+
 }

@@ -4,8 +4,6 @@
 	} else {
 		logoutUrl = event.buildAdminLink( linkTo="login.logout", queryString="redirect=referer" );
 	}
-
-	currentUrlWithoutSite = reReplaceNoCase( event.getCurrentUrl(), "_sid=[^&]+&?", "" );
 </cfscript>
 
 <cfoutput>
@@ -19,7 +17,7 @@
 	<ul class="user-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
 		<cfif event.isAdminRequest()>
 			<li>
-				<a href="#event.buildAdminLink( linkTo="editProfile.setUserHomepageAction", queryString="url=#EncodeForUrl( currentUrlWithoutSite )#" )#" >
+				<a href="#event.buildAdminLink( linkTo="editProfile.setUserHomepageAction", queryString="url=#EncodeForUrl( event.getCurrentUrl() )#" )#" >
 					<i class="fa fa-home"></i>
 					#translateResource( "cms:editProfile.homepage.link" )#
 				</a>

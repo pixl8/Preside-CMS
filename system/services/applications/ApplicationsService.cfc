@@ -71,8 +71,8 @@ component {
 		return apps[ arguments.applicationId ].defaultEvent ?: "";
 	}
 
-	public string function getDefaultUrl( string applicationId=getDefaultApplication() ) {
-		var defaultUrl = getAdminHomepageUrl();
+	public string function getDefaultUrl( string applicationId=getDefaultApplication(), string siteId="" ) {
+		var defaultUrl = getAdminHomepageUrl( argumentCollection = arguments );
 
 		if ( !$helpers.isEmptyString( defaultUrl ) ) {
 			return defaultUrl;
@@ -81,7 +81,19 @@ component {
 		return $getRequestContext().buildLink( linkTo=getDefaultEvent( applicationId ) );
 	}
 
-	public string function getAdminHomepageUrl() {
+	public string function getAdminHomepageUrl( string siteId="") {
+		var userId       = $getAdminLoggedInUserId();
+		var siteHomepage = $getPresideObject( "security_user_site" ).selectData(
+			  filter = {
+			  	  user = userId
+			  	, site = arguments.siteId
+			  }
+			, selectFields = [ "homepage_url" ]
+		);
+		if ( siteHomepage.recordCount && !$helpers.isEmptyString( siteHomepage.homepage_url ) ) {
+			return siteHomepage.homepage_url;
+		}
+
 		var securityUser = $getPresideObject( "security_user" ).selectData(
 			  id           = $getAdminLoggedInUserId()
 			, selectFields = [
@@ -94,6 +106,43 @@ component {
 		}
 
 		return "";
+	}
+
+	public void function setAdminHomepageUrl( required string siteId, required string homepageUrl ) {
+		var userId  = $getAdminLoggedInUserId();
+		var updated = $getPresideObject( "security_user_site" ).updateData(
+			  filter = {
+				  user = userId
+				, site = arguments.siteId
+			  }
+			, data = {
+				homepage_url = arguments.homepageUrl
+			}
+		);
+
+		if ( updated==0 ) {
+			$getPresideObject( "security_user_site" ).insertData(
+				data = {
+					  user         = userId
+					, site         = arguments.siteId
+					, homepage_url = arguments.homepageUrl
+				}
+			);
+		}
+
+		var sitesWithHomepages = $getPresideObject( "security_user_site" ).selectData(
+			  filter          = { user = userId }
+			, recordCountOnly = true
+		);
+
+		if ( sitesWithHomepages==1 ) {
+			$getPresideObject( "security_user" ).updateData(
+				  id   = userId
+				, data = {
+					homepage_url = reReplaceNoCase( arguments.homepageUrl, "_sid=[^&]+&?", "" ) // remove sid for default homepage url
+				  }
+			);
+		}
 	}
 
 	/**
