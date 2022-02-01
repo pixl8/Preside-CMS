@@ -403,7 +403,7 @@ component {
 					, autoGrow_onStartup              = true
 					, emailProtection                 = 'encode'
 					, removePlugins                   = 'iframe'
-					, disallowedContent               = 'font;*[align];*{line-height};*{margin*};'
+					, disallowedContent               = 'font; *[align]; *{line-height,margin*}'
 					, scayt_sLang                     = "en_GB"
 					, pasteFromWordDisallow           = [
 						  "span"  // Strip all span elements
