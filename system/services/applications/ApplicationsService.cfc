@@ -90,7 +90,7 @@ component {
 		);
 
 		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_url ) ) {
-			return securityUser.homepage_url
+			return reReplaceNoCase( securityUser.homepage_url, "_sid=[^&]+&?", "" );
 		}
 
 		return "";
