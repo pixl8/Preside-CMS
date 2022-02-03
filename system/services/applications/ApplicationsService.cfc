@@ -90,9 +90,13 @@ component {
 			, filterParams = {
 				site = arguments.siteId
 			}
-			, selectFields = [ "homepage_url" ]
+			, selectFields = [ "homepage_url" , "site" ]
 			, orderby = " case when site=:site then 0 else 1 end, datemodified desc "
 		);
+
+		if ( siteHomepage.recordCount && siteHomepage.site!=arguments.siteId ) {
+			return reReplaceNoCase( siteHomepage.homepage_url ?: "", "_sid=[^&]+&?", "" );
+		}
 
 		return siteHomepage.homepage_url ?: "";
 	}
