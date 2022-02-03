@@ -86,26 +86,15 @@ component {
 		var siteHomepage = $getPresideObject( "security_user_site" ).selectData(
 			  filter = {
 			  	  user = userId
-			  	, site = arguments.siteId
 			  }
+			, filterParams = {
+				site = arguments.siteId
+			}
 			, selectFields = [ "homepage_url" ]
-		);
-		if ( siteHomepage.recordCount && !$helpers.isEmptyString( siteHomepage.homepage_url ) ) {
-			return siteHomepage.homepage_url;
-		}
-
-		var securityUser = $getPresideObject( "security_user" ).selectData(
-			  id           = $getAdminLoggedInUserId()
-			, selectFields = [
-				"homepage_url"
-			]
+			, orderby = " case when site=:site then 0 else 1 end, datemodified desc "
 		);
 
-		if ( securityUser.recordCount && !$helpers.isEmptyString( securityUser.homepage_url ) ) {
-			return reReplaceNoCase( securityUser.homepage_url, "_sid=[^&]+&?", "" );
-		}
-
-		return "";
+		return siteHomepage.homepage_url ?: "";
 	}
 
 	public void function setAdminHomepageUrl( required string siteId, required string homepageUrl ) {
@@ -127,20 +116,6 @@ component {
 					, site         = arguments.siteId
 					, homepage_url = arguments.homepageUrl
 				}
-			);
-		}
-
-		var sitesWithHomepages = $getPresideObject( "security_user_site" ).selectData(
-			  filter          = { user = userId }
-			, recordCountOnly = true
-		);
-
-		if ( sitesWithHomepages==1 ) {
-			$getPresideObject( "security_user" ).updateData(
-				  id   = userId
-				, data = {
-					homepage_url = reReplaceNoCase( arguments.homepageUrl, "_sid=[^&]+&?", "" ) // remove sid for default homepage url
-				  }
 			);
 		}
 	}
