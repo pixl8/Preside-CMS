@@ -20,11 +20,11 @@ component extends="preside.system.base.SystemPresideObject" labelfield="known_as
 	property name="two_step_auth_key"               type="string"   dbtype="varchar" maxLength="255" required=false autofilter=false                      renderer="none" sortorder=110;
 	property name="two_step_auth_key_created"       type="date"     dbtype="datetime"                required=false                                       renderer="none" sortorder=120;
 	property name="two_step_auth_key_in_use"        type="boolean"  dbtype="boolean"                 required=false default=false                                         sortorder=130;
-	property name="last_logged_in"                  type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true                       sortorder=140;
-	property name="last_logged_out"                 type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true                       sortorder=150;
-	property name="last_request_made"               type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true                       sortorder=160;
-	property name="subscribed_to_all_notifications" type="boolean"  dbtype="boolean"                 required=false default=false                                         sortorder=170;
-	property name="homepage_url"                    type="string"   dbtype="text"                    required=false default=""                            renderer="none" sortorder=180;
+	property name="last_logged_in"                  type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true sortorder=140;
+	property name="last_logged_out"                 type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true sortorder=150;
+	property name="last_request_made"               type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true sortorder=160;
+	property name="subscribed_to_all_notifications" type="boolean"  dbtype="boolean"                 required=false default=false sortorder=170;
 
-	property name="groups" relationship="many-to-many" relatedTo="security_group" sortOrder=1000;
+	property name="groups"        relationship="many-to-many" relatedTo="security_group" sortOrder=1000;
+
 }

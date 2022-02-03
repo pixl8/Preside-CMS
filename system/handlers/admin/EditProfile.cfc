@@ -5,6 +5,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	property name="bCryptService"         inject="bCryptService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
 	property name="i18n"                  inject="i18n";
+	property name="applicationsService"   inject="applicationsService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -212,12 +213,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		if ( !isEmptyString( homepageUrl ) ) {
 			if ( REFindNoCase( "^" & event.getAdminPath(), homepageUrl ) ) {
-				getPresideObject( "security_user" ).updateData(
-					  id   = event.getAdminUserId()
-					, data = {
-						homepage_url = homepageUrl
-					  }
-				);
+				applicationsService.setAdminHomepageUrl( event.getSiteId(), homepageUrl );
 
 				messageBox.info( translateResource( uri="cms:editProfile.homepage.success.message" ) );
 			} else {
