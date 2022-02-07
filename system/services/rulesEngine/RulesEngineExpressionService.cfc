@@ -87,7 +87,12 @@ component displayName="RulesEngine Expression Service" {
 				continue;
 			}
 
-			var roleLimitKey = listLast( listFirst( expressionId, "." ), "_" ) & "." & listLast( expressionId, "." );
+			if ( len( arguments.filterObject ) ) {
+				var roleLimitKey = arguments.filterObject & "." & listLast( expressionId, "." );
+			} else {
+				var roleLimitKey = listLast( listFirst( expressionId, "." ), "_" ) & "." & listLast( expressionId, "." );
+			}
+
 			if ( filterOnObject && arrayLen( userRoles ) && structKeyExists( expressionsRoleLimit, roleLimitKey ) ) {
 				var expressionHandler    = allExpressions[ expressionId ].expressionHandler ?: "";
 				var expressionIdentifier = ( listLen( expressionHandler, "." ) eq 5 ) ? listGetAt( expressionHandler, 4, "." ) : "";
