@@ -49,7 +49,8 @@
 			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
-			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink="";
+			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
+			  , filtersPopulated=false;
 
 			if ( allowFilter ) {
 				filterSettings = $( ".object-listing-table-filter" ).data();
@@ -229,6 +230,9 @@
 								aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
 							}
 						}
+					},
+					fnFiltersPopulatedCallback: function() {
+						return allowFilter ? filtersPopulated : true;
 					},
 					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
 						if ( allowFilter ) {
@@ -455,8 +459,12 @@
 				} catch( e ) {}
 
 				if ( typeof filterState !== "undefined" ) {
-					if ( allowUseFilter && typeof filterState.filter !== "undefined" && filterState.filter.length ) {
-						prePopulateFilter( filterState.filter );
+					if ( allowUseFilter && typeof filterState.filter !== "undefined" ) {
+						if ( filterState.filter.length ) {
+							prePopulateFilter( filterState.filter );
+						} else {
+							filtersPopulated = true;
+						}
 					}
 					if ( filterState.favourites && filterState.favourites.length ) {
 						setFavourites( filterState.favourites );
@@ -682,9 +690,12 @@
 
 				if ( filter && filter.length ) {
 					$( document ).on( "conditionBuilderInitialized", function(){
+						filtersPopulated = true;
 						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).load( filter );
 					} );
 					toggleAdvancedFilter();
+				} else {
+					filtersPopulated = true;
 				}
 			}
 

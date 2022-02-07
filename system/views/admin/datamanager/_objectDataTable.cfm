@@ -40,7 +40,7 @@
 		, paginationOptions = args.paginationOptions ?: getSetting( name="datamanager.defaults.datatable.paginationOptions", defaultValue=[ 5, 10, 25, 50, 100 ] )
 	} );
 
-	instanceId = LCase( Hash( serializeJSON( args.filterContextData ) & CallStackGet( "string" ) ) );
+	instanceId = LCase( Hash( serializeJSON( args.filterContextData ) & CallStackGet( "string" ) & args.datasourceUrl ) );
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	args.allowFilter  = IsTrue( args.allowFilter ?: "" );
