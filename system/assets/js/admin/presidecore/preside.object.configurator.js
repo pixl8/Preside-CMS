@@ -196,7 +196,7 @@
 					}
 				}
 				for( var arg in configuratorArgs ) {
-					dynamicIframeSrc += '&' + arg + '=' + configuratorArgs[ arg ];
+					dynamicIframeSrc += '&' + arg + '=' + encodeURIComponent( configuratorArgs[ arg ] );
 				}
 				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( dynamicIframeSrc, "100%", "100%", callbacks, modalOptions );
 				presideObjectConfigurator.configuratorIframeModal.open();
@@ -270,7 +270,7 @@
 					}
 				}
 				for( var arg in configuratorArgs ) {
-					href += '&' + arg + '=' + configuratorArgs[ arg ];
+					href += '&' + arg + '=' + encodeURIComponent( configuratorArgs[ arg ] );
 				}
 
 				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( href, "100%", "100%", callbacks, modalOptions );

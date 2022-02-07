@@ -71,7 +71,6 @@ PresideRichEditor = ( function( $ ){
 				config[customDefaultConfig] = customDefaultConfigs[customDefaultConfig];
 			}
 		}
-
 		pasteFromWordDisallow = config.pasteFromWordDisallow;
 
 		CKEDITOR.on( "instanceReady", function( event ) {
@@ -79,9 +78,9 @@ PresideRichEditor = ( function( $ ){
 
 			if ( pasteFromWordDisallow.length ) {
 				event.editor.on( "afterPasteFromWord", function( event ) {
-					var filter   = event.editor.filter.clone()
-					  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue )
-					  , writer   = new CKEDITOR.htmlParser.basicWriter();
+					var filter   = new CKEDITOR.filter( event.editor, { $1: { elements: CKEDITOR.dtd, attributes: true, styles: true, classes: true } } )
+					  , writer   = new CKEDITOR.htmlParser.basicWriter()
+					  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue );
 
 					pasteFromWordDisallow.forEach( function( item ){
 						filter.disallow( item );
@@ -92,7 +91,35 @@ PresideRichEditor = ( function( $ ){
 					event.data.dataValue = writer.getHtml();
 				} );
 			}
+
+			if ( event.editor.config.disallowedContent && event.editor.config.disallowedContent.length ) {
+				event.editor.on( "paste", function( event ) {
+					var filter   = new CKEDITOR.filter( event.editor, { $1: { elements: CKEDITOR.dtd, attributes: true, styles: true, classes: true } } )
+					  , writer   = new CKEDITOR.htmlParser.basicWriter()
+					  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue );
+
+					filter.disallow( event.editor.config.disallowedContent );
+					filter.applyTo( fragment );
+					fragment.writeHtml( writer );
+					event.data.dataValue = writer.getHtml();
+				} );
+
+				event.editor.on( "mode", function( event ) {
+					if ( event.editor.mode == "wysiwyg" ) {
+						var filter   = new CKEDITOR.filter( event.editor, { $1: { elements: CKEDITOR.dtd, attributes: true, styles: true, classes: true } } )
+						  , writer   = new CKEDITOR.htmlParser.basicWriter()
+						  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.editor.getData() );
+
+						filter.disallow( event.editor.config.disallowedContent );
+						filter.applyTo( fragment );
+						fragment.writeHtml( writer );
+						event.editor.setData( writer.getHtml() );
+					}
+				} );
+			}
+
 		} );
+
 
 		CKEDITOR.on( "dialogDefinition", function( event ) {
 			var dialogDefinition = event.data.definition

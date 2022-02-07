@@ -1858,6 +1858,50 @@ component {
 		);
 	}
 
+	public boolean function updateUsesGlobalQuestions() {
+		try {
+			if ( $isFeatureEnabled( "formbuilder2" ) ) {
+				if ( !$getPresideSetting( category="formbuilder", setting="update_uses_global_questions", default=false ) ) {
+					$systemOutput( "Updating formbuilder2 forms use global questions..." );
+
+					var formBuilderForms = $getPresideObject( "formbuilder_form" ).selectData( selectFields=[ "id" ] );
+
+					for ( var formBuilderForm in formBuilderForms ) {
+						var formBuilderFormItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+							  filter       = "form = :form"
+							, filterParams = { form=formBuilderForm.id }
+							, selectFields = [
+								"sum( case when ( question is null or question = '' ) then 0 else 1 end ) as questions"
+							  ]
+						);
+
+						var usesGlobalQuestions = false;
+						if ( IsNumeric( formBuilderFormItem.questions ?: "" ) ) {
+							usesGlobalQuestions = formBuilderFormItem.questions > 0
+						} else {
+							// Convert empty form i.e. without any form items to v2.
+							usesGlobalQuestions = true;
+						}
+
+						$getPresideObject( "formbuilder_form" ).updateData(
+							  id   = formBuilderForm.id
+							, data = { uses_global_questions=usesGlobalQuestions }
+						);
+					}
+
+					$getSystemConfigurationService().saveSetting( category="formbuilder", setting="update_uses_global_questions", value=true );
+
+					return true;
+				}
+			}
+		} catch ( any e ) {
+			$raiseError( e );
+			$systemOutput( "Failed to Update formbuilder2 forms use global questions." );
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId

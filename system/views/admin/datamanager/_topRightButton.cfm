@@ -12,17 +12,15 @@
 
 <cfoutput>
 	<cfif !children.len()>
-		<a class="pull-right inline<cfif prompt.len()> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif><cfif match.len()> data-confirmation-match="#match#"</cfif>>
-			<button class="btn #btnClass# btn-sm">
-				<i class="fa fa-fw #iconClass#"></i>
+		<a class="pull-right btn #btnClass# btn-sm inline<cfif prompt.len()> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif prompt.len()> title="#HtmlEditFormat( prompt )#"</cfif><cfif target.len()> target="#target#"</cfif><cfif match.len()> data-confirmation-match="#match#"</cfif>>
+			<cfif !isEmpty(iconClass)><i class="fa fa-fw #iconClass#"></i></cfif>
 				#title#
-			</button>
 		</a>
 	<cfelse>
 		<div class="btn-group pull-right">
 			<button data-toggle="dropdown" class="btn btn-sm #btnClass# inline">
 				<span class="fa fa-caret-down"></span>
-				<i class="fa fa-fw #iconClass#"></i>&nbsp; #title#
+				<cfif !isEmpty(iconClass)><i class="fa #iconClass#"></i>&nbsp; </cfif>#title#
 			</button>
 
 			<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">

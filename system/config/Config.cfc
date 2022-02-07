@@ -60,7 +60,8 @@ component {
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
-			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} }
+			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
+			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -402,7 +403,7 @@ component {
 					, autoGrow_onStartup              = true
 					, emailProtection                 = 'encode'
 					, removePlugins                   = 'iframe'
-					, disallowedContent               = 'font;*[align];*{line-height};*{margin*};'
+					, disallowedContent               = 'font; *[align]; *{line-height,margin*}'
 					, scayt_sLang                     = "en_GB"
 					, pasteFromWordDisallow           = [
 						  "span"  // Strip all span elements

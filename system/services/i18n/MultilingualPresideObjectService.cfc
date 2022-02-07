@@ -248,7 +248,7 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter, boolean fromVersionTable=false ) {
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
-			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
+			if ( StructKeyExists( arguments.tableJoins[ i ], "tableAlias" ) && ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
 
 				if ( StructKeyExists( arguments.tableJoins[ i ], "additionalClauses" ) ) {
 					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
@@ -298,12 +298,11 @@ component displayName="Multilingual Preside Object Service" {
 			var versionObjectName  = poService.getVersionObjectName( getTranslationObjectName( versionedObject ) );
 			var tableName          = poService.getObjectAttribute( versionObjectName, "tablename", "" );
 
-
 			for( var i=selectDataArgs.joins.len(); i>0; i-- ) {
 				var join             = selectDataArgs.joins[i];
 				var latestCheckField = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
 
-				if ( join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
+				if ( StructKeyExists( join, "tableAlias" ) && join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
 					join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = '1'";
 				}
 			}

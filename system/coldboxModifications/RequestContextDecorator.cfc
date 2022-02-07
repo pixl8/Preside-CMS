@@ -207,8 +207,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return includeQs ? currentUrl & "?" & qs : currentUrl;
 	}
 
-	public string function getAdminHomepageUrl() {
-		return getModel( "ApplicationsService" ).getAdminHomepageUrl();
+	public string function getAdminHomepageUrl( string siteId="" ) {
+		return getModel( "ApplicationsService" ).getAdminHomepageUrl( argumentCollection = arguments );
 	}
 
 	public void function setCurrentPresideUrlPath( required string presideUrlPath ) {

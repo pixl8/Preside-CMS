@@ -551,10 +551,12 @@
 
 			if ( typeof this.filter_field !== "undefined" ) {
 				this.filter_field.on('change',function(){
+					$uberSelect.form_field_jq.attr( "data-value", "" );
+					$uberSelect.hidden_field.val( "" );
+					$uberSelect.setup_preselected_value();
 					$uberSelect.setup_filter();
 					$uberSelect.setup_search_engine();
 					$uberSelect.disable_if_unfiltered();
-					$uberSelect.hidden_field.val( "" );
 				});
 			}
 		};
