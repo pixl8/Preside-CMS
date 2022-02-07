@@ -70,7 +70,7 @@ component {
 		var app = args.app ?: "";
 
 		args.append({
-			  link        = applicationsService.getDefaultUrl( app )
+			  link        = applicationsService.getDefaultUrl( applicationId=app, siteId=event.getSiteId() )
 			, title       = translateResource( uri="applications:#app#.title"      , defaultValue=app )
 			, description = translateResource( uri="applications:#app#.description", defaultValue="" )
 			, iconClass   = translateResource( uri="applications:#app#.iconClass"  , defaultValue="fa-desktop" )

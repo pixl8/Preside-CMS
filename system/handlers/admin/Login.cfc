@@ -263,6 +263,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _redirectToDefaultAdminEvent( required any event ) {
-		setNextEvent( url=applicationsService.getDefaultUrl() );
+		setNextEvent( url=applicationsService.getDefaultUrl( siteId=event.getSiteId() ) );
 	}
 }

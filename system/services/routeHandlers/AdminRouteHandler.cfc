@@ -32,7 +32,7 @@ component implements="iRouteHandler" {
 
 		translated = ListChangeDelims( translated, ".", "/" );
 		if ( translated == "admin" ) {
-			var homepageUrl = event.getAdminHomepageUrl();
+			var homepageUrl = event.getAdminHomepageUrl( siteId=event.getSiteId() );
 
 			if ( REFindNoCase( "^" & event.getAdminPath(), homepageUrl ) && homepageUrl != event.getCurrentUrl() ) {
 				event.getController().setNextEvent( url=homepageUrl );
