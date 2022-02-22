@@ -25,12 +25,16 @@ component {
 	private void function _readExtensions( required string appMapping, required array ignoreExtensions ) {
 		appMapping = "/" & appMapping.reReplace( "^/", "" );
 
-		var appDir              = ExpandPath( appMapping );
-		var legacyExtensionsDir = appDir & "/extensions";
-		var manifestFiles       = DirectoryList( legacyExtensionsDir, true, "path", "manifest.json" );
-		var extensions          = [];
+		var appDir        = ExpandPath( appMapping );
+		var extensionsDir = appDir & "/extensions";
+		var manifestFiles = DirectoryList( extensionsDir, true, "path", "manifest.json" );
+		var extensions    = [];
 
 		for( var manifestFile in manifestFiles ) {
+			if ( !_isExtensionManifest( manifestFile, extensionsDir ) ) {
+				continue;
+			}
+
 			var extension = _parseManifest( manifestFile, appMapping );
 			if ( !ArrayFindNoCase( arguments.ignoreExtensions, extension.id ) ) {
 				ArrayAppend( extensions, extension );
@@ -118,6 +122,14 @@ component {
 		} while( swapped );
 
 		return extensions;
+	}
+
+	private boolean function _isExtensionManifest( required string manifestPath, required string extensionsDir ) {
+		// path should be {extensionsdir}/{extension-id}/manifest.json
+		// not an extension manifest if deeper nested than that
+		var relativePath = ReReplace( Replace( arguments.manifestPath, arguments.extensionsDir, "" ), "^[\\/]", "" );
+
+		return ListLen( relativePath, "/\" ) == 2;
 	}
 
 // GETTERS AND SETTERS
