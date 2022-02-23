@@ -692,7 +692,7 @@ component displayName="Preside Object Service" {
 				);
 			}
 
-			if ( structIsEmpty( arguments.changedData ?: {} ) ) {
+			if ( structIsEmpty( arguments.changedData ) ) {
 				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
 				for( var record in arguments.oldData ) {
 					var oldManyToManyData = {};
