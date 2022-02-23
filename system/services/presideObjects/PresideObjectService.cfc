@@ -617,6 +617,7 @@ component displayName="Preside Object Service" {
 		,          boolean setDateModified         = true
 		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
 		,          boolean calculateChangedData    = false
+		,          struct  changedData             = {}
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -691,43 +692,44 @@ component displayName="Preside Object Service" {
 				);
 			}
 
-			arguments.changedData = {};
-			var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
-			for( var record in arguments.oldData ) {
-				var oldManyToManyData = {};
+			if ( structIsEmpty( arguments.changedData ) ) {
+				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
+				for( var record in arguments.oldData ) {
+					var oldManyToManyData = {};
 
-				if ( StructCount( manyToManyData ) && ArrayLen( versionedManyToManyFields ) ) {
-					var oldManyToManySelectFields = [];
-					for( var field in manyToManyData ) {
-						if ( ArrayFind( versionedManyToManyFields, field ) ) {
-							ArrayAppend( oldManyToManySelectFields, field );
+					if ( StructCount( manyToManyData ) && ArrayLen( versionedManyToManyFields ) ) {
+						var oldManyToManySelectFields = [];
+						for( var field in manyToManyData ) {
+							if ( ArrayFind( versionedManyToManyFields, field ) ) {
+								ArrayAppend( oldManyToManySelectFields, field );
+							}
 						}
-					}
-					if ( ArrayLen( oldManyToManySelectFields ) ) {
-						oldManyToManyData = getDeNormalizedManyToManyData(
-							  objectName       = arguments.objectName
-							, id               = record[ idField ]
-							, selectFields     = oldManyToManySelectFields
-							, fromVersionTable = arguments.isDraft
-						);
-					}
+						if ( ArrayLen( oldManyToManySelectFields ) ) {
+							oldManyToManyData = getDeNormalizedManyToManyData(
+								  objectName       = arguments.objectName
+								, id               = record[ idField ]
+								, selectFields     = oldManyToManySelectFields
+								, fromVersionTable = arguments.isDraft
+							);
+						}
 
-				}
-				var newDataForChangedFieldsCheck = StructCopy( cleanedData );
-				StructAppend( newDataForChangedFieldsCheck, manyToManyData );
+					}
+					var newDataForChangedFieldsCheck = StructCopy( cleanedData );
+					StructAppend( newDataForChangedFieldsCheck, manyToManyData );
 
-				var changedFields =  _getVersioningService().getChangedFields(
-					  objectName             = arguments.objectName
-					, recordId               = record[ idField ]
-					, newData                = newDataForChangedFieldsCheck
-					, existingData           = record
-					, existingManyToManyData = oldManyToManyData
-				);
-				if ( ArrayLen( changedFields ) ) {
-					arguments.changedData[ record[ idField ] ] = {};
-				}
-				for( var field in changedFields ) {
-					arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+					var changedFields =  _getVersioningService().getChangedFields(
+						  objectName             = arguments.objectName
+						, recordId               = record[ idField ]
+						, newData                = newDataForChangedFieldsCheck
+						, existingData           = record
+						, existingManyToManyData = oldManyToManyData
+					);
+					if ( ArrayLen( changedFields ) ) {
+						arguments.changedData[ record[ idField ] ] = {};
+					}
+					for( var field in changedFields ) {
+						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+					}
 				}
 			}
 		}
