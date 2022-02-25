@@ -584,21 +584,23 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint              Name of the object whose records you want to update
-	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
-	 * @id.hint                      ID of a single record to update
-	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @extraFilters.hint            An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
-	 * @forceUpdateAll.hint          If no ID and no filters are supplied, this must be set to **true** in order for the update to process
-	 * @updateManyToManyRecords.hint Whether or not to update multiple relationship records for properties that have a many-to-many relationship
-	 * @isDraft.hint                 Whether or not the record update is a draft change. Draft changes are only saved against the version table until published.
-	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
-	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
-	 * @setDateModified.hint         If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
-	 * @clearCaches.hint             Whether or not to clear caches related to the object whose record you are updating
-	 * @useVersioning.docdefault     auto
-	 * @clearCaches.docdefault       Defaults to whether query caching is enabled or not for this object
+	 * @objectName.hint                 Name of the object whose records you want to update
+	 * @data.hint                       Structure of data containing new values. Keys should map to properties on the object.
+	 * @id.hint                         ID of a single record to update
+	 * @filter.hint                     Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint               Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint               An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
+	 * @forceUpdateAll.hint             If no ID and no filters are supplied, this must be set to **true** in order for the update to process
+	 * @updateManyToManyRecords.hint    Whether or not to update multiple relationship records for properties that have a many-to-many relationship
+	 * @isDraft.hint                    Whether or not the record update is a draft change. Draft changes are only saved against the version table until published.
+	 * @useVersioning.hint              Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
+	 * @versionNumber.hint              If using versioning, specify a version number to save against (if none specified, one will be created automatically)
+	 * @setDateModified.hint            If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
+	 * @clearCaches.hint                Whether or not to clear caches related to the object whose record you are updating
+	 * @useVersioning.docdefault        auto
+	 * @clearCaches.docdefault          Defaults to whether query caching is enabled or not for this object
+	 * @calculateChangedData.docdefault If true (default false), updateData will calculate the changed data even if requiresVersioning is false
+	 * @changedData.docdefault          If this is a non-empty struct updateData will use it and not calculate the changed data
 	 */
 	public numeric function updateData(
 		  required string  objectName
