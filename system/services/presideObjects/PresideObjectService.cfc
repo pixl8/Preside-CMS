@@ -4016,6 +4016,13 @@ component displayName="Preside Object Service" {
 		_aliasCache = arguments.aliasCache;
 	}
 
+	private struct function _getTableNameObjectLookupCache() {
+		return _tableNameObjectLookupCache;
+	}
+	private void function _setTableNameObjectLookupCache( required struct tableNameObjectLookupCache ) {
+		_tableNameObjectLookupCache = arguments.tableNameObjectLookupCache;
+	}
+
 	private struct function _getCacheMap() {
 		return _cacheMap;
 	}
