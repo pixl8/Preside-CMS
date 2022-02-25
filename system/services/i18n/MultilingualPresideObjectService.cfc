@@ -283,28 +283,29 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public void function addVersioningClausesToTranslationJoins( required struct selectDataArgs ) {
 
-		if ( !selectDataArgs.specificVersion ) {
-			var poService          = $getPresideObjectService();
-			var versionedObject    = selectDataArgs.objectName;
+		if ( selectDataArgs.specificVersion ) {
+			return;
+		}
 
-			if ( !isMultilingual( selectDataArgs.objectName ) ) {
-				if ( poService.isPageType( selectDataArgs.objectName ) && isMultilingual( "page" ) ) {
-					versionedObject = "page";
-				} else {
-					return;
+		var poService = $getPresideObjectService();
+
+		if ( !isMultilingual( selectDataArgs.objectName ) && ( !poService.isPageType( selectDataArgs.objectName ) || !isMultilingual( "page" ) ) ) {
+			return;
+		}
+
+		var allowDraftVersions = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions;
+
+		for( var join in selectDataArgs.joins ) {
+
+			if ( StructKeyExists( join, "tableAlias" ) && join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
+				var latestCheckField = "_version_is_latest";
+				if ( allowDraftVersions ) {
+					var objectName = poService.getObjectByTable( join.tableName );
+					if ( Len( objectName ) && poService.objectUsesDrafts( objectName ) ) {
+						latestCheckField = "_version_is_latest_draft";
+					}
 				}
-			}
-
-			var versionObjectName  = poService.getVersionObjectName( getTranslationObjectName( versionedObject ) );
-			var tableName          = poService.getObjectAttribute( versionObjectName, "tablename", "" );
-
-			for( var i=selectDataArgs.joins.len(); i>0; i-- ) {
-				var join             = selectDataArgs.joins[i];
-				var latestCheckField = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
-
-				if ( StructKeyExists( join, "tableAlias" ) && join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
-					join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = '1'";
-				}
+				join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = '1'";
 			}
 		}
 	}

@@ -2442,6 +2442,18 @@ component displayName="Preside Object Service" {
 		return stats;
 	}
 
+	/**
+	 * Returns the object name for a given database table name (reverse lookup)
+	 *
+	 * @autodoc   true
+	 * @tableName Name of the database table for which to return the object name
+	 */
+	public string function getObjectByTable( required string tableName ) {
+		var lookupCache = _getTableNameObjectLookupCache();
+
+		return lookupCache[ arguments.tableName ] ?: "";
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
@@ -2464,6 +2476,7 @@ component displayName="Preside Object Service" {
 		_setObjects( objects );
 		_setDsns( StructKeyArray( dsns ) );
 		_setupAliasCache();
+		_setupTableNameObjectLookupCache();
 
 		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
 	}
@@ -2502,6 +2515,17 @@ component displayName="Preside Object Service" {
 		}
 
 		_setAliasCache( aliasCache );
+	}
+	
+	private void function _setupTableNameObjectLookupCache() {
+		var objects     = _getObjects();
+		var lookupCache = {};
+
+		for( var objName in objects ) {
+			lookupCache[ objects[ objName ].meta.tableName ] = objName;
+		}
+
+		_setTableNameObjectLookupCache( lookupCache );
 	}
 
 	private string function _getCacheKey( required string objectName, any filter="", struct filterParams={} ) {
@@ -3990,6 +4014,13 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setAliasCache( required struct aliasCache ) {
 		_aliasCache = arguments.aliasCache;
+	}
+
+	private struct function _getTableNameObjectLookupCache() {
+		return _tableNameObjectLookupCache;
+	}
+	private void function _setTableNameObjectLookupCache( required struct tableNameObjectLookupCache ) {
+		_tableNameObjectLookupCache = arguments.tableNameObjectLookupCache;
 	}
 
 	private struct function _getCacheMap() {

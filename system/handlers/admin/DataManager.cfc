@@ -1655,12 +1655,29 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function getTopRightButtonsForViewRecord() {
-		var objectName  = args.objectName ?: "";
+		var objectName   = args.objectName ?: "";
 		var objectTitle  = prc.objectTitle ?: "";
 		var recordId     = prc.recordId    ?: "";
 		var recordLabel  = prc.recordLabel ?: "";
 		var actions      = [];
 		var language     = rc.language ?: "";
+
+		if ( IsTrue( prc.canTranslate ?: "" ) ) {
+			var translationActions = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "getTranslationsActionButton"
+				, defaultHandler = "admin.datamanager.getTranslationsActionButton"
+				, args       = {
+					  objectName = objectName
+					, recordId   = recordId
+					, operation  = "viewRecord"
+				}
+			);
+
+			if ( StructCount( translationActions ?: {} ) ) {
+				actions.append( translationActions );
+			}
+		}
 
 		if ( IsTrue( prc.canEdit ?: "" ) ) {
 			var link = "";
@@ -1720,23 +1737,6 @@ component extends="preside.system.base.AdminHandler" {
 				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
 				, match     = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
 			} );
-		}
-
-		if ( IsTrue( prc.canTranslate ?: "" ) ) {
-			var translationActions = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "getTranslationsActionButton"
-				, defaultHandler = "admin.datamanager.getTranslationsActionButton"
-				, args       = {
-					  objectName = objectName
-					, recordId   = recordId
-					, operation  = "viewRecord"
-				}
-			);
-
-			if ( StructCount( translationActions ?: {} ) ) {
-				actions.append( translationActions );
-			}
 		}
 
 		customizationService.runCustomization(
