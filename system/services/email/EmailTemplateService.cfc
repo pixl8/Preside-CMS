@@ -186,9 +186,9 @@ component {
 			}
 
 			if ( viewOnline ) {
-				var viewOnlineLink = arguments.isPreview ? "##" : getViewOnlineLink( message.htmlBody );
-				message.htmlBody = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
-				message.textBody = replace( message.textBody, "{{viewonline}}", viewOnlineLink );
+				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+				message.htmlBody   = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
+				message.textBody   = replace( message.textBody, "{{viewonline}}", viewOnlineLink );
 			}
 
 			if ( Len( Trim( unsubscribeLink ) ) && !StructKeyExists( message.params, "List-Unsubscribe" ) ) {
