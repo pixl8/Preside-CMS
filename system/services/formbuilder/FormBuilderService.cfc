@@ -701,6 +701,11 @@ component {
 			var submission = getSubmission( submissionId );
 			for( var s in submission ) { submission = s; }
 
+			if( isV2Form( formId=arguments.formId ) ){
+				var v2responses = getV2Responses( formId=arguments.formId, submissionId=submissionId );
+				submission.submitted_data = serializeJSON( v2responses?:{} );
+			}
+
 			_getActionsService().triggerSubmissionActions(
 				  formId         = arguments.formId
 				, submissionData = submission
