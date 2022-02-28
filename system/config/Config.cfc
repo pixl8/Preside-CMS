@@ -185,6 +185,10 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraCloneRecordActionButtons"  );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtons"              );
 		interceptorSettings.customInterceptionPoints.append( "preValidateForm"		                 );
+		interceptorSettings.customInterceptionPoints.append( "preRenderLabelSelectData"		         );
+		interceptorSettings.customInterceptionPoints.append( "preObjectPickerSelectData"	         );
+		interceptorSettings.customInterceptionPoints.append( "preGetObjectRecordsForAjaxSelectControlSelect" );
+
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()

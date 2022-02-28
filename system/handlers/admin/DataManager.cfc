@@ -950,6 +950,7 @@ component extends="preside.system.base.AdminHandler" {
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
 		var useCache       = IsTrue( rc.useCache ?: "" );
+		var defaultValue   = rc.defaultValue  ?: "";
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
@@ -958,12 +959,20 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
+		var interceptArgs = {
+			  objectName   = rc.object ?: ""
+			, defaultValue = defaultValue
+			, extraFilters = extraFilters
+			, savedFilters = ListToArray( rc.savedFilters ?: "" )
+		}
+		announceInterception( "preGetObjectRecordsForAjaxSelectControlSelect", interceptArgs );
+
 		var records = dataManagerService.getRecordsForAjaxSelect(
 			  objectName    = rc.object  ?: ""
 			, maxRows       = rc.maxRows ?: 1000
 			, searchQuery   = rc.q       ?: ""
-			, savedFilters  = ListToArray( rc.savedFilters ?: "" )
-			, extraFilters  = extraFilters
+			, savedFilters  = interceptArgs.savedFilters
+			, extraFilters  = interceptArgs.extraFilters
 			, orderBy       = orderBy
 			, ids           = ListToArray( rc.values ?: "" )
 			, labelRenderer = labelRenderer
