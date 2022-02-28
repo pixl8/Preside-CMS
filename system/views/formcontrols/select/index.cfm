@@ -3,6 +3,7 @@
 	inputId                 = args.id                      ?: "";
 	inputClass              = args.class                   ?: "";
 	placeholder             = args.placeholder             ?: "";
+	placeholder             = translateResource( uri=placeholder, defaultValue=placeholder );
 	defaultValue            = args.defaultValue            ?: "";
 	savedValue              = args.savedValue              ?: "";
 	multiple                = args.multiple                ?: false;
@@ -41,7 +42,7 @@
 		name="#inputName#"
 		id="#inputId#"
 		tabindex="#getNextTabIndex()#"
-		data-placeholder="#translateResource( uri=placeholder, defaultValue=placeholder )#"
+		data-placeholder="#placeholder#"
 		data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 		data-value="#value#"
 		data-display-limit="0"
@@ -49,8 +50,8 @@
 			multiple="multiple"
 		</cfif>
 	>
-		<cfif includeEmptyOption>
-			<option value=""></option>
+		<cfif len( trim( placeholder ) ) || includeEmptyOption>
+			<option value="">#placeholder#</option>
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selectValue = htmlEditFormat( selectValue ) />
