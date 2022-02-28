@@ -26,12 +26,12 @@ component {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#"
+					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&q=%QUERY"
+				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#&q=%QUERY"
 			);
 		} else {
 			var filter = {};
@@ -46,7 +46,7 @@ component {
 				}
 			}
 
-			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
+			var selectArgs = {
 				  objectName    = targetObject
 				, selectFields  = labelFields.append( "#targetObject#.#targetIdField# as id" )
 				, orderBy       = orderBy
@@ -54,6 +54,13 @@ component {
 				, savedFilters  = ListToArray( savedFilters )
 				, bypassTenants = ListToArray( bypassTenants )
 				, useCache      = useCache
+				, defaultValue  = args.defaultValue
+			};
+
+			announceInterception( "preObjectPickerSelectData", selectArgs );
+
+			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
+				argumentCollection = selectArgs
 			);
 		}
 
