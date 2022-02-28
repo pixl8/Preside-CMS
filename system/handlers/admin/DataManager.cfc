@@ -950,6 +950,7 @@ component extends="preside.system.base.AdminHandler" {
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
 		var useCache       = IsTrue( rc.useCache ?: "" );
+		var defaultValue   = rc.defaultValue  ?: "";
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
@@ -958,12 +959,20 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
+		var interceptArgs = {
+			  objectName   = rc.object ?: ""
+			, defaultValue = defaultValue
+			, extraFilters = extraFilters
+			, savedFilters = ListToArray( rc.savedFilters ?: "" )
+		}
+		announceInterception( "preGetObjectRecordsForAjaxSelectControlSelect", interceptArgs );
+
 		var records = dataManagerService.getRecordsForAjaxSelect(
 			  objectName    = rc.object  ?: ""
 			, maxRows       = rc.maxRows ?: 1000
 			, searchQuery   = rc.q       ?: ""
-			, savedFilters  = ListToArray( rc.savedFilters ?: "" )
-			, extraFilters  = extraFilters
+			, savedFilters  = interceptArgs.savedFilters
+			, extraFilters  = interceptArgs.extraFilters
 			, orderBy       = orderBy
 			, ids           = ListToArray( rc.values ?: "" )
 			, labelRenderer = labelRenderer
@@ -1655,12 +1664,29 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function getTopRightButtonsForViewRecord() {
-		var objectName  = args.objectName ?: "";
+		var objectName   = args.objectName ?: "";
 		var objectTitle  = prc.objectTitle ?: "";
 		var recordId     = prc.recordId    ?: "";
 		var recordLabel  = prc.recordLabel ?: "";
 		var actions      = [];
 		var language     = rc.language ?: "";
+
+		if ( IsTrue( prc.canTranslate ?: "" ) ) {
+			var translationActions = customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "getTranslationsActionButton"
+				, defaultHandler = "admin.datamanager.getTranslationsActionButton"
+				, args       = {
+					  objectName = objectName
+					, recordId   = recordId
+					, operation  = "viewRecord"
+				}
+			);
+
+			if ( StructCount( translationActions ?: {} ) ) {
+				actions.append( translationActions );
+			}
+		}
 
 		if ( IsTrue( prc.canEdit ?: "" ) ) {
 			var link = "";
@@ -1720,23 +1746,6 @@ component extends="preside.system.base.AdminHandler" {
 				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
 				, match     = useTypedConfirmation ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
 			} );
-		}
-
-		if ( IsTrue( prc.canTranslate ?: "" ) ) {
-			var translationActions = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "getTranslationsActionButton"
-				, defaultHandler = "admin.datamanager.getTranslationsActionButton"
-				, args       = {
-					  objectName = objectName
-					, recordId   = recordId
-					, operation  = "viewRecord"
-				}
-			);
-
-			if ( StructCount( translationActions ?: {} ) ) {
-				actions.append( translationActions );
-			}
 		}
 
 		customizationService.runCustomization(

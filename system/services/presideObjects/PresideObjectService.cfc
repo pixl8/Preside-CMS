@@ -584,21 +584,23 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint              Name of the object whose records you want to update
-	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
-	 * @id.hint                      ID of a single record to update
-	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @extraFilters.hint            An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
-	 * @forceUpdateAll.hint          If no ID and no filters are supplied, this must be set to **true** in order for the update to process
-	 * @updateManyToManyRecords.hint Whether or not to update multiple relationship records for properties that have a many-to-many relationship
-	 * @isDraft.hint                 Whether or not the record update is a draft change. Draft changes are only saved against the version table until published.
-	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
-	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
-	 * @setDateModified.hint         If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
-	 * @clearCaches.hint             Whether or not to clear caches related to the object whose record you are updating
-	 * @useVersioning.docdefault     auto
-	 * @clearCaches.docdefault       Defaults to whether query caching is enabled or not for this object
+	 * @objectName.hint                 Name of the object whose records you want to update
+	 * @data.hint                       Structure of data containing new values. Keys should map to properties on the object.
+	 * @id.hint                         ID of a single record to update
+	 * @filter.hint                     Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint               Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint               An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
+	 * @forceUpdateAll.hint             If no ID and no filters are supplied, this must be set to **true** in order for the update to process
+	 * @updateManyToManyRecords.hint    Whether or not to update multiple relationship records for properties that have a many-to-many relationship
+	 * @isDraft.hint                    Whether or not the record update is a draft change. Draft changes are only saved against the version table until published.
+	 * @useVersioning.hint              Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
+	 * @versionNumber.hint              If using versioning, specify a version number to save against (if none specified, one will be created automatically)
+	 * @setDateModified.hint            If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
+	 * @clearCaches.hint                Whether or not to clear caches related to the object whose record you are updating
+	 * @useVersioning.docdefault        auto
+	 * @clearCaches.docdefault          Defaults to whether query caching is enabled or not for this object
+	 * @calculateChangedData.docdefault If true (default false), updateData will calculate the changed data even if requiresVersioning is false
+	 * @changedData.docdefault          If this is a non-empty struct updateData will use it and not calculate the changed data
 	 */
 	public numeric function updateData(
 		  required string  objectName
@@ -617,6 +619,7 @@ component displayName="Preside Object Service" {
 		,          boolean setDateModified         = true
 		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
 		,          boolean calculateChangedData    = false
+		,          struct  changedData             = {}
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -691,43 +694,44 @@ component displayName="Preside Object Service" {
 				);
 			}
 
-			arguments.changedData = {};
-			var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
-			for( var record in arguments.oldData ) {
-				var oldManyToManyData = {};
+			if ( structIsEmpty( arguments.changedData ) ) {
+				var versionedManyToManyFields = _getVersioningService().getVersionedManyToManyFieldsForObject( arguments.objectName );
+				for( var record in arguments.oldData ) {
+					var oldManyToManyData = {};
 
-				if ( StructCount( manyToManyData ) && ArrayLen( versionedManyToManyFields ) ) {
-					var oldManyToManySelectFields = [];
-					for( var field in manyToManyData ) {
-						if ( ArrayFind( versionedManyToManyFields, field ) ) {
-							ArrayAppend( oldManyToManySelectFields, field );
+					if ( StructCount( manyToManyData ) && ArrayLen( versionedManyToManyFields ) ) {
+						var oldManyToManySelectFields = [];
+						for( var field in manyToManyData ) {
+							if ( ArrayFind( versionedManyToManyFields, field ) ) {
+								ArrayAppend( oldManyToManySelectFields, field );
+							}
 						}
-					}
-					if ( ArrayLen( oldManyToManySelectFields ) ) {
-						oldManyToManyData = getDeNormalizedManyToManyData(
-							  objectName       = arguments.objectName
-							, id               = record[ idField ]
-							, selectFields     = oldManyToManySelectFields
-							, fromVersionTable = arguments.isDraft
-						);
-					}
+						if ( ArrayLen( oldManyToManySelectFields ) ) {
+							oldManyToManyData = getDeNormalizedManyToManyData(
+								  objectName       = arguments.objectName
+								, id               = record[ idField ]
+								, selectFields     = oldManyToManySelectFields
+								, fromVersionTable = arguments.isDraft
+							);
+						}
 
-				}
-				var newDataForChangedFieldsCheck = StructCopy( cleanedData );
-				StructAppend( newDataForChangedFieldsCheck, manyToManyData );
+					}
+					var newDataForChangedFieldsCheck = StructCopy( cleanedData );
+					StructAppend( newDataForChangedFieldsCheck, manyToManyData );
 
-				var changedFields =  _getVersioningService().getChangedFields(
-					  objectName             = arguments.objectName
-					, recordId               = record[ idField ]
-					, newData                = newDataForChangedFieldsCheck
-					, existingData           = record
-					, existingManyToManyData = oldManyToManyData
-				);
-				if ( ArrayLen( changedFields ) ) {
-					arguments.changedData[ record[ idField ] ] = {};
-				}
-				for( var field in changedFields ) {
-					arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+					var changedFields =  _getVersioningService().getChangedFields(
+						  objectName             = arguments.objectName
+						, recordId               = record[ idField ]
+						, newData                = newDataForChangedFieldsCheck
+						, existingData           = record
+						, existingManyToManyData = oldManyToManyData
+					);
+					if ( ArrayLen( changedFields ) ) {
+						arguments.changedData[ record[ idField ] ] = {};
+					}
+					for( var field in changedFields ) {
+						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+					}
 				}
 			}
 		}
@@ -2442,6 +2446,18 @@ component displayName="Preside Object Service" {
 		return stats;
 	}
 
+	/**
+	 * Returns the object name for a given database table name (reverse lookup)
+	 *
+	 * @autodoc   true
+	 * @tableName Name of the database table for which to return the object name
+	 */
+	public string function getObjectByTable( required string tableName ) {
+		var lookupCache = _getTableNameObjectLookupCache();
+
+		return lookupCache[ arguments.tableName ] ?: "";
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
@@ -2464,6 +2480,7 @@ component displayName="Preside Object Service" {
 		_setObjects( objects );
 		_setDsns( StructKeyArray( dsns ) );
 		_setupAliasCache();
+		_setupTableNameObjectLookupCache();
 
 		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
 	}
@@ -2502,6 +2519,17 @@ component displayName="Preside Object Service" {
 		}
 
 		_setAliasCache( aliasCache );
+	}
+	
+	private void function _setupTableNameObjectLookupCache() {
+		var objects     = _getObjects();
+		var lookupCache = {};
+
+		for( var objName in objects ) {
+			lookupCache[ objects[ objName ].meta.tableName ] = objName;
+		}
+
+		_setTableNameObjectLookupCache( lookupCache );
 	}
 
 	private string function _getCacheKey( required string objectName, any filter="", struct filterParams={} ) {
@@ -3990,6 +4018,13 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setAliasCache( required struct aliasCache ) {
 		_aliasCache = arguments.aliasCache;
+	}
+
+	private struct function _getTableNameObjectLookupCache() {
+		return _tableNameObjectLookupCache;
+	}
+	private void function _setTableNameObjectLookupCache( required struct tableNameObjectLookupCache ) {
+		_tableNameObjectLookupCache = arguments.tableNameObjectLookupCache;
 	}
 
 	private struct function _getCacheMap() {
