@@ -283,7 +283,7 @@ component {
 			if ( allowedToFire ) {
 				coldbox.runEvent(
 					  event          = savedAction.action.submissionHandler
-					, eventArguments = { args={ configuration = savedAction.configuration, submissionData=arguments.submissionData } }
+					, eventArguments = { args={ formId=arguments.formId, configuration=savedAction.configuration, submissionData=arguments.submissionData } }
 					, private        = true
 					, prePostExempt  = true
 				);

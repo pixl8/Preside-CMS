@@ -1,15 +1,19 @@
 component {
 
-	property name="emailService" inject="emailService";
+	property name="emailService"       inject="emailService";
+	property name="formBuilderService" inject="formBuilderService";
 
 	private void function onSubmit( event, rc, prc, args={} ) {
 		if ( isLoggedIn() ) {
-			var template  = Trim( args.configuration.emailTemplate ?: "" );
+			var template        = Trim( args.configuration.emailTemplate ?: "" );
+			var formBuilderForm = formBuilderService.getForm( args.formId ?: "" );
+			var emailArgs       = { form_name=formBuilderForm.name ?: "" };
 
 			if ( template.len() ) {
 				emailService.send(
 					  template    = template
 					, recipientId = getLoggedInUserId()
+					, args        = emailArgs
 				);
 			}
 		}
