@@ -73,14 +73,17 @@ component extends="preside.system.base.adminHandler" {
 		}
 
 		args.renderedProps = [];
-		for( var propertyName in props ) {
+		for ( var propertyName in props ) {
 			var renderedValue = adminDataViewsService.renderField(
 				  objectName   = objectName
 				, propertyName = propertyName
 				, recordId     = recordId
 				, value        = prc.record[ propertyName ] ?: ""
 			);
-			args.renderedProps.append( {
+
+			renderedValue = _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue=renderedValue );
+
+			ArrayAppend( args.renderedProps, {
 				  objectName    = objectName
 				, propertyName  = propertyName
 				, propertyTitle = translateResource( uri="#uriRoot#field.#propertyName#.title", defaultValue=translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=propertyName ) )
@@ -124,18 +127,20 @@ component extends="preside.system.base.adminHandler" {
 		var gridFields       = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
 
 		return renderView( view="/admin/datamanager/_objectDataTable", args={
-			  objectName        = relatedObject
-			, gridFields        = gridFields
-			, dataSourceUrl     = dataSourceUrl
-			, id                = "related-object-datatable-#objectName#-#propertyName#-" & CreateUUId()
-			, compact           = true
-			, useMultiActions   = false
-			, isMultilingual    = false
-			, draftsEnabled     = false
-			, allowSearch       = true
-			, allowFilter       = false
-			, allowDataExport   = false
-			, objectTitlePlural = translatePropertyName( objectName, propertyName )
+			  objectName               = relatedObject
+			, gridFields               = gridFields
+			, dataSourceUrl            = dataSourceUrl
+			, id                       = "related-object-datatable-#objectName#-#propertyName#-" & CreateUUId()
+			, compact                  = true
+			, useMultiActions          = false
+			, isMultilingual           = false
+			, draftsEnabled            = false
+			, allowSearch              = true
+			, allowFilter              = false
+			, allowDataExport          = false
+			, noRecordTableHide        = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="showNoValue", defaultValue=true )
+			, noRecordTableHideMessage = EncodeForHTML( _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" ) )
+			, objectTitlePlural        = translatePropertyName( objectName, propertyName )
 		} );
 	}
 
@@ -153,15 +158,19 @@ component extends="preside.system.base.adminHandler" {
 		var baseLink      = event.buildadminLink( objectName=relatedObject, recordId="{recordId}" );
 		var list          = [];
 
-		for( var record in records ) {
-			if ( baseLink.len() ) {
-				list.append( '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#record.label#</a>' );
+		for ( var record in records ) {
+			var recordLabel = record.label;
+
+			recordLabel = _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue=recordLabel );
+
+			if ( Len( baseLink ) ) {
+				ArrayAppend( list, '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#recordLabel#</a>' );
 			} else {
-				list.append( '#record.label#' );
+				ArrayAppend( list, '#recordLabel#' );
 			}
 		}
 
-		return list.toList( ", " );
+		return ArrayLen( list ) ? ArrayToList( list, ", " ) : _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" );
 	}
 
 	/**
@@ -279,6 +288,23 @@ component extends="preside.system.base.adminHandler" {
 				FileDelete( localExportFile );
 			}
 		}
+	}
+
+	private string function _renderyNoValue(
+		  required string objectName
+		, required string propertyName
+		, required string propertyValue
+	) {
+		var value   = arguments.propertyValue;
+		var uriRoot = presideObjectService.getResourceBundleUriRoot( objectName=arguments.objectName );
+
+		if ( isEmptyString( value ) ) {
+			if ( presideObjectService.getObjectPropertyAttribute( objectName=arguments.objectName, propertyName=arguments.propertyName, attributeName="showNoValue", defaultValue=true ) ) {
+				value = translateResource( uri="#uriRoot#field.#arguments.propertyName#.no_value.title", defaultValue=translateResource( uri="cms:preside-objects.default.field.no_value.title", defaultValue="" ) );
+			}
+		}
+
+		return value;
 	}
 
 }
