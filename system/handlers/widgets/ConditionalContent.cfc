@@ -7,14 +7,23 @@ component {
 	 */
 	private function index( event, rc, prc, args={} ) {
 		var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( args.condition ?: "" );
+		var renderType      = prc.cbox_renderdata.type ?: "";
 
+		var content = "";
 		if ( conditionIsTrue ) {
-			return args.content;
+			content = args.content;
 		} else if ( Len( Trim( args.alternative_content ?: "" ) ) ) {
-			return args.alternative_content;
+			content = args.alternative_content;
 		}
 
-		return "";
+		switch ( renderType ) {
+			case "json":
+				content = serializeJSON( content );
+				content = reReplace( content, "^\""|\""$", "", "ALL");
+				break;
+		}
+
+		return content;
 	}
 
 	private string function placeholder( event, rc, prc, args={} ) {
