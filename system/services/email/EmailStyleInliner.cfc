@@ -45,8 +45,24 @@ component {
 			return fromCache;
 		}
 
+		arguments.html = trim( arguments.html );
+
 		var innerHtmlOnly = !FindNoCase( "</html>", arguments.html );
-		var doc           = _jsoup.parse( arguments.html );
+
+		// special cases of widget which only consist of a table cell or row without a wrapping table tag
+		// jsoup will remove the TD / TR tags in those cases, therefore adding now and stripping after processing
+		var isHtmlTableCell = innerHtmlOnly && ReFindNoCase( "^<td[^>]*>", arguments.html );
+		var isHtmlTableRow  = innerHtmlOnly && !isHtmlTableCell && ReFindNoCase( "^<tr[^>]*>", arguments.html );
+
+		// add dummy wrapping html table and row tags to make sure jsoup parsing works as expected
+		if ( isHtmlTableCell ) {
+			arguments.html = "<table><tbody><tr>" & arguments.html & "</tr></tbody></table>";
+		}
+		else if ( isHtmlTableRow ) {
+			arguments.html = "<table><tbody>" & arguments.html & "</tbody></table>"; // tbody useful here as jsoup adds it anyway
+		}
+
+		var doc = _jsoup.parse( arguments.html );
 
 		if ( !StructKeyExists( arguments, "styles" ) ) {
 			arguments.styles = readStyles( doc );
@@ -64,6 +80,16 @@ component {
 				result = result[ 1 ].html();
 			} else {
 				result = doc.toString();
+			}
+
+			// get rid of dummy wrapping html tags again (attention, there might be styles added to html tags during processing)
+			if ( isHtmlTableCell ) {
+				result = ReReplaceNoCase( result, "^<table[^>]*>\s*<tbody[^>]*>\s*<tr[^>]*>\s*", "" );
+				result = ReReplaceNoCase( result, "\s*</tr>\s*</tbody>\s*</table>$"            , "" );
+			}
+			else if ( isHtmlTableRow ) {
+				result = ReReplaceNoCase( result, "^<table[^>]*>\s*<tbody[^>]*>\s*", "" );
+				result = ReReplaceNoCase( result, "\s*</tbody>\s*</table>$"        , "" );
 			}
 		} else {
 			result = doc.toString();
