@@ -29,7 +29,7 @@
 	param name="args.excludeFilterExpressionTags" type="string"  default="";
 	param name="args.noRecordMessage"             type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
 	param name="args.noRecordTableHide"           type="boolean" default=false;
-	param name="args.noRecordTableHideMessage"    type="string"  default=translateResource( uri="cms:preside-objects.default.field.no_value.title" );
+	param name="args.noRecordTableHideMessage"    type="string"  default="";
 
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ args.objectTitlePlural ] );
@@ -183,7 +183,7 @@
 		    data-compact="#args.compact#"
 		    data-no-record-message="#args.noRecordMessage#"
 		    data-no-record-table-hide="#args.noRecordTableHide#"
-		    data-no-record-table-hide-message="#args.noRecordTableHideMessage#"
+		    data-no-record-table-hide-message="#EncodeForHTML( args.noRecordTableHideMessage )#"
 		>
 			<thead>
 				<tr>

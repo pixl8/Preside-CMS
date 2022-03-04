@@ -139,7 +139,7 @@ component extends="preside.system.base.adminHandler" {
 			, allowFilter              = false
 			, allowDataExport          = false
 			, noRecordTableHide        = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="showNoValue", defaultValue=true )
-			, noRecordTableHideMessage = EncodeForHTML( _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" ) )
+			, noRecordTableHideMessage = _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" )
 			, objectTitlePlural        = translatePropertyName( objectName, propertyName )
 		} );
 	}
