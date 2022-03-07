@@ -81,7 +81,7 @@ component extends="preside.system.base.adminHandler" {
 				, value        = prc.record[ propertyName ] ?: ""
 			);
 
-			renderedValue = _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue=renderedValue );
+			renderedValue = _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue=renderedValue );
 
 			ArrayAppend( args.renderedProps, {
 				  objectName    = objectName
@@ -139,7 +139,7 @@ component extends="preside.system.base.adminHandler" {
 			, allowFilter              = false
 			, allowDataExport          = false
 			, noRecordTableHide        = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="showNoValue", defaultValue=true )
-			, noRecordTableHideMessage = _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" )
+			, noRecordTableHideMessage = _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" )
 			, objectTitlePlural        = translatePropertyName( objectName, propertyName )
 		} );
 	}
@@ -159,18 +159,16 @@ component extends="preside.system.base.adminHandler" {
 		var list          = [];
 
 		for ( var record in records ) {
-			var recordLabel = record.label;
-
-			recordLabel = _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue=recordLabel );
-
-			if ( Len( baseLink ) ) {
-				ArrayAppend( list, '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#recordLabel#</a>' );
-			} else {
-				ArrayAppend( list, '#recordLabel#' );
+			if ( !isEmptyString( record.label ) ) {
+				if ( Len( baseLink ) ) {
+					ArrayAppend( list, '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#record.label#</a>' );
+				} else {
+					ArrayAppend( list, '#record.label#' );
+				}
 			}
 		}
 
-		return ArrayLen( list ) ? ArrayToList( list, ", " ) : _renderyNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" );
+		return ArrayLen( list ) ? ArrayToList( list, ", " ) : _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" );
 	}
 
 	/**
@@ -290,7 +288,7 @@ component extends="preside.system.base.adminHandler" {
 		}
 	}
 
-	private string function _renderyNoValue(
+	private string function _renderNoValue(
 		  required string objectName
 		, required string propertyName
 		, required string propertyValue
