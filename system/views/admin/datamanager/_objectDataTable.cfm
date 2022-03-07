@@ -1,33 +1,35 @@
 <cfscript>
-	param name="args.objectName"          type="string";
-	param name="args.multiActions"        type="string"  default="";
-	param name="args.useMultiActions"     type="boolean" default=false;
-	param name="args.multiActionViewlet"  type="string"  default="admin.datamanager._multiActions";
-	param name="args.multiActionUrl"      type="string"  default="";
-	param name="args.isMultilingual"      type="boolean" default=false;
-	param name="args.draftsEnabled"       type="boolean" default=false;
-	param name="args.noActions"           type="boolean" default=false;
-	param name="args.footerEnabled"       type="boolean" default=false;
-	param name="args.gridFields"          type="array";
-	param name="args.sortableFields"      type="array"   default=[];
-	param name="args.hiddenGridFields"    type="array"   default=[];
-	param name="args.filterContextData"   type="struct"  default={};
-	param name="args.allowSearch"         type="boolean" default=true;
-	param name="args.allowFilter"         type="boolean" default=true;
-	param name="args.allowDataExport"     type="boolean" default=false;
-	param name="args.allowSaveExport"     type="boolean" default=true;
-	param name="args.clickableRows"       type="boolean" default=true;
-	param name="args.compact"             type="boolean" default=false;
-	param name="args.batchEditableFields" type="array"   default=[];
-	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
-	param name="args.exportFilterString"  type="string"  default="";
-	param name="args.dataExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
-	param name="args.customExportUrl"     type="string"  default="";
-	param name="args.dataExportConfigUrl" type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
-	param name="args.saveExportUrl"       type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction"      );
-	param name="args.noRecordMessage"     type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
-	param name="args.objectTitlePlural"   type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
+	param name="args.objectName"                  type="string";
+	param name="args.multiActions"                type="string"  default="";
+	param name="args.useMultiActions"             type="boolean" default=false;
+	param name="args.multiActionViewlet"          type="string"  default="admin.datamanager._multiActions";
+	param name="args.multiActionUrl"              type="string"  default="";
+	param name="args.isMultilingual"              type="boolean" default=false;
+	param name="args.draftsEnabled"               type="boolean" default=false;
+	param name="args.noActions"                   type="boolean" default=false;
+	param name="args.footerEnabled"               type="boolean" default=false;
+	param name="args.gridFields"                  type="array";
+	param name="args.sortableFields"              type="array"   default=[];
+	param name="args.hiddenGridFields"            type="array"   default=[];
+	param name="args.filterContextData"           type="struct"  default={};
+	param name="args.allowSearch"                 type="boolean" default=true;
+	param name="args.allowFilter"                 type="boolean" default=true;
+	param name="args.allowDataExport"             type="boolean" default=false;
+	param name="args.allowSaveExport"             type="boolean" default=true;
+	param name="args.clickableRows"               type="boolean" default=true;
+	param name="args.compact"                     type="boolean" default=false;
+	param name="args.batchEditableFields"         type="array"   default=[];
+	param name="args.datasourceUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
+	param name="args.exportFilterString"          type="string"  default="";
+	param name="args.dataExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
+	param name="args.customExportUrl"             type="string"  default="";
+	param name="args.dataExportConfigUrl"         type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
+	param name="args.saveExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction"      );
+	param name="args.objectTitlePlural"           type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 	param name="args.excludeFilterExpressionTags" type="string"  default="";
+	param name="args.noRecordMessage"             type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
+	param name="args.noRecordTableHide"           type="boolean" default=false;
+	param name="args.noRecordTableHideMessage"    type="string"  default="";
 
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ args.objectTitlePlural ] );
@@ -180,6 +182,8 @@
 		    data-allow-filter="#args.allowFilter#"
 		    data-compact="#args.compact#"
 		    data-no-record-message="#args.noRecordMessage#"
+		    data-no-record-table-hide="#args.noRecordTableHide#"
+		    data-no-record-table-hide-message="#EncodeForHTML( args.noRecordTableHideMessage )#"
 		>
 			<thead>
 				<tr>
