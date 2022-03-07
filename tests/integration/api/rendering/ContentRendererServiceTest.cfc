@@ -275,7 +275,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockColdBox = getMockBox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
-		var svc = getMockBox().createMock( new preside.system.services.rendering.ContentRendererService(
+		var svc = getMockBox().createMock( object=new preside.system.services.rendering.ContentRendererService(
 			  logger               = logger
 			, presideObjectService = presideObjectService
 			, coldbox              = mockColdBox
