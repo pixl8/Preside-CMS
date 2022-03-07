@@ -38,8 +38,8 @@ component {
 
 // PUBLIC API METHODS
 	public any function render( required string renderer, required any data, any context="default", struct args={} ) {
+		var interceptData = { content=arguments.data, renderer=arguments.renderer, context=arguments.context, args=args };
 		var renderer      = _getRenderer( name=arguments.renderer, context=arguments.context );
-		var interceptData = { content=arguments.data, renderer=renderer, context=arguments.context, args=args };
 
 		$announceInterception( "preRenderContent", interceptData );
 
