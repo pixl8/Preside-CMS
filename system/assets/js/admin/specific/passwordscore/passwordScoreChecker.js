@@ -35,6 +35,10 @@
 			};
 
 			showScore = function( scoreData ){
+				var $errorDiv = $passwordInput.siblings( "div.error" );
+				if ( $errorDiv.length > 0 ) {
+					$errorDiv.hide();
+				}
 				$scoreContainer.attr( "class", "password-score " + scoreData.name );
 				$scoreContainer.find( ".score-bar" ).animate( { width : scoreData.score + "%" } );
 				$scoreContainer.find( ".score-title" ).html( scoreData.title );
