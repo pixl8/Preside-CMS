@@ -8,6 +8,7 @@ component {
 			var template  = Trim( args.configuration.emailTemplate ?: "" );
 			var fieldItem = formBuilderService.getFormItem( Trim( args.configuration.emailField ?: "" ) );
 			var field     = fieldItem.configuration.name ?: "";
+			var fieldId   = fieldItem.questionId         ?: "";
 			var data      = {};
 
 			try {
@@ -15,7 +16,7 @@ component {
 			} catch( any e ) {}
 
 
-			var address = Trim( data[ field ] ?: "" );
+			var address = isFeatureEnabled( "formbuilder2" ) ? Trim( data[ fieldId ]?:"" ) : Trim( data[ field ] ?: "" );
 
 			if ( template.len() && address.len() ) {
 				emailService.send(
