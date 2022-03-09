@@ -36,6 +36,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( inliner.inlineStyles( originalHtml ) ).toBe( expectedHtml );
 			} );
+
+			it( "should work fine with table cell only html snippets", function(){
+				var originalHtml = "<td>table cell content</td>";
+				var expectedHtml = "<td>table cell content</td>";
+
+				expect( inliner.inlineStyles( originalHtml ) ).toBe( expectedHtml );
+			} );
+
+			it( "should work fine with table row only html snippets", function(){
+				var originalHtml = "<tr><td>table row cell content</td></tr>";
+				var expectedHtml = "<tr><td>table row cell content</td></tr>";
+
+				var actualHtml = inliner.inlineStyles( originalHtml );
+
+				// attention: jsoup adds some whitespace between tags
+				actualHtml = reReplace( actualHtml, "<tr>\s*<td>", "<tr><td>" );
+				actualHtml = reReplace( actualHtml, "</td>\s*</tr>", "</td></tr>" );
+
+				expect( actualHtml ).toBe( expectedHtml );
+			} );
 		} );
 
 
