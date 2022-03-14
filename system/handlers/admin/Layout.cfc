@@ -119,7 +119,7 @@ component {
 				} else if ( getController().viewExists( oldSchoolView ) ) {
 					ArrayAppend( prepared, renderView( view=oldSchoolView ) );
 				} else {
-					ArrayAppend( prepared, { title=translateResource( "cms:main.menu.missing.item" ) } );
+					ArrayAppend( prepared, item );
 				}
 			} else {
 				ArrayAppend( prepared, item );
