@@ -26,7 +26,7 @@ component {
 		appMapping = "/" & appMapping.reReplace( "^/", "" );
 
 		var appDir        = ExpandPath( appMapping );
-		var extensionsDir = appDir & "/extensions";
+		var extensionsDir = ListAppend( appDir, "extensions", _getDirDelimiter() );
 		var manifestFiles = DirectoryList( extensionsDir, true, "path", "manifest.json" );
 		var extensions    = [];
 
@@ -147,6 +147,17 @@ component {
 
 	private void function _setExtensions( required array extensions ) {
 		_extensions = arguments.extensions;
+	}
+
+	private string function _getDirDelimiter() {
+		if ( IsNull( variables._dirDelimiter ) ) {
+			_setDirDelimiter( CreateObject( "java", "java.lang.System" ).getProperty( "file.separator" ) );
+		}
+
+		return variables._dirDelimiter;
+	}
+	private void function _setDirDelimiter( required string dirDelimiter ) {
+		variables._dirDelimiter = arguments.dirDelimiter;
 	}
 
 // OLD API NO LONGER SUPPORTED
