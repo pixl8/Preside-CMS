@@ -1,6 +1,5 @@
 <cfscript>
-	handler = event.getCurrentHandler();
-	sidebarItems = getSetting( "adminSideBarItems" );
+	items = args.items ?: "";
 </cfscript>
 
 
@@ -11,9 +10,7 @@
 		</script>
 
 		<ul class="nav nav-list">
-			<cfloop array="#sidebarItems#" item="item" index="i">
-				#renderView( view="admin/layout/sidebar/#item#" )#
-			</cfloop>
+			#items#
 		</ul>
 
 		<div class="sidebar-collapse sidebar-toggle" id="sidebar-collapse">
