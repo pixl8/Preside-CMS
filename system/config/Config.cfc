@@ -1,9 +1,65 @@
 component {
+
+// MAIN CONFIGURE() ENTRYPOINT
 	public void function configure() {
-		var applicationSettings = getApplicationSettings();
+		variables.settings = {};
 
-		settings = {};
+		__setupEnvironmentVariables();
+		__setupMappings();
+		__setupExtensions();
+		__setupEnvironments();
+		__setupColdbox();
+		__setupI18n();
+		__setupInterceptors();
+		__setupCachebox();
+		__setupWirebox();
+		__setupLogbox();
+		__setupDatasource();
+		__setupGlobalDataFilters();
+		__setupAdminBehaviour();
+		__setupAdminNavigation();
+		__setupAdminRolesAndPermissions();
+		__setupWebsiteUsers();
+		__setupErrorPages();
+		__setupUrlHandling();
+		__setupAssetManager();
+		__setupDataManagerDefaults();
+		__setupEmailCenter();
+		__setupRicheditor();
+		__setupFormSettings();
+		__setupWidgetsAndSiteTemplates();
+		__setupFeatures();
+		__setupDevConsole();
+		__setupEnums();
+		__setupFormValidationProviders();
+		__setupStaticAssetConfiguration();
+		__setupRequestSecurity();
+		__setupRestFramework();
+		__setupMultilingualDefaults();
+		__setupFormBuilder();
+		__setupRulesEngine();
+		__setupTenancy();
+		__setupDataExport();
+		__setupFullPageCaching();
+		__setupHeartbeatsAndServices();
+		__loadConfigurationFromExtensions();
+	}
 
+// ENVIRONMENT SPECIFIC
+	public void function local() {
+		settings.showErrors = true;
+		settings.autoSyncDb = true;
+
+		settings.features[ "devtools.new"       ].enabled = true;
+		settings.features[ "devtools.extension" ].enabled = true;
+	}
+
+// SPECIFIC AREAS
+	private void function __setupEnvironmentVariables() {
+		settings.env = settings.injectedConfig = Duplicate( application.env ?: {} );
+	}
+
+	private void function __setupMappings() {
 		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
 		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
 		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
@@ -11,6 +67,9 @@ component {
 		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
+	}
+
+	private void function __setupExtensions() {
 		settings.legacyExtensionsNowInCore = [
 			  "preside-ext-taskmanager"
 			, "preside-ext-formbuilder"
@@ -19,10 +78,25 @@ component {
 			, "preside-ext-vips"
 		];
 
-		settings.activeExtensions = _loadExtensions();
+		settings.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
+			  appMapping       = settings.appMapping
+			, ignoreExtensions = settings.legacyExtensionsNowInCore
+		).listExtensions();
+	}
 
-		coldbox = {
-			  appName                   = "OpenPreside Website"
+	private void function __setupEnvironments() {
+		variables.environments = {
+			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
+		};
+
+		settings.environmentMessage = "";
+	}
+
+	private void function __setupColdbox() {
+		var applicationSettings = getApplicationSettings();
+
+		variables.coldbox = {
+			  appName                   = "Preside Website"
 			, handlersIndexAutoReload   = false
 			, debugMode                 = false
 			, defaultEvent              = "general.index"
@@ -46,13 +120,22 @@ component {
 			, customErrorTemplate       = "/preside/system/coldboxModifications/includes/errorReport.cfm"
 		};
 
-		i18n = {
+		settings.coldboxVersion = _calculateColdboxVersion();
+		settings.eventName      = "event";
+	}
+
+	private void function __setupI18n() {
+		variables.i18n = {
 			  defaultLocale      = "en"
 			, localeStorage      = "cookie"
 			, unknownTranslation = "**NOT FOUND**"
 		};
 
-		interceptors = [
+		settings.adminLanguages = [];
+	}
+
+	private void function __setupInterceptors() {
+		variables.interceptors = [
 			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
@@ -63,7 +146,8 @@ component {
 			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} }
 		];
-		interceptorSettings = {
+
+		variables.interceptorSettings = {
 			  throwOnInvalidStates     = false
 			, customInterceptionPoints = []
 		};
@@ -164,6 +248,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailMessage"               );
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
 		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
+		interceptorSettings.customInterceptionPoints.append( "preRenderContent"                      );
+		interceptorSettings.customInterceptionPoints.append( "postRenderContent"                     );
 		interceptorSettings.customInterceptionPoints.append( "onGenerateEmailUnsubscribeLink"        );
 		interceptorSettings.customInterceptionPoints.append( "onEmailSend"                           );
 		interceptorSettings.customInterceptionPoints.append( "onEmailFail"                           );
@@ -188,18 +274,21 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preRenderLabelSelectData"		         );
 		interceptorSettings.customInterceptionPoints.append( "preObjectPickerSelectData"	         );
 		interceptorSettings.customInterceptionPoints.append( "preGetObjectRecordsForAjaxSelectControlSelect" );
+	}
 
+	private void function __setupCachebox() {
+		variables.cacheBox = { configFile=_discoverCacheboxConfigurator() };
+	}
 
-		cacheBox = {
-			configFile = _discoverCacheboxConfigurator()
-		};
-
-		wirebox = {
+	private void function __setupWirebox() {
+		variables.wirebox = {
 			  singletonReload = false
 			, binder          = _discoverWireboxBinder()
 		};
+	}
 
-		logbox = {
+	private void function __setupLogbox() {
+		variables.logbox = {
 			appenders = {
 				defaultLogAppender = {
 					  class      = 'coldbox.system.logging.appenders.RollingFileAppender'
@@ -215,43 +304,23 @@ component {
 				taskmanager = { appenders='taskmanagerRequestAppender', levelMin='FATAL', levelMax='INFO' }
 			}
 		};
+	}
 
-		settings.eventName                   = "event";
-		settings.formControls                = {};
-		settings.widgets                     = {};
-		settings.templates                   = [];
+	private void function __setupAdminBehaviour() {
 		settings.adminDefaultEvent           = "sitetree";
 		settings.adminNotificationsSticky    = true;
 		settings.adminNotificationsPosition  = "bottom-right";
 		settings.preside_admin_path          = "admin";
 		settings.presideHelpAndSupportLink   = "http://www.pixl8.co.uk";
-		settings.dsn                         = "preside";
-		settings.presideObjectsTablePrefix   = "pobj_";
 		settings.system_users                = "sysadmin";
-		settings.updateRepositoryUrl         = "http://downloads.presidecms.com.s3.amazonaws.com";
-		settings.notFoundLayout              = "Main";
-		settings.notFoundViewlet             = "errors.notFound";
-		settings.accessDeniedLayout          = "Main";
-		settings.accessDeniedViewlet         = "errors.accessDenied";
-		settings.serverErrorLayout           = "Main";
-		settings.serverErrorViewlet          = "errors.serverError";
-		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
-		settings.env                         = settings.injectedConfig = Duplicate( application.env ?: {} );
+		settings.updateRepositoryUrl         = "http://downloads.presidecms.com.s3.amazonaws.com"; // deprecated
 		settings.notificationTopics          = [];
 		settings.notificationCountLimit      = 100;
-		settings.syncDb                      = IsBoolean( settings.env.syncDb ?: ""  ) ? settings.env.syncDb : true;
-		settings.autoSyncDb                  = IsBoolean( settings.env.autoSyncDb ?: ""  ) && settings.env.autoSyncDb;
-		settings.throwOnLongTableName        = false;
-		settings.autoRestoreDeprecatedFields = true;
-		settings.useQueryCacheDefault        = true;
-		settings.devConsoleToggleKeyCode     = 96;
-		settings.adminLanguages              = [];
 		settings.showNonLiveContentByDefault = true;
-		settings.coldboxVersion              = _calculateColdboxVersion();
+		settings.adminLoginProviders         = [ "preside" ];
+	}
 
-		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
-		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
-
+	private void function __setupAdminNavigation() {
 		settings.adminApplications = [ {
 			  id                 = "cms"
 			, feature            = "cms"
@@ -263,7 +332,7 @@ component {
 
 
 		settings.adminMenuItemRenderer    = "admin.layout.sidebar._menuItem";
-		settings.adminSubMenuItemRenderer = "admin.layout.sidebar._subMenuItem";
+		settings.adminSubMenuItemRenderer = "admin.layout.sidebar._submenuItem";
 		settings.adminSideBarItems = [
 			  "sitetree"
 			, "assetmanager"
@@ -289,43 +358,9 @@ component {
 			, "apiManager"
 			, "systemInformation"
 		];
+	}
 
-		settings.adminLoginProviders = [ "preside" ];
-
-		settings.uploads_directory = ExpandPath( "/uploads" );
-		settings.storageProviders = {
-			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
-		};
-		settings.assetManager = {
-			  maxFileSize = "5"
-			, derivativeLimits = { maxHeight=0, maxWidth=0, maxResolution=0, tooBigPlaceholder="/preside/system/assets/images/placeholders/largeimage.jpg" }
-			, types       = _getConfiguredFileTypes()
-			, derivatives = _getConfiguredAssetDerivatives()
-			, datatable   = { paginationOptions=[ 5, 10, 25, 50, 100 ], defaultPageLength=10 }
-			, queue       = { concurrency=1, batchSize=100, downloadWaitSeconds=5 }
-			, folders     = {}
-			, vips        = {
-				  binDir  = settings.env.VIPS_BINDIR ?: "/usr/bin"
-				, timeout = Val( settings.env.VIPS_TIMEOUT ?: 60 )
-			  }
-			, storage     = {
-				  public    = ( settings.env[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
-				, private   = ( settings.env[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
-				, trash     = ( settings.env[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
-				, publicUrl = ( settings.env[ "assetmanager.storage.publicUrl" ] ?: "" )
-			  }
-		};
-		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
-		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
-
-		settings.dataManager = {};
-		settings.dataManager.defaults = {};
-		settings.dataManager.defaults.typeToConfirmDelete      = false;
-		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
-		settings.dataManager.defaults.datatable = {}
-		settings.dataManager.defaults.datatable.paginationOptions = [ 5, 10, 25, 50, 100 ];
-		settings.dataManager.defaults.datatable.defaultPageLength = 10;
-
+	private void function __setupAdminRolesAndPermissions() {
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
 			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches", "clone" ]
@@ -388,50 +423,156 @@ component {
 		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
 		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate", "savedExport.read" ];
+	}
 
+	private void function __setupWebsiteUsers() {
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
 			, assets = [ "access" ]
 		};
 
-		settings.ckeditor = {
-			  defaults    = {
-				  stylesheets           = [ "/css/admin/specific/richeditor/" ]
-				, width                 = "auto"
-				, minHeight             = 0
-				, maxHeight             = 300
-				, autoParagraph         = false
-				, configFile            = "/ckeditorExtensions/config.js?v=$RELEASE_VERSION"
-				, defaultConfigs        = {
-					  pasteFromWordPromptCleanup      = true
-					, codeSnippet_theme               = "atelier-dune.dark"
-					, skin                            = "bootstrapck"
-					, format_tags                     = 'p;h1;h2;h3;h4;h5;h6;pre;div'
-					, autoGrow_onStartup              = true
-					, emailProtection                 = 'encode'
-					, removePlugins                   = 'iframe'
-					, disallowedContent               = 'font; *[align]; *{line-height,margin*}'
-					, scayt_sLang                     = "en_GB"
-					, pasteFromWordDisallow           = [
-						  "span"  // Strip all span elements
-						, "*(*)"  // Strip all classes
-						, "*{*}"  // Strip all inline-styles
-					]
-					, extraAllowedContent   = "img dl dt dd"
-					, stylesSet = []
-					, stylesheetParser_validSelectors = "^(h[1-6]|p|span|pre|li|ul|ol|dl|dt|dd|small|i|b|em|strong|table)\.\w+"
-				}
+		settings.websiteUsers = {
+			actions = {
+				  login       = [ "login", "autologin", "logout", "failedLogin", "sendPasswordResetInstructions", "changepassword" ]
+				, request     = [ "pagevisit" ]
+				, formbuilder = [ "submitform" ]
+				, asset       = [ "download" ]
+			}
+		};
+	}
+
+	private void function __setupDatasource() {
+		settings.dsn                         = "preside";
+		settings.presideObjectsTablePrefix   = "pobj_";
+		settings.syncDb                      = IsBoolean( settings.env.syncDb ?: ""  ) ? settings.env.syncDb : true;
+		settings.autoSyncDb                  = IsBoolean( settings.env.autoSyncDb ?: ""  ) && settings.env.autoSyncDb;
+		settings.throwOnLongTableName        = false;
+		settings.autoRestoreDeprecatedFields = true;
+		settings.useQueryCacheDefault        = true;
+		settings.mssql = { useVarcharMaxForText = false }
+	}
+
+	private void function __setupGlobalDataFilters() {
+		settings.filters = {
+			livePages = function(){
+				var nowish = DateTimeFormat( Now(), "yyyy-mm-dd HH:nn:00" );
+				var sql    = "page.trashed = '0' and page.active = '1' and ( page.embargo_date is null or :now >= page.embargo_date ) and ( page.expiry_date is null or :now <= page.expiry_date )";
+				var params = { "now" = { type="cf_sql_timestamp", value=nowish } };
+
+				return { filter=sql, filterParams=params };
+			}
+			, nonDeletedSites = { filter="site.deleted is null or site.deleted = :site.deleted", filterParams={ "site.deleted"=false } }
+			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
+			, webUserEmailTemplates = {
+				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
+				, filterParams = { "email_template.recipient_type" = "websiteUser" }
 			  }
-			, linkPicker = _getRicheditorLinkPickerConfig()
-			, toolbars   = _getCkEditorToolbarConfig()
 		};
+	}
 
-		settings.static = {
-			  rootUrl        = ""
-			, siteAssetsPath = "/assets"
-			, siteAssetsUrl  = "/assets"
+	private void function __setupErrorPages() {
+		settings.notFoundLayout         = "Main";
+		settings.notFoundViewlet        = "errors.notFound";
+		settings.accessDeniedLayout     = "Main";
+		settings.accessDeniedViewlet    = "errors.accessDenied";
+		settings.serverErrorLayout      = "Main";
+		settings.serverErrorViewlet     = "errors.serverError";
+		settings.maintenanceModeViewlet = "errors.maintenanceMode";
+	}
+
+	private void function __setupUrlHandling() {
+		// URL handling and domains generally an editorial concern.
+		// these settings useful for Preside applications that are fixed
+		// admin applications with the 'site' feature disabled
+		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
+		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
+	}
+
+	private void function __setupAssetManager() {
+		settings.uploads_directory = ExpandPath( "/uploads" );
+		settings.storageProviders = { filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" } };
+		settings.assetManager = {
+			  maxFileSize = "5"
+			, derivativeLimits = { maxHeight=0, maxWidth=0, maxResolution=0, tooBigPlaceholder="/preside/system/assets/images/placeholders/largeimage.jpg" }
+			, types       = _getConfiguredFileTypes()
+			, derivatives = _getConfiguredAssetDerivatives()
+			, datatable   = { paginationOptions=[ 5, 10, 25, 50, 100 ], defaultPageLength=10 }
+			, queue       = { concurrency=1, batchSize=100, downloadWaitSeconds=5 }
+			, folders     = {}
+			, vips        = {
+				  binDir  = settings.env.VIPS_BINDIR ?: "/usr/bin"
+				, timeout = Val( settings.env.VIPS_TIMEOUT ?: 60 )
+			  }
+			, storage     = {
+				  public    = ( settings.env[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
+				, private   = ( settings.env[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
+				, trash     = ( settings.env[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
+				, publicUrl = ( settings.env[ "assetmanager.storage.publicUrl" ] ?: "" )
+			  }
 		};
+		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
+		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
+	}
 
+	private void function __setupDataManagerDefaults() {
+		settings.dataManager = {};
+		settings.dataManager.defaults = {};
+		settings.dataManager.defaults.typeToConfirmDelete      = false;
+		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
+		settings.dataManager.defaults.datatable = {}
+		settings.dataManager.defaults.datatable.paginationOptions = [ 5, 10, 25, 50, 100 ];
+		settings.dataManager.defaults.datatable.defaultPageLength = 10;
+	}
+
+	private void function __setupEmailCenter() {
+		settings.email = _getEmailSettings(); // seems silly, but need to keep this for backward compat
+	}
+
+	private void function __setupRicheditor() {
+		settings.ckeditor = {};
+
+		settings.ckeditor.defaults = {
+			  stylesheets           = [ "/css/admin/specific/richeditor/" ]
+			, width                 = "auto"
+			, minHeight             = 0
+			, maxHeight             = 300
+			, autoParagraph         = false
+			, configFile            = "/ckeditorExtensions/config.js?v=$RELEASE_VERSION"
+			, defaultConfigs        = {
+				  pasteFromWordPromptCleanup      = true
+				, codeSnippet_theme               = "atelier-dune.dark"
+				, skin                            = "bootstrapck"
+				, format_tags                     = 'p;h1;h2;h3;h4;h5;h6;pre;div'
+				, autoGrow_onStartup              = true
+				, emailProtection                 = 'encode'
+				, removePlugins                   = 'iframe'
+				, disallowedContent               = 'font; *[align]; *{line-height,margin*}'
+				, scayt_sLang                     = "en_GB"
+				, pasteFromWordDisallow           = [
+					  "span"  // Strip all span elements
+					, "*(*)"  // Strip all classes
+					, "*{*}"  // Strip all inline-styles
+				]
+				, extraAllowedContent   = "img dl dt dd"
+				, stylesSet = []
+				, stylesheetParser_validSelectors = "^(h[1-6]|p|span|pre|li|ul|ol|dl|dt|dd|small|i|b|em|strong|table)\.\w+"
+			}
+		};
+		settings.ckeditor.linkPicker = _getRicheditorLinkPickerConfig();
+		settings.ckeditor.toolbars   = _getCkEditorToolbarConfig();
+	}
+
+	private void function __setupFormSettings() {
+		settings.formControls            = {};
+		settings.autoTrimFormSubmissions = { admin=false, frontend=false };
+	}
+
+	private void function __setupWidgetsAndSiteTemplates() {
+		settings.widgets   = {};
+		settings.templates = [];
+	}
+
+	private void function __setupFeatures() {
 		settings.features = {
 			  cms                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, sitetree                 = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -480,23 +621,9 @@ component {
 			, "devtools.extension"     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"           = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
+	}
 
-		settings.filters = {
-			livePages = function(){
-				var nowish = DateTimeFormat( Now(), "yyyy-mm-dd HH:nn:00" );
-				var sql    = "page.trashed = '0' and page.active = '1' and ( page.embargo_date is null or :now >= page.embargo_date ) and ( page.expiry_date is null or :now <= page.expiry_date )";
-				var params = { "now" = { type="cf_sql_timestamp", value=nowish } };
-
-				return { filter=sql, filterParams=params };
-			}
-			, nonDeletedSites = { filter="site.deleted is null or site.deleted = :site.deleted", filterParams={ "site.deleted"=false } }
-			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
-			, webUserEmailTemplates = {
-				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
-				, filterParams = { "email_template.recipient_type" = "websiteUser" }
-			  }
-		};
-
+	private void function __setupEnums() {
 		settings.enum = {};
 		settings.enum.redirectType                = [ "301", "302" ];
 		settings.enum.pageAccessRestriction       = [ "inherit", "none", "full", "partial" ];
@@ -522,9 +649,21 @@ component {
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
+	}
 
+	private void function __setupFormValidationProviders() {
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
+	}
 
+	private void function __setupStaticAssetConfiguration() {
+		settings.static = {
+			  rootUrl        = ""
+			, siteAssetsPath = "/assets"
+			, siteAssetsUrl  = "/assets"
+		};
+	}
+
+	private void function __setupRequestSecurity() {
 		settings.antiSamy = {
 			  enabled                 = true
 			, policy                  = "preside"
@@ -534,9 +673,9 @@ component {
 		settings.csrf = {
 			tokenExpiryInSeconds = 1200
 		};
+	}
 
-		settings.autoTrimFormSubmissions = { admin=false, frontend=false };
-
+	private void function __setupRestFramework() {
 		settings.rest = {
 			  path          = "/api"
 			, corsEnabled   = false
@@ -545,44 +684,38 @@ component {
 		};
 
 		settings.rest.authProviders.token = { feature = "restTokenAuth" };
+	}
 
+	private void function __setupMultilingualDefaults() {
 		settings.multilingual = {
 			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
 		};
+	}
 
-		settings.formbuilder        = _setupFormBuilder();
-		settings.environmentMessage = "";
+	private void function __setupFormBuilder() {
+		settings.formbuilder = _setupFormBuilder(); // << Seems silly here but keeping this for backward compat
+	}
 
-		settings.websiteUsers = {
-			actions = {
-				  login       = [ "login", "autologin", "logout", "failedLogin", "sendPasswordResetInstructions", "changepassword" ]
-				, request     = [ "pagevisit" ]
-				, formbuilder = [ "submitform" ]
-				, asset       = [ "download" ]
-			}
-		};
-
+	private void function __setupRulesEngine(){
 		settings.rulesEngine = { contexts={} };
 		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
 		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
 		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
 		settings.rulesEngine.contexts.adminuser             = { object="security_user" };
 		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
+	}
 
+	private void function __setupTenancy() {
 		settings.tenancy = {};
 		settings.tenancy.site = { object="site", defaultfk="site" };
+	}
 
+	private void function __setupDataExport() {
 		settings.dataExport = {};
 		settings.dataExport.csv = { delimiter="," };
+	}
 
-		settings.mssql.useVarcharMaxForText = false;
-
-		settings.email = _getEmailSettings();
-
-		settings.concurrency = _getConcurrencySettings();
-
-		settings.healthCheckServices = {};
-
+	private void function __setupFullPageCaching() {
 		settings.fullPageCaching = {
 			  limitCacheData = false
 			, limitCacheDataKeys = {
@@ -590,6 +723,11 @@ component {
 				, prc = [ "_site", "presidePage", "__presideInlineJs", "_presideUrlPath", "currentLayout", "currentView", "slug", "viewModule" ]
 			  }
 		};
+	}
+
+	private void function __setupHeartbeatsAndServices() {
+		settings.concurrency = _getConcurrencySettings(); // separated out still for backward compat
+		settings.healthCheckServices = {};
 
 		settings.presideservices = {
 			  assetQueue          = "assetQueueService"
@@ -616,25 +754,25 @@ component {
 
 		settings.heartbeats.taskmanager.poolSize  = Val( settings.env.TASKMANAGER_POOL_SIZE  ?: 0 );
 		settings.heartbeats.adhocTask.poolSize    = Val( settings.env.ADHOCTASK_POOL_SIZE    ?: 0 );
-
-
-		_loadConfigurationFromExtensions();
-
-		environments = {
-			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
-		};
 	}
 
-// ENVIRONMENT SPECIFIC
-	public void function local() {
-		settings.showErrors = true;
-		settings.autoSyncDb = true;
-
-		settings.features[ "devtools.new"       ].enabled=true;
-		settings.features[ "devtools.extension" ].enabled=true;
+	private void function __setupDevConsole() {
+		settings.devConsoleToggleKeyCode = 96;
 	}
+
+	private void function __loadConfigurationFromExtensions() {
+		for( var ext in settings.activeExtensions ){
+			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
+				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
+
+				CreateObject( cfcPath ).configure( config=variables );
+			}
+		}
+	}
+
 
 // PRIVATE UTILITY
+
 	private array function _getUdfFiles() {
 		var udfs     = DirectoryList( "/preside/system/helpers", true, false, "*.cfm" );
 		var siteUdfs = ArrayNew(1);
@@ -687,13 +825,6 @@ component {
 		}
 
 		return "preside.system.config.Cachebox";
-	}
-
-	private array function _loadExtensions() {
-		return new preside.system.services.devtools.ExtensionManagerService(
-			  appMapping       = settings.appMapping
-			, ignoreExtensions = settings.legacyExtensionsNowInCore
-		).listExtensions();
 	}
 
 	private struct function _getConfiguredFileTypes() output=false{
@@ -842,15 +973,6 @@ component {
 
 	}
 
-	private void function _loadConfigurationFromExtensions() {
-		for( var ext in settings.activeExtensions ){
-			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
-				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
-
-				CreateObject( cfcPath ).configure( config=variables );
-			}
-		}
-	}
 
 	private struct function _setupFormBuilder() {
 		var fbSettings = { itemtypes={} };
