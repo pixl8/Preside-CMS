@@ -149,19 +149,25 @@ component extends="preside.system.base.adminHandler" {
 		var propertyName  = args.propertyName ?: "";
 		var recordId      = args.recordId     ?: "";
 		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
-		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=[ "#propertyName#.id", "#propertyName#.${labelfield} as label" ], forceJoins="inner" );
+		var labelRenderer = presideObjectService.getObjectAttribute( objectName=relatedObject, attributeName="labelRenderer" );
+		var hasNoLabel    = isTrue( presideObjectService.getObjectAttribute( objectName=relatedObject, attributeName="noLabel" ) );
+		var labelField    = hasNoLabel ? "id" : "${labelfield}";
+		var selectFields  = [ "#propertyName#.id", "#propertyName#.#labelField# as label" ];
+		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=selectFields, forceJoins="inner" );
 		var baseLink      = event.buildadminLink( objectName=relatedObject, recordId="{recordId}" );
 		var list          = [];
+		var label         = "";
 
 		for( var record in records ) {
-			if ( baseLink.len() ) {
-				list.append( '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#record.label#</a>' );
+			label = Len( labelRenderer ) ? renderLabel( relatedObject, record.id ) : record.label;
+			if ( Len( baseLink ) ) {
+				ArrayAppend( list, '<a href="#( Replace( baseLink, '{recordId}', record.id ))#">#label#</a>' );
 			} else {
-				list.append( '#record.label#' );
+				ArrayAppend( list, label );
 			}
 		}
 
-		return list.toList( ", " );
+		return ArrayToList( list, ", " );
 	}
 
 	/**
