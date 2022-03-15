@@ -1123,6 +1123,7 @@ component displayName="Preside Object Service" {
 			var anythingChanged = false;
 			var sortOrderField  = getObjectAttribute( pivotTable, "datamanagerSortField", "sort_order" );
 			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), sortOrderField );
+			var isSortable      = $helpers.isTrue( prop.sortable ?: true );
 			var currentSelect   = [ "#targetFk# as targetId" ];
 
 			if ( hasSortOrder ) {
@@ -1138,12 +1139,11 @@ component displayName="Preside Object Service" {
 				);
 
 				for( var record in currentRecords ) {
-					if ( newRecords.find( record.targetId ) && ( !hasSortOrder || newRecords.find( record.targetId ) == record[ sortOrderField ] ) ) {
+					if ( newRecords.find( record.targetId ) && ( !hasSortOrder || !isSortable || newRecords.find( record.targetId ) == record[ sortOrderField ] ) ) {
 						ArrayDelete( newAddedRecords, record.targetId );
-						ArrayAppend( existingRecords, record.targetId );
+						ArrayAppend( existingRecords, record );
 					} else {
 						anythingChanged = true;
-						break;
 					}
 				}
 
@@ -1157,6 +1157,16 @@ component displayName="Preside Object Service" {
 
 
 					for( var i=1; i <=newRecords.len(); i++ ) {
+						var sortOrder = 1;
+						if ( hasSortOrder && !isSortable ) {
+							for ( var record in existingRecords ) {
+								if ( record.targetId == newRecords[i] ) {
+									sortOrder = record[ sortOrderField ];
+									ArrayDelete( existingRecords, record );
+									break;
+								}
+							}
+						}
 						insertData(
 							  objectName    = pivotTable
 							, useVersioning = false
@@ -1164,7 +1174,7 @@ component displayName="Preside Object Service" {
 							, data          = {
 								  "#sourceFk#"       = arguments.sourceId
 								, "#targetFk#"       = newRecords[i]
-								, "#sortOrderField#" = i
+								, "#sortOrderField#" = hasSortOrder && !isSortable ? sortOrder : i
 							}
 						);
 					}
