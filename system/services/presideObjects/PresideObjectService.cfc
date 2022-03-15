@@ -1123,7 +1123,7 @@ component displayName="Preside Object Service" {
 			var anythingChanged = false;
 			var sortOrderField  = getObjectAttribute( pivotTable, "datamanagerSortField", "sort_order" );
 			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), sortOrderField );
-			var isSortable      = $helpers.isTrue( prop.sortable ?: true );
+			var isSortable      = IsBoolean( prop.sortable ?: true ) && prop.sortable;
 			var currentSelect   = [ "#targetFk# as targetId" ];
 
 			if ( hasSortOrder ) {
