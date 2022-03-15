@@ -1123,7 +1123,7 @@ component displayName="Preside Object Service" {
 			var anythingChanged = false;
 			var sortOrderField  = getObjectAttribute( pivotTable, "datamanagerSortField", "sort_order" );
 			var hasSortOrder    = StructKeyExists( getObjectProperties( pivotTable ), sortOrderField );
-			var isSortable      = IsBoolean( prop.sortable ?: true ) && prop.sortable;
+			var isSortable      = IsBoolean( prop.sortable ?: true ) && ( prop.sortable ?: true );
 			var currentSelect   = [ "#targetFk# as targetId" ];
 
 			if ( hasSortOrder ) {
@@ -1157,7 +1157,7 @@ component displayName="Preside Object Service" {
 
 
 					for( var i=1; i <=newRecords.len(); i++ ) {
-						var sortOrder = 1;
+						var sortOrder = i;
 						if ( hasSortOrder && !isSortable ) {
 							for ( var record in existingRecords ) {
 								if ( record.targetId == newRecords[i] ) {
@@ -1174,7 +1174,7 @@ component displayName="Preside Object Service" {
 							, data          = {
 								  "#sourceFk#"       = arguments.sourceId
 								, "#targetFk#"       = newRecords[i]
-								, "#sortOrderField#" = hasSortOrder && !isSortable ? sortOrder : i
+								, "#sortOrderField#" = sortOrder
 							}
 						);
 					}
