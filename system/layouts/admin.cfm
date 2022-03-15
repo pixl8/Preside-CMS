@@ -3,7 +3,7 @@
 	navbar           = renderView( 'admin/layout/navbar' );
 	siteAlerts       = renderViewlet( 'admin.layout.siteAlerts' );
 	breadcrumbs      = renderView( 'admin/layout/breadcrumbs' );
-	sideBarNav       = renderViewlet( event="admin.layout.mainMenu" );
+	sideBarNav       = renderViewlet( event="admin.layout.adminMenu" );
 	notifications    = renderView( 'admin/general/notifications' );
 	footer           = renderViewlet( 'admin.general.footer' );
 	secondaryNav     = prc.secondaryNav ?: "";

@@ -61,13 +61,11 @@ component {
 			return config;
 		}
 
-		runItemHandlerAction( arguments.itemId, "decorate", config );
-
 		config.subMenuItems = config.subMenuItems ?: [];
 		if ( IsArray( config.subMenuItems ) && ArrayLen( config.subMenuItems ) ) {
 			for( var i=ArrayLen( config.subMenuItems ); i>0; i-- ) {
 				if ( IsSimpleValue( config.subMenuItems[ i ] ) ) {
-					if ( itemShouldBeIncluded( config.subMenuItems[ i ] ) ) {
+					if ( itemShouldBeIncluded( config.subMenuItems[ i ], arguments.legacyViewBase ) ) {
 						config.subMenuItems[ i ] = prepareItemForRequest( config.subMenuItems[ i ], arguments.legacyViewBase );
 						if ( StructIsEmpty( config.subMenuItems[ i ] ) ) {
 							ArrayDeleteAt( config.subMenuItems, i );
@@ -90,6 +88,8 @@ component {
 		config.icon  = config.icon ?: "admin.menuitem:#arguments.itemId#.iconClass";
 		config.title = $translateResource( uri=config.title, defaultValue=config.title );
 		config.icon  = $translateResource( uri=config.icon, defaultValue=config.icon );
+
+		runItemHandlerAction( arguments.itemId, "prepare", config );
 
 		return config;
 	}
@@ -274,7 +274,7 @@ component {
 			  itemId        = arguments.itemId
 			, action        = "isActive"
 			, args          = arguments.itemConfig
-			, defaultResult = true
+			, defaultResult = false
 		)
 
 		return isActive;

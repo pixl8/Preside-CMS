@@ -2,6 +2,7 @@ component {
 
 	property name="maintenanceModeService"   inject="maintenanceModeService";
 	property name="resourceBundleService"    inject="resourceBundleService";
+	property name="adminMenuItemService"     inject="adminMenuItemService";
 	property name="adminLanguages"           inject="coldbox:setting:adminLanguages";
 	property name="adminSideBarItems"        inject="coldbox:setting:adminSideBarItems";
 	property name="adminMenuItemRenderer"    inject="coldbox:setting:adminMenuItemRenderer";
@@ -62,30 +63,37 @@ component {
 		return "";
 	}
 
-	private string function mainMenu( event, rc, prc, args={} ) {
+	private string function adminMenu( event, rc, prc, args={} ) {
+		var preparedMenuItems = adminMenuItemService.prepareMenuItemsForRequest(
+			  menuItems      = args.menuItems      ?: adminSideBarItems
+			, legacyViewBase = args.legacyViewBase ?: "/admin/layout/sidebar/"
+		);
+
 		var items = renderViewlet( event="admin.layout.renderMenuItems", args={
-			  menuItems       = adminSideBarItems
-			, itemRenderer    = adminMenuItemRenderer
-			, subItemRenderer = adminSubMenuItemRenderer
+			  menuItems       = preparedMenuItems
+			, itemRenderer    = args.itemRenderer    ?: adminMenuItemRenderer
+			, subItemRenderer = args.subItemRenderer ?: adminSubMenuItemRenderer
 		} );
 
 		return renderView( view="/admin/layout/sideBarNavigation", args={ items=items } );
 	}
 
 	private string function renderMenuItems( event, rc, prc, args={} ) {
-		var prepared        = isTrue( args.prePepared ?: "" ) ? ( args.menuItems ?: [] ) : prepareMenuItems( argumentCollection=arguments );
-		var itemRenderer    = args.itemRenderer ?: adminMenuItemRenderer;
+		var items           = args.menuItems       ?: [];
+		var itemRenderer    = args.itemRenderer    ?: adminMenuItemRenderer;
 		var subItemRenderer = args.subItemRenderer ?: adminSubMenuItemRenderer;
 		var rendered        = [];
 
-		for( var i=1; i<=ArrayLen( prepared ); i++ ) {
-			if ( IsSimpleValue( prepared[ i ] ) ) {
-				ArrayAppend( rendered, prepared[ i ] );
+		for( var i=1; i<=ArrayLen( items ); i++ ) {
+			if ( IsSimpleValue( items[ i ] ) ) {
+				ArrayAppend( rendered, items[ i ] );
+			} else if ( Len( Trim( items[ i ].view ?: "" ) ) ) {
+				ArrayAppend( rendered, renderView( view=items[ i ].view ) );
 			} else {
-				if ( IsArray( prepared[ i ].subMenuItems ?: "" ) && ArrayLen( prepared[ i ].subMenuItems ) ) {
-					prepared[ i ].subMenu = renderMenuItems( argumentCollection=arguments, args={
+				if ( IsArray( items[ i ].subMenuItems ?: "" ) && ArrayLen( items[ i ].subMenuItems ) ) {
+					items[ i ].subMenu = renderMenuItems( argumentCollection=arguments, args={
 						  prePepared      = true
-						, menuItems       = prepared[ i ].subMenuItems
+						, menuItems       = items[ i ].subMenuItems
 						, itemRenderer    = subItemRenderer
 						, subItemRenderer = subItemRenderer
 					} );
@@ -93,71 +101,12 @@ component {
 
 				ArrayAppend( rendered, renderViewlet(
 					  event = itemRenderer
-					, args  = prepared[ i ]
+					, args  = items[ i ]
 				) );
 			}
 		}
 
 		return ArrayToList( rendered, " " );
-	}
-
-	private array function prepareMenuItems( event, rc, prc, args={} ) {
-		var items        = args.menuItems ?: [];
-		var prepared     = [];
-
-		for( var item in items ) {
-			if ( IsSimpleValue( item ) ) {
-				var newStyleHandler = "admin.layout.menuitem.#item#";
-				var oldSchoolView   = "/admin/layout/sidebar/#item#";
-
-				if ( getController().handlerExists( newStyleHandler ) ) {
-					ArrayAppend( prepared, runEvent(
-						  event         = newStyleHandler
-						, private       = true
-						, prepostexempt = true
-					) );
-				} else if ( getController().viewExists( oldSchoolView ) ) {
-					ArrayAppend( prepared, renderView( view=oldSchoolView ) );
-				} else {
-					ArrayAppend( prepared, item );
-				}
-			} else {
-				ArrayAppend( prepared, item );
-			}
-		}
-
-		for( var i=ArrayLen( prepared ); i>0; i-- ) {
-			if ( IsSimpleValue( prepared[ i ] ) ) {
-				continue;
-			}
-
-			if ( Len( Trim( prepared[ i ].feature ?: "" ) ) && !isFeatureEnabled( prepared[ i ].feature ) ) {
-				ArrayDeleteAt( prepared, i );
-				continue;
-			}
-			if ( Len( Trim( prepared[ i ].permissionKey ?: "" ) ) && !hasCmsPermission( prepared[ i ].permissionKey ) ) {
-				ArrayDeleteAt( prepared, i );
-				continue;
-			}
-
-			if ( IsArray( prepared[ i ].subMenuItems ?: "" ) && ArrayLen( prepared[ i ].subMenuItems ) ) {
-				prepared[ i ].subMenuItems = prepareMenuItems( argumentCollection=arguments, args={ menuItems=prepared[ i ].subMenuItems } );
-
-				if ( !ArrayLen( prepared[ i ].subMenuItems ) ) {
-					ArrayDeleteAt( prepared, i );
-					continue;
-				}
-
-				for( var subItem in prepared[ i ].subMenuItems ) {
-					if ( isTrue( subItem.active ?: "" ) ) {
-						prepared[ i ].active = true;
-						break;
-					}
-				}
-			}
-		}
-
-		return prepared;
 	}
 
 	private string function applicationNav( event, rc, prc, args={} ) {

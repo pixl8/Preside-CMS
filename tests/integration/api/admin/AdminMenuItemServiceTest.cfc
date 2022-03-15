@@ -179,7 +179,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				svc.$( "itemIsActive", true );
 				svc.$( "buildItemLink", "test" );
 				svc.$( "getRawItemConfig" ).$args( itemId, legacyViewBase ).$results( rawConfig );
-				svc.$( "runItemHandlerAction" ).$args( itemId, "decorate", rawConfig );
+				svc.$( "runItemHandlerAction" ).$args( itemId, "prepare", rawConfig );
 
 				var config = svc.prepareItemForRequest( itemId, legacyViewBase );
 
@@ -293,26 +293,26 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.itemIsActive( itemId, itemConfig ) ).toBeFalse();
 			} );
 
-			it( "should return false if item's isActive handler returns false", function(){
+			it( "should return true if item's isActive handler returns true", function(){
 				var svc = _getService();
 				var itemId = CreateUUId();
 				var itemConfig = { test="test" };
 
 				requestContext.$( "getCurrentEvent", "test.blah.something" );
-				svc.$( "runItemHandlerAction" ).$args( itemId=itemId, action="isActive", args=itemConfig, defaultResult=true ).$results( false );
-
-				expect( svc.itemIsActive( itemId, itemConfig ) ).toBeFalse();
-			} );
-
-			it( "should return true otherwise", function(){
-				var svc = _getService();
-				var itemId = CreateUUId();
-				var itemConfig = { test="test" };
-
-				requestContext.$( "getCurrentEvent", "test.blah.something" );
-				svc.$( "runItemHandlerAction" ).$args( itemId=itemId, action="isActive", args=itemConfig, defaultResult=true ).$results( true );
+				svc.$( "runItemHandlerAction" ).$args( itemId=itemId, action="isActive", args=itemConfig, defaultResult=false ).$results( true );
 
 				expect( svc.itemIsActive( itemId, itemConfig ) ).toBeTrue();
+			} );
+
+			it( "should return false otherwise", function(){
+				var svc = _getService();
+				var itemId = CreateUUId();
+				var itemConfig = { test="test" };
+
+				requestContext.$( "getCurrentEvent", "test.blah.something" );
+				svc.$( "runItemHandlerAction" ).$args( itemId=itemId, action="isActive", args=itemConfig, defaultResult=false ).$results( false );
+
+				expect( svc.itemIsActive( itemId, itemConfig ) ).toBeFalse();
 			} );
 		} );
 

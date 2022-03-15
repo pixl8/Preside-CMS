@@ -360,6 +360,145 @@ component {
 		];
 
 		settings.adminMenuItems = {};
+		settings.adminMenuItems.sitetree = {
+			  feature       = "sitetree"
+			, permissionKey = "sitetree.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.sitetree\.*" }
+			, buildLinkArgs = { linkTo="sitetree" }
+			, gotoKey       = "s"
+			, icon          = "fa-sitemap"
+			, title         = "cms:sitetree"
+		};
+		settings.adminMenuItems.assetManager = {
+			  feature       = "assetManager"
+			, permissionKey = "assetmanager.general.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.assetmanager\.*" }
+			, buildLinkArgs = { linkTo="assetmanager" }
+			, gotoKey       = "a"
+			, icon          = "fa-picture-o"
+			, title         = "cms:assetManager"
+		};
+		settings.adminMenuItems.datamanager = {
+			  feature       = "datamanager"
+			, permissionKey = "datamanager.navigate"
+			, buildLinkArgs = { linkTo="datamanager" }
+			, gotoKey       = "d"
+			, icon          = "fa-database"
+			, title         = "cms:datamanager"
+		};
+		settings.adminMenuItems.emailCenter = {
+			  feature      = "emailcenter"
+			, activeChecks = { handlerPatterns="^admin\.emailcenter\." }
+			, icon         = "fa-envelope"
+			, title        = "cms:emailCenter.menu.title"
+			, subMenuItems = [
+			      "emailCenterCustomTemplates"
+			    , "emailCenterSystemTemplates"
+			    , "emailCenterLayouts"
+			    , "emailCenterBlueprints"
+			    , "emailCenterSettings"
+			    , "emailCenterLogs"
+			    , "emailCenterQueue"
+			  ]
+		};
+		settings.adminMenuItems.emailCenterCustomTemplates = {
+			  feature       = "customEmailTemplates"
+			, permissionKey = "emailcenter.customTemplates.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.customTemplates" }
+			, buildLinkArgs = { linkTo="emailcenter.customTemplates" }
+			, title         = "cms:emailcenter.customTemplates.menu.title"
+		};
+		settings.adminMenuItems.emailCenterSystemTemplates = {
+			  feature       = "emailcenter"
+			, permissionKey = "emailcenter.systemTemplates.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.systemtemplates" }
+			, buildLinkArgs = { linkTo="emailcenter.systemtemplates" }
+			, title         = "cms:emailcenter.systemtemplates.menu.title"
+		};
+		settings.adminMenuItems.emailCenterLayouts = {
+			  feature       = "emailcenter"
+			, permissionKey = "emailcenter.layouts.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.layouts" }
+			, buildLinkArgs = { linkTo="emailcenter.layouts" }
+			, title         = "cms:emailcenter.layouts.menu.title"
+		};
+		settings.adminMenuItems.emailCenterBlueprints = {
+			  feature       = "customEmailTemplates"
+			, permissionKey = "emailcenter.blueprints.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.blueprints" }
+			, buildLinkArgs = { linkTo="emailcenter.blueprints" }
+			, title         = "cms:emailcenter.blueprints.menu.title"
+		};
+		settings.adminMenuItems.emailCenterSettings = {
+			  feature       = "emailcenter"
+			, permissionKey = "emailcenter.settings.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.settings" }
+			, buildLinkArgs = { linkTo="emailcenter.settings" }
+			, title         = "cms:emailcenter.settings.menu.title"
+		};
+		settings.adminMenuItems.emailCenterLogs = {
+			  feature       = "emailcenter"
+			, permissionKey = "emailcenter.logs.view"
+			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.logs" }
+			, buildLinkArgs = { linkTo="emailcenter.logs" }
+			, title         = "cms:emailcenter.logs.menu.title"
+		};
+		settings.adminMenuItems.emailCenterQueue = {
+			  feature       = "customEmailTemplates"
+			, permissionKey = "emailcenter.queue.view"
+			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.queue" }
+			, buildLinkArgs = { linkTo="emailcenter.queue" }
+			, title         = "cms:emailcenter.queue.menu.title"
+		};
+
+		settings.adminMenuItems.formbuilder = {
+			  feature       = "formbuilder"
+			, icon          = "fa-check-square-o"
+			, title         = "formbuilder:admin.menu.title"
+			, subMenuItems = [ "formbuilderQuestions", "formbuilderForms" ]
+		};
+
+		settings.adminMenuItems.formbuilderQuestions = {
+			  feature       = "formbuilder2"
+			, permissionKey = "formquestions.navigate"
+			, activeChecks  = { datamanagerObject="formbuilder_question" }
+			, buildLinkArgs = { objectName="formbuilder_question" }
+			, title         = "formbuilder:questions.menu.title"
+			, icon          = "fa-question"
+		};
+		settings.adminMenuItems.formbuilderForms = {
+			  feature       = "formbuilder"
+			, permissionKey = "formbuilder.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.formbuilder\." }
+			, buildLinkArgs = { linkTo="formbuilder" }
+			, title         = "formbuilder:forms.menu.title"
+			, icon          = "fa-check-square-o"
+			, gotoKey       = "f"
+		}
+
+		settings.adminMenuItems.websiteuserManager = {
+			  feature      = "websiteUsers"
+			, icon         = "fa-group"
+			, title        = "cms:websiteUserManager"
+			, subMenuItems = [ "websiteUsers", "websiteBenefits" ]
+		};
+
+		settings.adminMenuItems.websiteUsers = {
+			  feature       = "websiteUsers"
+			, permissionKey = "websiteUserManager.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.websiteUserManager\." }
+			, buildLinkArgs = { linkTo="websiteUserManager" }
+			, title         =  "cms:websiteUserManager.users"
+			, icon          =  "fa-group"
+		};
+		settings.adminMenuItems.websiteBenefits = {
+			  feature       = "websiteBenefits"
+			, permissionKey = "websiteBenefitsManager.navigate"
+			, activeChecks  = { handlerPatterns="^admin\.websiteBenefitsManager\." }
+			, buildLinkArgs = { linkTo="websiteBenefitsManager" }
+			, title         =  "cms:websiteUserManager.benefits"
+			, icon          =  "fa-group"
+		};
 	}
 
 	private void function __setupAdminRolesAndPermissions() {
