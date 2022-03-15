@@ -358,6 +358,8 @@ component {
 			, "apiManager"
 			, "systemInformation"
 		];
+
+		settings.adminMenuItems = {};
 	}
 
 	private void function __setupAdminRolesAndPermissions() {
