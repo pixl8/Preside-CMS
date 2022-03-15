@@ -69,13 +69,11 @@ component {
 			, legacyViewBase = args.legacyViewBase ?: "/admin/layout/sidebar/"
 		);
 
-		var items = renderViewlet( event="admin.layout.renderMenuItems", args={
+		return renderViewlet( event="admin.layout.renderMenuItems", args={
 			  menuItems       = preparedMenuItems
 			, itemRenderer    = args.itemRenderer    ?: adminMenuItemRenderer
 			, subItemRenderer = args.subItemRenderer ?: adminSubMenuItemRenderer
 		} );
-
-		return renderView( view="/admin/layout/sideBarNavigation", args={ items=items } );
 	}
 
 	private string function renderMenuItems( event, rc, prc, args={} ) {

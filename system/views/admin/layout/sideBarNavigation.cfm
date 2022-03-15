@@ -1,8 +1,3 @@
-<cfscript>
-	items = args.items ?: "";
-</cfscript>
-
-
 <cfoutput>
 	<div class="sidebar" id="sidebar">
 		<script type="text/javascript">
@@ -10,7 +5,7 @@
 		</script>
 
 		<ul class="nav nav-list">
-			#items#
+			#renderViewlet( event="admin.layout.adminMenu" )#
 		</ul>
 
 		<div class="sidebar-collapse sidebar-toggle" id="sidebar-collapse">
