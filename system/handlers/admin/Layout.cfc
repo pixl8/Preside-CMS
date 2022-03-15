@@ -107,7 +107,7 @@ component {
 
 		for( var item in items ) {
 			if ( IsSimpleValue( item ) ) {
-				var newStyleHandler = "admin.layout.mainmenu.#item#";
+				var newStyleHandler = "admin.layout.menuitem.#item#";
 				var oldSchoolView   = "/admin/layout/sidebar/#item#";
 
 				if ( getController().handlerExists( newStyleHandler ) ) {
