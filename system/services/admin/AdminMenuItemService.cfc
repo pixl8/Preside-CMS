@@ -116,7 +116,7 @@ component {
 				&& $getColdbox().viewExists( arguments.legacyViewBase & arguments.itemId );
 		}
 
-		return _legacyImplCache[ cacheKey ]
+		return _legacyImplCache[ cacheKey ];
 	}
 
 	/**
@@ -277,7 +277,7 @@ component {
 			, defaultResult = false
 		)
 
-		return isActive;
+		return IsBoolean( isActive ?: "" ) && isActive;
 	}
 
 	/**
