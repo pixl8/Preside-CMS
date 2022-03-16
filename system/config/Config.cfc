@@ -344,6 +344,7 @@ component {
 
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
+			, "usergroupmanager"
 			, "notification"
 			, "passwordPolicyManager"
 			, "systemConfiguration"
@@ -557,15 +558,63 @@ component {
 			, permissionKey = "rulesEngine.navigate"
 			, buildLinkArgs = { objectName="rules_engine_condition" }
 			, activeChecks  = { datamanagerObject="rules_engine_condition" }
-			, icon          = "cms:rulesEngine.iconClass"
+			, icon          = "fa-map-signs"
 			, title         = "cms:rulesEngine.navigation.link"
 		};
-		settings.adminMenuItems.savedexport = {};
-		settings.adminMenuItems.systemConfiguration = {};
-		settings.adminMenuItems.systemInformation = {};
-		settings.adminMenuItems.taskmanager = {};
-		settings.adminMenuItems.urlRedirects = {};
-		settings.adminMenuItems.usermanager = {};
+		settings.adminMenuItems.savedexport = {
+			  feature       = "dataexport"
+			, permissionKey = "savedExport.navigate"
+			, buildLinkArgs = { objectName="saved_export" }
+			, activeChecks  = { datamanagerObject="saved_export" }
+			, icon          = "fa-download"
+			, title         = "cms:savedexport"
+		};
+		settings.adminMenuItems.systemConfiguration = {
+			  feature       = "systemConfiguration"
+			, permissionKey = "systemConfiguration.manage"
+			, buildLinkArgs = { linkTo="sysconfig" }
+			, activeChecks  = { handlerPatterns="^admin\.sysconfig\." }
+			, icon          = "fa-cogs"
+			, title         = "cms:sysconfig.menu.title"
+		};
+		settings.adminMenuItems.systemInformation = {
+			  feature       = "systemInformation"
+			, permissionKey = "systemInformation.navigate"
+			, buildLinkArgs = { linkTo="systemInformation" }
+			, activeChecks  = { handlerPatterns="^admin\.systemInformation\." }
+			, icon          = "fa-info-circle"
+			, title         = "cms:systemInformation.menu.title"
+		};
+		settings.adminMenuItems.taskmanager = {
+			  permissionKey = "taskmanager.navigate"
+			, buildLinkArgs = { linkTo="taskmanager" }
+			, activeChecks  = { handlerPatterns="^admin\.taskmanager\." }
+			, icon          = "fa-clock-o"
+			, title         = "cms:taskmanager"
+		};
+		settings.adminMenuItems.urlRedirects = {
+			  permissionKey = "urlRedirects.navigate"
+			, buildLinkArgs = { linkTo="urlRedirects" }
+			, activeChecks  = { handlerPatterns="^admin\.urlRedirects\." }
+			, icon          = "fa-code-fork"
+			, title         = "cms:urlRedirects.navigation.link"
+		};
+		settings.adminMenuItems.usermanager = {
+			  feature       = "cmsUserManager"
+			, permissionKey = "usermanager.navigate"
+			, buildLinkArgs = { linkTo="usermanager.users" }
+			, activeChecks  = { handlerPatterns="^admin\.usermanager\.users" }
+			, icon          = "fa-user"
+			, title         = "cms:usermanager.users"
+		};
+		settings.adminMenuItems.usergroupmanager = {
+			  feature       = "cmsUserManager"
+			, permissionKey = "groupmanager.navigate"
+			, buildLinkArgs = { linkTo="usermanager.groups" }
+			, activeChecks  = { handlerPatterns="^admin\.usermanager\.groups" }
+			, icon          = "fa-group"
+			, title         = "cms:usermanager.groups"
+		};
 	}
 
 	private void function __setupAdminRolesAndPermissions() {
