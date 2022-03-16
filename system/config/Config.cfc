@@ -499,6 +499,73 @@ component {
 			, title         =  "cms:websiteUserManager.benefits"
 			, icon          =  "fa-group"
 		};
+
+		settings.adminMenuItems.apiManager = {
+			  feature       = "apiManager"
+			, permissionKey = "apiManager.navigate"
+			, buildLinkArgs = { linkTo="apiManager" }
+			, activeChecks  = { handlerPatterns="^admin\.apiManager\." }
+			, icon          = "fa-code"
+			, title         = "cms:apiManager"
+		};
+		settings.adminMenuItems.auditTrail = {
+			  feature       = "auditTrail"
+			, permissionKey = "auditTrail.navigate"
+			, buildLinkArgs = { linkTo="auditTrail" }
+			, activeChecks  = { handlerPatterns="^admin\.auditTrail\." }
+			, icon          = "fa-history"
+			, title         = "cms:auditTrail"
+		};
+		settings.adminMenuItems.errorLogs = {
+			  feature       = "errorLogs"
+			, permissionKey = "errorLogs.navigate"
+			, buildLinkArgs = { linkTo="errorLogs" }
+			, activeChecks  = { handlerPatterns="^admin\.errorLogs\." }
+			, icon          = "fa-exclamation-circle"
+			, title         = "cms:errorLogs"
+		};
+		settings.adminMenuItems.links = {
+			  buildLinkArgs = { objectName="link" }
+			, activeChecks  = { datamanagerObject="link" }
+			, icon          = "fa-link"
+			, title         = "cms:links.navigation.link"
+		};
+		settings.adminMenuItems.maintenanceMode = {
+			  permissionKey = "maintenanceMode.configure"
+			, buildLinkArgs = { linkTo="maintenanceMode" }
+			, activeChecks  = { handlerPatterns="^admin\.maintenanceMode\." }
+			, icon          = "fa-medkit"
+			, title         = "cms:maintenanceMode"
+		};
+		settings.adminMenuItems.notification = {
+			  permissionKey = "notifications.configure"
+			, buildLinkArgs = { linkTo="notifications.configure" }
+			, activeChecks  = { handlerPatterns="^admin\.notifications\.configure" }
+			, icon          = "fa-bell"
+			, title         = "cms:notifications.system.menu.title"
+		};
+		settings.adminMenuItems.passwordPolicyManager = {
+			  feature       = "passwordPolicyManager"
+			, permissionKey = "passwordpolicymanager.manage"
+			, buildLinkArgs = { linkTo="passwordpolicymanager" }
+			, activeChecks  = { handlerPatterns="^admin\.passwordpolicymanager\." }
+			, icon          = "fa-key"
+			, title         = "cms:passwordpolicymanager.configmenu.title"
+		};
+		settings.adminMenuItems.rulesEngine = {
+			  feature       = "rulesEngine"
+			, permissionKey = "rulesEngine.navigate"
+			, buildLinkArgs = { objectName="rules_engine_condition" }
+			, activeChecks  = { datamanagerObject="rules_engine_condition" }
+			, icon          = "cms:rulesEngine.iconClass"
+			, title         = "cms:rulesEngine.navigation.link"
+		};
+		settings.adminMenuItems.savedexport = {};
+		settings.adminMenuItems.systemConfiguration = {};
+		settings.adminMenuItems.systemInformation = {};
+		settings.adminMenuItems.taskmanager = {};
+		settings.adminMenuItems.urlRedirects = {};
+		settings.adminMenuItems.usermanager = {};
 	}
 
 	private void function __setupAdminRolesAndPermissions() {
