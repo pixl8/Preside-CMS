@@ -330,9 +330,6 @@ component {
 			, layout             = "admin"
 		} ];
 
-
-		settings.adminMenuItemRenderer    = "admin.layout.sidebar._menuItem";
-		settings.adminSubMenuItemRenderer = "admin.layout.sidebar._submenuItem";
 		settings.adminSideBarItems = [
 			  "sitetree"
 			, "assetmanager"

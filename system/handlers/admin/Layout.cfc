@@ -5,8 +5,6 @@ component {
 	property name="adminMenuItemService"     inject="adminMenuItemService";
 	property name="adminLanguages"           inject="coldbox:setting:adminLanguages";
 	property name="adminSideBarItems"        inject="coldbox:setting:adminSideBarItems";
-	property name="adminMenuItemRenderer"    inject="coldbox:setting:adminMenuItemRenderer";
-	property name="adminSubMenuItemRenderer" inject="coldbox:setting:adminSubMenuItemRenderer";
 	property name="applicationsService"      inject="applicationsService";
 	property name="i18n"                     inject="i18n";
 
@@ -71,15 +69,15 @@ component {
 
 		return renderViewlet( event="admin.layout.renderMenuItems", args={
 			  menuItems       = preparedMenuItems
-			, itemRenderer    = args.itemRenderer    ?: adminMenuItemRenderer
-			, subItemRenderer = args.subItemRenderer ?: adminSubMenuItemRenderer
+			, itemRenderer    = args.itemRenderer    ?: "admin.layout.sidebar._menuItem"
+			, subItemRenderer = args.subItemRenderer ?: "admin.layout.sidebar._submenuItem"
 		} );
 	}
 
 	private string function renderMenuItems( event, rc, prc, args={} ) {
 		var items           = args.menuItems       ?: [];
-		var itemRenderer    = args.itemRenderer    ?: adminMenuItemRenderer;
-		var subItemRenderer = args.subItemRenderer ?: adminSubMenuItemRenderer;
+		var itemRenderer    = args.itemRenderer    ?: "admin.layout.sidebar._menuItem";
+		var subItemRenderer = args.subItemRenderer ?: "admin.layout.sidebar._submenuItem";
 		var rendered        = [];
 
 		for( var i=1; i<=ArrayLen( items ); i++ ) {

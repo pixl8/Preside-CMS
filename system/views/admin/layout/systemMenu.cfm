@@ -2,8 +2,8 @@
 	settingsMenu = renderViewlet( event="admin.layout.adminMenu", args={
 		  menuItems       = getSetting( "adminConfigurationMenuItems" )
 		, legacyViewBase  = "/admin/layout/configurationMenu/"
-		, itemRenderer    = "/admin/layout/configurationMenu/_item"
-		, subItemRenderer = "/admin/layout/configurationMenu/_item"
+		, itemRenderer    = "/admin/layout/topnav/_subitem"
+		, subItemRenderer = "/admin/layout/topnav/_subitem"
 	} );
 </cfscript>
 
