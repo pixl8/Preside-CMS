@@ -7,7 +7,7 @@
 <cfparam name="args.gotoKey"      type="string"  default="" />
 
 <cfoutput>
-	<li data-test="test" <cfif args.active> class="active"</cfif>>
+	<li <cfif args.active> class="active"</cfif>>
 		<cfif Len( Trim( args.subMenu ) ) or args.subMenuItems.len()>
 			<a class="dropdown-toggle" href="##">
 				<i class="menu-icon fa fa-fw #args.icon#"></i>

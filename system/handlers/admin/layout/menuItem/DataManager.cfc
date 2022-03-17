@@ -6,7 +6,7 @@
 component {
 
 	private boolean function isActive() {
-		return ListLast( event.getCurrentHandler(), ".") eq "datamanager" && ( IsTrue( prc.objectInDatamanagerUi ?: "" ) || !Len( Trim( prc.objectName ) ) );
+		return ListLast( event.getCurrentHandler(), ".") == "datamanager" && ( IsTrue( prc.objectInDatamanagerUi ?: "" ) || !Len( Trim( prc.objectName ) ) );
 	}
 
 }

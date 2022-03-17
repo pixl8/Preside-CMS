@@ -90,8 +90,7 @@ component {
 			} else {
 				if ( IsArray( items[ i ].subMenuItems ?: "" ) && ArrayLen( items[ i ].subMenuItems ) ) {
 					items[ i ].subMenu = renderMenuItems( argumentCollection=arguments, args={
-						  prePepared      = true
-						, menuItems       = items[ i ].subMenuItems
+						  menuItems       = items[ i ].subMenuItems
 						, itemRenderer    = subItemRenderer
 						, subItemRenderer = subItemRenderer
 						, itemRendererArgs = rendererArgs
