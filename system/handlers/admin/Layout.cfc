@@ -68,16 +68,18 @@ component {
 		);
 
 		return renderViewlet( event="admin.layout.renderMenuItems", args={
-			  menuItems       = preparedMenuItems
-			, itemRenderer    = args.itemRenderer    ?: "admin.layout.sidebar._menuItem"
-			, subItemRenderer = args.subItemRenderer ?: "admin.layout.sidebar._submenuItem"
+			  menuItems        = preparedMenuItems
+			, itemRenderer     = args.itemRenderer     ?: "admin.layout.sidebar._menuItem"
+			, subItemRenderer  = args.subItemRenderer  ?: "admin.layout.sidebar._submenuItem"
+			, itemRendererArgs = args.itemRendererArgs ?: {}
 		} );
 	}
 
 	private string function renderMenuItems( event, rc, prc, args={} ) {
-		var items           = args.menuItems       ?: [];
-		var itemRenderer    = args.itemRenderer    ?: "admin.layout.sidebar._menuItem";
-		var subItemRenderer = args.subItemRenderer ?: "admin.layout.sidebar._submenuItem";
+		var items           = args.menuItems        ?: [];
+		var itemRenderer    = args.itemRenderer     ?: "admin.layout.sidebar._menuItem";
+		var subItemRenderer = args.subItemRenderer  ?: "admin.layout.sidebar._submenuItem";
+		var rendererArgs    = args.itemRendererArgs ?: {}
 		var rendered        = [];
 
 		for( var i=1; i<=ArrayLen( items ); i++ ) {
@@ -92,12 +94,16 @@ component {
 						, menuItems       = items[ i ].subMenuItems
 						, itemRenderer    = subItemRenderer
 						, subItemRenderer = subItemRenderer
+						, itemRendererArgs = rendererArgs
 					} );
 				}
 
+				var args = StructCopy( items[ i ] );
+				StructAppend( args, rendererArgs, false );
+
 				ArrayAppend( rendered, renderViewlet(
 					  event = itemRenderer
-					, args  = items[ i ]
+					, args  = args
 				) );
 			}
 		}

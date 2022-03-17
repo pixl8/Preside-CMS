@@ -4,6 +4,7 @@
 		, legacyViewBase  = "/admin/layout/configurationMenu/"
 		, itemRenderer    = "/admin/layout/topnav/_subitem"
 		, subItemRenderer = "/admin/layout/topnav/_subitem"
+		, itemRendererArgs = { dropdownDirection="left" }
 	} );
 </cfscript>
 
