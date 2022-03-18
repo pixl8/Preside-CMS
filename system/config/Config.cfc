@@ -392,8 +392,10 @@ component {
 			, subMenuItems = [
 			      "emailCenterCustomTemplates"
 			    , "emailCenterSystemTemplates"
+			    , "-"
 			    , "emailCenterLayouts"
 			    , "emailCenterBlueprints"
+			    , "-"
 			    , "emailCenterSettings"
 			    , "emailCenterLogs"
 			    , "emailCenterQueue"
@@ -405,6 +407,7 @@ component {
 			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.customTemplates" }
 			, buildLinkArgs = { linkTo="emailcenter.customTemplates" }
 			, title         = "cms:emailcenter.customTemplates.menu.title"
+			, icon          = "fa-envelope"
 		};
 		settings.adminMenuItems.emailCenterSystemTemplates = {
 			  feature       = "emailcenter"
@@ -412,6 +415,7 @@ component {
 			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.systemtemplates" }
 			, buildLinkArgs = { linkTo="emailcenter.systemtemplates" }
 			, title         = "cms:emailcenter.systemtemplates.menu.title"
+			, icon          = "fa-envelope"
 		};
 		settings.adminMenuItems.emailCenterLayouts = {
 			  feature       = "emailcenter"
@@ -419,6 +423,7 @@ component {
 			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.layouts" }
 			, buildLinkArgs = { linkTo="emailcenter.layouts" }
 			, title         = "cms:emailcenter.layouts.menu.title"
+			, icon          = "fa-trello"
 		};
 		settings.adminMenuItems.emailCenterBlueprints = {
 			  feature       = "customEmailTemplates"
@@ -426,6 +431,7 @@ component {
 			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.blueprints" }
 			, buildLinkArgs = { linkTo="emailcenter.blueprints" }
 			, title         = "cms:emailcenter.blueprints.menu.title"
+			, icon          = "fa-map"
 		};
 		settings.adminMenuItems.emailCenterSettings = {
 			  feature       = "emailcenter"
@@ -433,6 +439,7 @@ component {
 			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.settings" }
 			, buildLinkArgs = { linkTo="emailcenter.settings" }
 			, title         = "cms:emailcenter.settings.menu.title"
+			, icon          = "fa-cogs"
 		};
 		settings.adminMenuItems.emailCenterLogs = {
 			  feature       = "emailcenter"
@@ -440,6 +447,7 @@ component {
 			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.logs" }
 			, buildLinkArgs = { linkTo="emailcenter.logs" }
 			, title         = "cms:emailcenter.logs.menu.title"
+			, icon          = "fa-file-alt"
 		};
 		settings.adminMenuItems.emailCenterQueue = {
 			  feature       = "customEmailTemplates"
@@ -447,6 +455,7 @@ component {
 			, activeChecks  = { handlerPatterns="^admin\.emailcenter\.queue" }
 			, buildLinkArgs = { linkTo="emailcenter.queue" }
 			, title         = "cms:emailcenter.queue.menu.title"
+			, icon          = "fa-layer-group"
 		};
 
 		settings.adminMenuItems.formbuilder = {

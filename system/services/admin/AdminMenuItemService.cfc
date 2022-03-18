@@ -45,6 +45,8 @@ component {
 			}
 		}
 
+		_trimSeparators( prepared );
+
 		return prepared;
 	}
 
@@ -90,6 +92,10 @@ component {
 		config.icon  = $translateResource( uri=config.icon, defaultValue=config.icon );
 
 		runItemHandlerAction( arguments.itemId, "prepare", config );
+
+		if ( IsArray( config.subMenuItems ?: "" ) && ArrayLen( config.subMenuItems ) ) {
+			_trimSeparators( config.subMenuItems );
+		}
 
 		return config;
 	}
@@ -299,6 +305,31 @@ component {
 		}
 
 		return "";
+	}
+
+	private void function _trimSeparators( menuItems ) {
+		var _isSeparatorItem = function( itm ) {
+			return IsBoolean( itm.separator ?: "" ) && itm.separator;
+		};
+
+		for( var i=1; i<=ArrayLen( menuItems ); i++ ) {
+			if ( _isSeparatorItem( menuItems[i] ) ) {
+				while( ArrayLen( menuItems ) > i && _isSeparatorItem( menuItems[ i+1 ] ) ) {
+					ArrayDeleteAt( menuItems, i+1 );
+				}
+			}
+
+			if ( i>=ArrayLen( menuItems ) ) {
+				break;
+			}
+		}
+
+		while( ArrayLen( menuItems ) && _isSeparatorItem( menuItems[1] ) ) {
+			ArrayDeleteAt( menuItems, 1 )
+		}
+		while( ArrayLen( menuItems ) && _isSeparatorItem( ArrayLast( menuItems ) ) ) {
+			ArrayDeleteAt( menuItems, ArrayLen( menuItems ) );
+		}
 	}
 
 
