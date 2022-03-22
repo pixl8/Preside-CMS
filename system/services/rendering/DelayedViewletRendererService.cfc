@@ -167,7 +167,7 @@ component {
 	public boolean function isDelayableContext() {
 		var event = $getRequestContext();
 
-		if ( event.isAdminRequest() || event.isEmailRenderingContext() || event.isBackgroundThread()  ) {
+		if ( event.isAdminRequest() || event.isEmailRenderingContext() || event.isBackgroundThread() || event.isApiRequest()  ) {
 			return false;
 		}
 
