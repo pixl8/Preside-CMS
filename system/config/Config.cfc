@@ -861,6 +861,7 @@ component {
 			, time 		   = { isFormField=true  }
 			, starRating   = { isFormField=true  }
 			, checkbox	   = { isFormField=true  }
+			, url	       = { isFormField=true  }
 		} };
 
 		fbSettings.itemTypes.multipleChoice = { sortorder=20, types={

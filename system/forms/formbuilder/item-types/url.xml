@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.url:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="protocol" control="select" values="http://,https://" labels="http://,https://" defaultvalue="" />
+		</fieldset>
+	</tab>
+</form>
