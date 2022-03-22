@@ -331,6 +331,22 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return currentUrl.left( adminPath.len() ) == adminPath;
 	}
 
+	public string function getApiPath() {
+		var path = getController().getSetting( "rest.path" );
+
+		path = ReReplace( path, "^([^/])", "/\1" );
+		path = ReReplace( path, "([^/])$", "\1/" );
+
+		return path;
+	}
+
+	public boolean function isApiRequest() {
+		var currentUrl = getCurrentUrl();
+		var apiPath    = getApiPath();
+
+		return Left( currentUrl, Len( apiPath ) ) == apiPath;
+	}
+
 	public void function setIsDataManagerRequest() {
 		getRequestContext().setValue(
 			  name    = "_isDataManagerRequest"
@@ -1019,6 +1035,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		    && !event.valueExists( "fwreinit" )
 		    && !this.isBackgroundThread()
 		    && !this.isAdminRequest()
+		    && !this.isApiRequest()
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
 		    && !this.getCurrentUrl().reFindNoCase( "^/asset/" )
