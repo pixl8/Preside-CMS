@@ -853,22 +853,22 @@ component {
 		var fbSettings = { itemtypes={} };
 
 		fbSettings.itemTypes.standard = { sortorder=10, types={
-			  textinput    = { isFormField=true  }
-			, textarea     = { isFormField=true  }
-			, email		   = { isFormField=true  }
-			, number 	   = { isFormField=true  }
-			, date 		   = { isFormField=true  }
-			, time 		   = { isFormField=true  }
-			, starRating   = { isFormField=true  }
-			, checkbox	   = { isFormField=true  }
-			, url	       = { isFormField=true  }
+			  textinput  = { isFormField=true }
+			, textarea   = { isFormField=true }
+			, email      = { isFormField=true }
+			, number     = { isFormField=true }
+			, date       = { isFormField=true }
+			, time       = { isFormField=true }
+			, starRating = { isFormField=true }
+			, checkbox   = { isFormField=true }
+			, url        = { isFormField=true }
 		} };
 
 		fbSettings.itemTypes.multipleChoice = { sortorder=20, types={
-			  select	   = { isFormField=true  }
-			, checkboxList = { isFormField=true  }
-			, radio	       = { isFormField=true  }
-			, matrix       = { isFormField=true  }
+			  select       = { isFormField=true }
+			, checkboxList = { isFormField=true }
+			, radio        = { isFormField=true }
+			, matrix       = { isFormField=true }
 		} };
 
 		fbSettings.itemTypes.upload = { sortorder=30, types={
@@ -876,13 +876,13 @@ component {
 		} };
 
 		fbSettings.itemTypes.content = { sortorder=40, types={
-			  spacer    = { isFormField=false }
-			, content   = { isFormField=false }
+			  spacer  = { isFormField=false }
+			, content = { isFormField=false }
 		} };
 
 		fbSettings.actions = [
-			  { id="email" }
-			, { id="anonymousCustomerEmail" }
+			  { id="email"                                     }
+			, { id="anonymousCustomerEmail"                    }
 			, { id="loggedInUserEmail", feature="websiteUsers" }
 		];
 
