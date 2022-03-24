@@ -4,6 +4,7 @@ component {
 	property name="customizationService"   inject="dataManagerCustomizationService";
 	property name="datamanagerService"     inject="datamanagerService";
 	property name="messageBox"             inject="messagebox@cbmessagebox";
+	property name="taskManagerService"     inject="TaskManagerService";
 
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName       = "saved_export";
@@ -67,6 +68,22 @@ component {
 
 		if ( !isEmpty( newId ) ) {
 			scheduledExportService.updateScheduleExport( newId );
+		}
+	}
+
+	private void function preEditRecordAction( event, rc, prc, args={} ){
+		if ( !isInstanceOf( args.validationResult ?: "", "ValidationResult" ) ) {
+			return;
+		}
+
+		var formData = args.formData ?: {};
+
+		if ( len( formData.schedule ?: "" ) ) {
+			var scheduleValidationMessage = taskManagerService.getValidationErrorMessageForPotentiallyBadCrontabExpression( formData.schedule );
+
+			if ( len( trim( scheduleValidationMessage ) ) ) {
+				args.validationResult.addError( fieldName="schedule", message=scheduleValidationMessage );
+			}
 		}
 	}
 
