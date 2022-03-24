@@ -78,7 +78,7 @@ component {
 
 		var formData = args.formData ?: {};
 
-		if ( len( formData.schedule ?: "" ) ) {
+		if ( len( formData.schedule ?: "" ) && formData.schedule != "disabled" ) {
 			var scheduleValidationMessage = taskManagerService.getValidationErrorMessageForPotentiallyBadCrontabExpression( formData.schedule );
 
 			if ( len( trim( scheduleValidationMessage ) ) ) {
