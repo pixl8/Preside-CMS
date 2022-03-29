@@ -7,10 +7,19 @@
 
     $(".auto-slug").each( function(){
         var $this = $(this)
-          , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
+          , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']")
+          , slugDelimiter = $this.data( "slugDelimiter" )
+          , startRegex = new RegExp( "^"+slugDelimiter, "g" )
+          , endRegex   = new RegExp( slugDelimiter+"$", "g" )
+        ;
 
         $basedOn.keyup( function(e){
-            var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).replace( /^-/, "" ).replace( /-$/, "" ).toLowerCase();
+            var slug = $basedOn.val()
+                .replace( /\W/g, slugDelimiter )
+                .replace( /-+/g, slugDelimiter )
+                .replace( startRegex, "" )
+                .replace( endRegex  , "" )
+                .toLowerCase();
 
             $this.val( slug ).trigger( "keyup" );
         } );
