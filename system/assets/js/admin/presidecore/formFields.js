@@ -55,7 +55,6 @@
         });
     });
 
-
     $(".derivative-select-option").each( function(){
         var $derivativeField   = $( this )
           , $parentForm        = $derivativeField.closest( "form" )
@@ -85,5 +84,10 @@
             $qualityField.data("uberSelect").search_field_disabled();
         }
     });
+
+    $( 'input[type="file"]' ).on("change", function() {
+        var $this = $( this );
+        $( ".form-control-filename", $this.parent() ).text( $this.val().split( "\\" ).pop() );
+    } );
 
 } )( presideJQuery );
