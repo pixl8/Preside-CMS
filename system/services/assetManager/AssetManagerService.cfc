@@ -590,9 +590,19 @@ component displayName="AssetManager Service" {
 			, orderBy      = "asset.datemodified desc"
 		);
 
-		for( var record in records ){
-			record.folder = record.folder ?: "";
-			result.append( record );
+		if ( ArrayLen( arguments.ids ) ) {
+			for( var id in arguments.ids ) {
+				for( var record in records ) {
+					if ( record.value == id ) {
+						ArrayAppend( result, record );
+						break;
+					}
+				}
+			}
+		} else {
+			for( var record in records ){
+				result.append( record );
+			}
 		}
 
 		return result;
