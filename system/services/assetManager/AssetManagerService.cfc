@@ -555,10 +555,14 @@ component displayName="AssetManager Service" {
 		var records             = "";
 		var result              = [];
 		var noPermissionFolders = _userNoPermissionAssetFolders();
-
+		var orderby             = "asset.datemodified desc";
+		
+		// if ids are submitted the filter and sorting needs to be modified
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
 			params.id = arguments.ids;
+			params.fieldorder_ids = { value=arguments.ids, type="varchar", list=true };
+			orderby = "FIELD( asset.id, :fieldorder_ids )";
 		}
 		if ( arguments.allowedTypes.len() ) {
 			params.asset_type = [];
@@ -587,7 +591,7 @@ component displayName="AssetManager Service" {
 			, filterParams = params
 			, savedFilters = ListToArray( arguments.savedFilters )
 			, maxRows      = arguments.maxRows
-			, orderBy      = "asset.datemodified desc"
+			, orderBy      = orderby
 		);
 
 		for( var record in records ){
