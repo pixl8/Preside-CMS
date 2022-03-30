@@ -6,11 +6,21 @@
     $(".image-dimension-picker").imageDimensionPicker();
 
     $(".auto-slug").each( function(){
-        var $this = $(this)
-          , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
+        var $this         = $(this)
+          , $basedOn      = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']")
+          , slugDelimiter = $this.data( "slugDelimiter" )
+          , repeatRegex   = new RegExp( slugDelimiter+"+", "g" )
+          , startRegex    = new RegExp( "^"+slugDelimiter, "g" )
+          , endRegex      = new RegExp( slugDelimiter+"$", "g" )
+        ;
 
         $basedOn.keyup( function(e){
-            var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).replace( /^-/, "" ).replace( /-$/, "" ).toLowerCase();
+            var slug = $basedOn.val()
+                .replace( /\W/g      , slugDelimiter )
+                .replace( repeatRegex, slugDelimiter )
+                .replace( startRegex , "" )
+                .replace( endRegex   , "" )
+                .toLowerCase();
 
             $this.val( slug ).trigger( "keyup" );
         } );
