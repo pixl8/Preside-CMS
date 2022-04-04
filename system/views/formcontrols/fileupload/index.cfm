@@ -8,7 +8,7 @@
 	maximumfilesize = args.maximumfilesize ?: "";
 	placeholder     = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 
-	filename = isEmptyString( defaultValue ) ? "" : ListLast( defaultValue, "/" );
+	filename = isEmptyString( defaultValue ) || IsJSON( defaultValue ) ? "" : ListLast( defaultValue, "/" );
 </cfscript>
 
 <cfoutput>
