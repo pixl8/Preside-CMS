@@ -17,8 +17,7 @@
 		domainPathDefaultValue = ReplaceNoCase( value, protocolDefaultValue, "" );
 	}
 
-	protocol       = args.protocol ?: "";
-	protocolValues = isEmptyString( protocol ) ? "http://,https://" : protocol;
+	protocolValues = "https://,http://";
 
 	event.include( "/js/admin/specific/urlInput/" );
 </cfscript>
