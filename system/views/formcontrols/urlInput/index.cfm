@@ -34,6 +34,7 @@
 				, layout             = ""
 				, defaultValue       = protocolDefaultValue
 				, values             = protocolValues
+				, includeEmptyOption = true
 			)#
 		</div>
 		<div class="col-md-9">
@@ -48,5 +49,5 @@
 			)#
 		</div>
 	</div>
-	<input type="hidden" class="#inputClass#" id="#inputId#" name="#inputName#" value="#value#" />
+	<input type="hidden" class="#inputClass# url-input url-input-hidden" id="#inputId#" name="#inputName#" value="#value#" />
 </cfoutput>

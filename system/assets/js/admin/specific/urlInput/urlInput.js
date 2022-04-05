@@ -2,17 +2,29 @@
 
 	$.fn.presideUrlInput = function() {
 		return this.each( function() {
-			$( this ).on( "change", function( e ) {
-				var $hidden     = $( this ).closest( ".row" ).next( 'input[type="hidden"]' )
-				  , inputId     = $hidden.attr( "id" )
-				  , $protocol   = $( "#" + inputId + "_protocol" )
+			var $hidden   = $( this )
+			  , inputName = $hidden.attr( "name" )
+			  , inputId   = $hidden.attr( "id" )
+			;
+
+			$( '[name="' + inputName + '_protocol"],#' + inputId + "_domain_path").on( "change", function( e ) {
+				var $protocol   = $( '[name="' + inputName + '_protocol"]' )
 				  , $domainPath = $( "#" + inputId + "_domain_path" )
 				;
 
-				if ( $protocol.val().length > 0 && $domainPath.val().length > 0 ) {
-					var matches = $domainPath.val().match( /^(.*:\/\/)/g );
+				if ( $domainPath.val().length > 0 ) {
+					if ( $protocol.val().length == 0 ) {
+						var matches     = $domainPath.val().match( /^(.*:\/\/)/g )
+						  , protocol    = matches ? matches[ 0 ] : ""
+						  , $uberSelect = $protocol.data( "uberSelect" )
+						;
 
-					$protocol.val( matches ? matches[ 0 ] : "https://" );
+						if ( typeof $uberSelect !== "undefined" ) {
+							$uberSelect.select( protocol );
+						} else {
+							$protocol.val( protocol );
+						}
+					}
 
 					$domainPath.val( $domainPath.val().replace( /^https?:\/\//, "" ) );
 
@@ -24,6 +36,6 @@
 		} );
 	};
 
-	$( ".url-input-protocol,.url-input-domain-path" ).presideUrlInput();
+	$( ".url-input-hidden" ).presideUrlInput();
 
 } )( jQuery || presideJQuery );
