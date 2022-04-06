@@ -6,15 +6,15 @@
 	placeholder  = args.placeholder  ?: "";
 	placeholder  = EncodeForHTML( translateResource( uri=placeholder, defaultValue=placeholder ) );
 
-	protocolDefaultValue = "";
-	addressDefaultValue  = "";
+	protocolDefaultValue   = "";
+	domainPathDefaultValue = "";
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	} else if ( REFindNoCase( "^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$", value ) ) {
 		protocolDefaultValue = ArrayFirst( REMatch( "^https?:\/\/", value ) );
-		addressDefaultValue  = ReplaceNoCase( value, protocolDefaultValue, "" );
+		domainPathDefaultValue = ReplaceNoCase( value, protocolDefaultValue, "" );
 	}
 
 	protocolValues = "https://,http://";
@@ -41,11 +41,11 @@
 			#renderFormControl(
 				  argumentCollection = args
 				, type               = "textInput"
-				, name               = inputName & "_address"
-				, id                 = inputId   & "_address"
-				, class              = inputClass & " url-input url-input-address"
+				, name               = inputName & "_domain_path"
+				, id                 = inputId   & "_domain_path"
+				, class              = inputClass & " url-input url-input-domain-path"
 				, layout             = ""
-				, defaultValue       = addressDefaultValue
+				, defaultValue       = domainPathDefaultValue
 			)#
 		</div>
 	</div>

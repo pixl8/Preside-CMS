@@ -7,39 +7,28 @@
 			  , inputId   = $hidden.attr( "id" )
 			;
 
-			$( '[name="' + inputName + '_protocol"],#' + inputId + "_address").on( "change", function( e ) {
-				var $protocol = $( '[name="' + inputName + '_protocol"]' )
-				  , $address  = $( "#" + inputId + "_address" )
+			$( '[name="' + inputName + '_protocol"],#' + inputId + "_domain_path").on( "change", function( e ) {
+				var $protocol   = $( '[name="' + inputName + '_protocol"]' )
+				  , $domainPath = $( "#" + inputId + "_domain_path" )
 				;
 
-				if ( $address.val().length > 0 ) {
-					// var protocol = "";
-
-					// if ( $protocol.val().length == 0 ) {
-						var matches     = $address.val().match( /^(.*:\/\/)/g )
+				if ( $domainPath.val().length > 0 ) {
+					if ( $protocol.val().length == 0 ) {
+						var matches     = $domainPath.val().match( /^(.*:\/\/)/g )
 						  , protocol    = matches ? matches[ 0 ] : ""
 						  , $uberSelect = $protocol.data( "uberSelect" )
 						;
 
-						if ( $protocol.val().length == 0 && protocol.length == 0 ) {
-							protocol = "https://";
+						if ( typeof $uberSelect !== "undefined" ) {
+							$uberSelect.select( protocol );
 						} else {
-							if ( typeof $uberSelect !== "undefined" ) {
-								$uberSelect.select( protocol );
-							} else {
-								$protocol.val( protocol );
-							}
+							$protocol.val( protocol );
 						}
+					}
 
+					$domainPath.val( $domainPath.val().replace( /^https?:\/\//, "" ) );
 
-
-
-
-					// }
-
-					$address.val( $address.val().replace( /^https?:\/\//, "" ) );
-
-					$hidden.val( $protocol.val() + $address.val() );
+					$hidden.val( $protocol.val() + $domainPath.val() );
 				} else {
 					$hidden.val( "" );
 				}
