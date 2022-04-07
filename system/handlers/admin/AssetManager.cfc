@@ -1049,7 +1049,7 @@ component extends="preside.system.base.AdminHandler" {
 			, filter        = assetFilter
 			, savedFilters  = listToArray( savedFilters )
 			, orderBy       = "title asc"
-			, maxRows       = 5
+			, maxRows       = pageSize
 			, startRow      = startRow
 		);
 	}
