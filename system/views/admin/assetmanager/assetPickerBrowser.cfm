@@ -2,6 +2,7 @@
 	activeFolder = Trim( rc.folder  ?: "" );
 	allowedTypes = prc.allowedTypes ?: [];
 	savedFilters = prc.savedFilters ?: "";
+	loadMoreUrl  = prc.loadMoreUrl ?: "";
 
 	rootFolder   = prc.rootFolderId ?: 0;
 	if ( not Len( activeFolder ) ) {
@@ -26,6 +27,7 @@
 		, filter        = assetFilter
 		, savedFilters  = listToArray( savedFilters )
 		, orderBy       = "title asc"
+		, maxRows       = 10
 	);
 
 	multiple = IsBoolean( rc.multiple ?: "" ) && rc.multiple;
@@ -40,12 +42,22 @@
 				<th>#translateResource( "cms:assetManager.browser.name.column" )#</th>
 			</tr>
 		</thead>
-		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
+		<tbody data-nav-list="1" data-nav-list-child-selector="> tr" id="loadmorecontainer">
 			<cfif activeFolder neq rootFolder>
 				#renderView( view="admin/assetManager/_folderBrowserListingUpOneLevelForPicker", presideObject="asset_folder", id=activeFolder )#
 			</cfif>
 			#folders#
 			#assets#
 		</tbody>
+		<cfif Len( Trim( assets ) )>
+			<tfoot class="load-more">
+				<tr>
+					<td colspan="2">
+						<i class="fa fa-fw fa-plus light-grey"></i>
+						<a class="load-more" data-href="#loadMoreUrl#" data-load-more-target="loadmorecontainer">#translateResource( "cms:assetmanager.browser.load.more" )#</a>
+					</td>
+				</tr>
+			</tfoot>
+		</cfif>
 	</table>
 </cfoutput>
