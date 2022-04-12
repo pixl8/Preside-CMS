@@ -242,7 +242,6 @@ component displayName="Tenancy service" {
 				if ( $getPresideObjectService().objectIsVersioned( filterObject ) ) {
 					var versionedObjectName = $getPresideObjectService().getVersionObjectName( filterObject );
 					if ( versionedObjectName == arguments.objectName ) {
-
 						ArrayDelete( arguments.extraFilters, filter );
 					}
 				}
