@@ -11,7 +11,7 @@ component {
 		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );
 		var permissionsBase  = "savedExport"
 		var alwaysDisallowed = [ "manageContextPerms" ];
-		var operationMapped  = [ "read", "add", "edit", "delete", "batchdelete" ];
+		var operationMapped  = [ "read", "add", "edit", "delete", "batchdelete", "clone" ];
 		var permissionKey    = "#permissionsBase#.#( args.key ?: "" )#";
 		var hasPermission    = !alwaysDisallowed.find( args.key )
 		                    && ( !operationMapped.find( args.key ) || allowedOps.find( args.key ) )
