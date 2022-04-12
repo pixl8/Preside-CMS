@@ -119,7 +119,7 @@
 	$.fn.presideFrontEndEditor = function( command ){
 		return this.each( function(){
 			var $scriptContainer      = $( this )
-			  , $editor               = $( $scriptContainer.html() )
+			  , $editor               = $( atob( $scriptContainer.html() ) )
 			  , $editorContainer      = $editor.find( '.content-editor-editor-container' )
 			  , $overlay              = $editor.find( ".content-editor-overlay .inner" )
 			  , $form                 = $editorContainer.find( "form" )
