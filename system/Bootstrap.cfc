@@ -690,7 +690,7 @@ component {
 	}
 
 	private string function _getApplicationRoot() {
-		return ExpandPath( "/" );
+		return ReReplace( ExpandPath( "/" ), "/$", "" );
 	}
 
 	private void function _stillReloadingError() {
