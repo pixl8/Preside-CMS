@@ -26,7 +26,7 @@ component {
 	}
 
 	/**
-	 * Recieves an html string and returns the same HTML
+	 * Receives an html string and returns the same HTML
 	 * but with all style definitions that reside in `style` tags
 	 * converted to inline styles suitable for email sending.
 	 *
@@ -92,7 +92,7 @@ component {
 	}
 
 	/**
-	 * Recieves an html string or jSoup doc and returns an array
+	 * Receives an html string or jSoup doc and returns an array
 	 * of style rules found
 	 *
 	 * @autodoc   true
