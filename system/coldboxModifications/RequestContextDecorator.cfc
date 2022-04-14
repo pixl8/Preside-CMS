@@ -1031,6 +1031,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			return arguments.cache;
 		}
 
+		if ( getModel( "websiteLoginService" ).isLoggedIn() && !getModel( "featureService" ).isFeatureEnabled( "fullPageCachingForLoggedInUsers" ) ) {
+			return false;
+		}
+
 		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
 		    && !event.valueExists( "fwreinit" )
 		    && !this.isBackgroundThread()
