@@ -60,7 +60,7 @@ component {
 		, required string recordId
 		,          string keyField      = "id"
 		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
-		,          array bypassTenants = []
+		,          array  bypassTenants = []
 	) {
 		var labelField           = _getPresideObjectService().getObjectAttribute(  arguments.objectName, "labelfield" );
 		var labelRendererService = _getLabelRendererService();
@@ -130,6 +130,26 @@ component {
 		}
 
 		return rendered;
+	}
+
+	public string function renderEnum(
+		  required string objectName
+		, required string propertyName
+		, required string data
+		,          any    context      = "default"
+		,          string recordId     = ""
+		,          string enumRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "enumRenderer", "enumLabel" )
+	) {
+		return this.render(
+			  renderer = arguments.enumRenderer
+			, data     = arguments.data
+			, context  = arguments.context
+			, args     = {
+				  objectName   = arguments.objectName
+				, propertyName = arguments.propertyName
+				, recordId     = arguments.recordId
+			  }
+		);
 	}
 
 	public string function makeContentEditable(
