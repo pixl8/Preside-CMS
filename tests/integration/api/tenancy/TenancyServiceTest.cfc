@@ -358,11 +358,7 @@ component extends="testbox.system.BaseSpec"{
 				mockColdbox.$( "handlerExists", false );
 
 				expect( service.getTenancyFilter( objectName ) ).toBe( {
-					filter = {
-						  "#objectName#.#fk#" = tenantId
-						, filterObject        = objectName
-						, isTenancyFilter     = true
-					}
+					filter = { "#objectName#.#fk#" = tenantId }
 				} );
 			} );
 
