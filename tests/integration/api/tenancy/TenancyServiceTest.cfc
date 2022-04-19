@@ -358,9 +358,7 @@ component extends="testbox.system.BaseSpec"{
 				mockColdbox.$( "handlerExists", false );
 
 				expect( service.getTenancyFilter( objectName ) ).toBe( {
-					  filter = { "#objectName#.#fk#" = tenantId }
-					, filterObject        = objectName
-					, isTenancyFilter     = true
+					filter = { "#objectName#.#fk#" = tenantId }
 				} );
 			} );
 
@@ -370,10 +368,7 @@ component extends="testbox.system.BaseSpec"{
 				var tenant     = "test";
 				var tenantId   = CreateUUId();
 				var fk         = CreateUUId();
-				var filter     = {
-					  crazy="test"
-					, test=CreateUUId()
-				};
+				var filter     = { crazy="test", test=CreateUUId() };
 
 				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
 				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
@@ -386,11 +381,7 @@ component extends="testbox.system.BaseSpec"{
 					, eventArguments = {
 						  objectName    = objectName
 						, fk            = fk
-						, defaultFilter = {
-							  filter={ "#objectName#.#fk#" = tenantId }
-							, filterObject        = objectName
-							, isTenancyFilter     = true
-						}
+						, defaultFilter = { filter={ "#objectName#.#fk#" = tenantId } }
 						, tenantId      = tenantId
 					}
 				).$results( filter );
@@ -415,11 +406,7 @@ component extends="testbox.system.BaseSpec"{
 				var tenantId   = CreateUUId();
 				var tenantIds  = { test=tenantId };
 				var fk         = "some_fk";
-				var filter     = {
-					  filter = { "testthis.some_fk"=tenantId }
-					, filterObject        = objectName
-					, isTenancyFilter     = true
-				};
+				var filter     = { filter = { "testthis.some_fk"=tenantId } };
 
 				service.$( "getObjectTenant" ).$args( objectName ).$results( tenant );
 				service.$( "getTenantFkForObject" ).$args( objectName ).$results( fk );
