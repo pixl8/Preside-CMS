@@ -461,6 +461,7 @@ component {
 			, restTokenAuth            = { enabled=false, siteTemplates=[ "*" ] }
 			, adminCsrfProtection      = { enabled=true , siteTemplates=[ "*" ] }
 			, fullPageCaching          = { enabled=false, siteTemplates=[ "*" ] }
+			, fullPageCachingForLoggedInUsers = { enabled=false, siteTemplates=[ "*" ] }
 			, healthchecks             = { enabled=true , siteTemplates=[ "*" ] }
 			, emailQueueHeartBeat      = { enabled=true , siteTemplates=[ "*" ] }
 			, adhocTaskHeartBeat       = { enabled=true , siteTemplates=[ "*" ] }
