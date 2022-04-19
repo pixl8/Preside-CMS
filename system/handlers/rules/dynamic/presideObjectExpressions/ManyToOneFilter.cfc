@@ -48,6 +48,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			  objectName          = arguments.relatedTo
 			, selectFields        = [ "#idField# as id" ]
 			, extraFilters        = [ filter ]
+			, groupBy             = idField
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
