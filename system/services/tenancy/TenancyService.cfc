@@ -189,7 +189,7 @@ component displayName="Tenancy service" {
 		return fields;
 	}
 
-	public struct function getTenancyFilter( required string objectName, array bypassTenants=[], struct tenantIds={} ) {
+	public struct function getTenancyFilter( required string objectName, array bypassTenants=[], struct tenantIds={}, extraFilters=[] ) {
 		var tenant = getObjectTenant( arguments.objectName );
 
 		if ( tenant.len() && !arguments.bypassTenants.findNoCase( tenant ) ) {
@@ -198,7 +198,13 @@ component displayName="Tenancy service" {
 			var config        = _getTenancyConfig();
 			var filterHandler = config[ tenant ].getFilterHandler ?: "tenancy.#tenant#.getFilter";
 			var coldbox       = $getColdbox();
-			var defaultFilter = { filter={ "#arguments.objectName#.#fk#"=tenantId } };
+			var defaultFilter = {
+				  filter={ "#arguments.objectName#.#fk#" = tenantId }
+				, isTenancyFilter               = true
+				, filterObject                  = arguments.objectName
+			};
+
+			_removeNonVersionedTenancyFilter( argumentCollection = arguments );
 
 			if ( coldbox.handlerExists( filterHandler ) ) {
 				var filter = coldbox.runEvent(
@@ -224,6 +230,22 @@ component displayName="Tenancy service" {
 		}
 
 		return {};
+	}
+
+	private void function _removeNonVersionedTenancyFilter( required string objectName, extraFilters=[] ) {
+		for ( var filter in arguments.extraFilters ) {
+			var isTenancyFilter = filter.isTenancyFilter ?: "";
+			if ( isBoolean( isTenancyFilter ) && isTenancyFilter ) {
+				var filterObject    = filter.filterObject    ?: "";
+				if ( $getPresideObjectService().objectIsVersioned( filterObject ) ) {
+					var versionedObjectName = $getPresideObjectService().getVersionObjectName( filterObject );
+					if ( versionedObjectName == arguments.objectName ) {
+
+						ArrayDelete( arguments.extraFilters, filter );
+					}
+				}
+			}
+		}
 	}
 
 	public void function setRequestTenantIds() {
