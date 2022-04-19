@@ -65,7 +65,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
 		var paramName     = subQueryAlias;
-		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} :#paramName#";
+		var filterSql     = "ifnull( #subQueryAlias#.onetomany_count, 0 ) ${operator} :#paramName#";
 		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
 		for( var param in subQuery.params ) {

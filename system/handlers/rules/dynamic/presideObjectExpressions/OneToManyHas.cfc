@@ -69,7 +69,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		}
 
 		if ( _is ) {
-			filterSql = "#subQueryAlias#.onetomany_count > 0";
+			filterSql = "( #subQueryAlias#.onetomany_count is not null and #subQueryAlias#.onetomany_count > 0 )";
 		} else {
 			filterSql = "( #subQueryAlias#.onetomany_count is null or #subQueryAlias#.onetomany_count = 0 )";
 		}
