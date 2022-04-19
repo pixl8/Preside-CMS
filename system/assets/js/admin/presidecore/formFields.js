@@ -6,11 +6,21 @@
     $(".image-dimension-picker").imageDimensionPicker();
 
     $(".auto-slug").each( function(){
-        var $this = $(this)
-          , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
+        var $this         = $(this)
+          , $basedOn      = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']")
+          , slugDelimiter = $this.data( "slugDelimiter" )
+          , repeatRegex   = new RegExp( slugDelimiter+"+", "g" )
+          , startRegex    = new RegExp( "^"+slugDelimiter, "g" )
+          , endRegex      = new RegExp( slugDelimiter+"$", "g" )
+        ;
 
         $basedOn.keyup( function(e){
-            var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).replace( /^-/, "" ).replace( /-$/, "" ).toLowerCase();
+            var slug = $basedOn.val()
+                .replace( /\W/g      , slugDelimiter )
+                .replace( repeatRegex, slugDelimiter )
+                .replace( startRegex , "" )
+                .replace( endRegex   , "" )
+                .toLowerCase();
 
             $this.val( slug ).trigger( "keyup" );
         } );
@@ -55,7 +65,6 @@
         });
     });
 
-
     $(".derivative-select-option").each( function(){
         var $derivativeField   = $( this )
           , $parentForm        = $derivativeField.closest( "form" )
@@ -85,5 +94,10 @@
             $qualityField.data("uberSelect").search_field_disabled();
         }
     });
+
+    $( 'input[type="file"]' ).on("change", function() {
+        var $this = $( this );
+        $( ".form-control-filename", $this.parent() ).text( $this.val().split( "\\" ).pop() );
+    } );
 
 } )( presideJQuery );

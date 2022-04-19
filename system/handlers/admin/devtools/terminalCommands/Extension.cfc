@@ -1,4 +1,4 @@
-component hint="Manage preside extensions" {
+component hint="Manage Preside extensions" {
 
 	property name="jsonRpc2Plugin"          inject="JsonRpc2";
 	property name="extensionManagerService" inject="extensionManagerService";

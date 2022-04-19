@@ -310,4 +310,10 @@ component validationProvider=true {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
 	}
 
+	public boolean function url( required string fieldName, any value="" ) validatorMessage="cms:validation.url.default" {
+		return IsEmpty( arguments.value ) || ReFindNoCase( "^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$", arguments.value );
+	}
+	public string function url_js() validatorMessage="validationExtras:validation.simpleUrl.default" {
+		return "function( value, el, params ){ return !value.length || value.match( /^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$/i ) !== null }";
+	}
 }

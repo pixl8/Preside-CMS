@@ -26,26 +26,28 @@
 			  , updateSelectAllOptionRecordCount
 			  , activateSelectAllOption
 			  , deactivateSelectAllOption
-			  , object              = tableSettings.objectName        || cfrequest.objectName     || ""
-			  , datasourceUrl       = tableSettings.datasourceUrl     || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
-			  , isMultilingual      = tableSettings.isMultilingual    || cfrequest.isMultilingual || false
-			  , draftsEnabled       = tableSettings.draftsEnabled     || cfrequest.draftsEnabled  || false
-			  , object              = tableSettings.objectName        || cfrequest.objectName     || ""
-			  , objectTitle         = tableSettings.objectTitle       || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" )
-			  , allowSearch         = tableSettings.allowSearch       || cfrequest.allowSearch
-			  , allowFilter         = tableSettings.allowFilter       || cfrequest.allowFilter
-			  , allowDataExport     = tableSettings.allowDataExport   || cfrequest.allowDataExport
-			  , allowSaveExport     = tableSettings.allowSaveExport   || cfrequest.allowSaveExport
-			  , noRecordMessage     = tableSettings.noRecordMessage   || i18n.translateResource( "cms:datatables.emptyTable" )
-			  , favouritesUrl       = tableSettings.favouritesUrl     || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
-			  , compact             = tableSettings.compact           || cfrequest.compact
-			  , defaultPageLength   = cfrequest.defaultPageLength     || 10
-			  , paginationOptions   = cfrequest.paginationOptions     || [ 5, 10, 25, 50, 100 ]
-			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
-			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
-			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
-			  , $filterDiv          = $( '#' + tableId + '-filter' )
-			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
+			  , object                   = tableSettings.objectName               || cfrequest.objectName     || ""
+			  , datasourceUrl            = tableSettings.datasourceUrl            || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
+			  , isMultilingual           = tableSettings.isMultilingual           || cfrequest.isMultilingual || false
+			  , draftsEnabled            = tableSettings.draftsEnabled            || cfrequest.draftsEnabled  || false
+			  , object                   = tableSettings.objectName               || cfrequest.objectName     || ""
+			  , objectTitle              = tableSettings.objectTitle              || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" )
+			  , allowSearch              = tableSettings.allowSearch              || cfrequest.allowSearch
+			  , allowFilter              = tableSettings.allowFilter              || cfrequest.allowFilter
+			  , allowDataExport          = tableSettings.allowDataExport          || cfrequest.allowDataExport
+			  , allowSaveExport          = tableSettings.allowSaveExport          || cfrequest.allowSaveExport
+			  , noRecordMessage          = tableSettings.noRecordMessage          || i18n.translateResource( "cms:datatables.emptyTable" )
+			  , noRecordTableHide        = tableSettings.noRecordTableHide        || false
+			  , noRecordTableHideMessage = tableSettings.noRecordTableHideMessage || i18n.translateResource( "cms:preside-objects.default.field.no_value.title" )
+			  , favouritesUrl            = tableSettings.favouritesUrl            || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
+			  , compact                  = tableSettings.compact                  || cfrequest.compact
+			  , defaultPageLength        = cfrequest.defaultPageLength            || 10
+			  , paginationOptions        = cfrequest.paginationOptions            || [ 5, 10, 25, 50, 100 ]
+			  , clickableRows            = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
+			  , noActions                = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
+			  , useMultiActions          = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
+			  , $filterDiv               = $( '#' + tableId + '-filter' )
+			  , $favouritesDiv           = $( '#' + tableId + '-favourites' )
 			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
@@ -265,6 +267,26 @@
 
 				$listingTable.on( "xhr", function( event, settings, json ){
 					lastAjaxResult = json;
+
+					if ( noRecordTableHide ) {
+						var searchQuery = "";
+
+						if ( allowSearch ) {
+							searchQuery = $( dtSettings.aanFeatures.f[0] ).find( "input.data-table-search" ).val();
+						}
+
+						if ( searchQuery.length == 0 ) {
+							var iTotalRecords = json.iTotalRecords || 0;
+
+							if ( iTotalRecords == 0 ) {
+								var $tableContainer = $( "#"+tableId+"-container" );
+
+								$tableContainer.parent().append( noRecordTableHideMessage );
+
+								$tableContainer.hide();
+							}
+						}
+					}
 				} );
 			};
 

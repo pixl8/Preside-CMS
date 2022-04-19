@@ -275,7 +275,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockColdBox = getMockBox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
-		return new preside.system.services.rendering.ContentRendererService(
+		var svc = getMockBox().createMock( object=new preside.system.services.rendering.ContentRendererService(
 			  logger               = logger
 			, presideObjectService = presideObjectService
 			, coldbox              = mockColdBox
@@ -283,6 +283,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, assetRendererService = getMockBox().createEmptyMock( "preside.system.services.assetManager.assetRendererService" )
 			, widgetsService       = getMockBox().createEmptyMock( "preside.system.services.widgets.widgetsService" )
 			, labelRendererService = getMockBox().createEmptyMock( "preside.system.services.rendering.LabelRendererService" )
-		);
+		) );
+
+		svc.$( "$announceInterception" );
+
+		return svc;
 	}
 }

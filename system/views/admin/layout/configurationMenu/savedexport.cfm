@@ -1,10 +1,15 @@
-<cfif isFeatureEnabled( "dataexport" ) && hasCmsPermission( "savedExport.navigate" )>
-	<cfoutput>
-		<li>
-			<a href="#event.buildAdminLink( objectName="saved_export" )#">
-				<i class="fa fa-fw fa-download"></i>
-				#translateResource( 'cms:savedexport' )#
-			</a>
-		</li>
-	</cfoutput>
-</cfif>
+<!---
+ * This file exists purely for backward compatibility.
+ * This just proxies the "new" admin menu system (https://presidecms.atlassian.net/browse/PRESIDECMS-2293)
+ * Exists for any systems/extensions that are referencing this file directly
+ *
+--->
+<cfoutput>
+	#renderViewlet( event="admin.layout.adminMenu", args={
+		  menuItems       = [ "savedExport" ]
+		, legacyViewBase  = "/deliberately/wrong/"
+		, itemRenderer    = "/admin/layout/topnav/_subitem"
+		, subItemRenderer = "/admin/layout/topnav/_subitem"
+		, itemRendererArgs = { dropdownDirection="left" }
+	} )#
+</cfoutput>

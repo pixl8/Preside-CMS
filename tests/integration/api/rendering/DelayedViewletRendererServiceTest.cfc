@@ -126,7 +126,7 @@ proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culp
 				expect( service.isViewletDelayedByDefault( viewlet, true ) ).toBe( true );
 			} );
 
-			it( "should return false when the fullPageCaching feature is disabled", function(){
+			it( "should not regard the fullPageCaching feature as part of its calculation", function(){
 				var service           = _getService();
 				var viewlet           = "test.this.viewlet";
 				var handlerMethodMeta = { name="viewlet", private=true, cacheable=false };
@@ -135,7 +135,7 @@ proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culp
 				service.$( "_getHandlerMethodMeta" ).$args( viewlet ).$results( handlerMethodMeta );
 				service.$( "$isFeatureEnabled" ).$args( "fullPageCaching" ).$results( false );
 
-				expect( service.isViewletDelayedByDefault( viewlet ) ).toBe( false );
+				expect( service.isViewletDelayedByDefault( viewlet ) ).toBe( true );
 			} );
 		} );
 	}
