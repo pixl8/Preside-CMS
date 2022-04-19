@@ -204,7 +204,9 @@ component displayName="Tenancy service" {
 				, filterObject                  = arguments.objectName
 			};
 
-			_removeNonVersionedTenancyFilter( argumentCollection = arguments );
+			if ( arguments.objectName.startsWith( "vrsn_" ) ) {
+				_removeNonVersionedTenancyFilter( argumentCollection = arguments );
+			}
 
 			if ( coldbox.handlerExists( filterHandler ) ) {
 				var filter = coldbox.runEvent(
