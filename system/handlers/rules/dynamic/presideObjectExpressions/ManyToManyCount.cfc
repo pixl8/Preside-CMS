@@ -37,70 +37,45 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  savedFilter      = ""
 		,          numeric value            = 0
 	){
+		var prefix               = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var params               = {};
 		var subQueryExtraFilters = [];
+		var propAttributes       = presideObjectService.getObjectProperty( arguments.objectName, arguments.propertyName );
+		var keyFk                = propAttributes.relationshipIsSource ? propAttributes.relatedViaSourceFk : propAttributes.relatedViaTargetFk;
+		var valueFk              = propAttributes.relationshipIsSource ? propAttributes.relatedViaTargetFk : propAttributes.relatedViaSourceFk;
+		var outerPk              = "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+
 		if ( Len( Trim( arguments.savedFilter ) ) ) {
-			var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.savedFilter );
-			if ( expressionArray.len() ) {
-				subQueryExtraFilters.append(
-					filterService.prepareFilter(
-						  objectName      = arguments.relatedTo
-						, expressionArray = expressionArray
-						, filterPrefix    = arguments.propertyName
-					)
-				);
-			}
+			ArrayAppend( subQueryExtraFilters, getExistsFilterForEntityMatchingFilters(
+				  objectName  = propAttributes.relatedTo
+				, savedFilter = arguments.savedFilter
+				, outerTable  = propAttributes.relatedVia
+				, outerKey    = valueFk
+			) );
+		}
+		for( var extraFilter in subQueryExtraFilters ) {
+			StructAppend( params, extraFilter.filterParams ?: {} );
 		}
 
-		var objIdField = presideObjectService.getIdField( arguments.objectName );
-		var subQuery = presideObjectService.selectData(
-			  objectName          = arguments.objectName
-			, selectFields        = [ "Count( #propertyName#.#objIdField# ) as manytomany_count", "#objectName#.#objIdField# as id" ]
-			, groupBy             = "#objectName#.#objIdField#"
+		var countOperator = rulesEngineNumericOperatorToSqlOperator( arguments._numericOperator );
+		var countParam = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
+		var subquery  = presideObjectService.selectData(
+			  objectName          = propAttributes.relatedVia
+			, selectFields        = [ "1" ]
+			, filter              = obfuscateSqlForPreside( "#keyfk# = #outerPk#" )
 			, extraFilters        = subQueryExtraFilters
 			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+			, having              = "count(#keyfk#) #countOperator# :#countParam#"
 		);
 
-		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
-		var paramName     = subQueryAlias;
-		var filterSql     = "ifnull( #subQueryAlias#.manytomany_count, 0 ) ${operator} :#paramName#";
-		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
+		params[ countParam ] = { type="cf_sql_integer", value=arguments.value };
+		StructAppend( params, subquery.params );
 
-		for( var param in subQuery.params ) {
-			params[ param.name ] = param;
-			params[ param.name ].delete( "name" );
-		}
-
-		switch ( _numericOperator ) {
-			case "eq":
-				filterSql = filterSql.replace( "${operator}", "=" );
-			break;
-			case "neq":
-				filterSql = filterSql.replace( "${operator}", "!=" );
-			break;
-			case "gt":
-				filterSql = filterSql.replace( "${operator}", ">" );
-			break;
-			case "gte":
-				filterSql = filterSql.replace( "${operator}", ">=" );
-			break;
-			case "lt":
-				filterSql = filterSql.replace( "${operator}", "<" );
-			break;
-			case "lte":
-				filterSql = filterSql.replace( "${operator}", "<=" );
-			break;
-		}
-
-		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-
-		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
-			  type           = "left"
-			, subQuery       = subQuery.sql
-			, subQueryAlias  = subQueryAlias
-			, subQueryColumn = "id"
-			, joinToTable    = prefix
-			, joinToColumn   = objIdField
-		} ] } ];
+		return [ {
+			  filter = obfuscateSqlForPreside( "exists (#subquery.sql#)" )
+			, filterParams = params
+		}];
 	}
 
 	private string function getLabel(

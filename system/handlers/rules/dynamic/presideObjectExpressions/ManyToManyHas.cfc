@@ -35,55 +35,42 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          boolean _possesses         = true
 		,          string  savedFilter        = ""
 	){
+		var prefix               = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var params               = {};
 		var subQueryExtraFilters = [];
+		var propAttributes       = presideObjectService.getObjectProperty( arguments.objectname, arguments.propertyname );
+		var keyFk                = propAttributes.relationshipIsSource ? propAttributes.relatedViaSourceFk : propAttributes.relatedViaTargetFk;
+		var valueFk              = propAttributes.relationshipIsSource ? propAttributes.relatedViaTargetFk : propAttributes.relatedViaSourceFk;
+		var outerPk              = "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var exists               = arguments._possesses ? "exists" : "not exists";
+
 		if ( Len( Trim( arguments.savedFilter ) ) ) {
-			var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.savedFilter );
-			if ( expressionArray.len() ) {
-				subQueryExtraFilters.append(
-					filterService.prepareFilter(
-						  objectName      = arguments.relatedTo
-						, expressionArray = expressionArray
-						, filterPrefix    = arguments.propertyName
-					)
-				);
-			}
+			ArrayAppend( subQueryExtraFilters, getExistsFilterForEntityMatchingFilters(
+				  objectName  = propAttributes.relatedTo
+				, savedFilter = arguments.savedFilter
+				, outerTable  = propAttributes.relatedVia
+				, outerKey    = valueFk
+			) );
+		}
+		for( var extraFilter in subQueryExtraFilters ) {
+			StructAppend( params, extraFilter.filterParams ?: {} );
 		}
 
-		var objIdField = presideObjectService.getIdField( arguments.objectName );
-		var subQuery = presideObjectService.selectData(
-			  objectName          = arguments.objectName
-			, selectFields        = [ "Count( #propertyName#.#objIdField# ) as manytomany_count", "#objectName#.#objIdField# as id" ]
-			, groupBy             = "#objectName#.#objIdField#"
+		var subquery  = presideObjectService.selectData(
+			  objectName          = propAttributes.relatedVia
+			, selectFields        = [ "1" ]
+			, filter              = obfuscateSqlForPreside( "#keyfk# = #outerPk#" )
 			, extraFilters        = subQueryExtraFilters
 			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
 		);
 
-		var subQueryAlias = "manyToManyHas" & CreateUUId().lCase().replace( "-", "", "all" );
-		var paramName     = subQueryAlias;
-		var filterSql     = "";
-		var params        = {};
+		StructAppend( params, subquery.params );
 
-		for( var param in subQuery.params ) {
-			params[ param.name ] = param;
-			params[ param.name ].delete( "name" );
-		}
-
-		if ( _possesses ) {
-			filterSql = "( #subQueryAlias#.manytomany_count is not null and #subQueryAlias#.manytomany_count > 0 )";
-		} else {
-			filterSql = "( #subQueryAlias#.manytomany_count is null or #subQueryAlias#.manytomany_count = 0 )";
-		}
-
-		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-
-		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
-			  type           = "left"
-			, subQuery       = subQuery.sql
-			, subQueryAlias  = subQueryAlias
-			, subQueryColumn = "id"
-			, joinToTable    = prefix
-			, joinToColumn   = objIdField
-		} ] } ];
+		return [ {
+			  filter = obfuscateSqlForPreside( "#exists# (#subquery.sql#)" )
+			, filterParams = params
+		}];
 	}
 
 	private string function getLabel(
