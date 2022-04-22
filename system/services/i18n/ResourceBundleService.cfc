@@ -127,6 +127,13 @@ component singleton=true {
 				}
 			}
 		}
+		var defaultLocale = _getDefaultLocale();
+		for( var resource in locales ) {
+			if ( resource != "_ALL" && StructKeyExists( locales[ resource ], defaultLocale ) ) {
+				bundles[ resource ] = bundles[ resource ] ?: [];
+				ArrayAppend( bundles[ resource ], locales[ resource ][ defaultLocale ], true );
+			}
+		}
 
 		_setBundleFileDiscoveryCache( bundles, locales );
 
