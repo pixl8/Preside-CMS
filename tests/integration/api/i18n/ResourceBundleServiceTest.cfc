@@ -248,7 +248,7 @@
 			mockSiteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
 			mockSiteService.$( "getActiveSiteTemplate", "" );
 
-			return new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories, siteService=mockSiteService, defaultLocale="en" );
+			return new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories, siteService=mockSiteService );
 		</cfscript>
 	</cffunction>
 
