@@ -257,41 +257,46 @@ component singleton=true {
 	}
 
 	private array function _discoverOutlierBundleFiles( required string bundleName, string language, string country ) {
-		var directories        = _getBundleDirectories();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
-		var filePattern        = ListLast( arguments.bundleName, "." );
-		var siteTemplate       = "";
-		var subDirectory       = "";
-		var files              = "";
-		var directory          = "";
-		var file               = "";
-		var discoveredFiles    = [];
+		var localeRegex     = "(_[a-z]{2})(_[A-Z]{2})?$";
+		var shouldWeBother  = ReFind( localeRegex, arguments.bundleName ); // we should only have missed files that accidentally match the language-country suffix pattern
+		var discoveredFiles = [];
 
-		if ( ListLen( arguments.bundleName, "." ) > 1 ) {
-			subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
-			subDirectory = "/" & ListChangeDelims( subDirectory, "/", "." );
-		}
+		if ( shouldWeBother ) {
+			var directories        = _getBundleDirectories();
+			var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
+			var filePattern        = ListLast( arguments.bundleName, "." );
+			var siteTemplate       = "";
+			var subDirectory       = "";
+			var files              = "";
+			var directory          = "";
+			var file               = "";
 
-		if ( StructKeyExists( arguments, "language" ) ) {
-			filePattern &= "_" & LCase( arguments.language );
-			if ( StructKeyExists( arguments, "country" ) ) {
-				filePattern &= "_" & UCase( arguments.country );
+			if ( ListLen( arguments.bundleName, "." ) > 1 ) {
+				subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
+				subDirectory = "/" & ListChangeDelims( subDirectory, "/", "." );
 			}
-		}
 
-		filePattern &= ".properties";
+			if ( StructKeyExists( arguments, "language" ) ) {
+				filePattern &= "_" & LCase( arguments.language );
+				if ( StructKeyExists( arguments, "country" ) ) {
+					filePattern &= "_" & UCase( arguments.country );
+				}
+			}
 
-		for( directory in directories ){
-			directory = ReReplace( directory, "[\\/]$", "" );
+			filePattern &= ".properties";
 
-			siteTemplate = _getSiteTemplateFromPath( directory );
+			for( directory in directories ){
+				directory = ReReplace( directory, "[\\/]$", "" );
 
-			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
-				files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
+				siteTemplate = _getSiteTemplateFromPath( directory );
 
-				for( file in files ){
-					if ( filePattern == ListLast( file, "\/" ) ) {
-						ArrayAppend( discoveredFiles, file );
+				if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
+					files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
+
+					for( file in files ){
+						if ( filePattern == ListLast( file, "\/" ) ) {
+							ArrayAppend( discoveredFiles, file );
+						}
 					}
 				}
 			}
