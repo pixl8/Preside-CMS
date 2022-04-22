@@ -14,7 +14,7 @@
 	<cffunction name="test02_getResource_shouldLookupAndReturnResourceFromBaseBundle_whenNoLocaleInfoIsPassed" returntype="void">
 		<cfscript>
 			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles/" ];
-			var rbService  = _getRBService( bundleDirs );
+			var rbService  = _getRBService( bundleDirs, "fr" );
 			var expected   = "test resource value";
 			var result     = rbService.getResource( "core.master:test.resource.key" );
 
@@ -243,12 +243,13 @@
 <!--- private helpers --->
 	<cffunction name="_getRBService" access="private" returntype="any" output="false">
 		<cfargument name="bundleDirectories" type="array" required="true" />
+		<cfargument name="defaultLocale"     type="string" required="false" default="en" />
 
 		<cfscript>
 			mockSiteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
 			mockSiteService.$( "getActiveSiteTemplate", "" );
 
-			return new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories, siteService=mockSiteService );
+			return new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories, siteService=mockSiteService, defaultLocale=arguments.defaultLocale );
 		</cfscript>
 	</cffunction>
 
