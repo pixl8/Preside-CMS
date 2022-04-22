@@ -4,10 +4,16 @@ component singleton=true {
 	/**
 	 * @bundleDirectories.inject presidecms:directories:i18n
 	 * @siteService.inject       siteService
+	 * @defaultLocale.inject     coldbox:setting:default_locale
 	 */
-	public any function init( required array bundleDirectories, required any siteService ) output=false {
+	public any function init(
+		  required array  bundleDirectories
+		, required any    siteService
+		, required string defaultLocale
+	) {
 		_setBundleDirectories( arguments.bundleDirectories );
 		_setSiteService( arguments.siteService );
+		_setDefaultLocale( arguments.defaultLocale );
 		_setBundleDataCache( {} );
 		_discoverBundles();
 
@@ -229,7 +235,7 @@ component singleton=true {
 	}
 
 	private array function _getBundleFiles( required string bundleName, string language, string country ) {
-		if ( !StructKeyExists( arguments, "language" ) ) {
+		if ( _isDefaultLocale( argumentCollection=arguments ) ) {
 			return variables._bundleFileDiscoveryCache[ arguments.bundleName ] ?: _discoverOutlierBundleFiles( argumentCollection=arguments );
 		}
 
@@ -302,6 +308,18 @@ component singleton=true {
 	    variables._localeFileDiscoveryCache = arguments.locales;
 	}
 
+	private boolean function _isDefaultLocale( string language="", string country="" ) {
+		if ( !Len( Trim( arguments.language ) ) ) {
+			return true;
+		}
+		var locale = arguments.language;
+		if ( Len( Trim( arguments.country ) ) ) {
+			locale &= "_#arguments.country#";
+		}
+
+		return locale == _getDefaultLocale();
+	}
+
 // GETTERS AND SETTERS
 	private array function _getBundleDirectories() output=false {
 		return _bundleDirectories;
@@ -336,5 +354,12 @@ component singleton=true {
 	}
 	private void function _setBundleDataCache( required struct bundleDataCache ) output=false {
 		_bundleDataCache = arguments.bundleDataCache;
+	}
+
+	private string function _getDefaultLocale() {
+	    return _defaultLocale;
+	}
+	private void function _setDefaultLocale( required string defaultLocale ) {
+	    _defaultLocale = arguments.defaultLocale;
 	}
 }
