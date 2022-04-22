@@ -47,8 +47,8 @@
 		<cfscript>
 			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles/" ];
 			var rbService  = _getRBService( bundleDirs );
-			var expected   = "test resource value es";
-			var result     = rbService.getResource( uri="core.master:test.resource.key", language="es" );
+			var expected   = "test resource value en";
+			var result     = rbService.getResource( uri="core.master:test.resource.key", language="en" );
 
 			super.assertEquals( expected, result );
 		</cfscript>
@@ -81,7 +81,7 @@
 			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles/" ];
 			var rbService  = _getRBService( bundleDirs );
 			var expected   = "I am from language";
-			var result     = rbService.getResource( uri="core.master:core.and.language.only", language="es", country="ES" );
+			var result     = rbService.getResource( uri="core.master:core.and.language.only", language="en", country="US" );
 
 			super.assertEquals( expected, result );
 		</cfscript>
@@ -144,7 +144,7 @@
 
 			// in all three (we should get the value from bundle set 3)
 			expected = "I am from language (dir 3)";
-			result   = rbService.getResource( "core.master:core.and.language.only", "", "fr" );
+			result   = rbService.getResource( "core.master:core.and.language.only", "", "en" );
 			super.assertEquals( expected, result );
 		</cfscript>
 	</cffunction>
@@ -175,7 +175,7 @@
 		<cfscript>
 			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles3/" ];
 			var rbService  = _getRBService( bundleDirs );
-			var expected   = [ "fr", "it", "ru", "ru_RU" ];
+			var expected   = [ "en", "it", "ru", "ru_RU" ];
 			var result     = rbService.listLocales();
 
 			super.assertEquals( expected, result );
@@ -208,7 +208,7 @@
 		<cfscript>
 			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles3/" ];
 			var rbService  = _getRBService( bundleDirs );
-			var expected   = '{"core.master:core.only.key":"core bundle only (dir 3)","core.master:test.resource.key":"test resource value (dir 3)","core.master:core.and.language.only":"I am from core (dir 3)"}';
+			var expected   = '{"core.master:core.only.key":"core bundle only (dir 3)","core.master:test.resource.key":"test resource value en (dir 3)","core.master:core.and.language.only":"i am from language (dir 3)"}';
 			var result     = rbService.getBundleAsJson( bundle="core.master", language="en", country="US" );
 
 			super.assertEquals( expected, result );
