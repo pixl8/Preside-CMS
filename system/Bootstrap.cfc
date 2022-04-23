@@ -185,6 +185,7 @@ component {
 				setting requesttimeout=requestTimeout;
 
 				request._isPresideReloadRequest = true;
+				request._loadingStartTime = GetTickCount();
 				_isReloading( true );
 
 				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
@@ -202,7 +203,9 @@ component {
 				_announceInterception( "postPresideReload" );
 
 				_isReloading( false );
-				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" & Chr( 13 ) & Chr( 10 ) );
+
+				var timeTakenInSecs = ( GetTickCount() - request._loadingStartTime ) / 1000;
+				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete in #NumberFormat( timeTakenInSecs )# seconds" & Chr( 13 ) & Chr( 10 ) );
 			}
 		} catch( any e ) {
 			if ( ( e.lockOperation ?: "" ) == "Timeout" ) {
