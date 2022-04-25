@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--#!autodoc
-Link: edit link form
+Link: Add link form
 
-This form is used edit a link
+This form is used to a add a link through general "manage links" screens
 -->
 <form>
 	<tab id="basic" sortorder="10" title="preside-objects.link:basic.tab.title">
