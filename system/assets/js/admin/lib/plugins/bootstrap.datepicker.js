@@ -20,7 +20,7 @@
 
 !function( $ ) {
 
-	function UTCDate(){
+		function UTCDate(){
 		return new Date(Date.UTC.apply(Date, arguments));
 	}
 	function UTCToday(){
@@ -43,6 +43,7 @@
 		this.isInput = this.element.is('input');
 		this.component = this.element.is('.date') ? this.element.find('.add-on, .btn') : false;
 		this.hasInput = this.component && this.element.find('input').length;
+		this.onRender = options.onRender || function () {};
 		if(this.component && this.component.length === 0)
 			this.component = false;
 
@@ -430,7 +431,7 @@
 
 					}
 				}
-				clsName = '';
+				clsName = ' '+this.onRender(prevMonth)+' ';
 				if (prevMonth.getUTCFullYear() < year || (prevMonth.getUTCFullYear() == year && prevMonth.getUTCMonth() < month)) {
 					clsName += ' old';
 				} else if (prevMonth.getUTCFullYear() > year || (prevMonth.getUTCFullYear() == year && prevMonth.getUTCMonth() > month)) {
@@ -816,6 +817,9 @@
 	};
 
 	$.fn.datepicker.defaults = {
+		onRender: function(date) {
+			return '';
+		}
 	};
 	$.fn.datepicker.Constructor = Datepicker;
 	var dates = $.fn.datepicker.dates = {
