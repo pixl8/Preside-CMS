@@ -133,19 +133,25 @@ component {
 	}
 
 	public string function renderEnum(
-		  required string objectName
-		, required string propertyName
-		, required string data
+		  required string data
+		,          string enum         = ""
+		,          string objectName   = ""
+		,          string propertyName = ""
 		,          any    context      = "default"
 		,          string recordId     = ""
-		,          string enumRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "enumRenderer", "enumLabel" )
+		,          string enumRenderer = "enumLabel"
 	) {
+		if ( !$helpers.isEmptyString( arguments.objectName ) ) {
+			arguments.enumRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "enumRenderer", "enumLabel" );
+		}
+
 		return this.render(
 			  renderer = arguments.enumRenderer
 			, data     = arguments.data
 			, context  = arguments.context
 			, args     = {
-				  objectName   = arguments.objectName
+				  enum         = arguments.enum
+				, objectName   = arguments.objectName
 				, propertyName = arguments.propertyName
 				, recordId     = arguments.recordId
 			  }

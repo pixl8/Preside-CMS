@@ -4,15 +4,19 @@ component {
 	public string function default( event, rc, prc, args={} ) {
 		var objectName   = args.objectName   ?: "";
 		var propertyName = args.propertyName ?: "";
-		var enum         = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="enum" );
+		var enum         = args.enum         ?: "";
 		var values       = ListToArray( args.data );
 		var rendered     = [];
+
+		if ( isEmptyString( enum ) && !isEmptyString( objectName ) && !isEmptyString( propertyName ) ) {
+			enum = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="enum" );
+		}
 
 		if ( !Len( enum ) ) {
 			return args.data;
 		}
 
-		for( var value in values ) {
+		for ( var value in values ) {
 			var iconClass = translateResource( uri="enum.#enum#:#value#.iconClass", defaultValue="" );
 			var icon      = Len( iconClass ) ? '<i class="fa fa-fw #iconClass#"></i>&nbsp;' : "";
 			var label     = translateResource( uri="enum.#enum#:#value#.label", defaultValue=value );
