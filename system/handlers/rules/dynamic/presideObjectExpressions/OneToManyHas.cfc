@@ -38,6 +38,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  savedFilter        = ""
 	){
 		var prefix               = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var hasParent            = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
 		var params               = {};
 		var subQueryExtraFilters = [];
 
@@ -48,11 +49,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			StructAppend( params, extraFilter.filterParams ?: {} );
 		}
 
-		var outerPk = "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
-		if ( Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName ) ) {
-			outerPk = "#arguments.parentObjectName#.#arguments.parentPropertyName#";
-		}
-
+		var outerPk   = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
 		var exists    = arguments._is ? "exists" : "not exists";
 		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
