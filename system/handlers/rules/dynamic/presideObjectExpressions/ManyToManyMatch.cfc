@@ -40,10 +40,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  value      = ""
 	){
 		var prefix    = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var hasParent = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
 		var paramName = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var valueFk   = arguments.relationshipIsSource ? arguments.relatedViaTargetFk : arguments.relatedViaSourceFk;
 		var keyFk     = arguments.relationshipIsSource ? arguments.relatedViaSourceFk : arguments.relatedViaTargetFk;
-		var outerPk   = "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var outerPk   = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
 		var exists    = arguments._possesses ? "exists" : "not exists";
 		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedVia

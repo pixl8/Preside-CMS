@@ -40,6 +40,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          numeric value              = 0
 	){
 		var prefix               = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var hasParent            = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
 		var params               = {};
 		var subQueryExtraFilters = [];
 
@@ -50,11 +51,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			StructAppend( params, extraFilter.filterParams ?: {} );
 		}
 
-		var outerPk   = "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var outerPk       = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
 		var countOperator = rulesEngineNumericOperatorToSqlOperator( arguments._numericOperator );
-		var countParam = "oneToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
-		var countField = "#arguments.relatedTo#.#relationshipKey#";
-		var subquery  = presideObjectService.selectData(
+		var countParam    = "oneToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
+		var countField    = "#arguments.relatedTo#.#relationshipKey#";
+		var subquery      = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
 			, selectFields        = [ "1" ]
 			, filter              = obfuscateSqlForPreside( "#arguments.relatedTo#.#arguments.relationshipKey# = #outerPk#" )

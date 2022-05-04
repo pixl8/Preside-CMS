@@ -32,18 +32,19 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
-		,          string  _numericOperator = "eq"
-		,          string  savedFilter      = ""
-		,          numeric value            = 0
+		,          string  filterPrefix       = ""
+		,          string  _numericOperator   = "eq"
+		,          string  savedFilter        = ""
+		,          numeric value              = 0
 	){
 		var prefix               = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var hasParent            = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
 		var params               = {};
 		var subQueryExtraFilters = [];
 		var propAttributes       = presideObjectService.getObjectProperty( arguments.objectName, arguments.propertyName );
 		var keyFk                = propAttributes.relationshipIsSource ? propAttributes.relatedViaSourceFk : propAttributes.relatedViaTargetFk;
 		var valueFk              = propAttributes.relationshipIsSource ? propAttributes.relatedViaTargetFk : propAttributes.relatedViaSourceFk;
-		var outerPk              = "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var outerPk              = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
 
 		if ( Len( Trim( arguments.savedFilter ) ) ) {
 			ArrayAppend( subQueryExtraFilters, getExistsFilterForEntityMatchingFilters(
