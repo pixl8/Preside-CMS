@@ -76,6 +76,7 @@ component {
 			, "preside-ext-redirects"
 			, "preside-ext-individual-filter"
 			, "preside-ext-vips"
+			, "preside-ext-db-perf-enhancements"
 		];
 
 		settings.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
