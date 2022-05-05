@@ -139,10 +139,12 @@ component {
 		,          string propertyName = ""
 		,          any    context      = "default"
 		,          string recordId     = ""
-		,          string enumRenderer = "enumLabel"
+		,          string enumRenderer = ""
 	) {
-		if ( !$helpers.isEmptyString( arguments.objectName ) ) {
-			arguments.enumRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "enumRenderer", "enumLabel" );
+		if ( !$helpers.isEmptyString( arguments.objectName ) && !$helpers.isEmptyString( arguments.propertyName ) ) {
+			arguments.enumRenderer = $getPresideObjectService().getObjectPropertyAttribute( objectName=arguments.objectName, propertyName=arguments.propertyName, attributeName="enumRenderer", defaultValue="enumLabel" );
+		} else if ( $helpers.isEmptyString( arguments.enumRenderer ) ) {
+			arguments.enumRenderer = "enumLabel";
 		}
 
 		return this.render(
