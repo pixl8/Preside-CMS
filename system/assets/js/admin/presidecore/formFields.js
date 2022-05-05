@@ -8,7 +8,7 @@
     $(".auto-slug").each( function(){
         var $this         = $(this)
           , $basedOn      = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']")
-          , slugDelimiter = $this.data( "slugDelimiter" )
+          , slugDelimiter = $this.data( "slugDelimiter" ) || "-"
           , repeatRegex   = new RegExp( slugDelimiter+"+", "g" )
           , startRegex    = new RegExp( "^"+slugDelimiter, "g" )
           , endRegex      = new RegExp( slugDelimiter+"$", "g" )
