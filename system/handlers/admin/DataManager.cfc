@@ -1889,6 +1889,10 @@ component extends="preside.system.base.AdminHandler" {
 		getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
 		getRecordsArgs.gridFields    = getRecordsArgs.gridFields.listToArray();
 
+		if ( !isFeatureEnabled( "useDistinctForDatatables" ) ) {
+			getRecordsArgs.distinct = false;
+		}
+
 		if ( Len( Trim( rc.sFilterExpression ?: "" ) ) ) {
 			try {
 				getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
