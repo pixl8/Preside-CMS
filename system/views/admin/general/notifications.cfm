@@ -14,6 +14,7 @@
 	switch( msg.type ){
 		case "info"   : gritterClass="gritter-success"; break;
 		case "error"  : gritterClass="gritter-error"; break;
+		case "warn"   :
 		case "warning": gritterClass="gritter-warning"; break;
 	}
 </cfscript>
