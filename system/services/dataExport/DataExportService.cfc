@@ -32,7 +32,7 @@ component {
 	 * meta.hint               Abitrary struct of data that an exporter may use to decorate the export document (e.g. could contain author, timestamp, etc.)
 	 * fieldTitles.hint        Struct of field titles where keys are raw field names and values are translated titles for columns
 	 * selectFields.hint       Array of select fields that will be selected against the object
-	 * exportPagingSize.hint   Number of records to fetch at a time during the export build process. Default is 1000.
+	 * exportPagingSize.hint   Number of records to fetch at a time during the export build process. Default is 50.
 	 * recordsetDecorator.hint Closure that accepts a single 'recordset' argument that can be used to add columns to the recordset. Useful when a single query is not enough to populate the export data.
 	 */
 	public any function exportData(
@@ -41,7 +41,7 @@ component {
 		,          struct  meta               = {}
 		,          struct  fieldTitles        = {}
 		,          array   selectFields       = []
-		,          numeric exportPagingSize   = 1000
+		,          numeric exportPagingSize   = 50
 		,          any     recordsetDecorator = ""
 		,          string  exportFilterString = ""
 		,          string  exportFileName     = ""
