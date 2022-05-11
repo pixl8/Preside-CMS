@@ -192,12 +192,10 @@ component {
 
 			selectDataArgs.startRow += selectDataArgs.maxRows;
 
-			if ( $isFeatureEnabled( "dateExportRenderFields" ) ) {
-				for( var i=1; i<=results.recordCount; i++ ) {
-					for( var field in cleanedSelectFields ) {
-						if ( ArrayFindNoCase( columns, field ) ) {
-							results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
-						}
+			for( var i=1; i<=results.recordCount; i++ ) {
+				for( var field in cleanedSelectFields ) {
+					if ( ArrayFindNoCase( columns, field ) ) {
+						results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
 					}
 				}
 			}
@@ -210,41 +208,39 @@ component {
 			cleanedSelectFields.append( field.listLast( " " ) );
 		}
 
-		if ( $isFeatureEnabled( "dateExportRenderFields" ) ) {
-			for( var field in cleanedSelectFields ) {
-				propertyRendererMap[ field ] = "none";
+		for( var field in cleanedSelectFields ) {
+			propertyRendererMap[ field ] = "none";
 
-				if ( StructKeyExists( propertyDefinitions, field ) ) {
-					if ( StructKeyExists( propertyDefinitions[ field ], "dataExportRenderer" ) && Len( propertyDefinitions[ field ].dataExportRenderer )  ) {
-						propertyRendererMap[ field ] = "renderer";
-						continue;
-					}
+			if ( StructKeyExists( propertyDefinitions, field ) ) {
+				if ( StructKeyExists( propertyDefinitions[ field ], "dataExportRenderer" ) && Len( propertyDefinitions[ field ].dataExportRenderer )  ) {
+					propertyRendererMap[ field ] = "renderer";
+					continue;
+				}
 
-					if ( StructKeyExists( propertyDefinitions[ field ], "type" ) && Len( propertyDefinitions[ field ].type )  ) {
-						switch( propertyDefinitions[ field ].type ?: "" ) {
-							case "boolean":
-								propertyRendererMap[ field ] = "boolean";
-								continue;
-							case "date":
-							case "time":
-								switch( propertyDefinitions[ field ].dbtype ?: "" ) {
-									case "date":
-										propertyRendererMap[ field ] = "date";
-										continue;
-									case "time":
-										propertyRendererMap[ field ] = "time";
-										continue;
-									default:
-										propertyRendererMap[ field ] = "datetime";
-										continue;
-								}
-							case "string":
-								if ( Len( Trim( propertyDefinitions[ field ].enum ?: "" ) ) ) {
-									propertyRendererMap[ field ] = "enum";
+				if ( StructKeyExists( propertyDefinitions[ field ], "type" ) && Len( propertyDefinitions[ field ].type )  ) {
+					switch( propertyDefinitions[ field ].type ?: "" ) {
+						case "boolean":
+							propertyRendererMap[ field ] = "boolean";
+							continue;
+						case "date":
+						case "time":
+							switch( propertyDefinitions[ field ].dbtype ?: "" ) {
+								case "date":
+									propertyRendererMap[ field ] = "date";
 									continue;
-								}
-								break;
-						}
+								case "time":
+									propertyRendererMap[ field ] = "time";
+									continue;
+								default:
+									propertyRendererMap[ field ] = "datetime";
+									continue;
+							}
+						case "string":
+							if ( Len( Trim( propertyDefinitions[ field ].enum ?: "" ) ) ) {
+								propertyRendererMap[ field ] = "enum";
+								continue;
+							}
+							break;
 					}
 				}
 			}
