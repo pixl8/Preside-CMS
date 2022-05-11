@@ -279,7 +279,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
-		service.$( "$isFeatureEnabled", true );
 
 		return service;
 	}
