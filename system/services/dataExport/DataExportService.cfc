@@ -32,7 +32,7 @@ component {
 	 * meta.hint               Abitrary struct of data that an exporter may use to decorate the export document (e.g. could contain author, timestamp, etc.)
 	 * fieldTitles.hint        Struct of field titles where keys are raw field names and values are translated titles for columns
 	 * selectFields.hint       Array of select fields that will be selected against the object
-	 * exportPagingSize.hint   Number of records to fetch at a time during the export build process. Default is 50.
+	 * exportPagingSize.hint   Number of records to fetch at a time during the export build process. Default is 1000.
 	 * recordsetDecorator.hint Closure that accepts a single 'recordset' argument that can be used to add columns to the recordset. Useful when a single query is not enough to populate the export data.
 	 */
 	public any function exportData(
@@ -41,7 +41,7 @@ component {
 		,          struct  meta               = {}
 		,          struct  fieldTitles        = {}
 		,          array   selectFields       = []
-		,          numeric exportPagingSize   = 50
+		,          numeric exportPagingSize   = 1000
 		,          any     recordsetDecorator = ""
 		,          string  exportFilterString = ""
 		,          string  exportFileName     = ""
@@ -71,6 +71,7 @@ component {
 		var cleanedSelectFields  = [];
 		var presideObjectService = $getPresideObjectService();
 		var propertyDefinitions  = presideObjectService.getObjectProperties( arguments.objectName );
+		var propertyRendererMap  = {};
 
 		selectDataArgs.delete( "exporter" );
 		selectDataArgs.delete( "meta" );
@@ -111,36 +112,44 @@ component {
 		}
 
 		var simpleFormatField = function( required string fieldName, required any value ){
-			var dataExportRenderer = Trim( propertyDefinitions[ arguments.fieldName ].dataExportRenderer ?: "" );
-			if ( dataExportRenderer.len() ) {
-				return $renderContent( dataExportRenderer, arguments.value, "dataexport" );
-			}
+			if ( StructKeyExists( propertyRendererMap, arguments.fieldName ) && propertyRendererMap[ arguments.fieldName ] != "none" ) {
+				var renderType = propertyRendererMap[ arguments.fieldName ];
 
-			switch( propertyDefinitions[ arguments.fieldName ].type ?: "" ) {
-				case "boolean":
+				if ( renderType == "renderer" ) {
+					return $renderContent( propertyDefinitions[ arguments.fieldName ].dataExportRenderer, arguments.value, "dataexport" );
+				}
+
+				if ( renderType == "boolean" ) {
 					return IsBoolean( arguments.value ) ? ( arguments.value ? "true" : "false" ) : "";
-				case "date":
-				case "time":
-					if ( !IsDate( arguments.value ) ) {
-						return "";
-					}
+				}
 
-					switch( propertyDefinitions[ arguments.fieldName ].dbtype ?: "" ) {
-						case "date":
-							return DateFormat( arguments.value, "yyyy-mm-dd" );
-						case "time":
-							return TimeFormat( arguments.value, "HH:mm" );
-						default:
-							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn:ss" );
+				if ( renderType == "date" ) {
+					if ( IsDate( arguments.value ) ) {
+						return DateFormat( arguments.value, "yyyy-mm-dd" );
 					}
-				case "string":
-					if ( Len( Trim( propertyDefinitions[ arguments.fieldName ].enum ?: "" ) ) ) {
-						return $translateResource( uri="enum.#propertyDefinitions[ arguments.fieldName ].enum#:#arguments.value#.label", defaultValue=arguments.value );
+					return "";
+				}
+
+				if ( renderType == "time" ) {
+					if ( IsDate( arguments.value ) ) {
+						return TimeFormat( arguments.value, "HH:mm" );
 					}
-					break;
+					return "";
+				}
+
+				if ( renderType == "datetime" ) {
+					if ( IsDate( arguments.value ) ) {
+						return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn:ss" );
+					}
+					return "";
+				}
+
+				if ( renderType == "enum" ) {
+					return $translateResource( uri="enum.#propertyDefinitions[ arguments.fieldName ].enum#:#arguments.value#.label", defaultValue=arguments.value );
+				}
 			}
 
-			return value;
+			return arguments.value;
 		};
 
 		var batchedRecordIterator = function(){
@@ -151,6 +160,7 @@ component {
 			var results = presideObjectService.selectData(
 				argumentCollection=selectDataArgs
 			);
+			var columns = ListToArray( results.columnList );
 
 			_getDataManagerCustomizationService().runCustomization(
 				  objectName = selectDataArgs.objectName
@@ -184,7 +194,7 @@ component {
 
 			for( var i=1; i<=results.recordCount; i++ ) {
 				for( var field in cleanedSelectFields ) {
-					if ( ListFindNoCase( results.columnList, field ) ) {
+					if ( ArrayFindNoCase( columns, field ) ) {
 						results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
 					}
 				}
@@ -197,6 +207,45 @@ component {
 		for( var field in arguments.selectFields ) {
 			cleanedSelectFields.append( field.listLast( " " ) );
 		}
+
+		for( var field in cleanedSelectFields ) {
+			propertyRendererMap[ field ] = "none";
+
+			if ( StructKeyExists( propertyDefinitions, field ) ) {
+				if ( StructKeyExists( propertyDefinitions[ field ], "dataExportRenderer" ) && Len( propertyDefinitions[ field ].dataExportRenderer )  ) {
+					propertyRendererMap[ field ] = "renderer";
+					continue;
+				}
+
+				if ( StructKeyExists( propertyDefinitions[ field ], "type" ) && Len( propertyDefinitions[ field ].type )  ) {
+					switch( propertyDefinitions[ field ].type ?: "" ) {
+						case "boolean":
+							propertyRendererMap[ field ] = "boolean";
+							continue;
+						case "date":
+						case "time":
+							switch( propertyDefinitions[ field ].dbtype ?: "" ) {
+								case "date":
+									propertyRendererMap[ field ] = "date";
+									continue;
+								case "time":
+									propertyRendererMap[ field ] = "time";
+									continue;
+								default:
+									propertyRendererMap[ field ] = "datetime";
+									continue;
+							}
+						case "string":
+							if ( Len( Trim( propertyDefinitions[ field ].enum ?: "" ) ) ) {
+								propertyRendererMap[ field ] = "enum";
+								continue;
+							}
+							break;
+					}
+				}
+			}
+		}
+
 		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
 
 		$announceInterception( "postDataExportPrepareData", arguments );
