@@ -7,6 +7,8 @@
 	param name="args.stripPermissionedFields" type="boolean" default=true;
 	param name="args.permissionContext"       type="string"  default=args.objectName;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
+	param name="args.preForm"                 type="string"  default=( prc.preForm ?: '' );
+	param name="args.postForm"                type="string"  default=( prc.postForm ?: '' );
 
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
@@ -17,6 +19,9 @@
 
 <cfoutput>
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-add-form" method="post" action="#args.addRecordAction#">
+
+		#args.preForm#
+		
 		#renderForm(
 			  formName                = args.formName
 			, context                 = "admin"
@@ -27,6 +32,8 @@
 			, permissionContextKeys   = args.permissionContextKeys
 		)#
 
+		#args.postForm#
+		
 		<cfif args.allowAddAnotherSwitch>
 			<div class="form-actions row">
 				#renderFormControl(
