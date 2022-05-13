@@ -64,7 +64,7 @@ component {
 				var style    = tokenizer.nextToken();
 
 				if ( !selector.contains( ":" ) ) { // skip a:hover rules, etc.
-					style = style.reReplace( "[^;]$", ";" );
+					style = style.reReplace( "([^;])$", "\1;" );
 					var rules = style.listToArray( ";" );
 					for( var rule in rules ) {
 						rule = rule.trim();
