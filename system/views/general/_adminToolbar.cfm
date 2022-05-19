@@ -1,4 +1,4 @@
-<cfif event.isAdminUser()>
+<cfif event.isAdminUser() and !getModel( "loginService" ).twoFactorAuthenticationRequired( ipAddress=event.getClientIp(), userAgent=event.getUserAgent() )>
 	<cfscript>
 		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
 
