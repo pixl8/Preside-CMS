@@ -37,10 +37,14 @@ component {
 
 				if ( !isEmptyString( savedValue ) ) {
 					var savedValueArray = listToArray( savedValue );
+					var valuesArrLength = arrayLen( args.values );
 
 					args.values.each( function( item, index ) {
 						if ( isTrue( arrayFind( savedValueArray, item ) ) ) {
-							args.values.swap( arrayFind( savedValueArray, item ), index );
+							var savedArrIndex = arrayFind( savedValueArray, item );
+							    savedArrIndex = ( savedArrIndex > valuesArrLength ) ? valuesArrLength : savedArrIndex;
+
+							args.values.swap( savedArrIndex, index );
 						}
 					});
 				}
