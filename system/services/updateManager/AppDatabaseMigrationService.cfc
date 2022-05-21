@@ -39,7 +39,7 @@ component {
 // PRIVATE HELPERS
 	private array function _listRequiredMigrations( async ) {
 		var installed  = _getInstalledMigrations( arguments.async );
-		var alreadyRan = $getPresideCategorySettings( "_dbmigrations" );
+		var alreadyRan = _getAlreadyRan();
 		var migrations = [];
 
 		for( var migration in installed ) {
@@ -69,13 +69,24 @@ component {
 		return installed;
 	}
 
-	private void function _markMigrationAsRun( migration, async ) {
-		var key = arguments.migration & "-" & ( arguments.async ? "async" : "sync" );
+	private struct function _getAlreadyRan() {
+		var records    = $getPresideObject( "db_migration_history" ).selectData( selectFields=[ "migration_key" ] );
+		var alreadyRan = {};
 
-		$getSystemConfigurationService().saveSetting(
-			  category = "_dbmigrations"
-			, setting  = key
-			, value    = Now()
-		);
+		for( var r in records ) {
+			alreadyRan[ r.migration_key ] = true;
+		}
+
+		return alreadyRan;
+	}
+
+	private void function _markMigrationAsRun( migration, async ) {
+			$getPresideObject( "db_migration_history" ).insertData( {
+				migration_key = arguments.migration & "-" & ( arguments.async ? "async" : "sync" )
+			} );
+		try {
+		} catch( database e ) {
+			// ignoring duplicate keys
+		}
 	}
 }
