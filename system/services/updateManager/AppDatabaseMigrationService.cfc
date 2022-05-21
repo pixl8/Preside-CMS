@@ -81,12 +81,15 @@ component {
 	}
 
 	private void function _markMigrationAsRan( migration, async ) {
+		try {
 			$getPresideObject( "db_migration_history" ).insertData( {
 				migration_key = arguments.migration & "-" & ( arguments.async ? "async" : "sync" )
 			} );
-		try {
 		} catch( database e ) {
 			// ignoring duplicate keys
+			if ( !e.message contains "ux_db_migration_history_migrationkey" ) {
+				rethrow;
+			}
 		}
 	}
 }
