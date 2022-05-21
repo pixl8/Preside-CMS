@@ -31,7 +31,7 @@ component {
 			, private       = true
 			, prepostExempt = true
 		);
-		_markMigrationAsRun( arguments.migration, arguments.async );
+		_markMigrationAsRan( arguments.migration, arguments.async );
 
 		$SystemOutput( "Finished running DB Migration: [#arguments.migration#]." );
 	}
@@ -80,7 +80,7 @@ component {
 		return alreadyRan;
 	}
 
-	private void function _markMigrationAsRun( migration, async ) {
+	private void function _markMigrationAsRan( migration, async ) {
 			$getPresideObject( "db_migration_history" ).insertData( {
 				migration_key = arguments.migration & "-" & ( arguments.async ? "async" : "sync" )
 			} );
