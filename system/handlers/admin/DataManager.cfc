@@ -2092,7 +2092,7 @@ component extends="preside.system.base.AdminHandler" {
 						} );
 					}
 					if ( canDelete ) {
-						var recordLabel          = record[ prc.labelField ] ?: "";
+						var recordLabel          = record[ prc.labelField ?: "" ] ?: "";
 						var useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
 
 						actions.append( {
