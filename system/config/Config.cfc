@@ -95,12 +95,7 @@ component {
 	private void function __setupColdbox() {
 		var applicationSettings = getApplicationSettings();
 
-		settings.allowReload    = {
-			  all       = IsBoolean( settings.env.allowReloadAll       ?: ""  ) ? settings.env.allowReloadAll       : true
-			, objects   = IsBoolean( settings.env.allowReloadObjects   ?: ""  ) ? settings.env.allowReloadObjects   : true
-			, db        = IsBoolean( settings.env.allowReloadDb        ?: ""  ) ? settings.env.allowReloadDb        : true
-			, pageTypes = IsBoolean( settings.env.allowReloadPageTypes ?: ""  ) ? settings.env.allowReloadPageTypes : true
-		}
+		settings.disableMajorReloads = IsBoolean( settings.env.DISABLE_MAJOR_RELOADS ?: ""  ) && settings.env.DISABLE_MAJOR_RELOADS;
 
 		variables.coldbox = {
 			  appName                   = "Preside Website"
