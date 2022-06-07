@@ -2,10 +2,12 @@ component hint="Reload all or part of your preside application" {
 
 	property name="jsonRpc2Plugin"           inject="JsonRpc2";
 	property name="applicationReloadService" inject="applicationReloadService";
+	property name="allowReload"              inject="coldbox:setting:allowReload";
 
 	private function index( event, rc, prc ) {
 		var params       = jsonRpc2Plugin.getRequestParams();
 		var environment  = controller.getConfigSettings().environment;
+		var targetName   = "";
 		var target       = "";
 		var validTargets = {
 			  all       = { reloadMethod="reloadAll"           , flagRequiredInProduction=true , description="Reloads the entire application"                           , successMessage="Application cleared, please refresh the page to complete the reload" }
@@ -32,12 +34,20 @@ component hint="Reload all or part of your preside application" {
 			return usageMessage;
 		}
 
-		target        = validTargets[ params[1] ];
+		targetName    = params[1];
+		target        = validTargets[ targetName ];
 		var forceFlag = ( params[2] ?: "" ) == "--force";
 
 		if ( environment == "production" && ( target.flagRequiredInProduction ?: false ) && !forceFlag ) {
 			return Chr(10) & "[[b;red;]--force flag is required to perform this action in a production environment]" & Chr(10);
 		}
+
+		var allowReloadTarget = IsBoolean( allowReload[ targetName ] ?: "" ) ? allowReload[ targetName ] : true;
+		if ( !allowReloadTarget ) {
+			return Chr(10) & "[[b;red;]This action has been disallowed]" & Chr(10);
+		}
+
+return Chr(10) & "[[b;red;]Action would be allowed]" & Chr(10);
 
 		var start = GetTickCount();
 		applicationReloadService[ target.reloadMethod ]();

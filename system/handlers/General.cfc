@@ -108,6 +108,7 @@ component {
 
 		var reloadPassword = getSetting( name="reinitPassword", defaultValue="true" );
 		var devSettings    = getSetting( name="developerMode" , defaultValue=false );
+		var allowReload    = getSetting( name="allowReload", defaultValue={} );
 
 		if ( IsBoolean( devSettings ) ) {
 			devSettings = {
@@ -139,11 +140,17 @@ component {
 				anythingReloaded = true;
 			}
 
-			if ( devSettings.dbSync or ( event.valueExists( "fwReinitDbSync" ) and Hash( rc.fwReinitDbSync ) eq reloadPassword ) ) {
+			if ( devSettings.dbSync or (
+				event.valueExists( "fwReinitDbSync" ) and Hash( rc.fwReinitDbSync ) eq reloadPassword
+				and isBoolean( allowReload.db ?: "" ) ? allowReload.db : true
+				) ) {
 				applicationReloadService.reloadPresideObjects();
 				applicationReloadService.dbSync();
 				anythingReloaded = true;
-			} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
+			} else if ( devSettings.reloadPresideObjects or (
+				event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword
+				and isBoolean( allowReload.objects ) ? allowReload.objects : true
+				) ) {
 				applicationReloadService.reloadPresideObjects();
 				anythingReloaded = true;
 			}
@@ -153,7 +160,11 @@ component {
 				anythingReloaded = true;
 			}
 
-			if ( devSettings.reloadPageTypes or ( event.valueExists( "fwReinitPageTypes" ) and Hash( rc.fwReinitPageTypes ) eq reloadPassword ) ) {
+			if ( devSettings.reloadPageTypes or (
+				event.valueExists( "fwReinitPageTypes" ) and Hash( rc.fwReinitPageTypes ) eq reloadPassword
+				and isBoolean( allowReload.pageTypes ?: "" ) ? allowReload.pageTypes : true
+				) ) {
+
 				applicationReloadService.reloadPageTypes();
 				anythingReloaded = true;
 			}
