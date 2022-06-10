@@ -160,7 +160,6 @@ component {
 			var results = presideObjectService.selectData(
 				argumentCollection=selectDataArgs
 			);
-			var columns = ListToArray( results.columnList );
 
 			_getDataManagerCustomizationService().runCustomization(
 				  objectName = selectDataArgs.objectName
@@ -192,6 +191,7 @@ component {
 
 			selectDataArgs.startRow += selectDataArgs.maxRows;
 
+			var columns = ListToArray( results.columnList );
 			for( var i=1; i<=results.recordCount; i++ ) {
 				for( var field in cleanedSelectFields ) {
 					if ( ArrayFindNoCase( columns, field ) ) {
