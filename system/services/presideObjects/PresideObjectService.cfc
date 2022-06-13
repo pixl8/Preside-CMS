@@ -465,6 +465,8 @@ component displayName="Preside Object Service" {
 							, targetIdList        = manyToManyData[ key ]
 							, requiresVersionSync = false
 							, isDraft             = args.isDraft
+							, versionNumber       = versionNumber
+							, isInsert            = true
 						);
 					} else if ( relationship == "one-to-many" ) {
 						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
@@ -825,6 +827,7 @@ component displayName="Preside Object Service" {
 							, targetIdList        = manyToManyData[ key ]
 							, requiresVersionSync = false
 							, isDraft             = arguments.isDraft
+							, versionNumber       = arguments.versionNumber
 						);
 					}
 				} else if ( relationship == "one-to-many" ) {
@@ -1100,6 +1103,8 @@ component displayName="Preside Object Service" {
 		, required string  targetIdList
 		,          boolean requiresVersionSync = true
 		,          boolean isDraft             = false
+		,          numeric versionNumber       = 0
+		,          boolean isInsert            = false
 	) autodoc=true {
 		if ( arguments.requiresVersionSync ) {
 			return updateData(
@@ -1130,10 +1135,16 @@ component displayName="Preside Object Service" {
 			}
 
 			transaction {
+				var currentFilter = { "#sourceFk#" = arguments.sourceId };
+
+				if ( objectUsesDrafts( pivotTable ) ) {
+					currentFilter._version_is_draft=arguments.isDraft;
+				}
+
 				var currentRecords = selectData(
 					  objectName   = pivotTable
 					, selectFields = currentSelect
-					, filter       = { "#sourceFk#" = arguments.sourceId }
+					, filter       = currentFilter
 					, useCache     = false
 				);
 
@@ -1149,17 +1160,17 @@ component displayName="Preside Object Service" {
 
 				anythingChanged = anythingChanged || newAddedRecords.len();
 
-				if ( anythingChanged && !arguments.isDraft ) {
+				if ( anythingChanged && ( arguments.isInsert || !arguments.isDraft ) ) {
 					deleteData(
 						  objectName = pivotTable
-						, filter     = { "#sourceFk#" = arguments.sourceId }
+						, filter     = currentFilter
 					);
-
 
 					for( var i=1; i <=newRecords.len(); i++ ) {
 						insertData(
 							  objectName    = pivotTable
-							, useVersioning = false
+							, useVersioning = arguments.isDraft
+							, versionNumber = arguments.versionNumber
 							, isDraft       = arguments.isDraft
 							, data          = {
 								  "#sourceFk#"       = arguments.sourceId
