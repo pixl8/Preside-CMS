@@ -95,6 +95,8 @@ component {
 	private void function __setupColdbox() {
 		var applicationSettings = getApplicationSettings();
 
+		settings.disableMajorReloads = IsBoolean( settings.env.DISABLE_MAJOR_RELOADS ?: ""  ) && settings.env.DISABLE_MAJOR_RELOADS;
+
 		variables.coldbox = {
 			  appName                   = "Preside Website"
 			, handlersIndexAutoReload   = false
