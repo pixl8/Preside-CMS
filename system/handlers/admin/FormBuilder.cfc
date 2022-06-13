@@ -474,12 +474,16 @@ component extends="preside.system.base.AdminHandler" {
 				, successAction    = "formbuilder.manageform"
 				, addAnotherAction = "formbuilder.addform"
 				, viewRecordAction = "formbuilder.manageform"
+				, audit            = true
+				, auditAction      = "formbuilder_add_form"
+				, auditType        = "formbuilder"
 			}
 		);
 	}
 
 	public void function editFormAction( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
+
 		var formId = rc.id ?: "";
 		if ( formBuilderService.isFormLocked( formId ) ) {
 			event.adminAccessDenied();
@@ -493,6 +497,9 @@ component extends="preside.system.base.AdminHandler" {
 				  object           = "formbuilder_form"
 				, errorUrl         = event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=" & formId )
 				, successUrl       = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & formId )
+				, audit            = true
+				, auditAction      = "formbuilder_edit_form"
+				, auditType        = "formbuilder"
 			}
 		);
 	}
@@ -760,7 +767,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function cloneForm( event, rc, prc, args ) {
-		prc.pageTitle    = translateResource( "formbuilder:cloneForm.page.title" );
+		prc.pageTitle = translateResource( "formbuilder:cloneForm.page.title" );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "formbuilder:cloneForm.page.title" )
@@ -811,21 +818,21 @@ component extends="preside.system.base.AdminHandler" {
 	public void function deleteRecordAction( event, rc, prc ) {
 		_permissionsCheck( "deleteform", event );
 
-		var ids           = rc.id ?: "";
-		var postActionUrl = event.buildAdminLink( linkto="formbuilder" );
-		var messages      = "";
+		var formId = rc.id ?: "";
 
-		if ( listLen(ids) == 1 ) {
-			messages = translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ "Form", renderLabel( "formbuilder_form", ids ) ] ) ;
-		} else {
-			messages = translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ "Forms", listLen(ids) ] );
-		}
-
-		formBuilderService.deleteForms( ids );
-
-		messageBox.info( messages );
-
-		setNextEvent( url=postActionUrl );
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object           = "formbuilder_form"
+				, errorUrl         = event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=" & formId )
+				, successUrl       = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & formId )
+				, audit            = true
+				, auditAction      = "formbuilder_delete_form"
+				, auditType        = "formbuilder"
+			}
+		);
 	}
 
 

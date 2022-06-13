@@ -236,4 +236,22 @@ component {
 		return translateResource( uri="auditlog.userprofile:#action#.message", data=[ userLink, recordLink ] );
 	}
 
+	private string function formbuilder( event, rc, prc, args={} ) {
+		var action = args.action ?: "";
+
+		var userHtml = '<a href="#( args.userLink ?: "" )#">#( args.known_as ?: "" )#</a>';
+
+		var formId    = args.record_id ?: "";
+		var formLabel = renderLabel( objectName="formbuilder_form", recordId=formId );
+		var formHtml  = "";
+
+		if ( IsValid( "UUID", formLabel ) ) {
+			formHtml = args.detail.label ?: ( args.detail.name ?: "" );
+		} else {
+			formHtml = '<a href="#event.buildAdminLink( objectName="formbuilder_form", recordId=formId )#">#formLabel#</a>';
+		}
+
+		return translateResource( uri="auditlog.formbuilder:#args.action#.message", data=[ userHtml, formHtml ] );
+	}
+
 }
