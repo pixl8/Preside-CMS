@@ -163,6 +163,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			expected &= 'return { ';
 				expected &= 'rules : { ';
 					expected &= '"field1" : { ';
+						expected &= '"normalizer" : function(value) { return $.trim(value); }, ';
 						expected &= '"required" : { param : [] }, ';
 						expected &= '"validator3" : { param : [], depends : function( el ){ return $( this.form ).find( "[name=''field1'']" ).val() === ''whatever''; } } ';
 					expected &= '}, ';
