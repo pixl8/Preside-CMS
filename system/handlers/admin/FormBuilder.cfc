@@ -605,26 +605,33 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function deleteSubmissionsAction( event, rc, prc ) {
-		var formId        = rc.formId ?: "";
-		var submissionIds = ListToArray( rc.id ?: "" );
-
 		_permissionsCheck( "deleteSubmissions", event );
+
+		var formId = rc.formId ?: "";
 
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
 		}
 
-		formBuilderService.deleteSubmissions( submissionIds );
+		var formForm = formBuilderService.getForm( id=formId );
 
-		if ( submissionIds.len() == 1 ) {
-			messagebox.info( translateResource( uri="formbuilder:submission.deleted.confirmation" ) );
-		} else {
-			messagebox.info( translateResource( uri="formbuilder:submissions.deleted.confirmation" ) );
-		}
-
-		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & formId ) );
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object        = "formbuilder_formsubmission"
+				, postActionUrl = event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & formId )
+				, audit         = true
+				, auditAction   = "formbuilder_delete_submission"
+				, auditType     = "formbuilder"
+				, auditDetail   = {
+					  formId   = formForm.id   ?: ""
+					, formName = formForm.name ?: ""
+				}
+			}
+		);
 	}
-
 
 	public void function addActionAction( event, rc, prc ) {
 		_permissionsCheck( "editformactions", event );
@@ -826,8 +833,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object           = "formbuilder_form"
-				, errorUrl         = event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=" & formId )
-				, successUrl       = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & formId )
+				, postActionUrl    = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & formId )
 				, audit            = true
 				, auditAction      = "formbuilder_delete_form"
 				, auditType        = "formbuilder"

@@ -281,6 +281,11 @@ component {
 				formHtml = '<a href="#event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" )#">#renderLabel( "formbuilder_form", formId )#</a>';
 				break;
 
+			case "submission":
+				recordObjectName = "formbuilder_form"
+				recordId         = formId;
+				// No break intentionally.
+
 			default:
 				recordLabel = renderLabel( objectName=recordObjectName, recordId=recordId );
 
