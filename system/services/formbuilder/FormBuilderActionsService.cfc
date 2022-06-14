@@ -164,14 +164,26 @@ component {
 	) {
 		var formActionDao   = $getPresideObject( "formbuilder_formaction" );
 		var existingActions = formActionDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
-
-		return formActionDao.insertData( data={
+		var data            = {
 			  form          = arguments.formId
 			, action_type   = arguments.action
 			, configuration = SerializeJson( arguments.configuration )
 			, condition     = ( arguments.configuration.condition ?: "" )
 			, sort_order    = Val( existingActions.max_sort_order ?: "" ) + 1
-		} );
+		};
+
+		var actionId = formActionDao.insertData( data=data );
+
+		StructAppend( data, _getFormActionAuditDetail( formActionId=actionId ) );
+
+		$audit(
+			  action   = "formbuilder_add_action"
+			, type     = "formbuilder"
+			, recordId = actionId
+			, detail   = data
+		);
+
+		return actionId;
 	}
 
 	/**
@@ -183,14 +195,27 @@ component {
 	 *
 	 */
 	public any function saveAction( required string id, required struct configuration ) {
-		if ( !arguments.id.len() ) {
+		if ( !Len( Trim( arguments.id ) ) ) {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_formaction" ).updateData( id=arguments.id, data={
+		var data = {
 			  configuration = SerializeJson( arguments.configuration )
 			, condition     = ( arguments.configuration.condition ?: "" )
-		} );
+		};
+
+		var recordsCount = $getPresideObject( "formbuilder_formaction" ).updateData( id=arguments.id, data=data );
+
+		StructAppend( data, _getFormActionAuditDetail( formActionId=arguments.id ) );
+
+		$audit(
+			  action   = "formbuilder_edit_action"
+			, type     = "formbuilder"
+			, recordId = arguments.id
+			, detail   = data
+		);
+
+		return recordsCount;
 	}
 
 	/**
@@ -203,7 +228,24 @@ component {
 	 */
 	public boolean function deleteAction( required string id ) {
 		if ( Len( Trim( arguments.id ) ) ) {
-			return $getPresideObject( "formbuilder_formaction" ).deleteData( id=arguments.id ) > 0;
+			var formAction = getFormAction( id=arguments.id );
+
+			var data = _getFormActionAuditDetail( formActionId=arguments.id );
+
+			var recordsCount = $getPresideObject( "formbuilder_formaction" ).deleteData( id=arguments.id );
+
+			if ( recordsCount > 0 ) {
+				$audit(
+					  action   = "formbuilder_delete_action"
+					, type     = "formbuilder"
+					, recordId = arguments.id
+					, detail   = data
+				);
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		return false;
@@ -303,6 +345,14 @@ component {
 		};
 	}
 
+	private struct function _getFormActionAuditDetail( required string formActionId ) {
+		var formAction = getFormAction( id=arguments.formActionId );
+
+		return {
+			  formId         = formAction.formId    ?: ""
+			, formActionType = formAction.action.id ?: ""
+		};
+	}
 
 // GETTERS AND SETTERS
 	private array function _getConfiguredActions() {
